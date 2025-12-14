@@ -1,2 +1,297 @@
-# Krawl
-Krawl is a Web Honeypot &amp; Deception server that aims to foul enumerations, web crawling, fuzzing and bruteforcing
+<h1 align="center">🕷️ Krawl</h1>
+
+<p align="center">
+  A modern, customizable zero-dependencies honeypot server designed to detect and track malicious activity through deceptive web pages, fake credentials, and canary tokens.
+</p>
+
+<div align="center">
+  <a href="https://github.com/blessedrebus/krawl/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/blessedrebus/krawl" alt="License">
+  </a>
+  <a href="https://github.com/blessedrebus/krawl/releases">
+    <img src="https://img.shields.io/github/v/release/blessedrebus/krawl" alt="Release">
+  </a>
+</div>
+
+<div align="center">
+  <a href="https://ghcr.io/blessedrebus/krawl">
+    <img src="https://img.shields.io/badge/ghcr.io-krawl-blue" alt="GitHub Container Registry">
+  </a>
+  <a href="https://kubernetes.io/">
+    <img src="https://img.shields.io/badge/kubernetes-ready-326CE5?logo=kubernetes&logoColor=white" alt="Kubernetes">
+  </a>
+  <a href="https://github.com/BlessedRebuS/Krawl/pkgs/container/krawl-chart">
+    <img src="https://img.shields.io/badge/helm-chart-0F1689?logo=helm&logoColor=white" alt="Helm Chart">
+  </a>
+</div>
+
+<br>
+
+<p align="center">
+  <a href="#-overview">Overview</a> •
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#%EF%B8%8F-configuration">Configuration</a> •
+  <a href="#-dashboard">Dashboard</a> •
+  <a href="#-deception-techniques">Deception Techniques</a> •
+  <a href="#-contributing">Contributing</a>
+</p>
+
+![asd](img/deception-page.png)
+
+## What is Krawl?
+
+Krawl is a simple cloud native deception server that creates fake web applications with low hanging fruit and juicy fake random information. 
+
+It features:
+
+- **Spider Trap Pages**: Infinite random links to waste crawler resources based on the [spidertrap project](https://github.com/adhdproject/spidertrap)
+- **Fake Login Pages**: WordPress, phpMyAdmin, admin panels
+- **Honeypot Paths**: Advertised in robots.txt to catch scanners
+- **Fake Credentials**: Realistic-looking usernames, passwords, API keys
+- **Canary Token Integration**: External alert triggering
+- **Real-time Dashboard**: Monitor suspicious activity
+- **Customizable Wordlists**: Easy JSON-based configuration
+- **Random Error Injection**: Mimic real server behavior
+
+## 🚀 Quick Start
+## Helm Chart
+
+Install with default values
+
+```bash
+helm install krawl ./helm \
+  --namespace krawl-system \
+  --create-namespace
+```
+
+Install with custom values
+
+```bash
+helm install krawl ./helm \
+  --namespace krawl-system \
+  --create-namespace \
+  --values values.yaml
+```
+
+Install with custom canary token
+
+```bash
+helm install krawl ./helm \
+  --namespace krawl-system \
+  --create-namespace \
+  --set config.canaryTokenUrl="http://your-canary-token-url"
+```
+
+Uninstall with
+```bash
+helm uninstall krawl --namespace krawl-system
+```
+
+## Kubernetes / Kustomize
+Apply all manifests
+
+```bash
+kubectl apply -k manifests/
+```
+Retrieve dashboard path
+```bash
+kubectl get secret krawl-server -n krawl-system -o jsonpath='{.data.dashboard-path}' | base64 -d
+```
+Uninstall with 
+```bash
+kubectl delete -k manifests/
+```
+
+## Docker
+
+```bash
+docker run -d \
+  -p 5000:5000 \
+  -e CANARY_TOKEN_URL="http://your-canary-token-url" \
+  --name krawl \
+  ghcr.io/blessedrebus/krawl:latest
+```
+
+## Docker Compose
+
+```bash
+docker-compose up -d
+```
+
+## Python 3.11+
+
+Clone the repository
+
+```bash
+git clone https://github.com/blessedrebus/krawl.git
+cd krawl/src
+```
+Run the server
+```bash
+python3 server.py
+```
+
+Visit
+
+`http://localhost:5000`
+
+To access the dashboard
+
+`http://localhost:5000/dashboard-secret-path`
+
+## Configuration via Environment Variables
+
+To customize the deception server installation several **environment variables** can be specified.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PORT` | Server listening port | `5000` |
+| `DELAY` | Response delay in milliseconds | `100` |
+| `LINKS_MIN_LENGTH` | Minimum random link length | `5` |
+| `LINKS_MAX_LENGTH` | Maximum random link length | `15` |
+| `LINKS_MIN_PER_PAGE` | Minimum links per page | `10` |
+| `LINKS_MAX_PER_PAGE` | Maximum links per page | `15` |
+| `MAX_COUNTER` | Initial counter value | `10` |
+| `CANARY_TOKEN_TRIES` | Requests before showing canary token | `10` |
+| `CANARY_TOKEN_URL` | External canary token URL | None |
+| `DASHBOARD_SECRET_PATH` | Custom dashboard path | Auto-generated |
+| `PROBABILITY_ERROR_CODES` | Error response probability (0-100%) | `0` |
+
+## robots.txt
+The actual (juicy) robots.txt configuration is the following
+
+```txt
+Disallow: /admin/
+Disallow: /api/
+Disallow: /backup/
+Disallow: /config/
+Disallow: /database/
+Disallow: /private/
+Disallow: /uploads/
+Disallow: /wp-admin/
+Disallow: /phpMyAdmin/
+Disallow: /admin/login.php
+Disallow: /api/v1/users
+Disallow: /api/v2/secrets
+Disallow: /.env
+Disallow: /credentials.txt
+Disallow: /passwords.txt
+Disallow: /.git/
+Disallow: /backup.sql
+Disallow: /db_backup.sql
+```
+## Wordlists Customization
+
+Edit `wordlists.json` to customize fake data:
+
+```json
+{
+  "usernames": {
+    "prefixes": ["admin", "root", "user"],
+    "suffixes": ["_prod", "_dev", "123"]
+  },
+  "passwords": {
+    "prefixes": ["P@ssw0rd", "Admin"],
+    "simple": ["test", "password"]
+  },
+  "directory_listing": {
+    "files": ["credentials.txt", "backup.sql"],
+    "directories": ["admin/", "backup/"]
+  }
+}
+```
+
+or **values.yaml** in the case of helm chart installation
+
+## Dashboard
+
+Access the dashboard at `http://<server-ip>:<port>/<dashboard-path>`
+
+The attackers' triggered honeypot path and the suspicious activity (such as failed login attempts) are logged
+
+![asd](img/dashboard-1.png)
+
+The top IP Addresses is shown along with top paths and User Agents
+
+![asd](img/dashboard-2.png)
+
+The dashboard shows:
+- Total and unique accesses
+- Suspicious activity detection
+- Honeypot triggers
+- Top IPs, paths, and user-agents
+- Real-time monitoring
+
+### Retrieving Dashboard Path
+
+Check server startup logs
+
+**Python/Docker:**
+```bash
+docker logs krawl | grep "Dashboard available"
+```
+
+**Kubernetes:**
+```bash
+kubectl get secret krawl-server -n krawl-system \
+  -o jsonpath='{.data.dashboard-path}' | base64 -d && echo
+```
+
+**Helm:**
+```bash
+kubectl get secret krawl -n krawl-system \
+  -o jsonpath='{.data.dashboard-path}' | base64 -d && echo
+```
+
+## Deception Techniques
+
+### 1. Robots.txt Honeypots
+Advertises forbidden paths that legitimate crawlers avoid but scanners investigate:
+- `/admin/`, `/backup/`, `/config/`
+- `/credentials.txt`, `/.env`, `/passwords.txt`
+
+### 2. Fake Services
+Mimics real applications:
+- WordPress (`/wp-admin`, `/wp-login.php`)
+- phpMyAdmin (`/phpmyadmin`)
+- Admin panels (`/admin`, `/login`)
+
+### 3. Credential Traps
+Generates realistic but fake:
+- Usernames and passwords
+- API keys and tokens
+- Database connection strings
+- AWS credentials
+
+### 4. Spider Traps
+Infinite random links to waste automated scanner time
+
+### 5. Error Simulation
+Random HTTP errors to appear more realistic
+
+
+### Custom Canary Token
+
+Generate a canary token at [canarytokens.org](https://canarytokens.org) and configure:
+
+```bash
+export CANARY_TOKEN_URL="http://canarytokens.com/..."
+python3 src/server.py
+```
+
+## Contributing
+
+Contributions welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+
+<div align="center">
+
+## Disclaimer
+
+**This is a deception/honeypot system.**  
+Deploy in isolated environments and monitor carefully for security events.  
+Use responsibly and in compliance with applicable laws and regulations.

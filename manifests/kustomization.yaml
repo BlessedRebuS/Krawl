@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - wordlists-configmap.yaml
+  - deployment.yaml
+  - service.yaml
+  - network-policy.yaml
+  - ingress.yaml
+  - hpa.yaml
+
+namespace: krawl-system

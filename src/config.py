@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+
+import os
+from dataclasses import dataclass
+from typing import Optional, Tuple
+
+
+@dataclass
+class Config:
+    """Configuration class for the deception server"""
+    port: int = 5000
+    delay: int = 100  # milliseconds
+    links_length_range: Tuple[int, int] = (5, 15)
+    links_per_page_range: Tuple[int, int] = (10, 15)
+    char_space: str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    max_counter: int = 10
+    canary_token_url: Optional[str] = None
+    canary_token_tries: int = 10
+    dashboard_secret_path: str = None
+    api_server_url: Optional[str] = None
+    api_server_port: int = 8080
+    api_server_path: str = "/api/v2/users"
+    probability_error_codes: int = 0  # Percentage (0-100)
+
+    @classmethod
+    def from_env(cls) -> 'Config':
+        """Create configuration from environment variables"""
+        return cls(
+            port=int(os.getenv('PORT', 5000)),
+            delay=int(os.getenv('DELAY', 100)),
+            links_length_range=(
+                int(os.getenv('LINKS_MIN_LENGTH', 5)),
+                int(os.getenv('LINKS_MAX_LENGTH', 15))
+            ),
+            links_per_page_range=(
+                int(os.getenv('LINKS_MIN_PER_PAGE', 10)),
+                int(os.getenv('LINKS_MAX_PER_PAGE', 15))
+            ),
+            char_space=os.getenv('CHAR_SPACE', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'),
+            max_counter=int(os.getenv('MAX_COUNTER', 10)),
+            canary_token_url=os.getenv('CANARY_TOKEN_URL'),
+            canary_token_tries=int(os.getenv('CANARY_TOKEN_TRIES', 10)),
+            dashboard_secret_path=os.getenv('DASHBOARD_SECRET_PATH', f'/{os.urandom(16).hex()}'),
+            api_server_url=os.getenv('API_SERVER_URL'),
+            api_server_port=int(os.getenv('API_SERVER_PORT', 8080)),
+            api_server_path=os.getenv('API_SERVER_PATH', '/api/v2/users'),
+            probability_error_codes=int(os.getenv('PROBABILITY_ERROR_CODES', 5))
+        )

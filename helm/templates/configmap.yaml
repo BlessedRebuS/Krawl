@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "krawl.fullname" . }}-config
+  labels:
+    {{- include "krawl.labels" . | nindent 4 }}
+data:
+  PORT: {{ .Values.config.port | quote }}
+  DELAY: {{ .Values.config.delay | quote }}
+  LINKS_MIN_LENGTH: {{ .Values.config.linksMinLength | quote }}
+  LINKS_MAX_LENGTH: {{ .Values.config.linksMaxLength | quote }}
+  LINKS_MIN_PER_PAGE: {{ .Values.config.linksMinPerPage | quote }}
+  LINKS_MAX_PER_PAGE: {{ .Values.config.linksMaxPerPage | quote }}
+  MAX_COUNTER: {{ .Values.config.maxCounter | quote }}
+  CANARY_TOKEN_TRIES: {{ .Values.config.canaryTokenTries | quote }}
+  PROBABILITY_ERROR_CODES: {{ .Values.config.probabilityErrorCodes | quote }}
+  CANARY_TOKEN_URL: {{ .Values.config.canaryTokenUrl | quote }}

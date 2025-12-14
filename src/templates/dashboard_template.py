@@ -1,0 +1,241 @@
+#!/usr/bin/env python3
+
+"""
+Dashboard template for viewing honeypot statistics.
+Customize this template to change the dashboard appearance.
+"""
+
+
+def generate_dashboard(stats: dict) -> str:
+    """Generate dashboard HTML with access statistics"""
+    
+    # Generate IP rows
+    top_ips_rows = '\n'.join([
+        f'<tr><td class="rank">{i+1}</td><td>{ip}</td><td>{count}</td></tr>'
+        for i, (ip, count) in enumerate(stats['top_ips'])
+    ]) or '<tr><td colspan="3" style="text-align:center;">No data</td></tr>'
+
+    # Generate paths rows
+    top_paths_rows = '\n'.join([
+        f'<tr><td class="rank">{i+1}</td><td>{path}</td><td>{count}</td></tr>'
+        for i, (path, count) in enumerate(stats['top_paths'])
+    ]) or '<tr><td colspan="3" style="text-align:center;">No data</td></tr>'
+
+    # Generate User-Agent rows
+    top_ua_rows = '\n'.join([
+        f'<tr><td class="rank">{i+1}</td><td style="word-break: break-all;">{ua[:80]}</td><td>{count}</td></tr>'
+        for i, (ua, count) in enumerate(stats['top_user_agents'])
+    ]) or '<tr><td colspan="3" style="text-align:center;">No data</td></tr>'
+
+    # Generate suspicious accesses rows
+    suspicious_rows = '\n'.join([
+        f'<tr><td>{log["ip"]}</td><td>{log["path"]}</td><td style="word-break: break-all;">{log["user_agent"][:60]}</td><td>{log["timestamp"].split("T")[1][:8]}</td></tr>'
+        for log in stats['recent_suspicious'][-10:]
+    ]) or '<tr><td colspan="4" style="text-align:center;">No suspicious activity detected</td></tr>'
+
+    # Generate honeypot triggered IPs rows
+    honeypot_rows = '\n'.join([
+        f'<tr><td>{ip}</td><td style="word-break: break-all;">{", ".join(paths)}</td><td>{len(paths)}</td></tr>'
+        for ip, paths in stats.get('honeypot_triggered_ips', [])
+    ]) or '<tr><td colspan="3" style="text-align:center;">No honeypot triggers yet</td></tr>'
+
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Krawl Dashboard</title>
+    <style>
+        body {{
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            margin: 0;
+            padding: 20px;
+        }}
+        .container {{
+            max-width: 1400px;
+            margin: 0 auto;
+        }}
+        h1 {{
+            color: #58a6ff;
+            text-align: center;
+            margin-bottom: 40px;
+        }}
+        .stats-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }}
+        .stat-card {{
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+        }}
+        .stat-card.alert {{
+            border-color: #f85149;
+        }}
+        .stat-value {{
+            font-size: 36px;
+            font-weight: bold;
+            color: #58a6ff;
+        }}
+        .stat-value.alert {{
+            color: #f85149;
+        }}
+        .stat-label {{
+            font-size: 14px;
+            color: #8b949e;
+            margin-top: 5px;
+        }}
+        .table-container {{
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }}
+        h2 {{
+            color: #58a6ff;
+            margin-top: 0;
+        }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+        }}
+        th, td {{
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #30363d;
+        }}
+        th {{
+            background: #0d1117;
+            color: #58a6ff;
+            font-weight: 600;
+        }}
+        tr:hover {{
+            background: #1c2128;
+        }}
+        .rank {{
+            color: #8b949e;
+            font-weight: bold;
+        }}
+        .alert-section {{
+            background: #1c1917;
+            border-left: 4px solid #f85149;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>&#128375;&#65039; Krawl Dashboard</h1>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{stats['total_accesses']}</div>
+                <div class="stat-label">Total Accesses</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{stats['unique_ips']}</div>
+                <div class="stat-label">Unique IPs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{stats['unique_paths']}</div>
+                <div class="stat-label">Unique Paths</div>
+            </div>
+            <div class="stat-card alert">
+                <div class="stat-value alert">{stats['suspicious_accesses']}</div>
+                <div class="stat-label">Suspicious Accesses</div>
+            </div>
+            <div class="stat-card alert">
+                <div class="stat-value alert">{stats.get('honeypot_ips', 0)}</div>
+                <div class="stat-label">Honeypot Caught</div>
+            </div>
+        </div>
+
+        <div class="table-container alert-section">
+            <h2>🍯 Honeypot Triggers</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>IP Address</th>
+                        <th>Accessed Paths</th>
+                        <th>Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {honeypot_rows}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-container alert-section">
+            <h2>&#9888;&#65039; Recent Suspicious Activity</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>IP Address</th>
+                        <th>Path</th>
+                        <th>User-Agent</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {suspicious_rows}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-container">
+            <h2>Top IP Addresses</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>IP Address</th>
+                        <th>Access Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {top_ips_rows}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-container">
+            <h2>Top Paths</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Path</th>
+                        <th>Access Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {top_paths_rows}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-container">
+            <h2>Top User-Agents</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>User-Agent</th>
+                        <th>Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {top_ua_rows}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+"""

@@ -1,0 +1,295 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/blessedrebus/krawl
+  pullPolicy: Always
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: "krawl"
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: LoadBalancer
+  port: 5000
+  annotations: {}
+  # Preserve source IP when using LoadBalancer
+  externalTrafficPolicy: Local
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations: {}
+  hosts:
+    - host: krawl.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: krawl-tls
+  #    hosts:
+  #      - krawl.example.com
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 64Mi
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Application configuration
+config:
+  port: 5000
+  delay: 100
+  linksMinLength: 5
+  linksMaxLength: 15
+  linksMinPerPage: 10
+  linksMaxPerPage: 15
+  maxCounter: 10
+  canaryTokenTries: 10
+  probabilityErrorCodes: 0
+#  canaryTokenUrl: set-your-canary-token-url-here
+
+networkPolicy:
+  enabled: true
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+      - podSelector: {}
+      - namespaceSelector: {}
+      - ipBlock:
+          cidr: 0.0.0.0/0
+      ports:
+      - protocol: TCP
+        port: 5000
+  egress:
+    - to:
+      - namespaceSelector: {}
+      - ipBlock:
+          cidr: 0.0.0.0/0
+      ports:
+      - protocol: TCP
+      - protocol: UDP
+
+# Wordlists configuration
+wordlists:
+  usernames:
+    prefixes:
+      - admin
+      - user
+      - developer
+      - root
+      - system
+      - db
+      - api
+      - service
+      - deploy
+      - test
+      - prod
+      - backup
+      - monitor
+      - jenkins
+      - webapp
+    suffixes:
+      - ""
+      - "_prod"
+      - "_dev"
+      - "_test"
+      - "123"
+      - "2024"
+      - "_backup"
+      - "_admin"
+      - "01"
+      - "02"
+      - "_user"
+      - "_service"
+      - "_api"
+  passwords:
+    prefixes:
+      - P@ssw0rd
+      - Passw0rd
+      - Admin
+      - Secret
+      - Welcome
+      - System
+      - Database
+      - Secure
+      - Master
+      - Root
+    simple:
+      - test
+      - demo
+      - temp
+      - change
+      - password
+      - admin
+      - letmein
+      - welcome
+      - default
+      - sample
+  emails:
+    domains:
+      - example.com
+      - company.com
+      - localhost.com
+      - test.com
+      - domain.com
+      - corporate.com
+      - internal.net
+      - enterprise.com
+      - business.org
+  api_keys:
+    prefixes:
+      - sk_live_
+      - sk_test_
+      - api_
+      - key_
+      - token_
+      - access_
+      - secret_
+      - prod_
+      - ""
+  databases:
+    names:
+      - production
+      - prod_db
+      - main_db
+      - app_database
+      - users_db
+      - customer_data
+      - analytics
+      - staging_db
+      - dev_database
+      - wordpress
+      - ecommerce
+      - crm_db
+      - inventory
+    hosts:
+      - localhost
+      - db.internal
+      - mysql.local
+      - postgres.internal
+      - 127.0.0.1
+      - db-server-01
+      - database.prod
+      - sql.company.com
+  applications:
+    names:
+      - WebApp
+      - API Gateway
+      - Dashboard
+      - Admin Panel
+      - CMS
+      - Portal
+      - Manager
+      - Console
+      - Control Panel
+      - Backend
+  users:
+    roles:
+      - Administrator
+      - Developer
+      - Manager
+      - User
+      - Guest
+      - Moderator
+      - Editor
+      - Viewer
+      - Analyst
+      - Support
+  directory_listing:
+    files:
+      - admin.txt
+      - test.exe
+      - backup.sql
+      - database.sql
+      - db_backup.sql
+      - dump.sql
+      - config.php
+      - credentials.txt
+      - passwords.txt
+      - users.csv
+      - .env
+      - id_rsa
+      - id_rsa.pub
+      - private_key.pem
+      - api_keys.json
+      - secrets.yaml
+      - admin_notes.txt
+      - settings.ini
+      - database.yml
+      - wp-config.php
+      - .htaccess
+      - server.key
+      - cert.pem
+      - shadow.bak
+      - passwd.old
+    directories:
+      - uploads/
+      - backups/
+      - logs/
+      - temp/
+      - cache/
+      - private/
+      - config/
+      - admin/
+      - database/
+      - backup/
+      - old/
+      - archive/
+      - .git/
+      - keys/
+      - credentials/
+  error_codes:
+    - 400
+    - 401
+    - 403
+    - 404
+    - 500
+    - 502
+    - 503

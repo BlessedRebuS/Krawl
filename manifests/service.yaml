@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: krawl-server
+  namespace: krawl-system
+  labels:
+    app: krawl-server
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 5000
+    targetPort: 5000
+    protocol: TCP
+    name: http
+  selector:
+    app: krawl-server

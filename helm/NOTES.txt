@@ -1,0 +1,60 @@
+▄▄▄   ▄▄▄ ▄▄▄▄▄▄▄     ▄▄▄▄   ▄▄▄▄  ▄▄▄  ▄▄▄▄ ▄▄▄      
+███ ▄███▀ ███▀▀███▄ ▄██▀▀██▄ ▀███  ███  ███▀ ███      
+███████   ███▄▄███▀ ███  ███  ███  ███  ███  ███      
+███▀███▄  ███▀▀██▄  ███▀▀███  ███▄▄███▄▄███  ███      
+███  ▀███ ███  ▀███ ███  ███   ▀████▀████▀   ████████ 
+              |                                                 
+              | 
+              | 
+              | 
+              | 
+           ||   ||
+           \\(_)//
+          //(___)\\
+          ||     ||
+
+WARNING: This is a krawl/honeypot service. Monitor access logs for security events.
+
+For more information, visit: https://github.com/blessedrebus/krawl
+
+Your krawl honeypot server has been deployed successfully.
+
+{{- if .Values.service.type }}
+
+Service Type: {{ .Values.service.type }}
+{{- if eq .Values.service.type "LoadBalancer" }}
+
+To get the LoadBalancer IP address, run:
+  kubectl get svc {{ include "krawl.fullname" . }} -n {{ .Release.Namespace }}
+
+Once the EXTERNAL-IP is assigned, access your krawl server at:
+  http://<EXTERNAL-IP>:{{ .Values.service.port }}
+{{- else if eq .Values.service.type "NodePort" }}
+
+To get the NodePort, run:
+  export NODE_PORT=$(kubectl get svc {{ include "krawl.fullname" . }} -n {{ .Release.Namespace }} -o jsonpath='{.spec.ports[0].nodePort}')
+  export NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}')
+  echo "Access at: http://$NODE_IP:$NODE_PORT"
+{{- else if eq .Values.service.type "ClusterIP" }}
+
+To access the service from your local machine:
+  kubectl port-forward svc/{{ include "krawl.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }} -n {{ .Release.Namespace }}
+
+Then access at: http://localhost:{{ .Values.service.port }}
+{{- end }}
+{{- end }}
+
+Dashboard Access:
+  To retrieve the dashboard path, run:
+    kubectl get secret {{ include "krawl.fullname" . }} -n {{ .Release.Namespace }} -o jsonpath='{.data.dashboard-path}' | base64 -d && echo
+  
+  Then access the dashboard at:
+    http://<EXTERNAL-IP>:{{ .Values.service.port }}/<dashboard-path>
+
+{{- if .Values.ingress.enabled }}
+
+Ingress is ENABLED. Your service will be available at:
+{{- range .Values.ingress.hosts }}
+  - http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- end }}
+{{- end }}
