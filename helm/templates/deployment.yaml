@@ -54,14 +54,6 @@ spec:
           mountPath: /app/wordlists.json
           subPath: wordlists.json
           readOnly: true
-        {{- with .Values.livenessProbe }}
-        livenessProbe:
-          {{- toYaml . | nindent 12 }}
-        {{- end }}
-        {{- with .Values.readinessProbe }}
-        readinessProbe:
-          {{- toYaml . | nindent 12 }}
-        {{- end }}
         {{- with .Values.resources }}
         resources:
           {{- toYaml . | nindent 12 }}

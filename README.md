@@ -180,6 +180,34 @@ Disallow: /.git/
 Disallow: /backup.sql
 Disallow: /db_backup.sql
 ```
+
+## Honeypot pages
+Requests to common admin endpoints (`/admin/`, `/wp-admin/`, `/phpMyAdmin/`) return a fake login page. Any login attempt triggers a 1-second delay to simulate real processing and is fully logged in the dashboard (credentials, IP, headers, timing).
+
+![admin-page](img/admin-page.png)
+
+Requests to paths like `/backup/`, `/config/`, `/database/`, `/private/`, or `/uploads/` return a fake directory listing populated with “interesting” files, each assigned a random file size to look realistic.
+
+![directory-page](img/directory-page.png)
+
+The `.env` endpoint exposes fake database connection strings, **AWS API keys**, and **Stripe secrets**. It intentionally returns an error due to the `Content-Type` being `application/json` instead of plain text, mimicking a “juicy” misconfiguration that crawlers and scanners often flag as information leakage.
+
+![env-page](img/env-page.png)
+
+The pages `/api/v1/users` and `/api/v2/secrets` show fake users and random secrets in JSON format
+
+<div align="center">
+  <img src="img/api-users-page.png" width="45%" style="vertical-align: middle; margin: 0 10px;" />
+  <img src="img/api-secrets-page.png" width="45%" style="vertical-align: middle; margin: 0 10px;" />
+</div>
+
+The pages `/credentials.txt` and `/passwords.txt` show fake users and random secrets 
+
+<div align="center">
+  <img src="img/credentials-page.png" width="35%" style="vertical-align: middle; margin: 0 10px;" />
+  <img src="img/passwords-page.png" width="45%" style="vertical-align: middle; margin: 0 10px;" />
+</div>
+
 ## Wordlists Customization
 
 Edit `wordlists.json` to customize fake data:
@@ -209,11 +237,11 @@ Access the dashboard at `http://<server-ip>:<port>/<dashboard-path>`
 
 The attackers' triggered honeypot path and the suspicious activity (such as failed login attempts) are logged
 
-![asd](img/dashboard-1.png)
+![dashboard-1](img/dashboard-1.png)
 
 The top IP Addresses is shown along with top paths and User Agents
 
-![asd](img/dashboard-2.png)
+![dashboard-2](img/dashboard-2.png)
 
 The dashboard shows:
 - Total and unique accesses
@@ -285,7 +313,7 @@ Contributions welcome! Please:
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Submit a pull request
+4. Submit a pull request (explain the changes!)
 
 
 <div align="center">
