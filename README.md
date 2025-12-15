@@ -243,7 +243,7 @@ This optional token is triggered when a crawler fully traverses the webpage unti
 
 To enable this feature, set the canary token URL [using the environment variable](#configuration-via-environment-variables) `CANARY_TOKEN_URL`.
 
-## Wordlists Customization
+## Customizing the wordlist 
 
 Edit `wordlists.json` to customize fake data for your use case
 
