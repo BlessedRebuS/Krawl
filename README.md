@@ -1,5 +1,14 @@
 <h1 align="center">🕷️ Krawl</h1>
 
+<h3 align="center">
+  <a name="readme-top"></a>
+  <img
+    src="img/krawl-logo.jpg"
+    height="200"
+  >
+</h3>
+<div align="center">
+
 <p align="center">
   A modern, customizable zero-dependencies honeypot server designed to detect and track malicious activity through deceptive web pages, fake credentials, and canary tokens.
 </p>
@@ -28,19 +37,22 @@
 <br>
 
 <p align="center">
-  <a href="#-overview">Overview</a> •
+  <a href="#what-is-krawl">What is Krawl?</a> •
   <a href="#-quick-start">Quick Start</a> •
-  <a href="#%EF%B8%8F-configuration">Configuration</a> •
-  <a href="#-dashboard">Dashboard</a> •
-  <a href="#-deception-techniques">Deception Techniques</a> •
+  <a href="#honeypot-pages">Honeypot Pages</a> •
+  <a href="#dashboard">Dashboard</a> •
   <a href="#-contributing">Contributing</a>
 </p>
 
-![asd](img/deception-page.png)
+</div>
 
 ## What is Krawl?
 
-Krawl is a simple cloud native deception server that creates fake web applications with low hanging fruit and juicy fake random information. 
+**Krawl** is a cloud‑native deception server designed to detect, delay, and analyze malicious web crawlers and automated scanners.
+
+It creates realistic fake web applications filled with low‑hanging fruit such as admin panels, configuration files, and exposed fake credentials to attract and identify suspicious activity.
+
+By wasting attacker resources, Krawl helps clearly distinguish malicious behavior from legitimate crawlers.
 
 It features:
 
@@ -48,10 +60,12 @@ It features:
 - **Fake Login Pages**: WordPress, phpMyAdmin, admin panels
 - **Honeypot Paths**: Advertised in robots.txt to catch scanners
 - **Fake Credentials**: Realistic-looking usernames, passwords, API keys
-- **Canary Token Integration**: External alert triggering
+- **[Canary Token](#customizing-the-canary-token) Integration**: External alert triggering
 - **Real-time Dashboard**: Monitor suspicious activity
 - **Customizable Wordlists**: Easy JSON-based configuration
 - **Random Error Injection**: Mimic real server behavior
+
+![asd](img/deception-page.png)
 
 ## 🚀 Quick Start
 ## Helm Chart
@@ -59,50 +73,52 @@ It features:
 Install with default values
 
 ```bash
-helm install krawl ./helm \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
   --namespace krawl-system \
   --create-namespace
 ```
 
-Install with custom values
+Install with custom [canary token](#customizing-the-canary-token) 
 
 ```bash
-helm install krawl ./helm \
-  --namespace krawl-system \
-  --create-namespace \
-  --values values.yaml
-```
-
-Install with custom canary token
-
-```bash
-helm install krawl ./helm \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
   --namespace krawl-system \
   --create-namespace \
   --set config.canaryTokenUrl="http://your-canary-token-url"
 ```
 
-Uninstall with
+To access the deception server
+
 ```bash
-helm uninstall krawl --namespace krawl-system
+kubectl get svc krawl -n krawl-system
+```
+
+Once the EXTERNAL-IP is assigned, access your deception server at:
+
+```
+http://<EXTERNAL-IP>:5000
 ```
 
 ## Kubernetes / Kustomize
-Apply all manifests
+Apply all manifests with
 
 ```bash
-kubectl apply -k manifests/
+kubectl apply -f https://raw.githubusercontent.com/BlessedRebuS/Krawl/refs/heads/main/manifests/krawl-all-in-one-deploy.yaml
 ```
-Retrieve dashboard path
+
+Retrieve dashboard path with
 ```bash
 kubectl get secret krawl-server -n krawl-system -o jsonpath='{.data.dashboard-path}' | base64 -d
 ```
-Uninstall with 
+
+Or clone the repo and apply the `manifest` folder with
+
 ```bash
-kubectl delete -k manifests/
+kubectl apply -k manifests
 ```
 
 ## Docker
+Run Krawl as a docker container with
 
 ```bash
 docker run -d \
@@ -113,9 +129,16 @@ docker run -d \
 ```
 
 ## Docker Compose
+Run Krawl with docker-compose in the project folder with
 
 ```bash
 docker-compose up -d
+```
+
+Stop it with
+
+```bash
+docker-compose down
 ```
 
 ## Python 3.11+
@@ -137,7 +160,7 @@ Visit
 
 To access the dashboard
 
-`http://localhost:5000/dashboard-secret-path`
+`http://localhost:5000/<dashboard-secret-path>`
 
 ## Configuration via Environment Variables
 
@@ -184,7 +207,9 @@ Disallow: /db_backup.sql
 ## Honeypot pages
 Requests to common admin endpoints (`/admin/`, `/wp-admin/`, `/phpMyAdmin/`) return a fake login page. Any login attempt triggers a 1-second delay to simulate real processing and is fully logged in the dashboard (credentials, IP, headers, timing).
 
-![admin-page](img/admin-page.png)
+<div align="center">
+  <img src="img/admin-page.png" width="60%" />
+</div>
 
 Requests to paths like `/backup/`, `/config/`, `/database/`, `/private/`, or `/uploads/` return a fake directory listing populated with “interesting” files, each assigned a random file size to look realistic.
 
@@ -208,9 +233,19 @@ The pages `/credentials.txt` and `/passwords.txt` show fake users and random sec
   <img src="img/passwords-page.png" width="45%" style="vertical-align: middle; margin: 0 10px;" />
 </div>
 
+## Customizing the Canary Token
+To create a custom canary token, visit https://canarytokens.org
+
+and generate a “Web bug” canary token.
+
+This optional token is triggered when a crawler fully traverses the webpage until it reaches 0. At that point, a URL is returned. When this URL is requested, it sends an alert to the user via email, including the visitor’s IP address and user agent.
+
+
+To enable this feature, set the canary token URL [using the environment variable](#configuration-via-environment-variables) `CANARY_TOKEN_URL`.
+
 ## Wordlists Customization
 
-Edit `wordlists.json` to customize fake data:
+Edit `wordlists.json` to customize fake data for your use case
 
 ```json
 {
@@ -271,43 +306,7 @@ kubectl get secret krawl -n krawl-system \
   -o jsonpath='{.data.dashboard-path}' | base64 -d && echo
 ```
 
-## Deception Techniques
-
-### 1. Robots.txt Honeypots
-Advertises forbidden paths that legitimate crawlers avoid but scanners investigate:
-- `/admin/`, `/backup/`, `/config/`
-- `/credentials.txt`, `/.env`, `/passwords.txt`
-
-### 2. Fake Services
-Mimics real applications:
-- WordPress (`/wp-admin`, `/wp-login.php`)
-- phpMyAdmin (`/phpmyadmin`)
-- Admin panels (`/admin`, `/login`)
-
-### 3. Credential Traps
-Generates realistic but fake:
-- Usernames and passwords
-- API keys and tokens
-- Database connection strings
-- AWS credentials
-
-### 4. Spider Traps
-Infinite random links to waste automated scanner time
-
-### 5. Error Simulation
-Random HTTP errors to appear more realistic
-
-
-### Custom Canary Token
-
-Generate a canary token at [canarytokens.org](https://canarytokens.org) and configure:
-
-```bash
-export CANARY_TOKEN_URL="http://canarytokens.com/..."
-python3 src/server.py
-```
-
-## Contributing
+## 🤝 Contributing
 
 Contributions welcome! Please:
 1. Fork the repository
@@ -318,7 +317,7 @@ Contributions welcome! Please:
 
 <div align="center">
 
-## Disclaimer
+## ⚠️ Disclaimer
 
 **This is a deception/honeypot system.**  
 Deploy in isolated environments and monitor carefully for security events.  

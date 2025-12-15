@@ -1,0 +1,372 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: krawl-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: krawl-config
+  namespace: krawl-system
+data:
+  PORT: "5000"
+  DELAY: "100"
+  LINKS_MIN_LENGTH: "5"
+  LINKS_MAX_LENGTH: "15"
+  LINKS_MIN_PER_PAGE: "10"
+  LINKS_MAX_PER_PAGE: "15"
+  MAX_COUNTER: "10"
+  CANARY_TOKEN_TRIES: "10"
+  PROBABILITY_ERROR_CODES: "0"
+#  CANARY_TOKEN_URL: set-your-canary-token-url-here
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: krawl-wordlists
+  namespace: krawl-system
+data:
+  wordlists.json: |
+    {
+      "usernames": {
+        "prefixes": [
+          "admin",
+          "user",
+          "developer",
+          "root",
+          "system",
+          "db",
+          "api",
+          "service",
+          "deploy",
+          "test",
+          "prod",
+          "backup",
+          "monitor",
+          "jenkins",
+          "webapp"
+        ],
+        "suffixes": [
+          "",
+          "_prod",
+          "_dev",
+          "_test",
+          "123",
+          "2024",
+          "_backup",
+          "_admin",
+          "01",
+          "02",
+          "_user",
+          "_service",
+          "_api"
+        ]
+      },
+      "passwords": {
+        "prefixes": [
+          "P@ssw0rd",
+          "Passw0rd",
+          "Admin",
+          "Secret",
+          "Welcome",
+          "System",
+          "Database",
+          "Secure",
+          "Master",
+          "Root"
+        ],
+        "simple": [
+          "test",
+          "demo",
+          "temp",
+          "change",
+          "password",
+          "admin",
+          "letmein",
+          "welcome",
+          "default",
+          "sample"
+        ]
+      },
+      "emails": {
+        "domains": [
+          "example.com",
+          "company.com",
+          "localhost.com",
+          "test.com",
+          "domain.com",
+          "corporate.com",
+          "internal.net",
+          "enterprise.com",
+          "business.org"
+        ]
+      },
+      "api_keys": {
+        "prefixes": [
+          "sk_live_",
+          "sk_test_",
+          "api_",
+          "key_",
+          "token_",
+          "access_",
+          "secret_",
+          "prod_",
+          ""
+        ]
+      },
+      "databases": {
+        "names": [
+          "production",
+          "prod_db",
+          "main_db",
+          "app_database",
+          "users_db",
+          "customer_data",
+          "analytics",
+          "staging_db",
+          "dev_database",
+          "wordpress",
+          "ecommerce",
+          "crm_db",
+          "inventory"
+        ],
+        "hosts": [
+          "localhost",
+          "db.internal",
+          "mysql.local",
+          "postgres.internal",
+          "127.0.0.1",
+          "db-server-01",
+          "database.prod",
+          "sql.company.com"
+        ]
+      },
+      "applications": {
+        "names": [
+          "WebApp",
+          "API Gateway",
+          "Dashboard",
+          "Admin Panel",
+          "CMS",
+          "Portal",
+          "Manager",
+          "Console",
+          "Control Panel",
+          "Backend"
+        ]
+      },
+      "users": {
+        "roles": [
+          "Administrator",
+          "Developer",
+          "Manager",
+          "User",
+          "Guest",
+          "Moderator",
+          "Editor",
+          "Viewer",
+          "Analyst",
+          "Support"
+        ]
+      },
+      "directory_listing": {
+        "files": [
+          "admin.txt",
+          "test.exe",
+          "backup.sql",
+          "database.sql",
+          "db_backup.sql",
+          "dump.sql",
+          "config.php",
+          "credentials.txt",
+          "passwords.txt",
+          "users.csv",
+          ".env",
+          "id_rsa",
+          "id_rsa.pub",
+          "private_key.pem",
+          "api_keys.json",
+          "secrets.yaml",
+          "admin_notes.txt",
+          "settings.ini",
+          "database.yml",
+          "wp-config.php",
+          ".htaccess",
+          "server.key",
+          "cert.pem",
+          "shadow.bak",
+          "passwd.old"
+        ],
+        "directories": [
+          "uploads/",
+          "backups/",
+          "logs/",
+          "temp/",
+          "cache/",
+          "private/",
+          "config/",
+          "admin/",
+          "database/",
+          "backup/",
+          "old/",
+          "archive/",
+          ".git/",
+          "keys/",
+          "credentials/"
+        ]
+      },
+      "error_codes": [
+        400,
+        401,
+        403,
+        404,
+        500,
+        502,
+        503
+      ]
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: krawl-server
+  namespace: krawl-system
+  labels:
+    app: krawl-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: krawl-server
+  template:
+    metadata:
+      labels:
+        app: krawl-server
+    spec:
+      containers:
+      - name: krawl
+        image: ghcr.io/blessedrebus/krawl:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: krawl-config
+        volumeMounts:
+        - name: wordlists
+          mountPath: /app/wordlists.json
+          subPath: wordlists.json
+          readOnly: true
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+      volumes:
+      - name: wordlists
+        configMap:
+          name: krawl-wordlists
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: krawl-server
+  namespace: krawl-system
+  labels:
+    app: krawl-server
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 5000
+    targetPort: 5000
+    protocol: TCP
+    name: http
+  selector:
+    app: krawl-server
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: krawl-ingress
+  namespace: krawl-system
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: krawl.example.com  # Change to your domain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: krawl-server
+            port:
+              number: 5000
+  # tls:
+  # - hosts:
+  #   - krawl.example.com
+  #   secretName: krawl-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: krawl-network-policy
+  namespace: krawl-system
+spec:
+  podSelector:
+    matchLabels:
+      app: krawl-server
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector: {}
+    - namespaceSelector: {}
+    - ipBlock:
+        cidr: 0.0.0.0/0 
+    ports:
+    - protocol: TCP
+      port: 5000
+  egress:
+  - to:
+    - namespaceSelector: {}
+    - ipBlock:
+        cidr: 0.0.0.0/0
+    ports:
+    - protocol: TCP
+    - protocol: UDP
+---
+# Optional: HorizontalPodAutoscaler for auto-scaling
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: krawl-hpa
+  namespace: krawl-system
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: krawl-server
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
