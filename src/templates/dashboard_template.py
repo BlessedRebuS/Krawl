@@ -39,6 +39,12 @@ def generate_dashboard(stats: dict) -> str:
         for ip, paths in stats.get('honeypot_triggered_ips', [])
     ]) or '<tr><td colspan="3" style="text-align:center;">No honeypot triggers yet</td></tr>'
 
+    # Generate attack types rows
+    attack_type_rows = '\n'.join([
+        f'<tr><td>{log["ip"]}</td><td>{log["path"]}</td><td>{", ".join(log["attack_types"])}</td><td style="word-break: break-all;">{log["user_agent"][:60]}</td><td>{log["timestamp"].split("T")[1][:8]}</td></tr>'
+        for log in stats.get('attack_types', [])[-10:]
+    ]) or '<tr><td colspan="4" style="text-align:center;">No attacks detected</td></tr>'
+
     return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -184,6 +190,24 @@ def generate_dashboard(stats: dict) -> str:
                 </thead>
                 <tbody>
                     {suspicious_rows}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-container alert-section">
+            <h2>&#128520; Detected Attack Types</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>IP Address</th>
+                        <th>Path</th>
+                        <th>Attack Types</th>
+                        <th>User-Agent</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {attack_type_rows}
                 </tbody>
             </table>
         </div>

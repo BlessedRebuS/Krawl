@@ -3,6 +3,7 @@
 from typing import Dict, List, Tuple
 from collections import defaultdict
 from datetime import datetime
+import re
 
 
 class AccessTracker:
@@ -17,17 +18,35 @@ class AccessTracker:
             'scanner', 'nikto', 'sqlmap', 'nmap', 'masscan', 'nessus', 'acunetix',
             'burp', 'zap', 'w3af', 'metasploit', 'nuclei', 'gobuster', 'dirbuster'
         ]
+
+        # common attack types such as xss, shell injection, probes
+        self.attack_types = {
+            'path_traversal': r'\.\.',
+            'sql_injection': r"('|--|;|\bOR\b|\bUNION\b|\bSELECT\b|\bDROP\b)",
+            'xss_attempt': r'(<script|javascript:|onerror=|onload=)',
+            'common_probes': r'(wp-admin|phpmyadmin|\.env|\.git|/admin|/config)',
+            'shell_injection': r'(\||;|`|\$\(|&&)',
+        }
+
         # Track IPs that accessed honeypot paths from robots.txt
         self.honeypot_triggered: Dict[str, List[str]] = defaultdict(list)
 
-    def record_access(self, ip: str, path: str, user_agent: str = ''):
+    def record_access(self, ip: str, path: str, user_agent: str = '', body: str = ''):
         """Record an access attempt"""
         self.ip_counts[ip] += 1
         self.path_counts[path] += 1
         if user_agent:
             self.user_agent_counts[user_agent] += 1
         
-        is_suspicious = self.is_suspicious_user_agent(user_agent) or self.is_honeypot_path(path)
+        # path attack type detection
+        attack_findings = self.detect_attack_type(path)
+
+        # post / put data
+        if len(body) > 0:
+            attack_findings.extend(self.detect_attack_type(body))
+
+        is_suspicious = self.is_suspicious_user_agent(user_agent) or self.is_honeypot_path(path) or len(attack_findings) > 0
+
         
         # Track if this IP accessed a honeypot path
         if self.is_honeypot_path(path):
@@ -39,8 +58,19 @@ class AccessTracker:
             'user_agent': user_agent,
             'suspicious': is_suspicious,
             'honeypot_triggered': self.is_honeypot_path(path),
+            'attack_types':attack_findings,
             'timestamp': datetime.now().isoformat()
         })
+
+    def detect_attack_type(self, data:str) -> list[str]:
+        """
+        Returns a list of all attack types found in path data
+        """
+        findings = []
+        for name, pattern in self.attack_types.items():
+            if re.search(pattern, data, re.IGNORECASE):
+                findings.append(name)
+        return findings
 
     def is_honeypot_path(self, path: str) -> bool:
         """Check if path is one of the honeypot traps from robots.txt"""
@@ -91,6 +121,11 @@ class AccessTracker:
         suspicious = [log for log in self.access_log if log.get('suspicious', False)]
         return suspicious[-limit:]
 
+    def get_attack_type_accesses(self, limit: int = 20) -> List[Dict]:
+        """Get recent accesses with detected attack types"""
+        attacks = [log for log in self.access_log if log.get('attack_types')]
+        return attacks[-limit:]
+
     def get_honeypot_triggered_ips(self) -> List[Tuple[str, List[str]]]:
         """Get IPs that accessed honeypot paths"""
         return [(ip, paths) for ip, paths in self.honeypot_triggered.items()]
@@ -110,5 +145,6 @@ class AccessTracker:
             'top_paths': self.get_top_paths(10),
             'top_user_agents': self.get_top_user_agents(10),
             'recent_suspicious': self.get_suspicious_accesses(20),
-            'honeypot_triggered_ips': self.get_honeypot_triggered_ips()
+            'honeypot_triggered_ips': self.get_honeypot_triggered_ips(),
+            'attack_types': self.get_attack_type_accesses(20)
         }

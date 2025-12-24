@@ -197,15 +197,18 @@ class Handler(BaseHTTPRequestHandler):
         """Handle POST requests (mainly login attempts)"""
         client_ip = self._get_client_ip()
         user_agent = self._get_user_agent()
-        
-        self.tracker.record_access(client_ip, self.path, user_agent)
-        
+        post_data = ""
+               
         print(f"[LOGIN ATTEMPT] {client_ip} - {self.path} - {user_agent[:50]}")
         
         content_length = int(self.headers.get('Content-Length', 0))
         if content_length > 0:
-            post_data = self.rfile.read(content_length).decode('utf-8')
+            post_data = self.rfile.read(content_length).decode('utf-8', errors="replace")
+            
             print(f"[POST DATA] {post_data[:200]}")
+
+        # send the post data (body) to the record_access function so the post data can be used to detect suspicious things.
+        self.tracker.record_access(client_ip, self.path, user_agent, post_data)
         
         time.sleep(1)
         
