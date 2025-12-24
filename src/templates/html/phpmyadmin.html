@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>phpMyAdmin</title>
+    <style>
+        body {{ font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; background: #f0f0f0; }}
+        .header {{ background: #2979ff; color: white; padding: 10px 20px; }}
+        .login {{ background: white; width: 400px; margin: 100px auto; padding: 30px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
+        input {{ width: 100%; padding: 8px; margin: 8px 0; border: 1px solid #ddd; }}
+        button {{ padding: 10px 20px; background: #2979ff; color: white; border: none; cursor: pointer; }}
+    </style>
+</head>
+<body>
+    <div class="header"><h1>phpMyAdmin</h1></div>
+    <div class="login">
+        <h2>MySQL Server Login</h2>
+        <form action="/phpMyAdmin/index.php" method="post">
+            <input type="text" name="pma_username" placeholder="Username">
+            <input type="password" name="pma_password" placeholder="Password">
+            <button type="submit">Go</button>
+        </form>
+    </div>
+</body>
+</html>
