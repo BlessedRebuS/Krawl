@@ -13,4 +13,5 @@ data:
   MAX_COUNTER: "10"
   CANARY_TOKEN_TRIES: "10"
   PROBABILITY_ERROR_CODES: "0"
+  SERVER_HEADER: "Apache/2.2.22 (Ubuntu)"
 #  CANARY_TOKEN_URL: set-your-canary-token-url-here

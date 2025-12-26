@@ -73,6 +73,7 @@ config:
   maxCounter: 10
   canaryTokenTries: 10
   probabilityErrorCodes: 0
+  serverHeader: "Apache/2.2.22 (Ubuntu)"
 #  canaryTokenUrl: set-your-canary-token-url-here
 
 networkPolicy:

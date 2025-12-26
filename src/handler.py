@@ -48,6 +48,10 @@ class Handler(BaseHTTPRequestHandler):
         """Extract user agent from request"""
         return self.headers.get('User-Agent', '')
 
+    def version_string(self) -> str:
+        """Return custom server version for deception."""
+        return self.config.server_header
+
     def _should_return_error(self) -> bool:
         """Check if we should return an error based on probability"""
         if self.config.probability_error_codes <= 0:

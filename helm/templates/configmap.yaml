@@ -14,4 +14,5 @@ data:
   MAX_COUNTER: {{ .Values.config.maxCounter | quote }}
   CANARY_TOKEN_TRIES: {{ .Values.config.canaryTokenTries | quote }}
   PROBABILITY_ERROR_CODES: {{ .Values.config.probabilityErrorCodes | quote }}
+  SERVER_HEADER: {{ .Values.config.serverHeader | quote }}
   CANARY_TOKEN_URL: {{ .Values.config.canaryTokenUrl | quote }}
