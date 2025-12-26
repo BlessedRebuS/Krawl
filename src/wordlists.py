@@ -6,8 +6,9 @@ This allows easy customization without touching Python code.
 """
 
 import json
-import os
 from pathlib import Path
+
+from logger import get_app_logger
 
 
 class Wordlists:
@@ -19,15 +20,15 @@ class Wordlists:
     def _load_config(self):
         """Load wordlists from JSON file"""
         config_path = Path(__file__).parent.parent / 'wordlists.json'
-        
+
         try:
             with open(config_path, 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
-            print(f"⚠️  Warning: {config_path} not found, using default values")
+            get_app_logger().warning(f"Wordlists file {config_path} not found, using default values")
             return self._get_defaults()
         except json.JSONDecodeError as e:
-            print(f"⚠️  Warning: Invalid JSON in {config_path}: {e}")
+            get_app_logger().warning(f"Invalid JSON in {config_path}: {e}")
             return self._get_defaults()
     
     def _get_defaults(self):

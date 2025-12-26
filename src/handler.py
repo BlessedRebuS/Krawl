@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
+import logging
 import random
 import time
 from http.server import BaseHTTPRequestHandler
 from typing import Optional, List
-from datetime import datetime
 
 from config import Config
 from tracker import AccessTracker
@@ -23,6 +23,8 @@ class Handler(BaseHTTPRequestHandler):
     config: Config = None
     tracker: AccessTracker = None
     counter: int = 0
+    app_logger: logging.Logger = None
+    access_logger: logging.Logger = None
 
     def _get_client_ip(self) -> str:
         """Extract client IP address from request, checking proxy headers first"""
@@ -202,14 +204,14 @@ class Handler(BaseHTTPRequestHandler):
         client_ip = self._get_client_ip()
         user_agent = self._get_user_agent()
         post_data = ""
-               
-        print(f"[LOGIN ATTEMPT] {client_ip} - {self.path} - {user_agent[:50]}")
-        
+
+        self.access_logger.warning(f"[LOGIN ATTEMPT] {client_ip} - {self.path} - {user_agent[:50]}")
+
         content_length = int(self.headers.get('Content-Length', 0))
         if content_length > 0:
             post_data = self.rfile.read(content_length).decode('utf-8', errors="replace")
-            
-            print(f"[POST DATA] {post_data[:200]}")
+
+            self.access_logger.warning(f"[POST DATA] {post_data[:200]}")
 
         # send the post data (body) to the record_access function so the post data can be used to detect suspicious things.
         self.tracker.record_access(client_ip, self.path, user_agent, post_data)
@@ -226,7 +228,7 @@ class Handler(BaseHTTPRequestHandler):
             pass
         except Exception as e:
             # Log other exceptions but don't crash
-            print(f"[ERROR] Failed to send response to {client_ip}: {str(e)}")
+            self.app_logger.error(f"Failed to send response to {client_ip}: {str(e)}")
 
     def serve_special_path(self, path: str) -> bool:
         """Serve special paths like robots.txt, API endpoints, etc."""
@@ -307,9 +309,9 @@ class Handler(BaseHTTPRequestHandler):
             # Client disconnected, ignore silently
             pass
         except Exception as e:
-            print(f"[ERROR] Failed to serve special path {path}: {str(e)}")
+            self.app_logger.error(f"Failed to serve special path {path}: {str(e)}")
             pass
-        
+
         return False
 
     def do_GET(self):
@@ -327,17 +329,17 @@ class Handler(BaseHTTPRequestHandler):
             except BrokenPipeError:
                 pass
             except Exception as e:
-                print(f"Error generating dashboard: {e}")
+                self.app_logger.error(f"Error generating dashboard: {e}")
             return
 
         self.tracker.record_access(client_ip, self.path, user_agent)
 
         if self.tracker.is_suspicious_user_agent(user_agent):
-            print(f"[SUSPICIOUS] {client_ip} - {user_agent[:50]} - {self.path}")
+            self.access_logger.warning(f"[SUSPICIOUS] {client_ip} - {user_agent[:50]} - {self.path}")
 
         if self._should_return_error():
             error_code = self._get_random_error_code()
-            print(f"[ERROR] Returning {error_code} to {client_ip} - {self.path}")
+            self.access_logger.info(f"Returning error {error_code} to {client_ip} - {self.path}")
             self.send_response(error_code)
             self.end_headers()
             return
@@ -361,9 +363,9 @@ class Handler(BaseHTTPRequestHandler):
             # Client disconnected, ignore silently
             pass
         except Exception as e:
-            print(f"Error generating page: {e}")
+            self.app_logger.error(f"Error generating page: {e}")
 
     def log_message(self, format, *args):
-        """Override to customize logging"""
+        """Override to customize logging - uses access logger"""
         client_ip = self._get_client_ip()
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {client_ip} - {format % args}")
+        self.access_logger.info(f"{client_ip} - {format % args}")

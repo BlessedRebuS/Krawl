@@ -1,0 +1,113 @@
+#!/usr/bin/env python3
+
+"""
+Logging singleton module for the Krawl honeypot.
+Provides two loggers: app (application) and access (HTTP access logs).
+"""
+
+import logging
+import os
+from logging.handlers import RotatingFileHandler
+
+
+class LoggerManager:
+    """Singleton logger manager for the application."""
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+
+    def initialize(self, log_dir: str = "logs") -> None:
+        """
+        Initialize the logging system with rotating file handlers.
+
+        Args:
+            log_dir: Directory for log files (created if not exists)
+        """
+        if self._initialized:
+            return
+
+        # Create log directory if it doesn't exist
+        os.makedirs(log_dir, exist_ok=True)
+
+        # Common format for all loggers
+        log_format = logging.Formatter(
+            "[%(asctime)s] %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S"
+        )
+
+        # Rotation settings: 1MB max, 5 backups
+        max_bytes = 1048576  # 1MB
+        backup_count = 5
+
+        # Setup application logger
+        self._app_logger = logging.getLogger("krawl.app")
+        self._app_logger.setLevel(logging.INFO)
+        self._app_logger.handlers.clear()
+
+        app_file_handler = RotatingFileHandler(
+            os.path.join(log_dir, "krawl.log"),
+            maxBytes=max_bytes,
+            backupCount=backup_count
+        )
+        app_file_handler.setFormatter(log_format)
+        self._app_logger.addHandler(app_file_handler)
+
+        app_stream_handler = logging.StreamHandler()
+        app_stream_handler.setFormatter(log_format)
+        self._app_logger.addHandler(app_stream_handler)
+
+        # Setup access logger
+        self._access_logger = logging.getLogger("krawl.access")
+        self._access_logger.setLevel(logging.INFO)
+        self._access_logger.handlers.clear()
+
+        access_file_handler = RotatingFileHandler(
+            os.path.join(log_dir, "access.log"),
+            maxBytes=max_bytes,
+            backupCount=backup_count
+        )
+        access_file_handler.setFormatter(log_format)
+        self._access_logger.addHandler(access_file_handler)
+
+        access_stream_handler = logging.StreamHandler()
+        access_stream_handler.setFormatter(log_format)
+        self._access_logger.addHandler(access_stream_handler)
+
+        self._initialized = True
+
+    @property
+    def app(self) -> logging.Logger:
+        """Get the application logger."""
+        if not self._initialized:
+            self.initialize()
+        return self._app_logger
+
+    @property
+    def access(self) -> logging.Logger:
+        """Get the access logger."""
+        if not self._initialized:
+            self.initialize()
+        return self._access_logger
+
+
+# Module-level singleton instance
+_logger_manager = LoggerManager()
+
+
+def get_app_logger() -> logging.Logger:
+    """Get the application logger instance."""
+    return _logger_manager.app
+
+
+def get_access_logger() -> logging.Logger:
+    """Get the access logger instance."""
+    return _logger_manager.access
+
+
+def initialize_logging(log_dir: str = "logs") -> None:
+    """Initialize the logging system."""
+    _logger_manager.initialize(log_dir)

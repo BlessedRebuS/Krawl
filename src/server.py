@@ -11,6 +11,7 @@ from http.server import HTTPServer
 from config import Config
 from tracker import AccessTracker
 from handler import Handler
+from logger import initialize_logging, get_app_logger, get_access_logger
 
 
 def print_usage():
@@ -40,13 +41,20 @@ def main():
         print_usage()
         exit(0)
 
+    # Initialize logging
+    initialize_logging()
+    app_logger = get_app_logger()
+    access_logger = get_access_logger()
+
     config = Config.from_env()
-    
+
     tracker = AccessTracker()
-    
+
     Handler.config = config
     Handler.tracker = tracker
     Handler.counter = config.canary_token_tries
+    Handler.app_logger = app_logger
+    Handler.access_logger = access_logger
 
     if len(sys.argv) == 2:
         try:
@@ -54,29 +62,29 @@ def main():
                 Handler.webpages = f.readlines()
 
             if not Handler.webpages:
-                print('The file provided was empty. Using randomly generated links.')
+                app_logger.warning('The file provided was empty. Using randomly generated links.')
                 Handler.webpages = None
         except IOError:
-            print('Can\'t read input file. Using randomly generated links.')
+            app_logger.warning("Can't read input file. Using randomly generated links.")
 
     try:
-        print(f'Starting deception server on port {config.port}...')
-        print(f'Dashboard available at: {config.dashboard_secret_path}')
+        app_logger.info(f'Starting deception server on port {config.port}...')
+        app_logger.info(f'Dashboard available at: {config.dashboard_secret_path}')
         if config.canary_token_url:
-            print(f'Canary token will appear after {config.canary_token_tries} tries')
+            app_logger.info(f'Canary token will appear after {config.canary_token_tries} tries')
         else:
-            print('No canary token configured (set CANARY_TOKEN_URL to enable)')
-        
+            app_logger.info('No canary token configured (set CANARY_TOKEN_URL to enable)')
+
         server = HTTPServer(('0.0.0.0', config.port), Handler)
-        print('Server started. Use <Ctrl-C> to stop.')
+        app_logger.info('Server started. Use <Ctrl-C> to stop.')
         server.serve_forever()
     except KeyboardInterrupt:
-        print('\nStopping server...')
+        app_logger.info('Stopping server...')
         server.socket.close()
-        print('Server stopped')
+        app_logger.info('Server stopped')
     except Exception as e:
-        print(f'Error starting HTTP server on port {config.port}: {e}')
-        print(f'Make sure you are root, if needed, and that port {config.port} is open.')
+        app_logger.error(f'Error starting HTTP server on port {config.port}: {e}')
+        app_logger.error(f'Make sure you are root, if needed, and that port {config.port} is open.')
         exit(1)
 
 
