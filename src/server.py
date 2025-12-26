@@ -31,6 +31,7 @@ def print_usage():
     print('  DASHBOARD_SECRET_PATH - Secret path for dashboard (auto-generated if not set)')
     print('  PROBABILITY_ERROR_CODES - Probability (0-100) to return HTTP error codes (default: 0)')
     print('  CHAR_SPACE            - Characters for random links')
+    print('  SERVER_HEADER         - HTTP Server header for deception (default: Apache/2.2.22 (Ubuntu))')
 
 
 def main():
