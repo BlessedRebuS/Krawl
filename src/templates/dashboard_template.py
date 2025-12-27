@@ -45,6 +45,12 @@ def generate_dashboard(stats: dict) -> str:
         for log in stats.get('attack_types', [])[-10:]
     ]) or '<tr><td colspan="4" style="text-align:center;">No attacks detected</td></tr>'
 
+    # Generate credential attempts rows
+    credential_rows = '\n'.join([
+        f'<tr><td>{log["ip"]}</td><td>{log["username"]}</td><td>{log["password"]}</td><td>{log["path"]}</td><td>{log["timestamp"].split("T")[1][:8]}</td></tr>'
+        for log in stats.get('credential_attempts', [])[-20:]
+    ]) or '<tr><td colspan="5" style="text-align:center;">No credentials captured yet</td></tr>'
+
     return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -159,6 +165,10 @@ def generate_dashboard(stats: dict) -> str:
                 <div class="stat-value alert">{stats.get('honeypot_ips', 0)}</div>
                 <div class="stat-label">Honeypot Caught</div>
             </div>
+            <div class="stat-card alert">
+                <div class="stat-value alert">{len(stats.get('credential_attempts', []))}</div>
+                <div class="stat-label">Credentials Captured</div>
+            </div>
         </div>
 
         <div class="table-container alert-section">
@@ -190,6 +200,24 @@ def generate_dashboard(stats: dict) -> str:
                 </thead>
                 <tbody>
                     {suspicious_rows}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-container alert-section">
+            <h2>🔑 Captured Credentials</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>IP Address</th>
+                        <th>Username</th>
+                        <th>Password</th>
+                        <th>Path</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {credential_rows}
                 </tbody>
             </table>
         </div>

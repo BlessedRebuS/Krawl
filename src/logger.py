@@ -77,6 +77,22 @@ class LoggerManager:
         access_stream_handler.setFormatter(log_format)
         self._access_logger.addHandler(access_stream_handler)
 
+        # Setup credential logger (special format, no stream handler)
+        self._credential_logger = logging.getLogger("krawl.credentials")
+        self._credential_logger.setLevel(logging.INFO)
+        self._credential_logger.handlers.clear()
+
+        # Credential logger uses a simple format: timestamp|ip|username|password|path
+        credential_format = logging.Formatter("%(message)s")
+        
+        credential_file_handler = RotatingFileHandler(
+            os.path.join(log_dir, "credentials.log"),
+            maxBytes=max_bytes,
+            backupCount=backup_count
+        )
+        credential_file_handler.setFormatter(credential_format)
+        self._credential_logger.addHandler(credential_file_handler)
+
         self._initialized = True
 
     @property
@@ -93,6 +109,13 @@ class LoggerManager:
             self.initialize()
         return self._access_logger
 
+    @property
+    def credentials(self) -> logging.Logger:
+        """Get the credentials logger."""
+        if not self._initialized:
+            self.initialize()
+        return self._credential_logger
+
 
 # Module-level singleton instance
 _logger_manager = LoggerManager()
@@ -106,6 +129,11 @@ def get_app_logger() -> logging.Logger:
 def get_access_logger() -> logging.Logger:
     """Get the access logger instance."""
     return _logger_manager.access
+
+
+def get_credential_logger() -> logging.Logger:
+    """Get the credential logger instance."""
+    return _logger_manager.credentials
 
 
 def initialize_logging(log_dir: str = "logs") -> None:
