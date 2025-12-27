@@ -11,7 +11,7 @@ from http.server import HTTPServer
 from config import Config
 from tracker import AccessTracker
 from handler import Handler
-from logger import initialize_logging, get_app_logger, get_access_logger
+from logger import initialize_logging, get_app_logger, get_access_logger, get_credential_logger
 
 
 def print_usage():
@@ -45,6 +45,7 @@ def main():
     initialize_logging()
     app_logger = get_app_logger()
     access_logger = get_access_logger()
+    credential_logger = get_credential_logger()
 
     config = Config.from_env()
 
@@ -55,6 +56,7 @@ def main():
     Handler.counter = config.canary_token_tries
     Handler.app_logger = app_logger
     Handler.access_logger = access_logger
+    Handler.credential_logger = credential_logger
 
     if len(sys.argv) == 2:
         try:

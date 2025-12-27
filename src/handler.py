@@ -3,6 +3,7 @@
 import logging
 import random
 import time
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler
 from typing import Optional, List
 
@@ -25,6 +26,7 @@ class Handler(BaseHTTPRequestHandler):
     counter: int = 0
     app_logger: logging.Logger = None
     access_logger: logging.Logger = None
+    credential_logger: logging.Logger = None
 
     def _get_client_ip(self) -> str:
         """Extract client IP address from request, checking proxy headers first"""
@@ -212,6 +214,19 @@ class Handler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length).decode('utf-8', errors="replace")
 
             self.access_logger.warning(f"[POST DATA] {post_data[:200]}")
+
+            # Parse and log credentials
+            username, password = self.tracker.parse_credentials(post_data)
+            if username or password:
+                # Log to dedicated credentials.log file
+                timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+                credential_line = f"{timestamp}|{client_ip}|{username or 'N/A'}|{password or 'N/A'}|{self.path}"
+                self.credential_logger.info(credential_line)
+                
+                # Also record in tracker for dashboard
+                self.tracker.record_credential_attempt(client_ip, self.path, username or 'N/A', password or 'N/A')
+                
+                self.access_logger.warning(f"[CREDENTIALS CAPTURED] {client_ip} - Username: {username or 'N/A'} - Path: {self.path}")
 
         # send the post data (body) to the record_access function so the post data can be used to detect suspicious things.
         self.tracker.record_access(client_ip, self.path, user_agent, post_data)
