@@ -10,6 +10,7 @@ services:
       - "5000:5000"
     volumes:
       - ./wordlists.json:/app/wordlists.json:ro
+      - ./data:/app/data
     environment:
       - PORT=5000
       - DELAY=100
