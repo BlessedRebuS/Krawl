@@ -276,21 +276,20 @@ class AccessTracker:
         return [(ip, paths) for ip, paths in self.honeypot_triggered.items()]
 
     def get_stats(self) -> Dict:
-        """Get statistics summary"""
-        suspicious_count = sum(1 for log in self.access_log if log.get('suspicious', False))
-        honeypot_count = sum(1 for log in self.access_log if log.get('honeypot_triggered', False))
-        return {
-            'total_accesses': len(self.access_log),
-            'unique_ips': len(self.ip_counts),
-            'unique_paths': len(self.path_counts),
-            'suspicious_accesses': suspicious_count,
-            'honeypot_triggered': honeypot_count,
-            'honeypot_ips': len(self.honeypot_triggered),
-            'top_ips': self.get_top_ips(10),
-            'top_paths': self.get_top_paths(10),
-            'top_user_agents': self.get_top_user_agents(10),
-            'recent_suspicious': self.get_suspicious_accesses(20),
-            'honeypot_triggered_ips': self.get_honeypot_triggered_ips(),
-            'attack_types': self.get_attack_type_accesses(20),
-            'credential_attempts': self.credential_attempts[-50:]  # Last 50 attempts
-        }
+        """Get statistics summary from database."""
+        if not self.db:
+            raise RuntimeError("Database not available for dashboard stats")
+
+        # Get aggregate counts from database
+        stats = self.db.get_dashboard_counts()
+
+        # Add detailed lists from database
+        stats['top_ips'] = self.db.get_top_ips(10)
+        stats['top_paths'] = self.db.get_top_paths(10)
+        stats['top_user_agents'] = self.db.get_top_user_agents(10)
+        stats['recent_suspicious'] = self.db.get_recent_suspicious(20)
+        stats['honeypot_triggered_ips'] = self.db.get_honeypot_triggered_ips()
+        stats['attack_types'] = self.db.get_recent_attacks(20)
+        stats['credential_attempts'] = self.db.get_credential_attempts(limit=50)
+
+        return stats

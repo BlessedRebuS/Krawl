@@ -190,7 +190,7 @@ def generate_dashboard(stats: dict) -> str:
         </div>
 
         <div class="table-container alert-section">
-            <h2>🍯 Honeypot Triggers</h2>
+            <h2>🍯 Honeypot Triggers by IP</h2>
             <table>
                 <thead>
                     <tr>

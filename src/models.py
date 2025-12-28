@@ -53,9 +53,11 @@ class AccessLog(Base):
         cascade="all, delete-orphan"
     )
 
-    # Composite index for common queries
+    # Indexes for common queries
     __table_args__ = (
         Index('ix_access_logs_ip_timestamp', 'ip', 'timestamp'),
+        Index('ix_access_logs_is_suspicious', 'is_suspicious'),
+        Index('ix_access_logs_is_honeypot_trigger', 'is_honeypot_trigger'),
     )
 
     def __repr__(self) -> str:
