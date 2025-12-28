@@ -6,13 +6,22 @@ Customize this template to change the dashboard appearance.
 """
 
 import html
-
+from datetime import datetime
 
 def _escape(value) -> str:
     """Escape HTML special characters to prevent XSS attacks."""
     if value is None:
         return ""
     return html.escape(str(value))
+
+def format_timestamp(iso_timestamp: str) -> str:
+    """Format ISO timestamp for display (YYYY-MM-DD HH:MM:SS)"""
+    try:
+        dt = datetime.fromisoformat(iso_timestamp)
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
+    except Exception:
+        # Fallback for old format
+        return iso_timestamp.split("T")[1][:8] if "T" in iso_timestamp else iso_timestamp
 
 
 def generate_dashboard(stats: dict) -> str:

@@ -36,6 +36,8 @@ def print_usage():
     print('  SERVER_HEADER         - HTTP Server header for deception (default: Apache/2.2.22 (Ubuntu))')
     print('  DATABASE_PATH         - Path to SQLite database (default: data/krawl.db)')
     print('  DATABASE_RETENTION_DAYS - Days to retain database records (default: 30)')
+    print('  TIMEZONE              - IANA timezone for logs/dashboard (e.g., America/New_York, Europe/Rome)')
+    print('                          If not set, system timezone will be used')
 
 
 def main():
@@ -44,8 +46,13 @@ def main():
         print_usage()
         exit(0)
 
-    # Initialize logging
-    initialize_logging()
+    config = Config.from_env()
+    
+    # Get timezone configuration
+    tz = config.get_timezone()
+    
+    # Initialize logging with timezone
+    initialize_logging(timezone=tz)
     app_logger = get_app_logger()
     access_logger = get_access_logger()
     credential_logger = get_credential_logger()
@@ -59,7 +66,7 @@ def main():
     except Exception as e:
         app_logger.warning(f'Database initialization failed: {e}. Continuing with in-memory only.')
 
-    tracker = AccessTracker()
+    tracker = AccessTracker(timezone=tz)
 
     Handler.config = config
     Handler.tracker = tracker
@@ -81,6 +88,7 @@ def main():
 
     try:
         app_logger.info(f'Starting deception server on port {config.port}...')
+        app_logger.info(f'Timezone configured: {tz.key}')
         app_logger.info(f'Dashboard available at: {config.dashboard_secret_path}')
         if config.canary_token_url:
             app_logger.info(f'Canary token will appear after {config.canary_token_tries} tries')

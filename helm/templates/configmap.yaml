@@ -16,3 +16,6 @@ data:
   PROBABILITY_ERROR_CODES: {{ .Values.config.probabilityErrorCodes | quote }}
   SERVER_HEADER: {{ .Values.config.serverHeader | quote }}
   CANARY_TOKEN_URL: {{ .Values.config.canaryTokenUrl | quote }}
+  {{- if .Values.config.timezone }}
+  TIMEZONE: {{ .Values.config.timezone | quote }}
+  {{- end }}

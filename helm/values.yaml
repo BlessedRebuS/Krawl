@@ -75,6 +75,7 @@ config:
   probabilityErrorCodes: 0
   serverHeader: "Apache/2.2.22 (Ubuntu)"
 #  canaryTokenUrl: set-your-canary-token-url-here
+#  timezone: "UTC"  # IANA timezone (e.g., "America/New_York", "Europe/Rome"). If not set, system timezone is used.
 
 networkPolicy:
   enabled: true

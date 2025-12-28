@@ -3,6 +3,7 @@
 from typing import Dict, List, Tuple, Optional
 from collections import defaultdict
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import re
 import urllib.parse
 
@@ -16,7 +17,7 @@ class AccessTracker:
     Maintains in-memory structures for fast dashboard access and
     persists data to SQLite for long-term storage and analysis.
     """
-    def __init__(self, db_manager: Optional[DatabaseManager] = None):
+    def __init__(self, db_manager: Optional[DatabaseManager] = None, timezone: Optional[ZoneInfo] = None):
         """
         Initialize the access tracker.
 
@@ -29,6 +30,7 @@ class AccessTracker:
         self.user_agent_counts: Dict[str, int] = defaultdict(int)
         self.access_log: List[Dict] = []
         self.credential_attempts: List[Dict] = []
+        self.timezone = timezone or ZoneInfo('UTC')
         self.suspicious_patterns = [
             'bot', 'crawler', 'spider', 'scraper', 'curl', 'wget', 'python-requests',
             'scanner', 'nikto', 'sqlmap', 'nmap', 'masscan', 'nessus', 'acunetix',
@@ -119,7 +121,7 @@ class AccessTracker:
             'path': path,
             'username': username,
             'password': password,
-            'timestamp': datetime.now().isoformat()
+            'timestamp': datetime.now(self.timezone).isoformat()
         })
 
         # Persist to database
@@ -184,9 +186,9 @@ class AccessTracker:
             'path': path,
             'user_agent': user_agent,
             'suspicious': is_suspicious,
-            'honeypot_triggered': is_honeypot,
-            'attack_types': attack_findings,
-            'timestamp': datetime.now().isoformat()
+            'honeypot_triggered': self.is_honeypot_path(path),
+            'attack_types':attack_findings,
+            'timestamp': datetime.now(self.timezone).isoformat()
         })
 
         # Persist to database
