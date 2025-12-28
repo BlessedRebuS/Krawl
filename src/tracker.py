@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 from collections import defaultdict
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import re
 import urllib.parse
 
 
 class AccessTracker:
     """Track IP addresses and paths accessed"""
-    def __init__(self):
+    def __init__(self, timezone: Optional[ZoneInfo] = None):
         self.ip_counts: Dict[str, int] = defaultdict(int)
         self.path_counts: Dict[str, int] = defaultdict(int)
         self.user_agent_counts: Dict[str, int] = defaultdict(int)
         self.access_log: List[Dict] = []
         self.credential_attempts: List[Dict] = []
+        self.timezone = timezone or ZoneInfo('UTC')
         self.suspicious_patterns = [
             'bot', 'crawler', 'spider', 'scraper', 'curl', 'wget', 'python-requests',
             'scanner', 'nikto', 'sqlmap', 'nmap', 'masscan', 'nessus', 'acunetix',
@@ -81,7 +83,7 @@ class AccessTracker:
             'path': path,
             'username': username,
             'password': password,
-            'timestamp': datetime.now().isoformat()
+            'timestamp': datetime.now(self.timezone).isoformat()
         })
 
     def record_access(self, ip: str, path: str, user_agent: str = '', body: str = ''):
@@ -112,7 +114,7 @@ class AccessTracker:
             'suspicious': is_suspicious,
             'honeypot_triggered': self.is_honeypot_path(path),
             'attack_types':attack_findings,
-            'timestamp': datetime.now().isoformat()
+            'timestamp': datetime.now(self.timezone).isoformat()
         })
 
     def detect_attack_type(self, data:str) -> list[str]:

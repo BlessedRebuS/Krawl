@@ -3,6 +3,8 @@
 import os
 from dataclasses import dataclass
 from typing import Optional, Tuple
+from zoneinfo import ZoneInfo
+import time
 
 
 @dataclass
@@ -22,6 +24,40 @@ class Config:
     api_server_path: str = "/api/v2/users"
     probability_error_codes: int = 0  # Percentage (0-100)
     server_header: str = "Apache/2.2.22 (Ubuntu)"
+    timezone: str = None  # IANA timezone (e.g., 'America/New_York', 'Europe/Rome')
+    
+    @staticmethod
+    # Try to fetch timezone before if not set
+    def get_system_timezone() -> str:
+        """Get the system's default timezone"""
+        try:
+            if os.path.islink('/etc/localtime'):
+                tz_path = os.readlink('/etc/localtime')
+                if 'zoneinfo/' in tz_path:
+                    return tz_path.split('zoneinfo/')[-1]
+            
+            local_tz = time.tzname[time.daylight]
+            if local_tz and local_tz != 'UTC':
+                return local_tz
+        except Exception:
+            pass
+        
+        # Default fallback to UTC
+        return 'UTC'
+    
+    def get_timezone(self) -> ZoneInfo:
+        """Get configured timezone as ZoneInfo object"""
+        if self.timezone:
+            try:
+                return ZoneInfo(self.timezone)
+            except Exception:
+                pass
+        
+        system_tz = self.get_system_timezone()
+        try:
+            return ZoneInfo(system_tz)
+        except Exception:
+            return ZoneInfo('UTC')
 
     @classmethod
     def from_env(cls) -> 'Config':
@@ -45,6 +81,7 @@ class Config:
             api_server_url=os.getenv('API_SERVER_URL'),
             api_server_port=int(os.getenv('API_SERVER_PORT', 8080)),
             api_server_path=os.getenv('API_SERVER_PATH', '/api/v2/users'),
-            probability_error_codes=int(os.getenv('PROBABILITY_ERROR_CODES', 5)),
-            server_header=os.getenv('SERVER_HEADER', 'Apache/2.2.22 (Ubuntu)')
+            probability_error_codes=int(os.getenv('PROBABILITY_ERROR_CODES', 0)),
+            server_header=os.getenv('SERVER_HEADER', 'Apache/2.2.22 (Ubuntu)'),
+            timezone=os.getenv('TIMEZONE')  # If not set, will use system timezone
         )

@@ -15,3 +15,4 @@ data:
   PROBABILITY_ERROR_CODES: "0"
   SERVER_HEADER: "Apache/2.2.22 (Ubuntu)"
 #  CANARY_TOKEN_URL: set-your-canary-token-url-here
+#  TIMEZONE: "UTC"  # IANA timezone (e.g., "America/New_York", "Europe/Rome")
