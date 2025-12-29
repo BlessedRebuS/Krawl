@@ -51,7 +51,12 @@
 ## Star History
 <img src="https://api.star-history.com/svg?repos=BlessedRebuS/Krawl&type=Date" width="600" alt="Star History Chart" />
 
- 
+## Try Krawl
+Tip: crawl the `robots.txt` paths for additional fun
+###  http://demo.krawlme.com
+## View the dashboard 
+### http://demo.krawlme.com/das_dashboard
+
 ## What is Krawl?
 
 **Krawl** is a cloud‑native deception server designed to detect, delay, and analyze malicious web crawlers and automated scanners.
