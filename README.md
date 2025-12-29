@@ -48,14 +48,10 @@
 <br>
 </div>
 
-## Star History
-<img src="https://api.star-history.com/svg?repos=BlessedRebuS/Krawl&type=Date" width="600" alt="Star History Chart" />
-
-## Try Krawl
+## Demo
 Tip: crawl the `robots.txt` paths for additional fun
-Demo URL: [http://demo.krawlme.com](http://demo.krawlme.com)
-## View the dashboard
-Dashboard URL: [http://demo.krawlme.com/das_dashboard](http://demo.krawlme.com/das_dashboard)
+### Krawl URL: [http://demo.krawlme.com](http://demo.krawlme.com)
+### View the dashboard [http://demo.krawlme.com/das_dashboard](http://demo.krawlme.com/das_dashboard)
 
 ## What is Krawl?
 
@@ -321,3 +317,6 @@ Contributions welcome! Please:
 **This is a deception/honeypot system.**  
 Deploy in isolated environments and monitor carefully for security events.  
 Use responsibly and in compliance with applicable laws and regulations.
+
+## Star History
+<img src="https://api.star-history.com/svg?repos=BlessedRebuS/Krawl&type=Date" width="600" alt="Star History Chart" />
