@@ -14,8 +14,13 @@ data:
   MAX_COUNTER: {{ .Values.config.maxCounter | quote }}
   CANARY_TOKEN_TRIES: {{ .Values.config.canaryTokenTries | quote }}
   PROBABILITY_ERROR_CODES: {{ .Values.config.probabilityErrorCodes | quote }}
-  SERVER_HEADER: {{ .Values.config.serverHeader | quote }}
   CANARY_TOKEN_URL: {{ .Values.config.canaryTokenUrl | quote }}
+  {{- if .Values.config.dashboardSecretPath }}
+  DASHBOARD_SECRET_PATH: {{ .Values.config.dashboardSecretPath | quote }}
+  {{- end }}
+  {{- if .Values.config.serverHeader }}
+  SERVER_HEADER: {{ .Values.config.serverHeader | quote }}
+  {{- end }}
   {{- if .Values.config.timezone }}
   TIMEZONE: {{ .Values.config.timezone | quote }}
   {{- end }}

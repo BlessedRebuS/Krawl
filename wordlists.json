@@ -193,5 +193,13 @@
     500,
     502,
     503
+  ],
+  "server_headers": [
+    "Apache/2.4.41 (Ubuntu)",
+    "nginx/1.18.0",
+    "Microsoft-IIS/10.0",
+    "cloudflare",
+    "AmazonS3",
+    "gunicorn/20.1.0"
   ]
 }

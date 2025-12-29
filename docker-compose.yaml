@@ -20,7 +20,7 @@ services:
       - MAX_COUNTER=10
       - CANARY_TOKEN_TRIES=10
       - PROBABILITY_ERROR_CODES=0
-      - SERVER_HEADER=Apache/2.2.22 (Ubuntu)
+      # - SERVER_HEADER=Apache/2.2.22 (Ubuntu)
       # Optional: Set your canary token URL
       # - CANARY_TOKEN_URL=http://canarytokens.com/api/users/YOUR_TOKEN/passwords.txt
       # Optional: Set custom dashboard path (auto-generated if not set)
