@@ -13,7 +13,7 @@ from templates import html_templates
 from templates.dashboard_template import generate_dashboard
 from generators import (
     credentials_txt, passwords_txt, users_json, api_keys_json,
-    api_response, directory_listing
+    api_response, directory_listing, random_server_header
 )
 from wordlists import get_wordlists
 
@@ -52,7 +52,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def version_string(self) -> str:
         """Return custom server version for deception."""
-        return self.config.server_header
+        return random_server_header()
 
     def _should_return_error(self) -> bool:
         """Check if we should return an error based on probability"""

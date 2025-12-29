@@ -46,5 +46,5 @@ class Config:
             api_server_port=int(os.getenv('API_SERVER_PORT', 8080)),
             api_server_path=os.getenv('API_SERVER_PATH', '/api/v2/users'),
             probability_error_codes=int(os.getenv('PROBABILITY_ERROR_CODES', 5)),
-            server_header=os.getenv('SERVER_HEADER', 'Apache/2.2.22 (Ubuntu)')
+            server_header=os.getenv('SERVER_HEADER')
         )
