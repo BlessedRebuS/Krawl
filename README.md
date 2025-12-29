@@ -54,7 +54,7 @@
 ## Try Krawl
 Tip: crawl the `robots.txt` paths for additional fun
 Demo URL: [http://demo.krawlme.com](http://demo.krawlme.com)
-## View the dashboard 
+## View the dashboard
 Dashboard URL: [http://demo.krawlme.com/das_dashboard](http://demo.krawlme.com/das_dashboard)
 
 ## What is Krawl?
