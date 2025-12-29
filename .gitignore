@@ -61,6 +61,10 @@ secrets/
 *.log
 logs/
 
+# Database
+data/
+*.db
+
 # Temporary files
 *.tmp
 *.temp

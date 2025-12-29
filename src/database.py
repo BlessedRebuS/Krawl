@@ -1,0 +1,555 @@
+#!/usr/bin/env python3
+
+"""
+Database singleton module for the Krawl honeypot.
+Provides SQLAlchemy session management and database initialization.
+"""
+
+import os
+import stat
+from datetime import datetime
+from typing import Optional, List, Dict, Any
+
+from sqlalchemy import create_engine, func, distinct, case
+from sqlalchemy.orm import sessionmaker, scoped_session, Session
+
+from models import Base, AccessLog, CredentialAttempt, AttackDetection, IpStats
+from sanitizer import (
+    sanitize_ip,
+    sanitize_path,
+    sanitize_user_agent,
+    sanitize_credential,
+    sanitize_attack_pattern,
+)
+
+
+class DatabaseManager:
+    """
+    Singleton database manager for the Krawl honeypot.
+
+    Handles database initialization, session management, and provides
+    methods for persisting access logs, credentials, and attack detections.
+    """
+    _instance: Optional["DatabaseManager"] = None
+
+    def __new__(cls) -> "DatabaseManager":
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+
+    def initialize(self, database_path: str = "data/krawl.db") -> None:
+        """
+        Initialize the database connection and create tables.
+
+        Args:
+            database_path: Path to the SQLite database file
+        """
+        if self._initialized:
+            return
+
+        # Create data directory if it doesn't exist
+        data_dir = os.path.dirname(database_path)
+        if data_dir and not os.path.exists(data_dir):
+            os.makedirs(data_dir, exist_ok=True)
+
+        # Create SQLite database with check_same_thread=False for multi-threaded access
+        database_url = f"sqlite:///{database_path}"
+        self._engine = create_engine(
+            database_url,
+            connect_args={"check_same_thread": False},
+            echo=False  # Set to True for SQL debugging
+        )
+
+        # Create session factory with scoped_session for thread safety
+        session_factory = sessionmaker(bind=self._engine)
+        self._Session = scoped_session(session_factory)
+
+        # Create all tables
+        Base.metadata.create_all(self._engine)
+
+        # Set restrictive file permissions (owner read/write only)
+        if os.path.exists(database_path):
+            try:
+                os.chmod(database_path, stat.S_IRUSR | stat.S_IWUSR)  # 600
+            except OSError:
+                # May fail on some systems, not critical
+                pass
+
+        self._initialized = True
+
+    @property
+    def session(self) -> Session:
+        """Get a thread-local database session."""
+        if not self._initialized:
+            raise RuntimeError("DatabaseManager not initialized. Call initialize() first.")
+        return self._Session()
+
+    def close_session(self) -> None:
+        """Close the current thread-local session."""
+        if self._initialized:
+            self._Session.remove()
+
+    def persist_access(
+        self,
+        ip: str,
+        path: str,
+        user_agent: str = "",
+        method: str = "GET",
+        is_suspicious: bool = False,
+        is_honeypot_trigger: bool = False,
+        attack_types: Optional[List[str]] = None,
+        matched_patterns: Optional[Dict[str, str]] = None
+    ) -> Optional[int]:
+        """
+        Persist an access log entry to the database.
+
+        Args:
+            ip: Client IP address
+            path: Requested path
+            user_agent: Client user agent string
+            method: HTTP method (GET, POST, HEAD)
+            is_suspicious: Whether the request was flagged as suspicious
+            is_honeypot_trigger: Whether a honeypot path was accessed
+            attack_types: List of detected attack types
+            matched_patterns: Dict mapping attack_type to matched pattern
+
+        Returns:
+            The ID of the created AccessLog record, or None on error
+        """
+        session = self.session
+        try:
+            # Create access log with sanitized fields
+            access_log = AccessLog(
+                ip=sanitize_ip(ip),
+                path=sanitize_path(path),
+                user_agent=sanitize_user_agent(user_agent),
+                method=method[:10],
+                is_suspicious=is_suspicious,
+                is_honeypot_trigger=is_honeypot_trigger,
+                timestamp=datetime.utcnow()
+            )
+            session.add(access_log)
+            session.flush()  # Get the ID before committing
+
+            # Add attack detections if any
+            if attack_types:
+                matched_patterns = matched_patterns or {}
+                for attack_type in attack_types:
+                    detection = AttackDetection(
+                        access_log_id=access_log.id,
+                        attack_type=attack_type[:50],
+                        matched_pattern=sanitize_attack_pattern(
+                            matched_patterns.get(attack_type, "")
+                        )
+                    )
+                    session.add(detection)
+
+            # Update IP stats
+            self._update_ip_stats(session, ip)
+
+            session.commit()
+            return access_log.id
+
+        except Exception as e:
+            session.rollback()
+            # Log error but don't crash - database persistence is secondary to honeypot function
+            print(f"Database error persisting access: {e}")
+            return None
+        finally:
+            self.close_session()
+
+    def persist_credential(
+        self,
+        ip: str,
+        path: str,
+        username: Optional[str] = None,
+        password: Optional[str] = None
+    ) -> Optional[int]:
+        """
+        Persist a credential attempt to the database.
+
+        Args:
+            ip: Client IP address
+            path: Login form path
+            username: Submitted username
+            password: Submitted password
+
+        Returns:
+            The ID of the created CredentialAttempt record, or None on error
+        """
+        session = self.session
+        try:
+            credential = CredentialAttempt(
+                ip=sanitize_ip(ip),
+                path=sanitize_path(path),
+                username=sanitize_credential(username),
+                password=sanitize_credential(password),
+                timestamp=datetime.utcnow()
+            )
+            session.add(credential)
+            session.commit()
+            return credential.id
+
+        except Exception as e:
+            session.rollback()
+            print(f"Database error persisting credential: {e}")
+            return None
+        finally:
+            self.close_session()
+
+    def _update_ip_stats(self, session: Session, ip: str) -> None:
+        """
+        Update IP statistics (upsert pattern).
+
+        Args:
+            session: Active database session
+            ip: IP address to update
+        """
+        sanitized_ip = sanitize_ip(ip)
+        now = datetime.utcnow()
+
+        ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
+
+        if ip_stats:
+            ip_stats.total_requests += 1
+            ip_stats.last_seen = now
+        else:
+            ip_stats = IpStats(
+                ip=sanitized_ip,
+                total_requests=1,
+                first_seen=now,
+                last_seen=now
+            )
+            session.add(ip_stats)
+
+    def get_access_logs(
+        self,
+        limit: int = 100,
+        offset: int = 0,
+        ip_filter: Optional[str] = None,
+        suspicious_only: bool = False
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieve access logs with optional filtering.
+
+        Args:
+            limit: Maximum number of records to return
+            offset: Number of records to skip
+            ip_filter: Filter by IP address
+            suspicious_only: Only return suspicious requests
+
+        Returns:
+            List of access log dictionaries
+        """
+        session = self.session
+        try:
+            query = session.query(AccessLog).order_by(AccessLog.timestamp.desc())
+
+            if ip_filter:
+                query = query.filter(AccessLog.ip == sanitize_ip(ip_filter))
+            if suspicious_only:
+                query = query.filter(AccessLog.is_suspicious == True)
+
+            logs = query.offset(offset).limit(limit).all()
+
+            return [
+                {
+                    'id': log.id,
+                    'ip': log.ip,
+                    'path': log.path,
+                    'user_agent': log.user_agent,
+                    'method': log.method,
+                    'is_suspicious': log.is_suspicious,
+                    'is_honeypot_trigger': log.is_honeypot_trigger,
+                    'timestamp': log.timestamp.isoformat(),
+                    'attack_types': [d.attack_type for d in log.attack_detections]
+                }
+                for log in logs
+            ]
+        finally:
+            self.close_session()
+
+    def get_credential_attempts(
+        self,
+        limit: int = 100,
+        offset: int = 0,
+        ip_filter: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieve credential attempts with optional filtering.
+
+        Args:
+            limit: Maximum number of records to return
+            offset: Number of records to skip
+            ip_filter: Filter by IP address
+
+        Returns:
+            List of credential attempt dictionaries
+        """
+        session = self.session
+        try:
+            query = session.query(CredentialAttempt).order_by(
+                CredentialAttempt.timestamp.desc()
+            )
+
+            if ip_filter:
+                query = query.filter(CredentialAttempt.ip == sanitize_ip(ip_filter))
+
+            attempts = query.offset(offset).limit(limit).all()
+
+            return [
+                {
+                    'id': attempt.id,
+                    'ip': attempt.ip,
+                    'path': attempt.path,
+                    'username': attempt.username,
+                    'password': attempt.password,
+                    'timestamp': attempt.timestamp.isoformat()
+                }
+                for attempt in attempts
+            ]
+        finally:
+            self.close_session()
+
+    def get_ip_stats(self, limit: int = 100) -> List[Dict[str, Any]]:
+        """
+        Retrieve IP statistics ordered by total requests.
+
+        Args:
+            limit: Maximum number of records to return
+
+        Returns:
+            List of IP stats dictionaries
+        """
+        session = self.session
+        try:
+            stats = session.query(IpStats).order_by(
+                IpStats.total_requests.desc()
+            ).limit(limit).all()
+
+            return [
+                {
+                    'ip': s.ip,
+                    'total_requests': s.total_requests,
+                    'first_seen': s.first_seen.isoformat(),
+                    'last_seen': s.last_seen.isoformat(),
+                    'country_code': s.country_code,
+                    'city': s.city,
+                    'asn': s.asn,
+                    'asn_org': s.asn_org,
+                    'reputation_score': s.reputation_score,
+                    'reputation_source': s.reputation_source
+                }
+                for s in stats
+            ]
+        finally:
+            self.close_session()
+
+    def get_dashboard_counts(self) -> Dict[str, int]:
+        """
+        Get aggregate statistics for the dashboard.
+
+        Returns:
+            Dictionary with total_accesses, unique_ips, unique_paths,
+            suspicious_accesses, honeypot_triggered, honeypot_ips
+        """
+        session = self.session
+        try:
+            # Get main aggregate counts in one query
+            result = session.query(
+                func.count(AccessLog.id).label('total_accesses'),
+                func.count(distinct(AccessLog.ip)).label('unique_ips'),
+                func.count(distinct(AccessLog.path)).label('unique_paths'),
+                func.sum(case((AccessLog.is_suspicious == True, 1), else_=0)).label('suspicious_accesses'),
+                func.sum(case((AccessLog.is_honeypot_trigger == True, 1), else_=0)).label('honeypot_triggered')
+            ).first()
+
+            # Get unique IPs that triggered honeypots
+            honeypot_ips = session.query(
+                func.count(distinct(AccessLog.ip))
+            ).filter(AccessLog.is_honeypot_trigger == True).scalar() or 0
+
+            return {
+                'total_accesses': result.total_accesses or 0,
+                'unique_ips': result.unique_ips or 0,
+                'unique_paths': result.unique_paths or 0,
+                'suspicious_accesses': int(result.suspicious_accesses or 0),
+                'honeypot_triggered': int(result.honeypot_triggered or 0),
+                'honeypot_ips': honeypot_ips
+            }
+        finally:
+            self.close_session()
+
+    def get_top_ips(self, limit: int = 10) -> List[tuple]:
+        """
+        Get top IP addresses by access count.
+
+        Args:
+            limit: Maximum number of results
+
+        Returns:
+            List of (ip, count) tuples ordered by count descending
+        """
+        session = self.session
+        try:
+            results = session.query(
+                AccessLog.ip,
+                func.count(AccessLog.id).label('count')
+            ).group_by(AccessLog.ip).order_by(
+                func.count(AccessLog.id).desc()
+            ).limit(limit).all()
+
+            return [(row.ip, row.count) for row in results]
+        finally:
+            self.close_session()
+
+    def get_top_paths(self, limit: int = 10) -> List[tuple]:
+        """
+        Get top paths by access count.
+
+        Args:
+            limit: Maximum number of results
+
+        Returns:
+            List of (path, count) tuples ordered by count descending
+        """
+        session = self.session
+        try:
+            results = session.query(
+                AccessLog.path,
+                func.count(AccessLog.id).label('count')
+            ).group_by(AccessLog.path).order_by(
+                func.count(AccessLog.id).desc()
+            ).limit(limit).all()
+
+            return [(row.path, row.count) for row in results]
+        finally:
+            self.close_session()
+
+    def get_top_user_agents(self, limit: int = 10) -> List[tuple]:
+        """
+        Get top user agents by access count.
+
+        Args:
+            limit: Maximum number of results
+
+        Returns:
+            List of (user_agent, count) tuples ordered by count descending
+        """
+        session = self.session
+        try:
+            results = session.query(
+                AccessLog.user_agent,
+                func.count(AccessLog.id).label('count')
+            ).filter(
+                AccessLog.user_agent.isnot(None),
+                AccessLog.user_agent != ''
+            ).group_by(AccessLog.user_agent).order_by(
+                func.count(AccessLog.id).desc()
+            ).limit(limit).all()
+
+            return [(row.user_agent, row.count) for row in results]
+        finally:
+            self.close_session()
+
+    def get_recent_suspicious(self, limit: int = 20) -> List[Dict[str, Any]]:
+        """
+        Get recent suspicious access attempts.
+
+        Args:
+            limit: Maximum number of results
+
+        Returns:
+            List of access log dictionaries with is_suspicious=True
+        """
+        session = self.session
+        try:
+            logs = session.query(AccessLog).filter(
+                AccessLog.is_suspicious == True
+            ).order_by(AccessLog.timestamp.desc()).limit(limit).all()
+
+            return [
+                {
+                    'ip': log.ip,
+                    'path': log.path,
+                    'user_agent': log.user_agent,
+                    'timestamp': log.timestamp.isoformat()
+                }
+                for log in logs
+            ]
+        finally:
+            self.close_session()
+
+    def get_honeypot_triggered_ips(self) -> List[tuple]:
+        """
+        Get IPs that triggered honeypot paths with the paths they accessed.
+
+        Returns:
+            List of (ip, [paths]) tuples
+        """
+        session = self.session
+        try:
+            # Get all honeypot triggers grouped by IP
+            results = session.query(
+                AccessLog.ip,
+                AccessLog.path
+            ).filter(
+                AccessLog.is_honeypot_trigger == True
+            ).all()
+
+            # Group paths by IP
+            ip_paths: Dict[str, List[str]] = {}
+            for row in results:
+                if row.ip not in ip_paths:
+                    ip_paths[row.ip] = []
+                if row.path not in ip_paths[row.ip]:
+                    ip_paths[row.ip].append(row.path)
+
+            return [(ip, paths) for ip, paths in ip_paths.items()]
+        finally:
+            self.close_session()
+
+    def get_recent_attacks(self, limit: int = 20) -> List[Dict[str, Any]]:
+        """
+        Get recent access logs that have attack detections.
+
+        Args:
+            limit: Maximum number of results
+
+        Returns:
+            List of access log dicts with attack_types included
+        """
+        session = self.session
+        try:
+            # Get access logs that have attack detections
+            logs = session.query(AccessLog).join(
+                AttackDetection
+            ).order_by(AccessLog.timestamp.desc()).limit(limit).all()
+
+            return [
+                {
+                    'ip': log.ip,
+                    'path': log.path,
+                    'user_agent': log.user_agent,
+                    'timestamp': log.timestamp.isoformat(),
+                    'attack_types': [d.attack_type for d in log.attack_detections]
+                }
+                for log in logs
+            ]
+        finally:
+            self.close_session()
+
+
+# Module-level singleton instance
+_db_manager = DatabaseManager()
+
+
+def get_database() -> DatabaseManager:
+    """Get the database manager singleton instance."""
+    return _db_manager
+
+
+def initialize_database(database_path: str = "data/krawl.db") -> None:
+    """Initialize the database system."""
+    _db_manager.initialize(database_path)

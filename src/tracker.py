@@ -7,10 +7,24 @@ from zoneinfo import ZoneInfo
 import re
 import urllib.parse
 
+from database import get_database, DatabaseManager
+
 
 class AccessTracker:
-    """Track IP addresses and paths accessed"""
-    def __init__(self, timezone: Optional[ZoneInfo] = None):
+    """
+    Track IP addresses and paths accessed.
+
+    Maintains in-memory structures for fast dashboard access and
+    persists data to SQLite for long-term storage and analysis.
+    """
+    def __init__(self, db_manager: Optional[DatabaseManager] = None, timezone: Optional[ZoneInfo] = None):
+        """
+        Initialize the access tracker.
+
+        Args:
+            db_manager: Optional DatabaseManager for persistence.
+                        If None, will use the global singleton.
+        """
         self.ip_counts: Dict[str, int] = defaultdict(int)
         self.path_counts: Dict[str, int] = defaultdict(int)
         self.user_agent_counts: Dict[str, int] = defaultdict(int)
@@ -23,7 +37,7 @@ class AccessTracker:
             'burp', 'zap', 'w3af', 'metasploit', 'nuclei', 'gobuster', 'dirbuster'
         ]
 
-        # common attack types such as xss, shell injection, probes
+        # Common attack types such as xss, shell injection, probes
         self.attack_types = {
             'path_traversal': r'\.\.',
             'sql_injection': r"('|--|;|\bOR\b|\bUNION\b|\bSELECT\b|\bDROP\b)",
@@ -34,6 +48,25 @@ class AccessTracker:
 
         # Track IPs that accessed honeypot paths from robots.txt
         self.honeypot_triggered: Dict[str, List[str]] = defaultdict(list)
+
+        # Database manager for persistence (lazily initialized)
+        self._db_manager = db_manager
+
+    @property
+    def db(self) -> Optional[DatabaseManager]:
+        """
+        Get the database manager, lazily initializing if needed.
+
+        Returns:
+            DatabaseManager instance or None if not available
+        """
+        if self._db_manager is None:
+            try:
+                self._db_manager = get_database()
+            except Exception:
+                # Database not initialized, persistence disabled
+                pass
+        return self._db_manager
 
     def parse_credentials(self, post_data: str) -> Tuple[str, str]:
         """
@@ -77,7 +110,12 @@ class AccessTracker:
         return username, password
 
     def record_credential_attempt(self, ip: str, path: str, username: str, password: str):
-        """Record a credential login attempt"""
+        """
+        Record a credential login attempt.
+
+        Stores in both in-memory list and SQLite database.
+        """
+        # In-memory storage for dashboard
         self.credential_attempts.append({
             'ip': ip,
             'path': path,
@@ -86,27 +124,63 @@ class AccessTracker:
             'timestamp': datetime.now(self.timezone).isoformat()
         })
 
-    def record_access(self, ip: str, path: str, user_agent: str = '', body: str = ''):
-        """Record an access attempt"""
+        # Persist to database
+        if self.db:
+            try:
+                self.db.persist_credential(
+                    ip=ip,
+                    path=path,
+                    username=username,
+                    password=password
+                )
+            except Exception:
+                # Don't crash if database persistence fails
+                pass
+
+    def record_access(
+        self,
+        ip: str,
+        path: str,
+        user_agent: str = '',
+        body: str = '',
+        method: str = 'GET'
+    ):
+        """
+        Record an access attempt.
+
+        Stores in both in-memory structures and SQLite database.
+
+        Args:
+            ip: Client IP address
+            path: Requested path
+            user_agent: Client user agent string
+            body: Request body (for POST/PUT)
+            method: HTTP method
+        """
         self.ip_counts[ip] += 1
         self.path_counts[path] += 1
         if user_agent:
             self.user_agent_counts[user_agent] += 1
-        
-        # path attack type detection
+
+        # Path attack type detection
         attack_findings = self.detect_attack_type(path)
 
-        # post / put data
+        # POST/PUT body attack detection
         if len(body) > 0:
             attack_findings.extend(self.detect_attack_type(body))
 
-        is_suspicious = self.is_suspicious_user_agent(user_agent) or self.is_honeypot_path(path) or len(attack_findings) > 0
+        is_suspicious = (
+            self.is_suspicious_user_agent(user_agent) or
+            self.is_honeypot_path(path) or
+            len(attack_findings) > 0
+        )
+        is_honeypot = self.is_honeypot_path(path)
 
-        
         # Track if this IP accessed a honeypot path
-        if self.is_honeypot_path(path):
+        if is_honeypot:
             self.honeypot_triggered[ip].append(path)
-        
+
+        # In-memory storage for dashboard
         self.access_log.append({
             'ip': ip,
             'path': path,
@@ -116,6 +190,22 @@ class AccessTracker:
             'attack_types':attack_findings,
             'timestamp': datetime.now(self.timezone).isoformat()
         })
+
+        # Persist to database
+        if self.db:
+            try:
+                self.db.persist_access(
+                    ip=ip,
+                    path=path,
+                    user_agent=user_agent,
+                    method=method,
+                    is_suspicious=is_suspicious,
+                    is_honeypot_trigger=is_honeypot,
+                    attack_types=attack_findings if attack_findings else None
+                )
+            except Exception:
+                # Don't crash if database persistence fails
+                pass
 
     def detect_attack_type(self, data:str) -> list[str]:
         """
@@ -186,21 +276,20 @@ class AccessTracker:
         return [(ip, paths) for ip, paths in self.honeypot_triggered.items()]
 
     def get_stats(self) -> Dict:
-        """Get statistics summary"""
-        suspicious_count = sum(1 for log in self.access_log if log.get('suspicious', False))
-        honeypot_count = sum(1 for log in self.access_log if log.get('honeypot_triggered', False))
-        return {
-            'total_accesses': len(self.access_log),
-            'unique_ips': len(self.ip_counts),
-            'unique_paths': len(self.path_counts),
-            'suspicious_accesses': suspicious_count,
-            'honeypot_triggered': honeypot_count,
-            'honeypot_ips': len(self.honeypot_triggered),
-            'top_ips': self.get_top_ips(10),
-            'top_paths': self.get_top_paths(10),
-            'top_user_agents': self.get_top_user_agents(10),
-            'recent_suspicious': self.get_suspicious_accesses(20),
-            'honeypot_triggered_ips': self.get_honeypot_triggered_ips(),
-            'attack_types': self.get_attack_type_accesses(20),
-            'credential_attempts': self.credential_attempts[-50:]  # Last 50 attempts
-        }
+        """Get statistics summary from database."""
+        if not self.db:
+            raise RuntimeError("Database not available for dashboard stats")
+
+        # Get aggregate counts from database
+        stats = self.db.get_dashboard_counts()
+
+        # Add detailed lists from database
+        stats['top_ips'] = self.db.get_top_ips(10)
+        stats['top_paths'] = self.db.get_top_paths(10)
+        stats['top_user_agents'] = self.db.get_top_user_agents(10)
+        stats['recent_suspicious'] = self.db.get_recent_suspicious(20)
+        stats['honeypot_triggered_ips'] = self.db.get_honeypot_triggered_ips()
+        stats['attack_types'] = self.db.get_recent_attacks(20)
+        stats['credential_attempts'] = self.db.get_credential_attempts(limit=50)
+
+        return stats

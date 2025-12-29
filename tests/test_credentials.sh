@@ -134,9 +134,9 @@ echo -e "${GREEN}✓ All credential tests completed!${NC}"
 echo -e "${BLUE}========================================${NC}\n"
 
 echo -e "${YELLOW}Check the results:${NC}"
-echo -e "  1. View the log file: ${GREEN}cat src/logs/credentials.log${NC}"
+echo -e "  1. View the log file: ${GREEN}tail -20 logs/credentials.log${NC}"
 echo -e "  2. View the dashboard: ${GREEN}${BASE_URL}/dashboard${NC}"
-echo -e "  3. Check recent logs: ${GREEN}tail -20 src/logs/krawl.log${NC}\n"
+echo -e "  3. Check recent logs: ${GREEN}tail -20 logs/access.log ${NC}\n"
 
 # Display last 10 credential entries if log file exists
 if [ -f "src/logs/credentials.log" ]; then

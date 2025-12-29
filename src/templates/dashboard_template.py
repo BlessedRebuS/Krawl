@@ -5,8 +5,14 @@ Dashboard template for viewing honeypot statistics.
 Customize this template to change the dashboard appearance.
 """
 
+import html
 from datetime import datetime
 
+def _escape(value) -> str:
+    """Escape HTML special characters to prevent XSS attacks."""
+    if value is None:
+        return ""
+    return html.escape(str(value))
 
 def format_timestamp(iso_timestamp: str) -> str:
     """Format ISO timestamp for display (YYYY-MM-DD HH:MM:SS)"""
@@ -21,45 +27,45 @@ def format_timestamp(iso_timestamp: str) -> str:
 def generate_dashboard(stats: dict) -> str:
     """Generate dashboard HTML with access statistics"""
     
-    # Generate IP rows
+    # Generate IP rows (IPs are generally safe but escape for consistency)
     top_ips_rows = '\n'.join([
-        f'<tr><td class="rank">{i+1}</td><td>{ip}</td><td>{count}</td></tr>'
+        f'<tr><td class="rank">{i+1}</td><td>{_escape(ip)}</td><td>{count}</td></tr>'
         for i, (ip, count) in enumerate(stats['top_ips'])
     ]) or '<tr><td colspan="3" style="text-align:center;">No data</td></tr>'
 
-    # Generate paths rows
+    # Generate paths rows (CRITICAL: paths can contain XSS payloads)
     top_paths_rows = '\n'.join([
-        f'<tr><td class="rank">{i+1}</td><td>{path}</td><td>{count}</td></tr>'
+        f'<tr><td class="rank">{i+1}</td><td>{_escape(path)}</td><td>{count}</td></tr>'
         for i, (path, count) in enumerate(stats['top_paths'])
     ]) or '<tr><td colspan="3" style="text-align:center;">No data</td></tr>'
 
-    # Generate User-Agent rows
+    # Generate User-Agent rows (CRITICAL: user agents can contain XSS payloads)
     top_ua_rows = '\n'.join([
-        f'<tr><td class="rank">{i+1}</td><td style="word-break: break-all;">{ua[:80]}</td><td>{count}</td></tr>'
+        f'<tr><td class="rank">{i+1}</td><td style="word-break: break-all;">{_escape(ua[:80])}</td><td>{count}</td></tr>'
         for i, (ua, count) in enumerate(stats['top_user_agents'])
     ]) or '<tr><td colspan="3" style="text-align:center;">No data</td></tr>'
 
-    # Generate suspicious accesses rows
+    # Generate suspicious accesses rows (CRITICAL: multiple user-controlled fields)
     suspicious_rows = '\n'.join([
-        f'<tr><td>{log["ip"]}</td><td>{log["path"]}</td><td style="word-break: break-all;">{log["user_agent"][:60]}</td><td>{format_timestamp(log["timestamp"])}</td></tr>'
+        f'<tr><td>{_escape(log["ip"])}</td><td>{_escape(log["path"])}</td><td style="word-break: break-all;">{_escape(log["user_agent"][:60])}</td><td>{_escape(log["timestamp"].split("T")[1][:8])}</td></tr>'
         for log in stats['recent_suspicious'][-10:]
     ]) or '<tr><td colspan="4" style="text-align:center;">No suspicious activity detected</td></tr>'
 
     # Generate honeypot triggered IPs rows
     honeypot_rows = '\n'.join([
-        f'<tr><td>{ip}</td><td style="word-break: break-all;">{", ".join(paths)}</td><td>{len(paths)}</td></tr>'
+        f'<tr><td>{_escape(ip)}</td><td style="word-break: break-all;">{_escape(", ".join(paths))}</td><td>{len(paths)}</td></tr>'
         for ip, paths in stats.get('honeypot_triggered_ips', [])
     ]) or '<tr><td colspan="3" style="text-align:center;">No honeypot triggers yet</td></tr>'
 
-    # Generate attack types rows
+    # Generate attack types rows (CRITICAL: paths and user agents are user-controlled)
     attack_type_rows = '\n'.join([
-        f'<tr><td>{log["ip"]}</td><td>{log["path"]}</td><td>{", ".join(log["attack_types"])}</td><td style="word-break: break-all;">{log["user_agent"][:60]}</td><td>{format_timestamp(log["timestamp"])}</td></tr>'
+        f'<tr><td>{_escape(log["ip"])}</td><td>{_escape(log["path"])}</td><td>{_escape(", ".join(log["attack_types"]))}</td><td style="word-break: break-all;">{_escape(log["user_agent"][:60])}</td><td>{_escape(log["timestamp"].split("T")[1][:8])}</td></tr>'
         for log in stats.get('attack_types', [])[-10:]
     ]) or '<tr><td colspan="4" style="text-align:center;">No attacks detected</td></tr>'
 
-    # Generate credential attempts rows
+    # Generate credential attempts rows (CRITICAL: usernames and passwords are user-controlled)
     credential_rows = '\n'.join([
-        f'<tr><td>{log["ip"]}</td><td>{log["username"]}</td><td>{log["password"]}</td><td>{log["path"]}</td><td>{format_timestamp(log["timestamp"])}</td></tr>'
+        f'<tr><td>{_escape(log["ip"])}</td><td>{_escape(log["username"])}</td><td>{_escape(log["password"])}</td><td>{_escape(log["path"])}</td><td>{_escape(log["timestamp"].split("T")[1][:8])}</td></tr>'
         for log in stats.get('credential_attempts', [])[-20:]
     ]) or '<tr><td colspan="5" style="text-align:center;">No credentials captured yet</td></tr>'
 
@@ -184,7 +190,7 @@ def generate_dashboard(stats: dict) -> str:
         </div>
 
         <div class="table-container alert-section">
-            <h2>🍯 Honeypot Triggers</h2>
+            <h2>🍯 Honeypot Triggers by IP</h2>
             <table>
                 <thead>
                     <tr>
