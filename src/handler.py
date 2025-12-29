@@ -229,7 +229,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.access_logger.warning(f"[CREDENTIALS CAPTURED] {client_ip} - Username: {username or 'N/A'} - Path: {self.path}")
 
         # send the post data (body) to the record_access function so the post data can be used to detect suspicious things.
-        self.tracker.record_access(client_ip, self.path, user_agent, post_data)
+        self.tracker.record_access(client_ip, self.path, user_agent, post_data, method='POST')
         
         time.sleep(1)
         
@@ -347,7 +347,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.app_logger.error(f"Error generating dashboard: {e}")
             return
 
-        self.tracker.record_access(client_ip, self.path, user_agent)
+        self.tracker.record_access(client_ip, self.path, user_agent, method='GET')
 
         if self.tracker.is_suspicious_user_agent(user_agent):
             self.access_logger.warning(f"[SUSPICIOUS] {client_ip} - {user_agent[:50]} - {self.path}")
