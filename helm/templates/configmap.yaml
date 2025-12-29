@@ -21,3 +21,6 @@ data:
   {{- if .Values.config.serverHeader }}
   SERVER_HEADER: {{ .Values.config.serverHeader | quote }}
   {{- end }}
+  {{- if .Values.config.timezone }}
+  TIMEZONE: {{ .Values.config.timezone | quote }}
+  {{- end }}

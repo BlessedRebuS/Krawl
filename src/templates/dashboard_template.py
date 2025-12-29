@@ -5,6 +5,18 @@ Dashboard template for viewing honeypot statistics.
 Customize this template to change the dashboard appearance.
 """
 
+from datetime import datetime
+
+
+def format_timestamp(iso_timestamp: str) -> str:
+    """Format ISO timestamp for display (YYYY-MM-DD HH:MM:SS)"""
+    try:
+        dt = datetime.fromisoformat(iso_timestamp)
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
+    except Exception:
+        # Fallback for old format
+        return iso_timestamp.split("T")[1][:8] if "T" in iso_timestamp else iso_timestamp
+
 
 def generate_dashboard(stats: dict) -> str:
     """Generate dashboard HTML with access statistics"""
@@ -29,7 +41,7 @@ def generate_dashboard(stats: dict) -> str:
 
     # Generate suspicious accesses rows
     suspicious_rows = '\n'.join([
-        f'<tr><td>{log["ip"]}</td><td>{log["path"]}</td><td style="word-break: break-all;">{log["user_agent"][:60]}</td><td>{log["timestamp"].split("T")[1][:8]}</td></tr>'
+        f'<tr><td>{log["ip"]}</td><td>{log["path"]}</td><td style="word-break: break-all;">{log["user_agent"][:60]}</td><td>{format_timestamp(log["timestamp"])}</td></tr>'
         for log in stats['recent_suspicious'][-10:]
     ]) or '<tr><td colspan="4" style="text-align:center;">No suspicious activity detected</td></tr>'
 
@@ -41,13 +53,13 @@ def generate_dashboard(stats: dict) -> str:
 
     # Generate attack types rows
     attack_type_rows = '\n'.join([
-        f'<tr><td>{log["ip"]}</td><td>{log["path"]}</td><td>{", ".join(log["attack_types"])}</td><td style="word-break: break-all;">{log["user_agent"][:60]}</td><td>{log["timestamp"].split("T")[1][:8]}</td></tr>'
+        f'<tr><td>{log["ip"]}</td><td>{log["path"]}</td><td>{", ".join(log["attack_types"])}</td><td style="word-break: break-all;">{log["user_agent"][:60]}</td><td>{format_timestamp(log["timestamp"])}</td></tr>'
         for log in stats.get('attack_types', [])[-10:]
     ]) or '<tr><td colspan="4" style="text-align:center;">No attacks detected</td></tr>'
 
     # Generate credential attempts rows
     credential_rows = '\n'.join([
-        f'<tr><td>{log["ip"]}</td><td>{log["username"]}</td><td>{log["password"]}</td><td>{log["path"]}</td><td>{log["timestamp"].split("T")[1][:8]}</td></tr>'
+        f'<tr><td>{log["ip"]}</td><td>{log["username"]}</td><td>{log["password"]}</td><td>{log["path"]}</td><td>{format_timestamp(log["timestamp"])}</td></tr>'
         for log in stats.get('credential_attempts', [])[-20:]
     ]) or '<tr><td colspan="5" style="text-align:center;">No credentials captured yet</td></tr>'
 

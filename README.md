@@ -186,6 +186,7 @@ To customize the deception server installation several **environment variables**
 | `DASHBOARD_SECRET_PATH` | Custom dashboard path | Auto-generated |
 | `PROBABILITY_ERROR_CODES` | Error response probability (0-100%) | `0` |
 | `SERVER_HEADER` | HTTP Server header for deception, if not set use random server header | |
+| `TIMEZONE` | IANA timezone for logs and dashboard (e.g., `America/New_York`, `Europe/Rome`) | System timezone |
 
 ## robots.txt
 The actual (juicy) robots.txt configuration is the following
