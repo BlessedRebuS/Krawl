@@ -1,0 +1,17 @@
+{{- if and .Values.database.persistence.enabled (not .Values.database.persistence.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "krawl.fullname" . }}-db
+  labels:
+    {{- include "krawl.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.database.persistence.accessMode }}
+  {{- if .Values.database.persistence.storageClassName }}
+  storageClassName: {{ .Values.database.persistence.storageClassName }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.database.persistence.size }}
+{{- end }}

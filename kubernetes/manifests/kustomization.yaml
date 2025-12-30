@@ -5,6 +5,7 @@ resources:
   - namespace.yaml
   - configmap.yaml
   - wordlists-configmap.yaml
+  - pvc.yaml
   - deployment.yaml
   - service.yaml
   - network-policy.yaml

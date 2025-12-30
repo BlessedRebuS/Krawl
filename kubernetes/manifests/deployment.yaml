@@ -31,6 +31,8 @@ spec:
           mountPath: /app/wordlists.json
           subPath: wordlists.json
           readOnly: true
+        - name: database
+          mountPath: /app/data
         resources:
           requests:
             memory: "64Mi"
@@ -42,3 +44,6 @@ spec:
       - name: wordlists
         configMap:
           name: krawl-wordlists
+      - name: database
+        persistentVolumeClaim:
+          claimName: krawl-db

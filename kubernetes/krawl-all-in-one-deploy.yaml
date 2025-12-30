@@ -20,6 +20,9 @@ data:
   CANARY_TOKEN_TRIES: "10"
   PROBABILITY_ERROR_CODES: "0"
 #  CANARY_TOKEN_URL: set-your-canary-token-url-here
+  # Database configuration
+  DATABASE_PATH: "data/krawl.db"
+  DATABASE_RETENTION_DAYS: "30"
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -227,6 +230,20 @@ data:
       ]
     }
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: krawl-db
+  namespace: krawl-system
+  labels:
+    app: krawl-server
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -260,6 +277,8 @@ spec:
           mountPath: /app/wordlists.json
           subPath: wordlists.json
           readOnly: true
+        - name: database
+          mountPath: /app/data
         resources:
           requests:
             memory: "64Mi"
@@ -271,6 +290,9 @@ spec:
       - name: wordlists
         configMap:
           name: krawl-wordlists
+      - name: database
+        persistentVolumeClaim:
+          claimName: krawl-db
 ---
 apiVersion: v1
 kind: Service

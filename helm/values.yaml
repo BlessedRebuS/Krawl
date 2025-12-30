@@ -79,6 +79,24 @@ config:
 #  canaryTokenUrl: set-your-canary-token-url-here
 #  timezone: "UTC"  # IANA timezone (e.g., "America/New_York", "Europe/Rome"). If not set, system timezone is used.
 
+# Database configuration
+database:
+  # Path to the SQLite database file
+  path: "data/krawl.db"
+  # Number of days to retain access logs and attack data
+  retentionDays: 30
+  # Persistence configuration
+  persistence:
+    enabled: true
+    # Storage class name (use default if not specified)
+    # storageClassName: ""
+    # Access mode for the persistent volume
+    accessMode: ReadWriteOnce
+    # Size of the persistent volume
+    size: 1Gi
+    # Optional: Use existing PVC
+    # existingClaim: ""
+
 networkPolicy:
   enabled: true
   policyTypes:
