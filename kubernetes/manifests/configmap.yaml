@@ -16,3 +16,6 @@ data:
   SERVER_HEADER: "Apache/2.2.22 (Ubuntu)"
 #  CANARY_TOKEN_URL: set-your-canary-token-url-here
 #  TIMEZONE: "UTC"  # IANA timezone (e.g., "America/New_York", "Europe/Rome")
+  # Database configuration
+  DATABASE_PATH: "data/krawl.db"
+  DATABASE_RETENTION_DAYS: "30"

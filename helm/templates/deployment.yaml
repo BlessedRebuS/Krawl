@@ -54,6 +54,10 @@ spec:
           mountPath: /app/wordlists.json
           subPath: wordlists.json
           readOnly: true
+        {{- if .Values.database.persistence.enabled }}
+        - name: database
+          mountPath: /app/data
+        {{- end }}
         {{- with .Values.resources }}
         resources:
           {{- toYaml . | nindent 12 }}
@@ -62,6 +66,16 @@ spec:
       - name: wordlists
         configMap:
           name: {{ include "krawl.fullname" . }}-wordlists
+      {{- if .Values.database.persistence.enabled }}
+      - name: database
+        {{- if .Values.database.persistence.existingClaim }}
+        persistentVolumeClaim:
+          claimName: {{ .Values.database.persistence.existingClaim }}
+        {{- else }}
+        persistentVolumeClaim:
+          claimName: {{ include "krawl.fullname" . }}-db
+        {{- end }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

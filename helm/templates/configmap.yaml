@@ -24,3 +24,6 @@ data:
   {{- if .Values.config.timezone }}
   TIMEZONE: {{ .Values.config.timezone | quote }}
   {{- end }}
+  # Database configuration
+  DATABASE_PATH: {{ .Values.database.path | quote }}
+  DATABASE_RETENTION_DAYS: {{ .Values.database.retentionDays | quote }}
