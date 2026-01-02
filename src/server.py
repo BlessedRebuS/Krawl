@@ -8,7 +8,7 @@ Run this file to start the server.
 import sys
 from http.server import HTTPServer
 
-from config import Config
+from config import get_config
 from tracker import AccessTracker
 from handler import Handler
 from logger import initialize_logging, get_app_logger, get_access_logger, get_credential_logger
@@ -20,24 +20,29 @@ def print_usage():
     print(f'Usage: {sys.argv[0]} [FILE]\n')
     print('FILE is file containing a list of webpage names to serve, one per line.')
     print('If no file is provided, random links will be generated.\n')
-    print('Environment Variables:')
-    print('  PORT                  - Server port (default: 5000)')
-    print('  DELAY                 - Response delay in ms (default: 100)')
-    print('  LINKS_MIN_LENGTH      - Min link length (default: 5)')
-    print('  LINKS_MAX_LENGTH      - Max link length (default: 15)')
-    print('  LINKS_MIN_PER_PAGE    - Min links per page (default: 10)')
-    print('  LINKS_MAX_PER_PAGE    - Max links per page (default: 15)')
-    print('  MAX_COUNTER           - Max counter value (default: 10)')
-    print('  CANARY_TOKEN_URL      - Canary token URL to display')
-    print('  CANARY_TOKEN_TRIES    - Number of tries before showing token (default: 10)')
-    print('  DASHBOARD_SECRET_PATH - Secret path for dashboard (auto-generated if not set)')
-    print('  PROBABILITY_ERROR_CODES - Probability (0-100) to return HTTP error codes (default: 0)')
-    print('  CHAR_SPACE            - Characters for random links')
-    print('  SERVER_HEADER         - HTTP Server header for deception (default: Apache/2.2.22 (Ubuntu))')
-    print('  DATABASE_PATH         - Path to SQLite database (default: data/krawl.db)')
-    print('  DATABASE_RETENTION_DAYS - Days to retain database records (default: 30)')
-    print('  TIMEZONE              - IANA timezone for logs/dashboard (e.g., America/New_York, Europe/Rome)')
-    print('                          If not set, system timezone will be used')
+    print('Configuration:')
+    print('  Configuration is loaded from a YAML file (default: config.yaml)')
+    print('  Set CONFIG_LOCATION environment variable to use a different file.\n')
+    print('  Example config.yaml structure:')
+    print('    server:')
+    print('      port: 5000')
+    print('      delay: 100')
+    print('      timezone: null  # or "America/New_York"')
+    print('    links:')
+    print('      min_length: 5')
+    print('      max_length: 15')
+    print('      min_per_page: 10')
+    print('      max_per_page: 15')
+    print('    canary:')
+    print('      token_url: null')
+    print('      token_tries: 10')
+    print('    dashboard:')
+    print('      secret_path: null  # auto-generated if not set')
+    print('    database:')
+    print('      path: "data/krawl.db"')
+    print('      retention_days: 30')
+    print('    behavior:')
+    print('      probability_error_codes: 0')
 
 
 def main():
@@ -46,18 +51,16 @@ def main():
         print_usage()
         exit(0)
 
-    config = Config.from_env()
-    
+    config = get_config()
+
     # Get timezone configuration
     tz = config.get_timezone()
-    
+
     # Initialize logging with timezone
     initialize_logging(timezone=tz)
     app_logger = get_app_logger()
     access_logger = get_access_logger()
     credential_logger = get_credential_logger()
-
-    config = Config.from_env()
 
     # Initialize database for persistent storage
     try:

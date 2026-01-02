@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional, Tuple
 from zoneinfo import ZoneInfo
 import time
+
+import yaml
 
 
 @dataclass
@@ -23,12 +27,11 @@ class Config:
     api_server_port: int = 8080
     api_server_path: str = "/api/v2/users"
     probability_error_codes: int = 0  # Percentage (0-100)
-    server_header: Optional[str] = None
     # Database settings
     database_path: str = "data/krawl.db"
     database_retention_days: int = 30
     timezone: str = None  # IANA timezone (e.g., 'America/New_York', 'Europe/Rome')
-    
+
     @staticmethod
     # Try to fetch timezone before if not set
     def get_system_timezone() -> str:
@@ -38,16 +41,16 @@ class Config:
                 tz_path = os.readlink('/etc/localtime')
                 if 'zoneinfo/' in tz_path:
                     return tz_path.split('zoneinfo/')[-1]
-            
+
             local_tz = time.tzname[time.daylight]
             if local_tz and local_tz != 'UTC':
                 return local_tz
         except Exception:
             pass
-        
+
         # Default fallback to UTC
         return 'UTC'
-    
+
     def get_timezone(self) -> ZoneInfo:
         """Get configured timezone as ZoneInfo object"""
         if self.timezone:
@@ -55,7 +58,7 @@ class Config:
                 return ZoneInfo(self.timezone)
             except Exception:
                 pass
-        
+
         system_tz = self.get_system_timezone()
         try:
             return ZoneInfo(system_tz)
@@ -63,31 +66,71 @@ class Config:
             return ZoneInfo('UTC')
 
     @classmethod
-    def from_env(cls) -> 'Config':
-        """Create configuration from environment variables"""
+    def from_yaml(cls) -> 'Config':
+        """Create configuration from YAML file"""
+        config_location = os.getenv('CONFIG_LOCATION', 'config.yaml')
+        config_path = Path(__file__).parent.parent / config_location
+
+        try:
+            with open(config_path, 'r') as f:
+                data = yaml.safe_load(f)
+        except FileNotFoundError:
+            print(f"Error: Configuration file '{config_path}' not found.", file=sys.stderr)
+            print(f"Please create a config.yaml file or set CONFIG_LOCATION environment variable.", file=sys.stderr)
+            sys.exit(1)
+        except yaml.YAMLError as e:
+            print(f"Error: Invalid YAML in configuration file '{config_path}': {e}", file=sys.stderr)
+            sys.exit(1)
+
+        if data is None:
+            data = {}
+
+        # Extract nested values with defaults
+        server = data.get('server', {})
+        links = data.get('links', {})
+        canary = data.get('canary', {})
+        dashboard = data.get('dashboard', {})
+        api = data.get('api', {})
+        database = data.get('database', {})
+        behavior = data.get('behavior', {})
+
+        # Handle dashboard_secret_path - auto-generate if null/not set
+        dashboard_path = dashboard.get('secret_path')
+        if dashboard_path is None:
+            dashboard_path = f'/{os.urandom(16).hex()}'
+
         return cls(
-            port=int(os.getenv('PORT', 5000)),
-            delay=int(os.getenv('DELAY', 100)),
+            port=server.get('port', 5000),
+            delay=server.get('delay', 100),
+            timezone=server.get('timezone'),
             links_length_range=(
-                int(os.getenv('LINKS_MIN_LENGTH', 5)),
-                int(os.getenv('LINKS_MAX_LENGTH', 15))
+                links.get('min_length', 5),
+                links.get('max_length', 15)
             ),
             links_per_page_range=(
-                int(os.getenv('LINKS_MIN_PER_PAGE', 10)),
-                int(os.getenv('LINKS_MAX_PER_PAGE', 15))
+                links.get('min_per_page', 10),
+                links.get('max_per_page', 15)
             ),
-            char_space=os.getenv('CHAR_SPACE', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'),
-            max_counter=int(os.getenv('MAX_COUNTER', 10)),
-            canary_token_url=os.getenv('CANARY_TOKEN_URL'),
-            canary_token_tries=int(os.getenv('CANARY_TOKEN_TRIES', 10)),
-            dashboard_secret_path=os.getenv('DASHBOARD_SECRET_PATH', f'/{os.urandom(16).hex()}'),
-            api_server_url=os.getenv('API_SERVER_URL'),
-            api_server_port=int(os.getenv('API_SERVER_PORT', 8080)),
-            api_server_path=os.getenv('API_SERVER_PATH', '/api/v2/users'),
-            probability_error_codes=int(os.getenv('PROBABILITY_ERROR_CODES', 0)),
-            server_header=os.getenv('SERVER_HEADER'),
-            database_path=os.getenv('DATABASE_PATH', 'data/krawl.db'),
-            database_retention_days=int(os.getenv('DATABASE_RETENTION_DAYS', 30)),
-            timezone=os.getenv('TIMEZONE')  # If not set, will use system timezone
-
+            char_space=links.get('char_space', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'),
+            max_counter=links.get('max_counter', 10),
+            canary_token_url=canary.get('token_url'),
+            canary_token_tries=canary.get('token_tries', 10),
+            dashboard_secret_path=dashboard_path,
+            api_server_url=api.get('server_url'),
+            api_server_port=api.get('server_port', 8080),
+            api_server_path=api.get('server_path', '/api/v2/users'),
+            probability_error_codes=behavior.get('probability_error_codes', 0),
+            database_path=database.get('path', 'data/krawl.db'),
+            database_retention_days=database.get('retention_days', 30),
         )
+
+
+_config_instance = None
+
+
+def get_config() -> Config:
+    """Get the singleton Config instance"""
+    global _config_instance
+    if _config_instance is None:
+        _config_instance = Config.from_yaml()
+    return _config_instance

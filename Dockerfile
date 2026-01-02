@@ -4,6 +4,9 @@ LABEL org.opencontainers.image.source=https://github.com/BlessedRebuS/Krawl
 
 WORKDIR /app
 
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
 COPY src/ /app/src/
 COPY wordlists.json /app/
 

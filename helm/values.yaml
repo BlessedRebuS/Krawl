@@ -62,29 +62,36 @@ tolerations: []
 
 affinity: {}
 
-# Application configuration
+# Application configuration (config.yaml structure)
 config:
-  port: 5000
-  delay: 100
-  linksMinLength: 5
-  linksMaxLength: 15
-  linksMinPerPage: 10
-  linksMaxPerPage: 15
-  maxCounter: 10
-  canaryTokenTries: 10
-  probabilityErrorCodes: 0
-# timezone: "UTC"
-#  serverHeader: "Apache/2.2.22 (Ubuntu)"
-#  dashboardSecretPath: "/my-secret-dashboard"
-#  canaryTokenUrl: set-your-canary-token-url-here
-#  timezone: "UTC"  # IANA timezone (e.g., "America/New_York", "Europe/Rome"). If not set, system timezone is used.
+  server:
+    port: 5000
+    delay: 100
+    timezone: null  # IANA timezone (e.g., "America/New_York", "Europe/Rome"). If not set, system timezone is used.
+  links:
+    min_length: 5
+    max_length: 15
+    min_per_page: 10
+    max_per_page: 15
+    char_space: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    max_counter: 10
+  canary:
+    token_url: null  # Set your canary token URL here
+    token_tries: 10
+  dashboard:
+    secret_path: null  # Auto-generated if not set, or set to "/my-secret-dashboard"
+  api:
+    server_url: null
+    server_port: 8080
+    server_path: "/api/v2/users"
+  database:
+    path: "data/krawl.db"
+    retention_days: 30
+  behavior:
+    probability_error_codes: 0
 
-# Database configuration
+# Database persistence configuration
 database:
-  # Path to the SQLite database file
-  path: "data/krawl.db"
-  # Number of days to retain access logs and attack data
-  retentionDays: 30
   # Persistence configuration
   persistence:
     enabled: true
