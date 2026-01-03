@@ -48,10 +48,11 @@
 <br>
 </div>
 
-## Star History
-<img src="https://api.star-history.com/svg?repos=BlessedRebuS/Krawl&type=Date" width="600" alt="Star History Chart" />
+## Demo
+Tip: crawl the `robots.txt` paths for additional fun
+### Krawl URL: [http://demo.krawlme.com](http://demo.krawlme.com)
+### View the dashboard [http://demo.krawlme.com/das_dashboard](http://demo.krawlme.com/das_dashboard)
 
- 
 ## What is Krawl?
 
 **Krawl** is a cloud‑native deception server designed to detect, delay, and analyze malicious web crawlers and automated scanners.
@@ -185,7 +186,7 @@ To customize the deception server installation several **environment variables**
 | `CANARY_TOKEN_URL` | External canary token URL | None |
 | `DASHBOARD_SECRET_PATH` | Custom dashboard path | Auto-generated |
 | `PROBABILITY_ERROR_CODES` | Error response probability (0-100%) | `0` |
-| `SERVER_HEADER` | HTTP Server header for deception, if not set use random server header | |
+| `SERVER_HEADER` | HTTP Server header for deception | `Apache/2.2.22 (Ubuntu)` |
 | `TIMEZONE` | IANA timezone for logs and dashboard (e.g., `America/New_York`, `Europe/Rome`) | System timezone |
 
 ## robots.txt
@@ -317,3 +318,6 @@ Contributions welcome! Please:
 **This is a deception/honeypot system.**  
 Deploy in isolated environments and monitor carefully for security events.  
 Use responsibly and in compliance with applicable laws and regulations.
+
+## Star History
+<img src="https://api.star-history.com/svg?repos=BlessedRebuS/Krawl&type=Date" width="600" alt="Star History Chart" />

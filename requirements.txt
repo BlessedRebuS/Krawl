@@ -1,5 +1,8 @@
 # Krawl Honeypot Dependencies
 # Install with: pip install -r requirements.txt
 
+# Configuration
+PyYAML>=6.0
+
 # Database ORM
 SQLAlchemy>=2.0.0,<3.0.0

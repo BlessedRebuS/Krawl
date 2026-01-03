@@ -61,9 +61,12 @@ secrets/
 *.log
 logs/
 
-# Database
+# Data and databases
 data/
+**/data/
 *.db
+*.sqlite
+*.sqlite3
 
 # Temporary files
 *.tmp

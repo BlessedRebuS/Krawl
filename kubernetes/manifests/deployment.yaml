@@ -23,10 +23,14 @@ spec:
         - containerPort: 5000
           name: http
           protocol: TCP
-        envFrom:
-        - configMapRef:
-            name: krawl-config
+        env:
+        - name: CONFIG_LOCATION
+          value: "config.yaml"
         volumeMounts:
+        - name: config
+          mountPath: /app/config.yaml
+          subPath: config.yaml
+          readOnly: true
         - name: wordlists
           mountPath: /app/wordlists.json
           subPath: wordlists.json
@@ -41,6 +45,9 @@ spec:
             memory: "256Mi"
             cpu: "500m"
       volumes:
+      - name: config
+        configMap:
+          name: krawl-config
       - name: wordlists
         configMap:
           name: krawl-wordlists

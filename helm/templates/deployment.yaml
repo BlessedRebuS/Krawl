@@ -38,18 +38,16 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - name: http
-          containerPort: {{ .Values.config.port }}
+          containerPort: {{ .Values.config.server.port }}
           protocol: TCP
-        envFrom:
-        - configMapRef:
-            name: {{ include "krawl.fullname" . }}-config
         env:
-        - name: DASHBOARD_SECRET_PATH
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "krawl.fullname" . }}
-              key: dashboard-path
+        - name: CONFIG_LOCATION
+          value: "config.yaml"
         volumeMounts:
+        - name: config
+          mountPath: /app/config.yaml
+          subPath: config.yaml
+          readOnly: true
         - name: wordlists
           mountPath: /app/wordlists.json
           subPath: wordlists.json
@@ -63,6 +61,9 @@ spec:
           {{- toYaml . | nindent 12 }}
         {{- end }}
       volumes:
+      - name: config
+        configMap:
+          name: {{ include "krawl.fullname" . }}-config
       - name: wordlists
         configMap:
           name: {{ include "krawl.fullname" . }}-wordlists

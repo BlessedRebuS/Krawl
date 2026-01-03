@@ -5,25 +5,30 @@ metadata:
   labels:
     {{- include "krawl.labels" . | nindent 4 }}
 data:
-  PORT: {{ .Values.config.port | quote }}
-  DELAY: {{ .Values.config.delay | quote }}
-  LINKS_MIN_LENGTH: {{ .Values.config.linksMinLength | quote }}
-  LINKS_MAX_LENGTH: {{ .Values.config.linksMaxLength | quote }}
-  LINKS_MIN_PER_PAGE: {{ .Values.config.linksMinPerPage | quote }}
-  LINKS_MAX_PER_PAGE: {{ .Values.config.linksMaxPerPage | quote }}
-  MAX_COUNTER: {{ .Values.config.maxCounter | quote }}
-  CANARY_TOKEN_TRIES: {{ .Values.config.canaryTokenTries | quote }}
-  PROBABILITY_ERROR_CODES: {{ .Values.config.probabilityErrorCodes | quote }}
-  CANARY_TOKEN_URL: {{ .Values.config.canaryTokenUrl | quote }}
-  {{- if .Values.config.dashboardSecretPath }}
-  DASHBOARD_SECRET_PATH: {{ .Values.config.dashboardSecretPath | quote }}
-  {{- end }}
-  {{- if .Values.config.serverHeader }}
-  SERVER_HEADER: {{ .Values.config.serverHeader | quote }}
-  {{- end }}
-  {{- if .Values.config.timezone }}
-  TIMEZONE: {{ .Values.config.timezone | quote }}
-  {{- end }}
-  # Database configuration
-  DATABASE_PATH: {{ .Values.database.path | quote }}
-  DATABASE_RETENTION_DAYS: {{ .Values.database.retentionDays | quote }}
+  config.yaml: |
+    # Krawl Honeypot Configuration
+    server:
+      port: {{ .Values.config.server.port }}
+      delay: {{ .Values.config.server.delay }}
+      timezone: {{ .Values.config.server.timezone | toYaml }}
+    links:
+      min_length: {{ .Values.config.links.min_length }}
+      max_length: {{ .Values.config.links.max_length }}
+      min_per_page: {{ .Values.config.links.min_per_page }}
+      max_per_page: {{ .Values.config.links.max_per_page }}
+      char_space: {{ .Values.config.links.char_space | quote }}
+      max_counter: {{ .Values.config.links.max_counter }}
+    canary:
+      token_url: {{ .Values.config.canary.token_url | toYaml }}
+      token_tries: {{ .Values.config.canary.token_tries }}
+    dashboard:
+      secret_path: {{ .Values.config.dashboard.secret_path | toYaml }}
+    api:
+      server_url: {{ .Values.config.api.server_url | toYaml }}
+      server_port: {{ .Values.config.api.server_port }}
+      server_path: {{ .Values.config.api.server_path | quote }}
+    database:
+      path: {{ .Values.config.database.path | quote }}
+      retention_days: {{ .Values.config.database.retention_days }}
+    behavior:
+      probability_error_codes: {{ .Values.config.behavior.probability_error_codes }}

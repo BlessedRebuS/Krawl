@@ -114,6 +114,17 @@ class Wordlists:
         return self._data.get("error_codes", [])
     
     @property
+    def sql_errors(self):
+        return self._data.get("sql_errors", {})
+    
+    @property
+    def attack_patterns(self):
+        return self._data.get("attack_patterns", {})
+    
+    @property
+    def server_errors(self):
+        return self._data.get("server_errors", {})
+    
     def server_headers(self):
         return self._data.get("server_headers", [])
 

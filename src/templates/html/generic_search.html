@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Search</h1>
+    <form id="searchForm">
+        <input type="text" id="searchQuery" placeholder="Enter search query..." required>
+        <button type="submit">Search</button>
+    </form>
+    <div id="results"></div>
+    
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const query = document.getElementById('searchQuery').value;
+            const results = document.getElementById('results');
+            
+            try {
+                const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                const text = await response.text();
+                results.innerHTML = `<pre>${text}</pre>`;
+                results.style.display = 'block';
+            } catch (err) {
+                results.innerHTML = `<p>Error: ${err.message}</p>`;
+                results.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
