@@ -5,6 +5,7 @@ from collections import defaultdict
 from datetime import datetime
 import re
 import urllib.parse
+from wordlists import get_wordlists
 
 
 class AccessTracker:
@@ -21,14 +22,19 @@ class AccessTracker:
             'burp', 'zap', 'w3af', 'metasploit', 'nuclei', 'gobuster', 'dirbuster'
         ]
 
-        # common attack types such as xss, shell injection, probes
-        self.attack_types = {
-            'path_traversal': r'\.\.',
-            'sql_injection': r"('|--|;|\bOR\b|\bUNION\b|\bSELECT\b|\bDROP\b)",
-            'xss_attempt': r'(<script|javascript:|onerror=|onload=)',
-            'common_probes': r'(wp-admin|phpmyadmin|\.env|\.git|/admin|/config)',
-            'shell_injection': r'(\||;|`|\$\(|&&)',
-        }
+        # Load attack patterns from wordlists
+        wl = get_wordlists()
+        self.attack_types = wl.attack_patterns
+        
+        # Fallback if wordlists not loaded
+        if not self.attack_types:
+            self.attack_types = {
+                'path_traversal': r'\.\.',
+                'sql_injection': r"('|--|;|\bOR\b|\bUNION\b|\bSELECT\b|\bDROP\b)",
+                'xss_attempt': r'(<script|javascript:|onerror=|onload=)',
+                'common_probes': r'(wp-admin|phpmyadmin|\.env|\.git|/admin|/config)',
+                'shell_injection': r'(\||;|`|\$\(|&&)',
+            }
 
         # Track IPs that accessed honeypot paths from robots.txt
         self.honeypot_triggered: Dict[str, List[str]] = defaultdict(list)

@@ -50,3 +50,13 @@ def directory_listing(path: str, dirs: list, files: list) -> str:
         rows += row_template.format(href=f, name=f, date="2024-12-01 14:22", size=size)
 
     return load_template("directory_listing", path=path, rows=rows)
+
+
+def product_search() -> str:
+    """Generate product search page with SQL injection honeypot"""
+    return load_template("generic_search")
+
+
+def input_form() -> str:
+    """Generate input form page for XSS honeypot"""
+    return load_template("input_form")
