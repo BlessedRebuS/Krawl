@@ -9,6 +9,7 @@ import string
 import json
 from templates import html_templates
 from wordlists import get_wordlists
+from config import get_config
 
 def random_username() -> str:
     """Generate random username"""
@@ -37,6 +38,9 @@ def random_email(username: str = None) -> str:
 
 def random_server_header() -> str:
     """Generate random server header from wordlists"""
+    config = get_config()
+    if config.server_header:
+        return config.server_header
     wl = get_wordlists()
     return random.choice(wl.server_headers)
 

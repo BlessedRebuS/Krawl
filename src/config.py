@@ -16,6 +16,7 @@ class Config:
     """Configuration class for the deception server"""
     port: int = 5000
     delay: int = 100  # milliseconds
+    server_header: str = ""
     links_length_range: Tuple[int, int] = (5, 15)
     links_per_page_range: Tuple[int, int] = (10, 15)
     char_space: str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -27,6 +28,7 @@ class Config:
     api_server_port: int = 8080
     api_server_path: str = "/api/v2/users"
     probability_error_codes: int = 0  # Percentage (0-100)
+
     # Database settings
     database_path: str = "data/krawl.db"
     database_retention_days: int = 30
@@ -98,10 +100,15 @@ class Config:
         dashboard_path = dashboard.get('secret_path')
         if dashboard_path is None:
             dashboard_path = f'/{os.urandom(16).hex()}'
-
+        else:
+            # ensure the dashboard path starts with a /
+            if dashboard_path[:1] != "/":
+                dashboard_path = f"/{dashboard_path}"
+                
         return cls(
             port=server.get('port', 5000),
             delay=server.get('delay', 100),
+            server_header=server.get('server_header',""),
             timezone=server.get('timezone'),
             links_length_range=(
                 links.get('min_length', 5),

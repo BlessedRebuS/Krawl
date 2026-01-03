@@ -5,6 +5,9 @@ server:
   delay: 100  # Response delay in milliseconds
   timezone: null  # e.g., "America/New_York" or null for system default
 
+  # manually set the server header, if null a random one will be used.
+  server_header: "Apache/2.2.22 (Ubuntu)" 
+
 links:
   min_length: 5
   max_length: 15
@@ -19,7 +22,7 @@ canary:
 
 dashboard:
   # if set to "null" this will Auto-generates random path if not set
-  # can be set to "dashboard" or similar
+  # can be set to "/dashboard" or similar <-- note this MUST include a forward slash
   secret_path: dashboard
 
 api:
