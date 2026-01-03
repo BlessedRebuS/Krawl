@@ -193,5 +193,170 @@
     500,
     502,
     503
-  ]
+  ],
+  "server_errors": {
+    "nginx": {
+      "versions": ["1.18.0", "1.20.1", "1.22.0", "1.24.0"],
+      "template": "<!DOCTYPE html>\n<html>\n<head>\n<title>{code} {message}</title>\n<style>\nbody {{\n    width: 35em;\n    margin: 0 auto;\n    font-family: Tahoma, Verdana, Arial, sans-serif;\n}}\n</style>\n</head>\n<body>\n<h1>An error occurred.</h1>\n<p>Sorry, the page you are looking for is currently unavailable.<br/>\nPlease try again later.</p>\n<p>If you are the system administrator of this resource then you should check the error log for details.</p>\n<p><em>Faithfully yours, nginx/{version}.</em></p>\n</body>\n</html>"
+    },
+    "apache": {
+      "versions": ["2.4.41", "2.4.52", "2.4.54", "2.4.57"],
+      "os": ["Ubuntu", "Debian", "CentOS"],
+      "template": "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>{code} {message}</title>\n</head><body>\n<h1>{message}</h1>\n<p>The requested URL was not found on this server.</p>\n<hr>\n<address>Apache/{version} ({os}) Server at {host} Port 80</address>\n</body></html>"
+    },
+    "iis": {
+      "versions": ["10.0", "8.5", "8.0"],
+      "template": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\"/>\n<title>{code} - {message}</title>\n<style type=\"text/css\">\nbody{{margin:0;font-size:.7em;font-family:Verdana, Arial, Helvetica, sans-serif;background:#EEEEEE;}}\nfieldset{{padding:0 15px 10px 15px;}}\nh1{{font-size:2.4em;margin:0;color:#FFF;}}\nh2{{font-size:1.7em;margin:0;color:#CC0000;}}\nh3{{font-size:1.2em;margin:10px 0 0 0;color:#000000;}}\n#header{{width:96%;margin:0 0 0 0;padding:6px 2% 6px 2%;font-family:\"trebuchet MS\", Verdana, sans-serif;color:#FFF;\nbackground-color:#555555;}}\n#content{{margin:0 0 0 2%;position:relative;}}\n</style>\n</head>\n<body>\n<div id=\"header\"><h1>Server Error</h1></div>\n<div id=\"content\">\n <div class=\"content-container\"><fieldset>\n  <h2>{code} - {message}</h2>\n  <h3>The page cannot be displayed because an internal server error has occurred.</h3>\n </fieldset></div>\n</div>\n</body>\n</html>"
+    },
+    "tomcat": {
+      "versions": ["9.0.65", "10.0.27", "10.1.5"],
+      "template": "<!doctype html><html lang=\"en\"><head><title>HTTP Status {code} - {message}</title><style type=\"text/css\">body {{font-family:Tahoma,Arial,sans-serif;}} h1, h2, h3, b {{color:white;background-color:#525D76;}} h1 {{font-size:22px;}} h2 {{font-size:16px;}} h3 {{font-size:14px;}} p {{font-size:12px;}} a {{color:black;}} .line {{height:1px;background-color:#525D76;border:none;}}</style></head><body><h1>HTTP Status {code} - {message}</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Description</b> The server encountered an internal error that prevented it from fulfilling this request.</p><hr class=\"line\" /><h3>Apache Tomcat/{version}</h3></body></html>"
+    }
+  },
+  "sql_errors": {
+    "mysql": {
+      "generic": [
+        "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ''1'' at line 1",
+        "Unknown column '{column}' in 'where clause'",
+        "Table '{table}' doesn't exist",
+        "Operand should contain 1 column(s)",
+        "Subquery returns more than 1 row",
+        "Duplicate entry 'admin' for key 'PRIMARY'"
+      ],
+      "quote": [
+        "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ''''' at line 1",
+        "Unclosed quotation mark after the character string ''",
+        "You have an error in your SQL syntax near '\\'' LIMIT 0,30'"
+      ],
+      "union": [
+        "The used SELECT statements have a different number of columns",
+        "Operand should contain 1 column(s)",
+        "Mixing of GROUP columns (MIN(),MAX(),COUNT(),...) with no GROUP columns is illegal"
+      ],
+      "boolean": [
+        "You have an error in your SQL syntax near 'OR 1=1' at line 1",
+        "Unknown column '1' in 'where clause'"
+      ],
+      "time_based": [
+        "Query execution was interrupted",
+        "Lock wait timeout exceeded; try restarting transaction"
+      ],
+      "comment": [
+        "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '--' at line 1"
+      ]
+    },
+    "postgresql": {
+      "generic": [
+        "ERROR: syntax error at or near \"1\"",
+        "ERROR: column \"{column}\" does not exist",
+        "ERROR: relation \"{table}\" does not exist",
+        "ERROR: operator does not exist: integer = text",
+        "ERROR: invalid input syntax for type integer: \"admin\""
+      ],
+      "quote": [
+        "ERROR: unterminated quoted string at or near \"'\"",
+        "ERROR: syntax error at or near \"'\"",
+        "ERROR: unterminated quoted identifier at or near \"'\""
+      ],
+      "union": [
+        "ERROR: each UNION query must have the same number of columns",
+        "ERROR: UNION types integer and text cannot be matched"
+      ],
+      "boolean": [
+        "ERROR: syntax error at or near \"OR\"",
+        "ERROR: invalid input syntax for type boolean: \"1=1\""
+      ],
+      "time_based": [
+        "ERROR: canceling statement due to user request",
+        "ERROR: function pg_sleep(integer) does not exist"
+      ],
+      "info_schema": [
+        "ERROR: permission denied for table {table}",
+        "ERROR: permission denied for schema information_schema"
+      ]
+    },
+    "mssql": {
+      "generic": [
+        "Msg 102, Level 15, State 1, Line 1\nIncorrect syntax near '1'.",
+        "Msg 207, Level 16, State 1, Line 1\nInvalid column name '{column}'.",
+        "Msg 208, Level 16, State 1, Line 1\nInvalid object name '{table}'.",
+        "Msg 245, Level 16, State 1, Line 1\nConversion failed when converting the varchar value 'admin' to data type int."
+      ],
+      "quote": [
+        "Msg 105, Level 15, State 1, Line 1\nUnclosed quotation mark after the character string ''.",
+        "Msg 102, Level 15, State 1, Line 1\nIncorrect syntax near '''."
+      ],
+      "union": [
+        "Msg 205, Level 16, State 1, Line 1\nAll queries combined using a UNION, INTERSECT or EXCEPT operator must have an equal number of expressions in their target lists.",
+        "Msg 8167, Level 16, State 1, Line 1\nThe type of column \"{column}\" conflicts with the type of other columns specified in the UNION, INTERSECT, or EXCEPT list."
+      ],
+      "boolean": [
+        "Msg 102, Level 15, State 1, Line 1\nIncorrect syntax near 'OR'."
+      ],
+      "command": [
+        "Msg 15281, Level 16, State 1, Procedure xp_cmdshell, Line 1\nSQL Server blocked access to procedure 'sys.xp_cmdshell' of component 'xp_cmdshell'"
+      ]
+    },
+    "oracle": {
+      "generic": [
+        "ORA-00933: SQL command not properly ended",
+        "ORA-00904: \"{column}\": invalid identifier",
+        "ORA-00942: table or view \"{table}\" does not exist",
+        "ORA-01722: invalid number",
+        "ORA-01756: quoted string not properly terminated"
+      ],
+      "quote": [
+        "ORA-01756: quoted string not properly terminated",
+        "ORA-00933: SQL command not properly ended"
+      ],
+      "union": [
+        "ORA-01789: query block has incorrect number of result columns",
+        "ORA-01790: expression must have same datatype as corresponding expression"
+      ],
+      "boolean": [
+        "ORA-00933: SQL command not properly ended",
+        "ORA-00920: invalid relational operator"
+      ]
+    },
+    "sqlite": {
+      "generic": [
+        "near \"1\": syntax error",
+        "no such column: {column}",
+        "no such table: {table}",
+        "unrecognized token: \"'\"",
+        "incomplete input"
+      ],
+      "quote": [
+        "unrecognized token: \"'\"",
+        "incomplete input",
+        "near \"'\": syntax error"
+      ],
+      "union": [
+        "SELECTs to the left and right of UNION do not have the same number of result columns"
+      ]
+    },
+    "mongodb": {
+      "generic": [
+        "MongoError: Can't canonicalize query: BadValue unknown operator: $where",
+        "MongoError: Failed to parse: { $where: \"this.{column} == '1'\" }",
+        "SyntaxError: unterminated string literal",
+        "MongoError: exception: invalid operator: $gt"
+      ],
+      "quote": [
+        "SyntaxError: unterminated string literal",
+        "SyntaxError: missing } after property list"
+      ],
+      "command": [
+        "MongoError: $where is not allowed in this context",
+        "MongoError: can't eval: security"
+      ]
+    }
+  },
+  "attack_patterns": {
+    "path_traversal": "\\.\\.",
+    "sql_injection": "('|\"|`|--|#|/\\*|\\*/|\\bunion\\b|\\bunion\\s+select\\b|\\bor\\b.*=.*|\\band\\b.*=.*|'.*or.*'.*=.*'|\\bsleep\\b|\\bwaitfor\\b|\\bdelay\\b|\\bbenchmark\\b|;.*select|;.*drop|;.*insert|;.*update|;.*delete|\\bexec\\b|\\bexecute\\b|\\bxp_cmdshell\\b|information_schema|table_schema|table_name)",
+    "xss_attempt": "(<script|</script|javascript:|onerror=|onload=|onclick=|onmouseover=|onfocus=|onblur=|<iframe|<img|<svg|<embed|<object|<body|<input|eval\\(|alert\\(|prompt\\(|confirm\\(|document\\.|window\\.|<style|expression\\(|vbscript:|data:text/html)",
+    "common_probes": "(wp-admin|phpmyadmin|\\.env|\\.git|/admin|/config)",
+    "shell_injection": "(\\||;|`|\\$\\(|&&)"
+  }
 }
