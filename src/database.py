@@ -223,6 +223,45 @@ class DatabaseManager:
             )
             session.add(ip_stats)
 
+    def  update_ip_stats_analysis(self, ip: str, analyzed_metrics: Dict[str, object], category: str, category_scores: Dict[str, int], last_analysis: datetime) -> None:
+        """
+        Update IP statistics (ip is already persisted).
+
+        Args:
+            ip: IP address to update
+            analyzed_metrics: metric values analyzed be the analyzer
+            category: inferred category
+            category_scores: inferred category scores
+            last_analysis: timestamp of last analysis
+
+        """
+        print(f"Analyzed metrics {analyzed_metrics}, category {category}, category scores {category_scores}, last analysis {last_analysis}")
+
+        session = self.session
+        sanitized_ip = sanitize_ip(ip)
+        ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
+
+        ip_stats.analyzed_metrics = analyzed_metrics
+        ip_stats.category = category
+        ip_stats.category_scores = category_scores
+        ip_stats.last_analysis = last_analysis
+
+    def  manual_update_category(self, ip: str, category: str) -> None:
+        """
+        Update IP category as a result of a manual intervention by an admin
+
+        Args:
+            ip: IP address to update
+            category: selected category
+        
+        """
+        session = self.session
+
+        ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
+
+        ip_stats.category = category
+        ip_stats.manual_category = True
+
     def get_access_logs(
         self,
         limit: int = 100,
@@ -269,6 +308,56 @@ class DatabaseManager:
             ]
         finally:
             self.close_session()
+
+    # def persist_ip(
+    #     self,
+    #     ip: str
+    # ) -> Optional[int]:
+    #     """
+    #     Persist an ip entry to the database.
+
+    #     Args:
+    #         ip: Client IP address
+
+    #     Returns:
+    #         The ID of the created IpLog record, or None on error
+    #     """
+    #     session = self.session
+    #     try:
+    #         # Create access log with sanitized fields
+    #         ip_log = AccessLog(
+    #             ip=sanitize_ip(ip),
+    #             manual_category = False
+    #         )
+    #         session.add(access_log)
+    #         session.flush()  # Get the ID before committing
+
+    #         # Add attack detections if any
+    #         if attack_types:
+    #             matched_patterns = matched_patterns or {}
+    #             for attack_type in attack_types:
+    #                 detection = AttackDetection(
+    #                     access_log_id=access_log.id,
+    #                     attack_type=attack_type[:50],
+    #                     matched_pattern=sanitize_attack_pattern(
+    #                         matched_patterns.get(attack_type, "")
+    #                     )
+    #                 )
+    #                 session.add(detection)
+
+    #         # Update IP stats
+    #         self._update_ip_stats(session, ip)
+
+    #         session.commit()
+    #         return access_log.id
+
+    #     except Exception as e:
+    #         session.rollback()
+    #         # Log error but don't crash - database persistence is secondary to honeypot function
+    #         print(f"Database error persisting access: {e}")
+    #         return None
+    #     finally:
+    #         self.close_session()    
 
     def get_credential_attempts(
         self,
@@ -339,7 +428,11 @@ class DatabaseManager:
                     'asn': s.asn,
                     'asn_org': s.asn_org,
                     'reputation_score': s.reputation_score,
-                    'reputation_source': s.reputation_source
+                    'reputation_source': s.reputation_source,
+                    'analyzed_metrics': s.analyzed_metrics,
+                    'category': s.category,
+                    'manual_category': s.manual_category,
+                    'last_analysis': s.last_analysis
                 }
                 for s in stats
             ]
@@ -539,6 +632,47 @@ class DatabaseManager:
             ]
         finally:
             self.close_session()
+
+    # def get_ip_logs(
+    #     self,
+    #     limit: int = 100,
+    #     offset: int = 0,
+    #     ip_filter: Optional[str] = None
+    # ) -> List[Dict[str, Any]]:
+    #     """
+    #     Retrieve ip logs with optional filtering.
+
+    #     Args:
+    #         limit: Maximum number of records to return
+    #         offset: Number of records to skip
+    #         ip_filter: Filter by IP address
+
+    #     Returns:
+    #         List of ip log dictionaries
+    #     """
+    #     session = self.session
+    #     try:
+    #         query = session.query(IpLog).order_by(IpLog.last_access.desc())
+
+    #         if ip_filter:
+    #             query = query.filter(IpLog.ip == sanitize_ip(ip_filter))
+
+    #         logs = query.offset(offset).limit(limit).all()
+
+    #         return [
+    #             {
+    #                 'id': log.id,
+    #                 'ip': log.ip,
+    #                 'stats': log.stats,
+    #                 'category': log.category,
+    #                 'manual_category': log.manual_category,
+    #                 'last_evaluation': log.last_evaluation,
+    #                 'last_access': log.last_access
+    #             }
+    #             for log in logs
+    #         ]
+    #     finally:
+    #         self.close_session()
 
 
 # Module-level singleton instance

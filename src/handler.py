@@ -9,6 +9,7 @@ from typing import Optional, List
 
 from config import Config
 from tracker import AccessTracker
+from analyzer import Analyzer
 from templates import html_templates
 from templates.dashboard_template import generate_dashboard
 from generators import (
@@ -23,6 +24,7 @@ class Handler(BaseHTTPRequestHandler):
     webpages: Optional[List[str]] = None
     config: Config = None
     tracker: AccessTracker = None
+    analyzer: Analyzer = None
     counter: int = 0
     app_logger: logging.Logger = None
     access_logger: logging.Logger = None
@@ -348,6 +350,8 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         self.tracker.record_access(client_ip, self.path, user_agent, method='GET')
+        
+        self.analyzer.infer_user_category(client_ip)
 
         if self.tracker.is_suspicious_user_agent(user_agent):
             self.access_logger.warning(f"[SUSPICIOUS] {client_ip} - {user_agent[:50]} - {self.path}")

@@ -201,5 +201,11 @@
     "cloudflare",
     "AmazonS3",
     "gunicorn/20.1.0"
-  ]
+  ],
+  "attack_urls": { 
+    "path_traversal": "\\.\\.",
+    "sql_injection": "('|--|;|\bOR\b|\bUNION\b|\bSELECT\b|\bDROP\b)",
+    "xss_attempt": "(<script|javascript:|onerror=|onload=)",
+    "shell_injection": "(\\||;|`|\\$\\(|&&)"
+  }
 }
