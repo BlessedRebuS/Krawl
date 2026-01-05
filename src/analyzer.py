@@ -69,12 +69,12 @@ class Analyzer:
             "attacker": {
                 "risky_http_methods": 6,
                 "robots_violations": 4,
-                "uneven_request_timing": 5,
+                "uneven_request_timing": 3,
                 "different_user_agents": 8,
                 "attack_url": 15
             },
             "good_crawler": {
-                "risky_http_methods": 0,
+                "risky_http_methods": 1,
                 "robots_violations": 0,
                 "uneven_request_timing": 0,
                 "different_user_agents": 0,
@@ -82,7 +82,7 @@ class Analyzer:
             },
             "bad_crawler": {
                 "risky_http_methods": 2,
-                "robots_violations": 4,
+                "robots_violations": 7,
                 "uneven_request_timing": 0,
                 "different_user_agents": 5,
                 "attack_url": 5
@@ -126,14 +126,14 @@ class Analyzer:
             score["regular_user"]["risky_http_methods"] = False
         else:
             score["attacker"]["risky_http_methods"] = False
-            score["good_crawler"]["risky_http_methods"] = False
+            score["good_crawler"]["risky_http_methods"] = True
             score["bad_crawler"]["risky_http_methods"] = False
             score["regular_user"]["risky_http_methods"] = False
 
         #--------------------- Robots Violations ---------------------
         #respect robots.txt and login/config pages access frequency
         robots_disallows = []
-        robots_path = config_path = Path(__file__).parent / "templates" / "html" / "robots.txt"
+        robots_path = Path(__file__).parent / "templates" / "html" / "robots.txt"
         with open(robots_path, "r") as f:
             for line in f:
                 line = line.strip()
@@ -185,9 +185,9 @@ class Analyzer:
             variance = sum((x - mean) ** 2 for x in time_diffs) / len(time_diffs)
             std = variance ** 0.5
             cv = std/mean
-            #print(f"Mean: {mean} - Variance {variance} - Standard Deviation {std} - Coefficient of Variation: {cv}")
+            print(f"Mean: {mean} - Variance {variance} - Standard Deviation {std} - Coefficient of Variation: {cv}")
 
-        if mean >= uneven_request_timing_threshold:
+        if cv >= uneven_request_timing_threshold:
             score["attacker"]["uneven_request_timing"] = True
             score["good_crawler"]["uneven_request_timing"] = False
             score["bad_crawler"]["uneven_request_timing"] = False
@@ -227,7 +227,7 @@ class Analyzer:
             for queried_path in queried_paths:
                 for name, pattern in wl.attack_urls.items():
                     if re.search(pattern, queried_path, re.IGNORECASE):
-                        attack_url_found_list.append(pattern)
+                        attack_urls_found_list.append(pattern)
             
             if len(attack_urls_found_list) > attack_urls_threshold:
                 score["attacker"]["attack_url"] = True

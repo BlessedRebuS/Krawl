@@ -140,7 +140,7 @@ class Config:
             database_retention_days=database.get('retention_days', 30),
             http_risky_methods_threshold=analyzer.get('http_risky_methods_threshold', 0.1),
             violated_robots_threshold=analyzer.get('violated_robots_threshold', 0.1),
-            uneven_request_timing_threshold=analyzer.get('uneven_request_timing_threshold', 5),
+            uneven_request_timing_threshold=analyzer.get('uneven_request_timing_threshold', 0.5), # coefficient of variation 
             uneven_request_timing_time_window_seconds=analyzer.get('uneven_request_timing_time_window_seconds', 300),
             user_agents_used_threshold=analyzer.get('user_agents_used_threshold', 2),
             attack_urls_threshold=analyzer.get('attack_urls_threshold', 1)
