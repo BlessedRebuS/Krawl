@@ -103,7 +103,7 @@ class Config:
         api = data.get('api', {})
         database = data.get('database', {})
         behavior = data.get('behavior', {})
-        analyzer = data.get('analyzer', {})
+        analyzer = data.get('analyzer') or {}
 
         # Handle dashboard_secret_path - auto-generate if null/not set
         dashboard_path = dashboard.get('secret_path')
@@ -142,7 +142,7 @@ class Config:
             violated_robots_threshold=analyzer.get('violated_robots_threshold', 0.1),
             uneven_request_timing_threshold=analyzer.get('uneven_request_timing_threshold', 5),
             uneven_request_timing_time_window_seconds=analyzer.get('uneven_request_timing_time_window_seconds', 300),
-            user_agents_used_threshold=analyzer.get('user_agents_used_threshold', 1),
+            user_agents_used_threshold=analyzer.get('user_agents_used_threshold', 2),
             attack_urls_threshold=analyzer.get('attack_urls_threshold', 1)
         )
 

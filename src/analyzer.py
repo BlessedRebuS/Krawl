@@ -111,9 +111,7 @@ class Analyzer:
         delete_accesses_count = len([item for item in accesses if item["method"] == "DELETE"])
         head_accesses_count = len([item for item in accesses if item["method"] == "HEAD"])
         options_accesses_count = len([item for item in accesses if item["method"] == "OPTIONS"])
-        patch_accesses_count = len([item for item in accesses if item["method"] == "PATCH"])
-        #print(f"TOTAL: {total_accesses_count} - GET: {get_accesses_count} - POST: {post_accesses_count}")
-        
+        patch_accesses_count = len([item for item in accesses if item["method"] == "PATCH"])  
 
         if total_accesses_count > http_risky_methods_threshold:
             http_method_attacker_score = (post_accesses_count + put_accesses_count + delete_accesses_count + options_accesses_count + patch_accesses_count) / total_accesses_count
@@ -131,10 +129,6 @@ class Analyzer:
             score["good_crawler"]["risky_http_methods"] = False
             score["bad_crawler"]["risky_http_methods"] = False
             score["regular_user"]["risky_http_methods"] = False
-        
-        #print(f"Updated score: {score}")
-
-
 
         #--------------------- Robots Violations ---------------------
         #respect robots.txt and login/config pages access frequency
@@ -247,6 +241,8 @@ class Analyzer:
                 score["regular_user"]["attack_url"] = False
 
         #--------------------- Calculate score ---------------------
+
+        attacker_score = good_crawler_score = bad_crawler_score = regular_user_score = 0
 
         attacker_score = score["attacker"]["risky_http_methods"] * weights["attacker"]["risky_http_methods"]
         attacker_score = attacker_score + score["attacker"]["robots_violations"] * weights["attacker"]["robots_violations"]
