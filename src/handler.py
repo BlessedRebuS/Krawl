@@ -413,6 +413,33 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as e:
                 self.app_logger.error(f"Error generating dashboard: {e}")
             return
+        
+        # API endpoint for fetching IP stats
+        if self.config.dashboard_secret_path and self.path.startswith(f"{self.config.dashboard_secret_path}/api/ip-stats/"):
+            ip_address = self.path.replace(f"{self.config.dashboard_secret_path}/api/ip-stats/", "")
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            # Prevent browser caching - force fresh data from database every time
+            self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Expires', '0')
+            self.end_headers()
+            try:
+                from database import get_database
+                import json
+                db = get_database()
+                ip_stats = db.get_ip_stats_by_ip(ip_address)
+                if ip_stats:
+                    self.wfile.write(json.dumps(ip_stats).encode())
+                else:
+                    self.wfile.write(json.dumps({'error': 'IP not found'}).encode())
+            except BrokenPipeError:
+                pass
+            except Exception as e:
+                self.app_logger.error(f"Error fetching IP stats: {e}")
+                self.wfile.write(json.dumps({'error': str(e)}).encode())
+            return
 
         self.tracker.record_access(client_ip, self.path, user_agent, method='GET')
         

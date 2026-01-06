@@ -256,7 +256,7 @@ class DatabaseManager:
         
         """
         session = self.session
-
+        sanitized_ip = sanitize_ip(ip)
         ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
 
         ip_stats.category = category
@@ -436,6 +436,43 @@ class DatabaseManager:
                 }
                 for s in stats
             ]
+        finally:
+            self.close_session()
+
+    def get_ip_stats_by_ip(self, ip: str) -> Optional[Dict[str, Any]]:
+        """
+        Retrieve IP statistics for a specific IP address.
+
+        Args:
+            ip: The IP address to look up
+
+        Returns:
+            Dictionary with IP stats or None if not found
+        """
+        session = self.session
+        try:
+            stat = session.query(IpStats).filter(IpStats.ip == ip).first()
+            
+            if not stat:
+                return None
+            
+            return {
+                'ip': stat.ip,
+                'total_requests': stat.total_requests,
+                'first_seen': stat.first_seen.isoformat() if stat.first_seen else None,
+                'last_seen': stat.last_seen.isoformat() if stat.last_seen else None,
+                'country_code': stat.country_code,
+                'city': stat.city,
+                'asn': stat.asn,
+                'asn_org': stat.asn_org,
+                'reputation_score': stat.reputation_score,
+                'reputation_source': stat.reputation_source,
+                'analyzed_metrics': stat.analyzed_metrics or {},
+                'category': stat.category,
+                'category_scores': stat.category_scores or {},
+                'manual_category': stat.manual_category,
+                'last_analysis': stat.last_analysis.isoformat() if stat.last_analysis else None
+            }
         finally:
             self.close_session()
 
