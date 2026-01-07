@@ -10,6 +10,7 @@ from urllib.parse import urlparse, parse_qs
 
 from config import Config
 from tracker import AccessTracker
+from analyzer import Analyzer
 from templates import html_templates
 from templates.dashboard_template import generate_dashboard
 from generators import (
@@ -27,6 +28,7 @@ class Handler(BaseHTTPRequestHandler):
     webpages: Optional[List[str]] = None
     config: Config = None
     tracker: AccessTracker = None
+    analyzer: Analyzer = None
     counter: int = 0
     app_logger: logging.Logger = None
     access_logger: logging.Logger = None
@@ -138,108 +140,25 @@ class Handler(BaseHTTPRequestHandler):
         random.seed(seed)
         num_pages = random.randint(*self.config.links_per_page_range)
 
-        html = f"""<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Krawl</title>
-    <style>
-        body {{
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0d1117;
-            color: #c9d1d9;
-            margin: 0;
-            padding: 40px 20px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }}
-        .container {{
-            max-width: 1200px;
-            width: 100%;
-        }}
-        h1 {{
-            color: #f85149;
-            text-align: center;
-            font-size: 48px;
-            margin: 60px 0 30px;
-        }}
-        .counter {{
-            color: #f85149;
-            text-align: center;
-            font-size: 56px;
-            font-weight: bold;
-            margin-bottom: 60px;
-        }}
-        .links-container {{
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            align-items: center;
-        }}
-        .link-box {{
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            padding: 15px 30px;
-            min-width: 300px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }}
-        .link-box:hover {{
-            background: #1c2128;
-            border-color: #58a6ff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(88, 166, 255, 0.2);
-        }}
-        a {{
-            color: #58a6ff;
-            text-decoration: none;
-            font-size: 20px;
-            font-weight: 700;
-        }}
-        a:hover {{
-            color: #79c0ff;
-        }}
-        .canary-token {{
-            background: #1c1917;
-            border: 2px solid #f85149;
-            border-radius: 8px;
-            padding: 30px 50px;
-            margin: 40px auto;
-            max-width: 800px;
-            overflow-x: auto;
-        }}
-        .canary-token a {{
-            color: #f85149;
-            font-size: 18px;
-            white-space: nowrap;
-        }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Krawl me! &#128376;</h1>
-        <div class="counter">{Handler.counter}</div>
+        # Build the content HTML
+        content = ""
         
-        <div class="links-container">
-"""
-
+        # Add canary token if needed
         if Handler.counter <= 0 and self.config.canary_token_url:
-            html += f"""
+            content += f"""
             <div class="link-box canary-token">
                 <a href="{self.config.canary_token_url}">{self.config.canary_token_url}</a>
             </div>
 """
 
+        # Add links
         if self.webpages is None:
             for _ in range(num_pages):
                 address = ''.join([
                     random.choice(self.config.char_space)
                     for _ in range(random.randint(*self.config.links_length_range))
                 ])
-                html += f"""
+                content += f"""
             <div class="link-box">
                 <a href="{address}">{address}</a>
             </div>
@@ -247,18 +166,14 @@ class Handler(BaseHTTPRequestHandler):
         else:
             for _ in range(num_pages):
                 address = random.choice(self.webpages)
-                html += f"""
+                content += f"""
             <div class="link-box">
                 <a href="{address}">{address}</a>
             </div>
 """
 
-        html += """
-        </div>
-    </div>
-</body>
-</html>"""
-        return html
+        # Return the complete page using the template
+        return html_templates.main_page(Handler.counter, content)
 
     def do_HEAD(self):
         """Sends header information"""
@@ -498,8 +413,37 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as e:
                 self.app_logger.error(f"Error generating dashboard: {e}")
             return
+        
+        # API endpoint for fetching IP stats
+        if self.config.dashboard_secret_path and self.path.startswith(f"{self.config.dashboard_secret_path}/api/ip-stats/"):
+            ip_address = self.path.replace(f"{self.config.dashboard_secret_path}/api/ip-stats/", "")
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            # Prevent browser caching - force fresh data from database every time
+            self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Expires', '0')
+            self.end_headers()
+            try:
+                from database import get_database
+                import json
+                db = get_database()
+                ip_stats = db.get_ip_stats_by_ip(ip_address)
+                if ip_stats:
+                    self.wfile.write(json.dumps(ip_stats).encode())
+                else:
+                    self.wfile.write(json.dumps({'error': 'IP not found'}).encode())
+            except BrokenPipeError:
+                pass
+            except Exception as e:
+                self.app_logger.error(f"Error fetching IP stats: {e}")
+                self.wfile.write(json.dumps({'error': str(e)}).encode())
+            return
 
         self.tracker.record_access(client_ip, self.path, user_agent, method='GET')
+        
+        self.analyzer.infer_user_category(client_ip)
 
         if self.tracker.is_suspicious_user_agent(user_agent):
             self.access_logger.warning(f"[SUSPICIOUS] {client_ip} - {user_agent[:50]} - {self.path}")

@@ -125,8 +125,13 @@ class Wordlists:
     def server_errors(self):
         return self._data.get("server_errors", {})
     
+    @property
     def server_headers(self):
         return self._data.get("server_headers", [])
+    
+    @property
+    def attack_urls(self):
+        return self._data.get("attack_urls", [])
 
 
 _wordlists_instance = None

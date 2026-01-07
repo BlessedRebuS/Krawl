@@ -10,6 +10,7 @@ from http.server import HTTPServer
 
 from config import get_config
 from tracker import AccessTracker
+from analyzer import Analyzer
 from handler import Handler
 from logger import initialize_logging, get_app_logger, get_access_logger, get_credential_logger
 from database import initialize_database
@@ -71,9 +72,11 @@ def main():
         app_logger.warning(f'Database initialization failed: {e}. Continuing with in-memory only.')
 
     tracker = AccessTracker(timezone=tz)
+    analyzer = Analyzer(timezone=tz)
 
     Handler.config = config
     Handler.tracker = tracker
+    Handler.analyzer = analyzer
     Handler.counter = config.canary_token_tries
     Handler.app_logger = app_logger
     Handler.access_logger = access_logger

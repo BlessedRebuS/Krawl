@@ -358,5 +358,19 @@
     "xss_attempt": "(<script|</script|javascript:|onerror=|onload=|onclick=|onmouseover=|onfocus=|onblur=|<iframe|<img|<svg|<embed|<object|<body|<input|eval\\(|alert\\(|prompt\\(|confirm\\(|document\\.|window\\.|<style|expression\\(|vbscript:|data:text/html)",
     "common_probes": "(wp-admin|phpmyadmin|\\.env|\\.git|/admin|/config)",
     "shell_injection": "(\\||;|`|\\$\\(|&&)"
+  },
+  "server_headers": [
+    "Apache/2.4.41 (Ubuntu)",
+    "nginx/1.18.0",
+    "Microsoft-IIS/10.0",
+    "cloudflare",
+    "AmazonS3",
+    "gunicorn/20.1.0"
+  ],
+  "attack_urls": { 
+    "path_traversal": "\\.\\.",
+    "sql_injection": "('|--|;|\bOR\b|\bUNION\b|\bSELECT\b|\bDROP\b)",
+    "xss_attempt": "(<script|javascript:|onerror=|onload=)",
+    "shell_injection": "(\\||;|`|\\$\\(|&&)"
   }
 }

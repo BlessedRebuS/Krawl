@@ -60,3 +60,8 @@ def product_search() -> str:
 def input_form() -> str:
     """Generate input form page for XSS honeypot"""
     return load_template("input_form")
+
+
+def main_page(counter: int, content: str) -> str:
+    """Generate main Krawl page with links and canary token"""
+    return load_template("main_page", counter=counter, content=content)

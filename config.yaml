@@ -6,7 +6,7 @@ server:
   timezone: null  # e.g., "America/New_York" or null for system default
 
   # manually set the server header, if null a random one will be used.
-  server_header: "Apache/2.2.22 (Ubuntu)" 
+  server_header: null
 
 links:
   min_length: 5
@@ -36,3 +36,11 @@ database:
 
 behavior:
   probability_error_codes: 0  # 0-100 percentage
+
+analyzer:
+  # http_risky_methods_threshold: 0.1
+  # violated_robots_threshold: 0.1
+  # uneven_request_timing_threshold: 5
+  # uneven_request_timing_time_window_seconds: 300
+  # user_agents_used_threshold: 2
+  # attack_urls_threshold: 1

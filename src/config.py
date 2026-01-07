@@ -34,6 +34,14 @@ class Config:
     database_retention_days: int = 30
     timezone: str = None  # IANA timezone (e.g., 'America/New_York', 'Europe/Rome')
 
+    # Analyzer settings
+    http_risky_methods_threshold: float = None
+    violated_robots_threshold: float = None
+    uneven_request_timing_threshold: float = None
+    uneven_request_timing_time_window_seconds: float = None
+    user_agents_used_threshold: float = None
+    attack_urls_threshold: float = None
+
     @staticmethod
     # Try to fetch timezone before if not set
     def get_system_timezone() -> str:
@@ -95,6 +103,7 @@ class Config:
         api = data.get('api', {})
         database = data.get('database', {})
         behavior = data.get('behavior', {})
+        analyzer = data.get('analyzer') or {}
 
         # Handle dashboard_secret_path - auto-generate if null/not set
         dashboard_path = dashboard.get('secret_path')
@@ -129,6 +138,12 @@ class Config:
             probability_error_codes=behavior.get('probability_error_codes', 0),
             database_path=database.get('path', 'data/krawl.db'),
             database_retention_days=database.get('retention_days', 30),
+            http_risky_methods_threshold=analyzer.get('http_risky_methods_threshold', 0.1),
+            violated_robots_threshold=analyzer.get('violated_robots_threshold', 0.1),
+            uneven_request_timing_threshold=analyzer.get('uneven_request_timing_threshold', 0.5), # coefficient of variation 
+            uneven_request_timing_time_window_seconds=analyzer.get('uneven_request_timing_time_window_seconds', 300),
+            user_agents_used_threshold=analyzer.get('user_agents_used_threshold', 2),
+            attack_urls_threshold=analyzer.get('attack_urls_threshold', 1)
         )
 
 

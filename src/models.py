@@ -6,9 +6,9 @@ Stores access logs, credential attempts, attack detections, and IP statistics.
 """
 
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 
-from sqlalchemy import String, Integer, Boolean, DateTime, ForeignKey, Index
+from sqlalchemy import String, Integer, Boolean, DateTime, ForeignKey, Index, JSON
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from sanitizer import (
@@ -38,6 +38,7 @@ class AccessLog(Base):
     __tablename__ = 'access_logs'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    #ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False, index=True, ForeignKey('ip_logs.id', ondelete='CASCADE'))
     ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False, index=True)
     path: Mapped[str] = mapped_column(String(MAX_PATH_LENGTH), nullable=False)
     user_agent: Mapped[Optional[str]] = mapped_column(String(MAX_USER_AGENT_LENGTH), nullable=True)
@@ -139,5 +140,68 @@ class IpStats(Base):
     reputation_source: Mapped[Optional[str]] = mapped_column(String(MAX_REPUTATION_SOURCE_LENGTH), nullable=True)
     reputation_updated: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
+    #Analyzed metrics, category and category scores
+    analyzed_metrics: Mapped[Dict[str,object]] = mapped_column(JSON, nullable=True)
+    category: Mapped[str] = mapped_column(String, nullable=True)
+    category_scores: Mapped[Dict[str,int]] = mapped_column(JSON, nullable=True)
+    manual_category: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
+    last_analysis: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+
+
     def __repr__(self) -> str:
         return f"<IpStats(ip='{self.ip}', total_requests={self.total_requests})>"
+
+
+class CategoryHistory(Base):
+    """
+    Records category changes for IP addresses over time.
+
+    Tracks when an IP's category changes, storing both the previous
+    and new category along with timestamp for timeline visualization.
+    """
+    __tablename__ = 'category_history'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False, index=True)
+    old_category: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    new_category: Mapped[str] = mapped_column(String(50), nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+
+    # Composite index for efficient IP-based timeline queries
+    __table_args__ = (
+        Index('ix_category_history_ip_timestamp', 'ip', 'timestamp'),
+    )
+
+    def __repr__(self) -> str:
+        return f"<CategoryHistory(ip='{self.ip}', {self.old_category} -> {self.new_category})>"
+
+
+# class IpLog(Base):
+#     """
+#     Records all IPs that have accessed the honeypot, along with aggregated stats and inferred user category.
+#     """
+#     __tablename__ = 'ip_logs'
+
+#     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+#     ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False, index=True)
+#     stats: Mapped[List[str]] = mapped_column(String(MAX_PATH_LENGTH))
+#     category: Mapped[str] = mapped_column(String(15))
+#     manual_category: Mapped[bool] = mapped_column(Boolean, default=False)
+#     last_analysis: Mapped[datetime] = mapped_column(DateTime, index=True),
+
+#     # Relationship to attack detections
+#     access_logs: Mapped[List["AccessLog"]] = relationship(
+#         "AccessLog",
+#         back_populates="ip",
+#         cascade="all, delete-orphan"
+#     )
+
+#     # Indexes for common queries
+#     __table_args__ = (
+#         Index('ix_access_logs_ip_timestamp', 'ip', 'timestamp'),
+#         Index('ix_access_logs_is_suspicious', 'is_suspicious'),
+#         Index('ix_access_logs_is_honeypot_trigger', 'is_honeypot_trigger'),
+#     )
+
+#     def __repr__(self) -> str:
+#         return f"<AccessLog(id={self.id}, ip='{self.ip}', path='{self.path[:50]}')>"
