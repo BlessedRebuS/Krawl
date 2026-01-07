@@ -22,6 +22,9 @@ from sanitizer import (
     sanitize_attack_pattern,
 )
 
+from logger import get_app_logger
+
+applogger = get_app_logger()
 
 class DatabaseManager:
     """
@@ -154,7 +157,7 @@ class DatabaseManager:
         except Exception as e:
             session.rollback()
             # Log error but don't crash - database persistence is secondary to honeypot function
-            print(f"Database error persisting access: {e}")
+            applogger.critical(f"Database error persisting access: {e}")
             return None
         finally:
             self.close_session()
@@ -193,7 +196,7 @@ class DatabaseManager:
 
         except Exception as e:
             session.rollback()
-            print(f"Database error persisting credential: {e}")
+            applogger.critical(f"Database error persisting credential: {e}")
             return None
         finally:
             self.close_session()
@@ -236,7 +239,8 @@ class DatabaseManager:
             last_analysis: timestamp of last analysis
 
         """
-        print(f"Analyzed metrics {analyzed_metrics}, category {category}, category scores {category_scores}, last analysis {last_analysis}")
+        applogger.debug(f"Analyzed metrics {analyzed_metrics}, category {category}, category scores {category_scores}, last analysis {last_analysis}")
+        applogger.info(f"IP: {ip} category has been updated to {category}")
 
         session = self.session
         sanitized_ip = sanitize_ip(ip)
@@ -295,7 +299,7 @@ class DatabaseManager:
             session.commit()
         except Exception as e:
             session.rollback()
-            print(f"Error recording category change: {e}")
+            applogger.error(f"Error recording category change: {e}")
 
     def get_category_history(self, ip: str) -> List[Dict[str, Any]]:
         """
