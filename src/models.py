@@ -151,6 +151,31 @@ class IpStats(Base):
     def __repr__(self) -> str:
         return f"<IpStats(ip='{self.ip}', total_requests={self.total_requests})>"
 
+
+class CategoryHistory(Base):
+    """
+    Records category changes for IP addresses over time.
+
+    Tracks when an IP's category changes, storing both the previous
+    and new category along with timestamp for timeline visualization.
+    """
+    __tablename__ = 'category_history'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False, index=True)
+    old_category: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    new_category: Mapped[str] = mapped_column(String(50), nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+
+    # Composite index for efficient IP-based timeline queries
+    __table_args__ = (
+        Index('ix_category_history_ip_timestamp', 'ip', 'timestamp'),
+    )
+
+    def __repr__(self) -> str:
+        return f"<CategoryHistory(ip='{self.ip}', {self.old_category} -> {self.new_category})>"
+
+
 # class IpLog(Base):
 #     """
 #     Records all IPs that have accessed the honeypot, along with aggregated stats and inferred user category.

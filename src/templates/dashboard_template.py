@@ -284,8 +284,8 @@ def generate_dashboard(stats: dict) -> str:
         }}
         .radar-chart {{
             position: relative;
-            width: 180px;
-            height: 180px;
+            width: 220px;
+            height: 220px;
             overflow: visible;
         }}
         .radar-legend {{
@@ -351,6 +351,72 @@ def generate_dashboard(stats: dict) -> str:
             background: #58a6ff1a;
             color: #58a6ff;
             border: 1px solid #58a6ff;
+        }}
+        .timeline-container {{
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #30363d;
+        }}
+        .timeline-title {{
+            color: #58a6ff;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }}
+        .timeline {{
+            position: relative;
+            padding-left: 30px;
+        }}
+        .timeline::before {{
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 5px;
+            bottom: 5px;
+            width: 3px;
+            background: #30363d;
+        }}
+        .timeline-item {{
+            position: relative;
+            padding-bottom: 15px;
+        }}
+        .timeline-item:last-child {{
+            padding-bottom: 0;
+        }}
+        .timeline-marker {{
+            position: absolute;
+            left: -26px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #0d1117;
+        }}
+        .timeline-marker.attacker {{
+            background: #f85149;
+        }}
+        .timeline-marker.good-crawler {{
+            background: #3fb950;
+        }}
+        .timeline-marker.bad-crawler {{
+            background: #f0883e;
+        }}
+        .timeline-marker.regular-user {{
+            background: #58a6ff;
+        }}
+        .timeline-content {{
+            font-size: 12px;
+        }}
+        .timeline-category {{
+            font-weight: 600;
+        }}
+        .timeline-timestamp {{
+            color: #8b949e;
+            font-size: 11px;
+            margin-top: 2px;
+        }}
+        .timeline-arrow {{
+            color: #8b949e;
+            margin: 0 7px;
         }}
 
     </style>
@@ -658,11 +724,45 @@ def generate_dashboard(stats: dict) -> str:
                 html += '</div>';
             }}
             
+            // Category History Timeline
+            if (stats.category_history && stats.category_history.length > 0) {{
+                html += '<div class="timeline-container">';
+                html += '<div class="timeline-title">Behavior Timeline</div>';
+                html += '<div class="timeline">';
+                
+                stats.category_history.forEach((change, index) => {{
+                    const categoryClass = change.new_category.toLowerCase().replace('_', '-');
+                    const timestamp = new Date(change.timestamp).toLocaleString();
+                    
+                    html += '<div class="timeline-item">';
+                    html += `<div class="timeline-marker ${{categoryClass}}"></div>`;
+                    html += '<div class="timeline-content">';
+                    
+                    if (change.old_category) {{
+                        const oldCategoryBadge = 'category-' + change.old_category.toLowerCase().replace('_', '-');
+                        html += `<span class="category-badge ${{oldCategoryBadge}}">${{change.old_category}}</span>`;
+                        html += '<span class="timeline-arrow">→</span>';
+                    }} else {{
+                        html += '<span style="color: #8b949e;">Initial:</span> ';
+                    }}
+                    
+                    const newCategoryBadge = 'category-' + change.new_category.toLowerCase().replace('_', '-');
+                    html += `<span class="category-badge ${{newCategoryBadge}}">${{change.new_category}}</span>`;
+                    html += `<div class="timeline-timestamp">${{timestamp}}</div>`;
+                    html += '</div>';
+                    html += '</div>';
+                }});
+                
+                html += '</div>';
+                html += '</div>';
+            }}
+            
             html += '</div>';
             
             // Radar chart on the right
             if (stats.category_scores && Object.keys(stats.category_scores).length > 0) {{
                 html += '<div class="stats-right">';
+                html += '<div style="font-size: 13px; font-weight: 600; color: #58a6ff; margin-bottom: 10px;">Category Score</div>';
                 html += '<svg class="radar-chart" viewBox="-30 -30 260 260" preserveAspectRatio="xMidYMid meet">';
                 
                 const scores = {{
@@ -705,7 +805,7 @@ def generate_dashboard(stats: dict) -> str:
                 
                 // Draw axes
                 const angles = [0, 90, 180, 270];
-                const keys = ['attacker', 'good_crawler', 'bad_crawler', 'regular_user'];
+                const keys = ['good_crawler', 'regular_user', 'bad_crawler', 'attacker'];
                 
                 angles.forEach((angle, i) => {{
                     const rad = (angle - 90) * Math.PI / 180;
@@ -713,8 +813,8 @@ def generate_dashboard(stats: dict) -> str:
                     const y2 = cy + maxRadius * Math.sin(rad);
                     html += `<line x1="${{cx}}" y1="${{cy}}" x2="${{x2}}" y2="${{y2}}" stroke="#30363d" stroke-width="0.5"/>`;
                     
-                    // Add labels
-                    const labelDist = maxRadius + 30;
+                    // Add labels at consistent distance
+                    const labelDist = maxRadius + 35;
                     const lx = cx + labelDist * Math.cos(rad);
                     const ly = cy + labelDist * Math.sin(rad);
                     html += `<text x="${{lx}}" y="${{ly}}" fill="#8b949e" font-size="12" text-anchor="middle" dominant-baseline="middle">${{labels[keys[i]]}}</text>`;
@@ -755,7 +855,7 @@ def generate_dashboard(stats: dict) -> str:
                 keys.forEach(key => {{
                     html += '<div class="radar-legend-item">';
                     html += `<div class="radar-legend-color" style="background: ${{colors[key]}};"></div>`;
-                    html += `<span style="color: #8b949e;">${{labels[key]}}: ${{scores[key]}}%</span>`;
+                    html += `<span style="color: #8b949e;">${{labels[key]}}: ${{scores[key]}} pt</span>`;
                     html += '</div>';
                 }});
                 html += '</div>';
