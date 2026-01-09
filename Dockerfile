@@ -17,7 +17,7 @@ COPY entrypoint.sh /app/
 COPY config.yaml /app/
 
 RUN useradd -m -u 1000 krawl && \
-    mkdir -p /app/logs /app/data && \
+    mkdir -p /app/logs /app/data /app/exports && \
     chown -R krawl:krawl /app && \
     chmod +x /app/entrypoint.sh
 

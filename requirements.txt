@@ -6,3 +6,6 @@ PyYAML>=6.0
 
 # Database ORM
 SQLAlchemy>=2.0.0,<3.0.0
+
+# Scheduling
+APScheduler>=3.11.2

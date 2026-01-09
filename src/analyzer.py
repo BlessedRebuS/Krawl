@@ -9,9 +9,12 @@ import re
 import urllib.parse
 from wordlists import get_wordlists
 from config import get_config
+from logger import get_app_logger
 """
 Functions for user activity analysis
 """
+
+app_logger = get_app_logger()
 
 class Analyzer:
     """
@@ -57,7 +60,7 @@ class Analyzer:
         attack_urls_threshold = config.attack_urls_threshold
         uneven_request_timing_time_window_seconds = config.uneven_request_timing_time_window_seconds
 
-        print(f"http_risky_methods_threshold: {http_risky_methods_threshold}")
+        app_logger.debug(f"http_risky_methods_threshold: {http_risky_methods_threshold}")
 
         score = {}
         score["attacker"] = {"risky_http_methods": False, "robots_violations": False, "uneven_request_timing": False, "different_user_agents": False, "attack_url": False}
@@ -196,7 +199,7 @@ class Analyzer:
             variance = sum((x - mean) ** 2 for x in time_diffs) / len(time_diffs)
             std = variance ** 0.5
             cv = std/mean
-            print(f"Mean: {mean} - Variance {variance} - Standard Deviation {std} - Coefficient of Variation: {cv}")
+            app_logger.debug(f"Mean: {mean} - Variance {variance} - Standard Deviation {std} - Coefficient of Variation: {cv}")
 
         if cv >= uneven_request_timing_threshold:
             score["attacker"]["uneven_request_timing"] = True
@@ -291,10 +294,13 @@ class Analyzer:
         regular_user_score = regular_user_score + score["regular_user"]["different_user_agents"] * weights["regular_user"]["different_user_agents"]
         regular_user_score = regular_user_score + score["regular_user"]["attack_url"] * weights["regular_user"]["attack_url"]
 
-        print(f"Attacker score: {attacker_score}")
-        print(f"Good Crawler score: {good_crawler_score}")
-        print(f"Bad Crawler score: {bad_crawler_score}")
-        print(f"Regular User score: {regular_user_score}")
+        score_details = f"""
+        Attacker score: {attacker_score}
+        Good Crawler score: {good_crawler_score}
+        Bad Crawler score: {bad_crawler_score}
+        Regular User score: {regular_user_score}
+        """
+        app_logger.debug(score_details)
 
         analyzed_metrics = {"risky_http_methods": http_method_attacker_score, "robots_violations": violated_robots_ratio, "uneven_request_timing": mean, "different_user_agents": user_agents_used, "attack_url": attack_urls_found_list}
         category_scores = {"attacker": attacker_score, "good_crawler": good_crawler_score, "bad_crawler": bad_crawler_score, "regular_user": regular_user_score}

@@ -76,3 +76,6 @@ data/
 # Personal canary tokens or sensitive configs
 *canary*token*.yaml
 personal-values.yaml
+
+#exports dir (keeping .gitkeep so we have the dir)
+/exports/*
