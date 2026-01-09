@@ -408,7 +408,8 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 stats = self.tracker.get_stats()
                 timezone = str(self.config.timezone) if self.config.timezone else 'UTC'
-                self.wfile.write(generate_dashboard(stats, timezone).encode())
+                dashboard_path = self.config.dashboard_secret_path
+                self.wfile.write(generate_dashboard(stats, timezone, dashboard_path).encode())
             except BrokenPipeError:
                 pass
             except Exception as e:
@@ -440,6 +441,35 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as e:
                 self.app_logger.error(f"Error fetching IP stats: {e}")
                 self.wfile.write(json.dumps({'error': str(e)}).encode())
+            return
+
+        # API endpoint for downloading malicious IPs file
+        if self.config.dashboard_secret_path and self.path == f"{self.config.dashboard_secret_path}/api/download/malicious_ips.txt":
+            import os
+            file_path = os.path.join(os.path.dirname(__file__), 'exports', 'malicious_ips.txt')
+            try:
+                if os.path.exists(file_path):
+                    with open(file_path, 'rb') as f:
+                        content = f.read()
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/plain')
+                    self.send_header('Content-Disposition', 'attachment; filename="malicious_ips.txt"')
+                    self.send_header('Content-Length', str(len(content)))
+                    self.end_headers()
+                    self.wfile.write(content)
+                else:
+                    self.send_response(404)
+                    self.send_header('Content-type', 'text/plain')
+                    self.end_headers()
+                    self.wfile.write(b'File not found')
+            except BrokenPipeError:
+                pass
+            except Exception as e:
+                self.app_logger.error(f"Error serving malicious IPs file: {e}")
+                self.send_response(500)
+                self.send_header('Content-type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(b'Internal server error')
             return
 
         self.tracker.record_access(client_ip, self.path, user_agent, method='GET')

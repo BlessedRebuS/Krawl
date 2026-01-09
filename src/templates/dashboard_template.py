@@ -38,12 +38,13 @@ def format_timestamp(iso_timestamp: str, timezone: str = 'UTC', time_only: bool 
         return iso_timestamp.split("T")[1][:8] if "T" in iso_timestamp else iso_timestamp
 
 
-def generate_dashboard(stats: dict, timezone: str = 'UTC') -> str:
+def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str = '') -> str:
     """Generate dashboard HTML with access statistics
     
     Args:
         stats: Statistics dictionary
         timezone: IANA timezone string (e.g., 'Europe/Paris', 'America/New_York')
+        dashboard_path: The secret dashboard path for generating API URLs
     """
     
     # Generate IP rows with clickable functionality for dropdown stats
@@ -164,11 +165,35 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC') -> str:
         .container {{
             max-width: 1400px;
             margin: 0 auto;
+            position: relative;
         }}
         h1 {{
             color: #58a6ff;
             text-align: center;
             margin-bottom: 40px;
+        }}
+        .download-section {{
+            position: absolute;
+            top: 0;
+            right: 0;
+        }}
+        .download-btn {{
+            display: inline-block;
+            padding: 8px 14px;
+            background: #238636;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 13px;
+            transition: background 0.2s;
+            border: 1px solid #2ea043;
+        }}
+        .download-btn:hover {{
+            background: #2ea043;
+        }}
+        .download-btn:active {{
+            background: #1f7a2f;
         }}
         .stats-grid {{
             display: grid;
@@ -450,6 +475,11 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC') -> str:
 </head>
 <body>
     <div class="container">
+        <div class="download-section">
+            <a href="{dashboard_path}/api/download/malicious_ips.txt" class="download-btn" download>
+            Export Malicious IPs
+            </a>
+        </div>
         <h1>Krawl Dashboard</h1>
         
         <div class="stats-grid">
@@ -599,6 +629,7 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC') -> str:
     <script>
         // Server timezone configuration
         const SERVER_TIMEZONE = '{timezone}';
+        const DASHBOARD_PATH = '{dashboard_path}';
         
         // Convert UTC timestamp to configured timezone
         function formatTimestamp(isoTimestamp) {{
@@ -704,7 +735,7 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC') -> str:
                 if (dropdown) {{
                     dropdown.innerHTML = '<div class="loading">Loading stats...</div>';
                     try {{
-                        const response = await fetch(`${{window.location.pathname}}/api/ip-stats/${{ip}}`, {{
+                        const response = await fetch(`${{DASHBOARD_PATH}}/api/ip-stats/${{ip}}`, {{
                             cache: 'no-store',
                             headers: {{
                                 'Cache-Control': 'no-cache',
