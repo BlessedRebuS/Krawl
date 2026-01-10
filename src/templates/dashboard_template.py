@@ -410,6 +410,12 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
             color: #58a6ff;
             font-size: 13px;
             font-weight: 600;
+        }}
+        .timeline-header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
             margin-bottom: 10px;
         }}
         .timeline {{
@@ -469,6 +475,56 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
         .timeline-arrow {{
             color: #8b949e;
             margin: 0 7px;
+        }}
+        .reputation-container {{
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #30363d;
+        }}
+        .reputation-title {{
+            color: #58a6ff;
+            font-size: 13px;
+            font-weight: 600;
+        }}
+        .reputation-badges {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }}
+        .reputation-badge {{
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: #161b22;
+            border: 1px solid #f851494d;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #f85149;
+            text-decoration: none;
+            transition: all 0.2s;
+        }}
+        .reputation-badge:hover {{
+            background: #1c2128;
+            border-color: #f85149;
+        }}
+        .reputation-badge-icon {{
+            font-size: 12px;
+        }}
+        .reputation-clean {{
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: #161b22;
+            border: 1px solid #3fb9504d;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #3fb950;
+        }}
+        .reputation-clean-icon {{
+            font-size: 13px;
         }}
 
     </style>
@@ -627,11 +683,9 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
         </div>
     </div>
     <script>
-        // Server timezone configuration
         const SERVER_TIMEZONE = '{timezone}';
         const DASHBOARD_PATH = '{dashboard_path}';
         
-        // Convert UTC timestamp to configured timezone
         function formatTimestamp(isoTimestamp) {{
             if (!isoTimestamp) return 'N/A';
             try {{
@@ -652,7 +706,6 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
             }}
         }}
         
-        // Add sorting functionality to tables
         document.querySelectorAll('th.sortable').forEach(header => {{
             header.addEventListener('click', function() {{
                 const table = this.closest('table');
@@ -661,30 +714,24 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                 const sortType = this.getAttribute('data-sort');
                 const columnIndex = Array.from(this.parentElement.children).indexOf(this);
                 
-                // Determine sort direction
                 const isAscending = this.classList.contains('asc');
                 
-                // Remove sort classes from all headers in this table
                 table.querySelectorAll('th.sortable').forEach(th => {{
                     th.classList.remove('asc', 'desc');
                 }});
                 
-                // Add appropriate class to clicked header
                 this.classList.add(isAscending ? 'desc' : 'asc');
                 
-                // Sort rows
                 rows.sort((a, b) => {{
                     let aValue = a.cells[columnIndex].textContent.trim();
                     let bValue = b.cells[columnIndex].textContent.trim();
                     
-                    // Handle numeric sorting
                     if (sortType === 'count') {{
                         aValue = parseInt(aValue) || 0;
                         bValue = parseInt(bValue) || 0;
                         return isAscending ? bValue - aValue : aValue - bValue;
                     }}
                     
-                    // Handle IP address sorting
                     if (sortType === 'ip') {{
                         const ipToNum = ip => {{
                             const parts = ip.split('.');
@@ -696,7 +743,6 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                         return isAscending ? bNum - aNum : aNum - bNum;
                     }}
                     
-                    // Default string sorting
                     if (isAscending) {{
                         return bValue.localeCompare(aValue);
                     }} else {{
@@ -704,12 +750,10 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                     }}
                 }});
                 
-                // Re-append sorted rows
                 rows.forEach(row => tbody.appendChild(row));
             }});
         }});
 
-        // IP stats dropdown functionality
         document.querySelectorAll('.ip-clickable').forEach(cell => {{
             cell.addEventListener('click', async function(e) {{
                 const row = e.currentTarget.closest('.ip-row');
@@ -731,7 +775,6 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
 
                 const dropdown = statsRow.querySelector('.ip-stats-dropdown');
 
-                // Always fetch fresh data from database
                 if (dropdown) {{
                     dropdown.innerHTML = '<div class="loading">Loading stats...</div>';
                     try {{
@@ -758,7 +801,6 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
         function formatIpStats(stats) {{
             let html = '<div class="stats-left">';
             
-            // Basic info
             html += '<div class="stat-row">';
             html += '<span class="stat-label-sm">Total Requests:</span>';
             html += `<span class="stat-value-sm">${{stats.total_requests || 0}}</span>`;
@@ -774,16 +816,6 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
             html += `<span class="stat-value-sm">${{formatTimestamp(stats.last_seen)}}</span>`;
             html += '</div>';
             
-            // Category
-            if (stats.category) {{
-                html += '<div class="stat-row">';
-                html += '<span class="stat-label-sm">Category:</span>';
-                const categoryClass = 'category-' + stats.category.toLowerCase().replace('_', '-');
-                html += `<span class="category-badge ${{categoryClass}}">${{stats.category}}</span>`;
-                html += '</div>';
-            }}
-            
-            // GeoIP info if available
             if (stats.country_code || stats.city) {{
                 html += '<div class="stat-row">';
                 html += '<span class="stat-label-sm">Location:</span>';
@@ -798,28 +830,70 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                 html += '</div>';
             }}
             
-            // Reputation score if available
             if (stats.reputation_score !== null && stats.reputation_score !== undefined) {{
                 html += '<div class="stat-row">';
                 html += '<span class="stat-label-sm">Reputation Score:</span>';
                 html += `<span class="stat-value-sm">${{stats.reputation_score}} ${{stats.reputation_source ? '(' + stats.reputation_source + ')' : ''}}</span>`;
                 html += '</div>';
             }}
-            
-            // Category History Timeline
+
+            if (stats.category) {{
+                html += '<div class="stat-row">';
+                html += '<span class="stat-label-sm">Category:</span>';
+                const categoryClass = 'category-' + stats.category.toLowerCase().replace('_', '-');
+                html += `<span class="category-badge ${{categoryClass}}">${{stats.category}}</span>`;
+                html += '</div>';
+            }}
+
             if (stats.category_history && stats.category_history.length > 0) {{
                 html += '<div class="timeline-container">';
-                html += '<div class="timeline-title">Behavior Timeline</div>';
-                html += '<div class="timeline">';
                 
+                html += '<div class="timeline-header">';
+                html += '<div class="timeline-title">Behavior Timeline</div>';
+
+                if (stats.list_on && Object.keys(stats.list_on).length > 0) {{
+                    html += '<div class="reputation-badges">';
+                    html += '<span class="reputation-title" style="margin-bottom:0; margin-right:4px;">Listed on</span>';
+
+                    const sortedSources = Object.entries(stats.list_on).sort((a, b) => a[0].localeCompare(b[0]));
+
+                    sortedSources.forEach(([source, url]) => {{
+                        if (url && url !== 'N/A') {{
+                            html += `<a href="${{url}}" target="_blank" rel="noopener noreferrer" class="reputation-badge" title="Listed on ${'{'}source{'}'}">`;
+                            html += '<span class="reputation-badge-icon"></span>';
+                            html += `<span>${{source}}</span>`;
+                            html += '</a>';
+                        }} else {{
+                            html += '<span class="reputation-badge" style="cursor: default;" title="Listed on">';
+                            html += '<span class="reputation-badge-icon"></span>';
+                            html += `<span>${{source}}</span>`;
+                            html += '</span>';
+                        }}
+                    }});
+
+                    html += '</div>';
+                }} else if (stats.country_code || stats.asn) {{
+                    html += '<div class="reputation-badges">';
+                    html += '<span class="reputation-title" style="margin-bottom:0; margin-right:4px;">Reputation</span>';
+                    html += '<span class="reputation-clean" title="Not found on public blacklists">';
+                    html += '<span class="reputation-clean-icon">✓</span>';
+                    html += '<span>Clean</span>';
+                    html += '</span>';
+                    html += '</div>';
+                }}
+
+                html += '</div>';
+
+                html += '<div class="timeline">';
+
                 stats.category_history.forEach((change, index) => {{
                     const categoryClass = change.new_category.toLowerCase().replace('_', '-');
                     const timestamp = formatTimestamp(change.timestamp);
-                    
+
                     html += '<div class="timeline-item">';
                     html += `<div class="timeline-marker ${{categoryClass}}"></div>`;
                     html += '<div class="timeline-content">';
-                    
+
                     if (change.old_category) {{
                         const oldCategoryBadge = 'category-' + change.old_category.toLowerCase().replace('_', '-');
                         html += `<span class="category-badge ${{oldCategoryBadge}}">${{change.old_category}}</span>`;
@@ -827,21 +901,20 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                     }} else {{
                         html += '<span style="color: #8b949e;">Initial:</span> ';
                     }}
-                    
+
                     const newCategoryBadge = 'category-' + change.new_category.toLowerCase().replace('_', '-');
                     html += `<span class="category-badge ${{newCategoryBadge}}">${{change.new_category}}</span>`;
                     html += `<div class="timeline-timestamp">${{timestamp}}</div>`;
                     html += '</div>';
                     html += '</div>';
                 }});
-                
+
                 html += '</div>';
                 html += '</div>';
             }}
             
             html += '</div>';
             
-            // Radar chart on the right
             if (stats.category_scores && Object.keys(stats.category_scores).length > 0) {{
                 html += '<div class="stats-right">';
                 html += '<div style="font-size: 13px; font-weight: 600; color: #58a6ff; margin-bottom: 10px;">Category Score</div>';
@@ -855,13 +928,11 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                     unknown: stats.category_scores.unknown || 0
                 }};
                 
-                // Normalize scores for better visualization
                 const maxScore = Math.max(...Object.values(scores), 1);
-                const minVisibleRadius = 0.15; // Minimum 15% visibility even for 0 values
+                const minVisibleRadius = 0.15;
                 const normalizedScores = {{}};
                 
                 Object.keys(scores).forEach(key => {{
-                    // Scale values: ensure minimum visibility + proportional to max
                     normalizedScores[key] = minVisibleRadius + (scores[key] / maxScore) * (1 - minVisibleRadius);
                 }});
                 
@@ -881,14 +952,12 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                     unknown: 'Unknown'
                 }};
                 
-                // Draw radar background grid
                 const cx = 100, cy = 100, maxRadius = 75;
                 for (let i = 1; i <= 5; i++) {{
                     const r = (maxRadius / 5) * i;
                     html += `<circle cx="${{cx}}" cy="${{cy}}" r="${{r}}" fill="none" stroke="#30363d" stroke-width="0.5"/>`;
                 }}
                 
-                // Draw axes (now with 5 points for pentagon)
                 const angles = [0, 72, 144, 216, 288];
                 const keys = ['good_crawler', 'regular_user', 'unknown', 'bad_crawler', 'attacker'];
                 
@@ -898,14 +967,12 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                     const y2 = cy + maxRadius * Math.sin(rad);
                     html += `<line x1="${{cx}}" y1="${{cy}}" x2="${{x2}}" y2="${{y2}}" stroke="#30363d" stroke-width="0.5"/>`;
                     
-                    // Add labels at consistent distance
                     const labelDist = maxRadius + 35;
                     const lx = cx + labelDist * Math.cos(rad);
                     const ly = cy + labelDist * Math.sin(rad);
                     html += `<text x="${{lx}}" y="${{ly}}" fill="#8b949e" font-size="12" text-anchor="middle" dominant-baseline="middle">${{labels[keys[i]]}}</text>`;
                 }});
                 
-                // Draw filled polygon for scores
                 let points = [];
                 angles.forEach((angle, i) => {{
                     const normalizedScore = normalizedScores[keys[i]];
@@ -916,14 +983,11 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                     points.push(`${{x}},${{y}}`);
                 }});
                 
-                // Determine dominant category color
                 const dominantKey = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
                 const dominantColor = colors[dominantKey];
                 
-                // Draw single colored area
                 html += `<polygon points="${{points.join(' ')}}" fill="${{dominantColor}}" fill-opacity="0.4" stroke="${{dominantColor}}" stroke-width="2.5"/>`;
                 
-                // Draw points
                 angles.forEach((angle, i) => {{
                     const normalizedScore = normalizedScores[keys[i]];
                     const rad = (angle - 90) * Math.PI / 180;
@@ -935,7 +999,6 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                 
                 html += '</svg>';
                 
-                // Legend
                 html += '<div class="radar-legend">';
                 keys.forEach(key => {{
                     html += '<div class="radar-legend-item">';

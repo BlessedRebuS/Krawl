@@ -1,7 +1,7 @@
 # Krawl Honeypot Configuration
 
 server:
-  port: 5000
+  port: 1234
   delay: 100  # Response delay in milliseconds
   timezone: null  # e.g., "America/New_York", "Europe/Paris" or null for system default
 
@@ -23,7 +23,7 @@ canary:
 dashboard:
   # if set to "null" this will Auto-generates random path if not set
   # can be set to "/dashboard" or similar <-- note this MUST include a forward slash
-  secret_path: dashboard
+  secret_path: super-secret-dashboard-path
 
 api:
   server_url: null

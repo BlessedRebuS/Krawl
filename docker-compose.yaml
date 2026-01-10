@@ -16,9 +16,3 @@ services:
     environment:
       - CONFIG_LOCATION=config.yaml
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "python3", "-c", "import requests; requests.get('http://localhost:5000')"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s

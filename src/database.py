@@ -578,6 +578,7 @@ class DatabaseManager:
                 'city': stat.city,
                 'asn': stat.asn,
                 'asn_org': stat.asn_org,
+                'list_on': stat.list_on or {},
                 'reputation_score': stat.reputation_score,
                 'reputation_source': stat.reputation_source,
                 'analyzed_metrics': stat.analyzed_metrics or {},
