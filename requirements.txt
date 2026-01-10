@@ -10,5 +10,4 @@ SQLAlchemy>=2.0.0,<3.0.0
 # Scheduling
 APScheduler>=3.11.2
 
-# Utils
-requests
+requests>=2.32.5

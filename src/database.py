@@ -11,8 +11,18 @@ from datetime import datetime
 from typing import Optional, List, Dict, Any
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import create_engine, func, distinct, case
+from sqlalchemy import create_engine, func, distinct, case, event
 from sqlalchemy.orm import sessionmaker, scoped_session, Session
+from sqlalchemy.engine import Engine
+
+
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    """Enable WAL mode and set busy timeout for SQLite connections."""
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA journal_mode=WAL")
+    cursor.execute("PRAGMA busy_timeout=30000")
+    cursor.close()
 
 from models import Base, AccessLog, CredentialAttempt, AttackDetection, IpStats, CategoryHistory
 from sanitizer import (
@@ -359,18 +369,42 @@ class DatabaseManager:
             asn: IP address ASN
             asn_org: IP address ASN ORG
             list_on: public lists containing the IP address
-        
+
         """
         session = self.session
-        
-        sanitized_ip = sanitize_ip(ip)
-        ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
+        try:
+            sanitized_ip = sanitize_ip(ip)
+            ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
+            if ip_stats:
+                ip_stats.country_code = country_code
+                ip_stats.asn = asn
+                ip_stats.asn_org = asn_org
+                ip_stats.list_on = list_on
+                session.commit()
+        except Exception as e:
+            session.rollback()
+            raise
+        finally:
+            self.close_session()
 
-        ip_stats.country_code = country_code
-        ip_stats.asn = asn
-        ip_stats.asn_org = asn_org
-        ip_stats.list_on = list_on
+    def get_unenriched_ips(self, limit: int = 100) -> List[str]:
+        """
+        Get IPs that don't have reputation data yet.
 
+        Args:
+            limit: Maximum number of IPs to return
+
+        Returns:
+            List of IP addresses without reputation data
+        """
+        session = self.session
+        try:
+            ips = session.query(IpStats.ip).filter(
+                IpStats.country_code.is_(None)
+            ).limit(limit).all()
+            return [ip[0] for ip in ips]
+        finally:
+            self.close_session()
 
     def get_access_logs(
         self,
