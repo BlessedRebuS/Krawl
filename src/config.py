@@ -32,7 +32,6 @@ class Config:
     # Database settings
     database_path: str = "data/krawl.db"
     database_retention_days: int = 30
-    timezone: str = None  # IANA timezone (e.g., 'America/New_York', 'Europe/Rome')
 
     # Analyzer settings
     http_risky_methods_threshold: float = None
@@ -41,39 +40,6 @@ class Config:
     uneven_request_timing_time_window_seconds: float = None
     user_agents_used_threshold: float = None
     attack_urls_threshold: float = None
-
-    @staticmethod
-    # Try to fetch timezone before if not set
-    def get_system_timezone() -> str:
-        """Get the system's default timezone"""
-        try:
-            if os.path.islink('/etc/localtime'):
-                tz_path = os.readlink('/etc/localtime')
-                if 'zoneinfo/' in tz_path:
-                    return tz_path.split('zoneinfo/')[-1]
-
-            local_tz = time.tzname[time.daylight]
-            if local_tz and local_tz != 'UTC':
-                return local_tz
-        except Exception:
-            pass
-
-        # Default fallback to UTC
-        return 'UTC'
-
-    def get_timezone(self) -> ZoneInfo:
-        """Get configured timezone as ZoneInfo object"""
-        if self.timezone:
-            try:
-                return ZoneInfo(self.timezone)
-            except Exception:
-                pass
-
-        system_tz = self.get_system_timezone()
-        try:
-            return ZoneInfo(system_tz)
-        except Exception:
-            return ZoneInfo('UTC')
 
     @classmethod
     def from_yaml(cls) -> 'Config':
@@ -113,12 +79,11 @@ class Config:
             # ensure the dashboard path starts with a /
             if dashboard_path[:1] != "/":
                 dashboard_path = f"/{dashboard_path}"
-                
+
         return cls(
             port=server.get('port', 5000),
             delay=server.get('delay', 100),
             server_header=server.get('server_header',""),
-            timezone=server.get('timezone'),
             links_length_range=(
                 links.get('min_length', 5),
                 links.get('max_length', 15)
@@ -140,7 +105,7 @@ class Config:
             database_retention_days=database.get('retention_days', 30),
             http_risky_methods_threshold=analyzer.get('http_risky_methods_threshold', 0.1),
             violated_robots_threshold=analyzer.get('violated_robots_threshold', 0.1),
-            uneven_request_timing_threshold=analyzer.get('uneven_request_timing_threshold', 0.5), # coefficient of variation 
+            uneven_request_timing_threshold=analyzer.get('uneven_request_timing_threshold', 0.5), # coefficient of variation
             uneven_request_timing_time_window_seconds=analyzer.get('uneven_request_timing_time_window_seconds', 300),
             user_agents_used_threshold=analyzer.get('user_agents_used_threshold', 2),
             attack_urls_threshold=analyzer.get('attack_urls_threshold', 1)

@@ -8,20 +8,17 @@ Provides two loggers: app (application) and access (HTTP access logs).
 import logging
 import os
 from logging.handlers import RotatingFileHandler
-from typing import Optional
-from zoneinfo import ZoneInfo
 from datetime import datetime
 
 
 class TimezoneFormatter(logging.Formatter):
     """Custom formatter that respects configured timezone"""
-    def __init__(self, fmt=None, datefmt=None, timezone: Optional[ZoneInfo] = None):
+    def __init__(self, fmt=None, datefmt=None):
         super().__init__(fmt, datefmt)
-        self.timezone = timezone or ZoneInfo('UTC')
-    
+
     def formatTime(self, record, datefmt=None):
         """Override formatTime to use configured timezone"""
-        dt = datetime.fromtimestamp(record.created, tz=self.timezone)
+        dt = datetime.fromtimestamp(record.created)
         if datefmt:
             return dt.strftime(datefmt)
         return dt.isoformat()
@@ -37,18 +34,15 @@ class LoggerManager:
             cls._instance._initialized = False
         return cls._instance
 
-    def initialize(self, log_dir: str = "logs", timezone: Optional[ZoneInfo] = None) -> None:
+    def initialize(self, log_dir: str = "logs") -> None:
         """
-        Initialize the logging system with rotating file handlers.
+        Initialize the logging system with rotating file handlers.loggers
 
         Args:
             log_dir: Directory for log files (created if not exists)
-            timezone: ZoneInfo timezone for log timestamps (defaults to UTC)
         """
         if self._initialized:
             return
-
-        self.timezone = timezone or ZoneInfo('UTC')
 
         # Create log directory if it doesn't exist
         os.makedirs(log_dir, exist_ok=True)
@@ -57,7 +51,6 @@ class LoggerManager:
         log_format = TimezoneFormatter(
             "[%(asctime)s] %(levelname)s - %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
-            timezone=self.timezone
         )
 
         # Rotation settings: 1MB max, 5 backups
@@ -104,8 +97,8 @@ class LoggerManager:
         self._credential_logger.handlers.clear()
 
         # Credential logger uses a simple format: timestamp|ip|username|password|path
-        credential_format = TimezoneFormatter("%(message)s", timezone=self.timezone)
-        
+        credential_format = TimezoneFormatter("%(message)s")
+
         credential_file_handler = RotatingFileHandler(
             os.path.join(log_dir, "credentials.log"),
             maxBytes=max_bytes,
@@ -157,6 +150,6 @@ def get_credential_logger() -> logging.Logger:
     return _logger_manager.credentials
 
 
-def initialize_logging(log_dir: str = "logs", timezone: Optional[ZoneInfo] = None) -> None:
+def initialize_logging(log_dir: str = "logs") -> None:
     """Initialize the logging system."""
-    _logger_manager.initialize(log_dir, timezone)
+    _logger_manager.initialize(log_dir)

@@ -15,21 +15,16 @@ def _escape(value) -> str:
         return ""
     return html.escape(str(value))
 
-def format_timestamp(iso_timestamp: str, timezone: str = 'UTC', time_only: bool = False) -> str:
+def format_timestamp(iso_timestamp: str, time_only: bool = False) -> str:
     """Format ISO timestamp for display with timezone conversion
-    
+
     Args:
         iso_timestamp: ISO format timestamp string (UTC)
-        timezone: IANA timezone string to convert to
         time_only: If True, return only HH:MM:SS, otherwise full datetime
     """
     try:
         # Parse UTC timestamp
         dt = datetime.fromisoformat(iso_timestamp)
-        # Convert to target timezone
-        if dt.tzinfo is not None:
-            dt = dt.astimezone(ZoneInfo(timezone))
-        
         if time_only:
             return dt.strftime("%H:%M:%S")
         return dt.strftime("%Y-%m-%d %H:%M:%S")
@@ -38,15 +33,14 @@ def format_timestamp(iso_timestamp: str, timezone: str = 'UTC', time_only: bool 
         return iso_timestamp.split("T")[1][:8] if "T" in iso_timestamp else iso_timestamp
 
 
-def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str = '') -> str:
+def generate_dashboard(stats: dict, dashboard_path: str = '') -> str:
     """Generate dashboard HTML with access statistics
-    
+
     Args:
         stats: Statistics dictionary
-        timezone: IANA timezone string (e.g., 'Europe/Paris', 'America/New_York')
         dashboard_path: The secret dashboard path for generating API URLs
     """
-    
+
     # Generate IP rows with clickable functionality for dropdown stats
     top_ips_rows = '\n'.join([
         f'''<tr class="ip-row" data-ip="{_escape(ip)}">
@@ -82,7 +76,7 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
             <td class="ip-clickable">{_escape(log["ip"])}</td>
             <td>{_escape(log["path"])}</td>
             <td style="word-break: break-all;">{_escape(log["user_agent"][:60])}</td>
-            <td>{format_timestamp(log["timestamp"], timezone, time_only=True)}</td>
+            <td>{format_timestamp(log["timestamp"], time_only=True)}</td>
         </tr>
         <tr class="ip-stats-row" id="stats-row-suspicious-{_escape(log["ip"]).replace(".", "-")}" style="display: none;">
             <td colspan="4" class="ip-stats-cell">
@@ -118,7 +112,7 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
             <td>{_escape(log["path"])}</td>
             <td>{_escape(", ".join(log["attack_types"]))}</td>
             <td style="word-break: break-all;">{_escape(log["user_agent"][:60])}</td>
-            <td>{format_timestamp(log["timestamp"], timezone, time_only=True)}</td>
+            <td>{format_timestamp(log["timestamp"],time_only=True)}</td>
         </tr>
         <tr class="ip-stats-row" id="stats-row-attack-{_escape(log["ip"]).replace(".", "-")}" style="display: none;">
             <td colspan="5" class="ip-stats-cell">
@@ -137,7 +131,7 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
             <td>{_escape(log["username"])}</td>
             <td>{_escape(log["password"])}</td>
             <td>{_escape(log["path"])}</td>
-            <td>{format_timestamp(log["timestamp"], timezone, time_only=True)}</td>
+            <td>{format_timestamp(log["timestamp"], time_only=True)}</td>
         </tr>
         <tr class="ip-stats-row" id="stats-row-cred-{_escape(log["ip"]).replace(".", "-")}" style="display: none;">
             <td colspan="5" class="ip-stats-cell">
@@ -537,7 +531,7 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
             </a>
         </div>
         <h1>Krawl Dashboard</h1>
-        
+
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-value">{stats['total_accesses']}</div>
@@ -683,15 +677,13 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
         </div>
     </div>
     <script>
-        const SERVER_TIMEZONE = '{timezone}';
         const DASHBOARD_PATH = '{dashboard_path}';
-        
+
         function formatTimestamp(isoTimestamp) {{
             if (!isoTimestamp) return 'N/A';
             try {{
                 const date = new Date(isoTimestamp);
-                return date.toLocaleString('en-US', {{ 
-                    timeZone: SERVER_TIMEZONE,
+                return date.toLocaleString('en-US', {{
                     year: 'numeric',
                     month: '2-digit',
                     day: '2-digit',
@@ -705,7 +697,7 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                 return new Date(isoTimestamp).toLocaleString();
             }}
         }}
-        
+
         document.querySelectorAll('th.sortable').forEach(header => {{
             header.addEventListener('click', function() {{
                 const table = this.closest('table');
@@ -713,25 +705,25 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                 const rows = Array.from(tbody.querySelectorAll('tr'));
                 const sortType = this.getAttribute('data-sort');
                 const columnIndex = Array.from(this.parentElement.children).indexOf(this);
-                
+
                 const isAscending = this.classList.contains('asc');
-                
+
                 table.querySelectorAll('th.sortable').forEach(th => {{
                     th.classList.remove('asc', 'desc');
                 }});
-                
+
                 this.classList.add(isAscending ? 'desc' : 'asc');
-                
+
                 rows.sort((a, b) => {{
                     let aValue = a.cells[columnIndex].textContent.trim();
                     let bValue = b.cells[columnIndex].textContent.trim();
-                    
+
                     if (sortType === 'count') {{
                         aValue = parseInt(aValue) || 0;
                         bValue = parseInt(bValue) || 0;
                         return isAscending ? bValue - aValue : aValue - bValue;
                     }}
-                    
+
                     if (sortType === 'ip') {{
                         const ipToNum = ip => {{
                             const parts = ip.split('.');
@@ -742,14 +734,14 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                         const bNum = ipToNum(bValue);
                         return isAscending ? bNum - aNum : aNum - bNum;
                     }}
-                    
+
                     if (isAscending) {{
                         return bValue.localeCompare(aValue);
                     }} else {{
                         return aValue.localeCompare(bValue);
                     }}
                 }});
-                
+
                 rows.forEach(row => tbody.appendChild(row));
             }});
         }});
@@ -797,39 +789,39 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                 }}
             }});
         }});
-        
+
         function formatIpStats(stats) {{
             let html = '<div class="stats-left">';
-            
+
             html += '<div class="stat-row">';
             html += '<span class="stat-label-sm">Total Requests:</span>';
             html += `<span class="stat-value-sm">${{stats.total_requests || 0}}</span>`;
             html += '</div>';
-            
+
             html += '<div class="stat-row">';
             html += '<span class="stat-label-sm">First Seen:</span>';
             html += `<span class="stat-value-sm">${{formatTimestamp(stats.first_seen)}}</span>`;
             html += '</div>';
-            
+
             html += '<div class="stat-row">';
             html += '<span class="stat-label-sm">Last Seen:</span>';
             html += `<span class="stat-value-sm">${{formatTimestamp(stats.last_seen)}}</span>`;
             html += '</div>';
-            
+
             if (stats.country_code || stats.city) {{
                 html += '<div class="stat-row">';
                 html += '<span class="stat-label-sm">Location:</span>';
                 html += `<span class="stat-value-sm">${{stats.city || ''}}${{stats.city && stats.country_code ? ', ' : ''}}${{stats.country_code || 'Unknown'}}</span>`;
                 html += '</div>';
             }}
-            
+
             if (stats.asn_org) {{
                 html += '<div class="stat-row">';
                 html += '<span class="stat-label-sm">ASN Org:</span>';
                 html += `<span class="stat-value-sm">${{stats.asn_org}}</span>`;
                 html += '</div>';
             }}
-            
+
             if (stats.reputation_score !== null && stats.reputation_score !== undefined) {{
                 html += '<div class="stat-row">';
                 html += '<span class="stat-label-sm">Reputation Score:</span>';
@@ -847,7 +839,7 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
 
             if (stats.category_history && stats.category_history.length > 0) {{
                 html += '<div class="timeline-container">';
-                
+
                 html += '<div class="timeline-header">';
                 html += '<div class="timeline-title">Behavior Timeline</div>';
 
@@ -912,14 +904,14 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                 html += '</div>';
                 html += '</div>';
             }}
-            
+
             html += '</div>';
-            
+
             if (stats.category_scores && Object.keys(stats.category_scores).length > 0) {{
                 html += '<div class="stats-right">';
                 html += '<div style="font-size: 13px; font-weight: 600; color: #58a6ff; margin-bottom: 10px;">Category Score</div>';
                 html += '<svg class="radar-chart" viewBox="-30 -30 260 260" preserveAspectRatio="xMidYMid meet">';
-                
+
                 const scores = {{
                     attacker: stats.category_scores.attacker || 0,
                     good_crawler: stats.category_scores.good_crawler || 0,
@@ -927,15 +919,15 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                     regular_user: stats.category_scores.regular_user || 0,
                     unknown: stats.category_scores.unknown || 0
                 }};
-                
+
                 const maxScore = Math.max(...Object.values(scores), 1);
                 const minVisibleRadius = 0.15;
                 const normalizedScores = {{}};
-                
+
                 Object.keys(scores).forEach(key => {{
                     normalizedScores[key] = minVisibleRadius + (scores[key] / maxScore) * (1 - minVisibleRadius);
                 }});
-                
+
                 const colors = {{
                     attacker: '#f85149',
                     good_crawler: '#3fb950',
@@ -943,7 +935,7 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                     regular_user: '#58a6ff',
                     unknown: '#8b949e'
                 }};
-                
+
                 const labels = {{
                     attacker: 'Attacker',
                     good_crawler: 'Good Bot',
@@ -951,28 +943,28 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                     regular_user: 'User',
                     unknown: 'Unknown'
                 }};
-                
+
                 const cx = 100, cy = 100, maxRadius = 75;
                 for (let i = 1; i <= 5; i++) {{
                     const r = (maxRadius / 5) * i;
                     html += `<circle cx="${{cx}}" cy="${{cy}}" r="${{r}}" fill="none" stroke="#30363d" stroke-width="0.5"/>`;
                 }}
-                
+
                 const angles = [0, 72, 144, 216, 288];
                 const keys = ['good_crawler', 'regular_user', 'unknown', 'bad_crawler', 'attacker'];
-                
+
                 angles.forEach((angle, i) => {{
                     const rad = (angle - 90) * Math.PI / 180;
                     const x2 = cx + maxRadius * Math.cos(rad);
                     const y2 = cy + maxRadius * Math.sin(rad);
                     html += `<line x1="${{cx}}" y1="${{cy}}" x2="${{x2}}" y2="${{y2}}" stroke="#30363d" stroke-width="0.5"/>`;
-                    
+
                     const labelDist = maxRadius + 35;
                     const lx = cx + labelDist * Math.cos(rad);
                     const ly = cy + labelDist * Math.sin(rad);
                     html += `<text x="${{lx}}" y="${{ly}}" fill="#8b949e" font-size="12" text-anchor="middle" dominant-baseline="middle">${{labels[keys[i]]}}</text>`;
                 }});
-                
+
                 let points = [];
                 angles.forEach((angle, i) => {{
                     const normalizedScore = normalizedScores[keys[i]];
@@ -982,12 +974,12 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                     const y = cy + r * Math.sin(rad);
                     points.push(`${{x}},${{y}}`);
                 }});
-                
+
                 const dominantKey = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
                 const dominantColor = colors[dominantKey];
-                
+
                 html += `<polygon points="${{points.join(' ')}}" fill="${{dominantColor}}" fill-opacity="0.4" stroke="${{dominantColor}}" stroke-width="2.5"/>`;
-                
+
                 angles.forEach((angle, i) => {{
                     const normalizedScore = normalizedScores[keys[i]];
                     const rad = (angle - 90) * Math.PI / 180;
@@ -996,9 +988,9 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                     const y = cy + r * Math.sin(rad);
                     html += `<circle cx="${{x}}" cy="${{y}}" r="4.5" fill="${{colors[keys[i]]}}" stroke="#0d1117" stroke-width="2"/>`;
                 }});
-                
+
                 html += '</svg>';
-                
+
                 html += '<div class="radar-legend">';
                 keys.forEach(key => {{
                     html += '<div class="radar-legend-item">';
@@ -1007,10 +999,10 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
                     html += '</div>';
                 }});
                 html += '</div>';
-                
+
                 html += '</div>';
             }}
-            
+
             return html;
         }}
     </script>

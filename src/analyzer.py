@@ -23,7 +23,7 @@ class Analyzer:
     """
     Analyzes users activity and produces aggregated insights
     """
-    def __init__(self, db_manager: Optional[DatabaseManager] = None, timezone: Optional[ZoneInfo] = None):
+    def __init__(self, db_manager: Optional[DatabaseManager] = None):
         """
         Initialize the access tracker.
 
@@ -31,11 +31,10 @@ class Analyzer:
             db_manager: Optional DatabaseManager for persistence.
                         If None, will use the global singleton.
         """
-        self.timezone = timezone or ZoneInfo('UTC')
 
         # Database manager for persistence (lazily initialized)
         self._db_manager = db_manager
-    
+
     @property
     def db(self) -> Optional[DatabaseManager]:
         """
@@ -51,11 +50,11 @@ class Analyzer:
                 # Database not initialized, persistence disabled
                 pass
         return self._db_manager
-    
+
     # def infer_user_category(self, ip: str) -> str:
 
     #     config = get_config()
-        
+
     #     http_risky_methods_threshold = config.http_risky_methods_threshold
     #     violated_robots_threshold = config.violated_robots_threshold
     #     uneven_request_timing_threshold = config.uneven_request_timing_threshold
@@ -70,7 +69,7 @@ class Analyzer:
     #     score["good_crawler"] = {"risky_http_methods": False, "robots_violations": False, "uneven_request_timing": False, "different_user_agents": False, "attack_url": False}
     #     score["bad_crawler"] = {"risky_http_methods": False, "robots_violations": False, "uneven_request_timing": False, "different_user_agents": False, "attack_url": False}
     #     score["regular_user"] = {"risky_http_methods": False, "robots_violations": False, "uneven_request_timing": False, "different_user_agents": False, "attack_url": False}
-        
+
     #     #1-3 low, 4-6 mid, 7-9 high, 10-20 extreme
     #     weights = {
     #         "attacker": {
@@ -108,7 +107,7 @@ class Analyzer:
     #     total_accesses_count = len(accesses)
     #     if total_accesses_count <= 0:
     #         return
-        
+
     #     # Set category as "unknown" for the first 5 requests
     #     if total_accesses_count < 3:
     #         category = "unknown"
@@ -127,7 +126,7 @@ class Analyzer:
     #     delete_accesses_count = len([item for item in accesses if item["method"] == "DELETE"])
     #     head_accesses_count = len([item for item in accesses if item["method"] == "HEAD"])
     #     options_accesses_count = len([item for item in accesses if item["method"] == "OPTIONS"])
-    #     patch_accesses_count = len([item for item in accesses if item["method"] == "PATCH"])  
+    #     patch_accesses_count = len([item for item in accesses if item["method"] == "PATCH"])
 
     #     if total_accesses_count > http_risky_methods_threshold:
     #         http_method_attacker_score = (post_accesses_count + put_accesses_count + delete_accesses_count + options_accesses_count + patch_accesses_count) / total_accesses_count
@@ -156,7 +155,7 @@ class Analyzer:
     #             if not line:
     #                 continue
     #             parts = line.split(":")
-                
+
     #             if parts[0] == "Disallow":
     #                 parts[1] = parts[1].rstrip("/")
     #                 #print(f"DISALLOW {parts[1]}")
@@ -180,7 +179,7 @@ class Analyzer:
     #         score["good_crawler"]["robots_violations"] = False
     #         score["bad_crawler"]["robots_violations"] = False
     #         score["regular_user"]["robots_violations"] = False
-        
+
     #     #--------------------- Requests Timing ---------------------
     #     #Request rate and timing: steady, throttled, polite vs attackers' bursty, aggressive, or oddly rhythmic behavior
     #     timestamps = [datetime.fromisoformat(item["timestamp"]) for item in accesses]
@@ -192,7 +191,7 @@ class Analyzer:
     #     for i in range(0, len(timestamps)-1):
     #         diff = (timestamps[i] - timestamps[i+1]).total_seconds()
     #         time_diffs.append(diff)
-        
+
     #     mean = 0
     #     variance = 0
     #     std = 0
@@ -250,10 +249,10 @@ class Analyzer:
     #             except Exception:
     #                 decoded_path = queried_path
     #                 decoded_path_twice = queried_path
-                
+
     #             for name, pattern in wl.attack_patterns.items():
     #                 # Check original, decoded, and double-decoded paths
-    #                 if (re.search(pattern, queried_path, re.IGNORECASE) or 
+    #                 if (re.search(pattern, queried_path, re.IGNORECASE) or
     #                     re.search(pattern, decoded_path, re.IGNORECASE) or
     #                     re.search(pattern, decoded_path_twice, re.IGNORECASE)):
     #                     attack_urls_found_list.append(f"{name}: {pattern}")
@@ -261,7 +260,7 @@ class Analyzer:
     #         #remove duplicates
     #         attack_urls_found_list = set(attack_urls_found_list)
     #         attack_urls_found_list = list(attack_urls_found_list)
-            
+
     #         if len(attack_urls_found_list) > attack_urls_threshold:
     #             score["attacker"]["attack_url"] = True
     #             score["good_crawler"]["attack_url"] = False
@@ -344,7 +343,7 @@ class Analyzer:
     #         sanitized_asn = sanitize_for_storage(asn, 100)
     #         sanitized_asn_org = sanitize_for_storage(asn_org, 100)
     #         sanitized_list_on = sanitize_dict(list_on, 100000)
-            
+
     #         self._db_manager.update_ip_rep_infos(ip, sanitized_country_iso_code, sanitized_asn, sanitized_asn_org, sanitized_list_on)
-        
+
     #     return

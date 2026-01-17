@@ -3,7 +3,6 @@
 server:
   port: 5000
   delay: 100  # Response delay in milliseconds
-  timezone: null  # e.g., "America/New_York", "Europe/Paris" or null for system default
 
   # manually set the server header, if null a random one will be used.
   server_header: null

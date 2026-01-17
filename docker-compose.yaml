@@ -1,5 +1,4 @@
-version: '3.8'
-
+---
 services:
   krawl:
     build:
@@ -8,11 +7,26 @@ services:
     container_name: krawl-server
     ports:
       - "5000:5000"
+    environment:
+      - CONFIG_LOCATION=config.yaml
+      # set this to change timezone, alternatively mount /etc/timezone or /etc/localtime based on the time system management of the host environment
+      # - TZ=${TZ}
     volumes:
       - ./wordlists.json:/app/wordlists.json:ro
       - ./config.yaml:/app/config.yaml:ro
       - ./logs:/app/logs
       - ./exports:/app/exports
-    environment:
-      - CONFIG_LOCATION=config.yaml
+      - data:/app/data
     restart: unless-stopped
+    develop:
+      watch:
+        - path: ./Dockerfile
+          action: rebuild
+        - path: ./src/
+          action: sync+restart
+          target: /app/src
+        - path: ./docker-compose.yaml
+          action: rebuild
+
+volumes:
+  data:

@@ -29,7 +29,6 @@ def print_usage():
     print('    server:')
     print('      port: 5000')
     print('      delay: 100')
-    print('      timezone: null  # or "America/New_York"')
     print('    links:')
     print('      min_length: 5')
     print('      max_length: 15')
@@ -55,11 +54,8 @@ def main():
 
     config = get_config()
 
-    # Get timezone configuration
-    tz = config.get_timezone()
-
     # Initialize logging with timezone
-    initialize_logging(timezone=tz)
+    initialize_logging()
     app_logger = get_app_logger()
     access_logger = get_access_logger()
     credential_logger = get_credential_logger()
@@ -71,8 +67,8 @@ def main():
     except Exception as e:
         app_logger.warning(f'Database initialization failed: {e}. Continuing with in-memory only.')
 
-    tracker = AccessTracker(timezone=tz)
-    analyzer = Analyzer(timezone=tz)
+    tracker = AccessTracker()
+    analyzer = Analyzer()
 
     Handler.config = config
     Handler.tracker = tracker
@@ -99,7 +95,6 @@ def main():
 
     try:
         app_logger.info(f'Starting deception server on port {config.port}...')
-        app_logger.info(f'Timezone configured: {tz.key}')
         app_logger.info(f'Dashboard available at: {config.dashboard_secret_path}')
         if config.canary_token_url:
             app_logger.info(f'Canary token will appear after {config.canary_token_tries} tries')

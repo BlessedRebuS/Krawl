@@ -21,7 +21,7 @@ def main():
 
     # Only get IPs that haven't been enriched yet
     unenriched_ips = db_manager.get_unenriched_ips(limit=50)
-
+    app_logger.info(f"{len(unenriched_ips)} IP's need to be have reputation enrichment.")
     for ip in unenriched_ips:
         try:
             api_url = "https://iprep.lcrawl.com/api/iprep/"

@@ -1,6 +1,8 @@
 # tasks/export_malicious_ips.py
 
 import os
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from logger import get_app_logger
 from database import get_database
 from models import AccessLog
@@ -24,6 +26,15 @@ OUTPUT_FILE = os.path.join(EXPORTS_DIR, "malicious_ips.txt")
 # ----------------------
 # TASK LOGIC
 # ----------------------
+def has_recent_honeypot_access(session, minutes: int = 5) -> bool:
+    """Check if honeypot was accessed in the last N minutes."""
+    cutoff_time = datetime.now() - timedelta(minutes=minutes)
+    count = session.query(AccessLog).filter(
+        AccessLog.is_honeypot_trigger == True,
+        AccessLog.timestamp >= cutoff_time
+    ).count()
+    return count > 0
+
 def main():
     """
     Export all IPs flagged as suspicious to a text file.
@@ -35,6 +46,11 @@ def main():
     try:
         db = get_database()
         session = db.session
+
+        # Check for recent honeypot activity
+        if not has_recent_honeypot_access(session):
+            app_logger.info(f"[Background Task] {task_name} skipped - no honeypot access in last 5 minutes")
+            return
 
         # Query distinct suspicious IPs
         results = session.query(distinct(AccessLog.ip)).filter(

@@ -17,7 +17,7 @@ class AccessTracker:
     Maintains in-memory structures for fast dashboard access and
     persists data to SQLite for long-term storage and analysis.
     """
-    def __init__(self, db_manager: Optional[DatabaseManager] = None, timezone: Optional[ZoneInfo] = None):
+    def __init__(self, db_manager: Optional[DatabaseManager] = None):
         """
         Initialize the access tracker.
 
@@ -30,7 +30,6 @@ class AccessTracker:
         self.user_agent_counts: Dict[str, int] = defaultdict(int)
         self.access_log: List[Dict] = []
         self.credential_attempts: List[Dict] = []
-        self.timezone = timezone or ZoneInfo('UTC')
         self.suspicious_patterns = [
             'bot', 'crawler', 'spider', 'scraper', 'curl', 'wget', 'python-requests',
             'scanner', 'nikto', 'sqlmap', 'nmap', 'masscan', 'nessus', 'acunetix',
@@ -40,7 +39,7 @@ class AccessTracker:
         # Load attack patterns from wordlists
         wl = get_wordlists()
         self.attack_types = wl.attack_patterns
-        
+
         # Fallback if wordlists not loaded
         if not self.attack_types:
             self.attack_types = {
@@ -80,38 +79,38 @@ class AccessTracker:
         """
         if not post_data:
             return None, None
-        
+
         username = None
         password = None
-        
+
         try:
             # Parse URL-encoded form data
             parsed = urllib.parse.parse_qs(post_data)
-            
+
             # Common username field names
             username_fields = ['username', 'user', 'login', 'email', 'log', 'userid', 'account']
             for field in username_fields:
                 if field in parsed and parsed[field]:
                     username = parsed[field][0]
                     break
-            
+
             # Common password field names
             password_fields = ['password', 'pass', 'passwd', 'pwd', 'passphrase']
             for field in password_fields:
                 if field in parsed and parsed[field]:
                     password = parsed[field][0]
                     break
-                    
+
         except Exception:
             # If parsing fails, try simple regex patterns
             username_match = re.search(r'(?:username|user|login|email|log)=([^&\s]+)', post_data, re.IGNORECASE)
             password_match = re.search(r'(?:password|pass|passwd|pwd)=([^&\s]+)', post_data, re.IGNORECASE)
-            
+
             if username_match:
                 username = urllib.parse.unquote_plus(username_match.group(1))
             if password_match:
                 password = urllib.parse.unquote_plus(password_match.group(1))
-        
+
         return username, password
 
     def record_credential_attempt(self, ip: str, path: str, username: str, password: str):
@@ -126,7 +125,7 @@ class AccessTracker:
             'path': path,
             'username': username,
             'password': password,
-            'timestamp': datetime.now(self.timezone).isoformat()
+            'timestamp': datetime.now().isoformat()
         })
 
         # Persist to database
@@ -193,7 +192,7 @@ class AccessTracker:
             'suspicious': is_suspicious,
             'honeypot_triggered': self.is_honeypot_path(path),
             'attack_types':attack_findings,
-            'timestamp': datetime.now(self.timezone).isoformat()
+            'timestamp': datetime.now().isoformat()
         })
 
         # Persist to database

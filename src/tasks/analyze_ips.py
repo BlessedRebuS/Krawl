@@ -28,7 +28,7 @@ def main():
     config = get_config()
     db_manager = get_database()
     app_logger = get_app_logger()
-        
+
     http_risky_methods_threshold = config.http_risky_methods_threshold
     violated_robots_threshold = config.violated_robots_threshold
     uneven_request_timing_threshold = config.uneven_request_timing_threshold
@@ -41,7 +41,7 @@ def main():
     score["good_crawler"] = {"risky_http_methods": False, "robots_violations": False, "uneven_request_timing": False, "different_user_agents": False, "attack_url": False}
     score["bad_crawler"] = {"risky_http_methods": False, "robots_violations": False, "uneven_request_timing": False, "different_user_agents": False, "attack_url": False}
     score["regular_user"] = {"risky_http_methods": False, "robots_violations": False, "uneven_request_timing": False, "different_user_agents": False, "attack_url": False}
-    
+
     #1-3 low, 4-6 mid, 7-9 high, 10-20 extreme
     weights = {
         "attacker": {
@@ -73,21 +73,27 @@ def main():
             "attack_url": 0
         }
     }
-    accesses = db_manager.get_access_logs(limit=999999999)
-    ips = {item['ip'] for item in accesses}
+    # Get IPs with recent activity (last minute to match cron schedule)
+    recent_accesses = db_manager.get_access_logs(limit=999999999, since_minutes=1)
+    ips_to_analyze = {item['ip'] for item in recent_accesses}
 
-    for ip in ips:
-        ip_accesses = [item for item in accesses if item["ip"] == ip]
-        total_accesses_count = len(accesses)
+    if not ips_to_analyze:
+        app_logger.debug("[Background Task] analyze-ips: No recent activity, skipping")
+        return
+
+    for ip in ips_to_analyze:
+        # Get full history for this IP to perform accurate analysis
+        ip_accesses = db_manager.get_access_logs(limit=999999999, ip_filter=ip)
+        total_accesses_count = len(ip_accesses)
         if total_accesses_count <= 0:
             return
-        
+
         # Set category as "unknown" for the first 3 requests
         if total_accesses_count < 3:
             category = "unknown"
             analyzed_metrics = {}
             category_scores = {"attacker": 0, "good_crawler": 0, "bad_crawler": 0, "regular_user": 0, "unknown": 0}
-            last_analysis = datetime.now(tz=ZoneInfo('UTC'))
+            last_analysis = datetime.now()
             db_manager.update_ip_stats_analysis(ip, analyzed_metrics, category, category_scores, last_analysis)
             return 0
         #--------------------- HTTP Methods ---------------------
@@ -97,7 +103,7 @@ def main():
         delete_accesses_count = len([item for item in ip_accesses if item["method"] == "DELETE"])
         head_accesses_count = len([item for item in ip_accesses if item["method"] == "HEAD"])
         options_accesses_count = len([item for item in ip_accesses if item["method"] == "OPTIONS"])
-        patch_accesses_count = len([item for item in ip_accesses if item["method"] == "PATCH"])  
+        patch_accesses_count = len([item for item in ip_accesses if item["method"] == "PATCH"])
         if total_accesses_count > http_risky_methods_threshold:
             http_method_attacker_score = (post_accesses_count + put_accesses_count + delete_accesses_count + options_accesses_count + patch_accesses_count) / total_accesses_count
         else:
@@ -123,7 +129,7 @@ def main():
                 if not line:
                     continue
                 parts = line.split(":")
-                
+
                 if parts[0] == "Disallow":
                     parts[1] = parts[1].rstrip("/")
                     #print(f"DISALLOW {parts[1]}")
@@ -145,18 +151,18 @@ def main():
             score["good_crawler"]["robots_violations"] = False
             score["bad_crawler"]["robots_violations"] = False
             score["regular_user"]["robots_violations"] = False
-        
+
         #--------------------- Requests Timing ---------------------
-        #Request rate and timing: steady, throttled, polite vs attackers' bursty, aggressive, or oddly rhythmic behavior
+        # Request rate and timing: steady, throttled, polite vs attackers' bursty, aggressive, or oddly rhythmic behavior
         timestamps = [datetime.fromisoformat(item["timestamp"]) for item in ip_accesses]
-        now_utc = datetime.now(tz=ZoneInfo('UTC'))
+        now_utc = datetime.now()
         timestamps = [ts for ts in timestamps if now_utc - ts <= timedelta(seconds=uneven_request_timing_time_window_seconds)]
         timestamps = sorted(timestamps, reverse=True)
         time_diffs = []
         for i in range(0, len(timestamps)-1):
             diff = (timestamps[i] - timestamps[i+1]).total_seconds()
             time_diffs.append(diff)
-        
+
         mean = 0
         variance = 0
         std = 0
@@ -206,14 +212,14 @@ def main():
                 except Exception:
                     decoded_path = queried_path
                     decoded_path_twice = queried_path
-                
+
                 for name, pattern in wl.attack_patterns.items():
                     # Check original, decoded, and double-decoded paths
-                    if (re.search(pattern, queried_path, re.IGNORECASE) or 
+                    if (re.search(pattern, queried_path, re.IGNORECASE) or
                         re.search(pattern, decoded_path, re.IGNORECASE) or
                         re.search(pattern, decoded_path_twice, re.IGNORECASE)):
                         attack_urls_found_list.append(f"{name}: {pattern}")
-            
+
             #remove duplicates
             attack_urls_found_list = set(attack_urls_found_list)
             attack_urls_found_list = list(attack_urls_found_list)
@@ -260,6 +266,6 @@ def main():
         analyzed_metrics = {"risky_http_methods": http_method_attacker_score, "robots_violations": violated_robots_ratio, "uneven_request_timing": mean, "different_user_agents": user_agents_used, "attack_url": attack_urls_found_list}
         category_scores = {"attacker": attacker_score, "good_crawler": good_crawler_score, "bad_crawler": bad_crawler_score, "regular_user": regular_user_score}
         category = max(category_scores, key=category_scores.get)
-        last_analysis = datetime.now(tz=ZoneInfo('UTC'))
+        last_analysis = datetime.now()
         db_manager.update_ip_stats_analysis(ip, analyzed_metrics, category, category_scores, last_analysis)
     return

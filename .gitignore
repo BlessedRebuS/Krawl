@@ -56,6 +56,7 @@ secrets/
 .env
 .env.local
 .env.*.local
+.envrc
 
 # Logs
 *.log
