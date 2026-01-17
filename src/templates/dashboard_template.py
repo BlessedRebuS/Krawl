@@ -401,101 +401,47 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
             color: #8b949e;
             border: 1px solid #8b949e;
         }}
-        .timeline-container {{
+        .timeline-section {{
             margin-top: 15px;
             padding-top: 15px;
             border-top: 1px solid #30363d;
         }}
-        .timeline-title {{
-            color: #58a6ff;
-            font-size: 13px;
-            font-weight: 600;
+        .timeline-container {{
+            display: flex;
+            gap: 20px;
+            min-height: 200px;
+        }}
+        .timeline-column {{
+            flex: 1;
+            min-width: 0;
+            overflow: auto;
+            max-height: 350px;
+        }}
+        .timeline-column:first-child {{
+            flex: 1.5;
+        }}
+        .timeline-column:last-child {{
+            flex: 1;
         }}
         .timeline-header {{
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }}
-        .timeline {{
-            position: relative;
-            padding-left: 30px;
-        }}
-        .timeline::before {{
-            content: '';
-            position: absolute;
-            left: 12px;
-            top: 5px;
-            bottom: 5px;
-            width: 3px;
-            background: #30363d;
-        }}
-        .timeline-item {{
-            position: relative;
-            padding-bottom: 15px;
-        }}
-        .timeline-item:last-child {{
-            padding-bottom: 0;
-        }}
-        .timeline-marker {{
-            position: absolute;
-            left: -26px;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            border: 2px solid #0d1117;
-        }}
-        .timeline-marker.attacker {{
-            background: #f85149;
-        }}
-        .timeline-marker.good-crawler {{
-            background: #3fb950;
-        }}
-        .timeline-marker.bad-crawler {{
-            background: #f0883e;
-        }}
-        .timeline-marker.regular-user {{
-            background: #58a6ff;
-        }}
-        .timeline-marker.unknown {{
-            background: #8b949e;
-        }}
-        .timeline-content {{
-            font-size: 12px;
-        }}
-        .timeline-category {{
-            font-weight: 600;
-        }}
-        .timeline-timestamp {{
-            color: #8b949e;
-            font-size: 11px;
-            margin-top: 2px;
-        }}
-        .timeline-arrow {{
-            color: #8b949e;
-            margin: 0 7px;
-        }}
-        .reputation-container {{
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #30363d;
-        }}
-        .reputation-title {{
             color: #58a6ff;
             font-size: 13px;
             font-weight: 600;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #30363d;
         }}
-        .reputation-badges {{
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            align-items: center;
+        .reputation-title {{
+            color: #8b949e;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 8px;
         }}
         .reputation-badge {{
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             padding: 4px 8px;
             background: #161b22;
             border: 1px solid #f851494d;
@@ -504,28 +450,60 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
             color: #f85149;
             text-decoration: none;
             transition: all 0.2s;
+            margin-bottom: 6px;
+            margin-right: 6px;
+            white-space: nowrap;
         }}
         .reputation-badge:hover {{
             background: #1c2128;
             border-color: #f85149;
         }}
-        .reputation-badge-icon {{
-            font-size: 12px;
-        }}
         .reputation-clean {{
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
+            gap: 3px;
+            padding: 4px 8px;
             background: #161b22;
             border: 1px solid #3fb9504d;
             border-radius: 4px;
             font-size: 11px;
             color: #3fb950;
+            margin-bottom: 6px;
         }}
-        .reputation-clean-icon {{
-            font-size: 13px;
+        .timeline {{
+            position: relative;
+            padding-left: 28px;
         }}
+        .timeline::before {{
+            content: '';
+            position: absolute;
+            left: 11px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #30363d;
+        }}
+        .timeline-item {{
+            position: relative;
+            padding-bottom: 12px;
+            font-size: 12px;
+        }}
+        .timeline-item:last-child {{
+            padding-bottom: 0;
+        }}
+        .timeline-marker {{
+            position: absolute;
+            left: -23px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid #0d1117;
+        }}
+        .timeline-marker.attacker {{ background: #f85149; }}
+        .timeline-marker.good-crawler {{ background: #3fb950; }}
+        .timeline-marker.bad-crawler {{ background: #f0883e; }}
+        .timeline-marker.regular-user {{ background: #58a6ff; }}
+        .timeline-marker.unknown {{ background: #8b949e; }}
 
     </style>
 </head>
@@ -846,69 +824,60 @@ def generate_dashboard(stats: dict, timezone: str = 'UTC', dashboard_path: str =
             }}
 
             if (stats.category_history && stats.category_history.length > 0) {{
+                html += '<div class="timeline-section">';
                 html += '<div class="timeline-container">';
                 
-                html += '<div class="timeline-header">';
-                html += '<div class="timeline-title">Behavior Timeline</div>';
-
-                if (stats.list_on && Object.keys(stats.list_on).length > 0) {{
-                    html += '<div class="reputation-badges">';
-                    html += '<span class="reputation-title" style="margin-bottom:0; margin-right:4px;">Listed on</span>';
-
-                    const sortedSources = Object.entries(stats.list_on).sort((a, b) => a[0].localeCompare(b[0]));
-
-                    sortedSources.forEach(([source, url]) => {{
-                        if (url && url !== 'N/A') {{
-                            html += `<a href="${{url}}" target="_blank" rel="noopener noreferrer" class="reputation-badge" title="Listed on ${'{'}source{'}'}">`;
-                            html += '<span class="reputation-badge-icon"></span>';
-                            html += `<span>${{source}}</span>`;
-                            html += '</a>';
-                        }} else {{
-                            html += '<span class="reputation-badge" style="cursor: default;" title="Listed on">';
-                            html += '<span class="reputation-badge-icon"></span>';
-                            html += `<span>${{source}}</span>`;
-                            html += '</span>';
-                        }}
-                    }});
-
-                    html += '</div>';
-                }} else if (stats.country_code || stats.asn) {{
-                    html += '<div class="reputation-badges">';
-                    html += '<span class="reputation-title" style="margin-bottom:0; margin-right:4px;">Reputation</span>';
-                    html += '<span class="reputation-clean" title="Not found on public blacklists">';
-                    html += '<span class="reputation-clean-icon">✓</span>';
-                    html += '<span>Clean</span>';
-                    html += '</span>';
-                    html += '</div>';
-                }}
-
-                html += '</div>';
-
+                // Timeline column
+                html += '<div class="timeline-column">';
+                html += '<div class="timeline-header">Behavior Timeline</div>';
                 html += '<div class="timeline">';
 
-                stats.category_history.forEach((change, index) => {{
+                stats.category_history.forEach(change => {{
                     const categoryClass = change.new_category.toLowerCase().replace('_', '-');
                     const timestamp = formatTimestamp(change.timestamp);
-
+                    const oldClass = change.old_category ? 'category-' + change.old_category.toLowerCase().replace('_', '-') : '';
+                    const newClass = 'category-' + categoryClass;
+                    
                     html += '<div class="timeline-item">';
                     html += `<div class="timeline-marker ${{categoryClass}}"></div>`;
                     html += '<div class="timeline-content">';
-
+                    
                     if (change.old_category) {{
-                        const oldCategoryBadge = 'category-' + change.old_category.toLowerCase().replace('_', '-');
-                        html += `<span class="category-badge ${{oldCategoryBadge}}">${{change.old_category}}</span>`;
-                        html += '<span class="timeline-arrow">→</span>';
+                        html += `<span class="category-badge ${{oldClass}}">${{change.old_category}}</span>`;
+                        html += '<span style="color: #8b949e; margin: 0 4px;">→</span>';
                     }} else {{
-                        html += '<span style="color: #8b949e;">Initial:</span> ';
+                        html += '<span style="color: #8b949e;">Initial:</span>';
                     }}
-
-                    const newCategoryBadge = 'category-' + change.new_category.toLowerCase().replace('_', '-');
-                    html += `<span class="category-badge ${{newCategoryBadge}}">${{change.new_category}}</span>`;
-                    html += `<div class="timeline-timestamp">${{timestamp}}</div>`;
+                    
+                    html += `<span class="category-badge ${{newClass}}">${{change.new_category}}</span>`;
+                    html += `<div class="timeline-time">${{timestamp}}</div>`;
                     html += '</div>';
                     html += '</div>';
                 }});
 
+                html += '</div>';
+                html += '</div>';
+                
+                // Reputation column
+                html += '<div class="timeline-column">';
+                
+                if (stats.list_on && Object.keys(stats.list_on).length > 0) {{
+                    html += '<div class="timeline-header">Listed On</div>';
+                    const sortedSources = Object.entries(stats.list_on).sort((a, b) => a[0].localeCompare(b[0]));
+                    
+                    sortedSources.forEach(([source, url]) => {{
+                        if (url && url !== 'N/A') {{
+                            html += `<a href="${{url}}" target="_blank" rel="noopener noreferrer" class="reputation-badge" title="${{source}}">${{source}}</a>`;
+                        }} else {{
+                            html += `<span class="reputation-badge">${{source}}</span>`;
+                        }}
+                    }});
+                }} else if (stats.country_code || stats.asn) {{
+                    html += '<div class="timeline-header">Reputation</div>';
+                    html += '<span class="reputation-clean" title="Not found on public blacklists">✓ Clean</span>';
+                }}
+                
+                html += '</div>';
                 html += '</div>';
                 html += '</div>';
             }}
