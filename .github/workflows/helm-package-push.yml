@@ -44,8 +44,14 @@ jobs:
       - name: Extract chart info from Chart.yaml
         id: chart
         run: |
-          VERSION=$(grep '^version:' ./helm/Chart.yaml | awk '{print $2}' | tr -d '"' | xargs)
-          NAME=$(grep '^name:' ./helm/Chart.yaml | awk '{print $2}' | tr -d '"' | xargs)
+          VERSION=$(grep '^version:' ./helm/Chart.yaml | awk '{print $2}' | tr -d '"' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          NAME=$(grep '^name:' ./helm/Chart.yaml | awk '{print $2}' | tr -d '"' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          
+          if [ -z "$VERSION" ] || [ -z "$NAME" ]; then
+            echo "Error: Could not extract version or name from Chart.yaml"
+            exit 1
+          fi
+          
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "name=$NAME" >> $GITHUB_OUTPUT
 
