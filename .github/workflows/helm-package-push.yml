@@ -9,6 +9,7 @@ on:
       - github-actions-ci
     paths:
       - 'helm/**'
+      - '.github/workflows/helm-package-push.yml'
     tags:
       - 'v*'
   release:
