@@ -45,21 +45,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract appVersion from Chart.yaml
-        id: chart_version
+      - name: Extract appVersion from Chart.yaml and determine tags
+        id: tags
         run: |
           APP_VERSION=$(grep '^appVersion:' helm/Chart.yaml | awk '{print $2}' | tr -d '"')
-          echo "version=$APP_VERSION" >> $GITHUB_OUTPUT
+          
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${APP_VERSION},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          else
+            TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${APP_VERSION}-${{ github.ref_name }}"
+          fi
+          
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
 
       - name: Extract metadata (tags, labels)
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=${{ steps.chart_version.outputs.version }},enable={{is_default_branch}}
-            type=raw,value=${{ steps.chart_version.outputs.version }}-${{ github.ref_name }},enable=${{ github.ref_name != 'main' }}
-            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -67,10 +70,12 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.tags.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
 
       - name: Image digest
-        run: echo ${{ steps.meta.outputs.digest }}
+        run: |
+          echo "Image built and pushed with tags:"
+          echo "${{ steps.tags.outputs.tags }}"
