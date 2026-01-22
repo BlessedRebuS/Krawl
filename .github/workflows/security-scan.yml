@@ -30,16 +30,21 @@ jobs:
 
       - name: Bandit security check
         run: |
-          bandit -r src/ -f json -o bandit-report.json || true
-          bandit -r src/ -f txt || true
+          bandit -r src/ -f txt | tee bandit-report.txt
           
-          # Check for HIGH severity issues only
-          HIGH_COUNT=$(python3 -c "import json; data=json.load(open('bandit-report.json')); print(len([i for i in data['results'] if i['severity'] == 'HIGH']))")
+          # Extract HIGH severity (not confidence) - look for the severity section
+          SEVERITY_SECTION=$(sed -n '/Total issues (by severity):/,/Total issues (by confidence):/p' bandit-report.txt)
+          HIGH_COUNT=$(echo "$SEVERITY_SECTION" | grep "High:" | grep -o "[0-9]*" | head -1)
+          
+          if [ -z "$HIGH_COUNT" ]; then
+            HIGH_COUNT=0
+          fi
+          
           if [ "$HIGH_COUNT" -gt 0 ]; then
             echo "Found $HIGH_COUNT HIGH severity security issues"
             exit 1
           fi
-          echo "No HIGH severity security issues found (LOW/MEDIUM are acceptable)"
+          echo "✓ No HIGH severity security issues found"
 
       - name: Safety check for dependencies
         run: safety check --json || true
