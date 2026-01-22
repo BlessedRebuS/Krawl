@@ -6,6 +6,7 @@ on:
       - main
       - beta
       - dev
+      - github-actions-ci
     paths:
       - 'helm/**'
     tags:
