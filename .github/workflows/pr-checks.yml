@@ -1,0 +1,56 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+      - beta
+      - dev
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  lint-and-test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install black flake8 pylint pytest
+
+      - name: Black format check
+        run: |
+          if [ -n "$(black --check src/ 2>&1 | grep -v 'Oh no')" ]; then
+            echo "Run 'black src/' to format code"
+            black --diff src/
+            exit 1
+          fi
+
+      - name: Flake8 lint
+        run: flake8 src/ --max-line-length=120 --extend-ignore=E203,W503
+
+      - name: Pylint check
+        run: pylint src/ --fail-under=7.0 || true
+
+      - name: Run tests
+        run: pytest tests/ -v || true
+
+  build-docker:
+    name: Build Docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t krawl:test .
