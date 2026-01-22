@@ -41,21 +41,29 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io --username ${{ github.actor }} --password-stdin
         
-      - name: Package Helm chart
+      - name: Set Helm chart version and package
         run: |
+          CHART_NAME=$(grep '^name:' ./helm/Chart.yaml | awk '{print $2}')
+          BASE_VERSION=$(grep '^version:' ./helm/Chart.yaml | awk '{print $2}')
+          
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            CHART_VERSION="${BASE_VERSION}"
+          else
+            CHART_VERSION="${BASE_VERSION}-${{ github.ref_name }}"
+          fi
+          
+          # Update Chart.yaml temporarily with the versioned name
+          sed -i "s/^version:.*/version: ${CHART_VERSION}/" ./helm/Chart.yaml
+          
+          # Package the helm chart
           helm package ./helm
+          
+          echo "CHART_NAME=${CHART_NAME}" >> $GITHUB_ENV
+          echo "CHART_VERSION=${CHART_VERSION}" >> $GITHUB_ENV
 
       - name: Push Helm chart to registry
         run: |
-          CHART_FILE=$(grep '^name:' ./helm/Chart.yaml | awk '{print $2}')
-          
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
-            CHART_VERSION=$(grep '^version:' ./helm/Chart.yaml | awk '{print $2}')
-          else
-            CHART_VERSION=$(grep '^version:' ./helm/Chart.yaml | awk '{print $2}')"-${{ github.ref_name }}"
-          fi
-
-          helm push ${CHART_FILE}-${CHART_VERSION}.tgz oci://${{ env.REGISTRY }}
+          helm push ${{ env.CHART_NAME }}-${{ env.CHART_VERSION }}.tgz oci://${{ env.REGISTRY }}
 
       - name: Chart pushed
         run: |
