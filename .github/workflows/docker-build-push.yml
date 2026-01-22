@@ -49,7 +49,11 @@ jobs:
       - name: Extract appVersion from Chart.yaml and determine tags
         id: tags
         run: |
-          APP_VERSION=$(grep '^appVersion:' helm/Chart.yaml | awk '{print $2}' | tr -d '"' | xargs)
+          echo "=== Debugging Chart.yaml extraction ==="
+          cat helm/Chart.yaml | grep appVersion
+          
+          APP_VERSION=$(grep '^appVersion:' helm/Chart.yaml | awk '{print $2}' | tr -d '"' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          echo "Extracted APP_VERSION: '$APP_VERSION'"
           
           if [ -z "$APP_VERSION" ]; then
             echo "Error: Could not extract appVersion from Chart.yaml"
@@ -62,6 +66,7 @@ jobs:
             TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${APP_VERSION}-${{ github.ref_name }}"
           fi
           
+          echo "Final TAGS: '$TAGS'"
           echo "tags=$TAGS" >> $GITHUB_OUTPUT
 
       - name: Extract metadata (tags, labels)
