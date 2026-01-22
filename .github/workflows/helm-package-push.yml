@@ -47,8 +47,8 @@ jobs:
 
       - name: Push Helm chart to registry
         run: |
-          CHART_VERSION=$(grep '^version:' ./helm/Chart.yaml | awk '{print $2}' | tr -d '\n')
-          CHART_FILE=$(grep '^name:' ./helm/Chart.yaml | awk '{print $2}' | tr -d '\n')
+          CHART_VERSION=$(grep '^version:' ./helm/Chart.yaml | awk '{print $2}' | xargs)
+          CHART_FILE=$(grep '^name:' ./helm/Chart.yaml | awk '{print $2}' | xargs)
           CHART_PATH="${CHART_FILE}-${CHART_VERSION}.tgz"
           
           # Determine tag based on branch
@@ -61,8 +61,8 @@ jobs:
 
       - name: Chart pushed
         run: |
-          CHART_VERSION=$(grep '^version:' ./helm/Chart.yaml | awk '{print $2}' | tr -d '\n')
-          CHART_FILE=$(grep '^name:' ./helm/Chart.yaml | awk '{print $2}' | tr -d '\n')
+          CHART_VERSION=$(grep '^version:' ./helm/Chart.yaml | awk '{print $2}' | xargs)
+          CHART_FILE=$(grep '^name:' ./helm/Chart.yaml | awk '{print $2}' | xargs)
           if [[ "${{ github.ref_name }}" == "main" ]]; then
             echo "Chart pushed: ${CHART_FILE}:${CHART_VERSION} and ${CHART_FILE}:latest"
           else
