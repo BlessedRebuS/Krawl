@@ -47,22 +47,22 @@ jobs:
 
       - name: Push Helm chart to registry
         run: |
-          CHART_VERSION=$(grep '^version:' ./helm/Chart.yaml | awk '{print $2}')
           CHART_FILE=$(grep '^name:' ./helm/Chart.yaml | awk '{print $2}')
           
           if [[ "${{ github.ref_name }}" == "main" ]]; then
-            helm push ${CHART_FILE}-${CHART_VERSION}.tgz oci://${{ env.REGISTRY }}/${CHART_FILE}:${CHART_VERSION}
-            helm push ${CHART_FILE}-${CHART_VERSION}.tgz oci://${{ env.REGISTRY }}/${CHART_FILE}:latest
+            CHART_VERSION=$(grep '^version:' ./helm/Chart.yaml | awk '{print $2}')
           else
-            helm push ${CHART_FILE}-${CHART_VERSION}.tgz oci://${{ env.REGISTRY }}/${CHART_FILE}:${CHART_VERSION}-${{ github.ref_name }}
+            CHART_VERSION=$(grep '^version:' ./helm/Chart.yaml | awk '{print $2}')"-${{ github.ref_name }}"
           fi
+
+          helm push ${CHART_FILE}-${CHART_VERSION}.tgz oci://${{ env.REGISTRY }}
 
       - name: Chart pushed
         run: |
           CHART_VERSION=$(grep '^version:' ./helm/Chart.yaml | awk '{print $2}')
           CHART_FILE=$(grep '^name:' ./helm/Chart.yaml | awk '{print $2}')
           if [[ "${{ github.ref_name }}" == "main" ]]; then
-            echo "Chart pushed: ${CHART_FILE}:${CHART_VERSION} and ${CHART_FILE}:latest"
+            echo "Chart pushed: ${CHART_FILE}:${CHART_VERSION}"
           else
             echo "Chart pushed: ${CHART_FILE}:${CHART_VERSION}-${{ github.ref_name }}"
           fi
