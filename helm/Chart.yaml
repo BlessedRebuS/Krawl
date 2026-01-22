@@ -3,7 +3,7 @@ name: krawl-chart
 description: A Helm chart for Krawl honeypot server
 type: application
 version: 0.1.3
-appVersion: "0.1.6"
+appVersion: 0.1.6
 keywords:
   - honeypot
   - security
