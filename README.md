@@ -171,23 +171,71 @@ To access the dashboard
 
 ## Configuration via Environment Variables
 
-To customize the deception server installation several **environment variables** can be specified.
+To customize the deception server installation, environment variables can be specified using the naming convention: `KRAWL_<FIELD_NAME>` where `<FIELD_NAME>` is the configuration field name in uppercase with special characters converted:
+- `.` → `_`
+- `-` → `__` (double underscore)
+- ` ` (space) → `_`
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PORT` | Server listening port | `5000` |
-| `DELAY` | Response delay in milliseconds | `100` |
-| `LINKS_MIN_LENGTH` | Minimum random link length | `5` |
-| `LINKS_MAX_LENGTH` | Maximum random link length | `15` |
-| `LINKS_MIN_PER_PAGE` | Minimum links per page | `10` |
-| `LINKS_MAX_PER_PAGE` | Maximum links per page | `15` |
-| `MAX_COUNTER` | Initial counter value | `10` |
-| `CANARY_TOKEN_TRIES` | Requests before showing canary token | `10` |
-| `CANARY_TOKEN_URL` | External canary token URL | None |
-| `DASHBOARD_SECRET_PATH` | Custom dashboard path | Auto-generated |
-| `PROBABILITY_ERROR_CODES` | Error response probability (0-100%) | `0` |
-| `SERVER_HEADER` | HTTP Server header for deception | `Apache/2.2.22 (Ubuntu)` |
-| `TIMEZONE` | IANA timezone for logs and dashboard (e.g., `America/New_York`, `Europe/Rome`) | System timezone |
+### Configuration Variables
+
+| Configuration Field | Environment Variable | Description | Default |
+|-----------|-----------|-------------|---------|
+| `port` | `KRAWL_PORT` | Server listening port | `5000` |
+| `delay` | `KRAWL_DELAY` | Response delay in milliseconds | `100` |
+| `server_header` | `KRAWL_SERVER_HEADER` | HTTP Server header for deception | `""` |
+| `links_length_range` | `KRAWL_LINKS_LENGTH_RANGE` | Link length range as `min,max` | `5,15` |
+| `links_per_page_range` | `KRAWL_LINKS_PER_PAGE_RANGE` | Links per page as `min,max` | `10,15` |
+| `char_space` | `KRAWL_CHAR_SPACE` | Characters used for link generation | `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789` |
+| `max_counter` | `KRAWL_MAX_COUNTER` | Initial counter value | `10` |
+| `canary_token_url` | `KRAWL_CANARY_TOKEN_URL` | External canary token URL | None |
+| `canary_token_tries` | `KRAWL_CANARY_TOKEN_TRIES` | Requests before showing canary token | `10` |
+| `dashboard_secret_path` | `KRAWL_DASHBOARD_SECRET_PATH` | Custom dashboard path | Auto-generated |
+| `api_server_url` | `KRAWL_API_SERVER_URL` | API server URL | None |
+| `api_server_port` | `KRAWL_API_SERVER_PORT` | API server port | `8080` |
+| `api_server_path` | `KRAWL_API_SERVER_PATH` | API server endpoint path | `/api/v2/users` |
+| `probability_error_codes` | `KRAWL_PROBABILITY_ERROR_CODES` | Error response probability (0-100%) | `0` |
+| `database_path` | `KRAWL_DATABASE_PATH` | Database file location | `data/krawl.db` |
+| `database_retention_days` | `KRAWL_DATABASE_RETENTION_DAYS` | Days to retain data in database | `30` |
+| `http_risky_methods_threshold` | `KRAWL_HTTP_RISKY_METHODS_THRESHOLD` | Threshold for risky HTTP methods detection | `0.1` |
+| `violated_robots_threshold` | `KRAWL_VIOLATED_ROBOTS_THRESHOLD` | Threshold for robots.txt violations | `0.1` |
+| `uneven_request_timing_threshold` | `KRAWL_UNEVEN_REQUEST_TIMING_THRESHOLD` | Coefficient of variation threshold for timing | `0.5` |
+| `uneven_request_timing_time_window_seconds` | `KRAWL_UNEVEN_REQUEST_TIMING_TIME_WINDOW_SECONDS` | Time window for request timing analysis in seconds | `300` |
+| `user_agents_used_threshold` | `KRAWL_USER_AGENTS_USED_THRESHOLD` | Threshold for detecting multiple user agents | `2` |
+| `attack_urls_threshold` | `KRAWL_ATTACK_URLS_THRESHOLD` | Threshold for attack URL detection | `1` |
+
+### Examples
+
+```bash
+# Set port and delay
+export KRAWL_PORT=8080
+export KRAWL_DELAY=200
+
+# Set canary token
+export KRAWL_CANARY_TOKEN_URL="http://your-canary-token-url"
+
+# Set tuple values (min,max format)
+export KRAWL_LINKS_LENGTH_RANGE="3,20"
+export KRAWL_LINKS_PER_PAGE_RANGE="5,25"
+
+# Set analyzer thresholds
+export KRAWL_HTTP_RISKY_METHODS_THRESHOLD="0.2"
+export KRAWL_VIOLATED_ROBOTS_THRESHOLD="0.15"
+
+# Set custom dashboard path
+export KRAWL_DASHBOARD_SECRET_PATH="/my-secret-dashboard"
+```
+
+Or in Docker:
+
+```bash
+docker run -d \
+  -p 5000:5000 \
+  -e KRAWL_PORT=5000 \
+  -e KRAWL_DELAY=100 \
+  -e KRAWL_CANARY_TOKEN_URL="http://your-canary-token-url" \
+  --name krawl \
+  ghcr.io/blessedrebus/krawl:latest
+```
 
 ## robots.txt
 The actual (juicy) robots.txt configuration is the following
