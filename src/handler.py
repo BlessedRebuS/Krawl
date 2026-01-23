@@ -56,6 +56,18 @@ class Handler(BaseHTTPRequestHandler):
         """Extract user agent from request"""
         return self.headers.get('User-Agent', '')
 
+    def _get_category_by_ip(self, client_ip: str) -> str:
+        """Get the category of an IP from the database"""
+        return self.tracker.get_category_by_ip(client_ip)
+
+    def _get_page_visit_count(self, client_ip: str) -> int:
+        """Get current page visit count for an IP"""
+        return self.tracker.get_page_visit_count(client_ip)
+
+    def _increment_page_visit(self, client_ip: str) -> int:
+        """Increment page visit counter for an IP and return new count"""
+        return self.tracker.increment_page_visit(client_ip)
+
     def version_string(self) -> str:
         """Return custom server version for deception."""
         return random_server_header()
@@ -135,9 +147,32 @@ class Handler(BaseHTTPRequestHandler):
                 pass
             return True
 
-    def generate_page(self, seed: str) -> str:
-        """Generate a webpage containing random links or canary token"""
+    def generate_page(self, seed: str, page_visit_count: int) -> str:
+        """Generate a webpage containing random links or canary token"""  
+
         random.seed(seed)
+        num_pages = random.randint(*self.config.links_per_page_range)
+        
+        # Check if this is a good crawler by IP category from database
+        ip_category = self._get_category_by_ip(self._get_client_ip())
+        
+        # Determine if we should apply crawler page limit based on config and IP category
+        should_apply_crawler_limit = False
+        if self.config.infinite_pages_for_malicious:
+            if (ip_category == "good_crawler" or ip_category == "regular_user") and page_visit_count >= self.config.max_pages_limit:
+                should_apply_crawler_limit = True
+        else:
+            if (ip_category == "good_crawler" or ip_category == "bad_crawler" or ip_category == "attacker") and page_visit_count >= self.config.max_pages_limit:
+                should_apply_crawler_limit = True
+
+        
+        # If good crawler reached max pages, return a simple page with no links
+        if should_apply_crawler_limit:
+            return html_templates.main_page(
+                Handler.counter, 
+                '<p>Crawl limit reached.</p>'
+            )
+        
         num_pages = random.randint(*self.config.links_per_page_range)
 
         # Build the content HTML
@@ -399,6 +434,10 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         """Responds to webpage requests"""
         client_ip = self._get_client_ip()
+        if self.tracker.is_banned_ip(client_ip):
+            self.send_response(500)
+            self.end_headers()
+            return
         user_agent = self._get_user_agent()
 
         if self.config.dashboard_secret_path and self.path == self.config.dashboard_secret_path:
@@ -495,7 +534,9 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
         try:
-            self.wfile.write(self.generate_page(self.path).encode())
+            # Increment page visit counter for this IP and get the current count
+            current_visit_count = self._increment_page_visit(client_ip)
+            self.wfile.write(self.generate_page(self.path, current_visit_count).encode())
 
             Handler.counter -= 1
 
