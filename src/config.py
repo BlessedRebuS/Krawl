@@ -116,8 +116,8 @@ class Config:
             user_agents_used_threshold=analyzer.get('user_agents_used_threshold', 2),
             attack_urls_threshold=analyzer.get('attack_urls_threshold', 1),
             infinite_pages_for_malicious=crawl.get('infinite_pages_for_malicious', True),
-            max_pages_limit=crawl.get('max_pages_limit', 20),
-            ban_duration_seconds=crawl.get('ban_duration_seconds', 10)
+            max_pages_limit=crawl.get('max_pages_limit', 200),
+            ban_duration_seconds=crawl.get('ban_duration_seconds', 60)
         )
 
 
