@@ -2,8 +2,8 @@ apiVersion: v2
 name: krawl-chart
 description: A Helm chart for Krawl honeypot server
 type: application
-version: 0.1.4
-appVersion: 0.1.6
+version: 0.1.5
+appVersion: 0.1.7
 keywords:
   - honeypot
   - security
