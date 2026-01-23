@@ -111,13 +111,40 @@ class Config:
             attack_urls_threshold=analyzer.get('attack_urls_threshold', 1)
         )
 
+def __get_env_from_config(config: str) -> str:
+    
+    env = config.upper().replace('.', '_').replace('-', '__').replace(' ', '_')
+    
+    return f'KRAWL_{env}'
+
+def override_config_from_env(config: Config = None):
+    """Initialize configuration from environment variables"""
+    
+    for field in config.__dataclass_fields__:
+        
+        env_var = __get_env_from_config(field)
+        if env_var in os.environ:
+            field_type = config.__dataclass_fields__[field].type
+            env_value = os.environ[env_var]
+            if field_type == int:
+                setattr(config, field, int(env_value))
+            elif field_type == float:
+                setattr(config, field, float(env_value))
+            elif field_type == Tuple[int, int]:
+                parts = env_value.split(',')
+                if len(parts) == 2:
+                    setattr(config, field, (int(parts[0]), int(parts[1])))
+            else:
+                setattr(config, field, env_value)
 
 _config_instance = None
-
 
 def get_config() -> Config:
     """Get the singleton Config instance"""
     global _config_instance
     if _config_instance is None:
         _config_instance = Config.from_yaml()
+    
+        override_config_from_env(_config_instance)
+    
     return _config_instance
