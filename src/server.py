@@ -67,7 +67,7 @@ def main():
     except Exception as e:
         app_logger.warning(f'Database initialization failed: {e}. Continuing with in-memory only.')
 
-    tracker = AccessTracker()
+    tracker = AccessTracker(config.max_pages_limit, config.ban_duration_seconds)
     analyzer = Analyzer()
 
     Handler.config = config

@@ -29,6 +29,11 @@ class Config:
     api_server_path: str = "/api/v2/users"
     probability_error_codes: int = 0  # Percentage (0-100)
 
+    # Crawl limiting settings - for legitimate vs malicious crawlers
+    max_pages_limit: int = 100  # Max pages limit for good crawlers and regular users (and bad crawlers/attackers if infinite_pages_for_malicious is False)
+    infinite_pages_for_malicious: bool = True  # Infinite pages for malicious crawlers
+    ban_duration_seconds: int = 600  # Ban duration in seconds for IPs exceeding limits
+
     # Database settings
     database_path: str = "data/krawl.db"
     database_retention_days: int = 30
@@ -70,6 +75,7 @@ class Config:
         database = data.get('database', {})
         behavior = data.get('behavior', {})
         analyzer = data.get('analyzer') or {}
+        crawl = data.get('crawl', {})
 
         # Handle dashboard_secret_path - auto-generate if null/not set
         dashboard_path = dashboard.get('secret_path')
@@ -108,7 +114,10 @@ class Config:
             uneven_request_timing_threshold=analyzer.get('uneven_request_timing_threshold', 0.5), # coefficient of variation
             uneven_request_timing_time_window_seconds=analyzer.get('uneven_request_timing_time_window_seconds', 300),
             user_agents_used_threshold=analyzer.get('user_agents_used_threshold', 2),
-            attack_urls_threshold=analyzer.get('attack_urls_threshold', 1)
+            attack_urls_threshold=analyzer.get('attack_urls_threshold', 1),
+            infinite_pages_for_malicious=crawl.get('infinite_pages_for_malicious', True),
+            max_pages_limit=crawl.get('max_pages_limit', 200),
+            ban_duration_seconds=crawl.get('ban_duration_seconds', 60)
         )
 
 def __get_env_from_config(config: str) -> str:
