@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional, Tuple
 from zoneinfo import ZoneInfo
 import time
+from logger import get_app_logger
 
 import yaml
 
@@ -157,18 +158,27 @@ def override_config_from_env(config: Config = None):
 
         env_var = __get_env_from_config(field)
         if env_var in os.environ:
-            field_type = config.__dataclass_fields__[field].type
-            env_value = os.environ[env_var]
-            if field_type == int:
-                setattr(config, field, int(env_value))
-            elif field_type == float:
-                setattr(config, field, float(env_value))
-            elif field_type == Tuple[int, int]:
-                parts = env_value.split(",")
-                if len(parts) == 2:
-                    setattr(config, field, (int(parts[0]), int(parts[1])))
-            else:
-                setattr(config, field, env_value)
+
+            get_app_logger().info(
+                f"Overriding config '{field}' from environment variable '{env_var}'"
+            )
+            try:
+                field_type = config.__dataclass_fields__[field].type
+                env_value = os.environ[env_var]
+                if field_type == int:
+                    setattr(config, field, int(env_value))
+                elif field_type == float:
+                    setattr(config, field, float(env_value))
+                elif field_type == Tuple[int, int]:
+                    parts = env_value.split(",")
+                    if len(parts) == 2:
+                        setattr(config, field, (int(parts[0]), int(parts[1])))
+                else:
+                    setattr(config, field, env_value)
+            except Exception as e:
+                get_app_logger().error(
+                    f"Error overriding config '{field}' from environment variable '{env_var}': {e}"
+                )
 
 
 _config_instance = None
