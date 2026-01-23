@@ -31,7 +31,7 @@ jobs:
 
       - name: Black format check
         run: |
-          if [ -n "$(black --check src/ 2>&1 | grep -v 'Oh no')" ]; then
+          if ! black --check src/; then
             echo "Run 'black src/' to format code"
             black --diff src/
             exit 1
