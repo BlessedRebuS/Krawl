@@ -6,7 +6,12 @@ import threading
 import importlib
 import importlib.util
 
-from logger import initialize_logging, get_app_logger, get_access_logger, get_credential_logger
+from logger import (
+    initialize_logging,
+    get_app_logger,
+    get_access_logger,
+    get_credential_logger,
+)
 
 app_logger = get_app_logger()
 
@@ -27,8 +32,8 @@ except ModuleNotFoundError:
 
 # ---------- TASKSMASTER CLASS ----------
 class TasksMaster:
-    
-    TASK_DEFAULT_CRON = '*/15 * * * *'
+
+    TASK_DEFAULT_CRON = "*/15 * * * *"
     TASK_JITTER = 240
     TASKS_FOLDER = os.path.join(os.path.dirname(__file__), "tasks")
 
@@ -36,7 +41,9 @@ class TasksMaster:
         self.tasks = self._config_tasks()
         self.scheduler = scheduler
         self.last_run_times = {}
-        self.scheduler.add_listener(self.job_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
+        self.scheduler.add_listener(
+            self.job_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR
+        )
 
     def _config_tasks(self):
         """
@@ -80,7 +87,7 @@ class TasksMaster:
         for filename in sorted(os.listdir(folder_path)):
 
             # skip any non python files, as well as any __pycache__ or .pyc files that might creep in there
-            if not filename.endswith('.py') or filename.startswith("__"):
+            if not filename.endswith(".py") or filename.startswith("__"):
                 continue
 
             path = os.path.join(folder_path, filename)
@@ -93,13 +100,15 @@ class TasksMaster:
             except Exception as e:
                 app_logger.error(f"Failed to import {filename}: {e}")
                 continue
-            
+
             # if we have a tasks config and a main function, we attempt to schedule it
-            if hasattr(module, 'TASK_CONFIG') and hasattr(module, 'main'):
+            if hasattr(module, "TASK_CONFIG") and hasattr(module, "main"):
 
                 # ensure task_config is a dict
                 if not isinstance(module.TASK_CONFIG, dict):
-                    app_logger.error(f"TASK_CONFIG is not a dict in {filename}. Skipping task.")
+                    app_logger.error(
+                        f"TASK_CONFIG is not a dict in {filename}. Skipping task."
+                    )
                     continue
 
                 task_cron = module.TASK_CONFIG.get("cron") or self.TASK_DEFAULT_CRON
@@ -109,24 +118,26 @@ class TasksMaster:
                 try:
                     CronTrigger.from_crontab(task_cron)
                 except ValueError as ve:
-                    app_logger.error(f"Invalid cron format for task {task_name}: {ve} - Skipping this task")
+                    app_logger.error(
+                        f"Invalid cron format for task {task_name}: {ve} - Skipping this task"
+                    )
                     continue
 
                 task = {
-                    'name': module.TASK_CONFIG.get('name', module_name),
-                    'filename': filename,
-                    'cron': task_cron,
+                    "name": module.TASK_CONFIG.get("name", module_name),
+                    "filename": filename,
+                    "cron": task_cron,
                     "enabled": module.TASK_CONFIG.get("enabled", False),
-                    "run_when_loaded": module.TASK_CONFIG.get("run_when_loaded", False)
+                    "run_when_loaded": module.TASK_CONFIG.get("run_when_loaded", False),
                 }
 
                 tasks.append(task)
 
             # we are missing things, and we log what's missing
             else:
-                if not hasattr(module, 'TASK_CONFIG'):
+                if not hasattr(module, "TASK_CONFIG"):
                     app_logger.warning(f"Missing TASK_CONFIG in {filename}")
-                elif not hasattr(module, 'main'):
+                elif not hasattr(module, "main"):
                     app_logger.warning(f"Missing main() in {filename}")
 
         return tasks
@@ -135,7 +146,7 @@ class TasksMaster:
         # for each task in the tasks config file...
         for task_to_run in self.tasks:
 
-            # remember, these tasks, are built from the "load_tasks_from_folder" function, 
+            # remember, these tasks, are built from the "load_tasks_from_folder" function,
             # if you want to pass data from the TASKS_CONFIG dict, you need to pass it there to get it here.
             task_name = task_to_run.get("name")
             run_when_loaded = task_to_run.get("run_when_loaded")
@@ -147,28 +158,42 @@ class TasksMaster:
 
             # if task is disabled, skip this one
             if not task_enabled:
-                app_logger.info(f"{task_name} is disabled in client config. Skipping task")
+                app_logger.info(
+                    f"{task_name} is disabled in client config. Skipping task"
+                )
                 continue
             try:
-                if os.path.isfile(os.path.join(self.TASKS_FOLDER, task_to_run.get("filename"))):
+                if os.path.isfile(
+                    os.path.join(self.TASKS_FOLDER, task_to_run.get("filename"))
+                ):
                     # schedule the task now that everything has checked out above...
-                    self._schedule_task(task_name, module_name, task_cron, run_when_loaded)
-                    app_logger.info(f"Scheduled {module_name} cron is set to {task_cron}.", extra={"task": task_to_run})
+                    self._schedule_task(
+                        task_name, module_name, task_cron, run_when_loaded
+                    )
+                    app_logger.info(
+                        f"Scheduled {module_name} cron is set to {task_cron}.",
+                        extra={"task": task_to_run},
+                    )
                 else:
-                    app_logger.info(f"Skipping invalid or unsafe file: {task_to_run.get('filename')}", extra={"task": task_to_run})
+                    app_logger.info(
+                        f"Skipping invalid or unsafe file: {task_to_run.get('filename')}",
+                        extra={"task": task_to_run},
+                    )
 
             except Exception as e:
-                app_logger.error(f"Error scheduling task: {e}", extra={"tasks": task_to_run})
-    
+                app_logger.error(
+                    f"Error scheduling task: {e}", extra={"tasks": task_to_run}
+                )
+
     def _schedule_task(self, task_name, module_name, task_cron, run_when_loaded):
         try:
             # Dynamically import the module
             module = importlib.import_module(f"tasks.{module_name}")
 
             # Check if the module has a 'main' function
-            if hasattr(module, 'main'):
+            if hasattr(module, "main"):
                 app_logger.info(f"Scheduling {task_name} - {module_name} Main Function")
-                
+
                 # unique_job_id
                 job_identifier = f"{module_name}__{task_name}"
 
@@ -180,29 +205,31 @@ class TasksMaster:
 
                 # schedule the task / job
                 if run_when_loaded:
-                    app_logger.info(f"Task: {task_name} is set to run instantly. Scheduling to run on scheduler start")
+                    app_logger.info(
+                        f"Task: {task_name} is set to run instantly. Scheduling to run on scheduler start"
+                    )
 
                     self.scheduler.add_job(
-                        module.main, 
-                        trigger, 
-                        id=job_identifier,
-                        jitter=self.TASK_JITTER, 
-                        name=task_name, 
-                        next_run_time=datetime.datetime.now(),
-                        max_instances=1
-                    )
-                else:
-                    self.scheduler.add_job(
-                        module.main, 
-                        trigger, 
+                        module.main,
+                        trigger,
                         id=job_identifier,
                         jitter=self.TASK_JITTER,
                         name=task_name,
-                        max_instances=1
+                        next_run_time=datetime.datetime.now(),
+                        max_instances=1,
+                    )
+                else:
+                    self.scheduler.add_job(
+                        module.main,
+                        trigger,
+                        id=job_identifier,
+                        jitter=self.TASK_JITTER,
+                        name=task_name,
+                        max_instances=1,
                     )
             else:
                 app_logger.error(f"{module_name} does not define a 'main' function.")
-                
+
         except Exception as e:
             app_logger.error(f"Failed to load {module_name}: {e}")
 
@@ -218,13 +245,15 @@ class TasksMaster:
     def list_jobs(self):
         scheduled_jobs = self.scheduler.get_jobs()
         jobs_list = []
-    
+
         for job in scheduled_jobs:
-            jobs_list.append({
+            jobs_list.append(
+                {
                     "id": job.id,
                     "name": job.name,
                     "next_run": job.next_run_time,
-                })
+                }
+            )
         return jobs_list
 
     def run_scheduled_tasks(self):
@@ -235,7 +264,7 @@ class TasksMaster:
         1. Retrieves the current task configurations and updates internal state.
         2. Adds new jobs to the scheduler based on the latest configuration.
         3. Starts the scheduler to begin executing tasks at their defined intervals.
-        
+
         This ensures the scheduler is always running with the most up-to-date
         task definitions and enabled status.
         """
@@ -251,6 +280,7 @@ class TasksMaster:
 # ---------- SINGLETON WRAPPER ----------
 T = type
 
+
 def singleton_loader(func):
     """Decorator to ensure only one instance exists."""
     cache: dict[str, T] = {}
@@ -262,6 +292,7 @@ def singleton_loader(func):
             if func.__name__ not in cache:
                 cache[func.__name__] = func(*args, **kwargs)
             return cache[func.__name__]
+
     return wrapper
 
 
@@ -283,6 +314,8 @@ def get_tasksmaster(scheduler: BackgroundScheduler | None = None) -> TasksMaster
     # Auto-start scheduler if not already running
     if not scheduler.running:
         scheduler.start()
-        app_logger.info("TasksMaster scheduler started automatically with singleton creation.")
+        app_logger.info(
+            "TasksMaster scheduler started automatically with singleton creation."
+        )
 
     return tm_instance

@@ -8,25 +8,25 @@ from wordlists import get_wordlists
 def detect_xss_pattern(input_string: str) -> bool:
     if not input_string:
         return False
-    
+
     wl = get_wordlists()
-    xss_pattern = wl.attack_patterns.get('xss_attempt', '')
-    
+    xss_pattern = wl.attack_patterns.get("xss_attempt", "")
+
     if not xss_pattern:
-        xss_pattern = r'(<script|</script|javascript:|onerror=|onload=|onclick=|<iframe|<img|<svg|eval\(|alert\()'
-    
+        xss_pattern = r"(<script|</script|javascript:|onerror=|onload=|onclick=|<iframe|<img|<svg|eval\(|alert\()"
+
     return bool(re.search(xss_pattern, input_string, re.IGNORECASE))
 
 
 def generate_xss_response(input_data: dict) -> str:
     xss_detected = False
     reflected_content = []
-    
+
     for key, value in input_data.items():
         if detect_xss_pattern(value):
             xss_detected = True
         reflected_content.append(f"<p><strong>{key}:</strong> {value}</p>")
-    
+
     if xss_detected:
         html = f"""
 <!DOCTYPE html>
@@ -51,7 +51,7 @@ def generate_xss_response(input_data: dict) -> str:
 </html>
 """
         return html
-    
+
     return """
 <!DOCTYPE html>
 <html>

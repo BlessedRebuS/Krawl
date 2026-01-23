@@ -13,6 +13,7 @@ from datetime import datetime
 
 class TimezoneFormatter(logging.Formatter):
     """Custom formatter that respects configured timezone"""
+
     def __init__(self, fmt=None, datefmt=None):
         super().__init__(fmt, datefmt)
 
@@ -26,6 +27,7 @@ class TimezoneFormatter(logging.Formatter):
 
 class LoggerManager:
     """Singleton logger manager for the application."""
+
     _instance = None
 
     def __new__(cls):
@@ -65,7 +67,7 @@ class LoggerManager:
         app_file_handler = RotatingFileHandler(
             os.path.join(log_dir, "krawl.log"),
             maxBytes=max_bytes,
-            backupCount=backup_count
+            backupCount=backup_count,
         )
         app_file_handler.setFormatter(log_format)
         self._app_logger.addHandler(app_file_handler)
@@ -82,7 +84,7 @@ class LoggerManager:
         access_file_handler = RotatingFileHandler(
             os.path.join(log_dir, "access.log"),
             maxBytes=max_bytes,
-            backupCount=backup_count
+            backupCount=backup_count,
         )
         access_file_handler.setFormatter(log_format)
         self._access_logger.addHandler(access_file_handler)
@@ -102,7 +104,7 @@ class LoggerManager:
         credential_file_handler = RotatingFileHandler(
             os.path.join(log_dir, "credentials.log"),
             maxBytes=max_bytes,
-            backupCount=backup_count
+            backupCount=backup_count,
         )
         credential_file_handler.setFormatter(credential_format)
         self._credential_logger.addHandler(credential_file_handler)

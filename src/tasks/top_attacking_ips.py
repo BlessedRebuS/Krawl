@@ -17,11 +17,12 @@ TASK_CONFIG = {
     "name": "export-malicious-ips",
     "cron": "*/5 * * * *",
     "enabled": True,
-    "run_when_loaded": True
+    "run_when_loaded": True,
 }
 
 EXPORTS_DIR = "exports"
 OUTPUT_FILE = os.path.join(EXPORTS_DIR, "malicious_ips.txt")
+
 
 # ----------------------
 # TASK LOGIC
@@ -29,11 +30,15 @@ OUTPUT_FILE = os.path.join(EXPORTS_DIR, "malicious_ips.txt")
 def has_recent_honeypot_access(session, minutes: int = 5) -> bool:
     """Check if honeypot was accessed in the last N minutes."""
     cutoff_time = datetime.now() - timedelta(minutes=minutes)
-    count = session.query(AccessLog).filter(
-        AccessLog.is_honeypot_trigger == True,
-        AccessLog.timestamp >= cutoff_time
-    ).count()
+    count = (
+        session.query(AccessLog)
+        .filter(
+            AccessLog.is_honeypot_trigger == True, AccessLog.timestamp >= cutoff_time
+        )
+        .count()
+    )
     return count > 0
+
 
 def main():
     """
@@ -49,23 +54,29 @@ def main():
 
         # Check for recent honeypot activity
         if not has_recent_honeypot_access(session):
-            app_logger.info(f"[Background Task] {task_name} skipped - no honeypot access in last 5 minutes")
+            app_logger.info(
+                f"[Background Task] {task_name} skipped - no honeypot access in last 5 minutes"
+            )
             return
 
         # Query distinct suspicious IPs
-        results = session.query(distinct(AccessLog.ip)).filter(
-            AccessLog.is_suspicious == True
-        ).all()
+        results = (
+            session.query(distinct(AccessLog.ip))
+            .filter(AccessLog.is_suspicious == True)
+            .all()
+        )
 
         # Ensure exports directory exists
         os.makedirs(EXPORTS_DIR, exist_ok=True)
 
         # Write IPs to file (one per line)
-        with open(OUTPUT_FILE, 'w') as f:
+        with open(OUTPUT_FILE, "w") as f:
             for (ip,) in results:
                 f.write(f"{ip}\n")
 
-        app_logger.info(f"[Background Task] {task_name} exported {len(results)} IPs to {OUTPUT_FILE}")
+        app_logger.info(
+            f"[Background Task] {task_name} exported {len(results)} IPs to {OUTPUT_FILE}"
+        )
 
     except Exception as e:
         app_logger.error(f"[Background Task] {task_name} failed: {e}")

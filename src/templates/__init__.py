@@ -8,8 +8,8 @@ from .template_loader import load_template, clear_cache, TemplateNotFoundError
 from . import html_templates
 
 __all__ = [
-    'load_template',
-    'clear_cache',
-    'TemplateNotFoundError',
-    'html_templates',
+    "load_template",
+    "clear_cache",
+    "TemplateNotFoundError",
+    "html_templates",
 ]

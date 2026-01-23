@@ -24,7 +24,15 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor.execute("PRAGMA busy_timeout=30000")
     cursor.close()
 
-from models import Base, AccessLog, CredentialAttempt, AttackDetection, IpStats, CategoryHistory
+
+from models import (
+    Base,
+    AccessLog,
+    CredentialAttempt,
+    AttackDetection,
+    IpStats,
+    CategoryHistory,
+)
 from sanitizer import (
     sanitize_ip,
     sanitize_path,
@@ -37,6 +45,7 @@ from logger import get_app_logger
 
 applogger = get_app_logger()
 
+
 class DatabaseManager:
     """
     Singleton database manager for the Krawl honeypot.
@@ -44,6 +53,7 @@ class DatabaseManager:
     Handles database initialization, session management, and provides
     methods for persisting access logs, credentials, and attack detections.
     """
+
     _instance: Optional["DatabaseManager"] = None
 
     def __new__(cls) -> "DatabaseManager":
@@ -72,7 +82,7 @@ class DatabaseManager:
         self._engine = create_engine(
             database_url,
             connect_args={"check_same_thread": False},
-            echo=False  # Set to True for SQL debugging
+            echo=False,  # Set to True for SQL debugging
         )
 
         # Create session factory with scoped_session for thread safety
@@ -96,7 +106,9 @@ class DatabaseManager:
     def session(self) -> Session:
         """Get a thread-local database session."""
         if not self._initialized:
-            raise RuntimeError("DatabaseManager not initialized. Call initialize() first.")
+            raise RuntimeError(
+                "DatabaseManager not initialized. Call initialize() first."
+            )
         return self._Session()
 
     def close_session(self) -> None:
@@ -113,7 +125,7 @@ class DatabaseManager:
         is_suspicious: bool = False,
         is_honeypot_trigger: bool = False,
         attack_types: Optional[List[str]] = None,
-        matched_patterns: Optional[Dict[str, str]] = None
+        matched_patterns: Optional[Dict[str, str]] = None,
     ) -> Optional[int]:
         """
         Persist an access log entry to the database.
@@ -141,7 +153,7 @@ class DatabaseManager:
                 method=method[:10],
                 is_suspicious=is_suspicious,
                 is_honeypot_trigger=is_honeypot_trigger,
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
             session.add(access_log)
             session.flush()  # Get the ID before committing
@@ -155,7 +167,7 @@ class DatabaseManager:
                         attack_type=attack_type[:50],
                         matched_pattern=sanitize_attack_pattern(
                             matched_patterns.get(attack_type, "")
-                        )
+                        ),
                     )
                     session.add(detection)
 
@@ -178,7 +190,7 @@ class DatabaseManager:
         ip: str,
         path: str,
         username: Optional[str] = None,
-        password: Optional[str] = None
+        password: Optional[str] = None,
     ) -> Optional[int]:
         """
         Persist a credential attempt to the database.
@@ -199,7 +211,7 @@ class DatabaseManager:
                 path=sanitize_path(path),
                 username=sanitize_credential(username),
                 password=sanitize_credential(password),
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
             session.add(credential)
             session.commit()
@@ -230,14 +242,18 @@ class DatabaseManager:
             ip_stats.last_seen = now
         else:
             ip_stats = IpStats(
-                ip=sanitized_ip,
-                total_requests=1,
-                first_seen=now,
-                last_seen=now
+                ip=sanitized_ip, total_requests=1, first_seen=now, last_seen=now
             )
             session.add(ip_stats)
 
-    def  update_ip_stats_analysis(self, ip: str, analyzed_metrics: Dict[str, object], category: str, category_scores: Dict[str, int], last_analysis: datetime) -> None:
+    def update_ip_stats_analysis(
+        self,
+        ip: str,
+        analyzed_metrics: Dict[str, object],
+        category: str,
+        category_scores: Dict[str, int],
+        last_analysis: datetime,
+    ) -> None:
         """
         Update IP statistics (ip is already persisted).
         Records category change in history if category has changed.
@@ -250,7 +266,9 @@ class DatabaseManager:
             last_analysis: timestamp of last analysis
 
         """
-        applogger.debug(f"Analyzed metrics {analyzed_metrics}, category {category}, category scores {category_scores}, last analysis {last_analysis}")
+        applogger.debug(
+            f"Analyzed metrics {analyzed_metrics}, category {category}, category scores {category_scores}, last analysis {last_analysis}"
+        )
         applogger.info(f"IP: {ip} category has been updated to {category}")
 
         session = self.session
@@ -260,7 +278,9 @@ class DatabaseManager:
         # Check if category has changed and record it
         old_category = ip_stats.category
         if old_category != category:
-            self._record_category_change(sanitized_ip, old_category, category, last_analysis)
+            self._record_category_change(
+                sanitized_ip, old_category, category, last_analysis
+            )
 
         ip_stats.analyzed_metrics = analyzed_metrics
         ip_stats.category = category
@@ -286,11 +306,12 @@ class DatabaseManager:
         sanitized_ip = sanitize_ip(ip)
         ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
 
-
         # Record the manual category change
         old_category = ip_stats.category
         if old_category != category:
-            self._record_category_change(sanitized_ip, old_category, category, datetime.now())
+            self._record_category_change(
+                sanitized_ip, old_category, category, datetime.now()
+            )
 
         ip_stats.category = category
         ip_stats.manual_category = True
@@ -301,7 +322,13 @@ class DatabaseManager:
             session.rollback()
             print(f"Error updating manual category: {e}")
 
-    def _record_category_change(self, ip: str, old_category: Optional[str], new_category: str, timestamp: datetime) -> None:
+    def _record_category_change(
+        self,
+        ip: str,
+        old_category: Optional[str],
+        new_category: str,
+        timestamp: datetime,
+    ) -> None:
         """
         Internal method to record category changes in history.
         Only records if there's an actual change from a previous category.
@@ -323,7 +350,7 @@ class DatabaseManager:
                 ip=ip,
                 old_category=old_category,
                 new_category=new_category,
-                timestamp=timestamp
+                timestamp=timestamp,
             )
             session.add(history_entry)
             session.commit()
@@ -344,22 +371,32 @@ class DatabaseManager:
         session = self.session
         try:
             sanitized_ip = sanitize_ip(ip)
-            history = session.query(CategoryHistory).filter(
-                CategoryHistory.ip == sanitized_ip
-            ).order_by(CategoryHistory.timestamp.asc()).all()
+            history = (
+                session.query(CategoryHistory)
+                .filter(CategoryHistory.ip == sanitized_ip)
+                .order_by(CategoryHistory.timestamp.asc())
+                .all()
+            )
 
             return [
                 {
-                    'old_category': h.old_category,
-                    'new_category': h.new_category,
-                    'timestamp': h.timestamp.isoformat()
+                    "old_category": h.old_category,
+                    "new_category": h.new_category,
+                    "timestamp": h.timestamp.isoformat(),
                 }
                 for h in history
             ]
         finally:
             self.close_session()
 
-    def update_ip_rep_infos(self, ip: str, country_code: str, asn: str, asn_org: str, list_on: Dict[str,str]) -> None:
+    def update_ip_rep_infos(
+        self,
+        ip: str,
+        country_code: str,
+        asn: str,
+        asn_org: str,
+        list_on: Dict[str, str],
+    ) -> None:
         """
         Update IP rep stats
 
@@ -400,20 +437,25 @@ class DatabaseManager:
         """
         session = self.session
         try:
-            ips = session.query(IpStats.ip).filter(
-                IpStats.country_code.is_(None),
-                ~IpStats.ip.like('10.%'),
-                ~IpStats.ip.like('172.16.%'),
-                ~IpStats.ip.like('172.17.%'),
-                ~IpStats.ip.like('172.18.%'),
-                ~IpStats.ip.like('172.19.%'),
-                ~IpStats.ip.like('172.2_.%'),
-                ~IpStats.ip.like('172.30.%'),
-                ~IpStats.ip.like('172.31.%'),
-                ~IpStats.ip.like('192.168.%'),
-                ~IpStats.ip.like('127.%'),
-                ~IpStats.ip.like('169.254.%')
-            ).limit(limit).all()
+            ips = (
+                session.query(IpStats.ip)
+                .filter(
+                    IpStats.country_code.is_(None),
+                    ~IpStats.ip.like("10.%"),
+                    ~IpStats.ip.like("172.16.%"),
+                    ~IpStats.ip.like("172.17.%"),
+                    ~IpStats.ip.like("172.18.%"),
+                    ~IpStats.ip.like("172.19.%"),
+                    ~IpStats.ip.like("172.2_.%"),
+                    ~IpStats.ip.like("172.30.%"),
+                    ~IpStats.ip.like("172.31.%"),
+                    ~IpStats.ip.like("192.168.%"),
+                    ~IpStats.ip.like("127.%"),
+                    ~IpStats.ip.like("169.254.%"),
+                )
+                .limit(limit)
+                .all()
+            )
             return [ip[0] for ip in ips]
         finally:
             self.close_session()
@@ -424,7 +466,7 @@ class DatabaseManager:
         offset: int = 0,
         ip_filter: Optional[str] = None,
         suspicious_only: bool = False,
-        since_minutes: Optional[int] = None
+        since_minutes: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         """
         Retrieve access logs with optional filtering.
@@ -455,15 +497,15 @@ class DatabaseManager:
 
             return [
                 {
-                    'id': log.id,
-                    'ip': log.ip,
-                    'path': log.path,
-                    'user_agent': log.user_agent,
-                    'method': log.method,
-                    'is_suspicious': log.is_suspicious,
-                    'is_honeypot_trigger': log.is_honeypot_trigger,
-                    'timestamp': log.timestamp.isoformat(),
-                    'attack_types': [d.attack_type for d in log.attack_detections]
+                    "id": log.id,
+                    "ip": log.ip,
+                    "path": log.path,
+                    "user_agent": log.user_agent,
+                    "method": log.method,
+                    "is_suspicious": log.is_suspicious,
+                    "is_honeypot_trigger": log.is_honeypot_trigger,
+                    "timestamp": log.timestamp.isoformat(),
+                    "attack_types": [d.attack_type for d in log.attack_detections],
                 }
                 for log in logs
             ]
@@ -521,10 +563,7 @@ class DatabaseManager:
     #         self.close_session()
 
     def get_credential_attempts(
-        self,
-        limit: int = 100,
-        offset: int = 0,
-        ip_filter: Optional[str] = None
+        self, limit: int = 100, offset: int = 0, ip_filter: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """
         Retrieve credential attempts with optional filtering.
@@ -550,12 +589,12 @@ class DatabaseManager:
 
             return [
                 {
-                    'id': attempt.id,
-                    'ip': attempt.ip,
-                    'path': attempt.path,
-                    'username': attempt.username,
-                    'password': attempt.password,
-                    'timestamp': attempt.timestamp.isoformat()
+                    "id": attempt.id,
+                    "ip": attempt.ip,
+                    "path": attempt.path,
+                    "username": attempt.username,
+                    "password": attempt.password,
+                    "timestamp": attempt.timestamp.isoformat(),
                 }
                 for attempt in attempts
             ]
@@ -574,26 +613,29 @@ class DatabaseManager:
         """
         session = self.session
         try:
-            stats = session.query(IpStats).order_by(
-                IpStats.total_requests.desc()
-            ).limit(limit).all()
+            stats = (
+                session.query(IpStats)
+                .order_by(IpStats.total_requests.desc())
+                .limit(limit)
+                .all()
+            )
 
             return [
                 {
-                    'ip': s.ip,
-                    'total_requests': s.total_requests,
-                    'first_seen': s.first_seen.isoformat(),
-                    'last_seen': s.last_seen.isoformat(),
-                    'country_code': s.country_code,
-                    'city': s.city,
-                    'asn': s.asn,
-                    'asn_org': s.asn_org,
-                    'reputation_score': s.reputation_score,
-                    'reputation_source': s.reputation_source,
-                    'analyzed_metrics': s.analyzed_metrics,
-                    'category': s.category,
-                    'manual_category': s.manual_category,
-                    'last_analysis': s.last_analysis
+                    "ip": s.ip,
+                    "total_requests": s.total_requests,
+                    "first_seen": s.first_seen.isoformat(),
+                    "last_seen": s.last_seen.isoformat(),
+                    "country_code": s.country_code,
+                    "city": s.city,
+                    "asn": s.asn,
+                    "asn_org": s.asn_org,
+                    "reputation_score": s.reputation_score,
+                    "reputation_source": s.reputation_source,
+                    "analyzed_metrics": s.analyzed_metrics,
+                    "category": s.category,
+                    "manual_category": s.manual_category,
+                    "last_analysis": s.last_analysis,
                 }
                 for s in stats
             ]
@@ -621,23 +663,25 @@ class DatabaseManager:
             category_history = self.get_category_history(ip)
 
             return {
-                'ip': stat.ip,
-                'total_requests': stat.total_requests,
-                'first_seen': stat.first_seen.isoformat() if stat.first_seen else None,
-                'last_seen': stat.last_seen.isoformat() if stat.last_seen else None,
-                'country_code': stat.country_code,
-                'city': stat.city,
-                'asn': stat.asn,
-                'asn_org': stat.asn_org,
-                'list_on': stat.list_on or {},
-                'reputation_score': stat.reputation_score,
-                'reputation_source': stat.reputation_source,
-                'analyzed_metrics': stat.analyzed_metrics or {},
-                'category': stat.category,
-                'category_scores': stat.category_scores or {},
-                'manual_category': stat.manual_category,
-                'last_analysis': stat.last_analysis.isoformat()  if stat.last_analysis else None,
-                'category_history': category_history
+                "ip": stat.ip,
+                "total_requests": stat.total_requests,
+                "first_seen": stat.first_seen.isoformat() if stat.first_seen else None,
+                "last_seen": stat.last_seen.isoformat() if stat.last_seen else None,
+                "country_code": stat.country_code,
+                "city": stat.city,
+                "asn": stat.asn,
+                "asn_org": stat.asn_org,
+                "list_on": stat.list_on or {},
+                "reputation_score": stat.reputation_score,
+                "reputation_source": stat.reputation_source,
+                "analyzed_metrics": stat.analyzed_metrics or {},
+                "category": stat.category,
+                "category_scores": stat.category_scores or {},
+                "manual_category": stat.manual_category,
+                "last_analysis": (
+                    stat.last_analysis.isoformat() if stat.last_analysis else None
+                ),
+                "category_history": category_history,
             }
         finally:
             self.close_session()
@@ -654,25 +698,32 @@ class DatabaseManager:
         try:
             # Get main aggregate counts in one query
             result = session.query(
-                func.count(AccessLog.id).label('total_accesses'),
-                func.count(distinct(AccessLog.ip)).label('unique_ips'),
-                func.count(distinct(AccessLog.path)).label('unique_paths'),
-                func.sum(case((AccessLog.is_suspicious == True, 1), else_=0)).label('suspicious_accesses'),
-                func.sum(case((AccessLog.is_honeypot_trigger == True, 1), else_=0)).label('honeypot_triggered')
+                func.count(AccessLog.id).label("total_accesses"),
+                func.count(distinct(AccessLog.ip)).label("unique_ips"),
+                func.count(distinct(AccessLog.path)).label("unique_paths"),
+                func.sum(case((AccessLog.is_suspicious == True, 1), else_=0)).label(
+                    "suspicious_accesses"
+                ),
+                func.sum(
+                    case((AccessLog.is_honeypot_trigger == True, 1), else_=0)
+                ).label("honeypot_triggered"),
             ).first()
 
             # Get unique IPs that triggered honeypots
-            honeypot_ips = session.query(
-                func.count(distinct(AccessLog.ip))
-            ).filter(AccessLog.is_honeypot_trigger == True).scalar() or 0
+            honeypot_ips = (
+                session.query(func.count(distinct(AccessLog.ip)))
+                .filter(AccessLog.is_honeypot_trigger == True)
+                .scalar()
+                or 0
+            )
 
             return {
-                'total_accesses': result.total_accesses or 0,
-                'unique_ips': result.unique_ips or 0,
-                'unique_paths': result.unique_paths or 0,
-                'suspicious_accesses': int(result.suspicious_accesses or 0),
-                'honeypot_triggered': int(result.honeypot_triggered or 0),
-                'honeypot_ips': honeypot_ips
+                "total_accesses": result.total_accesses or 0,
+                "unique_ips": result.unique_ips or 0,
+                "unique_paths": result.unique_paths or 0,
+                "suspicious_accesses": int(result.suspicious_accesses or 0),
+                "honeypot_triggered": int(result.honeypot_triggered or 0),
+                "honeypot_ips": honeypot_ips,
             }
         finally:
             self.close_session()
@@ -689,12 +740,13 @@ class DatabaseManager:
         """
         session = self.session
         try:
-            results = session.query(
-                AccessLog.ip,
-                func.count(AccessLog.id).label('count')
-            ).group_by(AccessLog.ip).order_by(
-                func.count(AccessLog.id).desc()
-            ).limit(limit).all()
+            results = (
+                session.query(AccessLog.ip, func.count(AccessLog.id).label("count"))
+                .group_by(AccessLog.ip)
+                .order_by(func.count(AccessLog.id).desc())
+                .limit(limit)
+                .all()
+            )
 
             return [(row.ip, row.count) for row in results]
         finally:
@@ -712,12 +764,13 @@ class DatabaseManager:
         """
         session = self.session
         try:
-            results = session.query(
-                AccessLog.path,
-                func.count(AccessLog.id).label('count')
-            ).group_by(AccessLog.path).order_by(
-                func.count(AccessLog.id).desc()
-            ).limit(limit).all()
+            results = (
+                session.query(AccessLog.path, func.count(AccessLog.id).label("count"))
+                .group_by(AccessLog.path)
+                .order_by(func.count(AccessLog.id).desc())
+                .limit(limit)
+                .all()
+            )
 
             return [(row.path, row.count) for row in results]
         finally:
@@ -735,15 +788,16 @@ class DatabaseManager:
         """
         session = self.session
         try:
-            results = session.query(
-                AccessLog.user_agent,
-                func.count(AccessLog.id).label('count')
-            ).filter(
-                AccessLog.user_agent.isnot(None),
-                AccessLog.user_agent != ''
-            ).group_by(AccessLog.user_agent).order_by(
-                func.count(AccessLog.id).desc()
-            ).limit(limit).all()
+            results = (
+                session.query(
+                    AccessLog.user_agent, func.count(AccessLog.id).label("count")
+                )
+                .filter(AccessLog.user_agent.isnot(None), AccessLog.user_agent != "")
+                .group_by(AccessLog.user_agent)
+                .order_by(func.count(AccessLog.id).desc())
+                .limit(limit)
+                .all()
+            )
 
             return [(row.user_agent, row.count) for row in results]
         finally:
@@ -761,16 +815,20 @@ class DatabaseManager:
         """
         session = self.session
         try:
-            logs = session.query(AccessLog).filter(
-                AccessLog.is_suspicious == True
-            ).order_by(AccessLog.timestamp.desc()).limit(limit).all()
+            logs = (
+                session.query(AccessLog)
+                .filter(AccessLog.is_suspicious == True)
+                .order_by(AccessLog.timestamp.desc())
+                .limit(limit)
+                .all()
+            )
 
             return [
                 {
-                    'ip': log.ip,
-                    'path': log.path,
-                    'user_agent': log.user_agent,
-                    'timestamp': log.timestamp.isoformat()
+                    "ip": log.ip,
+                    "path": log.path,
+                    "user_agent": log.user_agent,
+                    "timestamp": log.timestamp.isoformat(),
                 }
                 for log in logs
             ]
@@ -787,12 +845,11 @@ class DatabaseManager:
         session = self.session
         try:
             # Get all honeypot triggers grouped by IP
-            results = session.query(
-                AccessLog.ip,
-                AccessLog.path
-            ).filter(
-                AccessLog.is_honeypot_trigger == True
-            ).all()
+            results = (
+                session.query(AccessLog.ip, AccessLog.path)
+                .filter(AccessLog.is_honeypot_trigger == True)
+                .all()
+            )
 
             # Group paths by IP
             ip_paths: Dict[str, List[str]] = {}
@@ -819,17 +876,21 @@ class DatabaseManager:
         session = self.session
         try:
             # Get access logs that have attack detections
-            logs = session.query(AccessLog).join(
-                AttackDetection
-            ).order_by(AccessLog.timestamp.desc()).limit(limit).all()
+            logs = (
+                session.query(AccessLog)
+                .join(AttackDetection)
+                .order_by(AccessLog.timestamp.desc())
+                .limit(limit)
+                .all()
+            )
 
             return [
                 {
-                    'ip': log.ip,
-                    'path': log.path,
-                    'user_agent': log.user_agent,
-                    'timestamp': log.timestamp.isoformat(),
-                    'attack_types': [d.attack_type for d in log.attack_detections]
+                    "ip": log.ip,
+                    "path": log.path,
+                    "user_agent": log.user_agent,
+                    "timestamp": log.timestamp.isoformat(),
+                    "attack_types": [d.attack_type for d in log.attack_detections],
                 }
                 for log in logs
             ]

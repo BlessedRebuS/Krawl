@@ -9,7 +9,6 @@ import html
 import re
 from typing import Optional, Dict
 
-
 # Field length limits for database storage
 MAX_IP_LENGTH = 45  # IPv6 max length
 MAX_PATH_LENGTH = 2048  # URL max practical length
@@ -43,7 +42,7 @@ def sanitize_for_storage(value: Optional[str], max_length: int) -> str:
 
     # Remove null bytes and control characters (except newline \n, tab \t, carriage return \r)
     # Control chars are 0x00-0x1F and 0x7F, we keep 0x09 (tab), 0x0A (newline), 0x0D (carriage return)
-    cleaned = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', value)
+    cleaned = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", value)
 
     # Truncate to max length
     return cleaned[:max_length]
@@ -112,5 +111,6 @@ def escape_html_truncated(value: Optional[str], max_display_length: int) -> str:
 
     return html.escape(value_str)
 
-def sanitize_dict(value: Optional[Dict[str,str]], max_display_length):
+
+def sanitize_dict(value: Optional[Dict[str, str]], max_display_length):
     return {k: sanitize_for_storage(v, max_display_length) for k, v in value.items()}

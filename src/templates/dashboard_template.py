@@ -9,11 +9,13 @@ import html
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+
 def _escape(value) -> str:
     """Escape HTML special characters to prevent XSS attacks."""
     if value is None:
         return ""
     return html.escape(str(value))
+
 
 def format_timestamp(iso_timestamp: str, time_only: bool = False) -> str:
     """Format ISO timestamp for display with timezone conversion
@@ -30,10 +32,12 @@ def format_timestamp(iso_timestamp: str, time_only: bool = False) -> str:
         return dt.strftime("%Y-%m-%d %H:%M:%S")
     except Exception:
         # Fallback for old format
-        return iso_timestamp.split("T")[1][:8] if "T" in iso_timestamp else iso_timestamp
+        return (
+            iso_timestamp.split("T")[1][:8] if "T" in iso_timestamp else iso_timestamp
+        )
 
 
-def generate_dashboard(stats: dict, dashboard_path: str = '') -> str:
+def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
     """Generate dashboard HTML with access statistics
 
     Args:
@@ -42,8 +46,8 @@ def generate_dashboard(stats: dict, dashboard_path: str = '') -> str:
     """
 
     # Generate IP rows with clickable functionality for dropdown stats
-    top_ips_rows = '\n'.join([
-        f'''<tr class="ip-row" data-ip="{_escape(ip)}">
+    top_ips_rows = (
+        "\n".join([f"""<tr class="ip-row" data-ip="{_escape(ip)}">
             <td class="rank">{i+1}</td>
             <td class="ip-clickable">{_escape(ip)}</td>
             <td>{count}</td>
@@ -54,25 +58,35 @@ def generate_dashboard(stats: dict, dashboard_path: str = '') -> str:
                     <div class="loading">Loading stats...</div>
                 </div>
             </td>
-        </tr>'''
-        for i, (ip, count) in enumerate(stats['top_ips'])
-    ]) or '<tr><td colspan="3" style="text-align:center;">No data</td></tr>'
+        </tr>""" for i, (ip, count) in enumerate(stats["top_ips"])])
+        or '<tr><td colspan="3" style="text-align:center;">No data</td></tr>'
+    )
 
     # Generate paths rows (CRITICAL: paths can contain XSS payloads)
-    top_paths_rows = '\n'.join([
-        f'<tr><td class="rank">{i+1}</td><td>{_escape(path)}</td><td>{count}</td></tr>'
-        for i, (path, count) in enumerate(stats['top_paths'])
-    ]) or '<tr><td colspan="3" style="text-align:center;">No data</td></tr>'
+    top_paths_rows = (
+        "\n".join(
+            [
+                f'<tr><td class="rank">{i+1}</td><td>{_escape(path)}</td><td>{count}</td></tr>'
+                for i, (path, count) in enumerate(stats["top_paths"])
+            ]
+        )
+        or '<tr><td colspan="3" style="text-align:center;">No data</td></tr>'
+    )
 
     # Generate User-Agent rows (CRITICAL: user agents can contain XSS payloads)
-    top_ua_rows = '\n'.join([
-        f'<tr><td class="rank">{i+1}</td><td style="word-break: break-all;">{_escape(ua[:80])}</td><td>{count}</td></tr>'
-        for i, (ua, count) in enumerate(stats['top_user_agents'])
-    ]) or '<tr><td colspan="3" style="text-align:center;">No data</td></tr>'
+    top_ua_rows = (
+        "\n".join(
+            [
+                f'<tr><td class="rank">{i+1}</td><td style="word-break: break-all;">{_escape(ua[:80])}</td><td>{count}</td></tr>'
+                for i, (ua, count) in enumerate(stats["top_user_agents"])
+            ]
+        )
+        or '<tr><td colspan="3" style="text-align:center;">No data</td></tr>'
+    )
 
     # Generate suspicious accesses rows with clickable IPs
-    suspicious_rows = '\n'.join([
-        f'''<tr class="ip-row" data-ip="{_escape(log["ip"])}">
+    suspicious_rows = (
+        "\n".join([f"""<tr class="ip-row" data-ip="{_escape(log["ip"])}">
             <td class="ip-clickable">{_escape(log["ip"])}</td>
             <td>{_escape(log["path"])}</td>
             <td style="word-break: break-all;">{_escape(log["user_agent"][:60])}</td>
@@ -84,13 +98,13 @@ def generate_dashboard(stats: dict, dashboard_path: str = '') -> str:
                     <div class="loading">Loading stats...</div>
                 </div>
             </td>
-        </tr>'''
-        for log in stats['recent_suspicious'][-10:]
-    ]) or '<tr><td colspan="4" style="text-align:center;">No suspicious activity detected</td></tr>'
+        </tr>""" for log in stats["recent_suspicious"][-10:]])
+        or '<tr><td colspan="4" style="text-align:center;">No suspicious activity detected</td></tr>'
+    )
 
     # Generate honeypot triggered IPs rows with clickable IPs
-    honeypot_rows = '\n'.join([
-        f'''<tr class="ip-row" data-ip="{_escape(ip)}">
+    honeypot_rows = (
+        "\n".join([f"""<tr class="ip-row" data-ip="{_escape(ip)}">
             <td class="ip-clickable">{_escape(ip)}</td>
             <td style="word-break: break-all;">{_escape(", ".join(paths))}</td>
             <td>{len(paths)}</td>
@@ -101,13 +115,13 @@ def generate_dashboard(stats: dict, dashboard_path: str = '') -> str:
                     <div class="loading">Loading stats...</div>
                 </div>
             </td>
-        </tr>'''
-        for ip, paths in stats.get('honeypot_triggered_ips', [])
-    ]) or '<tr><td colspan="3" style="text-align:center;">No honeypot triggers yet</td></tr>'
+        </tr>""" for ip, paths in stats.get("honeypot_triggered_ips", [])])
+        or '<tr><td colspan="3" style="text-align:center;">No honeypot triggers yet</td></tr>'
+    )
 
     # Generate attack types rows with clickable IPs
-    attack_type_rows = '\n'.join([
-        f'''<tr class="ip-row" data-ip="{_escape(log["ip"])}">
+    attack_type_rows = (
+        "\n".join([f"""<tr class="ip-row" data-ip="{_escape(log["ip"])}">
             <td class="ip-clickable">{_escape(log["ip"])}</td>
             <td>{_escape(log["path"])}</td>
             <td>{_escape(", ".join(log["attack_types"]))}</td>
@@ -120,13 +134,13 @@ def generate_dashboard(stats: dict, dashboard_path: str = '') -> str:
                     <div class="loading">Loading stats...</div>
                 </div>
             </td>
-        </tr>'''
-        for log in stats.get('attack_types', [])[-10:]
-    ]) or '<tr><td colspan="4" style="text-align:center;">No attacks detected</td></tr>'
+        </tr>""" for log in stats.get("attack_types", [])[-10:]])
+        or '<tr><td colspan="4" style="text-align:center;">No attacks detected</td></tr>'
+    )
 
     # Generate credential attempts rows with clickable IPs
-    credential_rows = '\n'.join([
-        f'''<tr class="ip-row" data-ip="{_escape(log["ip"])}">
+    credential_rows = (
+        "\n".join([f"""<tr class="ip-row" data-ip="{_escape(log["ip"])}">
             <td class="ip-clickable">{_escape(log["ip"])}</td>
             <td>{_escape(log["username"])}</td>
             <td>{_escape(log["password"])}</td>
@@ -139,9 +153,9 @@ def generate_dashboard(stats: dict, dashboard_path: str = '') -> str:
                     <div class="loading">Loading stats...</div>
                 </div>
             </td>
-        </tr>'''
-        for log in stats.get('credential_attempts', [])[-20:]
-    ]) or '<tr><td colspan="5" style="text-align:center;">No credentials captured yet</td></tr>'
+        </tr>""" for log in stats.get("credential_attempts", [])[-20:]])
+        or '<tr><td colspan="5" style="text-align:center;">No credentials captured yet</td></tr>'
+    )
 
     return f"""<!DOCTYPE html>
 <html>

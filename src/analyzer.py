@@ -19,10 +19,12 @@ Functions for user activity analysis
 
 app_logger = get_app_logger()
 
+
 class Analyzer:
     """
     Analyzes users activity and produces aggregated insights
     """
+
     def __init__(self, db_manager: Optional[DatabaseManager] = None):
         """
         Initialize the access tracker.
@@ -102,7 +104,6 @@ class Analyzer:
     #         }
     #     }
 
-
     #     accesses = self.db.get_access_logs(ip_filter = ip, limit=1000)
     #     total_accesses_count = len(accesses)
     #     if total_accesses_count <= 0:
@@ -118,7 +119,6 @@ class Analyzer:
     #         return 0
 
     #     #--------------------- HTTP Methods ---------------------
-
 
     #     get_accesses_count = len([item for item in accesses if item["method"] == "GET"])
     #     post_accesses_count = len([item for item in accesses if item["method"] == "POST"])
@@ -213,7 +213,6 @@ class Analyzer:
     #         score["good_crawler"]["uneven_request_timing"] = False
     #         score["bad_crawler"]["uneven_request_timing"] = False
     #         score["regular_user"]["uneven_request_timing"] = False
-
 
     #     #--------------------- Different User Agents ---------------------
     #     #Header Quality and Consistency: Crawlers tend to use complete and consistent headers, attackers might miss, fake, or change headers
@@ -316,8 +315,6 @@ class Analyzer:
     #     self._db_manager.update_ip_stats_analysis(ip, analyzed_metrics, category, category_scores, last_analysis)
 
     #     return 0
-
-
 
     # def update_ip_rep_infos(self, ip: str) -> list[str]:
     #     api_url = "https://iprep.lcrawl.com/api/iprep/"

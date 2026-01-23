@@ -12,43 +12,48 @@ from config import get_config
 from tracker import AccessTracker
 from analyzer import Analyzer
 from handler import Handler
-from logger import initialize_logging, get_app_logger, get_access_logger, get_credential_logger
+from logger import (
+    initialize_logging,
+    get_app_logger,
+    get_access_logger,
+    get_credential_logger,
+)
 from database import initialize_database
 from tasks_master import get_tasksmaster
 
 
 def print_usage():
     """Print usage information"""
-    print(f'Usage: {sys.argv[0]} [FILE]\n')
-    print('FILE is file containing a list of webpage names to serve, one per line.')
-    print('If no file is provided, random links will be generated.\n')
-    print('Configuration:')
-    print('  Configuration is loaded from a YAML file (default: config.yaml)')
-    print('  Set CONFIG_LOCATION environment variable to use a different file.\n')
-    print('  Example config.yaml structure:')
-    print('    server:')
-    print('      port: 5000')
-    print('      delay: 100')
-    print('    links:')
-    print('      min_length: 5')
-    print('      max_length: 15')
-    print('      min_per_page: 10')
-    print('      max_per_page: 15')
-    print('    canary:')
-    print('      token_url: null')
-    print('      token_tries: 10')
-    print('    dashboard:')
-    print('      secret_path: null  # auto-generated if not set')
-    print('    database:')
+    print(f"Usage: {sys.argv[0]} [FILE]\n")
+    print("FILE is file containing a list of webpage names to serve, one per line.")
+    print("If no file is provided, random links will be generated.\n")
+    print("Configuration:")
+    print("  Configuration is loaded from a YAML file (default: config.yaml)")
+    print("  Set CONFIG_LOCATION environment variable to use a different file.\n")
+    print("  Example config.yaml structure:")
+    print("    server:")
+    print("      port: 5000")
+    print("      delay: 100")
+    print("    links:")
+    print("      min_length: 5")
+    print("      max_length: 15")
+    print("      min_per_page: 10")
+    print("      max_per_page: 15")
+    print("    canary:")
+    print("      token_url: null")
+    print("      token_tries: 10")
+    print("    dashboard:")
+    print("      secret_path: null  # auto-generated if not set")
+    print("    database:")
     print('      path: "data/krawl.db"')
-    print('      retention_days: 30')
-    print('    behavior:')
-    print('      probability_error_codes: 0')
+    print("      retention_days: 30")
+    print("    behavior:")
+    print("      probability_error_codes: 0")
 
 
 def main():
     """Main entry point for the deception server"""
-    if '-h' in sys.argv or '--help' in sys.argv:
+    if "-h" in sys.argv or "--help" in sys.argv:
         print_usage()
         exit(0)
 
@@ -63,9 +68,11 @@ def main():
     # Initialize database for persistent storage
     try:
         initialize_database(config.database_path)
-        app_logger.info(f'Database initialized at: {config.database_path}')
+        app_logger.info(f"Database initialized at: {config.database_path}")
     except Exception as e:
-        app_logger.warning(f'Database initialization failed: {e}. Continuing with in-memory only.')
+        app_logger.warning(
+            f"Database initialization failed: {e}. Continuing with in-memory only."
+        )
 
     tracker = AccessTracker(config.max_pages_limit, config.ban_duration_seconds)
     analyzer = Analyzer()
@@ -80,11 +87,13 @@ def main():
 
     if len(sys.argv) == 2:
         try:
-            with open(sys.argv[1], 'r') as f:
+            with open(sys.argv[1], "r") as f:
                 Handler.webpages = f.readlines()
 
             if not Handler.webpages:
-                app_logger.warning('The file provided was empty. Using randomly generated links.')
+                app_logger.warning(
+                    "The file provided was empty. Using randomly generated links."
+                )
                 Handler.webpages = None
         except IOError:
             app_logger.warning("Can't read input file. Using randomly generated links.")
@@ -94,25 +103,31 @@ def main():
     tasks_master.run_scheduled_tasks()
 
     try:
-        app_logger.info(f'Starting deception server on port {config.port}...')
-        app_logger.info(f'Dashboard available at: {config.dashboard_secret_path}')
+        app_logger.info(f"Starting deception server on port {config.port}...")
+        app_logger.info(f"Dashboard available at: {config.dashboard_secret_path}")
         if config.canary_token_url:
-            app_logger.info(f'Canary token will appear after {config.canary_token_tries} tries')
+            app_logger.info(
+                f"Canary token will appear after {config.canary_token_tries} tries"
+            )
         else:
-            app_logger.info('No canary token configured (set CANARY_TOKEN_URL to enable)')
+            app_logger.info(
+                "No canary token configured (set CANARY_TOKEN_URL to enable)"
+            )
 
-        server = HTTPServer(('0.0.0.0', config.port), Handler)
-        app_logger.info('Server started. Use <Ctrl-C> to stop.')
+        server = HTTPServer(("0.0.0.0", config.port), Handler)
+        app_logger.info("Server started. Use <Ctrl-C> to stop.")
         server.serve_forever()
     except KeyboardInterrupt:
-        app_logger.info('Stopping server...')
+        app_logger.info("Stopping server...")
         server.socket.close()
-        app_logger.info('Server stopped')
+        app_logger.info("Server stopped")
     except Exception as e:
-        app_logger.error(f'Error starting HTTP server on port {config.port}: {e}')
-        app_logger.error(f'Make sure you are root, if needed, and that port {config.port} is open.')
+        app_logger.error(f"Error starting HTTP server on port {config.port}: {e}")
+        app_logger.error(
+            f"Make sure you are root, if needed, and that port {config.port} is open."
+        )
         exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -11,7 +11,7 @@ TASK_CONFIG = {
     "name": "fetch-ip-rep",
     "cron": "*/5 * * * *",
     "enabled": True,
-    "run_when_loaded": True
+    "run_when_loaded": True,
 }
 
 
@@ -21,7 +21,9 @@ def main():
 
     # Only get IPs that haven't been enriched yet
     unenriched_ips = db_manager.get_unenriched_ips(limit=50)
-    app_logger.info(f"{len(unenriched_ips)} IP's need to be have reputation enrichment.")
+    app_logger.info(
+        f"{len(unenriched_ips)} IP's need to be have reputation enrichment."
+    )
     for ip in unenriched_ips:
         try:
             api_url = "https://iprep.lcrawl.com/api/iprep/"
@@ -43,8 +45,11 @@ def main():
                 sanitized_list_on = sanitize_dict(list_on, 100000)
 
                 db_manager.update_ip_rep_infos(
-                    ip, sanitized_country_iso_code, sanitized_asn,
-                    sanitized_asn_org, sanitized_list_on
+                    ip,
+                    sanitized_country_iso_code,
+                    sanitized_asn,
+                    sanitized_asn_org,
+                    sanitized_list_on,
                 )
         except requests.RequestException as e:
             app_logger.warning(f"Failed to fetch IP rep for {ip}: {e}")
