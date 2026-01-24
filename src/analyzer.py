@@ -11,7 +11,6 @@ from wordlists import get_wordlists
 from config import get_config
 from logger import get_app_logger
 import requests
-from sanitizer import sanitize_for_storage, sanitize_dict
 
 """
 Functions for user activity analysis
@@ -27,14 +26,12 @@ class Analyzer:
 
     def __init__(self, db_manager: Optional[DatabaseManager] = None):
         """
-        Initialize the access tracker.
+        Initialize the analyzer.
 
         Args:
             db_manager: Optional DatabaseManager for persistence.
                         If None, will use the global singleton.
         """
-
-        # Database manager for persistence (lazily initialized)
         self._db_manager = db_manager
 
     @property
@@ -49,7 +46,6 @@ class Analyzer:
             try:
                 self._db_manager = get_database()
             except Exception:
-                # Database not initialized, persistence disabled
                 pass
         return self._db_manager
 

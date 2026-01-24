@@ -15,6 +15,8 @@ from sqlalchemy import create_engine, func, distinct, case, event
 from sqlalchemy.orm import sessionmaker, scoped_session, Session
 from sqlalchemy.engine import Engine
 
+from ip_utils import is_local_or_private_ip, is_valid_public_ip
+
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
@@ -688,7 +690,7 @@ class DatabaseManager:
 
     def get_dashboard_counts(self) -> Dict[str, int]:
         """
-        Get aggregate statistics for the dashboard.
+        Get aggregate statistics for the dashboard (excludes local/private IPs and server IP).
 
         Returns:
             Dictionary with total_accesses, unique_ips, unique_paths,
@@ -696,33 +698,34 @@ class DatabaseManager:
         """
         session = self.session
         try:
-            # Get main aggregate counts in one query
-            result = session.query(
-                func.count(AccessLog.id).label("total_accesses"),
-                func.count(distinct(AccessLog.ip)).label("unique_ips"),
-                func.count(distinct(AccessLog.path)).label("unique_paths"),
-                func.sum(case((AccessLog.is_suspicious == True, 1), else_=0)).label(
-                    "suspicious_accesses"
-                ),
-                func.sum(
-                    case((AccessLog.is_honeypot_trigger == True, 1), else_=0)
-                ).label("honeypot_triggered"),
-            ).first()
-
-            # Get unique IPs that triggered honeypots
-            honeypot_ips = (
-                session.query(func.count(distinct(AccessLog.ip)))
-                .filter(AccessLog.is_honeypot_trigger == True)
-                .scalar()
-                or 0
-            )
+            # Get server IP to filter it out
+            from config import get_config
+            config = get_config()
+            server_ip = config.get_server_ip()
+            
+            # Get all accesses first, then filter out local IPs and server IP
+            all_accesses = session.query(AccessLog).all()
+            
+            # Filter out local/private IPs and server IP
+            public_accesses = [
+                log for log in all_accesses
+                if is_valid_public_ip(log.ip, server_ip)
+            ]
+            
+            # Calculate counts from filtered data
+            total_accesses = len(public_accesses)
+            unique_ips = len(set(log.ip for log in public_accesses))
+            unique_paths = len(set(log.path for log in public_accesses))
+            suspicious_accesses = sum(1 for log in public_accesses if log.is_suspicious)
+            honeypot_triggered = sum(1 for log in public_accesses if log.is_honeypot_trigger)
+            honeypot_ips = len(set(log.ip for log in public_accesses if log.is_honeypot_trigger))
 
             return {
-                "total_accesses": result.total_accesses or 0,
-                "unique_ips": result.unique_ips or 0,
-                "unique_paths": result.unique_paths or 0,
-                "suspicious_accesses": int(result.suspicious_accesses or 0),
-                "honeypot_triggered": int(result.honeypot_triggered or 0),
+                "total_accesses": total_accesses,
+                "unique_ips": unique_ips,
+                "unique_paths": unique_paths,
+                "suspicious_accesses": suspicious_accesses,
+                "honeypot_triggered": honeypot_triggered,
                 "honeypot_ips": honeypot_ips,
             }
         finally:
@@ -730,7 +733,7 @@ class DatabaseManager:
 
     def get_top_ips(self, limit: int = 10) -> List[tuple]:
         """
-        Get top IP addresses by access count.
+        Get top IP addresses by access count (excludes local/private IPs and server IP).
 
         Args:
             limit: Maximum number of results
@@ -740,15 +743,25 @@ class DatabaseManager:
         """
         session = self.session
         try:
+            # Get server IP to filter it out
+            from config import get_config
+            config = get_config()
+            server_ip = config.get_server_ip()
+            
             results = (
                 session.query(AccessLog.ip, func.count(AccessLog.id).label("count"))
                 .group_by(AccessLog.ip)
                 .order_by(func.count(AccessLog.id).desc())
-                .limit(limit)
                 .all()
             )
 
-            return [(row.ip, row.count) for row in results]
+            # Filter out local/private IPs and server IP, then limit results
+            filtered = [
+                (row.ip, row.count)
+                for row in results
+                if is_valid_public_ip(row.ip, server_ip)
+            ]
+            return filtered[:limit]
         finally:
             self.close_session()
 
@@ -805,7 +818,7 @@ class DatabaseManager:
 
     def get_recent_suspicious(self, limit: int = 20) -> List[Dict[str, Any]]:
         """
-        Get recent suspicious access attempts.
+        Get recent suspicious access attempts (excludes local/private IPs and server IP).
 
         Args:
             limit: Maximum number of results
@@ -815,13 +828,23 @@ class DatabaseManager:
         """
         session = self.session
         try:
+            # Get server IP to filter it out
+            from config import get_config
+            config = get_config()
+            server_ip = config.get_server_ip()
+            
             logs = (
                 session.query(AccessLog)
                 .filter(AccessLog.is_suspicious == True)
                 .order_by(AccessLog.timestamp.desc())
-                .limit(limit)
                 .all()
             )
+
+            # Filter out local/private IPs and server IP
+            filtered_logs = [
+                log for log in logs
+                if is_valid_public_ip(log.ip, server_ip)
+            ]
 
             return [
                 {
@@ -830,20 +853,26 @@ class DatabaseManager:
                     "user_agent": log.user_agent,
                     "timestamp": log.timestamp.isoformat(),
                 }
-                for log in logs
+                for log in filtered_logs[:limit]
             ]
         finally:
             self.close_session()
 
     def get_honeypot_triggered_ips(self) -> List[tuple]:
         """
-        Get IPs that triggered honeypot paths with the paths they accessed.
+        Get IPs that triggered honeypot paths with the paths they accessed
+        (excludes local/private IPs and server IP).
 
         Returns:
             List of (ip, [paths]) tuples
         """
         session = self.session
         try:
+            # Get server IP to filter it out
+            from config import get_config
+            config = get_config()
+            server_ip = config.get_server_ip()
+            
             # Get all honeypot triggers grouped by IP
             results = (
                 session.query(AccessLog.ip, AccessLog.path)
@@ -851,9 +880,12 @@ class DatabaseManager:
                 .all()
             )
 
-            # Group paths by IP
+            # Group paths by IP, filtering out local/private IPs and server IP
             ip_paths: Dict[str, List[str]] = {}
             for row in results:
+                # Skip invalid IPs
+                if not is_valid_public_ip(row.ip, server_ip):
+                    continue
                 if row.ip not in ip_paths:
                     ip_paths[row.ip] = []
                 if row.path not in ip_paths[row.ip]:

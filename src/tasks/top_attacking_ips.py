@@ -5,7 +5,9 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from logger import get_app_logger
 from database import get_database
+from config import get_config
 from models import AccessLog
+from ip_utils import is_local_or_private_ip, is_valid_public_ip
 from sqlalchemy import distinct
 
 app_logger = get_app_logger()
@@ -66,16 +68,26 @@ def main():
             .all()
         )
 
+        # Filter out local/private IPs and the server's own IP
+        config = get_config()
+        server_ip = config.get_server_ip()
+        
+        public_ips = [
+            ip for (ip,) in results
+            if is_valid_public_ip(ip, server_ip)
+        ]
+
         # Ensure exports directory exists
         os.makedirs(EXPORTS_DIR, exist_ok=True)
 
         # Write IPs to file (one per line)
         with open(OUTPUT_FILE, "w") as f:
-            for (ip,) in results:
+            for ip in public_ips:
                 f.write(f"{ip}\n")
 
         app_logger.info(
-            f"[Background Task] {task_name} exported {len(results)} IPs to {OUTPUT_FILE}"
+            f"[Background Task] {task_name} exported {len(public_ips)} public IPs "
+            f"(filtered {len(results) - len(public_ips)} local/private IPs) to {OUTPUT_FILE}"
         )
 
     except Exception as e:

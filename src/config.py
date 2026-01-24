@@ -8,6 +8,7 @@ from typing import Optional, Tuple
 from zoneinfo import ZoneInfo
 import time
 from logger import get_app_logger
+import socket
 
 import yaml
 
@@ -49,6 +50,67 @@ class Config:
     uneven_request_timing_time_window_seconds: float = None
     user_agents_used_threshold: float = None
     attack_urls_threshold: float = None
+
+    _server_ip: Optional[str] = None
+    _server_ip_cache_time: float = 0
+    _ip_cache_ttl: int = 300
+
+    def get_server_ip(self, refresh: bool = False) -> Optional[str]:
+        """
+        Get the server's own public IP address.
+        Excludes requests from the server itself from being tracked.
+
+        Caches the IP for 5 minutes to avoid repeated lookups.
+        Automatically refreshes if cache is stale.
+
+        Args:
+            refresh: Force refresh the IP cache (bypass TTL)
+
+        Returns:
+            Server IP address or None if unable to determine
+        """
+        import time
+
+        current_time = time.time()
+
+        # Check if cache is valid and not forced refresh
+        if (
+            self._server_ip is not None
+            and not refresh
+            and (current_time - self._server_ip_cache_time) < self._ip_cache_ttl
+        ):
+            return self._server_ip
+
+        try:
+            hostname = socket.gethostname()
+
+            # Try to get public IP by connecting to an external server
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            ip = s.getsockname()[0]
+            s.close()
+
+            self._server_ip = ip
+            self._server_ip_cache_time = current_time
+
+            return ip
+
+        except Exception as e:
+            get_app_logger().warning(
+                f"Could not determine server IP address: {e}. "
+                "All IPs will be tracked (including potential server IP)."
+            )
+            return None
+
+    def refresh_server_ip(self) -> Optional[str]:
+        """
+        Force refresh the cached server IP.
+        Use this if you suspect the IP has changed.
+
+        Returns:
+            New server IP address or None if unable to determine
+        """
+        return self.get_server_ip(refresh=True)
 
     @classmethod
     def from_yaml(cls) -> "Config":
@@ -139,8 +201,8 @@ class Config:
             infinite_pages_for_malicious=crawl.get(
                 "infinite_pages_for_malicious", True
             ),
-            max_pages_limit=crawl.get("max_pages_limit", 200),
-            ban_duration_seconds=crawl.get("ban_duration_seconds", 60),
+            max_pages_limit=crawl.get("max_pages_limit", 500),
+            ban_duration_seconds=crawl.get("ban_duration_seconds", 10),
         )
 
 
