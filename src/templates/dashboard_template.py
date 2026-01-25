@@ -1406,6 +1406,191 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             }});
         }}
 
+        function attachTopIpsClickListeners() {{
+            document.querySelectorAll('#top-ips-tbody .ip-clickable').forEach(cell => {{
+                cell.addEventListener('click', async function(e) {{
+                    const row = e.currentTarget.closest('.ip-row');
+                    if (!row) return;
+
+                    const ip = row.getAttribute('data-ip');
+                    const statsRow = row.nextElementSibling;
+                    if (!statsRow || !statsRow.classList.contains('ip-stats-row')) return;
+
+                    const isVisible = getComputedStyle(statsRow).display !== 'none';
+
+                    // Close other open rows in this table
+                    document.querySelectorAll('#top-ips-tbody .ip-stats-row').forEach(r => {{
+                        r.style.display = 'none';
+                    }});
+
+                    if (isVisible) return;
+
+                    statsRow.style.display = 'table-row';
+
+                    const dropdown = statsRow.querySelector('.ip-stats-dropdown');
+
+                    if (dropdown) {{
+                        dropdown.innerHTML = '<div class="loading">Loading stats...</div>';
+                        try {{
+                            const response = await fetch(`${{DASHBOARD_PATH}}/api/ip-stats/${{ip}}`, {{
+                                cache: 'no-store',
+                                headers: {{
+                                    'Cache-Control': 'no-cache',
+                                    'Pragma': 'no-cache'
+                                }}
+                            }});
+                            if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
+
+                            const data = await response.json();
+                            dropdown.innerHTML = data.error
+                                ? `<div style="color:#f85149;">Error: ${{data.error}}</div>`
+                                : formatIpStats(data);
+                        }} catch (err) {{
+                            dropdown.innerHTML = `<div style="color:#f85149;">Failed to load stats: ${{err.message}}</div>`;
+                        }}
+                    }}
+                }});
+            }});
+        }}
+
+        function attachHoneypotClickListeners() {{
+            document.querySelectorAll('#honeypot-tbody .ip-clickable').forEach(cell => {{
+                cell.addEventListener('click', async function(e) {{
+                    const row = e.currentTarget.closest('.ip-row');
+                    if (!row) return;
+
+                    const ip = row.getAttribute('data-ip');
+                    const statsRow = row.nextElementSibling;
+                    if (!statsRow || !statsRow.classList.contains('ip-stats-row')) return;
+
+                    const isVisible = getComputedStyle(statsRow).display !== 'none';
+
+                    document.querySelectorAll('#honeypot-tbody .ip-stats-row').forEach(r => {{
+                        r.style.display = 'none';
+                    }});
+
+                    if (isVisible) return;
+
+                    statsRow.style.display = 'table-row';
+
+                    const dropdown = statsRow.querySelector('.ip-stats-dropdown');
+
+                    if (dropdown) {{
+                        dropdown.innerHTML = '<div class="loading">Loading stats...</div>';
+                        try {{
+                            const response = await fetch(`${{DASHBOARD_PATH}}/api/ip-stats/${{ip}}`, {{
+                                cache: 'no-store',
+                                headers: {{
+                                    'Cache-Control': 'no-cache',
+                                    'Pragma': 'no-cache'
+                                }}
+                            }});
+                            if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
+
+                            const data = await response.json();
+                            dropdown.innerHTML = data.error
+                                ? `<div style="color:#f85149;">Error: ${{data.error}}</div>`
+                                : formatIpStats(data);
+                        }} catch (err) {{
+                            dropdown.innerHTML = `<div style="color:#f85149;">Failed to load stats: ${{err.message}}</div>`;
+                        }}
+                    }}
+                }});
+            }});
+        }}
+
+        function attachCredentialsClickListeners() {{
+            document.querySelectorAll('#credentials-tbody .ip-clickable').forEach(cell => {{
+                cell.addEventListener('click', async function(e) {{
+                    const row = e.currentTarget.closest('.ip-row');
+                    if (!row) return;
+
+                    const ip = row.getAttribute('data-ip');
+                    const statsRow = row.nextElementSibling;
+                    if (!statsRow || !statsRow.classList.contains('ip-stats-row')) return;
+
+                    const isVisible = getComputedStyle(statsRow).display !== 'none';
+
+                    document.querySelectorAll('#credentials-tbody .ip-stats-row').forEach(r => {{
+                        r.style.display = 'none';
+                    }});
+
+                    if (isVisible) return;
+
+                    statsRow.style.display = 'table-row';
+
+                    const dropdown = statsRow.querySelector('.ip-stats-dropdown');
+
+                    if (dropdown) {{
+                        dropdown.innerHTML = '<div class="loading">Loading stats...</div>';
+                        try {{
+                            const response = await fetch(`${{DASHBOARD_PATH}}/api/ip-stats/${{ip}}`, {{
+                                cache: 'no-store',
+                                headers: {{
+                                    'Cache-Control': 'no-cache',
+                                    'Pragma': 'no-cache'
+                                }}
+                            }});
+                            if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
+
+                            const data = await response.json();
+                            dropdown.innerHTML = data.error
+                                ? `<div style="color:#f85149;">Error: ${{data.error}}</div>`
+                                : formatIpStats(data);
+                        }} catch (err) {{
+                            dropdown.innerHTML = `<div style="color:#f85149;">Failed to load stats: ${{err.message}}</div>`;
+                        }}
+                    }}
+                }});
+            }});
+        }}
+
+        function attachAttacksClickListeners() {{
+            document.querySelectorAll('#attacks-tbody .ip-clickable').forEach(cell => {{
+                cell.addEventListener('click', async function(e) {{
+                    const row = e.currentTarget.closest('.ip-row');
+                    if (!row) return;
+
+                    const ip = row.getAttribute('data-ip');
+                    const statsRow = row.nextElementSibling;
+                    if (!statsRow || !statsRow.classList.contains('ip-stats-row')) return;
+
+                    const isVisible = getComputedStyle(statsRow).display !== 'none';
+
+                    document.querySelectorAll('#attacks-tbody .ip-stats-row').forEach(r => {{
+                        r.style.display = 'none';
+                    }});
+
+                    if (isVisible) return;
+
+                    statsRow.style.display = 'table-row';
+
+                    const dropdown = statsRow.querySelector('.ip-stats-dropdown');
+
+                    if (dropdown) {{
+                        dropdown.innerHTML = '<div class="loading">Loading stats...</div>';
+                        try {{
+                            const response = await fetch(`${{DASHBOARD_PATH}}/api/ip-stats/${{ip}}`, {{
+                                cache: 'no-store',
+                                headers: {{
+                                    'Cache-Control': 'no-cache',
+                                    'Pragma': 'no-cache'
+                                }}
+                            }});
+                            if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
+
+                            const data = await response.json();
+                            dropdown.innerHTML = data.error
+                                ? `<div style="color:#f85149;">Error: ${{data.error}}</div>`
+                                : formatIpStats(data);
+                        }} catch (err) {{
+                            dropdown.innerHTML = `<div style="color:#f85149;">Failed to load stats: ${{err.message}}</div>`;
+                        }}
+                    }}
+                }});
+            }});
+        }}
+
         // Overview tables state management
         const overviewState = {{
             honeypot: {{ currentPage: 1, totalPages: 1, total: 0, sortBy: 'count', sortOrder: 'desc' }},
@@ -1465,17 +1650,45 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     const rank = (state.currentPage - 1) * 5 + index + 1;
                     
                     if (tableId === 'honeypot') {{
-                        html += `<tr><td class="rank">${{rank}}</td><td>${{item.ip}}</td><td>${{item.paths.join(', ')}}</td><td>${{item.count}}</td></tr>`;
+                        html += `<tr class="ip-row" data-ip="${{item.ip}}"><td class="rank">${{rank}}</td><td class="ip-clickable">${{item.ip}}</td><td>${{item.paths.join(', ')}}</td><td>${{item.count}}</td></tr>`;
+                        html += `<tr class="ip-stats-row" id="stats-row-honeypot-${{item.ip.replace(/\\./g, '-')}}" style="display: none;">
+                            <td colspan="4" class="ip-stats-cell">
+                                <div class="ip-stats-dropdown">
+                                    <div class="loading">Loading stats...</div>
+                                </div>
+                            </td>
+                        </tr>`;
                     }} else if (tableId === 'credentials') {{
-                        html += `<tr><td class="rank">${{rank}}</td><td>${{item.ip}}</td><td>${{item.username}}</td><td>${{item.password}}</td><td>${{item.path}}</td><td>${{formatTimestamp(item.timestamp, true)}}</td></tr>`;
+                        html += `<tr class="ip-row" data-ip="${{item.ip}}"><td class="rank">${{rank}}</td><td class="ip-clickable">${{item.ip}}</td><td>${{item.username}}</td><td>${{item.password}}</td><td>${{item.path}}</td><td>${{formatTimestamp(item.timestamp, true)}}</td></tr>`;
+                        html += `<tr class="ip-stats-row" id="stats-row-credentials-${{item.ip.replace(/\\./g, '-')}}" style="display: none;">
+                            <td colspan="6" class="ip-stats-cell">
+                                <div class="ip-stats-dropdown">
+                                    <div class="loading">Loading stats...</div>
+                                </div>
+                            </td>
+                        </tr>`;
                     }} else if (tableId === 'top-ips') {{
-                        html += `<tr><td class="rank">${{rank}}</td><td>${{item.ip}}</td><td>${{item.count}}</td></tr>`;
+                        html += `<tr class="ip-row" data-ip="${{item.ip}}"><td class="rank">${{rank}}</td><td class="ip-clickable">${{item.ip}}</td><td>${{item.count}}</td></tr>`;
+                        html += `<tr class="ip-stats-row" id="stats-row-top-ips-${{item.ip.replace(/\\./g, '-')}}" style="display: none;">
+                            <td colspan="3" class="ip-stats-cell">
+                                <div class="ip-stats-dropdown">
+                                    <div class="loading">Loading stats...</div>
+                                </div>
+                            </td>
+                        </tr>`;
                     }} else if (tableId === 'top-paths') {{
                         html += `<tr><td class="rank">${{rank}}</td><td>${{item.path}}</td><td>${{item.count}}</td></tr>`;
                     }} else if (tableId === 'top-ua') {{
                         html += `<tr><td class="rank">${{rank}}</td><td style="word-break: break-all;">${{item.user_agent.substring(0, 80)}}</td><td>${{item.count}}</td></tr>`;
                     }} else if (tableId === 'attacks') {{
-                        html += `<tr><td class="rank">${{rank}}</td><td>${{item.ip}}</td><td>${{item.path}}</td><td>${{item.attack_types.join(', ')}}</td><td style="word-break: break-all;">${{item.user_agent.substring(0, 60)}}</td><td>${{formatTimestamp(item.timestamp, true)}}</td></tr>`;
+                        html += `<tr class="ip-row" data-ip="${{item.ip}}"><td class="rank">${{rank}}</td><td class="ip-clickable">${{item.ip}}</td><td>${{item.path}}</td><td>${{item.attack_types.join(', ')}}</td><td style="word-break: break-all;">${{item.user_agent.substring(0, 60)}}</td><td>${{formatTimestamp(item.timestamp, true)}}</td></tr>`;
+                        html += `<tr class="ip-stats-row" id="stats-row-attacks-${{item.ip.replace(/\\./g, '-')}}" style="display: none;">
+                            <td colspan="6" class="ip-stats-cell">
+                                <div class="ip-stats-dropdown">
+                                    <div class="loading">Loading stats...</div>
+                                </div>
+                            </td>
+                        </tr>`;
                     }}
                 }});
 
@@ -1484,6 +1697,17 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                 setTimeout(() => {{
                     tbody.innerHTML = html;
                     tbody.style.opacity = '1';
+
+                    // Attach click listeners for IP cells in tables
+                    if (tableId === 'top-ips') {{
+                        attachTopIpsClickListeners();
+                    }} else if (tableId === 'honeypot') {{
+                        attachHoneypotClickListeners();
+                    }} else if (tableId === 'credentials') {{
+                        attachCredentialsClickListeners();
+                    }} else if (tableId === 'attacks') {{
+                        attachAttacksClickListeners();
+                    }}
                 }}, 50);
             }} catch (err) {{
                 console.error('Error loading overview table ' + tableId + ':', err);
