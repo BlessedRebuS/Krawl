@@ -9,7 +9,8 @@ from zoneinfo import ZoneInfo
 import time
 from logger import get_app_logger
 import socket
-
+import time
+import requests
 import yaml
 
 
@@ -59,17 +60,7 @@ class Config:
         """
         Get the server's own public IP address.
         Excludes requests from the server itself from being tracked.
-
-        Caches the IP for 5 minutes to avoid repeated lookups.
-        Automatically refreshes if cache is stale.
-
-        Args:
-            refresh: Force refresh the IP cache (bypass TTL)
-
-        Returns:
-            Server IP address or None if unable to determine
         """
-        import time
 
         current_time = time.time()
 
@@ -82,17 +73,35 @@ class Config:
             return self._server_ip
 
         try:
-            hostname = socket.gethostname()
-
-            # Try to get public IP by connecting to an external server
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8", 80))
-            ip = s.getsockname()[0]
-            s.close()
+            # Try multiple external IP detection services (fallback chain)
+            ip_detection_services = [
+                "https://api.ipify.org",  # Plain text response
+                "http://ident.me",         # Plain text response
+                "https://ifconfig.me",     # Plain text response
+            ]
+            
+            ip = None
+            for service_url in ip_detection_services:
+                try:
+                    response = requests.get(service_url, timeout=5)
+                    if response.status_code == 200:
+                        ip = response.text.strip()
+                        if ip:
+                            break
+                except Exception:
+                    continue
+            
+            if not ip:
+                get_app_logger().warning(
+                    "Could not determine server IP from external services. "
+                    "All IPs will be tracked (including potential server IP)."
+                )
+                return None
 
             self._server_ip = ip
             self._server_ip_cache_time = current_time
 
+            get_app_logger().info(f"Server external IP detected: {ip}")
             return ip
 
         except Exception as e:
@@ -201,8 +210,8 @@ class Config:
             infinite_pages_for_malicious=crawl.get(
                 "infinite_pages_for_malicious", True
             ),
-            max_pages_limit=crawl.get("max_pages_limit", 500),
-            ban_duration_seconds=crawl.get("ban_duration_seconds", 10),
+            max_pages_limit=crawl.get("max_pages_limit", 250),
+            ban_duration_seconds=crawl.get("ban_duration_seconds", 600),
         )
 
 
