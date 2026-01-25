@@ -293,7 +293,7 @@ class DatabaseManager:
             session.commit()
         except Exception as e:
             session.rollback()
-            print(f"Error updating IP stats analysis: {e}")
+            applogger.error(f"Error updating IP stats analysis: {e}")
 
     def manual_update_category(self, ip: str, category: str) -> None:
         """
@@ -322,7 +322,7 @@ class DatabaseManager:
             session.commit()
         except Exception as e:
             session.rollback()
-            print(f"Error updating manual category: {e}")
+            applogger.error(f"Error updating manual category: {e}")
 
     def _record_category_change(
         self,
@@ -513,56 +513,6 @@ class DatabaseManager:
             ]
         finally:
             self.close_session()
-
-    # def persist_ip(
-    #     self,
-    #     ip: str
-    # ) -> Optional[int]:
-    #     """
-    #     Persist an ip entry to the database.
-
-    #     Args:
-    #         ip: Client IP address
-
-    #     Returns:
-    #         The ID of the created IpLog record, or None on error
-    #     """
-    #     session = self.session
-    #     try:
-    #         # Create access log with sanitized fields
-    #         ip_log = AccessLog(
-    #             ip=sanitize_ip(ip),
-    #             manual_category = False
-    #         )
-    #         session.add(access_log)
-    #         session.flush()  # Get the ID before committing
-
-    #         # Add attack detections if any
-    #         if attack_types:
-    #             matched_patterns = matched_patterns or {}
-    #             for attack_type in attack_types:
-    #                 detection = AttackDetection(
-    #                     access_log_id=access_log.id,
-    #                     attack_type=attack_type[:50],
-    #                     matched_pattern=sanitize_attack_pattern(
-    #                         matched_patterns.get(attack_type, "")
-    #                     )
-    #                 )
-    #                 session.add(detection)
-
-    #         # Update IP stats
-    #         self._update_ip_stats(session, ip)
-
-    #         session.commit()
-    #         return access_log.id
-
-    #     except Exception as e:
-    #         session.rollback()
-    #         # Log error but don't crash - database persistence is secondary to honeypot function
-    #         print(f"Database error persisting access: {e}")
-    #         return None
-    #     finally:
-    #         self.close_session()
 
     def get_credential_attempts(
         self, limit: int = 100, offset: int = 0, ip_filter: Optional[str] = None
@@ -854,7 +804,7 @@ class DatabaseManager:
         Args:
             limit: Maximum number of results
 
-        Returns:data
+        Returns:
             List of (path, count) tuples ordered by count descending
         """
         session = self.session
@@ -1375,47 +1325,6 @@ class DatabaseManager:
             }
         finally:
             self.close_session()
-
-    # def get_ip_logs(
-    #     self,
-    #     limit: int = 100,
-    #     offset: int = 0,
-    #     ip_filter: Optional[str] = None
-    # ) -> List[Dict[str, Any]]:
-    #     """
-    #     Retrieve ip logs with optional filtering.
-
-    #     Args:
-    #         limit: Maximum number of records to return
-    #         offset: Number of records to skip
-    #         ip_filter: Filter by IP address
-
-    #     Returns:
-    #         List of ip log dictionaries
-    #     """
-    #     session = self.session
-    #     try:
-    #         query = session.query(IpLog).order_by(IpLog.last_access.desc())
-
-    #         if ip_filter:
-    #             query = query.filter(IpLog.ip == sanitize_ip(ip_filter))
-
-    #         logs = query.offset(offset).limit(limit).all()
-
-    #         return [
-    #             {
-    #                 'id': log.id,
-    #                 'ip': log.ip,
-    #                 'stats': log.stats,
-    #                 'category': log.category,
-    #                 'manual_category': log.manual_category,
-    #                 'last_evaluation': log.last_evaluation,
-    #                 'last_access': log.last_access
-    #             }
-    #             for log in logs
-    #         ]
-    #     finally:
-    #         self.close_session()
 
 
 # Module-level singleton instance
