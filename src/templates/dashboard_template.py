@@ -45,45 +45,6 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
         dashboard_path: The secret dashboard path for generating API URLs
     """
 
-    # Generate IP rows with clickable functionality for dropdown stats
-    top_ips_rows = (
-        "\n".join([f"""<tr class="ip-row" data-ip="{_escape(ip)}">
-            <td class="rank">{i+1}</td>
-            <td class="ip-clickable">{_escape(ip)}</td>
-            <td>{count}</td>
-        </tr>
-        <tr class="ip-stats-row" id="stats-row-{_escape(ip).replace(".", "-")}" style="display: none;">
-            <td colspan="3" class="ip-stats-cell">
-                <div class="ip-stats-dropdown">
-                    <div class="loading">Loading stats...</div>
-                </div>
-            </td>
-        </tr>""" for i, (ip, count) in enumerate(stats["top_ips"])])
-        or '<tr><td colspan="3" style="text-align:center;">No data</td></tr>'
-    )
-
-    # Generate paths rows (CRITICAL: paths can contain XSS payloads)
-    top_paths_rows = (
-        "\n".join(
-            [
-                f'<tr><td class="rank">{i+1}</td><td>{_escape(path)}</td><td>{count}</td></tr>'
-                for i, (path, count) in enumerate(stats["top_paths"])
-            ]
-        )
-        or '<tr><td colspan="3" style="text-align:center;">No data</td></tr>'
-    )
-
-    # Generate User-Agent rows (CRITICAL: user agents can contain XSS payloads)
-    top_ua_rows = (
-        "\n".join(
-            [
-                f'<tr><td class="rank">{i+1}</td><td style="word-break: break-all;">{_escape(ua[:80])}</td><td>{count}</td></tr>'
-                for i, (ua, count) in enumerate(stats["top_user_agents"])
-            ]
-        )
-        or '<tr><td colspan="3" style="text-align:center;">No data</td></tr>'
-    )
-
     # Generate suspicious accesses rows with clickable IPs
     suspicious_rows = (
         "\n".join([f"""<tr class="ip-row" data-ip="{_escape(log["ip"])}">
@@ -102,66 +63,14 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
         or '<tr><td colspan="4" style="text-align:center;">No suspicious activity detected</td></tr>'
     )
 
-    # Generate honeypot triggered IPs rows with clickable IPs
-    honeypot_rows = (
-        "\n".join([f"""<tr class="ip-row" data-ip="{_escape(ip)}">
-            <td class="ip-clickable">{_escape(ip)}</td>
-            <td style="word-break: break-all;">{_escape(", ".join(paths))}</td>
-            <td>{len(paths)}</td>
-        </tr>
-        <tr class="ip-stats-row" id="stats-row-honeypot-{_escape(ip).replace(".", "-")}" style="display: none;">
-            <td colspan="3" class="ip-stats-cell">
-                <div class="ip-stats-dropdown">
-                    <div class="loading">Loading stats...</div>
-                </div>
-            </td>
-        </tr>""" for ip, paths in stats.get("honeypot_triggered_ips", [])])
-        or '<tr><td colspan="3" style="text-align:center;">No honeypot triggers yet</td></tr>'
-    )
-
-    # Generate attack types rows with clickable IPs
-    attack_type_rows = (
-        "\n".join([f"""<tr class="ip-row" data-ip="{_escape(log["ip"])}">
-            <td class="ip-clickable">{_escape(log["ip"])}</td>
-            <td>{_escape(log["path"])}</td>
-            <td>{_escape(", ".join(log["attack_types"]))}</td>
-            <td style="word-break: break-all;">{_escape(log["user_agent"][:60])}</td>
-            <td>{format_timestamp(log["timestamp"],time_only=True)}</td>
-        </tr>
-        <tr class="ip-stats-row" id="stats-row-attack-{_escape(log["ip"]).replace(".", "-")}" style="display: none;">
-            <td colspan="5" class="ip-stats-cell">
-                <div class="ip-stats-dropdown">
-                    <div class="loading">Loading stats...</div>
-                </div>
-            </td>
-        </tr>""" for log in stats.get("attack_types", [])[-10:]])
-        or '<tr><td colspan="4" style="text-align:center;">No attacks detected</td></tr>'
-    )
-
-    # Generate credential attempts rows with clickable IPs
-    credential_rows = (
-        "\n".join([f"""<tr class="ip-row" data-ip="{_escape(log["ip"])}">
-            <td class="ip-clickable">{_escape(log["ip"])}</td>
-            <td>{_escape(log["username"])}</td>
-            <td>{_escape(log["password"])}</td>
-            <td>{_escape(log["path"])}</td>
-            <td>{format_timestamp(log["timestamp"], time_only=True)}</td>
-        </tr>
-        <tr class="ip-stats-row" id="stats-row-cred-{_escape(log["ip"]).replace(".", "-")}" style="display: none;">
-            <td colspan="5" class="ip-stats-cell">
-                <div class="ip-stats-dropdown">
-                    <div class="loading">Loading stats...</div>
-                </div>
-            </td>
-        </tr>""" for log in stats.get("credential_attempts", [])[-20:]])
-        or '<tr><td colspan="5" style="text-align:center;">No credentials captured yet</td></tr>'
-    )
-
     return f"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <title>Krawl Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         body {{
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -205,7 +114,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
         }}
         .stats-grid {{
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 20px;
             margin-bottom: 40px;
         }}
@@ -291,6 +200,12 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
         th.sortable.desc::after {{
             content: '▼';
             opacity: 1;
+        }}
+        tbody {{
+            transition: opacity 0.1s ease;
+        }}
+        tbody {{
+            animation: fadeIn 0.3s ease-in;
         }}
         .ip-row {{
             transition: background-color 0.2s;
@@ -512,6 +427,160 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
         .timeline-marker.bad-crawler {{ background: #f0883e; }}
         .timeline-marker.regular-user {{ background: #58a6ff; }}
         .timeline-marker.unknown {{ background: #8b949e; }}
+        .tabs-container {{
+            border-bottom: 1px solid #30363d;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 2px;
+            background: #161b22;
+            border-radius: 6px 6px 0 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }}
+        .tab-button {{
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: #8b949e;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+            position: relative;
+            bottom: -1px;
+        }}
+        .tab-button:hover {{
+            color: #c9d1d9;
+            background: #1c2128;
+        }}
+        .tab-button.active {{
+            color: #58a6ff;
+            border-bottom-color: #58a6ff;
+        }}
+        .tab-content {{
+            display: none;
+        }}
+        .tab-content.active {{
+            display: block;
+        }}
+        .ip-stats-table {{
+            width: 100%;
+            border-collapse: collapse;
+        }}
+        .ip-stats-table th, .ip-stats-table td {{
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #30363d;
+        }}
+        .ip-stats-table th {{
+            background: #0d1117;
+            color: #58a6ff;
+            font-weight: 600;
+        }}
+        .ip-stats-table tr:hover {{
+            background: #1c2128;
+        }}
+        .ip-detail-modal {{
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }}
+        .ip-detail-modal.show {{
+            display: flex;
+        }}
+        .ip-detail-content {{
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }}
+        .ip-detail-close {{
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #8b949e;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }}
+        .ip-detail-close:hover {{
+            color: #c9d1d9;
+        }}
+        #attacker-map {{
+            background: #0d1117 !important;
+        }}
+        .leaflet-container {{
+            background: #0d1117 !important;
+        }}
+        .leaflet-tile {{
+            filter: none;
+        }}
+        .leaflet-popup-content-wrapper {{
+            background-color: #161b22;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+        }}
+        .leaflet-popup-content-wrapper a {{
+            color: #58a6ff;
+        }}
+        .leaflet-popup-tip {{
+            background: #161b22;
+            border-top: 6px solid #30363d;
+        }}
+        .attacker-marker {{
+            width: 20px;
+            height: 20px;
+            background: #f85149;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 0 8px rgba(248, 81, 73, 0.8), inset 0 0 4px rgba(248, 81, 73, 0.5);
+            cursor: pointer;
+        }}
+        .attacker-marker-cluster {{
+            background: #f85149 !important;
+            border: 2px solid #fff !important;
+            background-clip: padding-box !important;
+        }}
+        .attacker-marker-cluster div {{
+            background: #f85149 !important;
+        }}
+        .attacker-marker-cluster span {{
+            color: white !important;
+            font-weight: bold !important;
+        }}
+        .leaflet-bottom.leaflet-right {{
+            display: none !important;
+        }}
+        #attack-types-chart {{
+            max-height: 400px;
+        }}
 
     </style>
 </head>
@@ -549,25 +618,19 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                 <div class="stat-value alert">{len(stats.get('credential_attempts', []))}</div>
                 <div class="stat-label">Credentials Captured</div>
             </div>
+            <div class="stat-card alert">
+                <div class="stat-value alert">{stats.get('unique_attackers', 0)}</div>
+                <div class="stat-label">Unique Attackers</div>
+            </div>
         </div>
 
-        <div class="table-container alert-section">
-            <h2>Honeypot Triggers by IP</h2>
-            <table id="honeypot-table">
-                <thead>
-                    <tr>
-                        <th class="sortable" data-sort="ip">IP Address</th>
-                        <th>Accessed Paths</th>
-                        <th class="sortable" data-sort="count">Count</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {honeypot_rows}
-                </tbody>
-            </table>
+        <div class="tabs-container">
+            <a class="tab-button active" href="#overview">Overview</a>
+            <a class="tab-button" href="#ip-stats">Attacks</a>
         </div>
 
-        <div class="table-container alert-section">
+        <div id="overview" class="tab-content active">
+            <div class="table-container alert-section">
             <h2>Recent Suspicious Activity</h2>
             <table>
                 <thead>
@@ -585,87 +648,204 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
         </div>
 
         <div class="table-container alert-section">
-            <h2>Captured Credentials</h2>
-            <table>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                <h2 style="margin: 0;">Honeypot Triggers by IP</h2>
+                <div class="pagination-controls" id="honeypot-pagination" style="display: flex; align-items: center; gap: 12px; padding: 0; background: transparent;">
+                    <div style="display: flex; align-items: center; gap: 6px; color: #6e7681; font-weight: 400; font-size: 12px;">
+                        <span>Page <span class="current-page">1</span>/<span class="total-pages">1</span></span>
+                        <span style="color: #6e7681;">•</span>
+                        <span><span class="total-records">0</span> total</span>
+                    </div>
+                    <button class="pagination-btn" onclick="previousPage('honeypot')" style="padding: 6px 12px; background: #0969da; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 12px; transition: background 0.2s;">← Prev</button>
+                    <button class="pagination-btn" onclick="nextPage('honeypot')" style="padding: 6px 12px; background: #0969da; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 12px; transition: background 0.2s;">Next →</button>
+                </div>
+            </div>
+            <table id="honeypot-table" class="overview-table">
                 <thead>
                     <tr>
+                        <th>#</th>
+                        <th>IP Address</th>
+                        <th>Accessed Paths</th>
+                        <th class="sortable" data-sort="count" data-table="honeypot">Count</th>
+                    </tr>
+                </thead>
+                <tbody id="honeypot-tbody">
+                    <tr><td colspan="4" style="text-align: center;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+        <div class="table-container" style="flex: 1;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                <h2 style="margin: 0;">Top IP Addresses</h2>
+                <div class="pagination-controls" id="top-ips-pagination" style="display: flex; align-items: center; gap: 12px; padding: 0; background: transparent;">
+                    <div style="display: flex; align-items: center; gap: 6px; color: #6e7681; font-weight: 400; font-size: 12px;">
+                        <span>Page <span class="current-page">1</span>/<span class="total-pages">1</span></span>
+                        <span style="color: #6e7681;">•</span>
+                        <span><span class="total-records">0</span> total</span>
+                    </div>
+                    <button class="pagination-btn" onclick="previousPage('top-ips')" style="padding: 6px 12px; background: #0969da; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 12px; transition: background 0.2s;">← Prev</button>
+                    <button class="pagination-btn" onclick="nextPage('top-ips')" style="padding: 6px 12px; background: #0969da; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 12px; transition: background 0.2s;">Next →</button>
+                </div>
+            </div>
+            <table id="top-ips-table" class="overview-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>IP Address</th>
+                        <th class="sortable" data-sort="count" data-table="top-ips">Access Count</th>
+                    </tr>
+                </thead>
+                <tbody id="top-ips-tbody">
+                    <tr><td colspan="3" style="text-align: center;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-container" style="flex: 1;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                <h2 style="margin: 0;">Top User-Agents</h2>
+                <div class="pagination-controls" id="top-ua-pagination" style="display: flex; align-items: center; gap: 12px; padding: 0; background: transparent;">
+                    <div style="display: flex; align-items: center; gap: 6px; color: #6e7681; font-weight: 400; font-size: 12px;">
+                        <span>Page <span class="current-page">1</span>/<span class="total-pages">1</span></span>
+                        <span style="color: #6e7681;">•</span>
+                        <span><span class="total-records">0</span> total</span>
+                    </div>
+                    <button class="pagination-btn" onclick="previousPage('top-ua')" style="padding: 6px 12px; background: #0969da; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 12px; transition: background 0.2s;">← Prev</button>
+                    <button class="pagination-btn" onclick="nextPage('top-ua')" style="padding: 6px 12px; background: #0969da; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 12px; transition: background 0.2s;">Next →</button>
+                </div>
+            </div>
+            <table id="top-ua-table" class="overview-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>User-Agent</th>
+                        <th class="sortable" data-sort="count" data-table="top-ua">Count</th>
+                    </tr>
+                </thead>
+                <tbody id="top-ua-tbody">
+                    <tr><td colspan="3" style="text-align: center;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        </div>
+        </div>
+
+        <div id="ip-stats" class="tab-content">
+            <div class="table-container" style="margin-bottom: 30px;">
+                <h2>Attacker Origins Map</h2>
+                <div id="attacker-map" style="height: 500px; border-radius: 6px; overflow: hidden; border: 1px solid #30363d; background: #161b22;">
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #8b949e;">Loading map...</div>
+                </div>
+            </div>
+
+            <div class="table-container alert-section" style="position: relative;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">Attackers by Total Requests</h2>
+                    <div class="pagination-controls" style="display: flex; align-items: center; gap: 12px; padding: 0; background: transparent;">
+                        <div style="display: flex; align-items: center; gap: 6px; color: #6e7681; font-weight: 400; font-size: 12px;">
+                            <span>Page <span id="current-page">1</span>/<span id="total-pages">1</span></span>
+                            <span style="color: #6e7681;">•</span>
+                            <span><span id="total-attackers">0</span> total</span>
+                        </div>
+                        <button id="prev-page-btn" class="pagination-btn" onclick="previousPageIpStats()" style="padding: 6px 12px; background: #0969da; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 12px; transition: background 0.2s;">← Prev</button>
+                        <button id="next-page-btn" class="pagination-btn" onclick="nextPageIpStats()" style="padding: 6px 12px; background: #0969da; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 12px; transition: background 0.2s;">Next →</button>
+                    </div>
+                </div>
+
+                <table class="ip-stats-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>IP Address</th>
+                            <th class="sortable" data-sort="total_requests">Total Requests</th>
+                            <th>First Seen</th>
+                            <th>Last Seen</th>
+                            <th>Location</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ip-stats-tbody">
+                        <!-- Dynamically populated -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-container alert-section">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                <h2 style="margin: 0;">Captured Credentials</h2>
+                <div class="pagination-controls" id="credentials-pagination" style="display: flex; align-items: center; gap: 12px; padding: 0; background: transparent;">
+                    <div style="display: flex; align-items: center; gap: 6px; color: #6e7681; font-weight: 400; font-size: 12px;">
+                        <span>Page <span class="current-page">1</span>/<span class="total-pages">1</span></span>
+                        <span style="color: #6e7681;">•</span>
+                        <span><span class="total-records">0</span> total</span>
+                    </div>
+                    <button class="pagination-btn" onclick="previousPage('credentials')" style="padding: 6px 12px; background: #0969da; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 12px; transition: background 0.2s;">← Prev</button>
+                    <button class="pagination-btn" onclick="nextPage('credentials')" style="padding: 6px 12px; background: #0969da; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 12px; transition: background 0.2s;">Next →</button>
+                </div>
+            </div>
+            <table id="credentials-table" class="overview-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
                         <th>IP Address</th>
                         <th>Username</th>
                         <th>Password</th>
                         <th>Path</th>
-                        <th>Time</th>
+                        <th class="sortable" data-sort="timestamp" data-table="credentials">Time</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {credential_rows}
+                <tbody id="credentials-tbody">
+                    <tr><td colspan="6" style="text-align: center;">Loading...</td></tr>
                 </tbody>
             </table>
         </div>
 
         <div class="table-container alert-section">
-            <h2>Detected Attack Types</h2>
-            <table>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                <h2 style="margin: 0;">Detected Attack Types</h2>
+                <div class="pagination-controls" id="attacks-pagination" style="display: flex; align-items: center; gap: 12px; padding: 0; background: transparent;">
+                    <div style="display: flex; align-items: center; gap: 6px; color: #6e7681; font-weight: 400; font-size: 12px;">
+                        <span>Page <span class="current-page">1</span>/<span class="total-pages">1</span></span>
+                        <span style="color: #6e7681;">•</span>
+                        <span><span class="total-records">0</span> total</span>
+                    </div>
+                    <button class="pagination-btn" onclick="previousPage('attacks')" style="padding: 6px 12px; background: #0969da; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 12px; transition: background 0.2s;">← Prev</button>
+                    <button class="pagination-btn" onclick="nextPage('attacks')" style="padding: 6px 12px; background: #0969da; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 12px; transition: background 0.2s;">Next →</button>
+                </div>
+            </div>
+            <table id="attacks-table" class="overview-table">
                 <thead>
                     <tr>
+                        <th>#</th>
                         <th>IP Address</th>
                         <th>Path</th>
                         <th>Attack Types</th>
                         <th>User-Agent</th>
-                        <th>Time</th>
+                        <th class="sortable" data-sort="timestamp" data-table="attacks">Time</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {attack_type_rows}
+                <tbody id="attacks-tbody">
+                    <tr><td colspan="6" style="text-align: center;">Loading...</td></tr>
                 </tbody>
             </table>
         </div>
 
-        <div class="table-container">
-            <h2>Top IP Addresses</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>IP Address</th>
-                        <th>Access Count</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {top_ips_rows}
-                </tbody>
-            </table>
+        <div class="table-container alert-section" style="margin-top: 20px;">
+            <h2>Most Recurring Attack Types</h2>
+            <div style="position: relative; height: 400px; margin-top: 20px;">
+                <canvas id="attack-types-chart"></canvas>
+            </div>
+        </div>
         </div>
 
-        <div class="table-container">
-            <h2>Top Paths</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Path</th>
-                        <th>Access Count</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {top_paths_rows}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="table-container">
-            <h2>Top User-Agents</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>User-Agent</th>
-                        <th>Count</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {top_ua_rows}
-                </tbody>
-            </table>
+        <div id="ip-detail-modal" class="ip-detail-modal">
+            <div class="ip-detail-content">
+                <button class="ip-detail-close" onclick="closeIpDetailModal()">×</button>
+                <div id="ip-detail-body">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
         </div>
     </div>
     <script>
@@ -987,6 +1167,794 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             }}
 
             return html;
+        }}
+
+        // Tab functionality with hash-based routing
+        function switchTab(tabName) {{
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {{
+                tab.classList.remove('active');
+            }});
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {{
+                btn.classList.remove('active');
+            }});
+            
+            // Show selected tab
+            const selectedTab = document.getElementById(tabName);
+            const selectedButton = document.querySelector(`.tab-button[href="#${{tabName}}"]`);
+            
+            if (selectedTab) {{
+                selectedTab.classList.add('active');
+            }}
+            if (selectedButton) {{
+                selectedButton.classList.add('active');
+            }}
+            
+            // Load data for this tab
+            if (tabName === 'ip-stats') {{
+                loadIpStatistics(1);
+                // Load attack and credentials tables if not already loaded
+                if (!overviewState.attacks.loaded) {{
+                    loadOverviewTable('attacks');
+                    overviewState.attacks.loaded = true;
+                }}
+                if (!overviewState.credentials.loaded) {{
+                    loadOverviewTable('credentials');
+                    overviewState.credentials.loaded = true;
+                }}
+            }}
+        }}
+
+        // Handle hash changes
+        window.addEventListener('hashchange', function() {{
+            const hash = window.location.hash.slice(1) || 'overview';
+            switchTab(hash);
+        }});
+
+        // Initialize tabs on page load
+        document.addEventListener('DOMContentLoaded', function() {{
+            const hash = window.location.hash.slice(1) || 'overview';
+            switchTab(hash);
+        }});
+
+        // Prevent default anchor behavior and use hash navigation
+        document.querySelectorAll('.tab-button').forEach(button => {{
+            button.addEventListener('click', function(e) {{
+                e.preventDefault();
+                const href = this.getAttribute('href');
+                window.location.hash = href;
+            }});
+        }});
+
+        // Handle sorting for IP stats table
+        document.addEventListener('click', function(e) {{
+            if (e.target.classList.contains('sortable') && e.target.closest('#ip-stats-tbody')) {{
+                return; // Don't sort when inside tbody
+            }}
+            
+            const sortHeader = e.target.closest('th.sortable');
+            if (!sortHeader) return;
+
+            const table = sortHeader.closest('table');
+            if (!table || !table.classList.contains('ip-stats-table')) return;
+
+            const sortField = sortHeader.getAttribute('data-sort');
+            
+            // Toggle sort order if clicking the same field
+            if (currentSortBy === sortField) {{
+                currentSortOrder = currentSortOrder === 'desc' ? 'asc' : 'desc';
+            }} else {{
+                currentSortBy = sortField;
+                currentSortOrder = 'desc';
+            }}
+
+            // Update UI indicators
+            table.querySelectorAll('th.sortable').forEach(th => {{
+                th.classList.remove('asc', 'desc');
+            }});
+            sortHeader.classList.add(currentSortOrder);
+
+            // Reload with new sort
+            loadIpStatistics(1);
+        }});
+
+        let currentPage = 1;
+        let totalPages = 1;
+        let currentSortBy = "total_requests";
+        let currentSortOrder = "desc";
+        const PAGE_SIZE = 5;
+
+        async function loadIpStatistics(page = 1) {{
+            const tbody = document.getElementById('ip-stats-tbody');
+            if (!tbody) {{
+                console.error('IP stats tbody not found');
+                return;
+            }}
+            
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Loading...</td></tr>';
+            
+            try {{
+                console.log('Fetching attackers from page:', page, 'sort:', currentSortBy, currentSortOrder);
+                const response = await fetch(DASHBOARD_PATH + '/api/attackers?page=' + page + '&page_size=' + PAGE_SIZE + '&sort_by=' + currentSortBy + '&sort_order=' + currentSortOrder, {{
+                    cache: 'no-store',
+                    headers: {{
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }}
+                }});
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
+                
+                const data = await response.json();
+                console.log('Received data:', data);
+                
+                if (!data.attackers || data.attackers.length === 0) {{
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No attackers on this page.</td></tr>';
+                    currentPage = page;
+                    totalPages = data.pagination?.total_pages || 1;
+                    updatePaginationControls();
+                    return;
+                }}
+                
+                // Update pagination info
+                currentPage = data.pagination.page;
+                totalPages = data.pagination.total_pages;
+                document.getElementById('current-page').textContent = currentPage;
+                document.getElementById('total-pages').textContent = totalPages;
+                document.getElementById('total-attackers').textContent = data.pagination.total_attackers;
+                updatePaginationControls();
+                
+                let html = '';
+                data.attackers.forEach((attacker, index) => {{
+                    const rank = (currentPage - 1) * PAGE_SIZE + index + 1;
+                    html += `<tr class="ip-row" data-ip="${{attacker.ip}}">
+                        <td class="rank">${{rank}}</td>
+                        <td class="ip-clickable">${{attacker.ip}}</td>
+                        <td>${{attacker.total_requests}}</td>
+                        <td>${{formatTimestamp(attacker.first_seen)}}</td>
+                        <td>${{formatTimestamp(attacker.last_seen)}}</td>
+                        <td>${{attacker.city || 'Unknown'}}${{attacker.city && attacker.country_code ? ', ' : ''}}${{attacker.country_code || ''}}</td>
+                    </tr>
+                    <tr class="ip-stats-row" id="stats-row-${{attacker.ip.replace('.', '-')}}" style="display: none;">
+                        <td colspan="6" class="ip-stats-cell">
+                            <div class="ip-stats-dropdown">
+                                <div class="loading">Loading stats...</div>
+                            </div>
+                        </td>
+                    </tr>`;
+                }});
+                
+                tbody.innerHTML = html;
+                console.log('Populated', data.attackers.length, 'attacker records');
+                
+                // Re-attach click listeners for expandable rows
+                attachAttackerClickListeners();
+            }} catch (err) {{
+                console.error('Error loading attackers:', err);
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #f85149;">Failed to load: ${{err.message}}</td></tr>`;
+            }}
+        }}
+
+        function updatePaginationControls() {{
+            const prevBtn = document.getElementById('prev-page-btn');
+            const nextBtn = document.getElementById('next-page-btn');
+            
+            if (prevBtn) prevBtn.disabled = currentPage <= 1;
+            if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+        }}
+
+        function previousPageIpStats() {{
+            if (currentPage > 1) {{
+                loadIpStatistics(currentPage - 1);
+            }}
+        }}
+
+        function nextPageIpStats() {{
+            if (currentPage < totalPages) {{
+                loadIpStatistics(currentPage + 1);
+            }}
+        }}
+
+        function attachAttackerClickListeners() {{
+            document.querySelectorAll('#ip-stats-tbody .ip-clickable').forEach(cell => {{
+                cell.addEventListener('click', async function(e) {{
+                    const row = e.currentTarget.closest('.ip-row');
+                    if (!row) return;
+
+                    const ip = row.getAttribute('data-ip');
+                    const statsRow = row.nextElementSibling;
+                    if (!statsRow || !statsRow.classList.contains('ip-stats-row')) return;
+
+                    const isVisible = getComputedStyle(statsRow).display !== 'none';
+
+                    // Close other open rows
+                    document.querySelectorAll('#ip-stats-tbody .ip-stats-row').forEach(r => {{
+                        r.style.display = 'none';
+                    }});
+
+                    if (isVisible) return;
+
+                    statsRow.style.display = 'table-row';
+
+                    const dropdown = statsRow.querySelector('.ip-stats-dropdown');
+
+                    if (dropdown) {{
+                        dropdown.innerHTML = '<div class="loading">Loading stats...</div>';
+                        try {{
+                            const response = await fetch(`${{DASHBOARD_PATH}}/api/ip-stats/${{ip}}`, {{
+                                cache: 'no-store',
+                                headers: {{
+                                    'Cache-Control': 'no-cache',
+                                    'Pragma': 'no-cache'
+                                }}
+                            }});
+                            if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
+
+                            const data = await response.json();
+                            dropdown.innerHTML = data.error
+                                ? `<div style="color:#f85149;">Error: ${{data.error}}</div>`
+                                : formatIpStats(data);
+                        }} catch (err) {{
+                            dropdown.innerHTML = `<div style="color:#f85149;">Failed to load stats: ${{err.message}}</div>`;
+                        }}
+                    }}
+                }});
+            }});
+        }}
+
+        // Overview tables state management
+        const overviewState = {{
+            honeypot: {{ currentPage: 1, totalPages: 1, total: 0, sortBy: 'count', sortOrder: 'desc' }},
+            credentials: {{ currentPage: 1, totalPages: 1, total: 0, sortBy: 'timestamp', sortOrder: 'desc', loaded: false }},
+            'top-ips': {{ currentPage: 1, totalPages: 1, total: 0, sortBy: 'count', sortOrder: 'desc' }},
+            'top-paths': {{ currentPage: 1, totalPages: 1, total: 0, sortBy: 'count', sortOrder: 'desc' }},
+            'top-ua': {{ currentPage: 1, totalPages: 1, total: 0, sortBy: 'count', sortOrder: 'desc' }},
+            attacks: {{ currentPage: 1, totalPages: 1, total: 0, sortBy: 'timestamp', sortOrder: 'desc', loaded: false }}
+        }};
+
+        const tableConfig = {{
+            honeypot: {{ endpoint: 'honeypot', dataKey: 'honeypots', cellCount: 4, columns: ['ip', 'paths', 'count'] }},
+            credentials: {{ endpoint: 'credentials', dataKey: 'credentials', cellCount: 6, columns: ['ip', 'username', 'password', 'path', 'timestamp'] }},
+            'top-ips': {{ endpoint: 'top-ips', dataKey: 'ips', cellCount: 3, columns: ['ip', 'count'] }},
+            'top-paths': {{ endpoint: 'top-paths', dataKey: 'paths', cellCount: 3, columns: ['path', 'count'] }},
+            'top-ua': {{ endpoint: 'top-user-agents', dataKey: 'user_agents', cellCount: 3, columns: ['user_agent', 'count'] }},
+            attacks: {{ endpoint: 'attack-types', dataKey: 'attacks', cellCount: 6, columns: ['ip', 'path', 'attack_types', 'user_agent', 'timestamp'] }}
+        }};
+
+        // Load overview table on page load
+        async function loadOverviewTable(tableId) {{
+            const config = tableConfig[tableId];
+            if (!config) return;
+            
+            const state = overviewState[tableId];
+            const tbody = document.getElementById(tableId + '-tbody');
+            if (!tbody) return;
+
+            // Just fade out without showing loading text
+            tbody.style.opacity = '0';
+
+            try {{
+                const url = DASHBOARD_PATH + '/api/' + config.endpoint + '?page=' + state.currentPage + '&page_size=5&sort_by=' + state.sortBy + '&sort_order=' + state.sortOrder;
+                const response = await fetch(url, {{ cache: 'no-store', headers: {{ 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }} }});
+                if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
+
+                const data = await response.json();
+                const items = data[config.dataKey] || [];
+                const pagination = data.pagination || {{}};
+
+                state.currentPage = pagination.page || 1;
+                state.totalPages = pagination.total_pages || 1;
+                state.total = pagination.total || 0;
+                updateOverviewPaginationControls(tableId);
+
+                if (items.length === 0) {{
+                    tbody.style.opacity = '0';
+                    setTimeout(() => {{
+                        tbody.innerHTML = '<tr><td colspan="' + config.cellCount + '" style="text-align: center; color: #6e7681; padding: 20px; font-size: 13px;">No data</td></tr>';
+                        tbody.style.opacity = '1';
+                    }}, 50);
+                    return;
+                }}
+
+                let html = '';
+                items.forEach((item, index) => {{
+                    const rank = (state.currentPage - 1) * 5 + index + 1;
+                    
+                    if (tableId === 'honeypot') {{
+                        html += `<tr><td class="rank">${{rank}}</td><td>${{item.ip}}</td><td>${{item.paths.join(', ')}}</td><td>${{item.count}}</td></tr>`;
+                    }} else if (tableId === 'credentials') {{
+                        html += `<tr><td class="rank">${{rank}}</td><td>${{item.ip}}</td><td>${{item.username}}</td><td>${{item.password}}</td><td>${{item.path}}</td><td>${{formatTimestamp(item.timestamp, true)}}</td></tr>`;
+                    }} else if (tableId === 'top-ips') {{
+                        html += `<tr><td class="rank">${{rank}}</td><td>${{item.ip}}</td><td>${{item.count}}</td></tr>`;
+                    }} else if (tableId === 'top-paths') {{
+                        html += `<tr><td class="rank">${{rank}}</td><td>${{item.path}}</td><td>${{item.count}}</td></tr>`;
+                    }} else if (tableId === 'top-ua') {{
+                        html += `<tr><td class="rank">${{rank}}</td><td style="word-break: break-all;">${{item.user_agent.substring(0, 80)}}</td><td>${{item.count}}</td></tr>`;
+                    }} else if (tableId === 'attacks') {{
+                        html += `<tr><td class="rank">${{rank}}</td><td>${{item.ip}}</td><td>${{item.path}}</td><td>${{item.attack_types.join(', ')}}</td><td style="word-break: break-all;">${{item.user_agent.substring(0, 60)}}</td><td>${{formatTimestamp(item.timestamp, true)}}</td></tr>`;
+                    }}
+                }});
+
+                // Fade in new content
+                tbody.style.opacity = '0';
+                setTimeout(() => {{
+                    tbody.innerHTML = html;
+                    tbody.style.opacity = '1';
+                }}, 50);
+            }} catch (err) {{
+                console.error('Error loading overview table ' + tableId + ':', err);
+                tbody.style.opacity = '0';
+                setTimeout(() => {{
+                    tbody.innerHTML = '<tr><td colspan="' + config.cellCount + '" style="text-align: center; color: #f85149; padding: 20px; font-size: 13px;">Failed to load</td></tr>';
+                    tbody.style.opacity = '1';
+                }}, 50);
+            }}
+        }}
+
+        function updateOverviewPaginationControls(tableId) {{
+            const state = overviewState[tableId];
+            const pagination = document.getElementById(tableId + '-pagination');
+            if (!pagination) return;
+
+            const prevBtn = pagination.querySelector('.pagination-btn:nth-child(2)');
+            const nextBtn = pagination.querySelector('.pagination-btn:nth-child(3)');
+            const currentPageEl = pagination.querySelector('.current-page');
+            const totalPagesEl = pagination.querySelector('.total-pages');
+            const totalRecordsEl = pagination.querySelector('.total-records');
+
+            if (prevBtn) prevBtn.disabled = state.currentPage <= 1;
+            if (nextBtn) nextBtn.disabled = state.currentPage >= state.totalPages;
+            if (currentPageEl) currentPageEl.textContent = state.currentPage;
+            if (totalPagesEl) totalPagesEl.textContent = state.totalPages;
+            if (totalRecordsEl) totalRecordsEl.textContent = state.total;
+        }}
+
+        function previousPage(tableId) {{
+            if (overviewState[tableId].currentPage > 1) {{
+                overviewState[tableId].currentPage--;
+                loadOverviewTable(tableId);
+            }}
+        }}
+
+        function nextPage(tableId) {{
+            if (overviewState[tableId].currentPage < overviewState[tableId].totalPages) {{
+                overviewState[tableId].currentPage++;
+                loadOverviewTable(tableId);
+            }}
+        }}
+
+        // Handle sorting for overview tables
+        document.addEventListener('click', function(e) {{
+            const header = e.target.closest('th.sortable[data-table]');
+            if (!header) return;
+
+            const tableId = header.getAttribute('data-table');
+            const sortField = header.getAttribute('data-sort');
+            const state = overviewState[tableId];
+            if (!state) return;
+
+            // Toggle sort order if same field
+            if (state.sortBy === sortField) {{
+                state.sortOrder = state.sortOrder === 'desc' ? 'asc' : 'desc';
+            }} else {{
+                state.sortBy = sortField;
+                state.sortOrder = 'desc';
+            }}
+
+            // Update UI and reload
+            const table = header.closest('table');
+            if (table) {{
+                table.querySelectorAll('th.sortable').forEach(th => {{
+                    th.classList.remove('asc', 'desc');
+                }});
+                header.classList.add(state.sortOrder);
+            }}
+
+            state.currentPage = 1;
+            loadOverviewTable(tableId);
+        }});
+
+        // Load all overview tables when page loads
+        window.addEventListener('load', function() {{
+            // Only load tables that are in the Overview tab
+            const overviewTableIds = ['honeypot', 'top-ips', 'top-paths', 'top-ua'];
+            overviewTableIds.forEach(tableId => {{
+                loadOverviewTable(tableId);
+            }});
+        }})
+
+        async function showIpDetail(ip) {{
+            const modal = document.getElementById('ip-detail-modal');
+            const bodyDiv = document.getElementById('ip-detail-body');
+            
+            if (!modal || !bodyDiv) return;
+            
+            bodyDiv.innerHTML = '<div class="loading" style="text-align: center;">Loading IP details...</div>';
+            modal.classList.add('show');
+            
+            try {{
+                const response = await fetch(`${{DASHBOARD_PATH}}/api/ip-stats/${{ip}}`, {{
+                    cache: 'no-store',
+                    headers: {{
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }}
+                }});
+                
+                if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
+                
+                const stats = await response.json();
+                bodyDiv.innerHTML = '<h2>' + stats.ip + ' - Detailed Statistics</h2>' + formatIpStats(stats);
+            }} catch (err) {{
+                bodyDiv.innerHTML = `<div style="color: #f85149;">Failed to load details: ${{err.message}}</div>`;
+            }}
+        }}
+
+        function closeIpDetailModal() {{
+            const modal = document.getElementById('ip-detail-modal');
+            if (modal) {{
+                modal.classList.remove('show');
+            }}
+        }}
+
+        // Close modal when clicking outside
+        document.getElementById('ip-detail-modal')?.addEventListener('click', function(e) {{
+            if (e.target === this) {{
+                closeIpDetailModal();
+            }}
+        }});
+
+        // Add CSS for view button
+        const style = document.createElement('style');
+        style.textContent = `
+            .view-btn {{
+                padding: 6px 12px;
+                background: #238636;
+                color: #ffffff;
+                border: 1px solid #2ea043;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 500;
+                transition: background 0.2s;
+            }}
+            .view-btn:hover {{
+                background: #2ea043;
+            }}
+            .view-btn:active {{
+                background: #1f7a2f;
+            }}
+            .pagination-btn:hover:not(:disabled) {{
+                background: #1f6feb !important;
+            }}
+            .pagination-btn:disabled {{
+                opacity: 0.5;
+                cursor: not-allowed;
+            }}
+        `;
+        document.head.appendChild(style);
+
+        // Attacker Map Visualization
+        let attackerMap = null;
+        let mapMarkers = [];
+
+        async function initializeAttackerMap() {{
+            const mapContainer = document.getElementById('attacker-map');
+            if (!mapContainer || attackerMap) return;
+
+            try {{
+                // Initialize map
+                attackerMap = L.map('attacker-map', {{
+                    center: [20, 0],
+                    zoom: 2,
+                    layers: [
+                        L.tileLayer('https://{{s}}.basemaps.cartocdn.com/dark_all/{{z}}/{{x}}/{{y}}{{r}}.png', {{
+                            attribution: '© CartoDB | © OpenStreetMap contributors',
+                            maxZoom: 19,
+                            subdomains: 'abcd'
+                        }})
+                    ]
+                }});
+
+                // Fetch all attackers
+                const response = await fetch(DASHBOARD_PATH + '/api/attackers?page=1&page_size=100&sort_by=total_requests&sort_order=desc', {{
+                    cache: 'no-store',
+                    headers: {{
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }}
+                }});
+
+                if (!response.ok) throw new Error('Failed to fetch attackers');
+                
+                const data = await response.json();
+                const attackers = data.attackers || [];
+
+                if (attackers.length === 0) {{
+                    mapContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #8b949e;\">No attacker location data available</div>';
+                    return;
+                }}
+
+                // Get max request count for scaling
+                const maxRequests = Math.max(...attackers.map(a => a.total_requests || 0));
+
+                // Create a map of country locations (approximate country centers)
+                const countryCoordinates = {{
+                    'US': [37.1, -95.7], 'GB': [55.4, -3.4], 'CN': [35.9, 104.1], 'RU': [61.5, 105.3],
+                    'JP': [36.2, 138.3], 'DE': [51.2, 10.5], 'FR': [46.6, 2.2], 'IN': [20.6, 78.96],
+                    'BR': [-14.2, -51.9], 'CA': [56.1, -106.3], 'AU': [-25.3, 133.8], 'MX': [23.6, -102.6],
+                    'ZA': [-30.6, 22.9], 'KR': [35.9, 127.8], 'IT': [41.9, 12.6], 'ES': [40.5, -3.7],
+                    'NL': [52.1, 5.3], 'SE': [60.1, 18.6], 'CH': [46.8, 8.2], 'PL': [51.9, 19.1],
+                    'SG': [1.4, 103.8], 'HK': [22.4, 114.1], 'TW': [23.7, 120.96], 'TH': [15.9, 100.9],
+                    'VN': [14.1, 108.8], 'ID': [-0.8, 113.2], 'PH': [12.9, 121.8], 'MY': [4.2, 101.7],
+                    'PK': [30.4, 69.2], 'BD': [23.7, 90.4], 'NG': [9.1, 8.7], 'EG': [26.8, 30.8],
+                    'TR': [38.9, 35.2], 'IR': [32.4, 53.7], 'AE': [23.4, 53.8], 'KZ': [48.0, 66.9],
+                    'UA': [48.4, 31.2], 'BG': [42.7, 25.5], 'RO': [45.9, 24.97], 'CZ': [49.8, 15.5],
+                    'HU': [47.2, 19.5], 'AT': [47.5, 14.6], 'BE': [50.5, 4.5], 'DK': [56.3, 9.5],
+                    'FI': [61.9, 25.8], 'NO': [60.5, 8.5], 'GR': [39.1, 21.8], 'PT': [39.4, -8.2]
+                }};
+
+                // Add markers for each attacker
+                const markerGroup = L.featureGroup();
+
+                attackers.slice(0, 50).forEach(attacker => {{
+                    if (!attacker.country_code) return;
+
+                    const coords = countryCoordinates[attacker.country_code];
+                    if (!coords) return;
+
+                    // Calculate marker size based on request count
+                    const sizeRatio = (attacker.total_requests / maxRequests) * 0.7 + 0.3;
+                    const markerSize = Math.max(15, Math.min(40, 20 * sizeRatio));
+
+                    // Create custom marker element
+                    const markerElement = document.createElement('div');
+                    markerElement.className = 'attacker-marker';
+                    markerElement.style.width = markerSize + 'px';
+                    markerElement.style.height = markerSize + 'px';
+                    markerElement.style.fontSize = (markerSize * 0.5) + 'px';
+                    markerElement.textContent = '●';
+
+                    const marker = L.marker(coords, {{
+                        icon: L.divIcon({{
+                            html: markerElement,
+                            iconSize: [markerSize, markerSize],
+                            className: 'attacker-custom-marker'
+                        }})
+                    }});
+
+                    // Create popup content
+                    const popupContent = `
+                        <div style="padding: 8px; min-width: 200px;">
+                            <strong style="color: #58a6ff;">${{attacker.ip}}</strong><br/>
+                            <span style="color: #8b949e; font-size: 12px;">
+                                ${{attacker.city || ''}}${{attacker.city && attacker.country_code ? ', ' : ''}}${{attacker.country_code || 'Unknown'}}
+                            </span><br/>
+                            <div style="margin-top: 8px; border-top: 1px solid #30363d; padding-top: 8px;">
+                                <div><span style="color: #8b949e;">Requests:</span> <span style="color: #f85149; font-weight: bold;">${{attacker.total_requests}}</span></div>
+                                <div><span style="color: #8b949e;">First Seen:</span> <span style="color: #58a6ff;">${{formatTimestamp(attacker.first_seen)}}</span></div>
+                                <div><span style="color: #8b949e;">Last Seen:</span> <span style="color: #58a6ff;">${{formatTimestamp(attacker.last_seen)}}</span></div>
+                            </div>
+                        </div>
+                    `;
+
+                    marker.bindPopup(popupContent);
+                    markerGroup.addLayer(marker);
+                    mapMarkers.push(marker);
+                }});
+
+                // Add cluster circle effect
+                const circleGroup = L.featureGroup();
+                const countryAttackerCount = {{}};
+                
+                attackers.forEach(attacker => {{
+                    if (attacker.country_code) {{
+                        countryAttackerCount[attacker.country_code] = (countryAttackerCount[attacker.country_code] || 0) + 1;
+                    }}
+                }});
+
+                Object.entries(countryAttackerCount).forEach(([country, count]) => {{
+                    const coords = countryCoordinates[country];
+                    if (coords) {{
+                        const circle = L.circle(coords, {{
+                            radius: 100000 + (count * 150000),
+                            color: '#f85149',
+                            fillColor: '#f85149',
+                            fillOpacity: 0.15,
+                            weight: 1,
+                            opacity: 0.4,
+                            dashArray: '3'
+                        }});
+                        circleGroup.addLayer(circle);
+                    }}
+                }});
+
+                attackerMap.addLayer(circleGroup);
+                markerGroup.addTo(attackerMap);
+                
+                // Fit map to markers
+                if (markerGroup.getLayers().length > 0) {{
+                    attackerMap.fitBounds(markerGroup.getBounds(), {{ padding: [50, 50] }});
+                }}
+
+            }} catch (err) {{
+                console.error('Error initializing attacker map:', err);
+                mapContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #f85149;">Failed to load map: ' + err.message + '</div>';
+            }}
+        }}
+
+        // Initialize map when Attacks tab is opened
+        const originalSwitchTab = window.switchTab;
+        let attackTypesChartLoaded = false;
+        
+        window.switchTab = function(tabName) {{
+            originalSwitchTab(tabName);
+            if (tabName === 'ip-stats') {{
+                if (!attackerMap) {{
+                    setTimeout(() => {{
+                        initializeAttackerMap();
+                    }}, 100);
+                }}
+                if (!attackTypesChartLoaded) {{
+                    setTimeout(() => {{
+                        loadAttackTypesChart();
+                    }}, 100);
+                }}
+            }}
+        }};
+
+        // Load and render attack types bar chart
+        let attackTypesChart = null;
+        async function loadAttackTypesChart() {{
+            try {{
+                const canvas = document.getElementById('attack-types-chart');
+                if (!canvas) return;
+
+                const response = await fetch(DASHBOARD_PATH + '/api/attack-types?page=1&page_size=100', {{
+                    cache: 'no-store',
+                    headers: {{
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }}
+                }});
+
+                if (!response.ok) throw new Error('Failed to fetch attack types');
+                
+                const data = await response.json();
+                const attacks = data.attacks || [];
+
+                if (attacks.length === 0) {{
+                    canvas.style.display = 'none';
+                    return;
+                }}
+
+                // Aggregate attack types
+                const attackCounts = {{}};
+                attacks.forEach(attack => {{
+                    if (attack.attack_types && Array.isArray(attack.attack_types)) {{
+                        attack.attack_types.forEach(type => {{
+                            attackCounts[type] = (attackCounts[type] || 0) + 1;
+                        }});
+                    }}
+                }});
+
+                // Sort and get top 10
+                const sortedAttacks = Object.entries(attackCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10);
+
+                if (sortedAttacks.length === 0) {{
+                    canvas.style.display = 'none';
+                    return;
+                }}
+
+                const labels = sortedAttacks.map(([type]) => type);
+                const counts = sortedAttacks.map(([, count]) => count);
+
+                // Define colors for different attack types
+                const colorMap = {{
+                    'SQL Injection': '#0969da',
+                    'XSS': '#1f6feb',
+                    'Directory Traversal': '#2f81f7',
+                    'Command Injection': '#54aeff',
+                    'Path Traversal': '#79c0ff',
+                    'Malware': '#58a6ff',
+                    'Brute Force': '#388bfd',
+                    'DDoS': '#1a7ae8',
+                    'CSRF': '#0860ca',
+                    'File Upload': '#1158d4'
+                }};
+
+                const backgroundColors = labels.map(label => colorMap[label] || '#58a6ff');
+                const borderColors = labels.map(label => colorMap[label] || '#58a6ff');
+
+                // Create or update chart
+                if (attackTypesChart) {{
+                    attackTypesChart.destroy();
+                }}
+
+                const ctx = canvas.getContext('2d');
+                attackTypesChart = new Chart(ctx, {{
+                    type: 'bar',
+                    data: {{
+                        labels: labels,
+                        datasets: [{{
+                            data: counts,
+                            backgroundColor: backgroundColors,
+                            borderColor: borderColors,
+                            borderWidth: 1.5,
+                            borderRadius: 4,
+                            hoverBackgroundColor: borderColors
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        plugins: {{
+                            legend: {{
+                                display: false
+                            }},
+                            tooltip: {{
+                                backgroundColor: '#161b22',
+                                titleColor: '#58a6ff',
+                                bodyColor: '#c9d1d9',
+                                borderColor: '#30363d',
+                                borderWidth: 1,
+                                padding: 10,
+                                titleFont: {{
+                                    size: 13,
+                                    weight: 'bold'
+                                }},
+                                bodyFont: {{
+                                    size: 12
+                                }},
+                                callbacks: {{
+                                    label: function(context) {{
+                                        return 'Occurrences: ' + context.parsed.x;
+                                    }}
+                                }}
+                            }}
+                        }},
+                        scales: {{
+                            x: {{
+                                beginAtZero: true,
+                                ticks: {{
+                                    color: '#8b949e',
+                                    font: {{
+                                        size: 11
+                                    }}
+                                }},
+                                grid: {{
+                                    color: '#30363d',
+                                    drawBorder: false
+                                }}
+                            }},
+                            y: {{
+                                ticks: {{
+                                    color: '#c9d1d9',
+                                    font: {{
+                                        size: 12
+                                    }},
+                                    padding: 10
+                                }},
+                                grid: {{
+                                    display: false,
+                                    drawBorder: false
+                                }}
+                            }}
+                        }}
+                    }}
+                }});
+
+                attackTypesChartLoaded = true;
+            }} catch (err) {{
+                console.error('Error loading attack types chart:', err);
+            }}
         }}
     </script>
 </body>

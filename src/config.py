@@ -100,8 +100,6 @@ class Config:
 
             self._server_ip = ip
             self._server_ip_cache_time = current_time
-
-            get_app_logger().info(f"Server external IP detected: {ip}")
             return ip
 
         except Exception as e:

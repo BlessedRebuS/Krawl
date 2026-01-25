@@ -109,7 +109,7 @@ def generate_analyzed_metrics():
     }
 
 
-def generate_fake_data(num_ips: int = 5, logs_per_ip: int = 15, credentials_per_ip: int = 3):
+def generate_fake_data(num_ips: int = 45, logs_per_ip: int = 15, credentials_per_ip: int = 3):
     """
     Generate and insert fake test data into the database.
 

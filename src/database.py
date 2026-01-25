@@ -626,8 +626,8 @@ class DatabaseManager:
                 {
                     "ip": s.ip,
                     "total_requests": s.total_requests,
-                    "first_seen": s.first_seen.isoformat(),
-                    "last_seen": s.last_seen.isoformat(),
+                    "first_seen": s.first_seen.isoformat() if s.first_seen else None,
+                    "last_seen": s.last_seen.isoformat() if s.last_seen else None,
                     "country_code": s.country_code,
                     "city": s.city,
                     "asn": s.asn,
@@ -637,7 +637,7 @@ class DatabaseManager:
                     "analyzed_metrics": s.analyzed_metrics,
                     "category": s.category,
                     "manual_category": s.manual_category,
-                    "last_analysis": s.last_analysis,
+                    "last_analysis": s.last_analysis.isoformat() if s.last_analysis else None,
                 }
                 for s in stats
             ]
@@ -688,6 +688,84 @@ class DatabaseManager:
         finally:
             self.close_session()
 
+    def get_attackers_paginated(self, page: int = 1, page_size: int = 25, sort_by: str = "total_requests", sort_order: str = "desc") -> Dict[str, Any]:
+        """
+        Retrieve paginated list of attacker IPs ordered by specified field.
+
+        Args:
+            page: Page number (1-indexed)
+            page_size: Number of results per page
+            sort_by: Field to sort by (total_requests, first_seen, last_seen)
+            sort_order: Sort order (asc or desc)
+
+        Returns:
+            Dictionary with attackers list and pagination info
+        """
+        session = self.session
+        try:
+            offset = (page - 1) * page_size
+
+            # Validate sort parameters
+            valid_sort_fields = {"total_requests", "first_seen", "last_seen"}
+            sort_by = sort_by if sort_by in valid_sort_fields else "total_requests"
+            sort_order = sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
+
+            # Get total count of attackers
+            total_attackers = (
+                session.query(IpStats)
+                .filter(IpStats.category == "attacker")
+                .count()
+            )
+
+            # Build query with sorting
+            query = session.query(IpStats).filter(IpStats.category == "attacker")
+            
+            if sort_by == "total_requests":
+                query = query.order_by(
+                    IpStats.total_requests.desc() if sort_order == "desc" else IpStats.total_requests.asc()
+                )
+            elif sort_by == "first_seen":
+                query = query.order_by(
+                    IpStats.first_seen.desc() if sort_order == "desc" else IpStats.first_seen.asc()
+                )
+            elif sort_by == "last_seen":
+                query = query.order_by(
+                    IpStats.last_seen.desc() if sort_order == "desc" else IpStats.last_seen.asc()
+                )
+
+            # Get paginated attackers
+            attackers = query.offset(offset).limit(page_size).all()
+
+            total_pages = (total_attackers + page_size - 1) // page_size
+
+            return {
+                "attackers": [
+                    {
+                        "ip": a.ip,
+                        "total_requests": a.total_requests,
+                        "first_seen": a.first_seen.isoformat() if a.first_seen else None,
+                        "last_seen": a.last_seen.isoformat() if a.last_seen else None,
+                        "country_code": a.country_code,
+                        "city": a.city,
+                        "asn": a.asn,
+                        "asn_org": a.asn_org,
+                        "reputation_score": a.reputation_score,
+                        "reputation_source": a.reputation_source,
+                        "category": a.category,
+                        "category_scores": a.category_scores or {},
+                    }
+                    for a in attackers
+                ],
+                "pagination": {
+                    "page": page,
+                    "page_size": page_size,
+                    "total_attackers": total_attackers,
+                    "total_pages": total_pages,
+                },
+            }
+        finally:
+            self.close_session()
+
     def get_dashboard_counts(self) -> Dict[str, int]:
         """
         Get aggregate statistics for the dashboard (excludes local/private IPs and server IP).
@@ -719,6 +797,9 @@ class DatabaseManager:
             suspicious_accesses = sum(1 for log in public_accesses if log.is_suspicious)
             honeypot_triggered = sum(1 for log in public_accesses if log.is_honeypot_trigger)
             honeypot_ips = len(set(log.ip for log in public_accesses if log.is_honeypot_trigger))
+            
+            # Count unique attackers from IpStats (matching the "Attackers by Total Requests" table)
+            unique_attackers = session.query(IpStats).filter(IpStats.category == "attacker").count()
 
             return {
                 "total_accesses": total_accesses,
@@ -727,6 +808,7 @@ class DatabaseManager:
                 "suspicious_accesses": suspicious_accesses,
                 "honeypot_triggered": honeypot_triggered,
                 "honeypot_ips": honeypot_ips,
+                "unique_attackers": unique_attackers,
             }
         finally:
             self.close_session()
@@ -926,6 +1008,371 @@ class DatabaseManager:
                 }
                 for log in logs
             ]
+        finally:
+            self.close_session()
+
+    def get_honeypot_paginated(self, page: int = 1, page_size: int = 5, sort_by: str = "count", sort_order: str = "desc") -> Dict[str, Any]:
+        """
+        Retrieve paginated list of honeypot-triggered IPs with their paths.
+
+        Args:
+            page: Page number (1-indexed)
+            page_size: Number of results per page
+            sort_by: Field to sort by (count or ip)
+            sort_order: Sort order (asc or desc)
+
+        Returns:
+            Dictionary with honeypots list and pagination info
+        """
+        session = self.session
+        try:
+            from config import get_config
+            config = get_config()
+            server_ip = config.get_server_ip()
+
+            offset = (page - 1) * page_size
+
+            # Get honeypot triggers grouped by IP
+            results = (
+                session.query(AccessLog.ip, AccessLog.path)
+                .filter(AccessLog.is_honeypot_trigger == True)
+                .all()
+            )
+
+            # Group paths by IP, filtering out invalid IPs
+            ip_paths: Dict[str, List[str]] = {}
+            for row in results:
+                if not is_valid_public_ip(row.ip, server_ip):
+                    continue
+                if row.ip not in ip_paths:
+                    ip_paths[row.ip] = []
+                if row.path not in ip_paths[row.ip]:
+                    ip_paths[row.ip].append(row.path)
+
+            # Create list and sort
+            honeypot_list = [
+                {"ip": ip, "paths": paths, "count": len(paths)}
+                for ip, paths in ip_paths.items()
+            ]
+
+            if sort_by == "count":
+                honeypot_list.sort(
+                    key=lambda x: x["count"],
+                    reverse=(sort_order == "desc")
+                )
+            else:  # sort by ip
+                honeypot_list.sort(
+                    key=lambda x: x["ip"],
+                    reverse=(sort_order == "desc")
+                )
+
+            total_honeypots = len(honeypot_list)
+            paginated = honeypot_list[offset:offset + page_size]
+            total_pages = (total_honeypots + page_size - 1) // page_size
+
+            return {
+                "honeypots": paginated,
+                "pagination": {
+                    "page": page,
+                    "page_size": page_size,
+                    "total": total_honeypots,
+                    "total_pages": total_pages,
+                },
+            }
+        finally:
+            self.close_session()
+
+    def get_credentials_paginated(self, page: int = 1, page_size: int = 5, sort_by: str = "timestamp", sort_order: str = "desc") -> Dict[str, Any]:
+        """
+        Retrieve paginated list of credential attempts.
+
+        Args:
+            page: Page number (1-indexed)
+            page_size: Number of results per page
+            sort_by: Field to sort by (timestamp, ip, username)
+            sort_order: Sort order (asc or desc)
+
+        Returns:
+            Dictionary with credentials list and pagination info
+        """
+        session = self.session
+        try:
+            offset = (page - 1) * page_size
+
+            # Validate sort parameters
+            valid_sort_fields = {"timestamp", "ip", "username"}
+            sort_by = sort_by if sort_by in valid_sort_fields else "timestamp"
+            sort_order = sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
+
+            total_credentials = session.query(CredentialAttempt).count()
+
+            # Build query with sorting
+            query = session.query(CredentialAttempt)
+
+            if sort_by == "timestamp":
+                query = query.order_by(
+                    CredentialAttempt.timestamp.desc() if sort_order == "desc" else CredentialAttempt.timestamp.asc()
+                )
+            elif sort_by == "ip":
+                query = query.order_by(
+                    CredentialAttempt.ip.desc() if sort_order == "desc" else CredentialAttempt.ip.asc()
+                )
+            elif sort_by == "username":
+                query = query.order_by(
+                    CredentialAttempt.username.desc() if sort_order == "desc" else CredentialAttempt.username.asc()
+                )
+
+            credentials = query.offset(offset).limit(page_size).all()
+            total_pages = (total_credentials + page_size - 1) // page_size
+
+            return {
+                "credentials": [
+                    {
+                        "ip": c.ip,
+                        "username": c.username,
+                        "password": c.password,
+                        "path": c.path,
+                        "timestamp": c.timestamp.isoformat() if c.timestamp else None,
+                    }
+                    for c in credentials
+                ],
+                "pagination": {
+                    "page": page,
+                    "page_size": page_size,
+                    "total": total_credentials,
+                    "total_pages": total_pages,
+                },
+            }
+        finally:
+            self.close_session()
+
+    def get_top_ips_paginated(self, page: int = 1, page_size: int = 5, sort_by: str = "count", sort_order: str = "desc") -> Dict[str, Any]:
+        """
+        Retrieve paginated list of top IP addresses by access count.
+
+        Args:
+            page: Page number (1-indexed)
+            page_size: Number of results per page
+            sort_by: Field to sort by (count or ip)
+            sort_order: Sort order (asc or desc)
+
+        Returns:
+            Dictionary with IPs list and pagination info
+        """
+        session = self.session
+        try:
+            from config import get_config
+            config = get_config()
+            server_ip = config.get_server_ip()
+
+            offset = (page - 1) * page_size
+
+            results = (
+                session.query(AccessLog.ip, func.count(AccessLog.id).label("count"))
+                .group_by(AccessLog.ip)
+                .all()
+            )
+
+            # Filter out local/private IPs and server IP, then sort
+            filtered = [
+                {"ip": row.ip, "count": row.count}
+                for row in results
+                if is_valid_public_ip(row.ip, server_ip)
+            ]
+
+            if sort_by == "count":
+                filtered.sort(key=lambda x: x["count"], reverse=(sort_order == "desc"))
+            else:  # sort by ip
+                filtered.sort(key=lambda x: x["ip"], reverse=(sort_order == "desc"))
+
+            total_ips = len(filtered)
+            paginated = filtered[offset:offset + page_size]
+            total_pages = (total_ips + page_size - 1) // page_size
+
+            return {
+                "ips": paginated,
+                "pagination": {
+                    "page": page,
+                    "page_size": page_size,
+                    "total": total_ips,
+                    "total_pages": total_pages,
+                },
+            }
+        finally:
+            self.close_session()
+
+    def get_top_paths_paginated(self, page: int = 1, page_size: int = 5, sort_by: str = "count", sort_order: str = "desc") -> Dict[str, Any]:
+        """
+        Retrieve paginated list of top paths by access count.
+
+        Args:
+            page: Page number (1-indexed)
+            page_size: Number of results per page
+            sort_by: Field to sort by (count or path)
+            sort_order: Sort order (asc or desc)
+
+        Returns:
+            Dictionary with paths list and pagination info
+        """
+        session = self.session
+        try:
+            offset = (page - 1) * page_size
+
+            results = (
+                session.query(AccessLog.path, func.count(AccessLog.id).label("count"))
+                .group_by(AccessLog.path)
+                .all()
+            )
+
+            # Create list and sort
+            paths_list = [
+                {"path": row.path, "count": row.count}
+                for row in results
+            ]
+
+            if sort_by == "count":
+                paths_list.sort(key=lambda x: x["count"], reverse=(sort_order == "desc"))
+            else:  # sort by path
+                paths_list.sort(key=lambda x: x["path"], reverse=(sort_order == "desc"))
+
+            total_paths = len(paths_list)
+            paginated = paths_list[offset:offset + page_size]
+            total_pages = (total_paths + page_size - 1) // page_size
+
+            return {
+                "paths": paginated,
+                "pagination": {
+                    "page": page,
+                    "page_size": page_size,
+                    "total": total_paths,
+                    "total_pages": total_pages,
+                },
+            }
+        finally:
+            self.close_session()
+
+    def get_top_user_agents_paginated(self, page: int = 1, page_size: int = 5, sort_by: str = "count", sort_order: str = "desc") -> Dict[str, Any]:
+        """
+        Retrieve paginated list of top user agents by access count.
+
+        Args:
+            page: Page number (1-indexed)
+            page_size: Number of results per page
+            sort_by: Field to sort by (count or user_agent)
+            sort_order: Sort order (asc or desc)
+
+        Returns:
+            Dictionary with user agents list and pagination info
+        """
+        session = self.session
+        try:
+            offset = (page - 1) * page_size
+
+            results = (
+                session.query(AccessLog.user_agent, func.count(AccessLog.id).label("count"))
+                .filter(AccessLog.user_agent.isnot(None), AccessLog.user_agent != "")
+                .group_by(AccessLog.user_agent)
+                .all()
+            )
+
+            # Create list and sort
+            ua_list = [
+                {"user_agent": row.user_agent, "count": row.count}
+                for row in results
+            ]
+
+            if sort_by == "count":
+                ua_list.sort(key=lambda x: x["count"], reverse=(sort_order == "desc"))
+            else:  # sort by user_agent
+                ua_list.sort(key=lambda x: x["user_agent"], reverse=(sort_order == "desc"))
+
+            total_uas = len(ua_list)
+            paginated = ua_list[offset:offset + page_size]
+            total_pages = (total_uas + page_size - 1) // page_size
+
+            return {
+                "user_agents": paginated,
+                "pagination": {
+                    "page": page,
+                    "page_size": page_size,
+                    "total": total_uas,
+                    "total_pages": total_pages,
+                },
+            }
+        finally:
+            self.close_session()
+
+    def get_attack_types_paginated(self, page: int = 1, page_size: int = 5, sort_by: str = "timestamp", sort_order: str = "desc") -> Dict[str, Any]:
+        """
+        Retrieve paginated list of detected attack types with access logs.
+
+        Args:
+            page: Page number (1-indexed)
+            page_size: Number of results per page
+            sort_by: Field to sort by (timestamp, ip, attack_type)
+            sort_order: Sort order (asc or desc)
+
+        Returns:
+            Dictionary with attacks list and pagination info
+        """
+        session = self.session
+        try:
+            offset = (page - 1) * page_size
+
+            # Validate sort parameters
+            valid_sort_fields = {"timestamp", "ip", "attack_type"}
+            sort_by = sort_by if sort_by in valid_sort_fields else "timestamp"
+            sort_order = sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
+
+            # Get all access logs with attack detections
+            query = (
+                session.query(AccessLog)
+                .join(AttackDetection)
+            )
+
+            if sort_by == "timestamp":
+                query = query.order_by(
+                    AccessLog.timestamp.desc() if sort_order == "desc" else AccessLog.timestamp.asc()
+                )
+            elif sort_by == "ip":
+                query = query.order_by(
+                    AccessLog.ip.desc() if sort_order == "desc" else AccessLog.ip.asc()
+                )
+
+            logs = query.all()
+
+            # Convert to attack list
+            attack_list = [
+                {
+                    "ip": log.ip,
+                    "path": log.path,
+                    "user_agent": log.user_agent,
+                    "timestamp": log.timestamp.isoformat() if log.timestamp else None,
+                    "attack_types": [d.attack_type for d in log.attack_detections],
+                }
+                for log in logs
+            ]
+
+            # Sort by attack_type if needed (this must be done post-fetch since it's in a related table)
+            if sort_by == "attack_type":
+                attack_list.sort(
+                    key=lambda x: x["attack_types"][0] if x["attack_types"] else "",
+                    reverse=(sort_order == "desc")
+                )
+
+            total_attacks = len(attack_list)
+            paginated = attack_list[offset:offset + page_size]
+            total_pages = (total_attacks + page_size - 1) // page_size
+
+            return {
+                "attacks": paginated,
+                "pagination": {
+                    "page": page,
+                    "page_size": page_size,
+                    "total": total_attacks,
+                    "total_pages": total_pages,
+                },
+            }
         finally:
             self.close_session()
 
