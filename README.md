@@ -105,10 +105,9 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - KRAWL_PORT=5000
-      - KRAWL_DELAY=100
-      # - KRAWL_CANARY_TOKEN_URL=http://your-canary-token-url
+      - CONFIG_LOCATION=config.yaml
     volumes:
+      - ./config.yaml:/app/config.yaml:ro
       - krawl-data:/app/data
     restart: unless-stopped
 
