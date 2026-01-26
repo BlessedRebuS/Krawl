@@ -38,7 +38,7 @@
 
 <p align="center">
   <a href="#what-is-krawl">What is Krawl?</a> •
-  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-installation">Installation</a> •
   <a href="#honeypot-pages">Honeypot Pages</a> •
   <a href="#dashboard">Dashboard</a> •
   <a href="./ToDo.md">Todo</a> •
@@ -74,100 +74,154 @@ It features:
 
 ![asd](img/deception-page.png)
 
-## 🚀 Quick Start
-## Helm Chart
+## 🚀 Installation
 
-Install with default values
+### Docker Run
 
-```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
-  --namespace krawl-system \
-  --create-namespace
-```
-
-Install with custom [canary token](#customizing-the-canary-token) 
-
-```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
-  --namespace krawl-system \
-  --create-namespace \
-  --set config.canaryTokenUrl="http://your-canary-token-url"
-```
-
-To access the deception server
-
-```bash
-kubectl get svc krawl -n krawl-system
-```
-
-Once the EXTERNAL-IP is assigned, access your deception server at:
-
-```
-http://<EXTERNAL-IP>:5000
-```
-
-## Kubernetes / Kustomize
-Apply all manifests with
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/BlessedRebuS/Krawl/refs/heads/main/manifests/krawl-all-in-one-deploy.yaml
-```
-
-Retrieve dashboard path with
-```bash
-kubectl get secret krawl-server -n krawl-system -o jsonpath='{.data.dashboard-path}' | base64 -d
-```
-
-Or clone the repo and apply the `manifest` folder with
-
-```bash
-kubectl apply -k manifests
-```
-
-## Docker
-Run Krawl as a docker container with
+Run Krawl with the latest image:
 
 ```bash
 docker run -d \
   -p 5000:5000 \
-  -e CANARY_TOKEN_URL="http://your-canary-token-url" \
+  -e KRAWL_PORT=5000 \
+  -e KRAWL_DELAY=100 \
+  -e KRAWL_DASHBOARD_SECRET_PATH="/my-secret-dashboard" \
+  -e KRAWL_DATABASE_RETENTION_DAYS=30 \
   --name krawl \
   ghcr.io/blessedrebus/krawl:latest
 ```
 
-## Docker Compose
-Run Krawl with docker-compose in the project folder with
+Access the server at `http://localhost:5000`
+
+### Docker Compose
+
+Create a `docker-compose.yaml` file:
+
+```yaml
+services:
+  krawl:
+    image: ghcr.io/blessedrebus/krawl:latest
+    container_name: krawl-server
+    ports:
+      - "5000:5000"
+    environment:
+      - KRAWL_PORT=5000
+      - KRAWL_DELAY=100
+      # - KRAWL_CANARY_TOKEN_URL=http://your-canary-token-url
+    volumes:
+      - krawl-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  krawl-data:
+```
+
+Run with:
 
 ```bash
 docker-compose up -d
 ```
 
-Stop it with
+Stop with:
 
 ```bash
 docker-compose down
 ```
 
-## Python 3.11+
+### Helm Chart
 
-Clone the repository
+Install with default values:
+
+```bash
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
+  --version 2.0.0 \
+  --namespace krawl-system \
+  --create-namespace
+```
+
+Or create a minimal `values.yaml` file:
+
+```yaml
+service:
+  type: LoadBalancer
+  port: 5000
+
+ingress:
+  enabled: true
+  className: "traefik"
+  hosts:
+    - host: krawl.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+config:
+  server:
+    port: 5000
+    delay: 100
+  dashboard:
+    secret_path: null  # Auto-generated if not set
+
+database:
+  persistence:
+    enabled: true
+    size: 1Gi
+```
+
+Install with custom values:
+
+```bash
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
+  --version 2.0.0 \
+  --namespace krawl-system \
+  --create-namespace \
+  -f values.yaml
+```
+
+To access the deception server:
+
+```bash
+kubectl get svc krawl -n krawl-system
+```
+
+Once the EXTERNAL-IP is assigned, access your deception server at `http://<EXTERNAL-IP>:5000`
+
+### Kubernetes
+
+Apply all manifests with:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/BlessedRebuS/Krawl/refs/heads/main/manifests/krawl-all-in-one-deploy.yaml
+```
+
+Retrieve dashboard path with:
+
+```bash
+kubectl get secret krawl-server -n krawl-system -o jsonpath='{.data.dashboard-path}' | base64 -d
+```
+
+Or clone the repo and apply the `manifest` folder with:
+
+```bash
+kubectl apply -k manifests
+```
+
+### From Source (Python 3.11+)
+
+Clone the repository:
 
 ```bash
 git clone https://github.com/blessedrebus/krawl.git
 cd krawl/src
 ```
-Run the server
+
+Run the server:
+
 ```bash
 python3 server.py
 ```
 
-Visit
-
-`http://localhost:5000`
-
-To access the dashboard
-
-`http://localhost:5000/<dashboard-secret-path>`
+Visit `http://localhost:5000` and access the dashboard at `http://localhost:5000/<dashboard-secret-path>`
 
 ## Configuration via Environment Variables
 
