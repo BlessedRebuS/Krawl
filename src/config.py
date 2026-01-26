@@ -43,6 +43,7 @@ class Config:
     # Database settings
     database_path: str = "data/krawl.db"
     database_retention_days: int = 30
+    exports_path: str = "data/exports"
 
     # Analyzer settings
     http_risky_methods_threshold: float = None
@@ -153,6 +154,7 @@ class Config:
         canary = data.get("canary", {})
         dashboard = data.get("dashboard", {})
         api = data.get("api", {})
+        exports = data.get("exports", {})
         database = data.get("database", {})
         behavior = data.get("behavior", {})
         analyzer = data.get("analyzer") or {}
@@ -191,6 +193,7 @@ class Config:
             api_server_port=api.get("server_port", 8080),
             api_server_path=api.get("server_path", "/api/v2/users"),
             probability_error_codes=behavior.get("probability_error_codes", 0),
+            exports_path = exports.get("path"),
             database_path=database.get("path", "data/krawl.db"),
             database_retention_days=database.get("retention_days", 30),
             http_risky_methods_threshold=analyzer.get(
