@@ -39,7 +39,12 @@ behavior:
 analyzer:
   http_risky_methods_threshold: 0.1
   violated_robots_threshold: 0.1
-  uneven_request_timing_threshold: 2
+  uneven_request_timing_threshold: 0.5
   uneven_request_timing_time_window_seconds: 300
   user_agents_used_threshold: 2
   attack_urls_threshold: 1
+
+crawl:
+  infinite_pages_for_malicious: true
+  max_pages_limit: 250
+  ban_duration_seconds: 600

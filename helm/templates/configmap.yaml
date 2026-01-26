@@ -39,3 +39,7 @@ data:
       uneven_request_timing_time_window_seconds: {{ .Values.config.analyzer.uneven_request_timing_time_window_seconds }}
       user_agents_used_threshold: {{ .Values.config.analyzer.user_agents_used_threshold }}
       attack_urls_threshold: {{ .Values.config.analyzer.attack_urls_threshold }}
+    crawl:
+      infinite_pages_for_malicious: {{ .Values.config.crawl.infinite_pages_for_malicious }}
+      max_pages_limit: {{ .Values.config.crawl.max_pages_limit }}
+      ban_duration_seconds: {{ .Values.config.crawl.ban_duration_seconds }}
