@@ -173,6 +173,7 @@ class AccessTracker:
         """
         # Skip if this is the server's own IP
         from config import get_config
+
         config = get_config()
         server_ip = config.get_server_ip()
         if server_ip and ip == server_ip:
@@ -228,6 +229,7 @@ class AccessTracker:
         """
         # Skip if this is the server's own IP
         from config import get_config
+
         config = get_config()
         server_ip = config.get_server_ip()
         if server_ip and ip == server_ip:
@@ -397,6 +399,7 @@ class AccessTracker:
         """
         # Skip if this is the server's own IP
         from config import get_config
+
         config = get_config()
         server_ip = config.get_server_ip()
         if server_ip and client_ip == server_ip:
@@ -429,7 +432,9 @@ class AccessTracker:
                 self.ip_page_visits[client_ip]["ban_multiplier"] = 2 ** (violations - 1)
 
                 # Set ban timestamp
-                self.ip_page_visits[client_ip]["ban_timestamp"] = datetime.now().isoformat()
+                self.ip_page_visits[client_ip][
+                    "ban_timestamp"
+                ] = datetime.now().isoformat()
 
             return self.ip_page_visits[client_ip]["count"]
 
@@ -572,7 +577,8 @@ class AccessTracker:
         suspicious = [
             log
             for log in self.access_log
-            if log.get("suspicious", False) and not is_local_or_private_ip(log.get("ip", ""))
+            if log.get("suspicious", False)
+            and not is_local_or_private_ip(log.get("ip", ""))
         ]
         return suspicious[-limit:]
 
@@ -624,7 +630,7 @@ class AccessTracker:
         """
         # Trim access_log to max size (keep most recent)
         if len(self.access_log) > self.max_access_log_size:
-            self.access_log = self.access_log[-self.max_access_log_size:]
+            self.access_log = self.access_log[-self.max_access_log_size :]
 
         # Trim credential_attempts to max size (keep most recent)
         if len(self.credential_attempts) > self.max_credential_log_size:

@@ -76,10 +76,10 @@ class Config:
             # Try multiple external IP detection services (fallback chain)
             ip_detection_services = [
                 "https://api.ipify.org",  # Plain text response
-                "http://ident.me",         # Plain text response
-                "https://ifconfig.me",     # Plain text response
+                "http://ident.me",  # Plain text response
+                "https://ifconfig.me",  # Plain text response
             ]
-            
+
             ip = None
             for service_url in ip_detection_services:
                 try:
@@ -90,7 +90,7 @@ class Config:
                             break
                 except Exception:
                     continue
-            
+
             if not ip:
                 get_app_logger().warning(
                     "Could not determine server IP from external services. "

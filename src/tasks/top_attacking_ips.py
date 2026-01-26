@@ -71,11 +71,8 @@ def main():
         # Filter out local/private IPs and the server's own IP
         config = get_config()
         server_ip = config.get_server_ip()
-        
-        public_ips = [
-            ip for (ip,) in results
-            if is_valid_public_ip(ip, server_ip)
-        ]
+
+        public_ips = [ip for (ip,) in results if is_valid_public_ip(ip, server_ip)]
 
         # Ensure exports directory exists
         os.makedirs(EXPORTS_DIR, exist_ok=True)

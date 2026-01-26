@@ -45,8 +45,13 @@ def main():
         stats_after = Handler.tracker.get_memory_stats()
 
         # Log changes
-        access_log_reduced = stats_before["access_log_size"] - stats_after["access_log_size"]
-        cred_reduced = stats_before["credential_attempts_size"] - stats_after["credential_attempts_size"]
+        access_log_reduced = (
+            stats_before["access_log_size"] - stats_after["access_log_size"]
+        )
+        cred_reduced = (
+            stats_before["credential_attempts_size"]
+            - stats_after["credential_attempts_size"]
+        )
 
         if access_log_reduced > 0 or cred_reduced > 0:
             app_logger.info(

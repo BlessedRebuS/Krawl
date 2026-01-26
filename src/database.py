@@ -587,7 +587,9 @@ class DatabaseManager:
                     "analyzed_metrics": s.analyzed_metrics,
                     "category": s.category,
                     "manual_category": s.manual_category,
-                    "last_analysis": s.last_analysis.isoformat() if s.last_analysis else None,
+                    "last_analysis": (
+                        s.last_analysis.isoformat() if s.last_analysis else None
+                    ),
                 }
                 for s in stats
             ]
@@ -638,7 +640,13 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_attackers_paginated(self, page: int = 1, page_size: int = 25, sort_by: str = "total_requests", sort_order: str = "desc") -> Dict[str, Any]:
+    def get_attackers_paginated(
+        self,
+        page: int = 1,
+        page_size: int = 25,
+        sort_by: str = "total_requests",
+        sort_order: str = "desc",
+    ) -> Dict[str, Any]:
         """
         Retrieve paginated list of attacker IPs ordered by specified field.
 
@@ -658,29 +666,35 @@ class DatabaseManager:
             # Validate sort parameters
             valid_sort_fields = {"total_requests", "first_seen", "last_seen"}
             sort_by = sort_by if sort_by in valid_sort_fields else "total_requests"
-            sort_order = sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
+            sort_order = (
+                sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
+            )
 
             # Get total count of attackers
             total_attackers = (
-                session.query(IpStats)
-                .filter(IpStats.category == "attacker")
-                .count()
+                session.query(IpStats).filter(IpStats.category == "attacker").count()
             )
 
             # Build query with sorting
             query = session.query(IpStats).filter(IpStats.category == "attacker")
-            
+
             if sort_by == "total_requests":
                 query = query.order_by(
-                    IpStats.total_requests.desc() if sort_order == "desc" else IpStats.total_requests.asc()
+                    IpStats.total_requests.desc()
+                    if sort_order == "desc"
+                    else IpStats.total_requests.asc()
                 )
             elif sort_by == "first_seen":
                 query = query.order_by(
-                    IpStats.first_seen.desc() if sort_order == "desc" else IpStats.first_seen.asc()
+                    IpStats.first_seen.desc()
+                    if sort_order == "desc"
+                    else IpStats.first_seen.asc()
                 )
             elif sort_by == "last_seen":
                 query = query.order_by(
-                    IpStats.last_seen.desc() if sort_order == "desc" else IpStats.last_seen.asc()
+                    IpStats.last_seen.desc()
+                    if sort_order == "desc"
+                    else IpStats.last_seen.asc()
                 )
 
             # Get paginated attackers
@@ -693,7 +707,9 @@ class DatabaseManager:
                     {
                         "ip": a.ip,
                         "total_requests": a.total_requests,
-                        "first_seen": a.first_seen.isoformat() if a.first_seen else None,
+                        "first_seen": (
+                            a.first_seen.isoformat() if a.first_seen else None
+                        ),
                         "last_seen": a.last_seen.isoformat() if a.last_seen else None,
                         "country_code": a.country_code,
                         "city": a.city,
@@ -716,7 +732,14 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_all_ips_paginated(self, page: int = 1, page_size: int = 25, sort_by: str = "total_requests", sort_order: str = "desc", categories: Optional[List[str]] = None) -> Dict[str, Any]:
+    def get_all_ips_paginated(
+        self,
+        page: int = 1,
+        page_size: int = 25,
+        sort_by: str = "total_requests",
+        sort_order: str = "desc",
+        categories: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
         """
         Retrieve paginated list of all IPs (or filtered by categories) ordered by specified field.
 
@@ -737,7 +760,9 @@ class DatabaseManager:
             # Validate sort parameters
             valid_sort_fields = {"total_requests", "first_seen", "last_seen"}
             sort_by = sort_by if sort_by in valid_sort_fields else "total_requests"
-            sort_order = sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
+            sort_order = (
+                sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
+            )
 
             # Build query with optional category filter
             query = session.query(IpStats)
@@ -750,15 +775,21 @@ class DatabaseManager:
             # Apply sorting
             if sort_by == "total_requests":
                 query = query.order_by(
-                    IpStats.total_requests.desc() if sort_order == "desc" else IpStats.total_requests.asc()
+                    IpStats.total_requests.desc()
+                    if sort_order == "desc"
+                    else IpStats.total_requests.asc()
                 )
             elif sort_by == "first_seen":
                 query = query.order_by(
-                    IpStats.first_seen.desc() if sort_order == "desc" else IpStats.first_seen.asc()
+                    IpStats.first_seen.desc()
+                    if sort_order == "desc"
+                    else IpStats.first_seen.asc()
                 )
             elif sort_by == "last_seen":
                 query = query.order_by(
-                    IpStats.last_seen.desc() if sort_order == "desc" else IpStats.last_seen.asc()
+                    IpStats.last_seen.desc()
+                    if sort_order == "desc"
+                    else IpStats.last_seen.asc()
                 )
 
             # Get paginated IPs
@@ -771,7 +802,9 @@ class DatabaseManager:
                     {
                         "ip": ip.ip,
                         "total_requests": ip.total_requests,
-                        "first_seen": ip.first_seen.isoformat() if ip.first_seen else None,
+                        "first_seen": (
+                            ip.first_seen.isoformat() if ip.first_seen else None
+                        ),
                         "last_seen": ip.last_seen.isoformat() if ip.last_seen else None,
                         "country_code": ip.country_code,
                         "city": ip.city,
@@ -806,28 +839,34 @@ class DatabaseManager:
         try:
             # Get server IP to filter it out
             from config import get_config
+
             config = get_config()
             server_ip = config.get_server_ip()
-            
+
             # Get all accesses first, then filter out local IPs and server IP
             all_accesses = session.query(AccessLog).all()
-            
+
             # Filter out local/private IPs and server IP
             public_accesses = [
-                log for log in all_accesses
-                if is_valid_public_ip(log.ip, server_ip)
+                log for log in all_accesses if is_valid_public_ip(log.ip, server_ip)
             ]
-            
+
             # Calculate counts from filtered data
             total_accesses = len(public_accesses)
             unique_ips = len(set(log.ip for log in public_accesses))
             unique_paths = len(set(log.path for log in public_accesses))
             suspicious_accesses = sum(1 for log in public_accesses if log.is_suspicious)
-            honeypot_triggered = sum(1 for log in public_accesses if log.is_honeypot_trigger)
-            honeypot_ips = len(set(log.ip for log in public_accesses if log.is_honeypot_trigger))
-            
+            honeypot_triggered = sum(
+                1 for log in public_accesses if log.is_honeypot_trigger
+            )
+            honeypot_ips = len(
+                set(log.ip for log in public_accesses if log.is_honeypot_trigger)
+            )
+
             # Count unique attackers from IpStats (matching the "Attackers by Total Requests" table)
-            unique_attackers = session.query(IpStats).filter(IpStats.category == "attacker").count()
+            unique_attackers = (
+                session.query(IpStats).filter(IpStats.category == "attacker").count()
+            )
 
             return {
                 "total_accesses": total_accesses,
@@ -855,9 +894,10 @@ class DatabaseManager:
         try:
             # Get server IP to filter it out
             from config import get_config
+
             config = get_config()
             server_ip = config.get_server_ip()
-            
+
             results = (
                 session.query(AccessLog.ip, func.count(AccessLog.id).label("count"))
                 .group_by(AccessLog.ip)
@@ -940,9 +980,10 @@ class DatabaseManager:
         try:
             # Get server IP to filter it out
             from config import get_config
+
             config = get_config()
             server_ip = config.get_server_ip()
-            
+
             logs = (
                 session.query(AccessLog)
                 .filter(AccessLog.is_suspicious == True)
@@ -952,8 +993,7 @@ class DatabaseManager:
 
             # Filter out local/private IPs and server IP
             filtered_logs = [
-                log for log in logs
-                if is_valid_public_ip(log.ip, server_ip)
+                log for log in logs if is_valid_public_ip(log.ip, server_ip)
             ]
 
             return [
@@ -980,9 +1020,10 @@ class DatabaseManager:
         try:
             # Get server IP to filter it out
             from config import get_config
+
             config = get_config()
             server_ip = config.get_server_ip()
-            
+
             # Get all honeypot triggers grouped by IP
             results = (
                 session.query(AccessLog.ip, AccessLog.path)
@@ -1039,7 +1080,13 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_honeypot_paginated(self, page: int = 1, page_size: int = 5, sort_by: str = "count", sort_order: str = "desc") -> Dict[str, Any]:
+    def get_honeypot_paginated(
+        self,
+        page: int = 1,
+        page_size: int = 5,
+        sort_by: str = "count",
+        sort_order: str = "desc",
+    ) -> Dict[str, Any]:
         """
         Retrieve paginated list of honeypot-triggered IPs with their paths.
 
@@ -1055,6 +1102,7 @@ class DatabaseManager:
         session = self.session
         try:
             from config import get_config
+
             config = get_config()
             server_ip = config.get_server_ip()
 
@@ -1085,17 +1133,15 @@ class DatabaseManager:
 
             if sort_by == "count":
                 honeypot_list.sort(
-                    key=lambda x: x["count"],
-                    reverse=(sort_order == "desc")
+                    key=lambda x: x["count"], reverse=(sort_order == "desc")
                 )
             else:  # sort by ip
                 honeypot_list.sort(
-                    key=lambda x: x["ip"],
-                    reverse=(sort_order == "desc")
+                    key=lambda x: x["ip"], reverse=(sort_order == "desc")
                 )
 
             total_honeypots = len(honeypot_list)
-            paginated = honeypot_list[offset:offset + page_size]
+            paginated = honeypot_list[offset : offset + page_size]
             total_pages = (total_honeypots + page_size - 1) // page_size
 
             return {
@@ -1110,7 +1156,13 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_credentials_paginated(self, page: int = 1, page_size: int = 5, sort_by: str = "timestamp", sort_order: str = "desc") -> Dict[str, Any]:
+    def get_credentials_paginated(
+        self,
+        page: int = 1,
+        page_size: int = 5,
+        sort_by: str = "timestamp",
+        sort_order: str = "desc",
+    ) -> Dict[str, Any]:
         """
         Retrieve paginated list of credential attempts.
 
@@ -1130,7 +1182,9 @@ class DatabaseManager:
             # Validate sort parameters
             valid_sort_fields = {"timestamp", "ip", "username"}
             sort_by = sort_by if sort_by in valid_sort_fields else "timestamp"
-            sort_order = sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
+            sort_order = (
+                sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
+            )
 
             total_credentials = session.query(CredentialAttempt).count()
 
@@ -1139,15 +1193,21 @@ class DatabaseManager:
 
             if sort_by == "timestamp":
                 query = query.order_by(
-                    CredentialAttempt.timestamp.desc() if sort_order == "desc" else CredentialAttempt.timestamp.asc()
+                    CredentialAttempt.timestamp.desc()
+                    if sort_order == "desc"
+                    else CredentialAttempt.timestamp.asc()
                 )
             elif sort_by == "ip":
                 query = query.order_by(
-                    CredentialAttempt.ip.desc() if sort_order == "desc" else CredentialAttempt.ip.asc()
+                    CredentialAttempt.ip.desc()
+                    if sort_order == "desc"
+                    else CredentialAttempt.ip.asc()
                 )
             elif sort_by == "username":
                 query = query.order_by(
-                    CredentialAttempt.username.desc() if sort_order == "desc" else CredentialAttempt.username.asc()
+                    CredentialAttempt.username.desc()
+                    if sort_order == "desc"
+                    else CredentialAttempt.username.asc()
                 )
 
             credentials = query.offset(offset).limit(page_size).all()
@@ -1174,7 +1234,13 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_top_ips_paginated(self, page: int = 1, page_size: int = 5, sort_by: str = "count", sort_order: str = "desc") -> Dict[str, Any]:
+    def get_top_ips_paginated(
+        self,
+        page: int = 1,
+        page_size: int = 5,
+        sort_by: str = "count",
+        sort_order: str = "desc",
+    ) -> Dict[str, Any]:
         """
         Retrieve paginated list of top IP addresses by access count.
 
@@ -1190,6 +1256,7 @@ class DatabaseManager:
         session = self.session
         try:
             from config import get_config
+
             config = get_config()
             server_ip = config.get_server_ip()
 
@@ -1214,7 +1281,7 @@ class DatabaseManager:
                 filtered.sort(key=lambda x: x["ip"], reverse=(sort_order == "desc"))
 
             total_ips = len(filtered)
-            paginated = filtered[offset:offset + page_size]
+            paginated = filtered[offset : offset + page_size]
             total_pages = (total_ips + page_size - 1) // page_size
 
             return {
@@ -1229,7 +1296,13 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_top_paths_paginated(self, page: int = 1, page_size: int = 5, sort_by: str = "count", sort_order: str = "desc") -> Dict[str, Any]:
+    def get_top_paths_paginated(
+        self,
+        page: int = 1,
+        page_size: int = 5,
+        sort_by: str = "count",
+        sort_order: str = "desc",
+    ) -> Dict[str, Any]:
         """
         Retrieve paginated list of top paths by access count.
 
@@ -1253,18 +1326,17 @@ class DatabaseManager:
             )
 
             # Create list and sort
-            paths_list = [
-                {"path": row.path, "count": row.count}
-                for row in results
-            ]
+            paths_list = [{"path": row.path, "count": row.count} for row in results]
 
             if sort_by == "count":
-                paths_list.sort(key=lambda x: x["count"], reverse=(sort_order == "desc"))
+                paths_list.sort(
+                    key=lambda x: x["count"], reverse=(sort_order == "desc")
+                )
             else:  # sort by path
                 paths_list.sort(key=lambda x: x["path"], reverse=(sort_order == "desc"))
 
             total_paths = len(paths_list)
-            paginated = paths_list[offset:offset + page_size]
+            paginated = paths_list[offset : offset + page_size]
             total_pages = (total_paths + page_size - 1) // page_size
 
             return {
@@ -1279,7 +1351,13 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_top_user_agents_paginated(self, page: int = 1, page_size: int = 5, sort_by: str = "count", sort_order: str = "desc") -> Dict[str, Any]:
+    def get_top_user_agents_paginated(
+        self,
+        page: int = 1,
+        page_size: int = 5,
+        sort_by: str = "count",
+        sort_order: str = "desc",
+    ) -> Dict[str, Any]:
         """
         Retrieve paginated list of top user agents by access count.
 
@@ -1297,7 +1375,9 @@ class DatabaseManager:
             offset = (page - 1) * page_size
 
             results = (
-                session.query(AccessLog.user_agent, func.count(AccessLog.id).label("count"))
+                session.query(
+                    AccessLog.user_agent, func.count(AccessLog.id).label("count")
+                )
                 .filter(AccessLog.user_agent.isnot(None), AccessLog.user_agent != "")
                 .group_by(AccessLog.user_agent)
                 .all()
@@ -1305,17 +1385,18 @@ class DatabaseManager:
 
             # Create list and sort
             ua_list = [
-                {"user_agent": row.user_agent, "count": row.count}
-                for row in results
+                {"user_agent": row.user_agent, "count": row.count} for row in results
             ]
 
             if sort_by == "count":
                 ua_list.sort(key=lambda x: x["count"], reverse=(sort_order == "desc"))
             else:  # sort by user_agent
-                ua_list.sort(key=lambda x: x["user_agent"], reverse=(sort_order == "desc"))
+                ua_list.sort(
+                    key=lambda x: x["user_agent"], reverse=(sort_order == "desc")
+                )
 
             total_uas = len(ua_list)
-            paginated = ua_list[offset:offset + page_size]
+            paginated = ua_list[offset : offset + page_size]
             total_pages = (total_uas + page_size - 1) // page_size
 
             return {
@@ -1330,7 +1411,13 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_attack_types_paginated(self, page: int = 1, page_size: int = 5, sort_by: str = "timestamp", sort_order: str = "desc") -> Dict[str, Any]:
+    def get_attack_types_paginated(
+        self,
+        page: int = 1,
+        page_size: int = 5,
+        sort_by: str = "timestamp",
+        sort_order: str = "desc",
+    ) -> Dict[str, Any]:
         """
         Retrieve paginated list of detected attack types with access logs.
 
@@ -1350,17 +1437,18 @@ class DatabaseManager:
             # Validate sort parameters
             valid_sort_fields = {"timestamp", "ip", "attack_type"}
             sort_by = sort_by if sort_by in valid_sort_fields else "timestamp"
-            sort_order = sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
+            sort_order = (
+                sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
+            )
 
             # Get all access logs with attack detections
-            query = (
-                session.query(AccessLog)
-                .join(AttackDetection)
-            )
+            query = session.query(AccessLog).join(AttackDetection)
 
             if sort_by == "timestamp":
                 query = query.order_by(
-                    AccessLog.timestamp.desc() if sort_order == "desc" else AccessLog.timestamp.asc()
+                    AccessLog.timestamp.desc()
+                    if sort_order == "desc"
+                    else AccessLog.timestamp.asc()
                 )
             elif sort_by == "ip":
                 query = query.order_by(
@@ -1385,11 +1473,11 @@ class DatabaseManager:
             if sort_by == "attack_type":
                 attack_list.sort(
                     key=lambda x: x["attack_types"][0] if x["attack_types"] else "",
-                    reverse=(sort_order == "desc")
+                    reverse=(sort_order == "desc"),
                 )
 
             total_attacks = len(attack_list)
-            paginated = attack_list[offset:offset + page_size]
+            paginated = attack_list[offset : offset + page_size]
             total_pages = (total_attacks + page_size - 1) // page_size
 
             return {
