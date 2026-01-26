@@ -18,6 +18,9 @@ from firewall.fwtype import FWType
 from firewall.iptables import Iptables
 from firewall.raw import Raw
 
+
+from database import get_database
+from config import Config,get_config
 from tracker import AccessTracker
 from analyzer import Analyzer
 from templates import html_templates
@@ -560,6 +563,7 @@ class Handler(BaseHTTPRequestHandler):
                         stats, self.config.dashboard_secret_path
                     ).encode()
                 )
+                self.wfile.write(generate_dashboard(stats, self.config.dashboard_secret_path).encode())
             except BrokenPipeError:
                 pass
             except Exception as e:
@@ -944,6 +948,12 @@ class Handler(BaseHTTPRequestHandler):
             # get fwtype from request params
             fwtype = query_params.get("fwtype", ["iptables"])[0]
 
+            self.config.dashboard_secret_path and
+            request_path == f"{self.config.dashboard_secret_path}/api/get_banlist"
+        ):
+
+
+            fwtype = query_params.get("fwtype",["iptables"])[0]
             # Query distinct suspicious IPs
             results = (
                 session.query(distinct(AccessLog.ip))
@@ -969,6 +979,9 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(banlist)))
             self.end_headers()
             self.wfile.write(banlist.encode())
+
+            public_ips = [ip for (ip,) in results if is_valid_public_ip(ip, server_ip)]
+            self.wfile.write(f"asdasdd {fwtype} {public_ips}".encode())
             return
 
         # API endpoint for downloading malicious IPs file
