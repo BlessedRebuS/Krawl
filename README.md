@@ -191,20 +191,22 @@ Once the EXTERNAL-IP is assigned, access your deception server at `http://<EXTER
 Apply all manifests with:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/BlessedRebuS/Krawl/refs/heads/main/manifests/krawl-all-in-one-deploy.yaml
+kubectl apply -f https://raw.githubusercontent.com/BlessedRebuS/Krawl/refs/heads/main/kubernetes/krawl-all-in-one-deploy.yaml
 ```
 
-Retrieve dashboard path with:
+Or clone the repo and apply the manifest:
 
 ```bash
-kubectl get secret krawl-server -n krawl-system -o jsonpath='{.data.dashboard-path}' | base64 -d
+kubectl apply -f kubernetes/krawl-all-in-one-deploy.yaml
 ```
 
-Or clone the repo and apply the `manifest` folder with:
+Access the deception server:
 
 ```bash
-kubectl apply -k manifests
+kubectl get svc krawl-server -n krawl-system
 ```
+
+Once the EXTERNAL-IP is assigned, access your deception server at `http://<EXTERNAL-IP>:5000`
 
 ### From Source (Python 3.11+)
 

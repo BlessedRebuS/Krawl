@@ -15,8 +15,7 @@ data:
     server:
       port: 5000
       delay: 100
-      timezone: null  # e.g., "America/New_York" or null for system default
-
+      timezone: null
     links:
       min_length: 5
       max_length: 15
@@ -24,27 +23,31 @@ data:
       max_per_page: 15
       char_space: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
       max_counter: 10
-
     canary:
-      token_url: null  # Optional canary token URL
+      token_url: null
       token_tries: 10
-
     dashboard:
-      # Auto-generates random path if null
-      # Can be set to "/dashboard" or similar
       secret_path: null
-
     api:
       server_url: null
       server_port: 8080
       server_path: "/api/v2/users"
-
     database:
       path: "data/krawl.db"
       retention_days: 30
-
     behavior:
-      probability_error_codes: 0  # 0-100 percentage
+      probability_error_codes: 0
+    analyzer:
+      http_risky_methods_threshold: 0.1
+      violated_robots_threshold: 0.1
+      uneven_request_timing_threshold: 0.5
+      uneven_request_timing_time_window_seconds: 300
+      user_agents_used_threshold: 2
+      attack_urls_threshold: 1
+    crawl:
+      infinite_pages_for_malicious: true
+      max_pages_limit: 250
+      ban_duration_seconds: 600
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -251,12 +254,16 @@ data:
         503
       ],
       "server_headers": [
-        "Apache/2.4.41 (Ubuntu)",
+        "Apache/2.2.22 (Ubuntu)",
         "nginx/1.18.0",
         "Microsoft-IIS/10.0",
-        "cloudflare",
-        "AmazonS3",
-        "gunicorn/20.1.0"
+        "LiteSpeed",
+        "Caddy",
+        "Gunicorn/20.0.4",
+        "uvicorn/0.13.4",
+        "Express",
+        "Flask/1.1.2",
+        "Django/3.1"
       ]
     }
 ---
@@ -340,6 +347,11 @@ metadata:
     app: krawl-server
 spec:
   type: LoadBalancer
+  externalTrafficPolicy: Local
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
   ports:
   - port: 5000
     targetPort: 5000
@@ -353,10 +365,8 @@ kind: Ingress
 metadata:
   name: krawl-ingress
   namespace: krawl-system
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
-  ingressClassName: nginx
+  ingressClassName: traefik
   rules:
   - host: krawl.example.com  # Change to your domain
     http:

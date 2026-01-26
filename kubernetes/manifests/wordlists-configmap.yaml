@@ -201,5 +201,17 @@ data:
         500,
         502,
         503
+      ],
+      "server_headers": [
+        "Apache/2.2.22 (Ubuntu)",
+        "nginx/1.18.0",
+        "Microsoft-IIS/10.0",
+        "LiteSpeed",
+        "Caddy",
+        "Gunicorn/20.0.4",
+        "uvicorn/0.13.4",
+        "Express",
+        "Flask/1.1.2",
+        "Django/3.1"
       ]
     }

@@ -9,8 +9,7 @@ data:
     server:
       port: 5000
       delay: 100
-      timezone: null  # e.g., "America/New_York" or null for system default
-
+      timezone: null
     links:
       min_length: 5
       max_length: 15
@@ -18,24 +17,28 @@ data:
       max_per_page: 15
       char_space: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
       max_counter: 10
-
     canary:
-      token_url: null  # Optional canary token URL
+      token_url: null
       token_tries: 10
-
     dashboard:
-      # Auto-generates random path if null
-      # Can be set to "/dashboard" or similar
       secret_path: null
-
     api:
       server_url: null
       server_port: 8080
       server_path: "/api/v2/users"
-
     database:
       path: "data/krawl.db"
       retention_days: 30
-
     behavior:
-      probability_error_codes: 0  # 0-100 percentage
+      probability_error_codes: 0
+    analyzer:
+      http_risky_methods_threshold: 0.1
+      violated_robots_threshold: 0.1
+      uneven_request_timing_threshold: 0.5
+      uneven_request_timing_time_window_seconds: 300
+      user_agents_used_threshold: 2
+      attack_urls_threshold: 1
+    crawl:
+      infinite_pages_for_malicious: true
+      max_pages_limit: 250
+      ban_duration_seconds: 600

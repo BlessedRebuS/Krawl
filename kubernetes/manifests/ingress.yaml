@@ -3,10 +3,8 @@ kind: Ingress
 metadata:
   name: krawl-ingress
   namespace: krawl-system
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
-  ingressClassName: nginx
+  ingressClassName: traefik
   rules:
   - host: krawl.example.com  # Change to your domain
     http:
