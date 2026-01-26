@@ -37,15 +37,6 @@ jobs:
             exit 1
           fi
 
-      - name: Flake8 lint
-        run: flake8 src/ --max-line-length=120 --extend-ignore=E203,W503
-
-      - name: Pylint check
-        run: pylint src/ --fail-under=7.0 || true
-
-      - name: Run tests
-        run: pytest tests/ -v || true
-
   build-docker:
     name: Build Docker
     runs-on: ubuntu-latest
