@@ -548,10 +548,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             background: #161b22;
             border-top: 6px solid #30363d;
         }}
-        .attacker-marker {{
-            width: 20px;
-            height: 20px;
-            background: #f85149;
+        .ip-marker {{
             border: 2px solid #fff;
             border-radius: 50%;
             display: flex;
@@ -560,20 +557,27 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             font-size: 10px;
             font-weight: bold;
             color: white;
-            box-shadow: 0 0 8px rgba(248, 81, 73, 0.8), inset 0 0 4px rgba(248, 81, 73, 0.5);
             cursor: pointer;
         }}
-        .attacker-marker-cluster {{
-            background: #f85149 !important;
-            border: 2px solid #fff !important;
-            background-clip: padding-box !important;
+        .marker-attacker {{
+            background: #f85149;
+            box-shadow: 0 0 8px rgba(248, 81, 73, 0.8), inset 0 0 4px rgba(248, 81, 73, 0.5);
         }}
-        .attacker-marker-cluster div {{
-            background: #f85149 !important;
+        .marker-bad_crawler {{
+            background: #f0883e;
+            box-shadow: 0 0 8px rgba(240, 136, 62, 0.8), inset 0 0 4px rgba(240, 136, 62, 0.5);
         }}
-        .attacker-marker-cluster span {{
-            color: white !important;
-            font-weight: bold !important;
+        .marker-good_crawler {{
+            background: #3fb950;
+            box-shadow: 0 0 8px rgba(63, 185, 80, 0.8), inset 0 0 4px rgba(63, 185, 80, 0.5);
+        }}
+        .marker-regular_user {{
+            background: #58a6ff;
+            box-shadow: 0 0 8px rgba(88, 166, 255, 0.8), inset 0 0 4px rgba(88, 166, 255, 0.5);
+        }}
+        .marker-unknown {{
+            background: #8b949e;
+            box-shadow: 0 0 8px rgba(139, 148, 158, 0.8), inset 0 0 4px rgba(139, 148, 158, 0.5);
         }}
         .leaflet-bottom.leaflet-right {{
             display: none !important;
@@ -734,7 +738,31 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
 
         <div id="ip-stats" class="tab-content">
             <div class="table-container" style="margin-bottom: 30px;">
-                <h2>Attacker Origins Map</h2>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                    <h2 style="margin: 0;">IP Origins Map</h2>
+                    <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #c9d1d9; font-size: 13px;">
+                            <input type="checkbox" id="filter-attacker" checked onchange="updateMapFilters()" style="cursor: pointer;">
+                            <span style="color: #f85149;">● Attackers</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #c9d1d9; font-size: 13px;">
+                            <input type="checkbox" id="filter-bad-crawler" checked onchange="updateMapFilters()" style="cursor: pointer;">
+                            <span style="color: #f0883e;">● Bad Crawlers</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #c9d1d9; font-size: 13px;">
+                            <input type="checkbox" id="filter-good-crawler" checked onchange="updateMapFilters()" style="cursor: pointer;">
+                            <span style="color: #3fb950;">● Good Crawlers</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #c9d1d9; font-size: 13px;">
+                            <input type="checkbox" id="filter-regular-user" checked onchange="updateMapFilters()" style="cursor: pointer;">
+                            <span style="color: #58a6ff;">● Regular Users</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #c9d1d9; font-size: 13px;">
+                            <input type="checkbox" id="filter-unknown" checked onchange="updateMapFilters()" style="cursor: pointer;">
+                            <span style="color: #8b949e;">● Unknown</span>
+                        </label>
+                    </div>
+                </div>
                 <div id="attacker-map" style="height: 500px; border-radius: 6px; overflow: hidden; border: 1px solid #30363d; background: #161b22;">
                     <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #8b949e;">Loading map...</div>
                 </div>
@@ -1862,9 +1890,20 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
         `;
         document.head.appendChild(style);
 
-        // Attacker Map Visualization
+        // IP Map Visualization
         let attackerMap = null;
+        let allIps = [];
         let mapMarkers = [];
+        let markerLayers = {{}};
+        let circleLayers = {{}};
+
+        const categoryColors = {{
+            attacker: '#f85149',
+            bad_crawler: '#f0883e',
+            good_crawler: '#3fb950',
+            regular_user: '#58a6ff',
+            unknown: '#8b949e'
+        }};
 
         async function initializeAttackerMap() {{
             const mapContainer = document.getElementById('attacker-map');
@@ -1884,8 +1923,8 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     ]
                 }});
 
-                // Fetch all attackers
-                const response = await fetch(DASHBOARD_PATH + '/api/attackers?page=1&page_size=100&sort_by=total_requests&sort_order=desc', {{
+                // Fetch all IPs (not just attackers)
+                const response = await fetch(DASHBOARD_PATH + '/api/all-ips?page=1&page_size=100&sort_by=total_requests&sort_order=desc', {{
                     cache: 'no-store',
                     headers: {{
                         'Cache-Control': 'no-cache',
@@ -1893,18 +1932,18 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     }}
                 }});
 
-                if (!response.ok) throw new Error('Failed to fetch attackers');
-                
-                const data = await response.json();
-                const attackers = data.attackers || [];
+                if (!response.ok) throw new Error('Failed to fetch IPs');
 
-                if (attackers.length === 0) {{
-                    mapContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #8b949e;\">No attacker location data available</div>';
+                const data = await response.json();
+                allIps = data.ips || [];
+
+                if (allIps.length === 0) {{
+                    mapContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #8b949e;\">No IP location data available</div>';
                     return;
                 }}
 
                 // Get max request count for scaling
-                const maxRequests = Math.max(...attackers.map(a => a.total_requests || 0));
+                const maxRequests = Math.max(...allIps.map(ip => ip.total_requests || 0));
 
                 // Create a map of country locations (approximate country centers)
                 const countryCoordinates = {{
@@ -1922,22 +1961,40 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     'FI': [61.9, 25.8], 'NO': [60.5, 8.5], 'GR': [39.1, 21.8], 'PT': [39.4, -8.2]
                 }};
 
-                // Add markers for each attacker
-                const markerGroup = L.featureGroup();
+                // Create layer groups for each category
+                markerLayers = {{
+                    attacker: L.featureGroup(),
+                    bad_crawler: L.featureGroup(),
+                    good_crawler: L.featureGroup(),
+                    regular_user: L.featureGroup(),
+                    unknown: L.featureGroup()
+                }};
 
-                attackers.slice(0, 50).forEach(attacker => {{
-                    if (!attacker.country_code) return;
+                circleLayers = {{
+                    attacker: L.featureGroup(),
+                    bad_crawler: L.featureGroup(),
+                    good_crawler: L.featureGroup(),
+                    regular_user: L.featureGroup(),
+                    unknown: L.featureGroup()
+                }};
 
-                    const coords = countryCoordinates[attacker.country_code];
+                // Add markers for each IP
+                allIps.slice(0, 100).forEach(ip => {{
+                    if (!ip.country_code || !ip.category) return;
+
+                    const coords = countryCoordinates[ip.country_code];
                     if (!coords) return;
 
+                    const category = ip.category.toLowerCase();
+                    if (!markerLayers[category]) return;
+
                     // Calculate marker size based on request count
-                    const sizeRatio = (attacker.total_requests / maxRequests) * 0.7 + 0.3;
+                    const sizeRatio = (ip.total_requests / maxRequests) * 0.7 + 0.3;
                     const markerSize = Math.max(15, Math.min(40, 20 * sizeRatio));
 
-                    // Create custom marker element
+                    // Create custom marker element with category-specific class
                     const markerElement = document.createElement('div');
-                    markerElement.className = 'attacker-marker';
+                    markerElement.className = `ip-marker marker-${{category}}`;
                     markerElement.style.width = markerSize + 'px';
                     markerElement.style.height = markerSize + 'px';
                     markerElement.style.fontSize = (markerSize * 0.5) + 'px';
@@ -1947,68 +2004,135 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                         icon: L.divIcon({{
                             html: markerElement,
                             iconSize: [markerSize, markerSize],
-                            className: 'attacker-custom-marker'
+                            className: `ip-custom-marker category-${{category}}`
                         }})
                     }});
 
-                    // Create popup content
+                    // Create popup content with category badge
+                    const categoryColor = categoryColors[category] || '#8b949e';
+                    const categoryLabels = {{
+                        attacker: 'Attacker',
+                        bad_crawler: 'Bad Crawler',
+                        good_crawler: 'Good Crawler',
+                        regular_user: 'Regular User',
+                        unknown: 'Unknown'
+                    }};
+
                     const popupContent = `
-                        <div style="padding: 8px; min-width: 200px;">
-                            <strong style="color: #58a6ff;">${{attacker.ip}}</strong><br/>
+                        <div style="padding: 8px; min-width: 220px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                <strong style="color: #58a6ff;">${{ip.ip}}</strong>
+                                <span style="background: ${{categoryColor}}1a; color: ${{categoryColor}}; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                    ${{categoryLabels[category]}}
+                                </span>
+                            </div>
                             <span style="color: #8b949e; font-size: 12px;">
-                                ${{attacker.city || ''}}${{attacker.city && attacker.country_code ? ', ' : ''}}${{attacker.country_code || 'Unknown'}}
+                                ${{ip.city || ''}}${{ip.city && ip.country_code ? ', ' : ''}}${{ip.country_code || 'Unknown'}}
                             </span><br/>
                             <div style="margin-top: 8px; border-top: 1px solid #30363d; padding-top: 8px;">
-                                <div><span style="color: #8b949e;">Requests:</span> <span style="color: #f85149; font-weight: bold;">${{attacker.total_requests}}</span></div>
-                                <div><span style="color: #8b949e;">First Seen:</span> <span style="color: #58a6ff;">${{formatTimestamp(attacker.first_seen)}}</span></div>
-                                <div><span style="color: #8b949e;">Last Seen:</span> <span style="color: #58a6ff;">${{formatTimestamp(attacker.last_seen)}}</span></div>
+                                <div><span style="color: #8b949e;">Requests:</span> <span style="color: ${{categoryColor}}; font-weight: bold;">${{ip.total_requests}}</span></div>
+                                <div><span style="color: #8b949e;">First Seen:</span> <span style="color: #58a6ff;">${{formatTimestamp(ip.first_seen)}}</span></div>
+                                <div><span style="color: #8b949e;">Last Seen:</span> <span style="color: #58a6ff;">${{formatTimestamp(ip.last_seen)}}</span></div>
                             </div>
                         </div>
                     `;
 
                     marker.bindPopup(popupContent);
-                    markerGroup.addLayer(marker);
-                    mapMarkers.push(marker);
+                    markerLayers[category].addLayer(marker);
                 }});
 
-                // Add cluster circle effect
-                const circleGroup = L.featureGroup();
-                const countryAttackerCount = {{}};
-                
-                attackers.forEach(attacker => {{
-                    if (attacker.country_code) {{
-                        countryAttackerCount[attacker.country_code] = (countryAttackerCount[attacker.country_code] || 0) + 1;
+                // Add cluster circles for each category
+                const categoryCountryCounts = {{}};
+
+                allIps.forEach(ip => {{
+                    if (ip.country_code && ip.category) {{
+                        const category = ip.category.toLowerCase();
+                        if (!categoryCountryCounts[category]) {{
+                            categoryCountryCounts[category] = {{}};
+                        }}
+                        categoryCountryCounts[category][ip.country_code] =
+                            (categoryCountryCounts[category][ip.country_code] || 0) + 1;
                     }}
                 }});
 
-                Object.entries(countryAttackerCount).forEach(([country, count]) => {{
-                    const coords = countryCoordinates[country];
-                    if (coords) {{
-                        const circle = L.circle(coords, {{
-                            radius: 100000 + (count * 150000),
-                            color: '#f85149',
-                            fillColor: '#f85149',
-                            fillOpacity: 0.15,
-                            weight: 1,
-                            opacity: 0.4,
-                            dashArray: '3'
-                        }});
-                        circleGroup.addLayer(circle);
-                    }}
+                Object.entries(categoryCountryCounts).forEach(([category, countryCounts]) => {{
+                    Object.entries(countryCounts).forEach(([country, count]) => {{
+                        const coords = countryCoordinates[country];
+                        if (coords && circleLayers[category]) {{
+                            const color = categoryColors[category] || '#8b949e';
+                            const circle = L.circle(coords, {{
+                                radius: 100000 + (count * 150000),
+                                color: color,
+                                fillColor: color,
+                                fillOpacity: 0.15,
+                                weight: 1,
+                                opacity: 0.4,
+                                dashArray: '3'
+                            }});
+                            circleLayers[category].addLayer(circle);
+                        }}
+                    }});
                 }});
 
-                attackerMap.addLayer(circleGroup);
-                markerGroup.addTo(attackerMap);
-                
-                // Fit map to markers
-                if (markerGroup.getLayers().length > 0) {{
-                    attackerMap.fitBounds(markerGroup.getBounds(), {{ padding: [50, 50] }});
+                // Add all layers to map initially
+                Object.values(circleLayers).forEach(layer => attackerMap.addLayer(layer));
+                Object.values(markerLayers).forEach(layer => attackerMap.addLayer(layer));
+
+                // Fit map to all markers
+                const allMarkers = Object.values(markerLayers).reduce((acc, layer) => {{
+                    acc.push(...layer.getLayers());
+                    return acc;
+                }}, []);
+
+                if (allMarkers.length > 0) {{
+                    const bounds = L.featureGroup(allMarkers).getBounds();
+                    attackerMap.fitBounds(bounds, {{ padding: [50, 50] }});
                 }}
 
             }} catch (err) {{
                 console.error('Error initializing attacker map:', err);
                 mapContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #f85149;">Failed to load map: ' + err.message + '</div>';
             }}
+        }}
+
+        // Update map filters based on checkbox selection
+        function updateMapFilters() {{
+            if (!attackerMap) return;
+
+            const filters = {{
+                attacker: document.getElementById('filter-attacker').checked,
+                bad_crawler: document.getElementById('filter-bad-crawler').checked,
+                good_crawler: document.getElementById('filter-good-crawler').checked,
+                regular_user: document.getElementById('filter-regular-user').checked,
+                unknown: document.getElementById('filter-unknown').checked
+            }};
+
+            // Update marker and circle layers visibility
+            Object.entries(filters).forEach(([category, show]) => {{
+                if (markerLayers[category]) {{
+                    if (show) {{
+                        if (!attackerMap.hasLayer(markerLayers[category])) {{
+                            attackerMap.addLayer(markerLayers[category]);
+                        }}
+                    }} else {{
+                        if (attackerMap.hasLayer(markerLayers[category])) {{
+                            attackerMap.removeLayer(markerLayers[category]);
+                        }}
+                    }}
+                }}
+
+                if (circleLayers[category]) {{
+                    if (show) {{
+                        if (!attackerMap.hasLayer(circleLayers[category])) {{
+                            attackerMap.addLayer(circleLayers[category]);
+                        }}
+                    }} else {{
+                        if (attackerMap.hasLayer(circleLayers[category])) {{
+                            attackerMap.removeLayer(circleLayers[category]);
+                        }}
+                    }}
+                }}
+            }});
         }}
 
         // Initialize map when Attacks tab is opened

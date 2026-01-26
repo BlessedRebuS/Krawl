@@ -716,6 +716,84 @@ class DatabaseManager:
         finally:
             self.close_session()
 
+    def get_all_ips_paginated(self, page: int = 1, page_size: int = 25, sort_by: str = "total_requests", sort_order: str = "desc", categories: Optional[List[str]] = None) -> Dict[str, Any]:
+        """
+        Retrieve paginated list of all IPs (or filtered by categories) ordered by specified field.
+
+        Args:
+            page: Page number (1-indexed)
+            page_size: Number of results per page
+            sort_by: Field to sort by (total_requests, first_seen, last_seen)
+            sort_order: Sort order (asc or desc)
+            categories: Optional list of categories to filter by
+
+        Returns:
+            Dictionary with IPs list and pagination info
+        """
+        session = self.session
+        try:
+            offset = (page - 1) * page_size
+
+            # Validate sort parameters
+            valid_sort_fields = {"total_requests", "first_seen", "last_seen"}
+            sort_by = sort_by if sort_by in valid_sort_fields else "total_requests"
+            sort_order = sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
+
+            # Build query with optional category filter
+            query = session.query(IpStats)
+            if categories:
+                query = query.filter(IpStats.category.in_(categories))
+
+            # Get total count
+            total_ips = query.count()
+
+            # Apply sorting
+            if sort_by == "total_requests":
+                query = query.order_by(
+                    IpStats.total_requests.desc() if sort_order == "desc" else IpStats.total_requests.asc()
+                )
+            elif sort_by == "first_seen":
+                query = query.order_by(
+                    IpStats.first_seen.desc() if sort_order == "desc" else IpStats.first_seen.asc()
+                )
+            elif sort_by == "last_seen":
+                query = query.order_by(
+                    IpStats.last_seen.desc() if sort_order == "desc" else IpStats.last_seen.asc()
+                )
+
+            # Get paginated IPs
+            ips = query.offset(offset).limit(page_size).all()
+
+            total_pages = (total_ips + page_size - 1) // page_size
+
+            return {
+                "ips": [
+                    {
+                        "ip": ip.ip,
+                        "total_requests": ip.total_requests,
+                        "first_seen": ip.first_seen.isoformat() if ip.first_seen else None,
+                        "last_seen": ip.last_seen.isoformat() if ip.last_seen else None,
+                        "country_code": ip.country_code,
+                        "city": ip.city,
+                        "asn": ip.asn,
+                        "asn_org": ip.asn_org,
+                        "reputation_score": ip.reputation_score,
+                        "reputation_source": ip.reputation_source,
+                        "category": ip.category,
+                        "category_scores": ip.category_scores or {},
+                    }
+                    for ip in ips
+                ],
+                "pagination": {
+                    "page": page,
+                    "page_size": page_size,
+                    "total": total_ips,
+                    "total_pages": total_pages,
+                },
+            }
+        finally:
+            self.close_session()
+
     def get_dashboard_counts(self) -> Dict[str, int]:
         """
         Get aggregate statistics for the dashboard (excludes local/private IPs and server IP).
