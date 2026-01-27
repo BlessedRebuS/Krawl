@@ -9,6 +9,11 @@ import html
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+# imports for the __init_subclass__ method, do not remove pls
+from firewall import fwtype
+from firewall.iptables import Iptables
+from firewall.raw import Raw
+
 
 def _escape(value) -> str:
     """Escape HTML special characters to prevent XSS attacks."""
@@ -614,11 +619,13 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
 </head>
 <body>
     <div class="container">
-        <div class="download-section">
-            <a href="{dashboard_path}/api/download/malicious_ips.txt" class="download-btn" download>
-            Export Malicious IPs
-            </a>
-        </div>
+        <form class="download-section" action="{dashboard_path}/api/get_banlist" method="GET" >
+            <select class="download-btn" name="fwtype" id="fwtype">
+                <option value="raw">raw</option>
+                <option value="iptables">iptables</option>
+            </select>
+            <input type="submit" class="download-btn" value="Export IPs Banlist">
+        </form>
         <h1>Krawl Dashboard</h1>
 
         <div class="stats-grid">
@@ -1064,7 +1071,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             if (stats.category_history && stats.category_history.length > 0) {{
                 html += '<div class="timeline-section">';
                 html += '<div class="timeline-container">';
-                
+
                 // Timeline column
                 html += '<div class="timeline-column">';
                 html += '<div class="timeline-header">Behavior Timeline</div>';
@@ -1075,18 +1082,18 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     const timestamp = formatTimestamp(change.timestamp);
                     const oldClass = change.old_category ? 'category-' + change.old_category.toLowerCase().replace('_', '-') : '';
                     const newClass = 'category-' + categoryClass;
-                    
+
                     html += '<div class="timeline-item">';
                     html += `<div class="timeline-marker ${{categoryClass}}"></div>`;
                     html += '<div class="timeline-content">';
-                    
+
                     if (change.old_category) {{
                         html += `<span class="category-badge ${{oldClass}}">${{change.old_category}}</span>`;
                         html += '<span style="color: #8b949e; margin: 0 4px;">→</span>';
                     }} else {{
                         html += '<span style="color: #8b949e;">Initial:</span>';
                     }}
-                    
+
                     html += `<span class="category-badge ${{newClass}}">${{change.new_category}}</span>`;
                     html += `<div class="timeline-time">${{timestamp}}</div>`;
                     html += '</div>';
@@ -1095,14 +1102,14 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
 
                 html += '</div>';
                 html += '</div>';
-                
+
                 // Reputation column
                 html += '<div class="timeline-column">';
-                
+
                 if (stats.list_on && Object.keys(stats.list_on).length > 0) {{
                     html += '<div class="timeline-header">Listed On</div>';
                     const sortedSources = Object.entries(stats.list_on).sort((a, b) => a[0].localeCompare(b[0]));
-                    
+
                     sortedSources.forEach(([source, url]) => {{
                         if (url && url !== 'N/A') {{
                             html += `<a href="${{url}}" target="_blank" rel="noopener noreferrer" class="reputation-badge" title="${{source}}">${{source}}</a>`;
@@ -1114,7 +1121,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     html += '<div class="timeline-header">Reputation</div>';
                     html += '<span class="reputation-clean" title="Not found on public blacklists">✓ Clean</span>';
                 }}
-                
+
                 html += '</div>';
                 html += '</div>';
                 html += '</div>';
@@ -1227,23 +1234,23 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             document.querySelectorAll('.tab-content').forEach(tab => {{
                 tab.classList.remove('active');
             }});
-            
+
             // Remove active class from all buttons
             document.querySelectorAll('.tab-button').forEach(btn => {{
                 btn.classList.remove('active');
             }});
-            
+
             // Show selected tab
             const selectedTab = document.getElementById(tabName);
             const selectedButton = document.querySelector(`.tab-button[href="#${{tabName}}"]`);
-            
+
             if (selectedTab) {{
                 selectedTab.classList.add('active');
             }}
             if (selectedButton) {{
                 selectedButton.classList.add('active');
             }}
-            
+
             // Load data for this tab
             if (tabName === 'ip-stats') {{
                 loadIpStatistics(1);
@@ -1285,7 +1292,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             if (e.target.classList.contains('sortable') && e.target.closest('#ip-stats-tbody')) {{
                 return; // Don't sort when inside tbody
             }}
-            
+
             const sortHeader = e.target.closest('th.sortable');
             if (!sortHeader) return;
 
@@ -1293,7 +1300,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             if (!table || !table.classList.contains('ip-stats-table')) return;
 
             const sortField = sortHeader.getAttribute('data-sort');
-            
+
             // Toggle sort order if clicking the same field
             if (currentSortBy === sortField) {{
                 currentSortOrder = currentSortOrder === 'desc' ? 'asc' : 'desc';
@@ -1324,9 +1331,9 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                 console.error('IP stats tbody not found');
                 return;
             }}
-            
+
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Loading...</td></tr>';
-            
+
             try {{
                 console.log('Fetching attackers from page:', page, 'sort:', currentSortBy, currentSortOrder);
                 const response = await fetch(DASHBOARD_PATH + '/api/attackers?page=' + page + '&page_size=' + PAGE_SIZE + '&sort_by=' + currentSortBy + '&sort_order=' + currentSortOrder, {{
@@ -1336,14 +1343,14 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                         'Pragma': 'no-cache'
                     }}
                 }});
-                
+
                 console.log('Response status:', response.status);
-                
+
                 if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
-                
+
                 const data = await response.json();
                 console.log('Received data:', data);
-                
+
                 if (!data.attackers || data.attackers.length === 0) {{
                     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No attackers on this page.</td></tr>';
                     currentPage = page;
@@ -1351,7 +1358,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     updatePaginationControls();
                     return;
                 }}
-                
+
                 // Update pagination info
                 currentPage = data.pagination.page;
                 totalPages = data.pagination.total_pages;
@@ -1359,7 +1366,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                 document.getElementById('total-pages').textContent = totalPages;
                 document.getElementById('total-attackers').textContent = data.pagination.total_attackers;
                 updatePaginationControls();
-                
+
                 let html = '';
                 data.attackers.forEach((attacker, index) => {{
                     const rank = (currentPage - 1) * PAGE_SIZE + index + 1;
@@ -1379,10 +1386,10 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                         </td>
                     </tr>`;
                 }});
-                
+
                 tbody.innerHTML = html;
                 console.log('Populated', data.attackers.length, 'attacker records');
-                
+
                 // Re-attach click listeners for expandable rows
                 attachAttackerClickListeners();
             }} catch (err) {{
@@ -1394,7 +1401,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
         function updatePaginationControls() {{
             const prevBtn = document.getElementById('prev-page-btn');
             const nextBtn = document.getElementById('next-page-btn');
-            
+
             if (prevBtn) prevBtn.disabled = currentPage <= 1;
             if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
         }}
@@ -1666,7 +1673,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
         async function loadOverviewTable(tableId) {{
             const config = tableConfig[tableId];
             if (!config) return;
-            
+
             const state = overviewState[tableId];
             const tbody = document.getElementById(tableId + '-tbody');
             if (!tbody) return;
@@ -1700,7 +1707,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                 let html = '';
                 items.forEach((item, index) => {{
                     const rank = (state.currentPage - 1) * 5 + index + 1;
-                    
+
                     if (tableId === 'honeypot') {{
                         html += `<tr class="ip-row" data-ip="${{item.ip}}"><td class="rank">${{rank}}</td><td class="ip-clickable">${{item.ip}}</td><td>${{item.paths.join(', ')}}</td><td>${{item.count}}</td></tr>`;
                         html += `<tr class="ip-stats-row" id="stats-row-honeypot-${{item.ip.replace(/\\./g, '-')}}" style="display: none;">
@@ -1846,12 +1853,12 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
         async function showIpDetail(ip) {{
             const modal = document.getElementById('ip-detail-modal');
             const bodyDiv = document.getElementById('ip-detail-body');
-            
+
             if (!modal || !bodyDiv) return;
-            
+
             bodyDiv.innerHTML = '<div class="loading" style="text-align: center;">Loading IP details...</div>';
             modal.classList.add('show');
-            
+
             try {{
                 const response = await fetch(`${{DASHBOARD_PATH}}/api/ip-stats/${{ip}}`, {{
                     cache: 'no-store',
@@ -1860,9 +1867,9 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                         'Pragma': 'no-cache'
                     }}
                 }});
-                
+
                 if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
-                
+
                 const stats = await response.json();
                 bodyDiv.innerHTML = '<h2>' + stats.ip + ' - Detailed Statistics</h2>' + formatIpStats(stats);
             }} catch (err) {{
@@ -2206,7 +2213,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
         // Initialize map when Attacks tab is opened
         const originalSwitchTab = window.switchTab;
         let attackTypesChartLoaded = false;
-        
+
         window.switchTab = function(tabName) {{
             originalSwitchTab(tabName);
             if (tabName === 'ip-stats') {{
@@ -2239,7 +2246,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                 }});
 
                 if (!response.ok) throw new Error('Failed to fetch attack types');
-                
+
                 const data = await response.json();
                 const attacks = data.attacks || [];
 
