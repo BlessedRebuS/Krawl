@@ -1,10 +1,11 @@
 from typing_extensions import override
 from firewall.fwtype import FWType
 
+
 class Iptables(FWType):
 
     @override
-    def getBanlist(self,ips) -> str:
+    def getBanlist(self, ips) -> str:
         """
         Generate iptables ban rules from an array of IP addresses.
 
@@ -29,11 +30,7 @@ class Iptables(FWType):
             ip = ip.strip()
 
             # Build the iptables command
-            rule_parts = [
-                "iptables",
-                "-A", chain,
-                "-s", ip
-            ]
+            rule_parts = ["iptables", "-A", chain, "-s", ip]
 
             # Add target
             rule_parts.extend(["-j", target])
