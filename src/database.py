@@ -398,6 +398,7 @@ class DatabaseManager:
         asn: str,
         asn_org: str,
         list_on: Dict[str, str],
+        city: Optional[str] = None,
     ) -> None:
         """
         Update IP rep stats
@@ -408,6 +409,7 @@ class DatabaseManager:
             asn: IP address ASN
             asn_org: IP address ASN ORG
             list_on: public lists containing the IP address
+            city: City name (optional)
 
         """
         session = self.session
@@ -419,6 +421,8 @@ class DatabaseManager:
                 ip_stats.asn = asn
                 ip_stats.asn_org = asn_org
                 ip_stats.list_on = list_on
+                if city:
+                    ip_stats.city = city
                 session.commit()
         except Exception as e:
             session.rollback()

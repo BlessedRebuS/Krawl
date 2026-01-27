@@ -34,14 +34,17 @@ def main():
 
             if payload.get("results"):
                 data = payload["results"][0]
-                country_iso_code = data["geoip_data"]["country_iso_code"]
-                asn = data["geoip_data"]["asn_autonomous_system_number"]
-                asn_org = data["geoip_data"]["asn_autonomous_system_organization"]
+                geoip_data = data["geoip_data"]
+                country_iso_code = geoip_data.get("country_iso_code")
+                asn = geoip_data.get("asn_autonomous_system_number")
+                asn_org = geoip_data.get("asn_autonomous_system_organization")
+                city = geoip_data.get("city_name")  # Extract city name from API
                 list_on = data["list_on"]
 
                 sanitized_country_iso_code = sanitize_for_storage(country_iso_code, 3)
                 sanitized_asn = sanitize_for_storage(asn, 100)
                 sanitized_asn_org = sanitize_for_storage(asn_org, 100)
+                sanitized_city = sanitize_for_storage(city, 100) if city else None
                 sanitized_list_on = sanitize_dict(list_on, 100000)
 
                 db_manager.update_ip_rep_infos(
@@ -50,6 +53,7 @@ def main():
                     sanitized_asn,
                     sanitized_asn_org,
                     sanitized_list_on,
+                    sanitized_city,  # Pass city to database
                 )
         except requests.RequestException as e:
             app_logger.warning(f"Failed to fetch IP rep for {ip}: {e}")

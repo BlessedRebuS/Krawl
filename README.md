@@ -1,10 +1,10 @@
-<h1 align="center">🕷️ Krawl</h1>
+<h1 align="center">Krawl</h1>
 
 <h3 align="center">
   <a name="readme-top"></a>
   <img
-    src="img/krawl-logo.jpg"
-    height="200"
+    src="img/krawl-svg.svg"
+    height="250"
   >
 </h3>
 <div align="center">

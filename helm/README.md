@@ -20,13 +20,13 @@ helm repo update
 ### Install from OCI Registry
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 0.1.5-dev
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 0.2.1
 ```
 
 Or with a specific namespace:
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 0.1.5-dev -n krawl --create-namespace
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 0.2.1 -n krawl --create-namespace
 ```
 
 ### Install the chart locally
