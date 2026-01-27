@@ -7,7 +7,8 @@ This generates realistic-looking test data including:
 - Credential attempts
 - Attack detections (SQL injection, XSS, etc.)
 - Category behavior changes for timeline demonstration
-- Real good crawler IPs (Googlebot, Bingbot, etc.) with API-fetched geolocation
+- Geolocation data fetched from API with reverse geocoded city names
+- Real good crawler IPs (Googlebot, Bingbot, etc.)
 
 Usage:
     python test_insert_fake_ips.py [num_ips] [logs_per_ip] [credentials_per_ip] [--no-cleanup]
@@ -17,6 +18,8 @@ Examples:
     python test_insert_fake_ips.py 30           # Generate 30 IPs with defaults
     python test_insert_fake_ips.py 30 20 5      # Generate 30 IPs, 20 logs each, 5 credentials each
     python test_insert_fake_ips.py --no-cleanup # Generate data without cleaning DB first
+
+Note: This script will make API calls to fetch geolocation data, so it may take a while.
 """
 
 import random
@@ -32,76 +35,62 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from database import get_database
 from logger import get_app_logger
+from geo_utils import extract_city_from_coordinates
 
 # ----------------------
 # TEST DATA GENERATORS
 # ----------------------
 
-# Fake IPs with geolocation data (country_code, city, ASN org)
-# These will appear on the map based on their country_code
-FAKE_IPS_WITH_GEO = [
+# Fake IPs for testing - geolocation data will be fetched from API
+# These are real public IPs from various locations around the world
+FAKE_IPS = [
     # United States
-    ("45.142.120.10", "US", "New York", "AS14061 DigitalOcean"),
-    ("107.189.10.143", "US", "Los Angeles", "AS20473 Vultr"),
-    ("162.243.175.23", "US", "San Francisco", "AS14061 DigitalOcean"),
-    ("198.51.100.89", "US", "Chicago", "AS16509 Amazon"),
-
+    "45.142.120.10",
+    "107.189.10.143",
+    "162.243.175.23",
+    "198.51.100.89",
     # Europe
-    ("185.220.101.45", "DE", "Berlin", "AS24940 Hetzner"),
-    ("195.154.133.20", "FR", "Paris", "AS12876 Scaleway"),
-    ("178.128.83.165", "GB", "London", "AS14061 DigitalOcean"),
-    ("87.251.67.90", "NL", "Amsterdam", "AS49453 GlobalConnect"),
-    ("91.203.5.165", "RU", "Moscow", "AS51115 HLL LLC"),
-    ("46.105.57.169", "FR", "Roubaix", "AS16276 OVH"),
-    ("217.182.143.207", "RU", "Saint Petersburg", "AS51570 JSC ER-Telecom"),
-    ("188.166.123.45", "GB", "Manchester", "AS14061 DigitalOcean"),
-
+    "185.220.101.45",
+    "195.154.133.20",
+    "178.128.83.165",
+    "87.251.67.90",
+    "91.203.5.165",
+    "46.105.57.169",
+    "217.182.143.207",
+    "188.166.123.45",
     # Asia
-    ("103.253.145.36", "CN", "Beijing", "AS4134 Chinanet"),
-    ("42.112.28.216", "CN", "Shanghai", "AS4134 Chinanet"),
-    ("118.163.74.160", "JP", "Tokyo", "AS2516 KDDI"),
-    ("43.229.53.35", "SG", "Singapore", "AS23969 TOT"),
-    ("115.78.208.140", "IN", "Mumbai", "AS9829 BSNL"),
-    ("14.139.56.18", "IN", "Bangalore", "AS4755 TATA"),
-    ("61.19.25.207", "TW", "Taipei", "AS3462 HiNet"),
-    ("121.126.219.198", "KR", "Seoul", "AS4766 Korea Telecom"),
-    ("202.134.4.212", "ID", "Jakarta", "AS7597 TELKOMNET"),
-    ("171.244.140.134", "VN", "Hanoi", "AS7552 Viettel"),
-
+    "103.253.145.36",
+    "42.112.28.216",
+    "118.163.74.160",
+    "43.229.53.35",
+    "115.78.208.140",
+    "14.139.56.18",
+    "61.19.25.207",
+    "121.126.219.198",
+    "202.134.4.212",
+    "171.244.140.134",
     # South America
-    ("177.87.169.20", "BR", "São Paulo", "AS28573 Claro"),
-    ("200.21.19.58", "BR", "Rio de Janeiro", "AS7738 Telemar"),
-    ("181.13.140.98", "AR", "Buenos Aires", "AS7303 Telecom Argentina"),
-    ("190.150.24.34", "CO", "Bogotá", "AS3816 Colombia Telecomunicaciones"),
-
+    "177.87.169.20",
+    "200.21.19.58",
+    "181.13.140.98",
+    "190.150.24.34",
     # Middle East & Africa
-    ("41.223.53.141", "EG", "Cairo", "AS8452 TE-Data"),
-    ("196.207.35.152", "ZA", "Johannesburg", "AS37271 Workonline"),
-    ("5.188.62.214", "TR", "Istanbul", "AS51115 HLL LLC"),
-    ("37.48.93.125", "AE", "Dubai", "AS5384 Emirates Telecom"),
-    ("102.66.137.29", "NG", "Lagos", "AS29465 MTN Nigeria"),
-
+    "41.223.53.141",
+    "196.207.35.152",
+    "5.188.62.214",
+    "37.48.93.125",
+    "102.66.137.29",
     # Australia & Oceania
-    ("103.28.248.110", "AU", "Sydney", "AS4739 Internode"),
-    ("202.168.45.33", "AU", "Melbourne", "AS1221 Telstra"),
-
+    "103.28.248.110",
+    "202.168.45.33",
     # Additional European IPs
-    ("94.102.49.190", "PL", "Warsaw", "AS12912 T-Mobile"),
-    ("213.32.93.140", "ES", "Madrid", "AS3352 Telefónica"),
-    ("79.137.79.167", "IT", "Rome", "AS3269 Telecom Italia"),
-    ("37.9.169.146", "SE", "Stockholm", "AS3301 Telia"),
-    ("188.92.80.123", "RO", "Bucharest", "AS8708 RCS & RDS"),
-    ("80.240.25.198", "CZ", "Prague", "AS6830 UPC"),
+    "94.102.49.190",
+    "213.32.93.140",
+    "79.137.79.167",
+    "37.9.169.146",
+    "188.92.80.123",
+    "80.240.25.198",
 ]
-
-# Extract just IPs for backward compatibility
-FAKE_IPS = [ip_data[0] for ip_data in FAKE_IPS_WITH_GEO]
-
-# Create geo data dictionary
-FAKE_GEO_DATA = {
-    ip_data[0]: (ip_data[1], ip_data[2], ip_data[3])
-    for ip_data in FAKE_IPS_WITH_GEO
-}
 
 # Real good crawler IPs (Googlebot, Bingbot, etc.) - geolocation will be fetched from API
 GOOD_CRAWLER_IPS = [
@@ -232,6 +221,7 @@ def cleanup_database(db_manager, app_logger):
 def fetch_geolocation_from_api(ip: str, app_logger) -> tuple:
     """
     Fetch geolocation data from the IP reputation API.
+    Uses the most recent result and extracts city from coordinates.
 
     Args:
         ip: IP address to lookup
@@ -249,13 +239,18 @@ def fetch_geolocation_from_api(ip: str, app_logger) -> tuple:
         if response.status_code == 200:
             payload = response.json()
             if payload.get("results"):
-                data = payload["results"][0]
-                geoip_data = data.get("geoip_data", {})
+                results = payload["results"]
 
-                country_code = geoip_data.get("country_iso_code", "Unknown")
-                city = geoip_data.get("city_name", "Unknown")
+                # Get the most recent result (first in list, sorted by record_added)
+                most_recent = results[0]
+                geoip_data = most_recent.get("geoip_data", {})
+
+                country_code = geoip_data.get("country_iso_code")
                 asn = geoip_data.get("asn_autonomous_system_number")
-                asn_org = geoip_data.get("asn_autonomous_system_organization", "Unknown")
+                asn_org = geoip_data.get("asn_autonomous_system_organization")
+
+                # Extract city from coordinates using reverse geocoding
+                city = extract_city_from_coordinates(geoip_data)
 
                 return (country_code, city, asn, asn_org)
     except requests.RequestException as e:
@@ -350,27 +345,27 @@ def generate_fake_data(num_ips: int = 20, logs_per_ip: int = 15, credentials_per
         app_logger.info(f"  ✓ Generated {logs_per_ip} access logs")
         app_logger.info(f"  ✓ Generated {credentials_per_ip} credential attempts")
 
-        # Add geolocation data if available for this IP
-        if ip in FAKE_GEO_DATA:
-            country_code, city, asn_org = FAKE_GEO_DATA[ip]
-            # Extract ASN number from ASN string (e.g., "AS12345 Name" -> 12345)
-            asn_number = None
-            if asn_org and asn_org.startswith("AS"):
-                try:
-                    asn_number = int(asn_org.split()[0][2:])  # Remove "AS" prefix and get number
-                except (ValueError, IndexError):
-                    asn_number = 12345  # Fallback
+        # Fetch geolocation data from API
+        app_logger.info(f"  🌍 Fetching geolocation from API...")
+        geo_data = fetch_geolocation_from_api(ip, app_logger)
 
-            # Update IP reputation info including geolocation and city
+        if geo_data:
+            country_code, city, asn, asn_org = geo_data
             db_manager.update_ip_rep_infos(
                 ip=ip,
                 country_code=country_code,
-                asn=asn_number or 12345,
-                asn_org=asn_org,
+                asn=asn if asn else 12345,
+                asn_org=asn_org or "Unknown",
                 list_on={},
-                city=city  # Now passing city to the function
+                city=city
             )
-            app_logger.info(f"  📍 Added geolocation: {city}, {country_code} ({asn_org})")
+            location_display = f"{city}, {country_code}" if city else country_code or "Unknown"
+            app_logger.info(f"  📍 API-fetched geolocation: {location_display} ({asn_org or 'Unknown'})")
+        else:
+            app_logger.warning(f"  ⚠ Could not fetch geolocation for {ip}")
+
+        # Small delay to be nice to the API
+        time.sleep(0.5)
 
         # Trigger behavior/category changes to demonstrate timeline feature
         # First analysis
@@ -498,7 +493,7 @@ def generate_fake_data(num_ips: int = 20, logs_per_ip: int = 15, credentials_per
     app_logger.info("=" * 60)
     app_logger.info("\nYou can now view the dashboard with this test data.")
     app_logger.info("The 'Behavior Timeline' will show category transitions for each IP.")
-    app_logger.info("The map will show good crawlers with real geolocation from API.")
+    app_logger.info("All IPs have API-fetched geolocation with reverse geocoded city names.")
     app_logger.info("Run: python server.py")
     app_logger.info("=" * 60)
 
