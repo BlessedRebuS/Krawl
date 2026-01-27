@@ -94,13 +94,13 @@ FAKE_IPS = [
 
 # Real good crawler IPs (Googlebot, Bingbot, etc.) - geolocation will be fetched from API
 GOOD_CRAWLER_IPS = [
-    "66.249.66.1",      # Googlebot
-    "66.249.79.23",     # Googlebot
-    "40.77.167.52",     # Bingbot
-    "157.55.39.145",    # Bingbot
-    "17.58.98.100",     # Applebot
-    "199.59.150.39",    # Twitterbot
-    "54.236.1.15",      # Amazon Bot
+    "66.249.66.1",  # Googlebot
+    "66.249.79.23",  # Googlebot
+    "40.77.167.52",  # Bingbot
+    "157.55.39.145",  # Bingbot
+    "17.58.98.100",  # Applebot
+    "199.59.150.39",  # Twitterbot
+    "54.236.1.15",  # Amazon Bot
 ]
 
 FAKE_PATHS = [
@@ -187,7 +187,13 @@ def cleanup_database(db_manager, app_logger):
         db_manager: Database manager instance
         app_logger: Logger instance
     """
-    from models import AccessLog, CredentialAttempt, AttackDetection, IpStats, CategoryHistory
+    from models import (
+        AccessLog,
+        CredentialAttempt,
+        AttackDetection,
+        IpStats,
+        CategoryHistory,
+    )
 
     app_logger.info("=" * 60)
     app_logger.info("Cleaning up existing database data")
@@ -261,7 +267,13 @@ def fetch_geolocation_from_api(ip: str, app_logger) -> tuple:
     return None
 
 
-def generate_fake_data(num_ips: int = 20, logs_per_ip: int = 15, credentials_per_ip: int = 3, include_good_crawlers: bool = True, cleanup: bool = True):
+def generate_fake_data(
+    num_ips: int = 20,
+    logs_per_ip: int = 15,
+    credentials_per_ip: int = 3,
+    include_good_crawlers: bool = True,
+    cleanup: bool = True,
+):
     """
     Generate and insert fake test data into the database.
 
@@ -303,8 +315,12 @@ def generate_fake_data(num_ips: int = 20, logs_per_ip: int = 15, credentials_per
         for _ in range(logs_per_ip):
             path = random.choice(FAKE_PATHS)
             user_agent = random.choice(FAKE_USER_AGENTS)
-            is_suspicious = random.choice([True, False, False])  # 33% chance of suspicious
-            is_honeypot = random.choice([True, False, False, False])  # 25% chance of honeypot trigger
+            is_suspicious = random.choice(
+                [True, False, False]
+            )  # 33% chance of suspicious
+            is_honeypot = random.choice(
+                [True, False, False, False]
+            )  # 25% chance of honeypot trigger
 
             # Randomly decide if this log has attack detections
             attack_types = None
@@ -357,10 +373,14 @@ def generate_fake_data(num_ips: int = 20, logs_per_ip: int = 15, credentials_per
                 asn=asn if asn else 12345,
                 asn_org=asn_org or "Unknown",
                 list_on={},
-                city=city
+                city=city,
             )
-            location_display = f"{city}, {country_code}" if city else country_code or "Unknown"
-            app_logger.info(f"  📍 API-fetched geolocation: {location_display} ({asn_org or 'Unknown'})")
+            location_display = (
+                f"{city}, {country_code}" if city else country_code or "Unknown"
+            )
+            app_logger.info(
+                f"  📍 API-fetched geolocation: {location_display} ({asn_org or 'Unknown'})"
+            )
         else:
             app_logger.warning(f"  ⚠ Could not fetch geolocation for {ip}")
 
@@ -370,14 +390,16 @@ def generate_fake_data(num_ips: int = 20, logs_per_ip: int = 15, credentials_per
         # Trigger behavior/category changes to demonstrate timeline feature
         # First analysis
         initial_category = random.choice(CATEGORIES)
-        app_logger.info(f"  ⟳ Analyzing behavior - Initial category: {initial_category}")
-        
+        app_logger.info(
+            f"  ⟳ Analyzing behavior - Initial category: {initial_category}"
+        )
+
         db_manager.update_ip_stats_analysis(
             ip=ip,
             analyzed_metrics=generate_analyzed_metrics(),
             category=initial_category,
             category_scores=generate_category_scores(),
-            last_analysis=datetime.now(tz=ZoneInfo('UTC'))
+            last_analysis=datetime.now(tz=ZoneInfo("UTC")),
         )
         total_category_changes += 1
 
@@ -386,30 +408,38 @@ def generate_fake_data(num_ips: int = 20, logs_per_ip: int = 15, credentials_per
 
         # Second analysis with potential category change (70% chance)
         if random.random() < 0.7:
-            new_category = random.choice([c for c in CATEGORIES if c != initial_category])
-            app_logger.info(f"  ⟳ Behavior change detected: {initial_category} → {new_category}")
-            
+            new_category = random.choice(
+                [c for c in CATEGORIES if c != initial_category]
+            )
+            app_logger.info(
+                f"  ⟳ Behavior change detected: {initial_category} → {new_category}"
+            )
+
             db_manager.update_ip_stats_analysis(
                 ip=ip,
                 analyzed_metrics=generate_analyzed_metrics(),
                 category=new_category,
                 category_scores=generate_category_scores(),
-                last_analysis=datetime.now(tz=ZoneInfo('UTC'))
+                last_analysis=datetime.now(tz=ZoneInfo("UTC")),
             )
             total_category_changes += 1
 
             # Optional third change (40% chance)
             if random.random() < 0.4:
-                final_category = random.choice([c for c in CATEGORIES if c != new_category])
-                app_logger.info(f"  ⟳ Another behavior change: {new_category} → {final_category}")
-                
+                final_category = random.choice(
+                    [c for c in CATEGORIES if c != new_category]
+                )
+                app_logger.info(
+                    f"  ⟳ Another behavior change: {new_category} → {final_category}"
+                )
+
                 time.sleep(0.1)
                 db_manager.update_ip_stats_analysis(
                     ip=ip,
                     analyzed_metrics=generate_analyzed_metrics(),
                     category=final_category,
                     category_scores=generate_category_scores(),
-                    last_analysis=datetime.now(tz=ZoneInfo('UTC'))
+                    last_analysis=datetime.now(tz=ZoneInfo("UTC")),
                 )
                 total_category_changes += 1
 
@@ -428,7 +458,9 @@ def generate_fake_data(num_ips: int = 20, logs_per_ip: int = 15, credentials_per
 
             # Don't generate access logs for good crawlers to prevent re-categorization
             # We'll just create the IP stats entry with the category set
-            app_logger.info(f"  ✓ Adding as good crawler (no logs to prevent re-categorization)")
+            app_logger.info(
+                f"  ✓ Adding as good crawler (no logs to prevent re-categorization)"
+            )
 
             # First, we need to create the IP in the database via persist_access
             # (but we'll only create one minimal log entry)
@@ -451,9 +483,11 @@ def generate_fake_data(num_ips: int = 20, logs_per_ip: int = 15, credentials_per
                     asn=asn if asn else 12345,
                     asn_org=asn_org,
                     list_on={},
-                    city=city
+                    city=city,
                 )
-                app_logger.info(f"  📍 API-fetched geolocation: {city}, {country_code} ({asn_org})")
+                app_logger.info(
+                    f"  📍 API-fetched geolocation: {city}, {country_code} ({asn_org})"
+                )
             else:
                 app_logger.warning(f"  ⚠ Could not fetch geolocation for {crawler_ip}")
 
@@ -474,7 +508,7 @@ def generate_fake_data(num_ips: int = 20, logs_per_ip: int = 15, credentials_per
                     "regular_user": 0,
                     "unknown": 0,
                 },
-                last_analysis=datetime.now(tz=ZoneInfo('UTC'))
+                last_analysis=datetime.now(tz=ZoneInfo("UTC")),
             )
             total_good_crawlers += 1
             time.sleep(0.5)  # Small delay between API calls
@@ -492,8 +526,12 @@ def generate_fake_data(num_ips: int = 20, logs_per_ip: int = 15, credentials_per
     app_logger.info(f"Total category changes: {total_category_changes}")
     app_logger.info("=" * 60)
     app_logger.info("\nYou can now view the dashboard with this test data.")
-    app_logger.info("The 'Behavior Timeline' will show category transitions for each IP.")
-    app_logger.info("All IPs have API-fetched geolocation with reverse geocoded city names.")
+    app_logger.info(
+        "The 'Behavior Timeline' will show category transitions for each IP."
+    )
+    app_logger.info(
+        "All IPs have API-fetched geolocation with reverse geocoded city names."
+    )
     app_logger.info("Run: python server.py")
     app_logger.info("=" * 60)
 
@@ -508,4 +546,10 @@ if __name__ == "__main__":
     # Add --no-cleanup flag to skip database cleanup
     cleanup = "--no-cleanup" not in sys.argv
 
-    generate_fake_data(num_ips, logs_per_ip, credentials_per_ip, include_good_crawlers=True, cleanup=cleanup)
+    generate_fake_data(
+        num_ips,
+        logs_per_ip,
+        credentials_per_ip,
+        include_good_crawlers=True,
+        cleanup=cleanup,
+    )

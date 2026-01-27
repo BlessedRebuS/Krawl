@@ -447,10 +447,7 @@ class DatabaseManager:
             ips = (
                 session.query(IpStats.ip)
                 .filter(
-                    or_(
-                        IpStats.country_code.is_(None),
-                        IpStats.city.is_(None)
-                    ),
+                    or_(IpStats.country_code.is_(None), IpStats.city.is_(None)),
                     ~IpStats.ip.like("10.%"),
                     ~IpStats.ip.like("172.16.%"),
                     ~IpStats.ip.like("172.17.%"),

@@ -37,11 +37,9 @@ def reverse_geocode_city(latitude: float, longitude: float) -> Optional[str]:
             "lon": longitude,
             "format": "json",
             "zoom": 10,  # City level
-            "addressdetails": 1
+            "addressdetails": 1,
         }
-        headers = {
-            "User-Agent": "Krawl-Honeypot/1.0"  # Required by Nominatim ToS
-        }
+        headers = {"User-Agent": "Krawl-Honeypot/1.0"}  # Required by Nominatim ToS
 
         response = requests.get(url, params=params, headers=headers, timeout=5)
         response.raise_for_status()
@@ -51,11 +49,11 @@ def reverse_geocode_city(latitude: float, longitude: float) -> Optional[str]:
 
         # Try to get city from various possible fields
         city = (
-            address.get("city") or
-            address.get("town") or
-            address.get("village") or
-            address.get("municipality") or
-            address.get("county")
+            address.get("city")
+            or address.get("town")
+            or address.get("village")
+            or address.get("municipality")
+            or address.get("county")
         )
 
         # Cache the result
