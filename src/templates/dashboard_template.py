@@ -548,6 +548,11 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             background: #161b22;
             border-top: 6px solid #30363d;
         }}
+        /* Remove the default leaflet icon background */
+        .ip-custom-marker {{
+            background: none !important;
+            border: none !important;
+        }}
         .ip-marker {{
             border: 2px solid #fff;
             border-radius: 50%;
@@ -558,26 +563,45 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             font-weight: bold;
             color: white;
             cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }}
+        .ip-marker:hover {{
+            transform: scale(1.15);
         }}
         .marker-attacker {{
             background: #f85149;
             box-shadow: 0 0 8px rgba(248, 81, 73, 0.8), inset 0 0 4px rgba(248, 81, 73, 0.5);
         }}
+        .marker-attacker:hover {{
+            box-shadow: 0 0 15px rgba(248, 81, 73, 1), inset 0 0 6px rgba(248, 81, 73, 0.7);
+        }}
         .marker-bad_crawler {{
             background: #f0883e;
             box-shadow: 0 0 8px rgba(240, 136, 62, 0.8), inset 0 0 4px rgba(240, 136, 62, 0.5);
+        }}
+        .marker-bad_crawler:hover {{
+            box-shadow: 0 0 15px rgba(240, 136, 62, 1), inset 0 0 6px rgba(240, 136, 62, 0.7);
         }}
         .marker-good_crawler {{
             background: #3fb950;
             box-shadow: 0 0 8px rgba(63, 185, 80, 0.8), inset 0 0 4px rgba(63, 185, 80, 0.5);
         }}
+        .marker-good_crawler:hover {{
+            box-shadow: 0 0 15px rgba(63, 185, 80, 1), inset 0 0 6px rgba(63, 185, 80, 0.7);
+        }}
         .marker-regular_user {{
             background: #58a6ff;
             box-shadow: 0 0 8px rgba(88, 166, 255, 0.8), inset 0 0 4px rgba(88, 166, 255, 0.5);
         }}
+        .marker-regular_user:hover {{
+            box-shadow: 0 0 15px rgba(88, 166, 255, 1), inset 0 0 6px rgba(88, 166, 255, 0.7);
+        }}
         .marker-unknown {{
             background: #8b949e;
             box-shadow: 0 0 8px rgba(139, 148, 158, 0.8), inset 0 0 4px rgba(139, 148, 158, 0.5);
+        }}
+        .marker-unknown:hover {{
+            box-shadow: 0 0 15px rgba(139, 148, 158, 1), inset 0 0 6px rgba(139, 148, 158, 0.7);
         }}
         .leaflet-bottom.leaflet-right {{
             display: none !important;
@@ -1895,7 +1919,6 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
         let allIps = [];
         let mapMarkers = [];
         let markerLayers = {{}};
-        let circleLayers = {{}};
 
         const categoryColors = {{
             attacker: '#f85149',
@@ -1945,7 +1968,60 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                 // Get max request count for scaling
                 const maxRequests = Math.max(...allIps.map(ip => ip.total_requests || 0));
 
-                // Create a map of country locations (approximate country centers)
+                // City coordinates database (major cities worldwide)
+                const cityCoordinates = {{
+                    // United States
+                    'New York': [40.7128, -74.0060], 'Los Angeles': [34.0522, -118.2437],
+                    'San Francisco': [37.7749, -122.4194], 'Chicago': [41.8781, -87.6298],
+                    'Seattle': [47.6062, -122.3321], 'Miami': [25.7617, -80.1918],
+                    'Boston': [42.3601, -71.0589], 'Atlanta': [33.7490, -84.3880],
+                    'Dallas': [32.7767, -96.7970], 'Houston': [29.7604, -95.3698],
+                    'Denver': [39.7392, -104.9903], 'Phoenix': [33.4484, -112.0740],
+                    // Europe
+                    'London': [51.5074, -0.1278], 'Paris': [48.8566, 2.3522],
+                    'Berlin': [52.5200, 13.4050], 'Amsterdam': [52.3676, 4.9041],
+                    'Moscow': [55.7558, 37.6173], 'Rome': [41.9028, 12.4964],
+                    'Madrid': [40.4168, -3.7038], 'Barcelona': [41.3874, 2.1686],
+                    'Milan': [45.4642, 9.1900], 'Vienna': [48.2082, 16.3738],
+                    'Stockholm': [59.3293, 18.0686], 'Oslo': [59.9139, 10.7522],
+                    'Copenhagen': [55.6761, 12.5683], 'Warsaw': [52.2297, 21.0122],
+                    'Prague': [50.0755, 14.4378], 'Budapest': [47.4979, 19.0402],
+                    'Athens': [37.9838, 23.7275], 'Lisbon': [38.7223, -9.1393],
+                    'Brussels': [50.8503, 4.3517], 'Dublin': [53.3498, -6.2603],
+                    'Zurich': [47.3769, 8.5417], 'Geneva': [46.2044, 6.1432],
+                    'Helsinki': [60.1699, 24.9384], 'Bucharest': [44.4268, 26.1025],
+                    'Saint Petersburg': [59.9343, 30.3351], 'Manchester': [53.4808, -2.2426],
+                    'Roubaix': [50.6942, 3.1746], 'Frankfurt': [50.1109, 8.6821],
+                    'Munich': [48.1351, 11.5820], 'Hamburg': [53.5511, 9.9937],
+                    // Asia
+                    'Tokyo': [35.6762, 139.6503], 'Beijing': [39.9042, 116.4074],
+                    'Shanghai': [31.2304, 121.4737], 'Singapore': [1.3521, 103.8198],
+                    'Mumbai': [19.0760, 72.8777], 'Delhi': [28.7041, 77.1025],
+                    'Bangalore': [12.9716, 77.5946], 'Seoul': [37.5665, 126.9780],
+                    'Hong Kong': [22.3193, 114.1694], 'Bangkok': [13.7563, 100.5018],
+                    'Jakarta': [6.2088, 106.8456], 'Manila': [14.5995, 120.9842],
+                    'Hanoi': [21.0285, 105.8542], 'Ho Chi Minh City': [10.8231, 106.6297],
+                    'Taipei': [25.0330, 121.5654], 'Kuala Lumpur': [3.1390, 101.6869],
+                    'Karachi': [24.8607, 67.0011], 'Islamabad': [33.6844, 73.0479],
+                    'Dhaka': [23.8103, 90.4125], 'Colombo': [6.9271, 79.8612],
+                    // South America
+                    'São Paulo': [-23.5505, -46.6333], 'Rio de Janeiro': [-22.9068, -43.1729],
+                    'Buenos Aires': [-34.6037, -58.3816], 'Bogotá': [4.7110, -74.0721],
+                    'Lima': [-12.0464, -77.0428], 'Santiago': [-33.4489, -70.6693],
+                    // Middle East & Africa
+                    'Cairo': [30.0444, 31.2357], 'Dubai': [25.2048, 55.2708],
+                    'Istanbul': [41.0082, 28.9784], 'Tel Aviv': [32.0853, 34.7818],
+                    'Johannesburg': [26.2041, 28.0473], 'Lagos': [6.5244, 3.3792],
+                    'Nairobi': [-1.2921, 36.8219], 'Cape Town': [-33.9249, 18.4241],
+                    // Australia & Oceania
+                    'Sydney': [-33.8688, 151.2093], 'Melbourne': [-37.8136, 144.9631],
+                    'Brisbane': [-27.4698, 153.0251], 'Perth': [-31.9505, 115.8605],
+                    'Auckland': [-36.8485, 174.7633],
+                    // Additional cities
+                    'Unknown': null
+                }};
+
+                // Country center coordinates (fallback when city not found)
                 const countryCoordinates = {{
                     'US': [37.1, -95.7], 'GB': [55.4, -3.4], 'CN': [35.9, 104.1], 'RU': [61.5, 105.3],
                     'JP': [36.2, 138.3], 'DE': [51.2, 10.5], 'FR': [46.6, 2.2], 'IN': [20.6, 78.96],
@@ -1958,19 +2034,53 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     'TR': [38.9, 35.2], 'IR': [32.4, 53.7], 'AE': [23.4, 53.8], 'KZ': [48.0, 66.9],
                     'UA': [48.4, 31.2], 'BG': [42.7, 25.5], 'RO': [45.9, 24.97], 'CZ': [49.8, 15.5],
                     'HU': [47.2, 19.5], 'AT': [47.5, 14.6], 'BE': [50.5, 4.5], 'DK': [56.3, 9.5],
-                    'FI': [61.9, 25.8], 'NO': [60.5, 8.5], 'GR': [39.1, 21.8], 'PT': [39.4, -8.2]
+                    'FI': [61.9, 25.8], 'NO': [60.5, 8.5], 'GR': [39.1, 21.8], 'PT': [39.4, -8.2],
+                    'AR': [-38.4161, -63.6167], 'CO': [4.5709, -74.2973], 'CL': [-35.6751, -71.5430],
+                    'PE': [-9.1900, -75.0152], 'VE': [6.4238, -66.5897], 'LS': [40.0, -100.0]
                 }};
+
+                // Helper function to get coordinates for an IP
+                function getIPCoordinates(ip) {{
+                    // Try city first
+                    if (ip.city && cityCoordinates[ip.city]) {{
+                        return cityCoordinates[ip.city];
+                    }}
+                    // Fall back to country
+                    if (ip.country_code && countryCoordinates[ip.country_code]) {{
+                        return countryCoordinates[ip.country_code];
+                    }}
+                    return null;
+                }}
+
+                // Track used coordinates to add small offsets for overlapping markers
+                const usedCoordinates = {{}};
+                function getUniqueCoordinates(baseCoords) {{
+                    const key = `${{baseCoords[0].toFixed(4)}},${{baseCoords[1].toFixed(4)}}`;
+                    if (!usedCoordinates[key]) {{
+                        usedCoordinates[key] = 0;
+                    }}
+                    usedCoordinates[key]++;
+
+                    // If this is the first marker at this location, use exact coordinates
+                    if (usedCoordinates[key] === 1) {{
+                        return baseCoords;
+                    }}
+
+                    // Add small random offset for subsequent markers
+                    // Offset increases with each marker to create a spread pattern
+                    const angle = (usedCoordinates[key] * 137.5) % 360; // Golden angle for even distribution
+                    const distance = 0.05 * Math.sqrt(usedCoordinates[key]); // Increase distance with more markers
+                    const latOffset = distance * Math.cos(angle * Math.PI / 180);
+                    const lngOffset = distance * Math.sin(angle * Math.PI / 180);
+
+                    return [
+                        baseCoords[0] + latOffset,
+                        baseCoords[1] + lngOffset
+                    ];
+                }}
 
                 // Create layer groups for each category
                 markerLayers = {{
-                    attacker: L.featureGroup(),
-                    bad_crawler: L.featureGroup(),
-                    good_crawler: L.featureGroup(),
-                    regular_user: L.featureGroup(),
-                    unknown: L.featureGroup()
-                }};
-
-                circleLayers = {{
                     attacker: L.featureGroup(),
                     bad_crawler: L.featureGroup(),
                     good_crawler: L.featureGroup(),
@@ -1982,8 +2092,12 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                 allIps.slice(0, 100).forEach(ip => {{
                     if (!ip.country_code || !ip.category) return;
 
-                    const coords = countryCoordinates[ip.country_code];
-                    if (!coords) return;
+                    // Get coordinates (city first, then country)
+                    const baseCoords = getIPCoordinates(ip);
+                    if (!baseCoords) return;
+
+                    // Get unique coordinates with offset to prevent overlap
+                    const coords = getUniqueCoordinates(baseCoords);
 
                     const category = ip.category.toLowerCase();
                     if (!markerLayers[category]) return;
@@ -2002,7 +2116,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
 
                     const marker = L.marker(coords, {{
                         icon: L.divIcon({{
-                            html: markerElement,
+                            html: markerElement.outerHTML,
                             iconSize: [markerSize, markerSize],
                             className: `ip-custom-marker category-${{category}}`
                         }})
@@ -2041,41 +2155,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     markerLayers[category].addLayer(marker);
                 }});
 
-                // Add cluster circles for each category
-                const categoryCountryCounts = {{}};
-
-                allIps.forEach(ip => {{
-                    if (ip.country_code && ip.category) {{
-                        const category = ip.category.toLowerCase();
-                        if (!categoryCountryCounts[category]) {{
-                            categoryCountryCounts[category] = {{}};
-                        }}
-                        categoryCountryCounts[category][ip.country_code] =
-                            (categoryCountryCounts[category][ip.country_code] || 0) + 1;
-                    }}
-                }});
-
-                Object.entries(categoryCountryCounts).forEach(([category, countryCounts]) => {{
-                    Object.entries(countryCounts).forEach(([country, count]) => {{
-                        const coords = countryCoordinates[country];
-                        if (coords && circleLayers[category]) {{
-                            const color = categoryColors[category] || '#8b949e';
-                            const circle = L.circle(coords, {{
-                                radius: 100000 + (count * 150000),
-                                color: color,
-                                fillColor: color,
-                                fillOpacity: 0.15,
-                                weight: 1,
-                                opacity: 0.4,
-                                dashArray: '3'
-                            }});
-                            circleLayers[category].addLayer(circle);
-                        }}
-                    }});
-                }});
-
-                // Add all layers to map initially
-                Object.values(circleLayers).forEach(layer => attackerMap.addLayer(layer));
+                // Add all marker layers to map initially
                 Object.values(markerLayers).forEach(layer => attackerMap.addLayer(layer));
 
                 // Fit map to all markers
@@ -2117,18 +2197,6 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     }} else {{
                         if (attackerMap.hasLayer(markerLayers[category])) {{
                             attackerMap.removeLayer(markerLayers[category]);
-                        }}
-                    }}
-                }}
-
-                if (circleLayers[category]) {{
-                    if (show) {{
-                        if (!attackerMap.hasLayer(circleLayers[category])) {{
-                            attackerMap.addLayer(circleLayers[category]);
-                        }}
-                    }} else {{
-                        if (attackerMap.hasLayer(circleLayers[category])) {{
-                            attackerMap.removeLayer(circleLayers[category]);
                         }}
                     }}
                 }}
