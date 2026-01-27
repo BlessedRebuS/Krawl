@@ -2,6 +2,7 @@ from database import get_database
 from logger import get_app_logger
 import requests
 from sanitizer import sanitize_for_storage, sanitize_dict
+from geo_utils import get_most_recent_geoip_data, extract_city_from_coordinates
 
 # ----------------------
 # TASK CONFIG
@@ -33,13 +34,20 @@ def main():
             payload = response.json()
 
             if payload.get("results"):
-                data = payload["results"][0]
-                geoip_data = data["geoip_data"]
+                results = payload["results"]
+
+                # Get the most recent result (first in list, sorted by record_added)
+                most_recent = results[0]
+                geoip_data = most_recent.get("geoip_data", {})
+                list_on = most_recent.get("list_on", {})
+
+                # Extract standard fields
                 country_iso_code = geoip_data.get("country_iso_code")
                 asn = geoip_data.get("asn_autonomous_system_number")
                 asn_org = geoip_data.get("asn_autonomous_system_organization")
-                city = geoip_data.get("city_name")  # Extract city name from API
-                list_on = data["list_on"]
+
+                # Extract city from coordinates using reverse geocoding
+                city = extract_city_from_coordinates(geoip_data)
 
                 sanitized_country_iso_code = sanitize_for_storage(country_iso_code, 3)
                 sanitized_asn = sanitize_for_storage(asn, 100)
@@ -53,7 +61,7 @@ def main():
                     sanitized_asn,
                     sanitized_asn_org,
                     sanitized_list_on,
-                    sanitized_city,  # Pass city to database
+                    sanitized_city,
                 )
         except requests.RequestException as e:
             app_logger.warning(f"Failed to fetch IP rep for {ip}: {e}")

@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import create_engine, func, distinct, case, event
+from sqlalchemy import create_engine, func, distinct, case, event, or_
 from sqlalchemy.orm import sessionmaker, scoped_session, Session
 from sqlalchemy.engine import Engine
 
@@ -432,21 +432,25 @@ class DatabaseManager:
 
     def get_unenriched_ips(self, limit: int = 100) -> List[str]:
         """
-        Get IPs that don't have reputation data yet.
+        Get IPs that don't have complete reputation data yet.
+        Returns IPs without country_code OR without city data.
         Excludes RFC1918 private addresses and other non-routable IPs.
 
         Args:
             limit: Maximum number of IPs to return
 
         Returns:
-            List of IP addresses without reputation data
+            List of IP addresses without complete reputation data
         """
         session = self.session
         try:
             ips = (
                 session.query(IpStats.ip)
                 .filter(
-                    IpStats.country_code.is_(None),
+                    or_(
+                        IpStats.country_code.is_(None),
+                        IpStats.city.is_(None)
+                    ),
                     ~IpStats.ip.like("10.%"),
                     ~IpStats.ip.like("172.16.%"),
                     ~IpStats.ip.like("172.17.%"),
