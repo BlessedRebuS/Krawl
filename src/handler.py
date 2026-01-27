@@ -12,6 +12,12 @@ import os
 
 from database import get_database
 from config import Config,get_config
+from firewall.fwtype import FWType
+
+# imports for the __init_subclass__ method, do not remove pls
+from firewall.iptables import Iptables
+from firewall.raw import Raw
+
 from tracker import AccessTracker
 from analyzer import Analyzer
 from templates import html_templates
@@ -894,8 +900,9 @@ pathsort_by=sort_by,
             request_path == f"{self.config.dashboard_secret_path}/api/get_banlist"
         ):
 
-
+            # get fwtype from request params
             fwtype = query_params.get("fwtype",["iptables"])[0]
+
             # Query distinct suspicious IPs
             results = (
                 session.query(distinct(AccessLog.ip))
@@ -906,9 +913,18 @@ pathsort_by=sort_by,
             # Filter out local/private IPs and the server's own IP
             config = get_config()
             server_ip = config.get_server_ip()
-
             public_ips = [ip for (ip,) in results if is_valid_public_ip(ip, server_ip)]
-            self.wfile.write(f"asdasdd {fwtype} {public_ips}".encode())
+
+            # get specific fwtype based on query parameter
+            fwtype_parser = FWType.create(fwtype)
+            banlist = fwtype_parser.getBanlist(public_ips)
+
+            self.send_response(200)
+            self.send_header("Content-type", "text/plain")
+            self.send_header("Content-Disposition", f'attachment; filename="{fwtype}.txt"',)
+            self.send_header("Content-Length", str(len(banlist)))
+            self.end_headers()
+            self.wfile.write(banlist.encode())
             return
 
         # API endpoint for downloading malicious IPs file
