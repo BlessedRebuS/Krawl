@@ -6,7 +6,7 @@ class FWType(ABC):
     """Abstract base class for firewall types."""
 
     # Registry to store child classes
-    _registry: Dict[str, Type['FWType']] = {}
+    _registry: Dict[str, Type["FWType"]] = {}
 
     def __init_subclass__(cls, **kwargs):
         """Automatically register subclasses with their class name."""
@@ -14,7 +14,7 @@ class FWType(ABC):
         cls._registry[cls.__name__.lower()] = cls
 
     @classmethod
-    def create(cls, fw_type: str, **kwargs) -> 'FWType':
+    def create(cls, fw_type: str, **kwargs) -> "FWType":
         """
         Factory method to create instances of child classes.
 
@@ -30,11 +30,13 @@ class FWType(ABC):
         """
         fw_type = fw_type.lower()
         if fw_type not in cls._registry:
-            available = ', '.join(cls._registry.keys())
-            raise ValueError(f"Unknown firewall type: '{fw_type}'. Available: {available}")
+            available = ", ".join(cls._registry.keys())
+            raise ValueError(
+                f"Unknown firewall type: '{fw_type}'. Available: {available}"
+            )
 
         return cls._registry[fw_type](**kwargs)
 
     @abstractmethod
-    def getBanlist(self,ips):
+    def getBanlist(self, ips):
         """Return the ruleset for the specific server"""
