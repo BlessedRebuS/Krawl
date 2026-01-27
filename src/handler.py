@@ -11,7 +11,7 @@ import json
 import os
 
 from database import get_database
-from config import Config,get_config
+from config import Config, get_config
 from firewall.fwtype import FWType
 
 # imports for the __init_subclass__ method, do not remove pls
@@ -99,7 +99,6 @@ class Handler(BaseHTTPRequestHandler):
         if not error_codes:
             error_codes = [400, 401, 403, 404, 500, 502, 503]
         return random.choice(error_codes)
-
 
     def _handle_sql_endpoint(self, path: str) -> bool:
         """
@@ -244,7 +243,6 @@ class Handler(BaseHTTPRequestHandler):
         client_ip = self._get_client_ip()
         user_agent = self.headers.get("User-Agent", "")
         post_data = ""
-
 
         base_path = urlparse(self.path).path
 
@@ -557,7 +555,11 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             try:
                 stats = self.tracker.get_stats()
-                self.wfile.write(generate_dashboard(stats, self.config.dashboard_secret_path).encode())
+                self.wfile.write(
+                    generate_dashboard(
+                        stats, self.config.dashboard_secret_path
+                    ).encode()
+                )
             except BrokenPipeError:
                 pass
             except Exception as e:
@@ -604,7 +606,6 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             try:
 
-
                 page = int(query_params.get("page", ["1"])[0])
                 page_size = int(query_params.get("page_size", ["25"])[0])
                 sort_by = query_params.get("sort_by", ["total_requests"])[0]
@@ -642,7 +643,6 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Expires", "0")
             self.end_headers()
             try:
-
 
                 # Parse query parameters
                 parsed_url = urlparse(self.path)
@@ -807,7 +807,7 @@ class Handler(BaseHTTPRequestHandler):
                 result = db.get_top_ips_paginated(
                     page=page,
                     page_size=page_size,
-pathsort_by=sort_by,
+                    pathsort_by=sort_by,
                     sort_order=sort_order,
                 )
                 self.wfile.write(json.dumps(result).encode())
@@ -937,12 +937,12 @@ pathsort_by=sort_by,
 
         # API endpoint for downloading malicious IPs blocklist file
         if (
-            self.config.dashboard_secret_path and
-            request_path == f"{self.config.dashboard_secret_path}/api/get_banlist"
+            self.config.dashboard_secret_path
+            and request_path == f"{self.config.dashboard_secret_path}/api/get_banlist"
         ):
 
             # get fwtype from request params
-            fwtype = query_params.get("fwtype",["iptables"])[0]
+            fwtype = query_params.get("fwtype", ["iptables"])[0]
 
             # Query distinct suspicious IPs
             results = (
@@ -962,7 +962,10 @@ pathsort_by=sort_by,
 
             self.send_response(200)
             self.send_header("Content-type", "text/plain")
-            self.send_header("Content-Disposition", f'attachment; filename="{fwtype}.txt"',)
+            self.send_header(
+                "Content-Disposition",
+                f'attachment; filename="{fwtype}.txt"',
+            )
             self.send_header("Content-Length", str(len(banlist)))
             self.end_headers()
             self.wfile.write(banlist.encode())
