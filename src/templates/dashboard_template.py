@@ -1035,7 +1035,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             if (stats.country_code || stats.city) {{
                 html += '<div class="stat-row">';
                 html += '<span class="stat-label-sm">Location:</span>';
-                html += `<span class="stat-value-sm">${{stats.city || ''}}${{stats.city && stats.country_code ? ', ' : ''}}${{stats.country_code || 'Unknown'}}</span>`;
+                html += `<span class="stat-value-sm">${{stats.city ? (stats.country_code ? `${{stats.city}}, ${{stats.country_code}}` : stats.city) : (stats.country_code || 'Unknown')}}</span>`;
                 html += '</div>';
             }}
 
@@ -1369,7 +1369,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                         <td>${{attacker.total_requests}}</td>
                         <td>${{formatTimestamp(attacker.first_seen)}}</td>
                         <td>${{formatTimestamp(attacker.last_seen)}}</td>
-                        <td>${{attacker.city || 'Unknown'}}${{attacker.city && attacker.country_code ? ', ' : ''}}${{attacker.country_code || ''}}</td>
+                        <td>${{attacker.city ? (attacker.country_code ? `${{attacker.city}}, ${{attacker.country_code}}` : attacker.city) : (attacker.country_code || 'Unknown')}}</td>
                     </tr>
                     <tr class="ip-stats-row" id="stats-row-${{attacker.ip.replace('.', '-')}}" style="display: none;">
                         <td colspan="6" class="ip-stats-cell">
@@ -2141,7 +2141,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                                 </span>
                             </div>
                             <span style="color: #8b949e; font-size: 12px;">
-                                ${{ip.city || ''}}${{ip.city && ip.country_code ? ', ' : ''}}${{ip.country_code || 'Unknown'}}
+                                ${{ip.city ? (ip.country_code ? `${{ip.city}}, ${{ip.country_code}}` : ip.city) : (ip.country_code || 'Unknown')}}
                             </span><br/>
                             <div style="margin-top: 8px; border-top: 1px solid #30363d; padding-top: 8px;">
                                 <div><span style="color: #8b949e;">Requests:</span> <span style="color: ${{categoryColor}}; font-weight: bold;">${{ip.total_requests}}</span></div>
