@@ -14,7 +14,7 @@ class FWType(ABC):
         cls._registry[cls.__name__.lower()] = cls
 
     @classmethod
-    def create(cls, fw_type: str, **kwargs) -> 'FWType':
+    def create(cls, fw_type: str, **kwargs) -> "FWType":
         """
         Factory method to create instances of child classes.
 
