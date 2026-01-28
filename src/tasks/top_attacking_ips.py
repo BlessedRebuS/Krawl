@@ -9,6 +9,7 @@ from config import get_config
 from models import AccessLog
 from ip_utils import is_local_or_private_ip, is_valid_public_ip
 from sqlalchemy import distinct
+from config import get_config
 
 app_logger = get_app_logger()
 
@@ -22,7 +23,8 @@ TASK_CONFIG = {
     "run_when_loaded": True,
 }
 
-EXPORTS_DIR = "exports"
+config = get_config()
+EXPORTS_DIR = config.exports_path
 OUTPUT_FILE = os.path.join(EXPORTS_DIR, "malicious_ips.txt")
 
 

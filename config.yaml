@@ -29,6 +29,8 @@ api:
   server_port: 8080
   server_path: "/api/v2/users"
 
+exports:
+  path: "data/exports"
 database:
   path: "data/krawl.db"
   retention_days: 30
