@@ -196,7 +196,7 @@ Krawl uses a **configuration hierarchy** in which **environment variables take p
 | `KRAWL_SERVER_HEADER` | HTTP Server header for deception | `""` |
 | `KRAWL_LINKS_LENGTH_RANGE` | Link length range as `min,max` | `5,15` |
 | `KRAWL_LINKS_PER_PAGE_RANGE` | Links per page as `min,max` | `10,15` |
-| `KRAWL_CHAR_SPACE` | Characters used for link generation | `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789` |
+| `KRAWL_CHAR_SPACE` | Characters used for link generation | `abcdefgh...` |
 | `KRAWL_MAX_COUNTER` | Initial counter value | `10` |
 | `KRAWL_CANARY_TOKEN_URL` | External canary token URL | None |
 | `KRAWL_CANARY_TOKEN_TRIES` | Requests before showing canary token | `10` |

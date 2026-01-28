@@ -915,8 +915,11 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
         </div>
 
         <div class="table-container alert-section" style="margin-top: 20px;">
-            <h2>Most Recurring Attack Types</h2>
-            <div style="position: relative; height: 400px; margin-top: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;">Most Recurring Attack Types</h2>
+                <div style="font-size: 12px; color: #8b949e;">Top 10 Attack Vectors</div>
+            </div>
+            <div style="position: relative; height: 450px; margin-top: 20px;">
                 <canvas id="attack-types-chart"></canvas>
             </div>
         </div>
@@ -2301,23 +2304,51 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
 
                 const labels = sortedAttacks.map(([type]) => type);
                 const counts = sortedAttacks.map(([, count]) => count);
+                const maxCount = Math.max(...counts);
 
-                // Define colors for different attack types
+                // Enhanced color palette with gradients
                 const colorMap = {{
-                    'SQL Injection': '#0969da',
-                    'XSS': '#1f6feb',
-                    'Directory Traversal': '#2f81f7',
-                    'Command Injection': '#54aeff',
-                    'Path Traversal': '#79c0ff',
-                    'Malware': '#58a6ff',
-                    'Brute Force': '#388bfd',
-                    'DDoS': '#1a7ae8',
-                    'CSRF': '#0860ca',
-                    'File Upload': '#1158d4'
+                    'SQL Injection': 'rgba(233, 105, 113, 0.85)',
+                    'XSS': 'rgba(240, 136, 62, 0.85)',
+                    'Directory Traversal': 'rgba(248, 150, 56, 0.85)',
+                    'Command Injection': 'rgba(229, 229, 16, 0.85)',
+                    'Path Traversal': 'rgba(123, 201, 71, 0.85)',
+                    'Malware': 'rgba(88, 166, 255, 0.85)',
+                    'Brute Force': 'rgba(79, 161, 246, 0.85)',
+                    'DDoS': 'rgba(139, 148, 244, 0.85)',
+                    'CSRF': 'rgba(188, 140, 258, 0.85)',
+                    'File Upload': 'rgba(241, 107, 223, 0.85)'
                 }};
 
-                const backgroundColors = labels.map(label => colorMap[label] || '#58a6ff');
-                const borderColors = labels.map(label => colorMap[label] || '#58a6ff');
+                const borderColorMap = {{
+                    'SQL Injection': 'rgba(233, 105, 113, 1)',
+                    'XSS': 'rgba(240, 136, 62, 1)',
+                    'Directory Traversal': 'rgba(248, 150, 56, 1)',
+                    'Command Injection': 'rgba(229, 229, 16, 1)',
+                    'Path Traversal': 'rgba(123, 201, 71, 1)',
+                    'Malware': 'rgba(88, 166, 255, 1)',
+                    'Brute Force': 'rgba(79, 161, 246, 1)',
+                    'DDoS': 'rgba(139, 148, 244, 1)',
+                    'CSRF': 'rgba(188, 140, 258, 1)',
+                    'File Upload': 'rgba(241, 107, 223, 1)'
+                }};
+
+                const hoverColorMap = {{
+                    'SQL Injection': 'rgba(233, 105, 113, 1)',
+                    'XSS': 'rgba(240, 136, 62, 1)',
+                    'Directory Traversal': 'rgba(248, 150, 56, 1)',
+                    'Command Injection': 'rgba(229, 229, 16, 1)',
+                    'Path Traversal': 'rgba(123, 201, 71, 1)',
+                    'Malware': 'rgba(88, 166, 255, 1)',
+                    'Brute Force': 'rgba(79, 161, 246, 1)',
+                    'DDoS': 'rgba(139, 148, 244, 1)',
+                    'CSRF': 'rgba(188, 140, 258, 1)',
+                    'File Upload': 'rgba(241, 107, 223, 1)'
+                }};
+
+                const backgroundColors = labels.map(label => colorMap[label] || 'rgba(88, 166, 255, 0.85)');
+                const borderColors = labels.map(label => borderColorMap[label] || 'rgba(88, 166, 255, 1)');
+                const hoverColors = labels.map(label => hoverColorMap[label] || 'rgba(88, 166, 255, 1)');
 
                 // Create or update chart
                 if (attackTypesChart) {{
@@ -2333,9 +2364,9 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                             data: counts,
                             backgroundColor: backgroundColors,
                             borderColor: borderColors,
-                            borderWidth: 1.5,
-                            borderRadius: 4,
-                            hoverBackgroundColor: borderColors
+                            borderWidth: 2,
+                            borderRadius: 6,
+                            borderSkipped: false
                         }}]
                     }},
                     options: {{
@@ -2347,22 +2378,31 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                                 display: false
                             }},
                             tooltip: {{
-                                backgroundColor: '#161b22',
+                                enabled: true,
+                                backgroundColor: 'rgba(22, 27, 34, 0.95)',
                                 titleColor: '#58a6ff',
                                 bodyColor: '#c9d1d9',
-                                borderColor: '#30363d',
-                                borderWidth: 1,
-                                padding: 10,
+                                borderColor: '#58a6ff',
+                                borderWidth: 2,
+                                padding: 14,
+                                displayColors: false,
                                 titleFont: {{
-                                    size: 13,
-                                    weight: 'bold'
+                                    size: 14,
+                                    weight: 'bold',
+                                    family: "'Segoe UI', Tahoma, Geneva, Verdana"
                                 }},
                                 bodyFont: {{
-                                    size: 12
+                                    size: 13,
+                                    family: "'Segoe UI', Tahoma, Geneva, Verdana"
                                 }},
+                                caretSize: 8,
+                                caretPadding: 12,
                                 callbacks: {{
+                                    title: function(context) {{
+                                        return '';
+                                    }},
                                     label: function(context) {{
-                                        return 'Occurrences: ' + context.parsed.x;
+                                        return context.parsed.x;
                                     }}
                                 }}
                             }}
@@ -2373,29 +2413,63 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                                 ticks: {{
                                     color: '#8b949e',
                                     font: {{
-                                        size: 11
+                                        size: 12,
+                                        weight: '500'
                                     }}
                                 }},
                                 grid: {{
-                                    color: '#30363d',
-                                    drawBorder: false
+                                    color: 'rgba(48, 54, 61, 0.4)',
+                                    drawBorder: false,
+                                    drawTicks: false
                                 }}
                             }},
                             y: {{
                                 ticks: {{
                                     color: '#c9d1d9',
                                     font: {{
-                                        size: 12
+                                        size: 13,
+                                        weight: '600'
                                     }},
-                                    padding: 10
+                                    padding: 12,
+                                    callback: function(value, index) {{
+                                        const label = this.getLabelForValue(value);
+                                        const maxLength = 25;
+                                        return label.length > maxLength ? label.substring(0, maxLength) + '…' : label;
+                                    }}
                                 }},
                                 grid: {{
                                     display: false,
                                     drawBorder: false
                                 }}
                             }}
+                        }},
+                        animation: {{
+                            duration: 1000,
+                            easing: 'easeInOutQuart',
+                            delay: (context) => {{
+                                let delay = 0;
+                                if (context.type === 'data') {{
+                                    delay = context.dataIndex * 50 + context.datasetIndex * 100;
+                                }}
+                                return delay;
+                            }}
+                        }},
+                        onHover: (event, activeElements) => {{
+                            canvas.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
                         }}
-                    }}
+                    }},
+                    plugins: [{{
+                        id: 'customCanvasBackgroundColor',
+                        beforeDraw: (chart) => {{
+                            if (chart.ctx) {{
+                                chart.ctx.save();
+                                chart.ctx.globalCompositeOperation = 'destination-over';
+                                chart.ctx.fillStyle = 'rgba(0,0,0,0)';
+                                chart.ctx.fillRect(0, 0, chart.width, chart.height);
+                                chart.ctx.restore();
+                            }}
+                        }}
+                    }}]
                 }});
 
                 attackTypesChartLoaded = true;
