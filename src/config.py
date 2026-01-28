@@ -187,7 +187,7 @@ class Config:
             canary_token_tries=canary.get("token_tries", 10),
             dashboard_secret_path=dashboard_path,
             probability_error_codes=behavior.get("probability_error_codes", 0),
-            exports_path = exports.get("path"),
+            exports_path=exports.get("path"),
             database_path=database.get("path", "data/krawl.db"),
             database_retention_days=database.get("retention_days", 30),
             http_risky_methods_threshold=analyzer.get(
