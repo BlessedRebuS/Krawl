@@ -29,26 +29,26 @@ def print_usage():
     print("If no file is provided, random links will be generated.\n")
     print("Configuration:")
     print("  Configuration is loaded from a YAML file (default: config.yaml)")
-    print("  Set CONFIG_LOCATION environment variable to use a different file.\n")
-    print("  Example config.yaml structure:")
-    print("    server:")
-    print("      port: 5000")
-    print("      delay: 100")
-    print("    links:")
-    print("      min_length: 5")
-    print("      max_length: 15")
-    print("      min_per_page: 10")
-    print("      max_per_page: 15")
-    print("    canary:")
-    print("      token_url: null")
-    print("      token_tries: 10")
-    print("    dashboard:")
-    print("      secret_path: null  # auto-generated if not set")
-    print("    database:")
-    print('      path: "data/krawl.db"')
-    print("      retention_days: 30")
-    print("    behavior:")
-    print("      probability_error_codes: 0")
+    print("Set CONFIG_LOCATION environment variable to use a different file.\n")
+    print("Example config.yaml structure:")
+    print("server:")
+    print("port: 5000")
+    print("delay: 100")
+    print("links:")
+    print("min_length: 5")
+    print("max_length: 15")
+    print("min_per_page: 10")
+    print("max_per_page: 15")
+    print("canary:")
+    print("token_url: null")
+    print("token_tries: 10")
+    print("dashboard:")
+    print("secret_path: null  # auto-generated if not set")
+    print("database:")
+    print('path: "data/krawl.db"')
+    print("retention_days: 30")
+    print("behavior:")
+    print("probability_error_codes: 0")
 
 
 def main():
@@ -103,8 +103,16 @@ def main():
     tasks_master.run_scheduled_tasks()
 
     try:
+
+        banner = f"""
+        
+============================================================
+DASHBOARD AVAILABLE AT
+{config.dashboard_secret_path}
+============================================================
+        """
+        app_logger.info(banner)
         app_logger.info(f"Starting deception server on port {config.port}...")
-        app_logger.info(f"Dashboard available at: {config.dashboard_secret_path}")
         if config.canary_token_url:
             app_logger.info(
                 f"Canary token will appear after {config.canary_token_tries} tries"

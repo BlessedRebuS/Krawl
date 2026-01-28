@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 from logger import get_app_logger
 from database import get_database
 from config import get_config
-from models import AccessLog
+from models import AccessLog, IpStats
 from ip_utils import is_local_or_private_ip, is_valid_public_ip
 from sqlalchemy import distinct
 
@@ -44,7 +44,8 @@ def has_recent_honeypot_access(session, minutes: int = 5) -> bool:
 
 def main():
     """
-    Export all IPs flagged as suspicious to a text file.
+    Export all attacker IPs to a text file, matching the "Attackers by Total Requests" dashboard table.
+    Uses the same query as the dashboard: IpStats where category == "attacker", ordered by total_requests.
     TasksMaster will call this function based on the cron schedule.
     """
     task_name = TASK_CONFIG.get("name")
@@ -61,18 +62,22 @@ def main():
             )
             return
 
-        # Query distinct suspicious IPs
-        results = (
-            session.query(distinct(AccessLog.ip))
-            .filter(AccessLog.is_suspicious == True)
+        # Query attacker IPs from IpStats (same as dashboard "Attackers by Total Requests")
+        attackers = (
+            session.query(IpStats)
+            .filter(IpStats.category == "attacker")
+            .order_by(IpStats.total_requests.desc())
             .all()
         )
 
         # Filter out local/private IPs and the server's own IP
         config = get_config()
         server_ip = config.get_server_ip()
-
-        public_ips = [ip for (ip,) in results if is_valid_public_ip(ip, server_ip)]
+        
+        public_ips = [
+            attacker.ip for attacker in attackers
+            if is_valid_public_ip(attacker.ip, server_ip)
+        ]
 
         # Ensure exports directory exists
         os.makedirs(EXPORTS_DIR, exist_ok=True)
@@ -83,8 +88,8 @@ def main():
                 f.write(f"{ip}\n")
 
         app_logger.info(
-            f"[Background Task] {task_name} exported {len(public_ips)} public IPs "
-            f"(filtered {len(results) - len(public_ips)} local/private IPs) to {OUTPUT_FILE}"
+            f"[Background Task] {task_name} exported {len(public_ips)} attacker IPs "
+            f"(filtered {len(attackers) - len(public_ips)} local/private IPs) to {OUTPUT_FILE}"
         )
 
     except Exception as e:
