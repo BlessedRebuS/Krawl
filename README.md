@@ -133,6 +133,38 @@ docker-compose down
 ### Kubernetes
 **Krawl is also available natively on Kubernetes**. Installation can be done either [via manifest](kubernetes/README.md) or [using the helm chart](helm/README.md).
 
+## Use Krawl to Ban Malicious IPs
+Krawl uses a reputation-based system to classify attacker IP addresses. Every five minutes, Krawl exports the identified malicious IPs to a `malicious_ips.txt` file.
+
+This file can either be mounted from the Docker container into another system or downloaded directly via `curl`:
+
+```bash
+curl https://your-krawl-instance/<DASHBOARD-PATH>/api/download/malicious_ips.txt
+```
+
+This file can be used to [update a set of firewall rules](https://www.allthingstech.ch/using-opnsense-and-ip-blocklists-to-block-malicious-traffic), for example on OPNsense and pfSense, enabling automatic blocking of malicious IPs or using IPtables
+
+## IP Reputation
+Krawl [uses tasks that analyze recent traffic to build and continuously update an IP reputation](src/tasks/analyze_ips.py) score. It runs periodically and evaluates each active IP address based on multiple behavioral indicators to classify it as an attacker, crawler, or regular user. Thresholds are fully customizable.
+
+![ip reputation](img/ip-reputation.png)
+
+The analysis includes:
+- **Risky HTTP methods usage** (e.g. POST, PUT, DELETE ratios)
+- **Robots.txt violations**
+- **Request timing anomalies** (bursty or irregular patterns)
+- **User-Agent consistency**
+- **Attack URL detection** (e.g. SQL injection, XSS patterns)
+
+Each signal contributes to a weighted scoring model that assigns a reputation category:
+- `attacker`
+- `bad_crawler`
+- `good_crawler`
+- `regular_user`
+- `unknown` (for insufficient data)
+
+The resulting scores and metrics are stored in the database and used by Krawl to drive dashboards, reputation tracking, and automated mitigation actions such as IP banning or firewall integration.
+
 ## Forward server header
 If Krawl is deployed behind a proxy such as NGINX the **server header** should be forwarded using the following configuration in your proxy:
 
@@ -142,6 +174,14 @@ location / {
     proxy_pass_header Server;
 }
 ```
+
+## API
+Krawl uses the following APIs
+- https://iprep.lcrawl.com (IP Reputation)
+- https://nominatim.openstreetmap.org/reverse (Reverse IP Lookup)
+- https://api.ipify.org (Public IP discovery)
+- http://ident.me (Public IP discovery)
+- https://ifconfig.me (Public IP discovery)
 
 ## Configuration
 Krawl uses a **configuration hierarchy** in which **environment variables take precedence over the configuration file**. This approach is recommended for Docker deployments and quick out-of-the-box customization.
