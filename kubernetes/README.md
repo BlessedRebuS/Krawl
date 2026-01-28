@@ -20,6 +20,15 @@ kubectl get svc krawl-server -n krawl-system
 
 Once the EXTERNAL-IP is assigned, access your deception server at `http://<EXTERNAL-IP>:5000`
 
+### Retrieving Dashboard Path
+
+Check server startup logs or get the secret with 
+
+```bash
+kubectl get secret krawl-server -n krawl-system \
+  -o jsonpath='{.data.dashboard-path}' | base64 -d && echo
+```
+
 ### From Source (Python 3.11+)
 
 Clone the repository:

@@ -338,15 +338,6 @@ The top IP Addresses is shown along with top paths and User Agents
 
 ![dashboard-3](img/dashboard-3.png)
 
-### Retrieving Dashboard Path
-
-Check server startup logs or get the secret with 
-
-```bash
-kubectl get secret krawl-server -n krawl-system \
-  -o jsonpath='{.data.dashboard-path}' | base64 -d && echo
-```
-
 ## 🤝 Contributing
 
 Contributions welcome! Please:

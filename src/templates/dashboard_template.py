@@ -68,6 +68,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
 <head>
     <meta charset="UTF-8">
     <title>Krawl Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/BlessedRebuS/Krawl/refs/heads/main/img/krawl-svg.svg" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>

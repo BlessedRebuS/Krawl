@@ -493,6 +493,45 @@ class Handler(BaseHTTPRequestHandler):
             return
         user_agent = self._get_user_agent()
 
+        # Handle static files for dashboard
+        if (
+            self.config.dashboard_secret_path
+            and self.path.startswith(f"{self.config.dashboard_secret_path}/static/")
+        ):
+            import os
+            file_path = self.path.replace(
+                f"{self.config.dashboard_secret_path}/static/", ""
+            )
+            static_dir = os.path.join(os.path.dirname(__file__), "templates", "static")
+            full_path = os.path.join(static_dir, file_path)
+            
+            # Security check: ensure the path is within static directory
+            if os.path.commonpath([full_path, static_dir]) == static_dir and os.path.exists(full_path):
+                try:
+                    with open(full_path, "rb") as f:
+                        content = f.read()
+                    self.send_response(200)
+                    if file_path.endswith(".svg"):
+                        self.send_header("Content-type", "image/svg+xml")
+                    elif file_path.endswith(".css"):
+                        self.send_header("Content-type", "text/css")
+                    elif file_path.endswith(".js"):
+                        self.send_header("Content-type", "application/javascript")
+                    else:
+                        self.send_header("Content-type", "application/octet-stream")
+                    self.send_header("Content-Length", str(len(content)))
+                    self.end_headers()
+                    self.wfile.write(content)
+                    return
+                except Exception as e:
+                    self.app_logger.error(f"Error serving static file: {e}")
+            
+            self.send_response(404)
+            self.send_header("Content-type", "text/plain")
+            self.end_headers()
+            self.wfile.write(b"Not found")
+            return
+
         if (
             self.config.dashboard_secret_path
             and self.path == self.config.dashboard_secret_path
