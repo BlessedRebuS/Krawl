@@ -22,7 +22,7 @@ TASK_CONFIG = {
     "run_when_loaded": True,
 }
 
-EXPORTS_DIR = "exports"
+EXPORTS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "exports")
 OUTPUT_FILE = os.path.join(EXPORTS_DIR, "malicious_ips.txt")
 
 
