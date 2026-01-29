@@ -49,6 +49,11 @@ resources:
     cpu: 100m
     memory: 64Mi
 
+# Container timezone configuration
+# Set this to change timezone (e.g., "America/New_York", "Europe/Rome")
+# If not set, container will use its default timezone
+timezone: ""
+
 autoscaling:
   enabled: false
   minReplicas: 1
@@ -67,7 +72,6 @@ config:
   server:
     port: 5000
     delay: 100
-    timezone: null  # IANA timezone (e.g., "America/New_York", "Europe/Rome"). If not set, system timezone is used.
   links:
     min_length: 5
     max_length: 15

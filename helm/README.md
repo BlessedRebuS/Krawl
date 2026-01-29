@@ -10,6 +10,65 @@ A Helm chart for deploying the Krawl honeypot application on Kubernetes.
 
 ## Installation
 
+
+### Helm Chart
+
+Install with default values:
+
+```bash
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
+  --version 0.2.2 \
+  --namespace krawl-system \
+  --create-namespace
+```
+
+Or create a minimal `values.yaml` file:
+
+```yaml
+service:
+  type: LoadBalancer
+  port: 5000
+
+ingress:
+  enabled: true
+  className: "traefik"
+  hosts:
+    - host: krawl.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+config:
+  server:
+    port: 5000
+    delay: 100
+  dashboard:
+    secret_path: null  # Auto-generated if not set
+
+database:
+  persistence:
+    enabled: true
+    size: 1Gi
+```
+
+Install with custom values:
+
+```bash
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
+  --version 0.2.2 \
+  --namespace krawl-system \
+  --create-namespace \
+  -f values.yaml
+```
+
+To access the deception server:
+
+```bash
+kubectl get svc krawl -n krawl-system
+```
+
+Once the EXTERNAL-IP is assigned, access your deception server at `http://<EXTERNAL-IP>:5000`
+
 ### Add the repository (if applicable)
 
 ```bash
@@ -175,6 +234,15 @@ The following table lists the main configuration parameters of the Krawl chart a
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `networkPolicy.enabled` | Enable network policy | `true` |
+
+### Retrieving Dashboard Path
+
+Check server startup logs or get the secret with 
+
+```bash
+kubectl get secret krawl-server -n krawl-system \
+  -o jsonpath='{.data.dashboard-path}' | base64 -d && echo
+```
 
 ## Usage Examples
 

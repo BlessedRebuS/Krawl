@@ -68,6 +68,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
 <head>
     <meta charset="UTF-8">
     <title>Krawl Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/BlessedRebuS/Krawl/refs/heads/main/img/krawl-svg.svg" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
@@ -83,6 +84,30 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             max-width: 1400px;
             margin: 0 auto;
             position: relative;
+        }}
+        .github-logo {{
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #58a6ff;
+            transition: color 0.2s;
+        }}
+        .github-logo:hover {{
+            color: #79c0ff;
+        }}
+        .github-logo svg {{
+            width: 32px;
+            height: 32px;
+            fill: currentColor;
+        }}
+        .github-logo-text {{
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
         }}
         h1 {{
             color: #58a6ff;
@@ -536,17 +561,25 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             filter: none;
         }}
         .leaflet-popup-content-wrapper {{
-            background-color: #161b22;
+            background-color: #0d1117;
             color: #c9d1d9;
             border: 1px solid #30363d;
-            border-radius: 4px;
+            border-radius: 6px;
+            padding: 0;
+        }}
+        .leaflet-popup-content {{
+            margin: 0;
+            min-width: 280px;
         }}
         .leaflet-popup-content-wrapper a {{
             color: #58a6ff;
         }}
         .leaflet-popup-tip {{
-            background: #161b22;
-            border-top: 6px solid #30363d;
+            background: #0d1117;
+            border: 1px solid #30363d;
+        }}
+        .ip-detail-popup .leaflet-popup-content-wrapper {{
+            max-width: 340px !important;
         }}
         /* Remove the default leaflet icon background */
         .ip-custom-marker {{
@@ -614,6 +647,12 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
 </head>
 <body>
     <div class="container">
+        <a href="https://github.com/BlessedRebuS/Krawl" class="github-logo" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            <span class="github-logo-text">BlessedRebuS/Krawl</span>
+        </a>
         <div class="download-section">
             <a href="{dashboard_path}/api/download/malicious_ips.txt" class="download-btn" download>
             Export Malicious IPs
@@ -767,23 +806,23 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
                         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #c9d1d9; font-size: 13px;">
                             <input type="checkbox" id="filter-attacker" checked onchange="updateMapFilters()" style="cursor: pointer;">
-                            <span style="color: #f85149;">● Attackers</span>
+                            <span style="color: #f85149;">Attackers</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #c9d1d9; font-size: 13px;">
                             <input type="checkbox" id="filter-bad-crawler" checked onchange="updateMapFilters()" style="cursor: pointer;">
-                            <span style="color: #f0883e;">● Bad Crawlers</span>
+                            <span style="color: #f0883e;">Bad Crawlers</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #c9d1d9; font-size: 13px;">
                             <input type="checkbox" id="filter-good-crawler" checked onchange="updateMapFilters()" style="cursor: pointer;">
-                            <span style="color: #3fb950;">● Good Crawlers</span>
+                            <span style="color: #3fb950;">Good Crawlers</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #c9d1d9; font-size: 13px;">
                             <input type="checkbox" id="filter-regular-user" checked onchange="updateMapFilters()" style="cursor: pointer;">
-                            <span style="color: #58a6ff;">● Regular Users</span>
+                            <span style="color: #58a6ff;">Regular Users</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #c9d1d9; font-size: 13px;">
                             <input type="checkbox" id="filter-unknown" checked onchange="updateMapFilters()" style="cursor: pointer;">
-                            <span style="color: #8b949e;">● Unknown</span>
+                            <span style="color: #8b949e;">Unknown</span>
                         </label>
                     </div>
                 </div>
@@ -884,8 +923,11 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
         </div>
 
         <div class="table-container alert-section" style="margin-top: 20px;">
-            <h2>Most Recurring Attack Types</h2>
-            <div style="position: relative; height: 400px; margin-top: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;">Most Recurring Attack Types</h2>
+                <div style="font-size: 12px; color: #8b949e;">Top 10 Attack Vectors</div>
+            </div>
+            <div style="position: relative; height: 450px; margin-top: 20px;">
                 <canvas id="attack-types-chart"></canvas>
             </div>
         </div>
@@ -1218,6 +1260,97 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                 html += '</div>';
             }}
 
+            return html;
+        }}
+
+        // Generate radar chart for map panel
+        function generateMapPanelRadarChart(categoryScores) {{
+            if (!categoryScores || Object.keys(categoryScores).length === 0) {{
+                return '<div style="color: #8b949e; text-align: center; padding: 20px;">No category data available</div>';
+            }}
+
+            let html = '<div style="display: flex; flex-direction: column; align-items: center;">';
+            html += '<svg class="radar-chart" viewBox="-30 -30 260 260" preserveAspectRatio="xMidYMid meet" style="width: 160px; height: 160px;">';
+
+            const scores = {{
+                attacker: categoryScores.attacker || 0,
+                good_crawler: categoryScores.good_crawler || 0,
+                bad_crawler: categoryScores.bad_crawler || 0,
+                regular_user: categoryScores.regular_user || 0,
+                unknown: categoryScores.unknown || 0
+            }};
+
+            const maxScore = Math.max(...Object.values(scores), 1);
+            const minVisibleRadius = 0.15;
+            const normalizedScores = {{}};
+
+            Object.keys(scores).forEach(key => {{
+                normalizedScores[key] = minVisibleRadius + (scores[key] / maxScore) * (1 - minVisibleRadius);
+            }});
+
+            const colors = {{
+                attacker: '#f85149',
+                good_crawler: '#3fb950',
+                bad_crawler: '#f0883e',
+                regular_user: '#58a6ff',
+                unknown: '#8b949e'
+            }};
+
+            const labels = {{
+                attacker: 'Attacker',
+                good_crawler: 'Good Bot',
+                bad_crawler: 'Bad Bot',
+                regular_user: 'User',
+                unknown: 'Unknown'
+            }};
+
+            const cx = 100, cy = 100, maxRadius = 75;
+            for (let i = 1; i <= 5; i++) {{
+                const r = (maxRadius / 5) * i;
+                html += `<circle cx="${{cx}}" cy="${{cy}}" r="${{r}}" fill="none" stroke="#30363d" stroke-width="0.5"/>`;
+            }}
+
+            const angles = [0, 72, 144, 216, 288];
+            const keys = ['good_crawler', 'regular_user', 'unknown', 'bad_crawler', 'attacker'];
+
+            angles.forEach((angle, i) => {{
+                const rad = (angle - 90) * Math.PI / 180;
+                const x2 = cx + maxRadius * Math.cos(rad);
+                const y2 = cy + maxRadius * Math.sin(rad);
+                html += `<line x1="${{cx}}" y1="${{cy}}" x2="${{x2}}" y2="${{y2}}" stroke="#30363d" stroke-width="0.5"/>`;
+
+                const labelDist = maxRadius + 35;
+                const lx = cx + labelDist * Math.cos(rad);
+                const ly = cy + labelDist * Math.sin(rad);
+                html += `<text x="${{lx}}" y="${{ly}}" fill="#8b949e" font-size="12" text-anchor="middle" dominant-baseline="middle">${{labels[keys[i]]}}</text>`;
+            }});
+
+            let points = [];
+            angles.forEach((angle, i) => {{
+                const normalizedScore = normalizedScores[keys[i]];
+                const rad = (angle - 90) * Math.PI / 180;
+                const r = normalizedScore * maxRadius;
+                const x = cx + r * Math.cos(rad);
+                const y = cy + r * Math.sin(rad);
+                points.push(`${{x}},${{y}}`);
+            }});
+
+            const dominantKey = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+            const dominantColor = colors[dominantKey];
+
+            html += `<polygon points="${{points.join(' ')}}" fill="${{dominantColor}}" fill-opacity="0.4" stroke="${{dominantColor}}" stroke-width="2.5"/>`;
+
+            angles.forEach((angle, i) => {{
+                const normalizedScore = normalizedScores[keys[i]];
+                const rad = (angle - 90) * Math.PI / 180;
+                const r = normalizedScore * maxRadius;
+                const x = cx + r * Math.cos(rad);
+                const y = cy + r * Math.sin(rad);
+                html += `<circle cx="${{x}}" cy="${{y}}" r="4.5" fill="${{colors[keys[i]]}}" stroke="#0d1117" stroke-width="2"/>`;
+            }});
+
+            html += '</svg>';
+            html += '</div>';
             return html;
         }}
 
@@ -2041,7 +2174,11 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
 
                 // Helper function to get coordinates for an IP
                 function getIPCoordinates(ip) {{
-                    // Try city first
+                    // Use actual latitude and longitude if available
+                    if (ip.latitude != null && ip.longitude != null) {{
+                        return [ip.latitude, ip.longitude];
+                    }}
+                    // Fall back to city lookup
                     if (ip.city && cityCoordinates[ip.city]) {{
                         return cityCoordinates[ip.city];
                     }}
@@ -2102,9 +2239,11 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     const category = ip.category.toLowerCase();
                     if (!markerLayers[category]) return;
 
-                    // Calculate marker size based on request count
-                    const sizeRatio = (ip.total_requests / maxRequests) * 0.7 + 0.3;
-                    const markerSize = Math.max(15, Math.min(40, 20 * sizeRatio));
+                    // Calculate marker size based on request count with more dramatic scaling
+                    // Scale up to 10,000 requests, then cap it
+                    const requestsForScale = Math.min(ip.total_requests, 10000);
+                    const sizeRatio = Math.pow(requestsForScale / 10000, 0.5); // Square root for better visual scaling
+                    const markerSize = Math.max(10, Math.min(30, 10 + (sizeRatio * 20)));
 
                     // Create custom marker element with category-specific class
                     const markerElement = document.createElement('div');
@@ -2122,7 +2261,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                         }})
                     }});
 
-                    // Create popup content with category badge
+                    // Create popup with category badge and chart
                     const categoryColor = categoryColors[category] || '#8b949e';
                     const categoryLabels = {{
                         attacker: 'Attacker',
@@ -2132,26 +2271,103 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                         unknown: 'Unknown'
                     }};
 
-                    const popupContent = `
-                        <div style="padding: 8px; min-width: 220px;">
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                                <strong style="color: #58a6ff;">${{ip.ip}}</strong>
-                                <span style="background: ${{categoryColor}}1a; color: ${{categoryColor}}; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
-                                    ${{categoryLabels[category]}}
-                                </span>
-                            </div>
-                            <span style="color: #8b949e; font-size: 12px;">
-                                ${{ip.city ? (ip.country_code ? `${{ip.city}}, ${{ip.country_code}}` : ip.city) : (ip.country_code || 'Unknown')}}
-                            </span><br/>
-                            <div style="margin-top: 8px; border-top: 1px solid #30363d; padding-top: 8px;">
-                                <div><span style="color: #8b949e;">Requests:</span> <span style="color: ${{categoryColor}}; font-weight: bold;">${{ip.total_requests}}</span></div>
-                                <div><span style="color: #8b949e;">First Seen:</span> <span style="color: #58a6ff;">${{formatTimestamp(ip.first_seen)}}</span></div>
-                                <div><span style="color: #8b949e;">Last Seen:</span> <span style="color: #58a6ff;">${{formatTimestamp(ip.last_seen)}}</span></div>
-                            </div>
-                        </div>
-                    `;
+                    // Bind popup once when marker is created
+                    marker.bindPopup('', {{
+                        maxWidth: 550,
+                        className: 'ip-detail-popup'
+                    }});
 
-                    marker.bindPopup(popupContent);
+                    // Add click handler to fetch data and show popup
+                    marker.on('click', async function(e) {{
+                        // Show loading popup first
+                        const loadingPopup = `
+                            <div style="padding: 12px; min-width: 280px; max-width: 320px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                    <strong style="color: #58a6ff; font-size: 14px;">${{ip.ip}}</strong>
+                                    <span style="background: ${{categoryColor}}1a; color: ${{categoryColor}}; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                        ${{categoryLabels[category]}}
+                                    </span>
+                                </div>
+                                <div style="text-align: center; padding: 20px; color: #8b949e;">
+                                    <div style="font-size: 12px;">Loading details...</div>
+                                </div>
+                            </div>
+                        `;
+
+                        marker.setPopupContent(loadingPopup);
+                        marker.openPopup();
+
+                        try {{
+                            console.log('Fetching IP stats for:', ip.ip);
+                            const response = await fetch(`${{DASHBOARD_PATH}}/api/ip-stats/${{ip.ip}}`);
+                            if (!response.ok) throw new Error('Failed to fetch IP stats');
+
+                            const stats = await response.json();
+                            console.log('Received stats:', stats);
+
+                            // Build complete popup content with chart
+                            let popupContent = `
+                                <div style="padding: 12px; min-width: 200px;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                        <strong style="color: #58a6ff; font-size: 14px;">${{ip.ip}}</strong>
+                                        <span style="background: ${{categoryColor}}1a; color: ${{categoryColor}}; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                            ${{categoryLabels[category]}}
+                                        </span>
+                                    </div>
+                                    <span style="color: #8b949e; font-size: 12px;">
+                                        ${{ip.city ? (ip.country_code ? `${{ip.city}}, ${{ip.country_code}}` : ip.city) : (ip.country_code || 'Unknown')}}
+                                    </span><br/>
+                                    <div style="margin-top: 8px; border-top: 1px solid #30363d; padding-top: 8px;">
+                                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">Requests:</span> <span style="color: ${{categoryColor}}; font-weight: bold;">${{ip.total_requests}}</span></div>
+                                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">First Seen:</span> <span style="color: #58a6ff; font-size: 11px;">${{formatTimestamp(ip.first_seen)}}</span></div>
+                                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">Last Seen:</span> <span style="color: #58a6ff; font-size: 11px;">${{formatTimestamp(ip.last_seen)}}</span></div>
+                                    </div>
+                            `;
+
+                            // Add chart if category scores exist
+                            if (stats.category_scores && Object.keys(stats.category_scores).length > 0) {{
+                                console.log('Category scores found:', stats.category_scores);
+                                const chartHtml = generateMapPanelRadarChart(stats.category_scores);
+                                console.log('Generated chart HTML length:', chartHtml.length);
+                                popupContent += `
+                                    <div style="margin-top: 12px; border-top: 1px solid #30363d; padding-top: 12px;">
+                                        ${{chartHtml}}
+                                    </div>
+                                `;
+                            }}
+
+                            popupContent += '</div>';
+
+                            // Update popup content
+                            console.log('Updating popup content');
+                            marker.setPopupContent(popupContent);
+                        }} catch (err) {{
+                            console.error('Error fetching IP stats:', err);
+                            const errorPopup = `
+                                <div style="padding: 12px; min-width: 280px; max-width: 320px;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                        <strong style="color: #58a6ff; font-size: 14px;">${{ip.ip}}</strong>
+                                        <span style="background: ${{categoryColor}}1a; color: ${{categoryColor}}; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                            ${{categoryLabels[category]}}
+                                        </span>
+                                    </div>
+                                    <span style="color: #8b949e; font-size: 12px;">
+                                        ${{ip.city ? (ip.country_code ? `${{ip.city}}, ${{ip.country_code}}` : ip.city) : (ip.country_code || 'Unknown')}}
+                                    </span><br/>
+                                    <div style="margin-top: 8px; border-top: 1px solid #30363d; padding-top: 8px;">
+                                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">Requests:</span> <span style="color: ${{categoryColor}}; font-weight: bold;">${{ip.total_requests}}</span></div>
+                                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">First Seen:</span> <span style="color: #58a6ff; font-size: 11px;">${{formatTimestamp(ip.first_seen)}}</span></div>
+                                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">Last Seen:</span> <span style="color: #58a6ff; font-size: 11px;">${{formatTimestamp(ip.last_seen)}}</span></div>
+                                    </div>
+                                    <div style="margin-top: 12px; border-top: 1px solid #30363d; padding-top: 12px; text-align: center; color: #f85149; font-size: 11px;">
+                                        Failed to load chart: ${{err.message}}
+                                    </div>
+                                </div>
+                            `;
+                            marker.setPopupContent(errorPopup);
+                        }}
+                    }});
+
                     markerLayers[category].addLayer(marker);
                 }});
 
@@ -2270,23 +2486,51 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
 
                 const labels = sortedAttacks.map(([type]) => type);
                 const counts = sortedAttacks.map(([, count]) => count);
+                const maxCount = Math.max(...counts);
 
-                // Define colors for different attack types
+                // Enhanced color palette with gradients
                 const colorMap = {{
-                    'SQL Injection': '#0969da',
-                    'XSS': '#1f6feb',
-                    'Directory Traversal': '#2f81f7',
-                    'Command Injection': '#54aeff',
-                    'Path Traversal': '#79c0ff',
-                    'Malware': '#58a6ff',
-                    'Brute Force': '#388bfd',
-                    'DDoS': '#1a7ae8',
-                    'CSRF': '#0860ca',
-                    'File Upload': '#1158d4'
+                    'SQL Injection': 'rgba(233, 105, 113, 0.85)',
+                    'XSS': 'rgba(240, 136, 62, 0.85)',
+                    'Directory Traversal': 'rgba(248, 150, 56, 0.85)',
+                    'Command Injection': 'rgba(229, 229, 16, 0.85)',
+                    'Path Traversal': 'rgba(123, 201, 71, 0.85)',
+                    'Malware': 'rgba(88, 166, 255, 0.85)',
+                    'Brute Force': 'rgba(79, 161, 246, 0.85)',
+                    'DDoS': 'rgba(139, 148, 244, 0.85)',
+                    'CSRF': 'rgba(188, 140, 258, 0.85)',
+                    'File Upload': 'rgba(241, 107, 223, 0.85)'
                 }};
 
-                const backgroundColors = labels.map(label => colorMap[label] || '#58a6ff');
-                const borderColors = labels.map(label => colorMap[label] || '#58a6ff');
+                const borderColorMap = {{
+                    'SQL Injection': 'rgba(233, 105, 113, 1)',
+                    'XSS': 'rgba(240, 136, 62, 1)',
+                    'Directory Traversal': 'rgba(248, 150, 56, 1)',
+                    'Command Injection': 'rgba(229, 229, 16, 1)',
+                    'Path Traversal': 'rgba(123, 201, 71, 1)',
+                    'Malware': 'rgba(88, 166, 255, 1)',
+                    'Brute Force': 'rgba(79, 161, 246, 1)',
+                    'DDoS': 'rgba(139, 148, 244, 1)',
+                    'CSRF': 'rgba(188, 140, 258, 1)',
+                    'File Upload': 'rgba(241, 107, 223, 1)'
+                }};
+
+                const hoverColorMap = {{
+                    'SQL Injection': 'rgba(233, 105, 113, 1)',
+                    'XSS': 'rgba(240, 136, 62, 1)',
+                    'Directory Traversal': 'rgba(248, 150, 56, 1)',
+                    'Command Injection': 'rgba(229, 229, 16, 1)',
+                    'Path Traversal': 'rgba(123, 201, 71, 1)',
+                    'Malware': 'rgba(88, 166, 255, 1)',
+                    'Brute Force': 'rgba(79, 161, 246, 1)',
+                    'DDoS': 'rgba(139, 148, 244, 1)',
+                    'CSRF': 'rgba(188, 140, 258, 1)',
+                    'File Upload': 'rgba(241, 107, 223, 1)'
+                }};
+
+                const backgroundColors = labels.map(label => colorMap[label] || 'rgba(88, 166, 255, 0.85)');
+                const borderColors = labels.map(label => borderColorMap[label] || 'rgba(88, 166, 255, 1)');
+                const hoverColors = labels.map(label => hoverColorMap[label] || 'rgba(88, 166, 255, 1)');
 
                 // Create or update chart
                 if (attackTypesChart) {{
@@ -2302,9 +2546,9 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                             data: counts,
                             backgroundColor: backgroundColors,
                             borderColor: borderColors,
-                            borderWidth: 1.5,
-                            borderRadius: 4,
-                            hoverBackgroundColor: borderColors
+                            borderWidth: 2,
+                            borderRadius: 6,
+                            borderSkipped: false
                         }}]
                     }},
                     options: {{
@@ -2316,22 +2560,31 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                                 display: false
                             }},
                             tooltip: {{
-                                backgroundColor: '#161b22',
+                                enabled: true,
+                                backgroundColor: 'rgba(22, 27, 34, 0.95)',
                                 titleColor: '#58a6ff',
                                 bodyColor: '#c9d1d9',
-                                borderColor: '#30363d',
-                                borderWidth: 1,
-                                padding: 10,
+                                borderColor: '#58a6ff',
+                                borderWidth: 2,
+                                padding: 14,
+                                displayColors: false,
                                 titleFont: {{
-                                    size: 13,
-                                    weight: 'bold'
+                                    size: 14,
+                                    weight: 'bold',
+                                    family: "'Segoe UI', Tahoma, Geneva, Verdana"
                                 }},
                                 bodyFont: {{
-                                    size: 12
+                                    size: 13,
+                                    family: "'Segoe UI', Tahoma, Geneva, Verdana"
                                 }},
+                                caretSize: 8,
+                                caretPadding: 12,
                                 callbacks: {{
+                                    title: function(context) {{
+                                        return '';
+                                    }},
                                     label: function(context) {{
-                                        return 'Occurrences: ' + context.parsed.x;
+                                        return context.parsed.x;
                                     }}
                                 }}
                             }}
@@ -2342,29 +2595,63 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                                 ticks: {{
                                     color: '#8b949e',
                                     font: {{
-                                        size: 11
+                                        size: 12,
+                                        weight: '500'
                                     }}
                                 }},
                                 grid: {{
-                                    color: '#30363d',
-                                    drawBorder: false
+                                    color: 'rgba(48, 54, 61, 0.4)',
+                                    drawBorder: false,
+                                    drawTicks: false
                                 }}
                             }},
                             y: {{
                                 ticks: {{
                                     color: '#c9d1d9',
                                     font: {{
-                                        size: 12
+                                        size: 13,
+                                        weight: '600'
                                     }},
-                                    padding: 10
+                                    padding: 12,
+                                    callback: function(value, index) {{
+                                        const label = this.getLabelForValue(value);
+                                        const maxLength = 25;
+                                        return label.length > maxLength ? label.substring(0, maxLength) + '…' : label;
+                                    }}
                                 }},
                                 grid: {{
                                     display: false,
                                     drawBorder: false
                                 }}
                             }}
+                        }},
+                        animation: {{
+                            duration: 1000,
+                            easing: 'easeInOutQuart',
+                            delay: (context) => {{
+                                let delay = 0;
+                                if (context.type === 'data') {{
+                                    delay = context.dataIndex * 50 + context.datasetIndex * 100;
+                                }}
+                                return delay;
+                            }}
+                        }},
+                        onHover: (event, activeElements) => {{
+                            canvas.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
                         }}
-                    }}
+                    }},
+                    plugins: [{{
+                        id: 'customCanvasBackgroundColor',
+                        beforeDraw: (chart) => {{
+                            if (chart.ctx) {{
+                                chart.ctx.save();
+                                chart.ctx.globalCompositeOperation = 'destination-over';
+                                chart.ctx.fillStyle = 'rgba(0,0,0,0)';
+                                chart.ctx.fillRect(0, 0, chart.width, chart.height);
+                                chart.ctx.restore();
+                            }}
+                        }}
+                    }}]
                 }});
 
                 attackTypesChartLoaded = true;

@@ -308,11 +308,28 @@ def generate_fake_data(
     # Select random IPs from the pool
     selected_ips = random.sample(FAKE_IPS, min(num_ips, len(FAKE_IPS)))
 
-    for ip in selected_ips:
-        app_logger.info(f"\nGenerating data for IP: {ip}")
+    # Create a varied distribution of request counts for better visualization
+    # Some IPs with very few requests, some with moderate, some with high
+    request_counts = []
+    for i in range(len(selected_ips)):
+        if i < len(selected_ips) // 5:  # 20% high-traffic IPs
+            count = random.randint(1000, 10000)
+        elif i < len(selected_ips) // 2:  # 30% medium-traffic IPs
+            count = random.randint(100, 1000)
+        else:  # 50% low-traffic IPs
+            count = random.randint(5, 100)
+        request_counts.append(count)
+
+    random.shuffle(request_counts)  # Randomize the order
+
+    for idx, ip in enumerate(selected_ips):
+        current_logs_count = request_counts[idx]
+        app_logger.info(
+            f"\nGenerating data for IP: {ip} ({current_logs_count} requests)"
+        )
 
         # Generate access logs for this IP
-        for _ in range(logs_per_ip):
+        for _ in range(current_logs_count):
             path = random.choice(FAKE_PATHS)
             user_agent = random.choice(FAKE_USER_AGENTS)
             is_suspicious = random.choice(
@@ -358,7 +375,7 @@ def generate_fake_data(
             if cred_id:
                 total_credentials += 1
 
-        app_logger.info(f"  ✓ Generated {logs_per_ip} access logs")
+        app_logger.info(f"  ✓ Generated {current_logs_count} access logs")
         app_logger.info(f"  ✓ Generated {credentials_per_ip} credential attempts")
 
         # Fetch geolocation data from API

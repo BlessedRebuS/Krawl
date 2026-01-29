@@ -8,7 +8,16 @@ Stores access logs, credential attempts, attack detections, and IP statistics.
 from datetime import datetime
 from typing import Optional, List, Dict
 
-from sqlalchemy import String, Integer, Boolean, DateTime, ForeignKey, Index, JSON
+from sqlalchemy import (
+    String,
+    Integer,
+    Boolean,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    JSON,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from sanitizer import (
@@ -153,6 +162,8 @@ class IpStats(Base):
     # GeoIP fields (populated by future enrichment)
     country_code: Mapped[Optional[str]] = mapped_column(String(2), nullable=True)
     city: Mapped[Optional[str]] = mapped_column(String(MAX_CITY_LENGTH), nullable=True)
+    latitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    longitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     asn: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     asn_org: Mapped[Optional[str]] = mapped_column(
         String(MAX_ASN_ORG_LENGTH), nullable=True

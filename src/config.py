@@ -28,9 +28,6 @@ class Config:
     canary_token_url: Optional[str] = None
     canary_token_tries: int = 10
     dashboard_secret_path: str = None
-    api_server_url: Optional[str] = None
-    api_server_port: int = 8080
-    api_server_path: str = "/api/v2/users"
     probability_error_codes: int = 0  # Percentage (0-100)
 
     # Crawl limiting settings - for legitimate vs malicious crawlers
@@ -187,9 +184,6 @@ class Config:
             canary_token_url=canary.get("token_url"),
             canary_token_tries=canary.get("token_tries", 10),
             dashboard_secret_path=dashboard_path,
-            api_server_url=api.get("server_url"),
-            api_server_port=api.get("server_port", 8080),
-            api_server_path=api.get("server_path", "/api/v2/users"),
             probability_error_codes=behavior.get("probability_error_codes", 0),
             database_path=database.get("path", "data/krawl.db"),
             database_retention_days=database.get("retention_days", 30),
