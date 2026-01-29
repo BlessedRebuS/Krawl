@@ -17,7 +17,7 @@ Install with default values:
 
 ```bash
 helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
-  --version 2.0.0 \
+  --version 0.2.2 \
   --namespace krawl-system \
   --create-namespace
 ```
@@ -55,7 +55,7 @@ Install with custom values:
 
 ```bash
 helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
-  --version 2.0.0 \
+  --version 0.2.2 \
   --namespace krawl-system \
   --create-namespace \
   -f values.yaml

@@ -43,6 +43,10 @@ spec:
         env:
         - name: CONFIG_LOCATION
           value: "config.yaml"
+        {{- if .Values.timezone }}
+        - name: TZ
+          value: {{ .Values.timezone | quote }}
+        {{- end }}
         volumeMounts:
         - name: config
           mountPath: /app/config.yaml
