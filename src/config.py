@@ -234,7 +234,7 @@ def override_config_from_env(config: Config = None):
                     setattr(config, field, float(env_value))
                 elif field_type == bool:
                     # Handle boolean values (case-insensitive: true/false, yes/no, 1/0)
-                    setattr(config, field, env_value.lower() in ('true', 'yes', '1'))
+                    setattr(config, field, env_value.lower() in ("true", "yes", "1"))
                 elif field_type == Tuple[int, int]:
                     parts = env_value.split(",")
                     if len(parts) == 2:
