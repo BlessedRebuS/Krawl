@@ -4,11 +4,52 @@ kind: Namespace
 metadata:
   name: krawl-system
 ---
+# Source: krawl-chart/templates/network-policy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: krawl
+  namespace: krawl-system
+  labels:
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl
+    app.kubernetes.io/version: "1.0.0"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: krawl
+      app.kubernetes.io/instance: krawl
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+      - podSelector: {}
+      - namespaceSelector: {}
+      - ipBlock:
+          cidr: 0.0.0.0/0
+      ports:
+      - port: 5000
+        protocol: TCP
+  egress:
+    - ports:
+      - protocol: TCP
+      - protocol: UDP
+      to:
+      - namespaceSelector: {}
+      - ipBlock:
+          cidr: 0.0.0.0/0
+---
+# Source: krawl-chart/templates/configmap.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: krawl-config
   namespace: krawl-system
+  labels:
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl
+    app.kubernetes.io/version: "1.0.0"
 data:
   config.yaml: |
     # Krawl Honeypot Configuration
@@ -49,231 +90,30 @@ data:
       max_pages_limit: 250
       ban_duration_seconds: 600
 ---
+# Source: krawl-chart/templates/wordlists-configmap.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: krawl-wordlists
   namespace: krawl-system
+  labels:
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl
+    app.kubernetes.io/version: "1.0.0"
 data:
   wordlists.json: |
-    {
-      "usernames": {
-        "prefixes": [
-          "admin",
-          "user",
-          "developer",
-          "root",
-          "system",
-          "db",
-          "api",
-          "service",
-          "deploy",
-          "test",
-          "prod",
-          "backup",
-          "monitor",
-          "jenkins",
-          "webapp"
-        ],
-        "suffixes": [
-          "",
-          "_prod",
-          "_dev",
-          "_test",
-          "123",
-          "2024",
-          "_backup",
-          "_admin",
-          "01",
-          "02",
-          "_user",
-          "_service",
-          "_api"
-        ]
-      },
-      "passwords": {
-        "prefixes": [
-          "P@ssw0rd",
-          "Passw0rd",
-          "Admin",
-          "Secret",
-          "Welcome",
-          "System",
-          "Database",
-          "Secure",
-          "Master",
-          "Root"
-        ],
-        "simple": [
-          "test",
-          "demo",
-          "temp",
-          "change",
-          "password",
-          "admin",
-          "letmein",
-          "welcome",
-          "default",
-          "sample"
-        ]
-      },
-      "emails": {
-        "domains": [
-          "example.com",
-          "company.com",
-          "localhost.com",
-          "test.com",
-          "domain.com",
-          "corporate.com",
-          "internal.net",
-          "enterprise.com",
-          "business.org"
-        ]
-      },
-      "api_keys": {
-        "prefixes": [
-          "sk_live_",
-          "sk_test_",
-          "api_",
-          "key_",
-          "token_",
-          "access_",
-          "secret_",
-          "prod_",
-          ""
-        ]
-      },
-      "databases": {
-        "names": [
-          "production",
-          "prod_db",
-          "main_db",
-          "app_database",
-          "users_db",
-          "customer_data",
-          "analytics",
-          "staging_db",
-          "dev_database",
-          "wordpress",
-          "ecommerce",
-          "crm_db",
-          "inventory"
-        ],
-        "hosts": [
-          "localhost",
-          "db.internal",
-          "mysql.local",
-          "postgres.internal",
-          "127.0.0.1",
-          "db-server-01",
-          "database.prod",
-          "sql.company.com"
-        ]
-      },
-      "applications": {
-        "names": [
-          "WebApp",
-          "API Gateway",
-          "Dashboard",
-          "Admin Panel",
-          "CMS",
-          "Portal",
-          "Manager",
-          "Console",
-          "Control Panel",
-          "Backend"
-        ]
-      },
-      "users": {
-        "roles": [
-          "Administrator",
-          "Developer",
-          "Manager",
-          "User",
-          "Guest",
-          "Moderator",
-          "Editor",
-          "Viewer",
-          "Analyst",
-          "Support"
-        ]
-      },
-      "directory_listing": {
-        "files": [
-          "admin.txt",
-          "test.exe",
-          "backup.sql",
-          "database.sql",
-          "db_backup.sql",
-          "dump.sql",
-          "config.php",
-          "credentials.txt",
-          "passwords.txt",
-          "users.csv",
-          ".env",
-          "id_rsa",
-          "id_rsa.pub",
-          "private_key.pem",
-          "api_keys.json",
-          "secrets.yaml",
-          "admin_notes.txt",
-          "settings.ini",
-          "database.yml",
-          "wp-config.php",
-          ".htaccess",
-          "server.key",
-          "cert.pem",
-          "shadow.bak",
-          "passwd.old"
-        ],
-        "directories": [
-          "uploads/",
-          "backups/",
-          "logs/",
-          "temp/",
-          "cache/",
-          "private/",
-          "config/",
-          "admin/",
-          "database/",
-          "backup/",
-          "old/",
-          "archive/",
-          ".git/",
-          "keys/",
-          "credentials/"
-        ]
-      },
-      "error_codes": [
-        400,
-        401,
-        403,
-        404,
-        500,
-        502,
-        503
-      ],
-      "server_headers": [
-        "Apache/2.2.22 (Ubuntu)",
-        "nginx/1.18.0",
-        "Microsoft-IIS/10.0",
-        "LiteSpeed",
-        "Caddy",
-        "Gunicorn/20.0.4",
-        "uvicorn/0.13.4",
-        "Express",
-        "Flask/1.1.2",
-        "Django/3.1"
-      ]
-    }
+    {"api_keys":{"prefixes":["sk_live_","sk_test_","api_","key_","token_","access_","secret_","prod_",""]},"applications":{"names":["WebApp","API Gateway","Dashboard","Admin Panel","CMS","Portal","Manager","Console","Control Panel","Backend"]},"databases":{"hosts":["localhost","db.internal","mysql.local","postgres.internal","127.0.0.1","db-server-01","database.prod","sql.company.com"],"names":["production","prod_db","main_db","app_database","users_db","customer_data","analytics","staging_db","dev_database","wordpress","ecommerce","crm_db","inventory"]},"directory_listing":{"directories":["uploads/","backups/","logs/","temp/","cache/","private/","config/","admin/","database/","backup/","old/","archive/",".git/","keys/","credentials/"],"files":["admin.txt","test.exe","backup.sql","database.sql","db_backup.sql","dump.sql","config.php","credentials.txt","passwords.txt","users.csv",".env","id_rsa","id_rsa.pub","private_key.pem","api_keys.json","secrets.yaml","admin_notes.txt","settings.ini","database.yml","wp-config.php",".htaccess","server.key","cert.pem","shadow.bak","passwd.old"]},"emails":{"domains":["example.com","company.com","localhost.com","test.com","domain.com","corporate.com","internal.net","enterprise.com","business.org"]},"error_codes":[400,401,403,404,500,502,503],"passwords":{"prefixes":["P@ssw0rd","Passw0rd","Admin","Secret","Welcome","System","Database","Secure","Master","Root"],"simple":["test","demo","temp","change","password","admin","letmein","welcome","default","sample"]},"server_headers":["Apache/2.2.22 (Ubuntu)","nginx/1.18.0","Microsoft-IIS/10.0","LiteSpeed","Caddy","Gunicorn/20.0.4","uvicorn/0.13.4","Express","Flask/1.1.2","Django/3.1"],"usernames":{"prefixes":["admin","user","developer","root","system","db","api","service","deploy","test","prod","backup","monitor","jenkins","webapp"],"suffixes":["","_prod","_dev","_test","123","2024","_backup","_admin","01","02","_user","_service","_api"]},"users":{"roles":["Administrator","Developer","Manager","User","Guest","Moderator","Editor","Viewer","Analyst","Support"]}}
 ---
+# Source: krawl-chart/templates/pvc.yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: krawl-db
   namespace: krawl-system
   labels:
-    app: krawl-server
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl
+    app.kubernetes.io/version: "1.0.0"
 spec:
   accessModes:
     - ReadWriteOnce
@@ -281,30 +121,61 @@ spec:
     requests:
       storage: 1Gi
 ---
+# Source: krawl-chart/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: krawl
+  namespace: krawl-system
+  labels:
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl
+    app.kubernetes.io/version: "1.0.0"
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+  ports:
+  - port: 5000
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl
+---
+# Source: krawl-chart/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: krawl-server
+  name: krawl
   namespace: krawl-system
   labels:
-    app: krawl-server
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl
+    app.kubernetes.io/version: "1.0.0"
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: krawl-server
+      app.kubernetes.io/name: krawl
+      app.kubernetes.io/instance: krawl
   template:
     metadata:
       labels:
-        app: krawl-server
+        app.kubernetes.io/name: krawl
+        app.kubernetes.io/instance: krawl
     spec:
       containers:
-      - name: krawl
-        image: ghcr.io/blessedrebus/krawl:latest
+      - name: krawl-chart
+        image: "ghcr.io/blessedrebus/krawl:1.0.0"
         imagePullPolicy: Always
         ports:
-        - containerPort: 5000
-          name: http
+        - name: http
+          containerPort: 5000
           protocol: TCP
         env:
         - name: CONFIG_LOCATION
@@ -321,12 +192,12 @@ spec:
         - name: database
           mountPath: /app/data
         resources:
-          requests:
-            memory: "64Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "500m"
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 64Mi
       volumes:
       - name: config
         configMap:
@@ -338,104 +209,26 @@ spec:
         persistentVolumeClaim:
           claimName: krawl-db
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: krawl-server
-  namespace: krawl-system
-  labels:
-    app: krawl-server
-spec:
-  type: LoadBalancer
-  externalTrafficPolicy: Local
-  sessionAffinity: ClientIP
-  sessionAffinityConfig:
-    clientIP:
-      timeoutSeconds: 10800
-  ports:
-  - port: 5000
-    targetPort: 5000
-    protocol: TCP
-    name: http
-  selector:
-    app: krawl-server
----
+# Source: krawl-chart/templates/ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: krawl-ingress
+  name: krawl
   namespace: krawl-system
+  labels:
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl
+    app.kubernetes.io/version: "1.0.0"
 spec:
   ingressClassName: traefik
   rules:
-  - host: krawl.example.com  # Change to your domain
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: krawl-server
-            port:
-              number: 5000
-  # tls:
-  # - hosts:
-  #   - krawl.example.com
-  #   secretName: krawl-tls
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: krawl-network-policy
-  namespace: krawl-system
-spec:
-  podSelector:
-    matchLabels:
-      app: krawl-server
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - podSelector: {}
-    - namespaceSelector: {}
-    - ipBlock:
-        cidr: 0.0.0.0/0
-    ports:
-    - protocol: TCP
-      port: 5000
-  egress:
-  - to:
-    - namespaceSelector: {}
-    - ipBlock:
-        cidr: 0.0.0.0/0
-    ports:
-    - protocol: TCP
-    - protocol: UDP
----
-# Optional: HorizontalPodAutoscaler for auto-scaling
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: krawl-hpa
-  namespace: krawl-system
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: krawl-server
-  minReplicas: 1
-  maxReplicas: 5
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
+    - host: "krawl.example.com"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: krawl
+                port:
+                  number: 5000

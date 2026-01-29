@@ -1,10 +1,13 @@
+# Source: krawl-chart/templates/pvc.yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: krawl-db
   namespace: krawl-system
   labels:
-    app: krawl-server
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl
+    app.kubernetes.io/version: "1.0.0"
 spec:
   accessModes:
     - ReadWriteOnce

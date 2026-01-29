@@ -1,27 +1,32 @@
+# Source: krawl-chart/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: krawl-server
+  name: krawl
   namespace: krawl-system
   labels:
-    app: krawl-server
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl
+    app.kubernetes.io/version: "1.0.0"
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: krawl-server
+      app.kubernetes.io/name: krawl
+      app.kubernetes.io/instance: krawl
   template:
     metadata:
       labels:
-        app: krawl-server
+        app.kubernetes.io/name: krawl
+        app.kubernetes.io/instance: krawl
     spec:
       containers:
-      - name: krawl
-        image: ghcr.io/blessedrebus/krawl:latest
+      - name: krawl-chart
+        image: "ghcr.io/blessedrebus/krawl:1.0.0"
         imagePullPolicy: Always
         ports:
-        - containerPort: 5000
-          name: http
+        - name: http
+          containerPort: 5000
           protocol: TCP
         env:
         - name: CONFIG_LOCATION
@@ -38,12 +43,12 @@ spec:
         - name: database
           mountPath: /app/data
         resources:
-          requests:
-            memory: "64Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "500m"
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 64Mi
       volumes:
       - name: config
         configMap:

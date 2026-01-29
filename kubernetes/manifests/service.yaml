@@ -1,10 +1,13 @@
+# Source: krawl-chart/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: krawl-server
+  name: krawl
   namespace: krawl-system
   labels:
-    app: krawl-server
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl
+    app.kubernetes.io/version: "1.0.0"
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Local
@@ -14,8 +17,9 @@ spec:
       timeoutSeconds: 10800
   ports:
   - port: 5000
-    targetPort: 5000
+    targetPort: http
     protocol: TCP
     name: http
   selector:
-    app: krawl-server
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl

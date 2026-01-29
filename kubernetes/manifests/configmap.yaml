@@ -1,8 +1,13 @@
+# Source: krawl-chart/templates/configmap.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: krawl-config
   namespace: krawl-system
+  labels:
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl
+    app.kubernetes.io/version: "1.0.0"
 data:
   config.yaml: |
     # Krawl Honeypot Configuration

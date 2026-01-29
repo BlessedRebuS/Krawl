@@ -1,22 +1,23 @@
+# Source: krawl-chart/templates/ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: krawl-ingress
+  name: krawl
   namespace: krawl-system
+  labels:
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl
+    app.kubernetes.io/version: "1.0.0"
 spec:
   ingressClassName: traefik
   rules:
-  - host: krawl.example.com  # Change to your domain
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: krawl-server
-            port:
-              number: 5000
-  # tls:
-  # - hosts:
-  #   - krawl.example.com
-  #   secretName: krawl-tls
+    - host: "krawl.example.com"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: krawl
+                port:
+                  number: 5000
