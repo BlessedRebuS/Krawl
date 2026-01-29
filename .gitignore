@@ -80,3 +80,4 @@ personal-values.yaml
 
 #exports dir (keeping .gitkeep so we have the dir)
 /exports/*
+/src/exports/*

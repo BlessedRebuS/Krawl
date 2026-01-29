@@ -17,7 +17,7 @@ Install with default values:
 
 ```bash
 helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
-  --version 0.2.2 \
+  --version 1.0.0 \
   --namespace krawl-system \
   --create-namespace
 ```
@@ -28,6 +28,8 @@ Or create a minimal `values.yaml` file:
 service:
   type: LoadBalancer
   port: 5000
+
+timezone: "Europe/Rome"
 
 ingress:
   enabled: true

@@ -109,6 +109,7 @@ services:
       - "5000:5000"
     environment:
       - CONFIG_LOCATION=config.yaml
+      - TZ="Europe/Rome"
     volumes:
       - ./config.yaml:/app/config.yaml:ro
       - krawl-data:/app/data
