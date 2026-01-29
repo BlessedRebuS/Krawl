@@ -94,6 +94,9 @@ class DatabaseManager:
         # Create all tables
         Base.metadata.create_all(self._engine)
 
+        # Run automatic migrations for backward compatibility
+        self._run_migrations(database_path)
+
         # Set restrictive file permissions (owner read/write only)
         if os.path.exists(database_path):
             try:
@@ -103,6 +106,47 @@ class DatabaseManager:
                 pass
 
         self._initialized = True
+
+    def _run_migrations(self, database_path: str) -> None:
+        """
+        Run automatic migrations for backward compatibility.
+        Adds missing columns that were added in newer versions.
+
+        Args:
+            database_path: Path to the SQLite database file
+        """
+        import sqlite3
+
+        try:
+            conn = sqlite3.connect(database_path)
+            cursor = conn.cursor()
+
+            # Check if latitude/longitude columns exist
+            cursor.execute("PRAGMA table_info(ip_stats)")
+            columns = [row[1] for row in cursor.fetchall()]
+
+            migrations_run = []
+
+            # Add latitude column if missing
+            if "latitude" not in columns:
+                cursor.execute("ALTER TABLE ip_stats ADD COLUMN latitude REAL")
+                migrations_run.append("latitude")
+
+            # Add longitude column if missing
+            if "longitude" not in columns:
+                cursor.execute("ALTER TABLE ip_stats ADD COLUMN longitude REAL")
+                migrations_run.append("longitude")
+
+            if migrations_run:
+                conn.commit()
+                applogger.info(
+                    f"Auto-migration: Added columns {', '.join(migrations_run)} to ip_stats table"
+                )
+
+            conn.close()
+        except Exception as e:
+            applogger.error(f"Auto-migration failed: {e}")
+            # Don't raise - allow app to continue even if migration fails
 
     @property
     def session(self) -> Session:
@@ -399,6 +443,8 @@ class DatabaseManager:
         asn_org: str,
         list_on: Dict[str, str],
         city: Optional[str] = None,
+        latitude: Optional[float] = None,
+        longitude: Optional[float] = None,
     ) -> None:
         """
         Update IP rep stats
@@ -410,6 +456,8 @@ class DatabaseManager:
             asn_org: IP address ASN ORG
             list_on: public lists containing the IP address
             city: City name (optional)
+            latitude: Latitude coordinate (optional)
+            longitude: Longitude coordinate (optional)
 
         """
         session = self.session
@@ -423,6 +471,10 @@ class DatabaseManager:
                 ip_stats.list_on = list_on
                 if city:
                     ip_stats.city = city
+                if latitude is not None:
+                    ip_stats.latitude = latitude
+                if longitude is not None:
+                    ip_stats.longitude = longitude
                 session.commit()
         except Exception as e:
             session.rollback()
@@ -433,7 +485,7 @@ class DatabaseManager:
     def get_unenriched_ips(self, limit: int = 100) -> List[str]:
         """
         Get IPs that don't have complete reputation data yet.
-        Returns IPs without country_code OR without city data.
+        Returns IPs without country_code, city, latitude, or longitude data.
         Excludes RFC1918 private addresses and other non-routable IPs.
 
         Args:
@@ -442,27 +494,61 @@ class DatabaseManager:
         Returns:
             List of IP addresses without complete reputation data
         """
+        from sqlalchemy.exc import OperationalError
+
         session = self.session
         try:
-            ips = (
-                session.query(IpStats.ip)
-                .filter(
-                    or_(IpStats.country_code.is_(None), IpStats.city.is_(None)),
-                    ~IpStats.ip.like("10.%"),
-                    ~IpStats.ip.like("172.16.%"),
-                    ~IpStats.ip.like("172.17.%"),
-                    ~IpStats.ip.like("172.18.%"),
-                    ~IpStats.ip.like("172.19.%"),
-                    ~IpStats.ip.like("172.2_.%"),
-                    ~IpStats.ip.like("172.30.%"),
-                    ~IpStats.ip.like("172.31.%"),
-                    ~IpStats.ip.like("192.168.%"),
-                    ~IpStats.ip.like("127.%"),
-                    ~IpStats.ip.like("169.254.%"),
+            # Try to query including latitude/longitude (for backward compatibility)
+            try:
+                ips = (
+                    session.query(IpStats.ip)
+                    .filter(
+                        or_(
+                            IpStats.country_code.is_(None),
+                            IpStats.city.is_(None),
+                            IpStats.latitude.is_(None),
+                            IpStats.longitude.is_(None),
+                        ),
+                        ~IpStats.ip.like("10.%"),
+                        ~IpStats.ip.like("172.16.%"),
+                        ~IpStats.ip.like("172.17.%"),
+                        ~IpStats.ip.like("172.18.%"),
+                        ~IpStats.ip.like("172.19.%"),
+                        ~IpStats.ip.like("172.2_.%"),
+                        ~IpStats.ip.like("172.30.%"),
+                        ~IpStats.ip.like("172.31.%"),
+                        ~IpStats.ip.like("192.168.%"),
+                        ~IpStats.ip.like("127.%"),
+                        ~IpStats.ip.like("169.254.%"),
+                    )
+                    .limit(limit)
+                    .all()
                 )
-                .limit(limit)
-                .all()
-            )
+            except OperationalError as e:
+                # If latitude/longitude columns don't exist yet, fall back to old query
+                if "no such column" in str(e).lower():
+                    ips = (
+                        session.query(IpStats.ip)
+                        .filter(
+                            or_(IpStats.country_code.is_(None), IpStats.city.is_(None)),
+                            ~IpStats.ip.like("10.%"),
+                            ~IpStats.ip.like("172.16.%"),
+                            ~IpStats.ip.like("172.17.%"),
+                            ~IpStats.ip.like("172.18.%"),
+                            ~IpStats.ip.like("172.19.%"),
+                            ~IpStats.ip.like("172.2_.%"),
+                            ~IpStats.ip.like("172.30.%"),
+                            ~IpStats.ip.like("172.31.%"),
+                            ~IpStats.ip.like("192.168.%"),
+                            ~IpStats.ip.like("127.%"),
+                            ~IpStats.ip.like("169.254.%"),
+                        )
+                        .limit(limit)
+                        .all()
+                    )
+                else:
+                    raise
+
             return [ip[0] for ip in ips]
         finally:
             self.close_session()
@@ -718,6 +804,8 @@ class DatabaseManager:
                         "last_seen": a.last_seen.isoformat() if a.last_seen else None,
                         "country_code": a.country_code,
                         "city": a.city,
+                        "latitude": a.latitude,
+                        "longitude": a.longitude,
                         "asn": a.asn,
                         "asn_org": a.asn_org,
                         "reputation_score": a.reputation_score,
@@ -813,6 +901,8 @@ class DatabaseManager:
                         "last_seen": ip.last_seen.isoformat() if ip.last_seen else None,
                         "country_code": ip.country_code,
                         "city": ip.city,
+                        "latitude": ip.latitude,
+                        "longitude": ip.longitude,
                         "asn": ip.asn,
                         "asn_org": ip.asn_org,
                         "reputation_score": ip.reputation_score,

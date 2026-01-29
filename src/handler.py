@@ -494,19 +494,21 @@ class Handler(BaseHTTPRequestHandler):
         user_agent = self._get_user_agent()
 
         # Handle static files for dashboard
-        if (
-            self.config.dashboard_secret_path
-            and self.path.startswith(f"{self.config.dashboard_secret_path}/static/")
+        if self.config.dashboard_secret_path and self.path.startswith(
+            f"{self.config.dashboard_secret_path}/static/"
         ):
             import os
+
             file_path = self.path.replace(
                 f"{self.config.dashboard_secret_path}/static/", ""
             )
             static_dir = os.path.join(os.path.dirname(__file__), "templates", "static")
             full_path = os.path.join(static_dir, file_path)
-            
+
             # Security check: ensure the path is within static directory
-            if os.path.commonpath([full_path, static_dir]) == static_dir and os.path.exists(full_path):
+            if os.path.commonpath(
+                [full_path, static_dir]
+            ) == static_dir and os.path.exists(full_path):
                 try:
                     with open(full_path, "rb") as f:
                         content = f.read()
@@ -525,7 +527,7 @@ class Handler(BaseHTTPRequestHandler):
                     return
                 except Exception as e:
                     self.app_logger.error(f"Error serving static file: {e}")
-            
+
             self.send_response(404)
             self.send_header("Content-type", "text/plain")
             self.end_headers()

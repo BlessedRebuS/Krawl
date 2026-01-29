@@ -45,6 +45,8 @@ def main():
                 country_iso_code = geoip_data.get("country_iso_code")
                 asn = geoip_data.get("asn_autonomous_system_number")
                 asn_org = geoip_data.get("asn_autonomous_system_organization")
+                latitude = geoip_data.get("location_latitude")
+                longitude = geoip_data.get("location_longitude")
 
                 # Extract city from coordinates using reverse geocoding
                 city = extract_city_from_coordinates(geoip_data)
@@ -62,6 +64,8 @@ def main():
                     sanitized_asn_org,
                     sanitized_list_on,
                     sanitized_city,
+                    latitude,
+                    longitude,
                 )
         except requests.RequestException as e:
             app_logger.warning(f"Failed to fetch IP rep for {ip}: {e}")

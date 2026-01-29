@@ -561,17 +561,25 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             filter: none;
         }}
         .leaflet-popup-content-wrapper {{
-            background-color: #161b22;
+            background-color: #0d1117;
             color: #c9d1d9;
             border: 1px solid #30363d;
-            border-radius: 4px;
+            border-radius: 6px;
+            padding: 0;
+        }}
+        .leaflet-popup-content {{
+            margin: 0;
+            min-width: 280px;
         }}
         .leaflet-popup-content-wrapper a {{
             color: #58a6ff;
         }}
         .leaflet-popup-tip {{
-            background: #161b22;
-            border-top: 6px solid #30363d;
+            background: #0d1117;
+            border: 1px solid #30363d;
+        }}
+        .ip-detail-popup .leaflet-popup-content-wrapper {{
+            max-width: 340px !important;
         }}
         /* Remove the default leaflet icon background */
         .ip-custom-marker {{
@@ -1252,6 +1260,97 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                 html += '</div>';
             }}
 
+            return html;
+        }}
+
+        // Generate radar chart for map panel
+        function generateMapPanelRadarChart(categoryScores) {{
+            if (!categoryScores || Object.keys(categoryScores).length === 0) {{
+                return '<div style="color: #8b949e; text-align: center; padding: 20px;">No category data available</div>';
+            }}
+
+            let html = '<div style="display: flex; flex-direction: column; align-items: center;">';
+            html += '<svg class="radar-chart" viewBox="-30 -30 260 260" preserveAspectRatio="xMidYMid meet" style="width: 160px; height: 160px;">';
+
+            const scores = {{
+                attacker: categoryScores.attacker || 0,
+                good_crawler: categoryScores.good_crawler || 0,
+                bad_crawler: categoryScores.bad_crawler || 0,
+                regular_user: categoryScores.regular_user || 0,
+                unknown: categoryScores.unknown || 0
+            }};
+
+            const maxScore = Math.max(...Object.values(scores), 1);
+            const minVisibleRadius = 0.15;
+            const normalizedScores = {{}};
+
+            Object.keys(scores).forEach(key => {{
+                normalizedScores[key] = minVisibleRadius + (scores[key] / maxScore) * (1 - minVisibleRadius);
+            }});
+
+            const colors = {{
+                attacker: '#f85149',
+                good_crawler: '#3fb950',
+                bad_crawler: '#f0883e',
+                regular_user: '#58a6ff',
+                unknown: '#8b949e'
+            }};
+
+            const labels = {{
+                attacker: 'Attacker',
+                good_crawler: 'Good Bot',
+                bad_crawler: 'Bad Bot',
+                regular_user: 'User',
+                unknown: 'Unknown'
+            }};
+
+            const cx = 100, cy = 100, maxRadius = 75;
+            for (let i = 1; i <= 5; i++) {{
+                const r = (maxRadius / 5) * i;
+                html += `<circle cx="${{cx}}" cy="${{cy}}" r="${{r}}" fill="none" stroke="#30363d" stroke-width="0.5"/>`;
+            }}
+
+            const angles = [0, 72, 144, 216, 288];
+            const keys = ['good_crawler', 'regular_user', 'unknown', 'bad_crawler', 'attacker'];
+
+            angles.forEach((angle, i) => {{
+                const rad = (angle - 90) * Math.PI / 180;
+                const x2 = cx + maxRadius * Math.cos(rad);
+                const y2 = cy + maxRadius * Math.sin(rad);
+                html += `<line x1="${{cx}}" y1="${{cy}}" x2="${{x2}}" y2="${{y2}}" stroke="#30363d" stroke-width="0.5"/>`;
+
+                const labelDist = maxRadius + 35;
+                const lx = cx + labelDist * Math.cos(rad);
+                const ly = cy + labelDist * Math.sin(rad);
+                html += `<text x="${{lx}}" y="${{ly}}" fill="#8b949e" font-size="12" text-anchor="middle" dominant-baseline="middle">${{labels[keys[i]]}}</text>`;
+            }});
+
+            let points = [];
+            angles.forEach((angle, i) => {{
+                const normalizedScore = normalizedScores[keys[i]];
+                const rad = (angle - 90) * Math.PI / 180;
+                const r = normalizedScore * maxRadius;
+                const x = cx + r * Math.cos(rad);
+                const y = cy + r * Math.sin(rad);
+                points.push(`${{x}},${{y}}`);
+            }});
+
+            const dominantKey = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+            const dominantColor = colors[dominantKey];
+
+            html += `<polygon points="${{points.join(' ')}}" fill="${{dominantColor}}" fill-opacity="0.4" stroke="${{dominantColor}}" stroke-width="2.5"/>`;
+
+            angles.forEach((angle, i) => {{
+                const normalizedScore = normalizedScores[keys[i]];
+                const rad = (angle - 90) * Math.PI / 180;
+                const r = normalizedScore * maxRadius;
+                const x = cx + r * Math.cos(rad);
+                const y = cy + r * Math.sin(rad);
+                html += `<circle cx="${{x}}" cy="${{y}}" r="4.5" fill="${{colors[keys[i]]}}" stroke="#0d1117" stroke-width="2"/>`;
+            }});
+
+            html += '</svg>';
+            html += '</div>';
             return html;
         }}
 
@@ -2075,7 +2174,11 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
 
                 // Helper function to get coordinates for an IP
                 function getIPCoordinates(ip) {{
-                    // Try city first
+                    // Use actual latitude and longitude if available
+                    if (ip.latitude != null && ip.longitude != null) {{
+                        return [ip.latitude, ip.longitude];
+                    }}
+                    // Fall back to city lookup
                     if (ip.city && cityCoordinates[ip.city]) {{
                         return cityCoordinates[ip.city];
                     }}
@@ -2136,9 +2239,11 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     const category = ip.category.toLowerCase();
                     if (!markerLayers[category]) return;
 
-                    // Calculate marker size based on request count
-                    const sizeRatio = (ip.total_requests / maxRequests) * 0.7 + 0.3;
-                    const markerSize = Math.max(15, Math.min(40, 20 * sizeRatio));
+                    // Calculate marker size based on request count with more dramatic scaling
+                    // Scale up to 10,000 requests, then cap it
+                    const requestsForScale = Math.min(ip.total_requests, 10000);
+                    const sizeRatio = Math.pow(requestsForScale / 10000, 0.5); // Square root for better visual scaling
+                    const markerSize = Math.max(10, Math.min(30, 10 + (sizeRatio * 20)));
 
                     // Create custom marker element with category-specific class
                     const markerElement = document.createElement('div');
@@ -2156,7 +2261,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                         }})
                     }});
 
-                    // Create popup content with category badge
+                    // Create popup with category badge and chart
                     const categoryColor = categoryColors[category] || '#8b949e';
                     const categoryLabels = {{
                         attacker: 'Attacker',
@@ -2166,26 +2271,103 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                         unknown: 'Unknown'
                     }};
 
-                    const popupContent = `
-                        <div style="padding: 8px; min-width: 220px;">
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                                <strong style="color: #58a6ff;">${{ip.ip}}</strong>
-                                <span style="background: ${{categoryColor}}1a; color: ${{categoryColor}}; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
-                                    ${{categoryLabels[category]}}
-                                </span>
-                            </div>
-                            <span style="color: #8b949e; font-size: 12px;">
-                                ${{ip.city ? (ip.country_code ? `${{ip.city}}, ${{ip.country_code}}` : ip.city) : (ip.country_code || 'Unknown')}}
-                            </span><br/>
-                            <div style="margin-top: 8px; border-top: 1px solid #30363d; padding-top: 8px;">
-                                <div><span style="color: #8b949e;">Requests:</span> <span style="color: ${{categoryColor}}; font-weight: bold;">${{ip.total_requests}}</span></div>
-                                <div><span style="color: #8b949e;">First Seen:</span> <span style="color: #58a6ff;">${{formatTimestamp(ip.first_seen)}}</span></div>
-                                <div><span style="color: #8b949e;">Last Seen:</span> <span style="color: #58a6ff;">${{formatTimestamp(ip.last_seen)}}</span></div>
-                            </div>
-                        </div>
-                    `;
+                    // Bind popup once when marker is created
+                    marker.bindPopup('', {{
+                        maxWidth: 550,
+                        className: 'ip-detail-popup'
+                    }});
 
-                    marker.bindPopup(popupContent);
+                    // Add click handler to fetch data and show popup
+                    marker.on('click', async function(e) {{
+                        // Show loading popup first
+                        const loadingPopup = `
+                            <div style="padding: 12px; min-width: 280px; max-width: 320px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                    <strong style="color: #58a6ff; font-size: 14px;">${{ip.ip}}</strong>
+                                    <span style="background: ${{categoryColor}}1a; color: ${{categoryColor}}; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                        ${{categoryLabels[category]}}
+                                    </span>
+                                </div>
+                                <div style="text-align: center; padding: 20px; color: #8b949e;">
+                                    <div style="font-size: 12px;">Loading details...</div>
+                                </div>
+                            </div>
+                        `;
+
+                        marker.setPopupContent(loadingPopup);
+                        marker.openPopup();
+
+                        try {{
+                            console.log('Fetching IP stats for:', ip.ip);
+                            const response = await fetch(`${{DASHBOARD_PATH}}/api/ip-stats/${{ip.ip}}`);
+                            if (!response.ok) throw new Error('Failed to fetch IP stats');
+
+                            const stats = await response.json();
+                            console.log('Received stats:', stats);
+
+                            // Build complete popup content with chart
+                            let popupContent = `
+                                <div style="padding: 12px; min-width: 200px;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                        <strong style="color: #58a6ff; font-size: 14px;">${{ip.ip}}</strong>
+                                        <span style="background: ${{categoryColor}}1a; color: ${{categoryColor}}; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                            ${{categoryLabels[category]}}
+                                        </span>
+                                    </div>
+                                    <span style="color: #8b949e; font-size: 12px;">
+                                        ${{ip.city ? (ip.country_code ? `${{ip.city}}, ${{ip.country_code}}` : ip.city) : (ip.country_code || 'Unknown')}}
+                                    </span><br/>
+                                    <div style="margin-top: 8px; border-top: 1px solid #30363d; padding-top: 8px;">
+                                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">Requests:</span> <span style="color: ${{categoryColor}}; font-weight: bold;">${{ip.total_requests}}</span></div>
+                                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">First Seen:</span> <span style="color: #58a6ff; font-size: 11px;">${{formatTimestamp(ip.first_seen)}}</span></div>
+                                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">Last Seen:</span> <span style="color: #58a6ff; font-size: 11px;">${{formatTimestamp(ip.last_seen)}}</span></div>
+                                    </div>
+                            `;
+
+                            // Add chart if category scores exist
+                            if (stats.category_scores && Object.keys(stats.category_scores).length > 0) {{
+                                console.log('Category scores found:', stats.category_scores);
+                                const chartHtml = generateMapPanelRadarChart(stats.category_scores);
+                                console.log('Generated chart HTML length:', chartHtml.length);
+                                popupContent += `
+                                    <div style="margin-top: 12px; border-top: 1px solid #30363d; padding-top: 12px;">
+                                        ${{chartHtml}}
+                                    </div>
+                                `;
+                            }}
+
+                            popupContent += '</div>';
+
+                            // Update popup content
+                            console.log('Updating popup content');
+                            marker.setPopupContent(popupContent);
+                        }} catch (err) {{
+                            console.error('Error fetching IP stats:', err);
+                            const errorPopup = `
+                                <div style="padding: 12px; min-width: 280px; max-width: 320px;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                        <strong style="color: #58a6ff; font-size: 14px;">${{ip.ip}}</strong>
+                                        <span style="background: ${{categoryColor}}1a; color: ${{categoryColor}}; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                            ${{categoryLabels[category]}}
+                                        </span>
+                                    </div>
+                                    <span style="color: #8b949e; font-size: 12px;">
+                                        ${{ip.city ? (ip.country_code ? `${{ip.city}}, ${{ip.country_code}}` : ip.city) : (ip.country_code || 'Unknown')}}
+                                    </span><br/>
+                                    <div style="margin-top: 8px; border-top: 1px solid #30363d; padding-top: 8px;">
+                                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">Requests:</span> <span style="color: ${{categoryColor}}; font-weight: bold;">${{ip.total_requests}}</span></div>
+                                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">First Seen:</span> <span style="color: #58a6ff; font-size: 11px;">${{formatTimestamp(ip.first_seen)}}</span></div>
+                                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">Last Seen:</span> <span style="color: #58a6ff; font-size: 11px;">${{formatTimestamp(ip.last_seen)}}</span></div>
+                                    </div>
+                                    <div style="margin-top: 12px; border-top: 1px solid #30363d; padding-top: 12px; text-align: center; color: #f85149; font-size: 11px;">
+                                        Failed to load chart: ${{err.message}}
+                                    </div>
+                                </div>
+                            `;
+                            marker.setPopupContent(errorPopup);
+                        }}
+                    }});
+
                     markerLayers[category].addLayer(marker);
                 }});
 

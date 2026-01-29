@@ -73,9 +73,10 @@ def main():
         # Filter out local/private IPs and the server's own IP
         config = get_config()
         server_ip = config.get_server_ip()
-        
+
         public_ips = [
-            attacker.ip for attacker in attackers
+            attacker.ip
+            for attacker in attackers
             if is_valid_public_ip(attacker.ip, server_ip)
         ]
 
