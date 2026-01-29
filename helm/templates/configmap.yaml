@@ -10,7 +10,6 @@ data:
     server:
       port: {{ .Values.config.server.port }}
       delay: {{ .Values.config.server.delay }}
-      timezone: {{ .Values.config.server.timezone | toYaml }}
     links:
       min_length: {{ .Values.config.links.min_length }}
       max_length: {{ .Values.config.links.max_length }}
@@ -23,10 +22,6 @@ data:
       token_tries: {{ .Values.config.canary.token_tries }}
     dashboard:
       secret_path: {{ .Values.config.dashboard.secret_path | toYaml }}
-    api:
-      server_url: {{ .Values.config.api.server_url | toYaml }}
-      server_port: {{ .Values.config.api.server_port }}
-      server_path: {{ .Values.config.api.server_path | quote }}
     database:
       path: {{ .Values.config.database.path | quote }}
       retention_days: {{ .Values.config.database.retention_days }}

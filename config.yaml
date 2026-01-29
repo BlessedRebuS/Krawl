@@ -23,7 +23,7 @@ dashboard:
   # if set to "null" this will Auto-generates random path if not set
   # can be set to "/dashboard" or similar <-- note this MUST include a forward slash
   # secret_path: super-secret-dashboard-path
-  secret_path: null
+  secret_path: test
 
 database:
   path: "data/krawl.db"

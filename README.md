@@ -202,9 +202,6 @@ Krawl uses a **configuration hierarchy** in which **environment variables take p
 | `KRAWL_CANARY_TOKEN_URL` | External canary token URL | None |
 | `KRAWL_CANARY_TOKEN_TRIES` | Requests before showing canary token | `10` |
 | `KRAWL_DASHBOARD_SECRET_PATH` | Custom dashboard path | Auto-generated |
-| `KRAWL_API_SERVER_URL` | API server URL | None |
-| `KRAWL_API_SERVER_PORT` | API server port | `8080` |
-| `KRAWL_API_SERVER_PATH` | API server endpoint path | `/api/v2/users` |
 | `KRAWL_PROBABILITY_ERROR_CODES` | Error response probability (0-100%) | `0` |
 | `KRAWL_DATABASE_PATH` | Database file location | `data/krawl.db` |
 | `KRAWL_DATABASE_RETENTION_DAYS` | Days to retain data in database | `30` |
@@ -214,6 +211,9 @@ Krawl uses a **configuration hierarchy** in which **environment variables take p
 | `KRAWL_UNEVEN_REQUEST_TIMING_TIME_WINDOW_SECONDS` | Time window for request timing analysis in seconds | `300` |
 | `KRAWL_USER_AGENTS_USED_THRESHOLD` | Threshold for detecting multiple user agents | `2` |
 | `KRAWL_ATTACK_URLS_THRESHOLD` | Threshold for attack URL detection | `1` |
+| `KRAWL_INFINITE_PAGES_FOR_MALICIOUS` | Serve infinite pages to malicious IPs | `true` |
+| `KRAWL_MAX_PAGES_LIMIT` | Maximum page limit for crawlers | `250` |
+| `KRAWL_BAN_DURATION_SECONDS` | Ban duration in seconds for rate-limited IPs | `600` |
 
 For example
 
