@@ -7,8 +7,20 @@ from datetime import datetime
 from http.server import BaseHTTPRequestHandler
 from typing import Optional, List
 from urllib.parse import urlparse, parse_qs
+import json
+import os
 
-from config import Config
+from database import get_database
+from config import Config, get_config
+
+from database import get_database
+from config import Config, get_config
+from firewall.fwtype import FWType
+
+# imports for the __init_subclass__ method, do not remove pls
+from firewall.iptables import Iptables
+from firewall.raw import Raw
+
 from tracker import AccessTracker
 from analyzer import Analyzer
 from templates import html_templates
@@ -26,6 +38,9 @@ from wordlists import get_wordlists
 from sql_errors import generate_sql_error_response, get_sql_response_with_data
 from xss_detector import detect_xss_pattern, generate_xss_response
 from server_errors import generate_server_error
+from models import AccessLog
+from ip_utils import is_valid_public_ip
+from sqlalchemy import distinct
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -58,10 +73,6 @@ class Handler(BaseHTTPRequestHandler):
         # Fallback to direct connection IP
         return self.client_address[0]
 
-    def _get_user_agent(self) -> str:
-        """Extract user agent from request"""
-        return self.headers.get("User-Agent", "")
-
     def _get_category_by_ip(self, client_ip: str) -> str:
         """Get the category of an IP from the database"""
         return self.tracker.get_category_by_ip(client_ip)
@@ -92,11 +103,6 @@ class Handler(BaseHTTPRequestHandler):
             error_codes = [400, 401, 403, 404, 500, 502, 503]
         return random.choice(error_codes)
 
-    def _parse_query_string(self) -> str:
-        """Extract query string from the request path"""
-        parsed = urlparse(self.path)
-        return parsed.query
-
     def _handle_sql_endpoint(self, path: str) -> bool:
         """
         Handle SQL injection honeypot endpoints.
@@ -111,21 +117,20 @@ class Handler(BaseHTTPRequestHandler):
 
         try:
             # Get query parameters
-            query_string = self._parse_query_string()
 
             # Log SQL injection attempt
             client_ip = self._get_client_ip()
-            user_agent = self._get_user_agent()
+            user_agent = self.headers.get("User-Agent", "")
 
             # Always check for SQL injection patterns
             error_msg, content_type, status_code = generate_sql_error_response(
-                query_string or ""
+                request_query or ""
             )
 
             if error_msg:
                 # SQL injection detected - log and return error
                 self.access_logger.warning(
-                    f"[SQL INJECTION DETECTED] {client_ip} - {base_path} - Query: {query_string[:100] if query_string else 'empty'}"
+                    f"[SQL INJECTION DETECTED] {client_ip} - {base_path} - Query: {request_query[:100] if request_query else 'empty'}"
                 )
                 self.send_response(status_code)
                 self.send_header("Content-type", content_type)
@@ -134,13 +139,13 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 # No injection detected - return fake data
                 self.access_logger.info(
-                    f"[SQL ENDPOINT] {client_ip} - {base_path} - Query: {query_string[:100] if query_string else 'empty'}"
+                    f"[SQL ENDPOINT] {client_ip} - {base_path} - Query: {request_query[:100] if request_query else 'empty'}"
                 )
                 self.send_response(200)
                 self.send_header("Content-type", "application/json")
                 self.end_headers()
                 response_data = get_sql_response_with_data(
-                    base_path, query_string or ""
+                    base_path, request_query or ""
                 )
                 self.wfile.write(response_data.encode())
 
@@ -239,10 +244,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         """Handle POST requests (mainly login attempts)"""
         client_ip = self._get_client_ip()
-        user_agent = self._get_user_agent()
+        user_agent = self.headers.get("User-Agent", "")
         post_data = ""
-
-        from urllib.parse import urlparse
 
         base_path = urlparse(self.path).path
 
@@ -293,7 +296,6 @@ class Handler(BaseHTTPRequestHandler):
             for pair in post_data.split("&"):
                 if "=" in pair:
                     key, value = pair.split("=", 1)
-                    from urllib.parse import unquote_plus
 
                     parsed_data[unquote_plus(key)] = unquote_plus(value)
 
@@ -486,18 +488,30 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         """Responds to webpage requests"""
+
         client_ip = self._get_client_ip()
+
+        # respond with HTTP error code if client is banned
         if self.tracker.is_banned_ip(client_ip):
             self.send_response(500)
             self.end_headers()
             return
-        user_agent = self._get_user_agent()
+
+        # get request data
+        user_agent = self.headers.get("User-Agent", "")
+        request_path = urlparse(self.path).path
+        self.app_logger.info(f"request_query: {request_path}")
+        query_params = parse_qs(urlparse(self.path).query)
+        self.app_logger.info(f"query_params: {query_params}")
+
+        # get database reference
+        db = get_database()
+        session = db.session
 
         # Handle static files for dashboard
         if self.config.dashboard_secret_path and self.path.startswith(
             f"{self.config.dashboard_secret_path}/static/"
         ):
-            import os
 
             file_path = self.path.replace(
                 f"{self.config.dashboard_secret_path}/static/", ""
@@ -543,8 +557,11 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             try:
                 stats = self.tracker.get_stats()
-                dashboard_path = self.config.dashboard_secret_path
-                self.wfile.write(generate_dashboard(stats, dashboard_path).encode())
+                self.wfile.write(
+                    generate_dashboard(
+                        stats, self.config.dashboard_secret_path
+                    ).encode()
+                )
             except BrokenPipeError:
                 pass
             except Exception as e:
@@ -566,10 +583,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Expires", "0")
             self.end_headers()
             try:
-                from database import get_database
-                import json
 
-                db = get_database()
                 ip_stats_list = db.get_ip_stats(limit=500)
                 self.wfile.write(json.dumps({"ips": ip_stats_list}).encode())
             except BrokenPipeError:
@@ -593,15 +607,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Expires", "0")
             self.end_headers()
             try:
-                from database import get_database
-                import json
-                from urllib.parse import urlparse, parse_qs
 
-                db = get_database()
-
-                # Parse query parameters
-                parsed_url = urlparse(self.path)
-                query_params = parse_qs(parsed_url.query)
                 page = int(query_params.get("page", ["1"])[0])
                 page_size = int(query_params.get("page_size", ["25"])[0])
                 sort_by = query_params.get("sort_by", ["total_requests"])[0]
@@ -639,11 +645,6 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Expires", "0")
             self.end_headers()
             try:
-                from database import get_database
-                import json
-                from urllib.parse import urlparse, parse_qs
-
-                db = get_database()
 
                 # Parse query parameters
                 parsed_url = urlparse(self.path)
@@ -689,10 +690,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Expires", "0")
             self.end_headers()
             try:
-                from database import get_database
-                import json
 
-                db = get_database()
                 ip_stats = db.get_ip_stats_by_ip(ip_address)
                 if ip_stats:
                     self.wfile.write(json.dumps(ip_stats).encode())
@@ -719,11 +717,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Expires", "0")
             self.end_headers()
             try:
-                from database import get_database
-                import json
-                from urllib.parse import urlparse, parse_qs
 
-                db = get_database()
                 parsed_url = urlparse(self.path)
                 query_params = parse_qs(parsed_url.query)
                 page = int(query_params.get("page", ["1"])[0])
@@ -762,11 +756,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Expires", "0")
             self.end_headers()
             try:
-                from database import get_database
-                import json
-                from urllib.parse import urlparse, parse_qs
 
-                db = get_database()
                 parsed_url = urlparse(self.path)
                 query_params = parse_qs(parsed_url.query)
                 page = int(query_params.get("page", ["1"])[0])
@@ -805,11 +795,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Expires", "0")
             self.end_headers()
             try:
-                from database import get_database
-                import json
-                from urllib.parse import urlparse, parse_qs
 
-                db = get_database()
                 parsed_url = urlparse(self.path)
                 query_params = parse_qs(parsed_url.query)
                 page = int(query_params.get("page", ["1"])[0])
@@ -848,11 +834,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Expires", "0")
             self.end_headers()
             try:
-                from database import get_database
-                import json
-                from urllib.parse import urlparse, parse_qs
 
-                db = get_database()
                 parsed_url = urlparse(self.path)
                 query_params = parse_qs(parsed_url.query)
                 page = int(query_params.get("page", ["1"])[0])
@@ -891,11 +873,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Expires", "0")
             self.end_headers()
             try:
-                from database import get_database
-                import json
-                from urllib.parse import urlparse, parse_qs
 
-                db = get_database()
                 parsed_url = urlparse(self.path)
                 query_params = parse_qs(parsed_url.query)
                 page = int(query_params.get("page", ["1"])[0])
@@ -934,11 +912,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Expires", "0")
             self.end_headers()
             try:
-                from database import get_database
-                import json
-                from urllib.parse import urlparse, parse_qs
 
-                db = get_database()
                 parsed_url = urlparse(self.path)
                 query_params = parse_qs(parsed_url.query)
                 page = int(query_params.get("page", ["1"])[0])
@@ -963,13 +937,52 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
 
+        # API endpoint for downloading malicious IPs blocklist file
+        if (
+            self.config.dashboard_secret_path
+            and request_path == f"{self.config.dashboard_secret_path}/api/get_banlist"
+        ):
+
+            # get fwtype from request params
+            fwtype = query_params.get("fwtype", ["iptables"])[0]
+
+            file_path = os.path.join(
+                os.path.dirname(__file__), "exports", f"{fwtype}.txt"
+            )
+            try:
+                if os.path.exists(file_path):
+                    with open(file_path, "rb") as f:
+                        content = f.read()
+                    self.send_response(200)
+                    self.send_header("Content-type", "text/plain")
+                    self.send_header(
+                        "Content-Disposition",
+                        f'attachment; filename="{fwtype}.txt"',
+                    )
+                    self.send_header("Content-Length", str(len(content)))
+                    self.end_headers()
+                    self.wfile.write(content)
+                else:
+                    self.send_response(404)
+                    self.send_header("Content-type", "text/plain")
+                    self.end_headers()
+                    self.wfile.write(b"File not found")
+            except BrokenPipeError:
+                pass
+            except Exception as e:
+                self.app_logger.error(f"Error serving malicious IPs file: {e}")
+                self.send_response(500)
+                self.send_header("Content-type", "text/plain")
+                self.end_headers()
+                self.wfile.write(b"Internal server error")
+            return
+
         # API endpoint for downloading malicious IPs file
         if (
             self.config.dashboard_secret_path
             and self.path
             == f"{self.config.dashboard_secret_path}/api/download/malicious_ips.txt"
         ):
-            import os
 
             file_path = os.path.join(
                 os.path.dirname(__file__), "exports", "malicious_ips.txt"
