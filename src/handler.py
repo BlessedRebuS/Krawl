@@ -14,7 +14,7 @@ from database import get_database
 from config import Config, get_config
 
 from database import get_database
-from config import Config,get_config
+from config import Config, get_config
 from firewall.fwtype import FWType
 
 # imports for the __init_subclass__ method, do not remove pls
@@ -512,7 +512,6 @@ class Handler(BaseHTTPRequestHandler):
         if self.config.dashboard_secret_path and self.path.startswith(
             f"{self.config.dashboard_secret_path}/static/"
         ):
-            import os
 
             file_path = self.path.replace(
                 f"{self.config.dashboard_secret_path}/static/", ""
@@ -563,7 +562,6 @@ class Handler(BaseHTTPRequestHandler):
                         stats, self.config.dashboard_secret_path
                     ).encode()
                 )
-                self.wfile.write(generate_dashboard(stats, self.config.dashboard_secret_path).encode())
             except BrokenPipeError:
                 pass
             except Exception as e:
@@ -811,7 +809,7 @@ class Handler(BaseHTTPRequestHandler):
                 result = db.get_top_ips_paginated(
                     page=page,
                     page_size=page_size,
-                    pathsort_by=sort_by,
+                    sort_by=sort_by,
                     sort_order=sort_order,
                 )
                 self.wfile.write(json.dumps(result).encode())
@@ -941,38 +939,42 @@ class Handler(BaseHTTPRequestHandler):
 
         # API endpoint for downloading malicious IPs blocklist file
         if (
-            self.config.dashboard_secret_path and
-            request_path == f"{self.config.dashboard_secret_path}/api/get_banlist"
+            self.config.dashboard_secret_path
+            and request_path == f"{self.config.dashboard_secret_path}/api/get_banlist"
         ):
 
             # get fwtype from request params
             fwtype = query_params.get("fwtype", ["iptables"])[0]
 
-            # Query distinct suspicious IPs
-            results = (
-                session.query(distinct(AccessLog.ip))
-                .filter(AccessLog.is_suspicious == True)
-                .all()
+            file_path = os.path.join(
+                os.path.dirname(__file__), "exports", f"{fwtype}.txt"
             )
-
-            # Filter out local/private IPs and the server's own IP
-            config = get_config()
-            server_ip = config.get_server_ip()
-            public_ips = [ip for (ip,) in results if is_valid_public_ip(ip, server_ip)]
-
-            # get specific fwtype based on query parameter
-            fwtype_parser = FWType.create(fwtype)
-            banlist = fwtype_parser.getBanlist(public_ips)
-
-            self.send_response(200)
-            self.send_header("Content-type", "text/plain")
-            self.send_header(
-                "Content-Disposition",
-                f'attachment; filename="{fwtype}.txt"',
-            )
-            self.send_header("Content-Length", str(len(banlist)))
-            self.end_headers()
-            self.wfile.write(banlist.encode())
+            try:
+                if os.path.exists(file_path):
+                    with open(file_path, "rb") as f:
+                        content = f.read()
+                    self.send_response(200)
+                    self.send_header("Content-type", "text/plain")
+                    self.send_header(
+                        "Content-Disposition",
+                        f'attachment; filename="{fwtype}.txt"',
+                    )
+                    self.send_header("Content-Length", str(len(content)))
+                    self.end_headers()
+                    self.wfile.write(content)
+                else:
+                    self.send_response(404)
+                    self.send_header("Content-type", "text/plain")
+                    self.end_headers()
+                    self.wfile.write(b"File not found")
+            except BrokenPipeError:
+                pass
+            except Exception as e:
+                self.app_logger.error(f"Error serving malicious IPs file: {e}")
+                self.send_response(500)
+                self.send_header("Content-type", "text/plain")
+                self.end_headers()
+                self.wfile.write(b"Internal server error")
             return
 
         # API endpoint for downloading malicious IPs file
