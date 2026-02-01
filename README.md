@@ -143,7 +143,10 @@ This file can either be mounted from the Docker container into another system or
 curl https://your-krawl-instance/<DASHBOARD-PATH>/api/download/malicious_ips.txt
 ```
 
-This file can be used to [update a set of firewall rules](https://www.allthingstech.ch/using-opnsense-and-ip-blocklists-to-block-malicious-traffic), for example on OPNsense and pfSense, enabling automatic blocking of malicious IPs or using IPtables
+This file enables automatic blocking of malicious traffic across various platforms. You can use it to update firewall rules on:
+* [OPNsense and pfSense](https://www.allthingstech.ch/using-opnsense-and-ip-blocklists-to-block-malicious-traffic)
+* [RouterOS](https://rentry.co/krawl-routeros)
+* IPtables
 
 ## IP Reputation
 Krawl [uses tasks that analyze recent traffic to build and continuously update an IP reputation](src/tasks/analyze_ips.py) score. It runs periodically and evaluates each active IP address based on multiple behavioral indicators to classify it as an attacker, crawler, or regular user. Thresholds are fully customizable.
@@ -358,3 +361,4 @@ Use responsibly and in compliance with applicable laws and regulations.
 
 ## Star History
 <img src="https://api.star-history.com/svg?repos=BlessedRebuS/Krawl&type=Date" width="600" alt="Star History Chart" />
+
