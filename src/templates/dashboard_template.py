@@ -643,6 +643,330 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             max-height: 400px;
         }}
 
+        /* Mobile Optimization - Tablets (768px and down) */
+        @media (max-width: 768px) {{
+            body {{
+                padding: 12px;
+            }}
+            .container {{
+                max-width: 100%;
+            }}
+            h1 {{
+                font-size: 24px;
+                margin-bottom: 20px;
+            }}
+            .github-logo {{
+                position: relative;
+                top: auto;
+                left: auto;
+                margin-bottom: 15px;
+            }}
+            .download-section {{
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-bottom: 20px;
+            }}
+            .stats-grid {{
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+                margin-bottom: 20px;
+            }}
+            .stat-value {{
+                font-size: 28px;
+            }}
+            .stat-card {{
+                padding: 15px;
+            }}
+            .table-container {{
+                padding: 12px;
+                margin-bottom: 15px;
+                overflow-x: auto;
+            }}
+            table {{
+                font-size: 13px;
+            }}
+            th, td {{
+                padding: 10px 6px;
+            }}
+            h2 {{
+                font-size: 18px;
+            }}
+            .tabs-container {{
+                gap: 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }}
+            .tab-button {{
+                padding: 10px 16px;
+                font-size: 12px;
+            }}
+            .ip-stats-dropdown {{
+                flex-direction: column;
+                gap: 15px;
+            }}
+            .stats-right {{
+                flex: 0 0 auto;
+                width: 100%;
+            }}
+            .radar-chart {{
+                width: 160px;
+                height: 160px;
+            }}
+            .timeline-container {{
+                flex-direction: column;
+                gap: 15px;
+                min-height: auto;
+            }}
+            .timeline-column {{
+                flex: 1 !important;
+                max-height: 300px;
+            }}
+            #attacker-map {{
+                height: 350px !important;
+            }}
+            .leaflet-popup-content {{
+                min-width: 200px !important;
+            }}
+            .ip-marker {{
+                font-size: 8px;
+            }}
+            .ip-detail-content {{
+                padding: 20px;
+                max-width: 95%;
+                max-height: 85vh;
+            }}
+            .download-btn {{
+                padding: 6px 12px;
+                font-size: 12px;
+            }}
+        }}
+
+        /* Mobile Optimization - Small phones (480px and down) */
+        @media (max-width: 480px) {{
+            body {{
+                padding: 8px;
+            }}
+            h1 {{
+                font-size: 20px;
+                margin-bottom: 15px;
+            }}
+            .stats-grid {{
+                grid-template-columns: 1fr;
+                gap: 10px;
+                margin-bottom: 15px;
+            }}
+            .stat-value {{
+                font-size: 24px;
+            }}
+            .stat-card {{
+                padding: 12px;
+            }}
+            .stat-label {{
+                font-size: 12px;
+            }}
+            .table-container {{
+                padding: 10px;
+                margin-bottom: 12px;
+                border-radius: 4px;
+            }}
+            table {{
+                font-size: 12px;
+            }}
+            th, td {{
+                padding: 8px 4px;
+            }}
+            th {{
+                position: relative;
+            }}
+            th.sortable::after {{
+                right: 4px;
+                font-size: 10px;
+            }}
+            h2 {{
+                font-size: 16px;
+                margin-bottom: 12px;
+            }}
+            .tabs-container {{
+                gap: 0;
+            }}
+            .tab-button {{
+                padding: 10px 12px;
+                font-size: 11px;
+                flex: 1;
+            }}
+            .ip-row {{
+                display: block;
+                margin-bottom: 10px;
+                background: #1c2128;
+                padding: 10px;
+                border-radius: 4px;
+            }}
+            .ip-row td {{
+                display: block;
+                padding: 4px 0;
+                border: none;
+            }}
+            .ip-row td::before {{
+                content: attr(data-label);
+                font-weight: bold;
+                color: #8b949e;
+                margin-right: 8px;
+            }}
+            .ip-clickable {{
+                display: inline-block;
+            }}
+            .ip-stats-dropdown {{
+                flex-direction: column;
+                gap: 12px;
+                font-size: 12px;
+            }}
+            .stats-left {{
+                flex: 1;
+            }}
+            .stats-right {{
+                flex: 0 0 auto;
+                width: 100%;
+            }}
+            .radar-chart {{
+                width: 140px;
+                height: 140px;
+            }}
+            .radar-legend {{
+                margin-top: 8px;
+                font-size: 10px;
+            }}
+            .stat-row {{
+                padding: 4px 0;
+            }}
+            .stat-label-sm {{
+                font-size: 12px;
+            }}
+            .stat-value-sm {{
+                font-size: 13px;
+            }}
+            .category-badge {{
+                padding: 3px 6px;
+                font-size: 10px;
+            }}
+            .timeline-container {{
+                flex-direction: column;
+                gap: 12px;
+                min-height: auto;
+            }}
+            .timeline-column {{
+                flex: 1 !important;
+                max-height: 250px;
+                font-size: 11px;
+            }}
+            .timeline-header {{
+                font-size: 12px;
+                margin-bottom: 8px;
+            }}
+            .timeline-item {{
+                padding-bottom: 10px;
+                font-size: 11px;
+            }}
+            .timeline-marker {{
+                left: -19px;
+                width: 12px;
+                height: 12px;
+            }}
+            .reputation-badge {{
+                display: block;
+                margin-bottom: 6px;
+                margin-right: 0;
+                font-size: 10px;
+            }}
+            #attacker-map {{
+                height: 300px !important;
+            }}
+            .leaflet-popup-content {{
+                min-width: 150px !important;
+            }}
+            .ip-marker {{
+                font-size: 7px;
+            }}
+            .ip-detail-modal {{
+                justify-content: flex-end;
+                align-items: flex-end;
+            }}
+            .ip-detail-content {{
+                padding: 15px;
+                max-width: 100%;
+                max-height: 90vh;
+                border-radius: 8px 8px 0 0;
+                width: 100%;
+            }}
+            .download-btn {{
+                padding: 6px 10px;
+                font-size: 11px;
+            }}
+            .github-logo {{
+                font-size: 12px;
+            }}
+            .github-logo svg {{
+                width: 24px;
+                height: 24px;
+            }}
+        }}
+
+        /* Landscape mode optimization */
+        @media (max-height: 600px) and (orientation: landscape) {{
+            body {{
+                padding: 8px;
+            }}
+            h1 {{
+                margin-bottom: 10px;
+                font-size: 18px;
+            }}
+            .stats-grid {{
+                margin-bottom: 10px;
+                gap: 8px;
+            }}
+            .stat-value {{
+                font-size: 20px;
+            }}
+            .stat-card {{
+                padding: 8px;
+            }}
+            #attacker-map {{
+                height: 250px !important;
+            }}
+            .ip-stats-dropdown {{
+                gap: 10px;
+            }}
+            .radar-chart {{
+                width: 120px;
+                height: 120px;
+            }}
+        }}
+
+        /* Touch-friendly optimizations */
+        @media (hover: none) and (pointer: coarse) {{
+            .ip-clickable {{
+                -webkit-user-select: none;
+                user-select: none;
+                -webkit-tap-highlight-color: rgba(88, 166, 255, 0.2);
+            }}
+            .tab-button {{
+                -webkit-user-select: none;
+                user-select: none;
+                -webkit-tap-highlight-color: rgba(88, 166, 255, 0.2);
+                padding: 14px 18px;
+            }}
+            .download-btn {{
+                -webkit-user-select: none;
+                user-select: none;
+                -webkit-tap-highlight-color: rgba(36, 134, 54, 0.3);
+            }}
+            input[type="checkbox"] {{
+                width: 18px;
+                height: 18px;
+                cursor: pointer;
+            }}
+        }}
+
     </style>
 </head>
 <body>
@@ -1081,11 +1405,38 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                 html += '</div>';
             }}
 
+            if (stats.country) {{
+                html += '<div class="stat-row">';
+                html += '<span class="stat-label-sm">Country:</span>';
+                html += `<span class="stat-value-sm">${{stats.country}}</span>`;
+                html += '</div>';
+            }}
+
+            if (stats.reverse) {{
+                html += '<div class="stat-row">';
+                html += '<span class="stat-label-sm">Reverse DNS:</span>';
+                html += `<span class="stat-value-sm">${{stats.reverse}}</span>`;
+                html += '</div>';
+            }}
+
             if (stats.asn_org) {{
                 html += '<div class="stat-row">';
                 html += '<span class="stat-label-sm">ASN Org:</span>';
                 html += `<span class="stat-value-sm">${{stats.asn_org}}</span>`;
                 html += '</div>';
+            }}
+
+            if (stats.is_proxy !== undefined || stats.is_hosting !== undefined) {{
+                const flags = [];
+                if (stats.is_proxy) flags.push('Proxy');
+                if (stats.is_hosting) flags.push('Hosting');
+                
+                if (flags.length > 0) {{
+                    html += '<div class="stat-row">';
+                    html += '<span class="stat-label-sm">Flags: <span title="Proxy: IP is using a proxy service. Hosting: IP is from a hosting/cloud provider" style="cursor: help; color: #58a6ff; font-weight: bold;">ⓘ</span></span>';
+                    html += `<span class="stat-value-sm">${{flags.join(', ')}}</span>`;
+                    html += '</div>';
+                }}
             }}
 
             if (stats.reputation_score !== null && stats.reputation_score !== undefined) {{
@@ -1125,8 +1476,6 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     if (change.old_category) {{
                         html += `<span class="category-badge ${{oldClass}}">${{change.old_category}}</span>`;
                         html += '<span style="color: #8b949e; margin: 0 4px;">→</span>';
-                    }} else {{
-                        html += '<span style="color: #8b949e;">Initial:</span>';
                     }}
                     
                     html += `<span class="category-badge ${{newClass}}">${{change.new_category}}</span>`;
@@ -1142,16 +1491,35 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                 html += '<div class="timeline-column">';
                 
                 if (stats.list_on && Object.keys(stats.list_on).length > 0) {{
-                    html += '<div class="timeline-header">Listed On</div>';
-                    const sortedSources = Object.entries(stats.list_on).sort((a, b) => a[0].localeCompare(b[0]));
+                    // Filter out is_hosting and is_proxy from the displayed list
+                    const filteredList = Object.entries(stats.list_on).filter(([source, data]) => 
+                        source !== 'is_hosting' && source !== 'is_proxy'
+                    );
                     
-                    sortedSources.forEach(([source, url]) => {{
-                        if (url && url !== 'N/A') {{
-                            html += `<a href="${{url}}" target="_blank" rel="noopener noreferrer" class="reputation-badge" title="${{source}}">${{source}}</a>`;
-                        }} else {{
-                            html += `<span class="reputation-badge">${{source}}</span>`;
-                        }}
-                    }});
+                    if (filteredList.length > 0) {{
+                        html += '<div class="timeline-header">Listed On</div>';
+                        const sortedSources = filteredList.sort((a, b) => a[0].localeCompare(b[0]));
+                        
+                        sortedSources.forEach(([source, data]) => {{
+                            // Handle both string URLs and nested object data
+                            if (typeof data === 'string' && data !== 'N/A') {{
+                                html += `<a href="${{data}}" target="_blank" rel="noopener noreferrer" class="reputation-badge" title="${{source}}">${{source}}</a>`;
+                            }} else if (typeof data === 'object' && data !== null) {{
+                                // For nested blocklist data, extract source_link if available
+                                const sourceLink = data['__source_link'] || data.source_link;
+                                if (sourceLink) {{
+                                    html += `<a href="${{sourceLink}}" target="_blank" rel="noopener noreferrer" class="reputation-badge" title="${{source}}">${{source}}</a>`;
+                                }} else {{
+                                    html += `<span class="reputation-badge">${{source}}</span>`;
+                                }}
+                            }} else {{
+                                html += `<span class="reputation-badge">${{source}}</span>`;
+                            }}
+                        }});
+                    }} else if (stats.country_code || stats.asn) {{
+                        html += '<div class="timeline-header">Reputation</div>';
+                        html += '<span class="reputation-clean" title="Not found on public blacklists">✓ Clean</span>';
+                    }}
                 }} else if (stats.country_code || stats.asn) {{
                     html += '<div class="timeline-header">Reputation</div>';
                     html += '<span class="reputation-clean" title="Not found on public blacklists">✓ Clean</span>';

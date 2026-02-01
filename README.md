@@ -181,6 +181,7 @@ location / {
 
 ## API
 Krawl uses the following APIs
+- http://ip-api.com (IP Data)
 - https://iprep.lcrawl.com (IP Reputation)
 - https://nominatim.openstreetmap.org/reverse (Reverse IP Lookup)
 - https://api.ipify.org (Public IP discovery)

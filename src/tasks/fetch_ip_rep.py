@@ -2,7 +2,7 @@ from database import get_database
 from logger import get_app_logger
 import requests
 from sanitizer import sanitize_for_storage, sanitize_dict
-from geo_utils import get_most_recent_geoip_data, extract_city_from_coordinates
+from geo_utils import extract_geolocation_from_ip, fetch_blocklist_data
 
 # ----------------------
 # TASK CONFIG
@@ -27,34 +27,49 @@ def main():
     )
     for ip in unenriched_ips:
         try:
-            api_url = "https://iprep.lcrawl.com/api/iprep/"
-            params = {"cidr": ip}
-            headers = {"Content-Type": "application/json"}
-            response = requests.get(api_url, headers=headers, params=params, timeout=10)
-            payload = response.json()
+            # Fetch geolocation data using ip-api.com
+            geoloc_data = extract_geolocation_from_ip(ip)
+            
+            # Fetch blocklist data from lcrawl API
+            blocklist_data = fetch_blocklist_data(ip)
 
-            if payload.get("results"):
-                results = payload["results"]
+            if geoloc_data:
+                # Extract fields from the new API response
+                country_iso_code = geoloc_data.get("country_code")
+                country = geoloc_data.get("country")
+                region = geoloc_data.get("region")
+                region_name = geoloc_data.get("region_name")
+                city = geoloc_data.get("city")
+                timezone = geoloc_data.get("timezone")
+                isp = geoloc_data.get("isp")
+                reverse = geoloc_data.get("reverse")
+                asn = geoloc_data.get("asn")
+                asn_org = geoloc_data.get("org")
+                latitude = geoloc_data.get("latitude")
+                longitude = geoloc_data.get("longitude")
+                is_proxy = geoloc_data.get("is_proxy", False)
+                is_hosting = geoloc_data.get("is_hosting", False)
 
-                # Get the most recent result (first in list, sorted by record_added)
-                most_recent = results[0]
-                geoip_data = most_recent.get("geoip_data", {})
-                list_on = most_recent.get("list_on", {})
-
-                # Extract standard fields
-                country_iso_code = geoip_data.get("country_iso_code")
-                asn = geoip_data.get("asn_autonomous_system_number")
-                asn_org = geoip_data.get("asn_autonomous_system_organization")
-                latitude = geoip_data.get("location_latitude")
-                longitude = geoip_data.get("location_longitude")
-
-                # Extract city from coordinates using reverse geocoding
-                city = extract_city_from_coordinates(geoip_data)
+                # Use blocklist data if available, otherwise create default with flags
+                if blocklist_data:
+                    list_on = blocklist_data
+                else:
+                    list_on = {}
+                
+                # Add flags to list_on
+                list_on["is_proxy"] = is_proxy
+                list_on["is_hosting"] = is_hosting
 
                 sanitized_country_iso_code = sanitize_for_storage(country_iso_code, 3)
+                sanitized_country = sanitize_for_storage(country, 100)
+                sanitized_region = sanitize_for_storage(region, 2)
+                sanitized_region_name = sanitize_for_storage(region_name, 100)
                 sanitized_asn = sanitize_for_storage(asn, 100)
                 sanitized_asn_org = sanitize_for_storage(asn_org, 100)
                 sanitized_city = sanitize_for_storage(city, 100) if city else None
+                sanitized_timezone = sanitize_for_storage(timezone, 50)
+                sanitized_isp = sanitize_for_storage(isp, 100)
+                sanitized_reverse = sanitize_for_storage(reverse, 255) if reverse else None
                 sanitized_list_on = sanitize_dict(list_on, 100000)
 
                 db_manager.update_ip_rep_infos(
@@ -63,11 +78,19 @@ def main():
                     sanitized_asn,
                     sanitized_asn_org,
                     sanitized_list_on,
-                    sanitized_city,
-                    latitude,
-                    longitude,
+                    city=sanitized_city,
+                    latitude=latitude,
+                    longitude=longitude,
+                    country=sanitized_country,
+                    region=sanitized_region,
+                    region_name=sanitized_region_name,
+                    timezone=sanitized_timezone,
+                    isp=sanitized_isp,
+                    reverse=sanitized_reverse,
+                    is_proxy=is_proxy,
+                    is_hosting=is_hosting,
                 )
         except requests.RequestException as e:
-            app_logger.warning(f"Failed to fetch IP rep for {ip}: {e}")
+            app_logger.warning(f"Failed to fetch geolocation for {ip}: {e}")
         except Exception as e:
             app_logger.error(f"Error processing IP {ip}: {e}")

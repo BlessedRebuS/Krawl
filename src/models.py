@@ -162,12 +162,20 @@ class IpStats(Base):
     # GeoIP fields (populated by future enrichment)
     country_code: Mapped[Optional[str]] = mapped_column(String(2), nullable=True)
     city: Mapped[Optional[str]] = mapped_column(String(MAX_CITY_LENGTH), nullable=True)
+    country: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    region: Mapped[Optional[str]] = mapped_column(String(2), nullable=True)
+    region_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    timezone: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    isp: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    reverse: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     latitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     longitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     asn: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     asn_org: Mapped[Optional[str]] = mapped_column(
         String(MAX_ASN_ORG_LENGTH), nullable=True
     )
+    is_proxy: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    is_hosting: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
     list_on: Mapped[Optional[Dict[str, str]]] = mapped_column(JSON, nullable=True)
 
     # Reputation fields (populated by future enrichment)

@@ -137,6 +137,39 @@ class DatabaseManager:
                 cursor.execute("ALTER TABLE ip_stats ADD COLUMN longitude REAL")
                 migrations_run.append("longitude")
 
+            # Add new geolocation columns
+            if "country" not in columns:
+                cursor.execute("ALTER TABLE ip_stats ADD COLUMN country VARCHAR(100)")
+                migrations_run.append("country")
+
+            if "region" not in columns:
+                cursor.execute("ALTER TABLE ip_stats ADD COLUMN region VARCHAR(2)")
+                migrations_run.append("region")
+
+            if "region_name" not in columns:
+                cursor.execute("ALTER TABLE ip_stats ADD COLUMN region_name VARCHAR(100)")
+                migrations_run.append("region_name")
+
+            if "timezone" not in columns:
+                cursor.execute("ALTER TABLE ip_stats ADD COLUMN timezone VARCHAR(50)")
+                migrations_run.append("timezone")
+
+            if "isp" not in columns:
+                cursor.execute("ALTER TABLE ip_stats ADD COLUMN isp VARCHAR(100)")
+                migrations_run.append("isp")
+
+            if "is_proxy" not in columns:
+                cursor.execute("ALTER TABLE ip_stats ADD COLUMN is_proxy BOOLEAN")
+                migrations_run.append("is_proxy")
+
+            if "is_hosting" not in columns:
+                cursor.execute("ALTER TABLE ip_stats ADD COLUMN is_hosting BOOLEAN")
+                migrations_run.append("is_hosting")
+
+            if "reverse" not in columns:
+                cursor.execute("ALTER TABLE ip_stats ADD COLUMN reverse VARCHAR(255)")
+                migrations_run.append("reverse")
+
             if migrations_run:
                 conn.commit()
                 applogger.info(
@@ -377,7 +410,7 @@ class DatabaseManager:
     ) -> None:
         """
         Internal method to record category changes in history.
-        Only records if there's an actual change from a previous category.
+        Records all category changes including initial categorization.
 
         Args:
             ip: IP address
@@ -385,11 +418,6 @@ class DatabaseManager:
             new_category: New category
             timestamp: When the change occurred
         """
-        # Don't record initial categorization (when old_category is None)
-        # Only record actual category changes
-        if old_category is None:
-            return
-
         session = self.session
         try:
             history_entry = CategoryHistory(
@@ -445,6 +473,14 @@ class DatabaseManager:
         city: Optional[str] = None,
         latitude: Optional[float] = None,
         longitude: Optional[float] = None,
+        country: Optional[str] = None,
+        region: Optional[str] = None,
+        region_name: Optional[str] = None,
+        timezone: Optional[str] = None,
+        isp: Optional[str] = None,
+        reverse: Optional[str] = None,
+        is_proxy: Optional[bool] = None,
+        is_hosting: Optional[bool] = None,
     ) -> None:
         """
         Update IP rep stats
@@ -458,6 +494,14 @@ class DatabaseManager:
             city: City name (optional)
             latitude: Latitude coordinate (optional)
             longitude: Longitude coordinate (optional)
+            country: Full country name (optional)
+            region: Region code (optional)
+            region_name: Region name (optional)
+            timezone: Timezone (optional)
+            isp: Internet Service Provider (optional)
+            reverse: Reverse DNS lookup (optional)
+            is_proxy: Whether IP is a proxy (optional)
+            is_hosting: Whether IP is a hosting provider (optional)
 
         """
         session = self.session
@@ -475,6 +519,22 @@ class DatabaseManager:
                     ip_stats.latitude = latitude
                 if longitude is not None:
                     ip_stats.longitude = longitude
+                if country:
+                    ip_stats.country = country
+                if region:
+                    ip_stats.region = region
+                if region_name:
+                    ip_stats.region_name = region_name
+                if timezone:
+                    ip_stats.timezone = timezone
+                if isp:
+                    ip_stats.isp = isp
+                if reverse:
+                    ip_stats.reverse = reverse
+                if is_proxy is not None:
+                    ip_stats.is_proxy = is_proxy
+                if is_hosting is not None:
+                    ip_stats.is_hosting = is_hosting
                 session.commit()
         except Exception as e:
             session.rollback()
@@ -714,8 +774,16 @@ class DatabaseManager:
                 "last_seen": stat.last_seen.isoformat() if stat.last_seen else None,
                 "country_code": stat.country_code,
                 "city": stat.city,
+                "country": stat.country,
+                "region": stat.region,
+                "region_name": stat.region_name,
+                "timezone": stat.timezone,
+                "isp": stat.isp,
+                "reverse": stat.reverse,
                 "asn": stat.asn,
                 "asn_org": stat.asn_org,
+                "is_proxy": stat.is_proxy,
+                "is_hosting": stat.is_hosting,
                 "list_on": stat.list_on or {},
                 "reputation_score": stat.reputation_score,
                 "reputation_source": stat.reputation_source,
