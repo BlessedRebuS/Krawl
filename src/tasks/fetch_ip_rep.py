@@ -29,7 +29,7 @@ def main():
         try:
             # Fetch geolocation data using ip-api.com
             geoloc_data = extract_geolocation_from_ip(ip)
-            
+
             # Fetch blocklist data from lcrawl API
             blocklist_data = fetch_blocklist_data(ip)
 
@@ -55,7 +55,7 @@ def main():
                     list_on = blocklist_data
                 else:
                     list_on = {}
-                
+
                 # Add flags to list_on
                 list_on["is_proxy"] = is_proxy
                 list_on["is_hosting"] = is_hosting
@@ -69,7 +69,9 @@ def main():
                 sanitized_city = sanitize_for_storage(city, 100) if city else None
                 sanitized_timezone = sanitize_for_storage(timezone, 50)
                 sanitized_isp = sanitize_for_storage(isp, 100)
-                sanitized_reverse = sanitize_for_storage(reverse, 255) if reverse else None
+                sanitized_reverse = (
+                    sanitize_for_storage(reverse, 255) if reverse else None
+                )
                 sanitized_list_on = sanitize_dict(list_on, 100000)
 
                 db_manager.update_ip_rep_infos(
