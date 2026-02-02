@@ -112,6 +112,8 @@ services:
       - TZ="Europe/Rome"
     volumes:
       - ./config.yaml:/app/config.yaml:ro
+      # bind mount for firewall exporters
+      - ./exports:/app/exports
       - krawl-data:/app/data
     restart: unless-stopped
 
@@ -204,6 +206,7 @@ Krawl uses a **configuration hierarchy** in which **environment variables take p
 | `KRAWL_DASHBOARD_SECRET_PATH` | Custom dashboard path | Auto-generated |
 | `KRAWL_PROBABILITY_ERROR_CODES` | Error response probability (0-100%) | `0` |
 | `KRAWL_DATABASE_PATH` | Database file location | `data/krawl.db` |
+| `KRAWL_EXPORTS_PATH` | Path where firewalls rule sets are exported | `exports` |
 | `KRAWL_DATABASE_RETENTION_DAYS` | Days to retain data in database | `30` |
 | `KRAWL_HTTP_RISKY_METHODS_THRESHOLD` | Threshold for risky HTTP methods detection | `0.1` |
 | `KRAWL_VIOLATED_ROBOTS_THRESHOLD` | Threshold for robots.txt violations | `0.1` |
@@ -219,7 +222,7 @@ For example
 
 ```bash
 # Set canary token
-export CONFIG_LOCATION="config.yaml" 
+export CONFIG_LOCATION="config.yaml"
 export KRAWL_CANARY_TOKEN_URL="http://your-canary-token-url"
 
 # Set number of pages range (min,max format)
@@ -252,7 +255,7 @@ You can use the [config.yaml](config.yaml) file for more advanced configurations
 Below is a complete overview of the Krawl honeypot’s capabilities
 
 ## robots.txt
-The actual (juicy) robots.txt configuration [is the following](src/templates/html/robots.txt). 
+The actual (juicy) robots.txt configuration [is the following](src/templates/html/robots.txt).
 
 ## Honeypot pages
 Requests to common admin endpoints (`/admin/`, `/wp-admin/`, `/phpMyAdmin/`) return a fake login page. Any login attempt triggers a 1-second delay to simulate real processing and is fully logged in the dashboard (credentials, IP, headers, timing).
@@ -274,11 +277,11 @@ The pages `/api/v1/users` and `/api/v2/secrets` show fake users and random secre
 
 ![users and secrets](img/users-and-secrets.png)
 
-The pages `/credentials.txt` and `/passwords.txt` show fake users and random secrets 
+The pages `/credentials.txt` and `/passwords.txt` show fake users and random secrets
 
 ![credentials and passwords](img/credentials-and-passwords.png)
 
-Pages such as `/users`, `/search`, `/contact`, `/info`, `/input`, and `/feedback`, along with APIs like `/api/sql` and `/api/database`, are designed to lure attackers into performing attacks such as **SQL injection** or **XSS**. 
+Pages such as `/users`, `/search`, `/contact`, `/info`, `/input`, and `/feedback`, along with APIs like `/api/sql` and `/api/database`, are designed to lure attackers into performing attacks such as **SQL injection** or **XSS**.
 
 ![sql injection](img/sql_injection.png)
 
@@ -294,7 +297,7 @@ This optional token is triggered when a crawler fully traverses the webpage unti
 
 To enable this feature, set the canary token URL [using the environment variable](#configuration-via-environment-variables) `CANARY_TOKEN_URL`.
 
-## Customizing the wordlist 
+## Customizing the wordlist
 
 Edit `wordlists.json` to customize fake data for your use case
 
@@ -327,7 +330,7 @@ The dashboard shows:
 - Top IPs, paths, user-agents and GeoIP localization
 - Real-time monitoring
 
-The attackers’ access to the honeypot endpoint and related suspicious activities (such as failed login attempts) are logged. 
+The attackers’ access to the honeypot endpoint and related suspicious activities (such as failed login attempts) are logged.
 
 Krawl also implements a scoring system designed to distinguish between malicious and legitimate behavior on the website.
 
@@ -352,8 +355,8 @@ Contributions welcome! Please:
 
 ## ⚠️ Disclaimer
 
-**This is a deception/honeypot system.**  
-Deploy in isolated environments and monitor carefully for security events.  
+**This is a deception/honeypot system.**
+Deploy in isolated environments and monitor carefully for security events.
 Use responsibly and in compliance with applicable laws and regulations.
 
 ## Star History

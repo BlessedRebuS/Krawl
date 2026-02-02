@@ -14,6 +14,8 @@ class Iptables{ }
 note for Iptables "implements the getBanlist method for iptables rules"
 ```
 
+Rule sets are generated trough the `top_attacking_ips__export-malicious-ips` that writes down the files in the `exports_path` configuration path. Files are named after the specific firewall that they implement as `[firewall]_banlist.txt` except for raw file that is called `malicious_ips.txt` to support legacy
+
 ## Adding firewalls exporters
 
 To add a firewall exporter create a new python class in `src/firewall` that implements `FWType` class
