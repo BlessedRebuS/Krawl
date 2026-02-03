@@ -84,6 +84,8 @@ config:
     token_tries: 10
   dashboard:
     secret_path: null  # Auto-generated if not set, or set to "/my-secret-dashboard"
+  exports:
+    path: "exports"
   database:
     path: "data/krawl.db"
     retention_days: 30
