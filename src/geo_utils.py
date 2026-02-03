@@ -41,7 +41,9 @@ def fetch_ip_geolocation(ip_address: str) -> Optional[Dict[str, Any]]:
 
         # Check if the API call was successful
         if data.get("status") != "success":
-            app_logger.warning(f"IP lookup failed for {ip_address}: {data.get('message')}")
+            app_logger.warning(
+                f"IP lookup failed for {ip_address}: {data.get('message')}"
+            )
             return None
 
         # Cache the result
@@ -113,7 +115,7 @@ def fetch_blocklist_data(ip_address: str) -> Optional[Dict[str, Any]]:
                 # Get the most recent result (first in list, sorted by record_added)
                 most_recent = results[0]
                 list_on = most_recent.get("list_on", {})
-                
+
                 app_logger.debug(f"Fetched blocklist data for {ip_address}")
                 return list_on
     except requests.RequestException as e:

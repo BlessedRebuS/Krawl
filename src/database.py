@@ -147,7 +147,9 @@ class DatabaseManager:
                 migrations_run.append("region")
 
             if "region_name" not in columns:
-                cursor.execute("ALTER TABLE ip_stats ADD COLUMN region_name VARCHAR(100)")
+                cursor.execute(
+                    "ALTER TABLE ip_stats ADD COLUMN region_name VARCHAR(100)"
+                )
                 migrations_run.append("region_name")
 
             if "timezone" not in columns:
