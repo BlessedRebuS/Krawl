@@ -42,7 +42,6 @@ class Config:
     # Database settings
     database_path: str = "data/krawl.db"
     database_retention_days: int = 30
-    exports_path: str = "data/exports"
 
     # Analyzer settings
     http_risky_methods_threshold: float = None
