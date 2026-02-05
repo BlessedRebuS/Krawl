@@ -109,7 +109,7 @@ services:
       - "5000:5000"
     environment:
       - CONFIG_LOCATION=config.yaml
-      - TZ="Europe/Rome"
+      - "TZ=Europe/Rome"
     volumes:
       - ./config.yaml:/app/config.yaml:ro
       # bind mount for firewall exporters
