@@ -50,9 +50,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
 
     # Generate suspicious accesses rows with clickable IPs
     suspicious_rows = (
-        "\n".join(
-            [
-                f"""<tr class="ip-row" data-ip="{_escape(log["ip"])}">
+        "\n".join([f"""<tr class="ip-row" data-ip="{_escape(log["ip"])}">
             <td class="ip-clickable">{_escape(log["ip"])}</td>
             <td>{_escape(log["path"])}</td>
             <td style="word-break: break-all;">{_escape(log["user_agent"][:60])}</td>
@@ -64,10 +62,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     <div class="loading">Loading stats...</div>
                 </div>
             </td>
-        </tr>"""
-                for log in stats["recent_suspicious"][-10:]
-            ]
-        )
+        </tr>""" for log in stats["recent_suspicious"][-10:]])
         or '<tr><td colspan="4" style="text-align:center;">No suspicious activity detected</td></tr>'
     )
 

@@ -20,6 +20,7 @@ TASK_CONFIG = {
     "run_when_loaded": True,
 }
 
+
 # ----------------------
 # TASK LOGIC
 # ----------------------
@@ -38,9 +39,9 @@ def main():
 
         # Reflect the database structure
         metadata.reflect(bind=engine)
-        output_file = os.path.join(config.backups_path,"db_dump.sql")
+        output_file = os.path.join(config.backups_path, "db_dump.sql")
 
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             # Write header
             app_logger.info(f"[Background Task] {task_name} started database dump")
 
@@ -49,18 +50,20 @@ def main():
 
             # Dump schema (CREATE TABLE statements)
             f.write("-- Schema\n")
-            f.write("-- " + "="*70 + "\n\n")
+            f.write("-- " + "=" * 70 + "\n\n")
 
             for table_name in metadata.tables:
                 table = metadata.tables[table_name]
-                app_logger.info(f"[Background Task] {task_name} dumping {table} table schema")
+                app_logger.info(
+                    f"[Background Task] {task_name} dumping {table} table schema"
+                )
 
                 # Create table statement
                 create_stmt = str(CreateTable(table).compile(engine))
                 f.write(f"{create_stmt};\n\n")
 
             f.write("\n-- Data\n")
-            f.write("-- " + "="*70 + "\n\n")
+            f.write("-- " + "=" * 70 + "\n\n")
 
             with engine.connect() as conn:
                 for table_name in metadata.tables:
@@ -73,19 +76,27 @@ def main():
                     rows = result.fetchall()
 
                     if rows:
-                        app_logger.info(f"[Background Task] {task_name} dumping {table} content")
+                        app_logger.info(
+                            f"[Background Task] {task_name} dumping {table} content"
+                        )
                         for row in rows:
                             # Build INSERT statement
-                            columns = ', '.join([col.name for col in table.columns])
-                            values = ', '.join([repr(value) for value in row])
-                            f.write(f"INSERT INTO {table_name} ({columns}) VALUES ({values});\n")
+                            columns = ", ".join([col.name for col in table.columns])
+                            values = ", ".join([repr(value) for value in row])
+                            f.write(
+                                f"INSERT INTO {table_name} ({columns}) VALUES ({values});\n"
+                            )
 
                         f.write("\n")
                     else:
                         f.write(f"-- No data in {table_name}\n\n")
-                        app_logger.info(f"[Background Task] {task_name} no data in {table}")
+                        app_logger.info(
+                            f"[Background Task] {task_name} no data in {table}"
+                        )
 
-        app_logger.info(f"[Background Task] {task_name} Database dump completed: {output_file}")
+        app_logger.info(
+            f"[Background Task] {task_name} Database dump completed: {output_file}"
+        )
 
     except Exception as e:
         app_logger.error(f"[Background Task] {task_name} failed: {e}")
