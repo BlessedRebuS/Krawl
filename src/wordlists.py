@@ -104,6 +104,26 @@ class Wordlists:
         return self._data.get("directory_listing", {}).get("directories", [])
 
     @property
+    def directory_listing(self):
+        return self._data.get("directory_listing", {})
+
+    @property
+    def fake_passwd(self):
+        return self._data.get("fake_passwd", {})
+
+    @property
+    def fake_shadow(self):
+        return self._data.get("fake_shadow", {})
+
+    @property
+    def xxe_responses(self):
+        return self._data.get("xxe_responses", {})
+
+    @property
+    def command_outputs(self):
+        return self._data.get("command_outputs", {})
+
+    @property
     def error_codes(self):
         return self._data.get("error_codes", [])
 
@@ -122,6 +142,18 @@ class Wordlists:
     @property
     def server_headers(self):
         return self._data.get("server_headers", [])
+
+    @property
+    def suspicious_patterns(self):
+        return self._data.get("suspicious_patterns", [])
+
+    @property
+    def username_fields(self):
+        return self._data.get("credential_fields", {}).get("username_fields", [])
+
+    @property
+    def password_fields(self):
+        return self._data.get("credential_fields", {}).get("password_fields", [])
 
     @property
     def attack_urls(self):

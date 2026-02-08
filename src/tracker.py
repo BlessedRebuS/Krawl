@@ -49,32 +49,37 @@ class AccessTracker:
         # Track pages visited by each IP (for good crawler limiting)
         self.ip_page_visits: Dict[str, Dict[str, object]] = defaultdict(dict)
 
-        self.suspicious_patterns = [
-            "bot",
-            "crawler",
-            "spider",
-            "scraper",
-            "curl",
-            "wget",
-            "python-requests",
-            "scanner",
-            "nikto",
-            "sqlmap",
-            "nmap",
-            "masscan",
-            "nessus",
-            "acunetix",
-            "burp",
-            "zap",
-            "w3af",
-            "metasploit",
-            "nuclei",
-            "gobuster",
-            "dirbuster",
-        ]
+        # Load suspicious patterns from wordlists
+        wl = get_wordlists()
+        self.suspicious_patterns = wl.suspicious_patterns
+
+        # Fallback if wordlists not loaded
+        if not self.suspicious_patterns:
+            self.suspicious_patterns = [
+                "bot",
+                "crawler",
+                "spider",
+                "scraper",
+                "curl",
+                "wget",
+                "python-requests",
+                "scanner",
+                "nikto",
+                "sqlmap",
+                "nmap",
+                "masscan",
+                "nessus",
+                "acunetix",
+                "burp",
+                "zap",
+                "w3af",
+                "metasploit",
+                "nuclei",
+                "gobuster",
+                "dirbuster",
+            ]
 
         # Load attack patterns from wordlists
-        wl = get_wordlists()
         self.attack_types = wl.attack_patterns
 
         # Fallback if wordlists not loaded
@@ -84,7 +89,7 @@ class AccessTracker:
                 "sql_injection": r"('|--|;|\bOR\b|\bUNION\b|\bSELECT\b|\bDROP\b)",
                 "xss_attempt": r"(<script|javascript:|onerror=|onload=)",
                 "common_probes": r"(wp-admin|phpmyadmin|\.env|\.git|/admin|/config)",
-                "shell_injection": r"(\||;|`|\$\(|&&)",
+                "command_injection": r"(\||;|`|\$\(|&&)",
             }
 
         # Track IPs that accessed honeypot paths from robots.txt
@@ -124,23 +129,30 @@ class AccessTracker:
             # Parse URL-encoded form data
             parsed = urllib.parse.parse_qs(post_data)
 
-            # Common username field names
-            username_fields = [
-                "username",
-                "user",
-                "login",
-                "email",
-                "log",
-                "userid",
-                "account",
-            ]
+            # Get credential field names from wordlists
+            wl = get_wordlists()
+            username_fields = wl.username_fields
+            password_fields = wl.password_fields
+
+            # Fallback if wordlists not loaded
+            if not username_fields:
+                username_fields = [
+                    "username",
+                    "user",
+                    "login",
+                    "email",
+                    "log",
+                    "userid",
+                    "account",
+                ]
+            if not password_fields:
+                password_fields = ["password", "pass", "passwd", "pwd", "passphrase"]
+
             for field in username_fields:
                 if field in parsed and parsed[field]:
                     username = parsed[field][0]
                     break
 
-            # Common password field names
-            password_fields = ["password", "pass", "passwd", "pwd", "passphrase"]
             for field in password_fields:
                 if field in parsed and parsed[field]:
                     password = parsed[field][0]
@@ -148,12 +160,16 @@ class AccessTracker:
 
         except Exception:
             # If parsing fails, try simple regex patterns
-            username_match = re.search(
-                r"(?:username|user|login|email|log)=([^&\s]+)", post_data, re.IGNORECASE
-            )
-            password_match = re.search(
-                r"(?:password|pass|passwd|pwd)=([^&\s]+)", post_data, re.IGNORECASE
-            )
+            wl = get_wordlists()
+            username_fields = wl.username_fields or ["username", "user", "login", "email", "log"]
+            password_fields = wl.password_fields or ["password", "pass", "passwd", "pwd"]
+            
+            # Build regex pattern from wordlist fields
+            username_pattern = "(?:" + "|".join(username_fields) + ")=([^&\\s]+)"
+            password_pattern = "(?:" + "|".join(password_fields) + ")=([^&\\s]+)"
+            
+            username_match = re.search(username_pattern, post_data, re.IGNORECASE)
+            password_match = re.search(password_pattern, post_data, re.IGNORECASE)
 
             if username_match:
                 username = urllib.parse.unquote_plus(username_match.group(1))
@@ -213,6 +229,7 @@ class AccessTracker:
         user_agent: str = "",
         body: str = "",
         method: str = "GET",
+        raw_request: str = "",
     ):
         """
         Record an access attempt.
@@ -226,6 +243,7 @@ class AccessTracker:
             user_agent: Client user agent string
             body: Request body (for POST/PUT)
             method: HTTP method
+            raw_request: Full raw HTTP request for forensic analysis
         """
         # Skip if this is the server's own IP
         from config import get_config
@@ -245,7 +263,9 @@ class AccessTracker:
 
         # POST/PUT body attack detection
         if len(body) > 0:
-            attack_findings.extend(self.detect_attack_type(body))
+            # Decode URL-encoded body so patterns can match (e.g., %3Cscript%3E -> <script>)
+            decoded_body = urllib.parse.unquote(body)
+            attack_findings.extend(self.detect_attack_type(decoded_body))
 
         is_suspicious = (
             self.is_suspicious_user_agent(user_agent)
@@ -286,6 +306,7 @@ class AccessTracker:
                     is_suspicious=is_suspicious,
                     is_honeypot_trigger=is_honeypot,
                     attack_types=attack_findings if attack_findings else None,
+                    raw_request=raw_request if raw_request else None,
                 )
             except Exception:
                 # Don't crash if database persistence fails

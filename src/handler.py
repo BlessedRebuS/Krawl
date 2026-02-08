@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler
 from typing import Optional, List
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, unquote_plus
 import json
 import os
 
@@ -19,7 +19,6 @@ from firewall.iptables import Iptables
 from firewall.raw import Raw
 
 from tracker import AccessTracker
-from analyzer import Analyzer
 from templates import html_templates
 from templates.dashboard_template import generate_dashboard
 from generators import (
@@ -32,9 +31,14 @@ from generators import (
     random_server_header,
 )
 from wordlists import get_wordlists
-from sql_errors import generate_sql_error_response, get_sql_response_with_data
-from xss_detector import detect_xss_pattern, generate_xss_response
-from server_errors import generate_server_error
+from deception_responses import (
+    detect_and_respond_deception,
+    generate_sql_error_response,
+    get_sql_response_with_data,
+    detect_xss_pattern,
+    generate_xss_response,
+    generate_server_error,
+)
 from models import AccessLog
 from ip_utils import is_valid_public_ip
 from sqlalchemy import distinct
@@ -46,7 +50,6 @@ class Handler(BaseHTTPRequestHandler):
     webpages: Optional[List[str]] = None
     config: Config = None
     tracker: AccessTracker = None
-    analyzer: Analyzer = None
     counter: int = 0
     app_logger: logging.Logger = None
     access_logger: logging.Logger = None
@@ -69,6 +72,28 @@ class Handler(BaseHTTPRequestHandler):
 
         # Fallback to direct connection IP
         return self.client_address[0]
+
+    def _build_raw_request(self, body: str = "") -> str:
+        """Build raw HTTP request string for forensic analysis"""
+        try:
+            # Request line
+            raw = f"{self.command} {self.path} {self.request_version}\r\n"
+            
+            # Headers
+            if hasattr(self, "headers") and self.headers:
+                for header, value in self.headers.items():
+                    raw += f"{header}: {value}\r\n"
+            
+            raw += "\r\n"
+            
+            # Body (if present)
+            if body:
+                raw += body
+            
+            return raw
+        except Exception as e:
+            # Fallback to minimal representation if building fails
+            return f"{self.command} {self.path} (error building full request: {str(e)})"
 
     def _get_category_by_ip(self, client_ip: str) -> str:
         """Get the category of an IP from the database"""
@@ -113,7 +138,8 @@ class Handler(BaseHTTPRequestHandler):
             return False
 
         try:
-            # Get query parameters
+            parsed_url = urlparse(path)
+            request_query = parsed_url.query
 
             # Log SQL injection attempt
             client_ip = self._get_client_ip()
@@ -162,6 +188,64 @@ class Handler(BaseHTTPRequestHandler):
             except:
                 pass
             return True
+
+    def _handle_deception_response(self, path: str, query: str = "", body: str = "", method: str = "GET") -> bool:
+        """
+        Handle deception responses for path traversal, XXE, and command injection.
+        Returns True if a deception response was sent, False otherwise.
+        """
+        try:
+            self.app_logger.debug(f"Checking deception for: {method} {path}")
+            result = detect_and_respond_deception(path, query, body, method)
+            
+            if result:
+                response_body, content_type, status_code = result
+                client_ip = self._get_client_ip()
+                user_agent = self.headers.get("User-Agent", "")
+                
+                # Determine attack type using standardized names from wordlists
+                full_input = f"{path} {query} {body}".lower()
+                attack_type_db = None  # For database (standardized)
+                attack_type_log = "UNKNOWN"  # For logging (human-readable)
+                
+                if "passwd" in path.lower() or "shadow" in path.lower() or ".." in path or ".." in query:
+                    attack_type_db = "path_traversal"
+                    attack_type_log = "PATH_TRAVERSAL"
+                elif body and ("<!DOCTYPE" in body or "<!ENTITY" in body):
+                    attack_type_db = "xxe_injection"
+                    attack_type_log = "XXE_INJECTION"
+                elif any(pattern in full_input for pattern in ['cmd=', 'exec=', 'command=', 'execute=', 'system=', ';', '|', '&&', 'whoami', 'id', 'uname', 'cat', 'ls', 'pwd']):
+                    attack_type_db = "command_injection"
+                    attack_type_log = "COMMAND_INJECTION"
+                
+                # Log the attack
+                self.access_logger.warning(
+                    f"[{attack_type_log} DETECTED] {client_ip} - {path[:100]} - Method: {method}"
+                )
+                
+                # Record access before responding (deception returns early)
+                self.tracker.record_access(
+                    ip=client_ip,
+                    path=path,
+                    user_agent=user_agent,
+                    body=body,
+                    method=method,
+                    raw_request=self._build_raw_request(body)
+                )
+                
+                # Send the deception response
+                self.send_response(status_code)
+                self.send_header("Content-type", content_type)
+                self.end_headers()
+                self.wfile.write(response_body.encode())
+                return True
+                
+        except BrokenPipeError:
+            return True
+        except Exception as e:
+            self.app_logger.error(f"Error handling deception response for {path}: {str(e)}")
+            
+        return False
 
     def generate_page(self, seed: str, page_visit_count: int) -> str:
         """Generate a webpage containing random links or canary token"""
@@ -245,14 +329,20 @@ class Handler(BaseHTTPRequestHandler):
         post_data = ""
 
         base_path = urlparse(self.path).path
+        
+        content_length = int(self.headers.get("Content-Length", 0))
+        if content_length > 0:
+            post_data = self.rfile.read(content_length).decode(
+                "utf-8", errors="replace"
+            )
+        
+        parsed_url = urlparse(self.path)
+        query_string = parsed_url.query
+        
+        if self._handle_deception_response(self.path, query_string, post_data, "POST"):
+            return
 
         if base_path in ["/api/search", "/api/sql", "/api/database"]:
-            content_length = int(self.headers.get("Content-Length", 0))
-            if content_length > 0:
-                post_data = self.rfile.read(content_length).decode(
-                    "utf-8", errors="replace"
-                )
-
             self.access_logger.info(
                 f"[SQL ENDPOINT POST] {client_ip} - {base_path} - Data: {post_data[:100] if post_data else 'empty'}"
             )
@@ -283,20 +373,17 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if base_path == "/api/contact":
-            content_length = int(self.headers.get("Content-Length", 0))
-            if content_length > 0:
-                post_data = self.rfile.read(content_length).decode(
-                    "utf-8", errors="replace"
-                )
-
+            # Parse URL-encoded POST data properly
             parsed_data = {}
-            for pair in post_data.split("&"):
-                if "=" in pair:
-                    key, value = pair.split("=", 1)
+            if post_data:
+                # Use parse_qs for proper URL decoding
+                parsed_qs = parse_qs(post_data)
+                # parse_qs returns lists, get first value of each
+                parsed_data = {k: v[0] if v else '' for k, v in parsed_qs.items()}
+                
+            self.app_logger.debug(f"Parsed contact data: {parsed_data}")
 
-                    parsed_data[unquote_plus(key)] = unquote_plus(value)
-
-            xss_detected = any(detect_xss_pattern(v) for v in parsed_data.values())
+            xss_detected = any(detect_xss_pattern(str(v)) for v in parsed_data.values())
 
             if xss_detected:
                 self.access_logger.warning(
@@ -306,6 +393,16 @@ class Handler(BaseHTTPRequestHandler):
                 self.access_logger.info(
                     f"[XSS ENDPOINT POST] {client_ip} - {base_path}"
                 )
+
+            # Record access for dashboard tracking (including XSS detection)
+            self.tracker.record_access(
+                ip=client_ip,
+                path=self.path,
+                user_agent=user_agent,
+                body=post_data,
+                method="POST",
+                raw_request=self._build_raw_request(post_data)
+            )
 
             try:
                 self.send_response(200)
@@ -323,12 +420,8 @@ class Handler(BaseHTTPRequestHandler):
             f"[LOGIN ATTEMPT] {client_ip} - {self.path} - {user_agent[:50]}"
         )
 
-        content_length = int(self.headers.get("Content-Length", 0))
-        if content_length > 0:
-            post_data = self.rfile.read(content_length).decode(
-                "utf-8", errors="replace"
-            )
-
+        # post_data was already read at the beginning of do_POST, don't read again
+        if post_data:
             self.access_logger.warning(f"[POST DATA] {post_data[:200]}")
 
             # Parse and log credentials
@@ -350,7 +443,8 @@ class Handler(BaseHTTPRequestHandler):
 
         # send the post data (body) to the record_access function so the post data can be used to detect suspicious things.
         self.tracker.record_access(
-            client_ip, self.path, user_agent, post_data, method="POST"
+            client_ip, self.path, user_agent, post_data, method="POST",
+            raw_request=self._build_raw_request(post_data)
         )
 
         time.sleep(1)
@@ -498,8 +592,13 @@ class Handler(BaseHTTPRequestHandler):
         user_agent = self.headers.get("User-Agent", "")
         request_path = urlparse(self.path).path
         self.app_logger.info(f"request_query: {request_path}")
-        query_params = parse_qs(urlparse(self.path).query)
+        parsed_url = urlparse(self.path)
+        query_string = parsed_url.query
+        query_params = parse_qs(query_string)
         self.app_logger.info(f"query_params: {query_params}")
+        
+        if self._handle_deception_response(self.path, query_string, "", "GET"):
+            return
 
         # get database reference
         db = get_database()
@@ -934,6 +1033,68 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
             return
 
+        # API endpoint for attack types statistics (aggregated)
+        if self.config.dashboard_secret_path and self.path.startswith(
+            f"{self.config.dashboard_secret_path}/api/attack-types-stats"
+        ):
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header(
+                "Cache-Control", "no-store, no-cache, must-revalidate, max-age=0"
+            )
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
+            self.end_headers()
+            try:
+                parsed_url = urlparse(self.path)
+                query_params = parse_qs(parsed_url.query)
+                limit = int(query_params.get("limit", ["20"])[0])
+                limit = min(max(1, limit), 100)  # Cap at 100
+
+                result = db.get_attack_types_stats(limit=limit)
+                self.wfile.write(json.dumps(result).encode())
+            except BrokenPipeError:
+                pass
+            except Exception as e:
+                self.app_logger.error(f"Error fetching attack types stats: {e}")
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
+        # API endpoint for fetching raw request by log ID
+        if self.config.dashboard_secret_path and self.path.startswith(
+            f"{self.config.dashboard_secret_path}/api/raw-request/"
+        ):
+            try:
+                # Extract log ID from path: /api/raw-request/123
+                log_id = int(self.path.split("/")[-1])
+                raw_request = db.get_raw_request_by_id(log_id)
+                
+                if raw_request is None:
+                    self.send_response(404)
+                    self.send_header("Content-type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "Raw request not found"}).encode())
+                else:
+                    self.send_response(200)
+                    self.send_header("Content-type", "application/json")
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"raw_request": raw_request}).encode())
+            except (ValueError, IndexError):
+                self.send_response(400)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "Invalid log ID"}).encode())
+            except Exception as e:
+                self.app_logger.error(f"Error fetching raw request: {e}")
+                self.send_response(500)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+
         # API endpoint for downloading malicious IPs blocklist file
         if (
             self.config.dashboard_secret_path
@@ -1014,10 +1175,9 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(b"Internal server error")
             return
 
-        self.tracker.record_access(client_ip, self.path, user_agent, method="GET")
+        self.tracker.record_access(client_ip, self.path, user_agent, method="GET",
+                                          raw_request=self._build_raw_request())
 
-        # self.analyzer.infer_user_category(client_ip)
-        # self.analyzer.update_ip_rep_infos(client_ip)
 
         if self.tracker.is_suspicious_user_agent(user_agent):
             self.access_logger.warning(

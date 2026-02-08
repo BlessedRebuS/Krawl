@@ -207,6 +207,7 @@ class DatabaseManager:
         is_honeypot_trigger: bool = False,
         attack_types: Optional[List[str]] = None,
         matched_patterns: Optional[Dict[str, str]] = None,
+        raw_request: Optional[str] = None,
     ) -> Optional[int]:
         """
         Persist an access log entry to the database.
@@ -220,6 +221,7 @@ class DatabaseManager:
             is_honeypot_trigger: Whether a honeypot path was accessed
             attack_types: List of detected attack types
             matched_patterns: Dict mapping attack_type to matched pattern
+            raw_request: Full raw HTTP request for forensic analysis
 
         Returns:
             The ID of the created AccessLog record, or None on error
@@ -235,6 +237,7 @@ class DatabaseManager:
                 is_suspicious=is_suspicious,
                 is_honeypot_trigger=is_honeypot_trigger,
                 timestamp=datetime.now(),
+                raw_request=raw_request,
             )
             session.add(access_log)
             session.flush()  # Get the ID before committing
@@ -1606,7 +1609,10 @@ class DatabaseManager:
                 sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
             )
 
-            # Get all access logs with attack detections
+            # Count total attacks first (efficient)
+            total_attacks = session.query(AccessLog).join(AttackDetection).count()
+
+            # Get paginated access logs with attack detections
             query = session.query(AccessLog).join(AttackDetection)
 
             if sort_by == "timestamp":
@@ -1619,30 +1625,27 @@ class DatabaseManager:
                 query = query.order_by(
                     AccessLog.ip.desc() if sort_order == "desc" else AccessLog.ip.asc()
                 )
+            # Note: attack_type sorting requires loading all data, so we skip it for performance
+            # elif sort_by == "attack_type":
+            #     Can't efficiently sort by related table field
 
-            logs = query.all()
+            # Apply LIMIT and OFFSET at database level
+            logs = query.offset(offset).limit(page_size).all()
 
-            # Convert to attack list
-            attack_list = [
+            # Convert to attack list (exclude raw_request for performance - it's too large)
+            paginated = [
                 {
+                    "id": log.id,
                     "ip": log.ip,
                     "path": log.path,
                     "user_agent": log.user_agent,
                     "timestamp": log.timestamp.isoformat() if log.timestamp else None,
                     "attack_types": [d.attack_type for d in log.attack_detections],
+                    "raw_request": log.raw_request,  # Keep for backward compatibility
                 }
                 for log in logs
             ]
 
-            # Sort by attack_type if needed (this must be done post-fetch since it's in a related table)
-            if sort_by == "attack_type":
-                attack_list.sort(
-                    key=lambda x: x["attack_types"][0] if x["attack_types"] else "",
-                    reverse=(sort_order == "desc"),
-                )
-
-            total_attacks = len(attack_list)
-            paginated = attack_list[offset : offset + page_size]
             total_pages = (total_attacks + page_size - 1) // page_size
 
             return {
@@ -1653,6 +1656,60 @@ class DatabaseManager:
                     "total": total_attacks,
                     "total_pages": total_pages,
                 },
+            }
+        finally:
+            self.close_session()
+
+    def get_raw_request_by_id(self, log_id: int) -> Optional[str]:
+        """
+        Retrieve raw HTTP request for a specific access log ID.
+
+        Args:
+            log_id: The access log ID
+
+        Returns:
+            The raw request string, or None if not found or not available
+        """
+        session = self.session
+        try:
+            access_log = session.query(AccessLog).filter(AccessLog.id == log_id).first()
+            if access_log:
+                return access_log.raw_request
+            return None
+        finally:
+            self.close_session()
+
+    def get_attack_types_stats(self, limit: int = 20) -> Dict[str, Any]:
+        """
+        Get aggregated statistics for attack types (efficient for large datasets).
+
+        Args:
+            limit: Maximum number of attack types to return
+
+        Returns:
+            Dictionary with attack type counts
+        """
+        session = self.session
+        try:
+            from sqlalchemy import func
+
+            # Aggregate attack types with count
+            results = (
+                session.query(
+                    AttackDetection.attack_type,
+                    func.count(AttackDetection.id).label('count')
+                )
+                .group_by(AttackDetection.attack_type)
+                .order_by(func.count(AttackDetection.id).desc())
+                .limit(limit)
+                .all()
+            )
+
+            return {
+                "attack_types": [
+                    {"type": row.attack_type, "count": row.count}
+                    for row in results
+                ]
             }
         finally:
             self.close_session()

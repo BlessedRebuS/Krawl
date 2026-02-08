@@ -10,7 +10,6 @@ from http.server import HTTPServer
 
 from config import get_config
 from tracker import AccessTracker
-from analyzer import Analyzer
 from handler import Handler
 from logger import (
     initialize_logging,
@@ -75,11 +74,9 @@ def main():
         )
 
     tracker = AccessTracker(config.max_pages_limit, config.ban_duration_seconds)
-    analyzer = Analyzer()
 
     Handler.config = config
     Handler.tracker = tracker
-    Handler.analyzer = analyzer
     Handler.counter = config.canary_token_tries
     Handler.app_logger = app_logger
     Handler.access_logger = access_logger
