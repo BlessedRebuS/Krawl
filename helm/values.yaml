@@ -312,6 +312,307 @@ wordlists:
       - .git/
       - keys/
       - credentials/
+    fake_files:
+      - name: settings.conf
+        size_min: 1024
+        size_max: 8192
+        perms: "-rw-r--r--"
+      - name: database.sql
+        size_min: 10240
+        size_max: 102400
+        perms: "-rw-r--r--"
+      - name: .htaccess
+        size_min: 256
+        size_max: 1024
+        perms: "-rw-r--r--"
+      - name: README.md
+        size_min: 512
+        size_max: 2048
+        perms: "-rw-r--r--"
+    fake_directories:
+      - name: config
+        size: "4096"
+        perms: drwxr-xr-x
+      - name: backup
+        size: "4096"
+        perms: drwxr-xr-x
+      - name: logs
+        size: "4096"
+        perms: drwxrwxr-x
+      - name: data
+        size: "4096"
+        perms: drwxr-xr-x
+  fake_passwd:
+    system_users:
+      - "root:x:0:0:root:/root:/bin/bash"
+      - "daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin"
+      - "bin:x:2:2:bin:/bin:/usr/sbin/nologin"
+      - "sys:x:3:3:sys:/dev:/usr/sbin/nologin"
+      - "sync:x:4:65534:sync:/bin:/bin/sync"
+      - "www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin"
+      - "backup:x:34:34:backup:/var/backups:/usr/sbin/nologin"
+      - "mysql:x:108:113:MySQL Server,,,:/nonexistent:/bin/false"
+      - "sshd:x:109:65534::/run/sshd:/usr/sbin/nologin"
+    uid_min: 1000
+    uid_max: 2000
+    gid_min: 1000
+    gid_max: 2000
+    shells:
+      - /bin/bash
+      - /bin/sh
+      - /usr/bin/zsh
+  fake_shadow:
+    system_entries:
+      - "root:$6$rounds=656000$fake_salt_here$fake_hash_data:19000:0:99999:7:::"
+      - "daemon:*:19000:0:99999:7:::"
+      - "bin:*:19000:0:99999:7:::"
+      - "sys:*:19000:0:99999:7:::"
+      - "www-data:*:19000:0:99999:7:::"
+    hash_prefix: "$6$rounds=656000$"
+    salt_length: 16
+    hash_length: 86
+  xxe_responses:
+    file_access:
+      template: |
+        <?xml version="1.0"?>
+        <response>
+            <status>success</status>
+            <data>{content}</data>
+        </response>
+    entity_processed:
+      template: |
+        <?xml version="1.0"?>
+        <response>
+            <status>success</status>
+            <message>Entity processed successfully</message>
+            <entity_value>{entity_value}</entity_value>
+        </response>
+      entity_values:
+        - "admin_credentials"
+        - "database_connection"
+        - "api_secret_key"
+        - "internal_server_ip"
+        - "encrypted_password"
+    error:
+      template: |
+        <?xml version="1.0"?>
+        <response>
+            <status>error</status>
+            <message>{message}</message>
+        </response>
+      messages:
+        - "External entity not allowed"
+        - "XML parsing error"
+        - "Invalid entity reference"
+    default_content: "root:x:0:0:root:/root:/bin/bash\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin"
+  command_outputs:
+    id:
+      - "uid={uid}(www-data) gid={gid}(www-data) groups={gid}(www-data)"
+      - "uid={uid}(nginx) gid={gid}(nginx) groups={gid}(nginx)"
+      - "uid={uid}(apache) gid={gid}(apache) groups={gid}(apache)"
+    whoami:
+      - www-data
+      - nginx
+      - apache
+      - webapp
+      - nobody
+    uname:
+      - "Linux webserver 5.4.0-42-generic #46-Ubuntu SMP Fri Jul 10 00:24:02 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux"
+      - "Linux app-server 4.15.0-112-generic #113-Ubuntu SMP Thu Jul 9 23:41:39 UTC 2020 x86_64 GNU/Linux"
+      - "Linux prod-server 5.15.0-56-generic #62-Ubuntu SMP Tue Nov 22 19:54:14 UTC 2022 x86_64 GNU/Linux"
+    pwd:
+      - /var/www/html
+      - /home/webapp/public_html
+      - /usr/share/nginx/html
+      - /opt/app/public
+    ls:
+      - ["index.php", "config.php", "uploads", "assets", "README.md", ".htaccess", "admin"]
+      - ["app.js", "package.json", "node_modules", "public", "views", "routes"]
+      - ["index.html", "css", "js", "images", "data", "api"]
+    cat_config: |
+      <?php
+      // Configuration file
+      $db_host = 'localhost';
+      $db_user = 'webapp';
+      $db_pass = 'fake_password';
+      ?>
+    network_commands:
+      - "bash: wget: command not found"
+      - "curl: (6) Could not resolve host: example.com"
+      - "Connection timeout"
+      - "bash: nc: command not found"
+      - "Downloaded {size} bytes"
+    generic:
+      - "sh: 1: syntax error: unexpected end of file"
+      - "Command executed successfully"
+      - ""
+      - "/bin/sh: {num}: not found"
+      - "bash: command not found"
+    uid_min: 1000
+    uid_max: 2000
+    gid_min: 1000
+    gid_max: 2000
+    download_size_min: 100
+    download_size_max: 10000
+  sql_errors:
+    mysql:
+      syntax_errors:
+        - "You have an error in your SQL syntax"
+        - "check the manual that corresponds to your MySQL server version"
+      table_errors:
+        - "Table '{table}' doesn't exist"
+        - "Unknown table '{table}'"
+      column_errors:
+        - "Unknown column '{column}' in 'field list'"
+        - "Unknown column '{column}' in 'where clause'"
+    postgresql:
+      syntax_errors:
+        - "ERROR: syntax error at or near"
+        - "ERROR: unterminated quoted string"
+      relation_errors:
+        - "ERROR: relation \"{table}\" does not exist"
+      column_errors:
+        - "ERROR: column \"{column}\" does not exist"
+    mssql:
+      syntax_errors:
+        - "Incorrect syntax near"
+        - "Unclosed quotation mark"
+      object_errors:
+        - "Invalid object name '{table}'"
+      column_errors:
+        - "Invalid column name '{column}'"
+    oracle:
+      syntax_errors:
+        - "ORA-00933: SQL command not properly ended"
+        - "ORA-00904: invalid identifier"
+      table_errors:
+        - "ORA-00942: table or view does not exist"
+    sqlite:
+      syntax_errors:
+        - "near \"{token}\": syntax error"
+      table_errors:
+        - "no such table: {table}"
+      column_errors:
+        - "no such column: {column}"
+    mongodb:
+      query_errors:
+        - "Failed to parse"
+        - "unknown operator"
+      collection_errors:
+        - "ns not found"
+  server_errors:
+    nginx:
+      versions:
+        - "1.18.0"
+        - "1.20.1"
+        - "1.22.0"
+        - "1.24.0"
+      template: |
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <title>{code} {message}</title>
+        <style>
+        body {{
+            width: 35em;
+            margin: 0 auto;
+            font-family: Tahoma, Verdana, Arial, sans-serif;
+        }}
+        </style>
+        </head>
+        <body>
+        <h1>An error occurred.</h1>
+        <p>Sorry, the page you are looking for is currently unavailable.<br/>
+        Please try again later.</p>
+        <p>If you are the system administrator of this resource then you should check the error log for details.</p>
+        <p><em>Faithfully yours, nginx/{version}.</em></p>
+        </body>
+        </html>
+    apache:
+      versions:
+        - "2.4.41"
+        - "2.4.52"
+        - "2.4.54"
+        - "2.4.57"
+      os:
+        - Ubuntu
+        - Debian
+        - CentOS
+      template: |
+        <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+        <html><head>
+        <title>{code} {message}</title>
+        </head><body>
+        <h1>{message}</h1>
+        <p>The requested URL was not found on this server.</p>
+        <hr>
+        <address>Apache/{version} ({os}) Server at {host} Port 80</address>
+        </body></html>
+    iis:
+      versions:
+        - "10.0"
+        - "8.5"
+        - "8.0"
+      template: |
+        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+        <html xmlns="http://www.w3.org/1999/xhtml">
+        <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+        <title>{code} - {message}</title>
+        </head>
+        <body>
+        <div id="header"><h1>Server Error</h1></div>
+        <div id="content">
+         <h2>{code} - {message}</h2>
+         <h3>The page cannot be displayed because an internal server error has occurred.</h3>
+        </div>
+        </body>
+        </html>
+  attack_patterns:
+    path_traversal: "(\\.\\.| %2e%2e|%252e|/etc/passwd|/etc/shadow|\\.\\.\\\\/|\\.\\./|/windows/system32|c:\\\\windows|/proc/self|\\.\\.\\.%2f|\\.\\.\\.%5c|etc/passwd|etc/shadow)"
+    sql_injection: "('|\"|`|--|#|/\\*|\\*/|\\bunion\\b|\\bunion\\s+select\\b|\\bor\\b.*=.*|\\band\\b.*=.*|'.*or.*'.*=.*'|\\bsleep\\b|\\bwaitfor\\b|\\bdelay\\b|\\bbenchmark\\b|;.*select|;.*drop|;.*insert|;.*update|;.*delete|\\bexec\\b|\\bexecute\\b|\\bxp_cmdshell\\b|information_schema|table_schema|table_name)"
+    xss_attempt: "(<script|</script|javascript:|onerror=|onload=|onclick=|onmouseover=|onfocus=|onblur=|<iframe|<img|<svg|<embed|<object|<body|<input|eval\\(|alert\\(|prompt\\(|confirm\\(|document\\.|window\\.|<style|expression\\(|vbscript:|data:text/html)"
+    lfi_rfi: "(file://|php://|expect://|data://|zip://|phar://|/etc/passwd|/etc/shadow|/proc/self|c:\\\\windows)"
+    xxe_injection: "(<!ENTITY|<!DOCTYPE|SYSTEM\\s+[\"']|PUBLIC\\s+[\"']|&\\w+;|file://|php://filter|expect://)"
+    ldap_injection: "(\\*\\)|\\(\\||\\(&)"
+    command_injection: "(cmd=|exec=|command=|execute=|system=|ping=|host=|&&|\\|\\||;|\\$\\{|\\$\\(|`|\\bid\\b|\\bwhoami\\b|\\buname\\b|\\bcat\\b|\\bls\\b|\\bpwd\\b|\\becho\\b|\\bwget\\b|\\bcurl\\b|\\bnc\\b|\\bnetcat\\b|\\bbash\\b|\\bsh\\b|\\bps\\b|\\bkill\\b|\\bchmod\\b|\\bchown\\b|\\bcp\\b|\\bmv\\b|\\brm\\b|/bin/bash|/bin/sh|cmd\\.exe|/bin/|/usr/bin/|/sbin/)"
+  suspicious_patterns:
+    - bot
+    - crawler
+    - spider
+    - scraper
+    - curl
+    - wget
+    - python-requests
+    - scanner
+    - nikto
+    - sqlmap
+    - nmap
+    - masscan
+    - nessus
+    - acunetix
+    - burp
+    - zap
+    - w3af
+    - metasploit
+    - nuclei
+    - gobuster
+    - dirbuster
+  credential_fields:
+    username_fields:
+      - username
+      - user
+      - login
+      - email
+      - log
+      - userid
+      - account
+    password_fields:
+      - password
+      - pass
+      - passwd
+      - pwd
+      - passphrase
   server_headers:
     - Apache/2.2.22 (Ubuntu)
     - nginx/1.18.0

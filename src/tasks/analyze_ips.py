@@ -112,24 +112,8 @@ def main():
         ip_accesses = db_manager.get_access_logs(limit=999999999, ip_filter=ip)
         total_accesses_count = len(ip_accesses)
         if total_accesses_count <= 0:
-            return
+            continue
 
-        # Set category as "unknown" for the first 3 requests
-        if total_accesses_count < 3:
-            category = "unknown"
-            analyzed_metrics = {}
-            category_scores = {
-                "attacker": 0,
-                "good_crawler": 0,
-                "bad_crawler": 0,
-                "regular_user": 0,
-                "unknown": 0,
-            }
-            last_analysis = datetime.now()
-            db_manager.update_ip_stats_analysis(
-                ip, analyzed_metrics, category, category_scores, last_analysis
-            )
-            return 0
         # --------------------- HTTP Methods ---------------------
         get_accesses_count = len(
             [item for item in ip_accesses if item["method"] == "GET"]

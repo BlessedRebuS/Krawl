@@ -183,7 +183,117 @@
       ".git/",
       "keys/",
       "credentials/"
+    ],
+    "fake_files": [
+      {"name": "settings.conf", "size_min": 1024, "size_max": 8192, "perms": "-rw-r--r--"},
+      {"name": "database.sql", "size_min": 10240, "size_max": 102400, "perms": "-rw-r--r--"},
+      {"name": ".htaccess", "size_min": 256, "size_max": 1024, "perms": "-rw-r--r--"},
+      {"name": "README.md", "size_min": 512, "size_max": 2048, "perms": "-rw-r--r--"}
+    ],
+    "fake_directories": [
+      {"name": "config", "size": "4096", "perms": "drwxr-xr-x"},
+      {"name": "backup", "size": "4096", "perms": "drwxr-xr-x"},
+      {"name": "logs", "size": "4096", "perms": "drwxrwxr-x"},
+      {"name": "data", "size": "4096", "perms": "drwxr-xr-x"}
     ]
+  },
+  "fake_passwd": {
+    "system_users": [
+      "root:x:0:0:root:/root:/bin/bash",
+      "daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin",
+      "bin:x:2:2:bin:/bin:/usr/sbin/nologin",
+      "sys:x:3:3:sys:/dev:/usr/sbin/nologin",
+      "sync:x:4:65534:sync:/bin:/bin/sync",
+      "www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin",
+      "backup:x:34:34:backup:/var/backups:/usr/sbin/nologin",
+      "mysql:x:108:113:MySQL Server,,,:/nonexistent:/bin/false",
+      "sshd:x:109:65534::/run/sshd:/usr/sbin/nologin"
+    ],
+    "uid_min": 1000,
+    "uid_max": 2000,
+    "gid_min": 1000,
+    "gid_max": 2000,
+    "shells": ["/bin/bash", "/bin/sh", "/usr/bin/zsh"]
+  },
+  "fake_shadow": {
+    "system_entries": [
+      "root:$6$rounds=656000$fake_salt_here$fake_hash_data:19000:0:99999:7:::",
+      "daemon:*:19000:0:99999:7:::",
+      "bin:*:19000:0:99999:7:::",
+      "sys:*:19000:0:99999:7:::",
+      "www-data:*:19000:0:99999:7:::"
+    ],
+    "hash_prefix": "$6$rounds=656000$",
+    "salt_length": 16,
+    "hash_length": 86
+  },
+  "xxe_responses": {
+    "file_access": {
+      "template": "<?xml version=\"1.0\"?>\n<response>\n    <status>success</status>\n    <data>{content}</data>\n</response>"
+    },
+    "entity_processed": {
+      "template": "<?xml version=\"1.0\"?>\n<response>\n    <status>success</status>\n    <message>Entity processed successfully</message>\n    <entity_value>{entity_value}</entity_value>\n</response>",
+      "entity_values": [
+        "fake_entity_content_12345",
+        "external_entity_processed",
+        "system_entity_loaded",
+        "dtd_entity_resolved"
+      ]
+    },
+    "error": {
+      "template": "<?xml version=\"1.0\"?>\n<response>\n    <status>error</status>\n    <message>{message}</message>\n</response>",
+      "messages": [
+        "External entity processing disabled",
+        "Entity expansion limit exceeded",
+        "Security policy violation"
+      ]
+    },
+    "default_content": "root:x:0:0:root:/root:/bin/bash\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin"
+  },
+  "command_outputs": {
+    "id": [
+      "uid={uid}(www-data) gid={gid}(www-data) groups={gid}(www-data)",
+      "uid={uid}(nginx) gid={gid}(nginx) groups={gid}(nginx)",
+      "uid={uid}(apache) gid={gid}(apache) groups={gid}(apache)"
+    ],
+    "whoami": ["www-data", "nginx", "apache", "webapp", "nobody"],
+    "uname": [
+      "Linux webserver 5.4.0-42-generic #46-Ubuntu SMP Fri Jul 10 00:24:02 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux",
+      "Linux app-server 4.15.0-112-generic #113-Ubuntu SMP Thu Jul 9 23:41:39 UTC 2020 x86_64 GNU/Linux",
+      "Linux prod-server 5.15.0-56-generic #62-Ubuntu SMP Tue Nov 22 19:54:14 UTC 2022 x86_64 GNU/Linux"
+    ],
+    "pwd": [
+      "/var/www/html",
+      "/home/webapp/public_html",
+      "/usr/share/nginx/html",
+      "/opt/app/public"
+    ],
+    "ls": [
+      ["index.php", "config.php", "uploads", "assets", "README.md", ".htaccess", "admin"],
+      ["app.js", "package.json", "node_modules", "public", "views", "routes"],
+      ["index.html", "css", "js", "images", "data", "api"]
+    ],
+    "cat_config": "<?php\n// Configuration file\n$db_host = 'localhost';\n$db_user = 'webapp';\n$db_pass = 'fake_password';\n?>",
+    "network_commands": [
+      "bash: wget: command not found",
+      "curl: (6) Could not resolve host: example.com",
+      "Connection timeout",
+      "bash: nc: command not found",
+      "Downloaded {size} bytes"
+    ],
+    "generic": [
+      "sh: 1: syntax error: unexpected end of file",
+      "Command executed successfully",
+      "",
+      "/bin/sh: {num}: not found",
+      "bash: command not found"
+    ],
+    "uid_min": 1000,
+    "uid_max": 2000,
+    "gid_min": 1000,
+    "gid_max": 2000,
+    "download_size_min": 100,
+    "download_size_max": 10000
   },
   "error_codes": [
     400,
@@ -353,14 +463,13 @@
     }
   },
   "attack_patterns": {
-    "path_traversal": "(\\.\\.|%2e%2e|%252e%252e|\\.{2,}|%c0%ae|%c1%9c)",
+    "path_traversal": "(\\.\\.|%2e%2e|%252e|/etc/passwd|/etc/shadow|\\.\\.\\\\/|\\.\\./|/windows/system32|c:\\\\windows|/proc/self|\\.\\.\\.%2f|\\.\\.\\.%5c|etc/passwd|etc/shadow)",
     "sql_injection": "('|\"|`|--|#|/\\*|\\*/|\\bunion\\b|\\bunion\\s+select\\b|\\bor\\b.*=.*|\\band\\b.*=.*|'.*or.*'.*=.*'|\\bsleep\\b|\\bwaitfor\\b|\\bdelay\\b|\\bbenchmark\\b|;.*select|;.*drop|;.*insert|;.*update|;.*delete|\\bexec\\b|\\bexecute\\b|\\bxp_cmdshell\\b|information_schema|table_schema|table_name)",
     "xss_attempt": "(<script|</script|javascript:|onerror=|onload=|onclick=|onmouseover=|onfocus=|onblur=|<iframe|<img|<svg|<embed|<object|<body|<input|eval\\(|alert\\(|prompt\\(|confirm\\(|document\\.|window\\.|<style|expression\\(|vbscript:|data:text/html)",
-    "shell_injection": "(\\||;|`|\\$\\(|&&|\\bnc\\b|\\bnetcat\\b|\\bwget\\b|\\bcurl\\b|/bin/bash|/bin/sh|cmd\\.exe)",
     "lfi_rfi": "(file://|php://|expect://|data://|zip://|phar://|/etc/passwd|/etc/shadow|/proc/self|c:\\\\windows)",
-    "xxe_injection": "(<!ENTITY|<!DOCTYPE|SYSTEM|PUBLIC)",
+    "xxe_injection": "(<!ENTITY|<!DOCTYPE|SYSTEM\\s+[\"']|PUBLIC\\s+[\"']|&\\w+;|file://|php://filter|expect://)",
     "ldap_injection": "(\\*\\)|\\(\\||\\(&)",
-    "command_injection": "(&&|\\|\\||;|\\$\\{|\\$\\(|`)"
+    "command_injection": "(cmd=|exec=|command=|execute=|system=|ping=|host=|&&|\\|\\||;|\\$\\{|\\$\\(|`|\\bid\\b|\\bwhoami\\b|\\buname\\b|\\bcat\\b|\\bls\\b|\\bpwd\\b|\\becho\\b|\\bwget\\b|\\bcurl\\b|\\bnc\\b|\\bnetcat\\b|\\bbash\\b|\\bsh\\b|\\bps\\b|\\bkill\\b|\\bchmod\\b|\\bchown\\b|\\bcp\\b|\\bmv\\b|\\brm\\b|/bin/bash|/bin/sh|cmd\\.exe|/bin/|/usr/bin/|/sbin/)"
   },
   "server_headers": [
     "Apache/2.4.41 (Ubuntu)",
@@ -369,5 +478,46 @@
     "cloudflare",
     "AmazonS3",
     "gunicorn/20.1.0"
-  ]
+  ],
+  "suspicious_patterns": [
+    "bot",
+    "crawler",
+    "spider",
+    "scraper",
+    "curl",
+    "wget",
+    "python-requests",
+    "scanner",
+    "nikto",
+    "sqlmap",
+    "nmap",
+    "masscan",
+    "nessus",
+    "acunetix",
+    "burp",
+    "zap",
+    "w3af",
+    "metasploit",
+    "nuclei",
+    "gobuster",
+    "dirbuster"
+  ],
+  "credential_fields": {
+    "username_fields": [
+      "username",
+      "user",
+      "login",
+      "email",
+      "log",
+      "userid",
+      "account"
+    ],
+    "password_fields": [
+      "password",
+      "pass",
+      "passwd",
+      "pwd",
+      "passphrase"
+    ]
+  }
 }

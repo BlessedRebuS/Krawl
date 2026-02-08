@@ -1,7 +1,7 @@
 # Krawl Honeypot Configuration
 
 server:
-  port: 5000
+  port: 1234
   delay: 100  # Response delay in milliseconds
 
   # manually set the server header, if null a random one will be used.

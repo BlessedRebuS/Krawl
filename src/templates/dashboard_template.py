@@ -48,22 +48,67 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
         dashboard_path: The secret dashboard path for generating API URLs
     """
 
-    # Generate suspicious accesses rows with clickable IPs
+    # Generate comprehensive suspicious activity rows combining all suspicious events
+    suspicious_activities = []
+    
+    # Add recent suspicious accesses (attacks)
+    for log in stats.get("recent_suspicious", [])[-20:]:
+        suspicious_activities.append({
+            "type": "Attack",
+            "ip": log["ip"],
+            "path": log["path"],
+            "user_agent": log["user_agent"][:60],
+            "timestamp": log["timestamp"],
+            "details": ", ".join(log.get("attack_types", [])) if log.get("attack_types") else "Suspicious behavior"
+        })
+    
+    # Add credential attempts
+    for cred in stats.get("credential_attempts", [])[-20:]:
+        suspicious_activities.append({
+            "type": "Credentials",
+            "ip": cred["ip"],
+            "path": cred["path"],
+            "user_agent": "",
+            "timestamp": cred["timestamp"],
+            "details": f"User: {cred.get('username', 'N/A')}"
+        })
+    
+    # Add honeypot triggers
+    for honeypot in stats.get("honeypot_triggered_ips", [])[-20:]:
+        paths = honeypot.get("paths", []) if isinstance(honeypot.get("paths"), list) else []
+        suspicious_activities.append({
+            "type": "Honeypot",
+            "ip": honeypot["ip"],
+            "path": paths[0] if paths else "Multiple",
+            "user_agent": "",
+            "timestamp": honeypot.get("last_seen", honeypot.get("timestamp", "")),
+            "details": f"{len(paths)} trap(s) triggered"
+        })
+    
+    # Sort by timestamp (most recent first) and take last 20
+    try:
+        suspicious_activities.sort(key=lambda x: x["timestamp"], reverse=True)
+    except:
+        pass
+    suspicious_activities = suspicious_activities[:20]
+    
+    # Generate table rows
     suspicious_rows = (
-        "\n".join([f"""<tr class="ip-row" data-ip="{_escape(log["ip"])}">
-            <td class="ip-clickable">{_escape(log["ip"])}</td>
-            <td>{_escape(log["path"])}</td>
-            <td style="word-break: break-all;">{_escape(log["user_agent"][:60])}</td>
-            <td>{format_timestamp(log["timestamp"], time_only=True)}</td>
+        "\n".join([f"""<tr class="ip-row" data-ip="{_escape(activity["ip"])}">
+            <td class="ip-clickable">{_escape(activity["ip"])}</td>
+            <td>{_escape(activity["type"])}</td>
+            <td>{_escape(activity["path"])}</td>
+            <td style="word-break: break-all;">{_escape(activity["details"])}</td>
+            <td>{format_timestamp(activity["timestamp"], time_only=True)}</td>
         </tr>
-        <tr class="ip-stats-row" id="stats-row-suspicious-{_escape(log["ip"]).replace(".", "-")}" style="display: none;">
-            <td colspan="4" class="ip-stats-cell">
+        <tr class="ip-stats-row" id="stats-row-suspicious-{_escape(activity["ip"]).replace(".", "-")}-{suspicious_activities.index(activity)}" style="display: none;">
+            <td colspan="5" class="ip-stats-cell">
                 <div class="ip-stats-dropdown">
                     <div class="loading">Loading stats...</div>
                 </div>
             </td>
-        </tr>""" for log in stats["recent_suspicious"][-10:]])
-        or '<tr><td colspan="4" style="text-align:center;">No suspicious activity detected</td></tr>'
+        </tr>""" for activity in suspicious_activities])
+        or '<tr><td colspan="5" style="text-align:center;">No suspicious activity detected</td></tr>'
     )
 
     return f"""<!DOCTYPE html>
@@ -708,6 +753,91 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             max-height: 400px;
         }}
 
+        /* Raw Request Modal */
+        .raw-request-modal {{
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            overflow: auto;
+        }}
+        .raw-request-modal-content {{
+            background-color: #161b22;
+            margin: 5% auto;
+            padding: 0;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            width: 80%;
+            max-width: 900px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }}
+        .raw-request-modal-header {{
+            padding: 16px 20px;
+            background-color: #21262d;
+            border-bottom: 1px solid #30363d;
+            border-radius: 6px 6px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }}
+        .raw-request-modal-header h3 {{
+            margin: 0;
+            color: #58a6ff;
+            font-size: 16px;
+        }}
+        .raw-request-modal-close {{
+            color: #8b949e;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 20px;
+            transition: color 0.2s;
+        }}
+        .raw-request-modal-close:hover {{
+            color: #c9d1d9;
+        }}
+        .raw-request-modal-body {{
+            padding: 20px;
+        }}
+        .raw-request-content {{
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 16px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            color: #c9d1d9;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }}
+        .raw-request-modal-footer {{
+            padding: 16px 20px;
+            background-color: #21262d;
+            border-top: 1px solid #30363d;
+            border-radius: 0 0 6px 6px;
+            text-align: right;
+        }}
+        .raw-request-download-btn {{
+            padding: 8px 16px;
+            background: #238636;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }}
+        .raw-request-download-btn:hover {{
+            background: #2ea043;
+        }}
+
         /* Mobile Optimization - Tablets (768px and down) */
         @media (max-width: 768px) {{
             body {{
@@ -1100,8 +1230,9 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                 <thead>
                     <tr>
                         <th>IP Address</th>
+                        <th>Type</th>
                         <th>Path</th>
-                        <th>User-Agent</th>
+                        <th>Details</th>
                         <th>Time</th>
                     </tr>
                 </thead>
@@ -1311,10 +1442,11 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                         <th>Attack Types</th>
                         <th>User-Agent</th>
                         <th class="sortable" data-sort="timestamp" data-table="attacks">Time</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="attacks-tbody">
-                    <tr><td colspan="6" style="text-align: center;">Loading...</td></tr>
+                    <tr><td colspan="7" style="text-align: center;">Loading...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -1335,6 +1467,23 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                 <button class="ip-detail-close" onclick="closeIpDetailModal()">×</button>
                 <div id="ip-detail-body">
                     <!-- Dynamically populated -->
+                </div>
+            </div>
+        </div>
+
+        <div id="raw-request-modal" class="raw-request-modal">
+            <div class="raw-request-modal-content">
+                <div class="raw-request-modal-header">
+                    <h3>Raw HTTP Request</h3>
+                    <span class="raw-request-modal-close" onclick="closeRawRequestModal()">&times;</span>
+                </div>
+                <div class="raw-request-modal-body">
+                    <div id="raw-request-content" class="raw-request-content">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+                <div class="raw-request-modal-footer">
+                    <button class="raw-request-download-btn" onclick="downloadRawRequest()">Download as .txt</button>
                 </div>
             </div>
         </div>
@@ -2270,7 +2419,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             'top-ips': {{ endpoint: 'top-ips', dataKey: 'ips', cellCount: 3, columns: ['ip', 'count'] }},
             'top-paths': {{ endpoint: 'top-paths', dataKey: 'paths', cellCount: 3, columns: ['path', 'count'] }},
             'top-ua': {{ endpoint: 'top-user-agents', dataKey: 'user_agents', cellCount: 3, columns: ['user_agent', 'count'] }},
-            attacks: {{ endpoint: 'attack-types', dataKey: 'attacks', cellCount: 6, columns: ['ip', 'path', 'attack_types', 'user_agent', 'timestamp'] }}
+            attacks: {{ endpoint: 'attack-types', dataKey: 'attacks', cellCount: 7, columns: ['ip', 'path', 'attack_types', 'user_agent', 'timestamp', 'raw_request'] }}
         }};
 
         // Load overview table on page load
@@ -2344,9 +2493,12 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     }} else if (tableId === 'top-ua') {{
                         html += `<tr><td class="rank">${{rank}}</td><td style="word-break: break-all;">${{item.user_agent.substring(0, 80)}}</td><td>${{item.count}}</td></tr>`;
                     }} else if (tableId === 'attacks') {{
-                        html += `<tr class="ip-row" data-ip="${{item.ip}}"><td class="rank">${{rank}}</td><td class="ip-clickable">${{item.ip}}</td><td>${{item.path}}</td><td>${{item.attack_types.join(', ')}}</td><td style="word-break: break-all;">${{item.user_agent.substring(0, 60)}}</td><td>${{formatTimestamp(item.timestamp, true)}}</td></tr>`;
+                        const actionBtn = item.raw_request 
+                            ? `<button class="action-btn" onclick="viewRawRequest(${{item.id}})" style="padding: 4px 8px; background: #0969da; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">View Request</button>`
+                            : `<span style="color: #6e7681; font-size: 11px;">N/A</span>`;
+                        html += `<tr class="ip-row" data-ip="${{item.ip}}"><td class="rank">${{rank}}</td><td class="ip-clickable">${{item.ip}}</td><td>${{item.path}}</td><td>${{item.attack_types.join(', ')}}</td><td style="word-break: break-all;">${{item.user_agent.substring(0, 60)}}</td><td>${{formatTimestamp(item.timestamp, true)}}</td><td>${{actionBtn}}</td></tr>`;
                         html += `<tr class="ip-stats-row" id="stats-row-attacks-${{item.ip.replace(/\\./g, '-')}}" style="display: none;">
-                            <td colspan="6" class="ip-stats-cell">
+                            <td colspan="7" class="ip-stats-cell">
                                 <div class="ip-stats-dropdown">
                                     <div class="loading">Loading stats...</div>
                                 </div>
@@ -2924,7 +3076,8 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                 const canvas = document.getElementById('attack-types-chart');
                 if (!canvas) return;
 
-                const response = await fetch(DASHBOARD_PATH + '/api/attack-types?page=1&page_size=100', {{
+                // Use the new efficient aggregated endpoint
+                const response = await fetch(DASHBOARD_PATH + '/api/attack-types-stats?limit=20', {{
                     cache: 'no-store',
                     headers: {{
                         'Cache-Control': 'no-cache',
@@ -2932,38 +3085,19 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     }}
                 }});
 
-                if (!response.ok) throw new Error('Failed to fetch attack types');
+                if (!response.ok) throw new Error('Failed to fetch attack types stats');
 
                 const data = await response.json();
-                const attacks = data.attacks || [];
+                const attackTypes = data.attack_types || [];
 
-                if (attacks.length === 0) {{
+                if (attackTypes.length === 0) {{
                     canvas.style.display = 'none';
                     return;
                 }}
 
-                // Aggregate attack types
-                const attackCounts = {{}};
-                attacks.forEach(attack => {{
-                    if (attack.attack_types && Array.isArray(attack.attack_types)) {{
-                        attack.attack_types.forEach(type => {{
-                            attackCounts[type] = (attackCounts[type] || 0) + 1;
-                        }});
-                    }}
-                }});
-
-                // Sort and get top 10
-                const sortedAttacks = Object.entries(attackCounts)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 10);
-
-                if (sortedAttacks.length === 0) {{
-                    canvas.style.display = 'none';
-                    return;
-                }}
-
-                const labels = sortedAttacks.map(([type]) => type);
-                const counts = sortedAttacks.map(([, count]) => count);
+                // Data is already aggregated and sorted from the database
+                const labels = attackTypes.slice(0, 10).map(item => item.type);
+                const counts = attackTypes.slice(0, 10).map(item => item.count);
                 const maxCount = Math.max(...counts);
 
                 // Enhanced color palette with gradients
@@ -3135,6 +3269,64 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                 attackTypesChartLoaded = true;
             }} catch (err) {{
                 console.error('Error loading attack types chart:', err);
+            }}
+        }}
+
+        // Raw Request Modal functions
+        let currentRawRequest = '';
+
+        async function viewRawRequest(logId) {{
+            try {{
+                const response = await fetch(`${{DASHBOARD_PATH}}/api/raw-request/${{logId}}`, {{
+                    cache: 'no-store'
+                }});
+                
+                if (response.status === 404) {{
+                    alert('Raw request not available');
+                    return;
+                }}
+                
+                if (!response.ok) throw new Error('Failed to fetch data');
+                
+                const data = await response.json();
+                
+                if (!data.raw_request) {{
+                    alert('Raw request not available');
+                    return;
+                }}
+
+                currentRawRequest = data.raw_request;
+                document.getElementById('raw-request-content').textContent = currentRawRequest;
+                document.getElementById('raw-request-modal').style.display = 'block';
+            }} catch (err) {{
+                console.error('Error loading raw request:', err);
+                alert('Failed to load raw request');
+            }}
+        }}
+
+        function closeRawRequestModal() {{
+            document.getElementById('raw-request-modal').style.display = 'none';
+        }}
+
+        function downloadRawRequest() {{
+            if (!currentRawRequest) return;
+            
+            const blob = new Blob([currentRawRequest], {{ type: 'text/plain' }});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `raw-request-${{Date.now()}}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }}
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {{
+            const modal = document.getElementById('raw-request-modal');
+            if (event.target === modal) {{
+                closeRawRequestModal();
             }}
         }}
     </script>
