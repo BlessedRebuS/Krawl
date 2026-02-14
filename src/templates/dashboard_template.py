@@ -283,7 +283,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             background: #161b22;
             border: 1px solid #30363d;
             border-radius: 6px;
-            padding: 20px;
+            padding: 12px;
             margin-bottom: 20px;
         }}
         h2 {{
@@ -752,8 +752,30 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
         .leaflet-bottom.leaflet-right {{
             display: none !important;
         }}
+        .charts-container {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }}
+        .chart-section {{
+            display: flex;
+            flex-direction: column;
+        }}
+        .chart-wrapper {{
+            display: flex;
+            flex-direction: column;
+        }}
         #attack-types-chart {{
-            max-height: 400px;
+            max-height: 350px;
+        }}
+        #attack-patterns-chart {{
+            max-height: 350px;
+        }}
+        @media (max-width: 1200px) {{
+            .charts-container {{
+                grid-template-columns: 1fr;
+            }}
         }}
 
         /* Raw Request Modal */
@@ -839,6 +861,132 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
         }}
         .raw-request-download-btn:hover {{
             background: #2ea043;
+        }}
+
+        /* Attack Types Cell Styling */
+        .attack-types-cell {{
+            max-width: 280px;
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            overflow: visible;
+        }}
+        .attack-types-truncated {{
+            display: block;
+            width: 100%;
+            max-width: 280px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #fb8500;
+            font-weight: 500;
+            transition: all 0.2s;
+            position: relative;
+        }}
+        .attack-types-tooltip {{
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 8px;
+            max-width: 400px;
+            word-wrap: break-word;
+            white-space: normal;
+            z-index: 1000;
+            color: #c9d1d9;
+            font-size: 12px;
+            font-weight: normal;
+            display: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            pointer-events: auto;
+        }}
+        .attack-types-cell:hover .attack-types-tooltip {{
+            display: block;
+        }}
+        .attack-types-tooltip::after {{
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 12px;
+            border: 6px solid transparent;
+            border-top-color: #30363d;
+        }}
+        .attack-types-tooltip::before {{
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 13px;
+            border: 5px solid transparent;
+            border-top-color: #0d1117;
+            z-index: 1;
+        }}
+        
+        /* Path Cell Styling for Attack Table */
+        .path-cell-container {{
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+        }}
+        .path-truncated {{
+            display: block;
+            max-width: 250px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+            color: #f85149 !important;
+            font-weight: 500;
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            text-underline-offset: 3px;
+            transition: all 0.2s;
+        }}
+        .path-truncated:hover {{
+            color: #ff7369 !important;
+            text-decoration-style: solid;
+        }}
+        .path-cell-container:hover .path-tooltip {{
+            display: block;
+        }}
+        .path-tooltip {{
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            max-width: 500px;
+            word-wrap: break-word;
+            white-space: normal;
+            z-index: 1000;
+            color: #c9d1d9;
+            font-size: 12px;
+            font-weight: normal;
+            display: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            font-family: 'Courier New', monospace;
+        }}
+        .path-tooltip::after {{
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 12px;
+            border: 6px solid transparent;
+            border-top-color: #30363d;
+        }}
+        .path-tooltip::before {{
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 13px;
+            border: 5px solid transparent;
+            border-top-color: #0d1117;
+            z-index: 1;
         }}
 
         /* Mobile Optimization - Tablets (768px and down) */
@@ -1454,15 +1602,51 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             </table>
         </div>
 
-        <div class="table-container alert-section" style="margin-top: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0;">Most Recurring Attack Types</h2>
-                <div style="font-size: 12px; color: #8b949e;">Top 10 Attack Vectors</div>
+        <div class="charts-container">
+            <div class="chart-section">
+                <div class="table-container alert-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h2 style="margin: 0; font-size: 18px;">Most Recurring Attack Types</h2>
+                        <div style="font-size: 11px; color: #8b949e;">Top 10</div>
+                    </div>
+                    <div style="position: relative; height: 295px;">
+                        <canvas id="attack-types-chart"></canvas>
+                    </div>
+                </div>
             </div>
-            <div style="position: relative; height: 450px; margin-top: 20px;">
-                <canvas id="attack-types-chart"></canvas>
+
+            <div class="chart-section">
+                <div class="table-container alert-section">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <h2 style="margin: 0; font-size: 16px;">Most Recurring Attack Patterns</h2>
+                        <div class="pagination-controls" id="patterns-pagination" style="display: flex; align-items: center; gap: 8px; padding: 0; background: transparent;">
+                            <div style="display: flex; align-items: center; gap: 4px; color: #6e7681; font-weight: 400; font-size: 11px;">
+                                <span>Page <span class="current-page">1</span>/<span class="total-pages">1</span></span>
+                                <span style="color: #6e7681;">•</span>
+                                <span><span class="total-records">0</span> total</span>
+                            </div>
+                            <button class="pagination-btn" onclick="previousPage('patterns')" style="padding: 4px 8px; background: #0969da; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 11px; transition: background 0.2s;">← Prev</button>
+                            <button class="pagination-btn" onclick="nextPage('patterns')" style="padding: 4px 8px; background: #0969da; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 11px; transition: background 0.2s;">Next →</button>
+                        </div>
+                    </div>
+                    <div style="position: relative; height: 295px; overflow-y: auto;">
+                        <table id="patterns-table" class="overview-table" style="font-size: 15px;">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Attack Pattern</th>
+                                    <th>Attack Type</th>
+                                    <th class="sortable" data-sort="count" data-table="patterns">Frequency</th>
+                                    <th>IPs</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patterns-tbody">
+                                <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-        </div>
         </div>
 
         <div id="ip-detail-modal" class="ip-detail-modal">
@@ -2019,6 +2203,10 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     loadOverviewTable('credentials');
                     overviewState.credentials.loaded = true;
                 }}
+                if (!overviewState.patterns.loaded) {{
+                    loadOverviewTable('patterns');
+                    overviewState.patterns.loaded = true;
+                }}
             }}
         }}
 
@@ -2413,7 +2601,8 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             'top-ips': {{ currentPage: 1, totalPages: 1, total: 0, sortBy: 'count', sortOrder: 'desc' }},
             'top-paths': {{ currentPage: 1, totalPages: 1, total: 0, sortBy: 'count', sortOrder: 'desc' }},
             'top-ua': {{ currentPage: 1, totalPages: 1, total: 0, sortBy: 'count', sortOrder: 'desc' }},
-            attacks: {{ currentPage: 1, totalPages: 1, total: 0, sortBy: 'timestamp', sortOrder: 'desc', loaded: false }}
+            attacks: {{ currentPage: 1, totalPages: 1, total: 0, sortBy: 'timestamp', sortOrder: 'desc', loaded: false }},
+            patterns: {{ currentPage: 1, totalPages: 1, total: 0, sortBy: 'count', sortOrder: 'desc', loaded: false }}
         }};
 
         const tableConfig = {{
@@ -2422,7 +2611,8 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             'top-ips': {{ endpoint: 'top-ips', dataKey: 'ips', cellCount: 3, columns: ['ip', 'count'] }},
             'top-paths': {{ endpoint: 'top-paths', dataKey: 'paths', cellCount: 3, columns: ['path', 'count'] }},
             'top-ua': {{ endpoint: 'top-user-agents', dataKey: 'user_agents', cellCount: 3, columns: ['user_agent', 'count'] }},
-            attacks: {{ endpoint: 'attack-types', dataKey: 'attacks', cellCount: 7, columns: ['ip', 'path', 'attack_types', 'user_agent', 'timestamp', 'raw_request'] }}
+            attacks: {{ endpoint: 'attack-types', dataKey: 'attacks', cellCount: 7, columns: ['ip', 'path', 'attack_types', 'user_agent', 'timestamp', 'raw_request'] }},
+            patterns: {{ endpoint: 'attack-patterns', dataKey: 'patterns', cellCount: 5, columns: ['pattern', 'attack_type', 'count', 'ips'] }}
         }};
 
         // Load overview table on page load
@@ -2438,13 +2628,89 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
             tbody.style.opacity = '0';
 
             try {{
-                const url = DASHBOARD_PATH + '/api/' + config.endpoint + '?page=' + state.currentPage + '&page_size=5&sort_by=' + state.sortBy + '&sort_order=' + state.sortOrder;
-                const response = await fetch(url, {{ cache: 'no-store', headers: {{ 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }} }});
-                if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
+                let items;
+                let pagination;
+                
+                // Special handling for attack patterns
+                if (tableId === 'patterns') {{
+                    // Fetch all attacks to extract and aggregate patterns
+                    try {{
+                        const patternsUrl = DASHBOARD_PATH + '/api/attack-types?page=1&page_size=1000&sort_by=timestamp&sort_order=desc';
+                        const patternsResponse = await fetch(patternsUrl, {{ cache: 'no-store', headers: {{ 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }} }});
+                        if (!patternsResponse.ok) throw new Error('Failed to fetch patterns');
+                        
+                        const patternsData = await patternsResponse.json();
+                        const allAttacks = patternsData.attacks || [];
+                        
+                        // Aggregate patterns
+                        const patternMap = {{}};
+                        allAttacks.forEach(attack => {{
+                            // Extract patterns from the path or query
+                            const patterns = [];
+                            if (attack.path && attack.path.length < 200) patterns.push(attack.path);
+                            
+                            patterns.forEach(pattern => {{
+                                if (!patternMap[pattern]) {{
+                                    patternMap[pattern] = {{
+                                        pattern: pattern,
+                                        attack_type: (attack.attack_types && attack.attack_types[0]) || 'Unknown',
+                                        count: 0,
+                                        example_ips: []
+                                    }};
+                                }}
+                                patternMap[pattern].count++;
+                                if (patternMap[pattern].example_ips.indexOf(attack.ip) === -1) {{
+                                    patternMap[pattern].example_ips.push(attack.ip);
+                                }}
+                            }});
+                        }});
+                        
+                        // Convert to sorted array based on current sort preferences
+                        const patternArray = Object.values(patternMap);
+                        
+                        // Apply sorting based on state
+                        patternArray.sort((a, b) => {{
+                            let aValue, bValue;
+                            
+                            if (state.sortBy === 'count') {{
+                                aValue = a.count;
+                                bValue = b.count;
+                                return state.sortOrder === 'desc' ? bValue - aValue : aValue - bValue;
+                            }} else if (state.sortBy === 'pattern') {{
+                                aValue = a.pattern || '';
+                                bValue = b.pattern || '';
+                                return state.sortOrder === 'desc' ? bValue.localeCompare(aValue) : aValue.localeCompare(bValue);
+                            }} else if (state.sortBy === 'attack_type') {{
+                                aValue = a.attack_type || '';
+                                bValue = b.attack_type || '';
+                                return state.sortOrder === 'desc' ? bValue.localeCompare(aValue) : aValue.localeCompare(bValue);
+                            }}
+                            // Default to count desc
+                            return b.count - a.count;
+                        }});
+                        
+                        items = patternArray.slice((state.currentPage - 1) * 5, state.currentPage * 5);
+                        
+                        const totalPatterns = Object.values(patternMap).length;
+                        pagination = {{
+                            page: state.currentPage,
+                            total_pages: Math.ceil(totalPatterns / 5),
+                            total: totalPatterns
+                        }};
+                    }} catch (err) {{
+                        console.error('Error processing patterns:', err);
+                        items = [];
+                        pagination = {{ page: 1, total_pages: 1, total: 0 }};
+                    }}
+                }} else {{
+                    const url = DASHBOARD_PATH + '/api/' + config.endpoint + '?page=' + state.currentPage + '&page_size=5&sort_by=' + state.sortBy + '&sort_order=' + state.sortOrder;
+                    const response = await fetch(url, {{ cache: 'no-store', headers: {{ 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }} }});
+                    if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
 
-                const data = await response.json();
-                const items = data[config.dataKey] || [];
-                const pagination = data.pagination || {{}};
+                    const data = await response.json();
+                    items = data[config.dataKey] || [];
+                    pagination = data.pagination || {{}};
+                }}
 
                 state.currentPage = pagination.page || 1;
                 state.totalPages = pagination.total_pages || 1;
@@ -2499,7 +2765,19 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                         const actionBtn = item.raw_request 
                             ? `<button class="action-btn" onclick="viewRawRequest(${{item.id}})" style="padding: 4px 8px; background: #0969da; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">View Request</button>`
                             : `<span style="color: #6e7681; font-size: 11px;">N/A</span>`;
-                        html += `<tr class="ip-row" data-ip="${{item.ip}}"><td class="rank">${{rank}}</td><td class="ip-clickable">${{item.ip}}</td><td>${{item.path}}</td><td>${{item.attack_types.join(', ')}}</td><td style="word-break: break-all;">${{item.user_agent.substring(0, 60)}}</td><td>${{formatTimestamp(item.timestamp, true)}}</td><td>${{actionBtn}}</td></tr>`;
+                        const attackTypesStr = item.attack_types.join(', ');
+                        const itemId = item.id || '';
+                        const attackTypesHtml = `<div class="attack-types-cell" title="${{attackTypesStr}}">
+                            <div class="attack-types-truncated">${{attackTypesStr}}</div>
+                            ${{attackTypesStr.length > 50 ? `<div class="attack-types-tooltip">${{attackTypesStr}}</div>` : ''}}
+                        </div>`;
+                        const pathStr = item.path || '';
+                        const truncatedPath = pathStr.length > 50 ? pathStr.substring(0, 47) + '...' : pathStr;
+                        const pathHtml = `<div class="path-cell-container" onclick="event.stopPropagation(); viewRawRequest(${{itemId}})">
+                            <div class="path-truncated" title="Click to view raw request">${{truncatedPath}}</div>
+                            ${{pathStr.length > 50 ? `<div class="path-tooltip">${{pathStr}}</div>` : ''}}
+                        </div>`;
+                        html += `<tr class="ip-row" data-ip="${{item.ip}}"><td class="rank">${{rank}}</td><td class="ip-clickable">${{item.ip}}</td><td>${{pathHtml}}</td><td>${{attackTypesHtml}}</td><td style="word-break: break-all;">${{item.user_agent.substring(0, 60)}}</td><td>${{formatTimestamp(item.timestamp, true)}}</td><td>${{actionBtn}}</td></tr>`;
                         html += `<tr class="ip-stats-row" id="stats-row-attacks-${{item.ip.replace(/\\./g, '-')}}" style="display: none;">
                             <td colspan="7" class="ip-stats-cell">
                                 <div class="ip-stats-dropdown">
@@ -2507,6 +2785,11 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                                 </div>
                             </td>
                         </tr>`;
+                    }} else if (tableId === 'patterns') {{
+                        const patternStr = item.pattern || '(empty)';
+                        const exampleIps = item.example_ips ? item.example_ips.slice(0, 3).join(', ') : 'N/A';
+                        const ipText = item.example_ips && item.example_ips.length > 3 ? exampleIps + '...' : exampleIps;
+                        html += `<tr><td class="rank">${{rank}}</td><td title="${{patternStr}}" style="word-break: break-all;">${{patternStr.substring(0, 60)}}</td><td>${{item.attack_type || 'Unknown'}}</td><td style="color: #f85149; font-weight: bold;">${{item.count}}</td><td style="font-size: 11px; color: #8b949e;">${{ipText}}</td></tr>`;
                     }}
                 }});
 
@@ -3079,8 +3362,7 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                 const canvas = document.getElementById('attack-types-chart');
                 if (!canvas) return;
 
-                // Use the new efficient aggregated endpoint
-                const response = await fetch(DASHBOARD_PATH + '/api/attack-types-stats?limit=20', {{
+                const response = await fetch(DASHBOARD_PATH + '/api/attack-types?page=1&page_size=100', {{
                     cache: 'no-store',
                     headers: {{
                         'Cache-Control': 'no-cache',
@@ -3088,64 +3370,69 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                     }}
                 }});
 
-                if (!response.ok) throw new Error('Failed to fetch attack types stats');
-
+                if (!response.ok) throw new Error('Failed to fetch attack types');
+                
                 const data = await response.json();
-                const attackTypes = data.attack_types || [];
+                const attacks = data.attacks || [];
 
-                if (attackTypes.length === 0) {{
+                if (attacks.length === 0) {{
                     canvas.style.display = 'none';
                     return;
                 }}
 
-                // Data is already aggregated and sorted from the database
-                const labels = attackTypes.slice(0, 10).map(item => item.type);
-                const counts = attackTypes.slice(0, 10).map(item => item.count);
+                // Aggregate attack types
+                const attackCounts = {{}};
+                attacks.forEach(attack => {{
+                    if (attack.attack_types && Array.isArray(attack.attack_types)) {{
+                        attack.attack_types.forEach(type => {{
+                            attackCounts[type] = (attackCounts[type] || 0) + 1;
+                        }});
+                    }}
+                }});
+
+                // Sort and get top 10
+                const sortedAttacks = Object.entries(attackCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10);
+
+                if (sortedAttacks.length === 0) {{
+                    canvas.style.display = 'none';
+                    return;
+                }}
+
+                const labels = sortedAttacks.map(([type]) => type);
+                const counts = sortedAttacks.map(([, count]) => count);
                 const maxCount = Math.max(...counts);
 
-                // Enhanced color palette with gradients
-                const colorMap = {{
-                    'SQL Injection': 'rgba(233, 105, 113, 0.85)',
-                    'XSS': 'rgba(240, 136, 62, 0.85)',
-                    'Directory Traversal': 'rgba(248, 150, 56, 0.85)',
-                    'Command Injection': 'rgba(229, 229, 16, 0.85)',
-                    'Path Traversal': 'rgba(123, 201, 71, 0.85)',
-                    'Malware': 'rgba(88, 166, 255, 0.85)',
-                    'Brute Force': 'rgba(79, 161, 246, 0.85)',
-                    'DDoS': 'rgba(139, 148, 244, 0.85)',
-                    'CSRF': 'rgba(188, 140, 258, 0.85)',
-                    'File Upload': 'rgba(241, 107, 223, 0.85)'
-                }};
+                // Hash function to generate consistent color from string
+                function hashCode(str) {{
+                    let hash = 0;
+                    for (let i = 0; i < str.length; i++) {{
+                        const char = str.charCodeAt(i);
+                        hash = ((hash << 5) - hash) + char;
+                        hash = hash & hash; // Convert to 32bit integer
+                    }}
+                    return Math.abs(hash);
+                }}
 
-                const borderColorMap = {{
-                    'SQL Injection': 'rgba(233, 105, 113, 1)',
-                    'XSS': 'rgba(240, 136, 62, 1)',
-                    'Directory Traversal': 'rgba(248, 150, 56, 1)',
-                    'Command Injection': 'rgba(229, 229, 16, 1)',
-                    'Path Traversal': 'rgba(123, 201, 71, 1)',
-                    'Malware': 'rgba(88, 166, 255, 1)',
-                    'Brute Force': 'rgba(79, 161, 246, 1)',
-                    'DDoS': 'rgba(139, 148, 244, 1)',
-                    'CSRF': 'rgba(188, 140, 258, 1)',
-                    'File Upload': 'rgba(241, 107, 223, 1)'
-                }};
+                // Dynamic color generator based on hash
+                function generateColorFromHash(label) {{
+                    const hash = hashCode(label);
+                    const hue = (hash % 360); // 0-360 for hue
+                    const saturation = 70 + (hash % 20); // 70-90 for vibrant colors
+                    const lightness = 50 + (hash % 10); // 50-60 for brightness
+                    
+                    const bgColor = `hsl(${{hue}}, ${{saturation}}%, ${{lightness}}%)`;
+                    const borderColor = `hsl(${{hue}}, ${{saturation + 5}}%, ${{lightness - 10}}%)`; // Darker border
+                    const hoverColor = `hsl(${{hue}}, ${{saturation - 10}}%, ${{lightness + 8}}%)`; // Lighter hover
+                    
+                    return {{ bg: bgColor, border: borderColor, hover: hoverColor }};
+                }}
 
-                const hoverColorMap = {{
-                    'SQL Injection': 'rgba(233, 105, 113, 1)',
-                    'XSS': 'rgba(240, 136, 62, 1)',
-                    'Directory Traversal': 'rgba(248, 150, 56, 1)',
-                    'Command Injection': 'rgba(229, 229, 16, 1)',
-                    'Path Traversal': 'rgba(123, 201, 71, 1)',
-                    'Malware': 'rgba(88, 166, 255, 1)',
-                    'Brute Force': 'rgba(79, 161, 246, 1)',
-                    'DDoS': 'rgba(139, 148, 244, 1)',
-                    'CSRF': 'rgba(188, 140, 258, 1)',
-                    'File Upload': 'rgba(241, 107, 223, 1)'
-                }};
-
-                const backgroundColors = labels.map(label => colorMap[label] || 'rgba(88, 166, 255, 0.85)');
-                const borderColors = labels.map(label => borderColorMap[label] || 'rgba(88, 166, 255, 1)');
-                const hoverColors = labels.map(label => hoverColorMap[label] || 'rgba(88, 166, 255, 1)');
+                // Generate colors dynamically for each attack type
+                const backgroundColors = labels.map(label => generateColorFromHash(label).bg);
+                const borderColors = labels.map(label => generateColorFromHash(label).border);
+                const hoverColors = labels.map(label => generateColorFromHash(label).hover);
 
                 // Create or update chart
                 if (attackTypesChart) {{
@@ -3154,25 +3441,46 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
 
                 const ctx = canvas.getContext('2d');
                 attackTypesChart = new Chart(ctx, {{
-                    type: 'bar',
+                    type: 'doughnut',
                     data: {{
                         labels: labels,
                         datasets: [{{
                             data: counts,
                             backgroundColor: backgroundColors,
-                            borderColor: borderColors,
-                            borderWidth: 2,
-                            borderRadius: 6,
-                            borderSkipped: false
+                            borderColor: '#0d1117',
+                            borderWidth: 3,
+                            hoverBorderColor: '#58a6ff',
+                            hoverBorderWidth: 4,
+                            hoverOffset: 10
                         }}]
                     }},
                     options: {{
                         responsive: true,
                         maintainAspectRatio: false,
-                        indexAxis: 'y',
                         plugins: {{
                             legend: {{
-                                display: false
+                                position: 'right',
+                                labels: {{
+                                    color: '#c9d1d9',
+                                    font: {{
+                                        size: 12,
+                                        weight: '500',
+                                        family: "'Segoe UI', Tahoma, Geneva, Verdana"
+                                    }},
+                                    padding: 16,
+                                    usePointStyle: true,
+                                    pointStyle: 'circle',
+                                    generateLabels: (chart) => {{
+                                        const data = chart.data;
+                                        return data.labels.map((label, i) => ({{
+                                            text: `${{label}} (${{data.datasets[0].data[i]}})`,
+                                            fillStyle: data.datasets[0].backgroundColor[i],
+                                            hidden: false,
+                                            index: i,
+                                            pointStyle: 'circle'
+                                        }}));
+                                    }}
+                                }}
                             }},
                             tooltip: {{
                                 enabled: true,
@@ -3182,7 +3490,6 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                                 borderColor: '#58a6ff',
                                 borderWidth: 2,
                                 padding: 14,
-                                displayColors: false,
                                 titleFont: {{
                                     size: 14,
                                     weight: 'bold',
@@ -3195,61 +3502,16 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
                                 caretSize: 8,
                                 caretPadding: 12,
                                 callbacks: {{
-                                    title: function(context) {{
-                                        return '';
-                                    }},
                                     label: function(context) {{
-                                        return context.parsed.x;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                        return `${{context.label}}: ${{percentage}}%`;
                                     }}
-                                }}
-                            }}
-                        }},
-                        scales: {{
-                            x: {{
-                                beginAtZero: true,
-                                ticks: {{
-                                    color: '#8b949e',
-                                    font: {{
-                                        size: 12,
-                                        weight: '500'
-                                    }}
-                                }},
-                                grid: {{
-                                    color: 'rgba(48, 54, 61, 0.4)',
-                                    drawBorder: false,
-                                    drawTicks: false
-                                }}
-                            }},
-                            y: {{
-                                ticks: {{
-                                    color: '#c9d1d9',
-                                    font: {{
-                                        size: 13,
-                                        weight: '600'
-                                    }},
-                                    padding: 12,
-                                    callback: function(value, index) {{
-                                        const label = this.getLabelForValue(value);
-                                        const maxLength = 25;
-                                        return label.length > maxLength ? label.substring(0, maxLength) + '…' : label;
-                                    }}
-                                }},
-                                grid: {{
-                                    display: false,
-                                    drawBorder: false
                                 }}
                             }}
                         }},
                         animation: {{
-                            duration: 1000,
-                            easing: 'easeInOutQuart',
-                            delay: (context) => {{
-                                let delay = 0;
-                                if (context.type === 'data') {{
-                                    delay = context.dataIndex * 50 + context.datasetIndex * 100;
-                                }}
-                                return delay;
-                            }}
+                            enabled: false
                         }},
                         onHover: (event, activeElements) => {{
                             canvas.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
