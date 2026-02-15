@@ -1,7 +1,4 @@
-from sqlalchemy import select
-from typing import Optional
-from database import get_database, DatabaseManager
-from zoneinfo import ZoneInfo
+from database import get_database
 from pathlib import Path
 from datetime import datetime, timedelta
 import re
@@ -9,8 +6,6 @@ import urllib.parse
 from wordlists import get_wordlists
 from config import get_config
 from logger import get_app_logger
-import requests
-from sanitizer import sanitize_for_storage, sanitize_dict
 
 # ----------------------
 # TASK CONFIG

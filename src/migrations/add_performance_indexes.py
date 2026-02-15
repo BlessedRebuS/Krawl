@@ -12,17 +12,19 @@ import os
 
 def index_exists(cursor, index_name: str) -> bool:
     """Check if an index exists."""
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='index' AND name=?", (index_name,))
+    cursor.execute(
+        "SELECT name FROM sqlite_master WHERE type='index' AND name=?", (index_name,)
+    )
     return cursor.fetchone() is not None
 
 
 def add_performance_indexes(db_path: str) -> bool:
     """
     Add performance indexes to optimize queries.
-    
+
     Args:
         db_path: Path to the SQLite database file
-        
+
     Returns:
         True if indexes were added or already exist, False on error
     """
@@ -31,14 +33,14 @@ def add_performance_indexes(db_path: str) -> bool:
         if not os.path.exists(db_path):
             print(f"Database file not found: {db_path}")
             return False
-            
+
         # Connect to database
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
-        
+
         indexes_added = []
         indexes_existed = []
-        
+
         # Index 1: attack_type for efficient GROUP BY operations
         if not index_exists(cursor, "ix_attack_detections_attack_type"):
             print("Adding index on attack_detections.attack_type...")
@@ -49,10 +51,12 @@ def add_performance_indexes(db_path: str) -> bool:
             indexes_added.append("ix_attack_detections_attack_type")
         else:
             indexes_existed.append("ix_attack_detections_attack_type")
-        
+
         # Index 2: Composite index for attack_type + access_log_id
         if not index_exists(cursor, "ix_attack_detections_type_log"):
-            print("Adding composite index on attack_detections(attack_type, access_log_id)...")
+            print(
+                "Adding composite index on attack_detections(attack_type, access_log_id)..."
+            )
             cursor.execute("""
                 CREATE INDEX ix_attack_detections_type_log 
                 ON attack_detections(attack_type, access_log_id)
@@ -60,26 +64,26 @@ def add_performance_indexes(db_path: str) -> bool:
             indexes_added.append("ix_attack_detections_type_log")
         else:
             indexes_existed.append("ix_attack_detections_type_log")
-        
+
         conn.commit()
         conn.close()
-        
+
         # Report results
         if indexes_added:
             print(f"Successfully added {len(indexes_added)} index(es):")
             for idx in indexes_added:
                 print(f"   - {idx}")
-        
+
         if indexes_existed:
             print(f"ℹ️  {len(indexes_existed)} index(es) already existed:")
             for idx in indexes_existed:
                 print(f"   - {idx}")
-        
+
         if not indexes_added and not indexes_existed:
             print("No indexes processed")
-            
+
         return True
-        
+
     except sqlite3.Error as e:
         print(f"SQLite error: {e}")
         return False
@@ -92,19 +96,17 @@ def main():
     """Main migration function."""
     # Default database path
     default_db_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), 
-        "data", 
-        "krawl.db"
+        os.path.dirname(os.path.dirname(__file__)), "data", "krawl.db"
     )
-    
+
     # Allow custom path as command line argument
     db_path = sys.argv[1] if len(sys.argv) > 1 else default_db_path
-    
+
     print(f"Adding performance indexes to database: {db_path}")
     print("=" * 60)
-    
+
     success = add_performance_indexes(db_path)
-    
+
     print("=" * 60)
     if success:
         print("Migration completed successfully")

@@ -39,7 +39,7 @@ def main():
         metadata.reflect(bind=engine)
 
         # create backup directory
-        os.makedirs(config.backups_path,exist_ok=True)
+        os.makedirs(config.backups_path, exist_ok=True)
         output_file = os.path.join(config.backups_path, "db_dump.sql")
 
         with open(output_file, "w") as f:

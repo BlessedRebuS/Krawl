@@ -1697,7 +1697,7 @@ class DatabaseManager:
             results = (
                 session.query(
                     AttackDetection.attack_type,
-                    func.count(AttackDetection.id).label('count')
+                    func.count(AttackDetection.id).label("count"),
                 )
                 .group_by(AttackDetection.attack_type)
                 .order_by(func.count(AttackDetection.id).desc())
@@ -1707,8 +1707,7 @@ class DatabaseManager:
 
             return {
                 "attack_types": [
-                    {"type": row.attack_type, "count": row.count}
-                    for row in results
+                    {"type": row.attack_type, "count": row.count} for row in results
                 ]
             }
         finally:

@@ -64,9 +64,7 @@ class AccessLog(Base):
         DateTime, nullable=False, default=datetime.utcnow, index=True
     )
     # Raw HTTP request for forensic analysis (nullable for backward compatibility)
-    raw_request: Mapped[Optional[str]] = mapped_column(
-        String, nullable=True
-    )
+    raw_request: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     # Relationship to attack detections
     attack_detections: Mapped[List["AttackDetection"]] = relationship(
@@ -141,7 +139,9 @@ class AttackDetection(Base):
     )
 
     # Composite index for efficient aggregation queries
-    __table_args__ = (Index("ix_attack_detections_type_log", "attack_type", "access_log_id"),)
+    __table_args__ = (
+        Index("ix_attack_detections_type_log", "attack_type", "access_log_id"),
+    )
 
     def __repr__(self) -> str:
         return f"<AttackDetection(id={self.id}, type='{self.attack_type}')>"

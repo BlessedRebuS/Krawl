@@ -161,13 +161,24 @@ class AccessTracker:
         except Exception:
             # If parsing fails, try simple regex patterns
             wl = get_wordlists()
-            username_fields = wl.username_fields or ["username", "user", "login", "email", "log"]
-            password_fields = wl.password_fields or ["password", "pass", "passwd", "pwd"]
-            
+            username_fields = wl.username_fields or [
+                "username",
+                "user",
+                "login",
+                "email",
+                "log",
+            ]
+            password_fields = wl.password_fields or [
+                "password",
+                "pass",
+                "passwd",
+                "pwd",
+            ]
+
             # Build regex pattern from wordlist fields
             username_pattern = "(?:" + "|".join(username_fields) + ")=([^&\\s]+)"
             password_pattern = "(?:" + "|".join(password_fields) + ")=([^&\\s]+)"
-            
+
             username_match = re.search(username_pattern, post_data, re.IGNORECASE)
             password_match = re.search(password_pattern, post_data, re.IGNORECASE)
 

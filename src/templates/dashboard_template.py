@@ -50,51 +50,63 @@ def generate_dashboard(stats: dict, dashboard_path: str = "") -> str:
 
     # Generate comprehensive suspicious activity rows combining all suspicious events
     suspicious_activities = []
-    
+
     # Add recent suspicious accesses (attacks)
     for log in stats.get("recent_suspicious", [])[-20:]:
-        suspicious_activities.append({
-            "type": "Attack",
-            "ip": log["ip"],
-            "path": log["path"],
-            "user_agent": log["user_agent"][:60],
-            "timestamp": log["timestamp"],
-            "details": ", ".join(log.get("attack_types", [])) if log.get("attack_types") else "Suspicious behavior"
-        })
-    
+        suspicious_activities.append(
+            {
+                "type": "Attack",
+                "ip": log["ip"],
+                "path": log["path"],
+                "user_agent": log["user_agent"][:60],
+                "timestamp": log["timestamp"],
+                "details": (
+                    ", ".join(log.get("attack_types", []))
+                    if log.get("attack_types")
+                    else "Suspicious behavior"
+                ),
+            }
+        )
+
     # Add credential attempts
     for cred in stats.get("credential_attempts", [])[-20:]:
-        suspicious_activities.append({
-            "type": "Credentials",
-            "ip": cred["ip"],
-            "path": cred["path"],
-            "user_agent": "",
-            "timestamp": cred["timestamp"],
-            "details": f"User: {cred.get('username', 'N/A')}"
-        })
-    
+        suspicious_activities.append(
+            {
+                "type": "Credentials",
+                "ip": cred["ip"],
+                "path": cred["path"],
+                "user_agent": "",
+                "timestamp": cred["timestamp"],
+                "details": f"User: {cred.get('username', 'N/A')}",
+            }
+        )
+
     # Add honeypot triggers
     for honeypot in stats.get("honeypot_triggered_ips", [])[-20:]:
         # honeypot is a tuple (ip, paths)
         ip = honeypot[0]
         paths = honeypot[1] if isinstance(honeypot[1], list) else []
-        suspicious_activities.append({
-            "type": "Honeypot",
-            "ip": ip,
-            "path": paths[0] if paths else "Multiple",
-            "user_agent": "",
-            "timestamp": "",  # Tuples don't have timestamp
-            "details": f"{len(paths)} trap(s) triggered"
-        })
-    
+        suspicious_activities.append(
+            {
+                "type": "Honeypot",
+                "ip": ip,
+                "path": paths[0] if paths else "Multiple",
+                "user_agent": "",
+                "timestamp": "",  # Tuples don't have timestamp
+                "details": f"{len(paths)} trap(s) triggered",
+            }
+        )
+
     # Sort by timestamp (most recent first) and take last 20
     # Put entries with empty timestamps at the end
     try:
-        suspicious_activities.sort(key=lambda x: (x["timestamp"] == "", x["timestamp"]), reverse=True)
+        suspicious_activities.sort(
+            key=lambda x: (x["timestamp"] == "", x["timestamp"]), reverse=True
+        )
     except:
         pass
     suspicious_activities = suspicious_activities[:20]
-    
+
     # Generate table rows
     suspicious_rows = (
         "\n".join([f"""<tr class="ip-row" data-ip="{_escape(activity["ip"])}">
