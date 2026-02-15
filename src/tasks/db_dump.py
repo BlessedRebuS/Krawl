@@ -3,7 +3,7 @@
 from logger import get_app_logger
 from database import get_database
 from config import get_config
-from sqlalchemy import MetaData, inspect
+from sqlalchemy import MetaData
 from sqlalchemy.schema import CreateTable
 import os
 
@@ -36,17 +36,15 @@ def main():
         engine = db._engine
 
         metadata = MetaData()
-
-        # Reflect the database structure
         metadata.reflect(bind=engine)
+
+        # create backup directory
+        os.makedirs(config.backups_path,exist_ok=True)
         output_file = os.path.join(config.backups_path, "db_dump.sql")
 
         with open(output_file, "w") as f:
             # Write header
             app_logger.info(f"[Background Task] {task_name} started database dump")
-
-            # Get inspector for additional metadata
-            inspector = inspect(engine)
 
             # Dump schema (CREATE TABLE statements)
             f.write("-- Schema\n")
