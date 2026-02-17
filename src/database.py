@@ -1644,11 +1644,16 @@ class DatabaseManager:
                 sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
             )
 
-            # Count total attacks first (efficient)
-            total_attacks = session.query(AccessLog).join(AttackDetection).count()
+            # Count total unique access logs with attack detections
+            total_attacks = (
+                session.query(AccessLog)
+                .join(AttackDetection)
+                .distinct(AccessLog.id)
+                .count()
+            )
 
             # Get paginated access logs with attack detections
-            query = session.query(AccessLog).join(AttackDetection)
+            query = session.query(AccessLog).join(AttackDetection).distinct(AccessLog.id)
 
             if sort_by == "timestamp":
                 query = query.order_by(
@@ -1660,9 +1665,6 @@ class DatabaseManager:
                 query = query.order_by(
                     AccessLog.ip.desc() if sort_order == "desc" else AccessLog.ip.asc()
                 )
-            # Note: attack_type sorting requires loading all data, so we skip it for performance
-            # elif sort_by == "attack_type":
-            #     Can't efficiently sort by related table field
 
             # Apply LIMIT and OFFSET at database level
             logs = query.offset(offset).limit(page_size).all()
