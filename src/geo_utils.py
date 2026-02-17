@@ -9,13 +9,13 @@ from logger import get_app_logger
 
 app_logger = get_app_logger()
 
-# Cache for IP geolocation data to avoid repeated API calls
-_geoloc_cache = {}
-
 
 def fetch_ip_geolocation(ip_address: str) -> Optional[Dict[str, Any]]:
     """
     Fetch geolocation data for an IP address using ip-api.com.
+
+    Results are persisted to the database by the caller (fetch_ip_rep task),
+    so no in-memory caching is needed.
 
     Args:
         ip_address: IP address to lookup
@@ -23,12 +23,7 @@ def fetch_ip_geolocation(ip_address: str) -> Optional[Dict[str, Any]]:
     Returns:
         Dictionary containing geolocation data or None if lookup fails
     """
-    # Check cache first
-    if ip_address in _geoloc_cache:
-        return _geoloc_cache[ip_address]
-    # This is now replacing lcrawl to fetch IP data like latitude/longitude, city, etc...
     try:
-        # Use ip-api.com API for geolocation
         url = f"http://ip-api.com/json/{ip_address}"
         params = {
             "fields": "status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,reverse,mobile,proxy,hosting,query"
@@ -39,15 +34,11 @@ def fetch_ip_geolocation(ip_address: str) -> Optional[Dict[str, Any]]:
 
         data = response.json()
 
-        # Check if the API call was successful
         if data.get("status") != "success":
             app_logger.warning(
                 f"IP lookup failed for {ip_address}: {data.get('message')}"
             )
             return None
-
-        # Cache the result
-        _geoloc_cache[ip_address] = data
 
         app_logger.debug(f"Fetched geolocation for {ip_address}")
         return data
