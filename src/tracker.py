@@ -641,29 +641,27 @@ class AccessTracker:
 
         # Clean expired ban entries from ip_page_visits
         current_time = datetime.now()
-        ips_to_clean = []
         for ip, data in self.ip_page_visits.items():
             ban_timestamp = data.get("ban_timestamp")
             if ban_timestamp is not None:
                 try:
                     ban_time = datetime.fromisoformat(ban_timestamp)
                     time_diff = (current_time - ban_time).total_seconds()
-                    if time_diff > self.ban_duration_seconds:
-                        # Ban expired, reset the entry
+                    effective_duration = self.ban_duration_seconds * data.get("ban_multiplier", 1)
+                    if time_diff > effective_duration:
                         data["count"] = 0
                         data["ban_timestamp"] = None
                 except (ValueError, TypeError):
                     pass
 
-        # Optional: Remove IPs with zero activity (advanced cleanup)
-        # Comment out to keep indefinite history of zero-activity IPs
-        # ips_to_remove = [
-        #     ip
-        #     for ip, data in self.ip_page_visits.items()
-        #     if data.get("count", 0) == 0 and data.get("ban_timestamp") is None
-        # ]
-        # for ip in ips_to_remove:
-        #     del self.ip_page_visits[ip]
+        # Remove IPs with zero activity and no active ban
+        ips_to_remove = [
+            ip
+            for ip, data in self.ip_page_visits.items()
+            if data.get("count", 0) == 0 and data.get("ban_timestamp") is None
+        ]
+        for ip in ips_to_remove:
+            del self.ip_page_visits[ip]
 
     def get_memory_stats(self) -> Dict[str, int]:
         """

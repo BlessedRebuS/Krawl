@@ -1009,6 +1009,27 @@ class DatabaseManager:
         finally:
             self.close_session()
 
+    def _public_ip_filter(self, query, ip_column, server_ip: Optional[str] = None):
+        """Apply SQL-level filters to exclude local/private IPs and server IP."""
+        query = query.filter(
+            ~ip_column.like("10.%"),
+            ~ip_column.like("172.16.%"),
+            ~ip_column.like("172.17.%"),
+            ~ip_column.like("172.18.%"),
+            ~ip_column.like("172.19.%"),
+            ~ip_column.like("172.2_.%"),
+            ~ip_column.like("172.30.%"),
+            ~ip_column.like("172.31.%"),
+            ~ip_column.like("192.168.%"),
+            ~ip_column.like("127.%"),
+            ~ip_column.like("0.%"),
+            ~ip_column.like("169.254.%"),
+            ip_column != "::1",
+        )
+        if server_ip:
+            query = query.filter(ip_column != server_ip)
+        return query
+
     def get_dashboard_counts(self) -> Dict[str, int]:
         """
         Get aggregate statistics for the dashboard (excludes local/private IPs and server IP).
@@ -1019,43 +1040,43 @@ class DatabaseManager:
         """
         session = self.session
         try:
-            # Get server IP to filter it out
             from config import get_config
 
             config = get_config()
             server_ip = config.get_server_ip()
 
-            # Get all accesses first, then filter out local IPs and server IP
-            all_accesses = session.query(AccessLog).all()
-
-            # Filter out local/private IPs and server IP
-            public_accesses = [
-                log for log in all_accesses if is_valid_public_ip(log.ip, server_ip)
-            ]
-
-            # Calculate counts from filtered data
-            total_accesses = len(public_accesses)
-            unique_ips = len(set(log.ip for log in public_accesses))
-            unique_paths = len(set(log.path for log in public_accesses))
-            suspicious_accesses = sum(1 for log in public_accesses if log.is_suspicious)
-            honeypot_triggered = sum(
-                1 for log in public_accesses if log.is_honeypot_trigger
+            # Single aggregation query instead of loading all rows
+            base = session.query(
+                func.count(AccessLog.id).label("total_accesses"),
+                func.count(distinct(AccessLog.ip)).label("unique_ips"),
+                func.count(distinct(AccessLog.path)).label("unique_paths"),
+                func.count(case((AccessLog.is_suspicious == True, 1))).label(
+                    "suspicious_accesses"
+                ),
+                func.count(case((AccessLog.is_honeypot_trigger == True, 1))).label(
+                    "honeypot_triggered"
+                ),
             )
-            honeypot_ips = len(
-                set(log.ip for log in public_accesses if log.is_honeypot_trigger)
-            )
+            base = self._public_ip_filter(base, AccessLog.ip, server_ip)
+            row = base.one()
 
-            # Count unique attackers from IpStats (matching the "Attackers by Total Requests" table)
+            # Honeypot unique IPs (separate query for distinct on filtered subset)
+            hp_query = session.query(
+                func.count(distinct(AccessLog.ip))
+            ).filter(AccessLog.is_honeypot_trigger == True)
+            hp_query = self._public_ip_filter(hp_query, AccessLog.ip, server_ip)
+            honeypot_ips = hp_query.scalar() or 0
+
             unique_attackers = (
                 session.query(IpStats).filter(IpStats.category == "attacker").count()
             )
 
             return {
-                "total_accesses": total_accesses,
-                "unique_ips": unique_ips,
-                "unique_paths": unique_paths,
-                "suspicious_accesses": suspicious_accesses,
-                "honeypot_triggered": honeypot_triggered,
+                "total_accesses": row.total_accesses or 0,
+                "unique_ips": row.unique_ips or 0,
+                "unique_paths": row.unique_paths or 0,
+                "suspicious_accesses": row.suspicious_accesses or 0,
+                "honeypot_triggered": row.honeypot_triggered or 0,
                 "honeypot_ips": honeypot_ips,
                 "unique_attackers": unique_attackers,
             }
