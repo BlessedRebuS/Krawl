@@ -657,7 +657,6 @@ tbody {
 
 /* Raw Request Modal */
 .raw-request-modal {
-    display: none;
     position: fixed;
     z-index: 1000;
     left: 0;
