@@ -59,8 +59,20 @@ class DeceptionMiddleware(BaseHTTPMiddleware):
             elif any(
                 pattern in full_input
                 for pattern in [
-                    "cmd=", "exec=", "command=", "execute=", "system=",
-                    ";", "|", "&&", "whoami", "id", "uname", "cat", "ls", "pwd",
+                    "cmd=",
+                    "exec=",
+                    "command=",
+                    "execute=",
+                    "system=",
+                    ";",
+                    "|",
+                    "&&",
+                    "whoami",
+                    "id",
+                    "uname",
+                    "cat",
+                    "ls",
+                    "pwd",
                 ]
             ):
                 attack_type_log = "COMMAND_INJECTION"

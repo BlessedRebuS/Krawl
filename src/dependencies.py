@@ -24,9 +24,7 @@ def get_templates() -> Jinja2Templates:
     """Get shared Jinja2Templates instance with custom filters."""
     global _templates
     if _templates is None:
-        templates_dir = os.path.join(
-            os.path.dirname(__file__), "templates", "jinja2"
-        )
+        templates_dir = os.path.join(os.path.dirname(__file__), "templates", "jinja2")
         _templates = Jinja2Templates(directory=templates_dir)
         _templates.env.filters["format_ts"] = _format_ts
     return _templates

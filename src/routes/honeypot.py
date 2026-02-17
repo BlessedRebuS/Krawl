@@ -46,6 +46,7 @@ router = APIRouter()
 
 # --- Helper functions ---
 
+
 def _should_return_error(config: Config) -> bool:
     if config.probability_error_codes <= 0:
         return False
@@ -62,12 +63,14 @@ def _get_random_error_code() -> int:
 
 # --- HEAD ---
 
+
 @router.head("/{path:path}")
 async def handle_head(path: str):
     return Response(status_code=200, headers={"Content-Type": "text/html"})
 
 
 # --- POST routes ---
+
 
 @router.post("/api/search")
 @router.post("/api/sql")
@@ -90,10 +93,14 @@ async def sql_endpoint_post(request: Request):
         access_logger.warning(
             f"[SQL INJECTION DETECTED POST] {client_ip} - {base_path}"
         )
-        return Response(content=error_msg, status_code=status_code, media_type=content_type)
+        return Response(
+            content=error_msg, status_code=status_code, media_type=content_type
+        )
     else:
         response_data = get_sql_response_with_data(base_path, post_data)
-        return Response(content=response_data, status_code=200, media_type="application/json")
+        return Response(
+            content=response_data, status_code=200, media_type="application/json"
+        )
 
 
 @router.post("/api/contact")
@@ -119,9 +126,7 @@ async def contact_post(request: Request):
             f"[XSS ATTEMPT DETECTED] {client_ip} - {request.url.path} - Data: {post_data[:200]}"
         )
     else:
-        access_logger.info(
-            f"[XSS ENDPOINT POST] {client_ip} - {request.url.path}"
-        )
+        access_logger.info(f"[XSS ENDPOINT POST] {client_ip} - {request.url.path}")
 
     tracker.record_access(
         ip=client_ip,
@@ -186,6 +191,7 @@ async def credential_capture_post(request: Request, path: str):
 
 # --- GET special paths ---
 
+
 @router.get("/robots.txt")
 async def robots_txt():
     return PlainTextResponse(html_templates.robots_txt())
@@ -209,18 +215,26 @@ async def fake_users_json():
 
 @router.get("/api_keys.json")
 async def fake_api_keys():
-    return Response(content=api_keys_json(), status_code=200, media_type="application/json")
+    return Response(
+        content=api_keys_json(), status_code=200, media_type="application/json"
+    )
 
 
 @router.get("/config.json")
 async def fake_config_json():
-    return Response(content=api_response("/api/config"), status_code=200, media_type="application/json")
+    return Response(
+        content=api_response("/api/config"),
+        status_code=200,
+        media_type="application/json",
+    )
 
 
 # Override the generic /users.json to return actual content
 @router.get("/users.json", include_in_schema=False)
 async def fake_users_json_content():
-    return Response(content=users_json(), status_code=200, media_type="application/json")
+    return Response(
+        content=users_json(), status_code=200, media_type="application/json"
+    )
 
 
 @router.get("/admin")
@@ -281,7 +295,9 @@ async def fake_phpmyadmin(path: str = ""):
 
 @router.get("/.env")
 async def fake_env():
-    return Response(content=api_response("/.env"), status_code=200, media_type="application/json")
+    return Response(
+        content=api_response("/.env"), status_code=200, media_type="application/json"
+    )
 
 
 @router.get("/backup/")
@@ -294,6 +310,7 @@ async def fake_directory_listing(request: Request):
 
 
 # --- SQL injection honeypot GET endpoints ---
+
 
 @router.get("/api/search")
 @router.get("/api/sql")
@@ -312,25 +329,33 @@ async def sql_endpoint_get(request: Request):
         access_logger.warning(
             f"[SQL INJECTION DETECTED] {client_ip} - {base_path} - Query: {request_query[:100] if request_query else 'empty'}"
         )
-        return Response(content=error_msg, status_code=status_code, media_type=content_type)
+        return Response(
+            content=error_msg, status_code=status_code, media_type=content_type
+        )
     else:
         access_logger.info(
             f"[SQL ENDPOINT] {client_ip} - {base_path} - Query: {request_query[:100] if request_query else 'empty'}"
         )
         response_data = get_sql_response_with_data(base_path, request_query)
-        return Response(content=response_data, status_code=200, media_type="application/json")
+        return Response(
+            content=response_data, status_code=200, media_type="application/json"
+        )
 
 
 # --- Generic /api/* fake endpoints ---
 
+
 @router.get("/api/{path:path}")
 async def fake_api_catchall(request: Request, path: str):
     full_path = f"/api/{path}"
-    return Response(content=api_response(full_path), status_code=200, media_type="application/json")
+    return Response(
+        content=api_response(full_path), status_code=200, media_type="application/json"
+    )
 
 
 # --- Catch-all GET (trap pages with random links) ---
 # This MUST be registered last in the router
+
 
 @router.get("/{path:path}")
 async def trap_page(request: Request, path: str):
@@ -365,9 +390,7 @@ async def trap_page(request: Request, path: str):
     # Random error response
     if _should_return_error(config):
         error_code = _get_random_error_code()
-        access_logger.info(
-            f"Returning error {error_code} to {client_ip} - {full_path}"
-        )
+        access_logger.info(f"Returning error {error_code} to {client_ip} - {full_path}")
         return Response(status_code=error_code)
 
     # Response delay

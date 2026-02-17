@@ -58,7 +58,9 @@ async def lifespan(app: FastAPI):
                 )
                 webpages = None
         except IOError:
-            app_logger.warning("Can't read webpages file. Using randomly generated links.")
+            app_logger.warning(
+                "Can't read webpages file. Using randomly generated links."
+            )
     app.state.webpages = webpages
 
     # Initialize canary counter
@@ -82,9 +84,7 @@ DASHBOARD AVAILABLE AT
             f"Canary token will appear after {config.canary_token_tries} tries"
         )
     else:
-        app_logger.info(
-            "No canary token configured (set CANARY_TOKEN_URL to enable)"
-        )
+        app_logger.info("No canary token configured (set CANARY_TOKEN_URL to enable)")
 
     yield
 

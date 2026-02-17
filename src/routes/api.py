@@ -258,9 +258,7 @@ async def raw_request(log_id: int, request: Request):
             return JSONResponse(
                 content={"error": "Raw request not found"}, status_code=404
             )
-        return JSONResponse(
-            content={"raw_request": raw}, headers=_no_cache_headers()
-        )
+        return JSONResponse(content={"raw_request": raw}, headers=_no_cache_headers())
     except Exception as e:
         get_app_logger().error(f"Error fetching raw request: {e}")
         return JSONResponse(content={"error": str(e)}, status_code=500)
