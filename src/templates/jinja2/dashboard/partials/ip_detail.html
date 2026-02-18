@@ -1,0 +1,131 @@
+{# HTMX fragment: IP detail expansion row content #}
+{# Replaces the ~250 line formatIpStats() JavaScript function #}
+<div class="stats-left">
+    <div class="stat-row">
+        <span class="stat-label-sm">Total Requests:</span>
+        <span class="stat-value-sm">{{ stats.total_requests | default('N/A') }}</span>
+    </div>
+    <div class="stat-row">
+        <span class="stat-label-sm">First Seen:</span>
+        <span class="stat-value-sm">{{ stats.first_seen | format_ts }}</span>
+    </div>
+    <div class="stat-row">
+        <span class="stat-label-sm">Last Seen:</span>
+        <span class="stat-value-sm">{{ stats.last_seen | format_ts }}</span>
+    </div>
+    {% if stats.city or stats.country_code %}
+    <div class="stat-row">
+        <span class="stat-label-sm">Location:</span>
+        <span class="stat-value-sm">{{ stats.city | default('') }}{% if stats.city and stats.country_code %}, {% endif %}{{ stats.country_code | default('') }}</span>
+    </div>
+    {% endif %}
+    {% if stats.reverse_dns %}
+    <div class="stat-row">
+        <span class="stat-label-sm">Reverse DNS:</span>
+        <span class="stat-value-sm">{{ stats.reverse_dns | e }}</span>
+    </div>
+    {% endif %}
+    {% if stats.asn_org %}
+    <div class="stat-row">
+        <span class="stat-label-sm">ASN Org:</span>
+        <span class="stat-value-sm">{{ stats.asn_org | e }}</span>
+    </div>
+    {% endif %}
+    {% if stats.asn %}
+    <div class="stat-row">
+        <span class="stat-label-sm">ASN:</span>
+        <span class="stat-value-sm">{{ stats.asn | e }}</span>
+    </div>
+    {% endif %}
+    {% if stats.isp %}
+    <div class="stat-row">
+        <span class="stat-label-sm">ISP:</span>
+        <span class="stat-value-sm">{{ stats.isp | e }}</span>
+    </div>
+    {% endif %}
+
+    {# Flags #}
+    {% set flags = [] %}
+    {% if stats.is_proxy %}{% set _ = flags.append('Proxy') %}{% endif %}
+    {% if stats.is_hosting %}{% set _ = flags.append('Hosting') %}{% endif %}
+    {% if flags %}
+    <div class="stat-row">
+        <span class="stat-label-sm">Flags:</span>
+        <span class="stat-value-sm">{{ flags | join(', ') }}</span>
+    </div>
+    {% endif %}
+
+    {% if stats.reputation_score is not none %}
+    <div class="stat-row">
+        <span class="stat-label-sm">Reputation Score:</span>
+        <span class="stat-value-sm" style="color: {% if stats.reputation_score <= 30 %}#f85149{% elif stats.reputation_score <= 60 %}#f0883e{% else %}#3fb950{% endif %}">
+            {{ stats.reputation_score }}/100
+        </span>
+    </div>
+    {% endif %}
+
+    {% if stats.category %}
+    <div class="stat-row">
+        <span class="stat-label-sm">Category:</span>
+        <span class="category-badge category-{{ stats.category | lower | replace('_', '-') }}">
+            {{ stats.category | replace('_', ' ') | title }}
+        </span>
+    </div>
+    {% endif %}
+
+    {# Timeline + Reputation section #}
+    {% if stats.category_history or stats.blocklist_memberships %}
+    <div class="timeline-section">
+        <div class="timeline-container">
+            {# Behavior Timeline #}
+            {% if stats.category_history %}
+            <div class="timeline-column">
+                <div class="timeline-header">Behavior Timeline</div>
+                <div class="timeline">
+                    {% for entry in stats.category_history %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker {{ entry.new_category | default('unknown') | replace('_', '-') }}"></div>
+                        <div>
+                            <strong>{{ entry.new_category | default('unknown') | replace('_', ' ') | title }}</strong>
+                            {% if entry.old_category %}<span style="color: #8b949e;"> from {{ entry.old_category | replace('_', ' ') | title }}</span>{% endif %}
+                            <br><span style="color: #8b949e; font-size: 11px;">{{ entry.timestamp | format_ts }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {# Reputation / Listed On #}
+            <div class="timeline-column">
+                <div class="timeline-header">Reputation</div>
+                {% if stats.blocklist_memberships %}
+                <div class="reputation-title">Listed On</div>
+                {% for bl in stats.blocklist_memberships %}
+                <span class="reputation-badge">{{ bl | e }}</span>
+                {% endfor %}
+                {% else %}
+                <span class="reputation-clean">Clean - Not listed on any blocklists</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{# Radar chart (right side) #}
+{% if stats.category_scores %}
+<div class="stats-right">
+    <div class="radar-chart" id="radar-{{ stats.ip | default('') | replace('.', '-') | replace(':', '-') }}">
+        <script>
+            (function() {
+                const scores = {{ stats.category_scores | tojson }};
+                const container = document.getElementById('radar-{{ stats.ip | default("") | replace(".", "-") | replace(":", "-") }}');
+                if (container && typeof generateRadarChart === 'function') {
+                    container.innerHTML = generateRadarChart(scores, 200);
+                }
+            })();
+        </script>
+    </div>
+</div>
+{% endif %}

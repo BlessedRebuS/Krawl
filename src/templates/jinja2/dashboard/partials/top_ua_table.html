@@ -1,0 +1,41 @@
+{# HTMX fragment: Top User-Agents table #}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} total</span>
+    <div style="display: flex; gap: 8px;">
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/top-ua?page={{ pagination.page - 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML"
+                {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/top-ua?page={{ pagination.page + 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML"
+                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
+    </div>
+</div>
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>User-Agent</th>
+            <th class="sortable {% if sort_by == 'count' %}{{ sort_order }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/top-ua?page=1&sort_by=count&sort_order={% if sort_by == 'count' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML">
+                Count
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
+            <td>{{ item.user_agent | e }}</td>
+            <td>{{ item.count }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" style="text-align: center;">No data</td></tr>
+        {% endfor %}
+    </tbody>
+</table>

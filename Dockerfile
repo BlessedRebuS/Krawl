@@ -26,4 +26,4 @@ EXPOSE 5000
 ENV PYTHONUNBUFFERED=1
 
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["python3", "src/server.py"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000", "--app-dir", "src"]

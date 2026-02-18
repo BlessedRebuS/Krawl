@@ -1,0 +1,43 @@
+{# HTMX fragment: Attack Patterns table #}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} patterns</span>
+    <div style="display: flex; gap: 8px;">
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/patterns?page={{ pagination.page - 1 }}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML"
+                {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/patterns?page={{ pagination.page + 1 }}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML"
+                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
+    </div>
+</div>
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Attack Pattern</th>
+            <th>Occurrences</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pattern in items %}
+        <tr>
+            <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
+            <td>
+                <div class="attack-types-cell">
+                    <span class="attack-types-truncated">{{ pattern.pattern | e }}</span>
+                    {% if pattern.pattern | length > 40 %}
+                    <div class="attack-types-tooltip">{{ pattern.pattern | e }}</div>
+                    {% endif %}
+                </div>
+            </td>
+            <td>{{ pattern.count }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" style="text-align: center;">No patterns found</td></tr>
+        {% endfor %}
+    </tbody>
+</table>

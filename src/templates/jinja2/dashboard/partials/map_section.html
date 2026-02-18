@@ -1,0 +1,27 @@
+{# Map section with filter checkboxes #}
+<div class="table-container">
+    <h2>IP Origins Map</h2>
+    <div style="margin-bottom: 10px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+            <input type="checkbox" checked onchange="if(typeof updateMapFilters==='function') updateMapFilters()" class="map-filter" data-category="attacker">
+            <span style="color: #f85149;">Attackers</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+            <input type="checkbox" checked onchange="if(typeof updateMapFilters==='function') updateMapFilters()" class="map-filter" data-category="bad_crawler">
+            <span style="color: #f0883e;">Bad Crawlers</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+            <input type="checkbox" checked onchange="if(typeof updateMapFilters==='function') updateMapFilters()" class="map-filter" data-category="good_crawler">
+            <span style="color: #3fb950;">Good Crawlers</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+            <input type="checkbox" checked onchange="if(typeof updateMapFilters==='function') updateMapFilters()" class="map-filter" data-category="regular_user">
+            <span style="color: #58a6ff;">Regular Users</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+            <input type="checkbox" checked onchange="if(typeof updateMapFilters==='function') updateMapFilters()" class="map-filter" data-category="unknown">
+            <span style="color: #8b949e;">Unknown</span>
+        </label>
+    </div>
+    <div id="attacker-map" style="height: 450px; border-radius: 6px; border: 1px solid #30363d;"></div>
+</div>

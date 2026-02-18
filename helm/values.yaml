@@ -576,6 +576,7 @@ wordlists:
     xxe_injection: "(<!ENTITY|<!DOCTYPE|SYSTEM\\s+[\"']|PUBLIC\\s+[\"']|&\\w+;|file://|php://filter|expect://)"
     ldap_injection: "(\\*\\)|\\(\\||\\(&)"
     command_injection: "(cmd=|exec=|command=|execute=|system=|ping=|host=|&&|\\|\\||;|\\$\\{|\\$\\(|`|\\bid\\b|\\bwhoami\\b|\\buname\\b|\\bcat\\b|\\bls\\b|\\bpwd\\b|\\becho\\b|\\bwget\\b|\\bcurl\\b|\\bnc\\b|\\bnetcat\\b|\\bbash\\b|\\bsh\\b|\\bps\\b|\\bkill\\b|\\bchmod\\b|\\bchown\\b|\\bcp\\b|\\bmv\\b|\\brm\\b|/bin/bash|/bin/sh|cmd\\.exe|/bin/|/usr/bin/|/sbin/)"
+    common_probes: "(/admin|/backup|/config|/database|/private|/uploads|/wp-admin|/login|/phpMyAdmin|/phpmyadmin|/users|/search|/contact|/info|/input|/feedback|/server|/api/v1/|/api/v2/|/api/search|/api/sql|/api/database|\\.env|/credentials\\.txt|/passwords\\.txt|\\.git|/backup\\.sql|/db_backup\\.sql)"
   suspicious_patterns:
     - bot
     - crawler

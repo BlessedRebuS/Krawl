@@ -2,10 +2,9 @@
 
 """
 Memory cleanup task for Krawl honeypot.
-Periodically trims unbounded in-memory structures to prevent OOM.
+Periodically cleans expired bans and stale entries from ip_page_visits.
 """
 
-from database import get_database
 from logger import get_app_logger
 
 # ----------------------
@@ -28,43 +27,29 @@ def main():
     Called periodically to prevent unbounded memory growth.
     """
     try:
-        # Import here to avoid circular imports
-        from handler import Handler
+        from tracker import get_tracker
 
-        if not Handler.tracker:
+        tracker = get_tracker()
+        if not tracker:
             app_logger.warning("Tracker not initialized, skipping memory cleanup")
             return
 
-        # Get memory stats before cleanup
-        stats_before = Handler.tracker.get_memory_stats()
+        stats_before = tracker.get_memory_stats()
 
-        # Run cleanup
-        Handler.tracker.cleanup_memory()
+        tracker.cleanup_memory()
 
-        # Get memory stats after cleanup
-        stats_after = Handler.tracker.get_memory_stats()
+        stats_after = tracker.get_memory_stats()
 
-        # Log changes
-        access_log_reduced = (
-            stats_before["access_log_size"] - stats_after["access_log_size"]
-        )
-        cred_reduced = (
-            stats_before["credential_attempts_size"]
-            - stats_after["credential_attempts_size"]
-        )
+        visits_reduced = stats_before["ip_page_visits"] - stats_after["ip_page_visits"]
 
-        if access_log_reduced > 0 or cred_reduced > 0:
+        if visits_reduced > 0:
             app_logger.info(
-                f"Memory cleanup: Trimmed {access_log_reduced} access logs, "
-                f"{cred_reduced} credential attempts"
+                f"Memory cleanup: Removed {visits_reduced} stale ip_page_visits entries"
             )
 
-        # Log current memory state for monitoring
         app_logger.debug(
             f"Memory stats after cleanup: "
-            f"access_logs={stats_after['access_log_size']}, "
-            f"credentials={stats_after['credential_attempts_size']}, "
-            f"unique_ips={stats_after['unique_ips_tracked']}"
+            f"ip_page_visits={stats_after['ip_page_visits']}"
         )
 
     except Exception as e:

@@ -1,0 +1,20 @@
+{# Raw request viewer modal - Alpine.js controlled #}
+<div class="raw-request-modal"
+     x-show="rawModal.show"
+     x-cloak
+     @click.self="closeRawModal()"
+     @keydown.escape.window="closeRawModal()"
+>
+    <div class="raw-request-modal-content">
+        <div class="raw-request-modal-header">
+            <h3>Raw HTTP Request</h3>
+            <span class="raw-request-modal-close" @click="closeRawModal()">&times;</span>
+        </div>
+        <div class="raw-request-modal-body">
+            <pre class="raw-request-content" x-text="rawModal.content"></pre>
+        </div>
+        <div class="raw-request-modal-footer">
+            <button class="raw-request-download-btn" @click="downloadRawRequest()">Download as .txt</button>
+        </div>
+    </div>
+</div>

@@ -40,7 +40,6 @@ class TasksMaster:
     def __init__(self, scheduler: BackgroundScheduler):
         self.tasks = self._config_tasks()
         self.scheduler = scheduler
-        self.last_run_times = {}
         self.scheduler.add_listener(
             self.job_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR
         )
@@ -234,9 +233,6 @@ class TasksMaster:
             app_logger.error(f"Failed to load {module_name}: {e}")
 
     def job_listener(self, event):
-        job_id = event.job_id
-        self.last_run_times[job_id] = datetime.datetime.now()
-
         if event.exception:
             app_logger.error(f"Job {event.job_id} failed: {event.exception}")
         else:

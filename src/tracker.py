@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, Tuple, Optional
 from collections import defaultdict
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -9,7 +9,20 @@ import urllib.parse
 
 from wordlists import get_wordlists
 from database import get_database, DatabaseManager
-from ip_utils import is_local_or_private_ip, is_valid_public_ip
+
+# Module-level singleton for background task access
+_tracker_instance: "AccessTracker | None" = None
+
+
+def get_tracker() -> "AccessTracker | None":
+    """Get the global AccessTracker singleton (set during app startup)."""
+    return _tracker_instance
+
+
+def set_tracker(tracker: "AccessTracker"):
+    """Store the AccessTracker singleton for background task access."""
+    global _tracker_instance
+    _tracker_instance = tracker
 
 
 class AccessTracker:
@@ -35,16 +48,6 @@ class AccessTracker:
         """
         self.max_pages_limit = max_pages_limit
         self.ban_duration_seconds = ban_duration_seconds
-        self.ip_counts: Dict[str, int] = defaultdict(int)
-        self.path_counts: Dict[str, int] = defaultdict(int)
-        self.user_agent_counts: Dict[str, int] = defaultdict(int)
-        self.access_log: List[Dict] = []
-        self.credential_attempts: List[Dict] = []
-
-        # Memory limits for in-memory lists (prevents unbounded growth)
-        self.max_access_log_size = 10_000  # Keep only recent 10k accesses
-        self.max_credential_log_size = 5_000  # Keep only recent 5k attempts
-        self.max_counter_keys = 100_000  # Max unique IPs/paths/user agents
 
         # Track pages visited by each IP (for good crawler limiting)
         self.ip_page_visits: Dict[str, Dict[str, object]] = defaultdict(dict)
@@ -88,12 +91,9 @@ class AccessTracker:
                 "path_traversal": r"\.\.",
                 "sql_injection": r"('|--|;|\bOR\b|\bUNION\b|\bSELECT\b|\bDROP\b)",
                 "xss_attempt": r"(<script|javascript:|onerror=|onload=)",
-                "common_probes": r"(wp-admin|phpmyadmin|\.env|\.git|/admin|/config)",
+                "common_probes": r"(/admin|/backup|/config|/database|/private|/uploads|/wp-admin|/login|/phpMyAdmin|/phpmyadmin|/users|/search|/contact|/info|/input|/feedback|/server|/api/v1/|/api/v2/|/api/search|/api/sql|/api/database|\.env|/credentials\.txt|/passwords\.txt|\.git|/backup\.sql|/db_backup\.sql)",
                 "command_injection": r"(\||;|`|\$\(|&&)",
             }
-
-        # Track IPs that accessed honeypot paths from robots.txt
-        self.honeypot_triggered: Dict[str, List[str]] = defaultdict(list)
 
         # Database manager for persistence (lazily initialized)
         self._db_manager = db_manager
@@ -206,23 +206,6 @@ class AccessTracker:
         if server_ip and ip == server_ip:
             return
 
-        # In-memory storage for dashboard
-        self.credential_attempts.append(
-            {
-                "ip": ip,
-                "path": path,
-                "username": username,
-                "password": password,
-                "timestamp": datetime.now().isoformat(),
-            }
-        )
-
-        # Trim if exceeding max size (prevent unbounded growth)
-        if len(self.credential_attempts) > self.max_credential_log_size:
-            self.credential_attempts = self.credential_attempts[
-                -self.max_credential_log_size :
-            ]
-
         # Persist to database
         if self.db:
             try:
@@ -264,11 +247,6 @@ class AccessTracker:
         if server_ip and ip == server_ip:
             return
 
-        self.ip_counts[ip] += 1
-        self.path_counts[path] += 1
-        if user_agent:
-            self.user_agent_counts[user_agent] += 1
-
         # Path attack type detection
         attack_findings = self.detect_attack_type(path)
 
@@ -285,27 +263,7 @@ class AccessTracker:
         )
         is_honeypot = self.is_honeypot_path(path)
 
-        # Track if this IP accessed a honeypot path
-        if is_honeypot:
-            self.honeypot_triggered[ip].append(path)
-
         # In-memory storage for dashboard
-        self.access_log.append(
-            {
-                "ip": ip,
-                "path": path,
-                "user_agent": user_agent,
-                "suspicious": is_suspicious,
-                "honeypot_triggered": self.is_honeypot_path(path),
-                "attack_types": attack_findings,
-                "timestamp": datetime.now().isoformat(),
-            }
-        )
-
-        # Trim if exceeding max size (prevent unbounded growth)
-        if len(self.access_log) > self.max_access_log_size:
-            self.access_log = self.access_log[-self.max_access_log_size :]
-
         # Persist to database
         if self.db:
             try:
@@ -583,54 +541,6 @@ class AccessTracker:
         except Exception:
             return 0
 
-    def get_top_ips(self, limit: int = 10) -> List[Tuple[str, int]]:
-        """Get top N IP addresses by access count (excludes local/private IPs)"""
-        filtered = [
-            (ip, count)
-            for ip, count in self.ip_counts.items()
-            if not is_local_or_private_ip(ip)
-        ]
-        return sorted(filtered, key=lambda x: x[1], reverse=True)[:limit]
-
-    def get_top_paths(self, limit: int = 10) -> List[Tuple[str, int]]:
-        """Get top N paths by access count"""
-        return sorted(self.path_counts.items(), key=lambda x: x[1], reverse=True)[
-            :limit
-        ]
-
-    def get_top_user_agents(self, limit: int = 10) -> List[Tuple[str, int]]:
-        """Get top N user agents by access count"""
-        return sorted(self.user_agent_counts.items(), key=lambda x: x[1], reverse=True)[
-            :limit
-        ]
-
-    def get_suspicious_accesses(self, limit: int = 20) -> List[Dict]:
-        """Get recent suspicious accesses (excludes local/private IPs)"""
-        suspicious = [
-            log
-            for log in self.access_log
-            if log.get("suspicious", False)
-            and not is_local_or_private_ip(log.get("ip", ""))
-        ]
-        return suspicious[-limit:]
-
-    def get_attack_type_accesses(self, limit: int = 20) -> List[Dict]:
-        """Get recent accesses with detected attack types (excludes local/private IPs)"""
-        attacks = [
-            log
-            for log in self.access_log
-            if log.get("attack_types") and not is_local_or_private_ip(log.get("ip", ""))
-        ]
-        return attacks[-limit:]
-
-    def get_honeypot_triggered_ips(self) -> List[Tuple[str, List[str]]]:
-        """Get IPs that accessed honeypot paths (excludes local/private IPs)"""
-        return [
-            (ip, paths)
-            for ip, paths in self.honeypot_triggered.items()
-            if not is_local_or_private_ip(ip)
-        ]
-
     def get_stats(self) -> Dict:
         """Get statistics summary from database."""
         if not self.db:
@@ -654,47 +564,32 @@ class AccessTracker:
         """
         Clean up in-memory structures to prevent unbounded growth.
         Should be called periodically (e.g., every 5 minutes).
-
-        Trimming strategy:
-        - Keep most recent N entries in logs
-        - Remove oldest entries when limit exceeded
-        - Clean expired ban entries from ip_page_visits
         """
-        # Trim access_log to max size (keep most recent)
-        if len(self.access_log) > self.max_access_log_size:
-            self.access_log = self.access_log[-self.max_access_log_size :]
-
-        # Trim credential_attempts to max size (keep most recent)
-        if len(self.credential_attempts) > self.max_credential_log_size:
-            self.credential_attempts = self.credential_attempts[
-                -self.max_credential_log_size :
-            ]
-
         # Clean expired ban entries from ip_page_visits
         current_time = datetime.now()
-        ips_to_clean = []
         for ip, data in self.ip_page_visits.items():
             ban_timestamp = data.get("ban_timestamp")
             if ban_timestamp is not None:
                 try:
                     ban_time = datetime.fromisoformat(ban_timestamp)
                     time_diff = (current_time - ban_time).total_seconds()
-                    if time_diff > self.ban_duration_seconds:
-                        # Ban expired, reset the entry
+                    effective_duration = self.ban_duration_seconds * data.get(
+                        "ban_multiplier", 1
+                    )
+                    if time_diff > effective_duration:
                         data["count"] = 0
                         data["ban_timestamp"] = None
                 except (ValueError, TypeError):
                     pass
 
-        # Optional: Remove IPs with zero activity (advanced cleanup)
-        # Comment out to keep indefinite history of zero-activity IPs
-        # ips_to_remove = [
-        #     ip
-        #     for ip, data in self.ip_page_visits.items()
-        #     if data.get("count", 0) == 0 and data.get("ban_timestamp") is None
-        # ]
-        # for ip in ips_to_remove:
-        #     del self.ip_page_visits[ip]
+        # Remove IPs with zero activity and no active ban
+        ips_to_remove = [
+            ip
+            for ip, data in self.ip_page_visits.items()
+            if data.get("count", 0) == 0 and data.get("ban_timestamp") is None
+        ]
+        for ip in ips_to_remove:
+            del self.ip_page_visits[ip]
 
     def get_memory_stats(self) -> Dict[str, int]:
         """
@@ -704,11 +599,5 @@ class AccessTracker:
             Dictionary with counts of in-memory items
         """
         return {
-            "access_log_size": len(self.access_log),
-            "credential_attempts_size": len(self.credential_attempts),
-            "unique_ips_tracked": len(self.ip_counts),
-            "unique_paths_tracked": len(self.path_counts),
-            "unique_user_agents": len(self.user_agent_counts),
-            "unique_ip_page_visits": len(self.ip_page_visits),
-            "honeypot_triggered_ips": len(self.honeypot_triggered),
+            "ip_page_visits": len(self.ip_page_visits),
         }

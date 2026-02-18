@@ -1,0 +1,31 @@
+{# Stats cards - server-rendered on initial page load #}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total_accesses }}</div>
+        <div class="stat-label">Total Accesses</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.unique_ips }}</div>
+        <div class="stat-label">Unique IPs</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.unique_paths }}</div>
+        <div class="stat-label">Unique Paths</div>
+    </div>
+    <div class="stat-card alert">
+        <div class="stat-value alert">{{ stats.suspicious_accesses }}</div>
+        <div class="stat-label">Suspicious Accesses</div>
+    </div>
+    <div class="stat-card alert">
+        <div class="stat-value alert">{{ stats.honeypot_ips | default(0) }}</div>
+        <div class="stat-label">Honeypot Caught</div>
+    </div>
+    <div class="stat-card alert">
+        <div class="stat-value alert">{{ stats.credential_count | default(0) }}</div>
+        <div class="stat-label">Credentials Captured</div>
+    </div>
+    <div class="stat-card alert">
+        <div class="stat-value alert">{{ stats.unique_attackers | default(0) }}</div>
+        <div class="stat-label">Unique Attackers</div>
+    </div>
+</div>

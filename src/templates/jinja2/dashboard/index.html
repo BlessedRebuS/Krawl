@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" x-data="dashboardApp()" x-init="init()">
+
+    {# GitHub logo #}
+    <a href="https://github.com/BlessedRebuS/Krawl" target="_blank" class="github-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        <span class="github-logo-text">Krawl</span>
+    </a>
+
+    {# Banlist export dropdown - Alpine.js #}
+    <div class="download-section">
+        <div class="banlist-dropdown" @click.outside="banlistOpen = false">
+            <button class="banlist-dropdown-btn" @click="banlistOpen = !banlistOpen">
+                Export IPs Banlist ▾
+            </button>
+            <div class="banlist-dropdown-menu" :class="{ 'show': banlistOpen }">
+                <a :href="dashboardPath + '/api/get_banlist?fwtype=raw'" download>
+                    <span class="banlist-icon">📄</span> Raw IPs List
+                </a>
+                <a :href="dashboardPath + '/api/get_banlist?fwtype=iptables'" download>
+                    <span class="banlist-icon">🔥</span> IPTables Rules
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <h1>Krawl Dashboard</h1>
+
+    {# Stats cards - server-rendered #}
+    {% include "dashboard/partials/stats_cards.html" %}
+
+    {# Tab navigation - Alpine.js #}
+    <div class="tabs-container">
+        <a class="tab-button" :class="{ active: tab === 'overview' }" @click.prevent="switchToOverview()" href="#overview">Overview</a>
+        <a class="tab-button" :class="{ active: tab === 'attacks' }" @click.prevent="switchToAttacks()" href="#ip-stats">Attacks</a>
+    </div>
+
+    {# ==================== OVERVIEW TAB ==================== #}
+    <div x-show="tab === 'overview'">
+
+        {# Suspicious Activity - server-rendered #}
+        {% include "dashboard/partials/suspicious_table.html" %}
+
+        {# Honeypot Triggers - HTMX loaded #}
+        <div class="table-container alert-section">
+            <h2>Honeypot Triggers by IP</h2>
+            <div class="htmx-container"
+                 hx-get="{{ dashboard_path }}/htmx/honeypot?page=1"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                <div class="htmx-indicator">Loading...</div>
+            </div>
+        </div>
+
+        {# Top IPs + Top User-Agents side by side #}
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div class="table-container" style="flex: 1; min-width: 300px;">
+                <h2>Top IP Addresses</h2>
+                <div class="htmx-container"
+                     hx-get="{{ dashboard_path }}/htmx/top-ips?page=1"
+                     hx-trigger="load"
+                     hx-swap="innerHTML">
+                    <div class="htmx-indicator">Loading...</div>
+                </div>
+            </div>
+            <div class="table-container" style="flex: 1; min-width: 300px;">
+                <h2>Top User-Agents</h2>
+                <div class="htmx-container"
+                     hx-get="{{ dashboard_path }}/htmx/top-ua?page=1"
+                     hx-trigger="load"
+                     hx-swap="innerHTML">
+                    <div class="htmx-indicator">Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        {# Top Paths #}
+        <div class="table-container">
+            <h2>Top Paths</h2>
+            <div class="htmx-container"
+                 hx-get="{{ dashboard_path }}/htmx/top-paths?page=1"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                <div class="htmx-indicator">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    {# ==================== ATTACKS TAB ==================== #}
+    <div x-show="tab === 'attacks'" x-cloak>
+
+        {# Map section #}
+        {% include "dashboard/partials/map_section.html" %}
+
+        {# Attackers table - HTMX loaded #}
+        <div class="table-container alert-section">
+            <h2>Attackers by Total Requests</h2>
+            <div class="htmx-container"
+                 hx-get="{{ dashboard_path }}/htmx/attackers?page=1"
+                 hx-trigger="revealed"
+                 hx-swap="innerHTML">
+                <div class="htmx-indicator">Loading...</div>
+            </div>
+        </div>
+
+        {# Credentials table #}
+        <div class="table-container alert-section">
+            <h2>Captured Credentials</h2>
+            <div class="htmx-container"
+                 hx-get="{{ dashboard_path }}/htmx/credentials?page=1"
+                 hx-trigger="revealed"
+                 hx-swap="innerHTML">
+                <div class="htmx-indicator">Loading...</div>
+            </div>
+        </div>
+
+        {# Attack Types table #}
+        <div class="table-container alert-section">
+            <h2>Detected Attack Types</h2>
+            <div class="htmx-container"
+                 hx-get="{{ dashboard_path }}/htmx/attacks?page=1"
+                 hx-trigger="revealed"
+                 hx-swap="innerHTML">
+                <div class="htmx-indicator">Loading...</div>
+            </div>
+        </div>
+
+        {# Charts + Patterns side by side #}
+        <div class="charts-container">
+            <div class="table-container chart-section">
+                <h2>Most Recurring Attack Types</h2>
+                <div class="chart-wrapper">
+                    <canvas id="attack-types-chart"></canvas>
+                </div>
+            </div>
+            <div class="table-container chart-section">
+                <h2>Most Recurring Attack Patterns</h2>
+                <div class="htmx-container"
+                     hx-get="{{ dashboard_path }}/htmx/patterns?page=1"
+                     hx-trigger="revealed"
+                     hx-swap="innerHTML">
+                    <div class="htmx-indicator">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Raw request modal - Alpine.js #}
+    {% include "dashboard/partials/raw_request_modal.html" %}
+
+</div>
+{% endblock %}

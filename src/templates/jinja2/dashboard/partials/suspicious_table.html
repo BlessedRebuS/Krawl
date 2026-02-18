@@ -1,0 +1,39 @@
+{# Recent Suspicious Activity - server-rendered on page load #}
+<div class="table-container alert-section">
+    <h2>Recent Suspicious Activity</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>IP Address</th>
+                <th>Path</th>
+                <th>User-Agent</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for activity in suspicious_activities %}
+            <tr class="ip-row" data-ip="{{ activity.ip | e }}">
+                <td class="ip-clickable"
+                    hx-get="{{ dashboard_path }}/htmx/ip-detail/{{ activity.ip | e }}"
+                    hx-target="next .ip-stats-row .ip-stats-dropdown"
+                    hx-swap="innerHTML"
+                    @click="toggleIpDetail($event)">
+                    {{ activity.ip | e }}
+                </td>
+                <td>{{ activity.path | e }}</td>
+                <td style="word-break: break-all;">{{ (activity.user_agent | default(''))[:80] | e }}</td>
+                <td>{{ activity.timestamp | format_ts(time_only=True) }}</td>
+            </tr>
+            <tr class="ip-stats-row" style="display: none;">
+                <td colspan="4" class="ip-stats-cell">
+                    <div class="ip-stats-dropdown">
+                        <div class="loading">Loading stats...</div>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" style="text-align:center;">No suspicious activity detected</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

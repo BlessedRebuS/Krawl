@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krawl Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="{{ dashboard_path }}/static/krawl-svg.svg" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="{{ dashboard_path }}/static/css/dashboard.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" defer></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+    <script>window.__DASHBOARD_PATH__ = '{{ dashboard_path }}';</script>
+</head>
+<body>
+    {% block content %}{% endblock %}
+
+    <script src="{{ dashboard_path }}/static/js/radar.js"></script>
+    <script src="{{ dashboard_path }}/static/js/dashboard.js"></script>
+    <script src="{{ dashboard_path }}/static/js/map.js"></script>
+    <script src="{{ dashboard_path }}/static/js/charts.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

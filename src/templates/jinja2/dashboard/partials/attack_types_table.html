@@ -1,0 +1,80 @@
+{# HTMX fragment: Detected Attack Types table #}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} total</span>
+    <div style="display: flex; gap: 8px;">
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/attacks?page={{ pagination.page - 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML"
+                {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/attacks?page={{ pagination.page + 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML"
+                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
+    </div>
+</div>
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>IP Address</th>
+            <th>Path</th>
+            <th>Attack Types</th>
+            <th>User-Agent</th>
+            <th class="sortable {% if sort_by == 'timestamp' %}{{ sort_order }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/attacks?page=1&sort_by=timestamp&sort_order={% if sort_by == 'timestamp' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML">
+                Time
+            </th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for attack in items %}
+        <tr class="ip-row" data-ip="{{ attack.ip | e }}">
+            <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
+            <td class="ip-clickable"
+                hx-get="{{ dashboard_path }}/htmx/ip-detail/{{ attack.ip | e }}"
+                hx-target="next .ip-stats-row .ip-stats-dropdown"
+                hx-swap="innerHTML"
+                @click="toggleIpDetail($event)">
+                {{ attack.ip | e }}
+            </td>
+            <td>
+                <div class="path-cell-container">
+                    <span class="path-truncated">{{ attack.path | e }}</span>
+                    {% if attack.path | length > 30 %}
+                    <div class="path-tooltip">{{ attack.path | e }}</div>
+                    {% endif %}
+                </div>
+            </td>
+            <td>
+                <div class="attack-types-cell">
+                    <span class="attack-types-truncated">{{ attack.attack_type | e }}</span>
+                    {% if attack.attack_type | length > 30 %}
+                    <div class="attack-types-tooltip">{{ attack.attack_type | e }}</div>
+                    {% endif %}
+                </div>
+            </td>
+            <td>{{ (attack.user_agent | default(''))[:50] | e }}</td>
+            <td>{{ attack.timestamp | format_ts }}</td>
+            <td>
+                {% if attack.log_id %}
+                <button class="view-btn" @click="viewRawRequest({{ attack.log_id }})">View Request</button>
+                {% endif %}
+            </td>
+        </tr>
+        <tr class="ip-stats-row" style="display: none;">
+            <td colspan="7" class="ip-stats-cell">
+                <div class="ip-stats-dropdown">
+                    <div class="loading">Loading stats...</div>
+                </div>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" style="text-align: center;">No attacks detected</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
