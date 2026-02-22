@@ -149,6 +149,7 @@ This file enables automatic blocking of malicious traffic across various platfor
 * [OPNsense and pfSense](https://www.allthingstech.ch/using-opnsense-and-ip-blocklists-to-block-malicious-traffic)
 * [RouterOS](https://rentry.co/krawl-routeros)
 * IPtables
+* [Fail2Ban](plugins/fail2ban/fail2ban.md)
 
 ## IP Reputation
 Krawl [uses tasks that analyze recent traffic to build and continuously update an IP reputation](src/tasks/analyze_ips.py) score. It runs periodically and evaluates each active IP address based on multiple behavioral indicators to classify it as an attacker, crawler, or regular user. Thresholds are fully customizable.
