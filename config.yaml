@@ -28,6 +28,7 @@ dashboard:
 backups:
   path: "backups"
   cron: "*/30 * * * *"
+  enabled: false
 
 exports:
   path: "exports"

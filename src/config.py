@@ -42,6 +42,7 @@ class Config:
 
     # backup job settings
     backups_path: str = "backups"
+    backups_enabled: bool = False
     backups_cron: str = "*/30 * * * *"
     # Database settings
     database_path: str = "data/krawl.db"
@@ -195,6 +196,7 @@ class Config:
             probability_error_codes=behavior.get("probability_error_codes", 0),
             exports_path=exports.get("path"),
             backups_path=backups.get("path"),
+            backups_enabled=backups.get("enabled",False),
             backups_cron=backups.get("cron"),
             database_path=database.get("path", "data/krawl.db"),
             database_retention_days=database.get("retention_days", 30),

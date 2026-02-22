@@ -213,6 +213,7 @@ Krawl uses a **configuration hierarchy** in which **environment variables take p
 | `KRAWL_EXPORTS_PATH` | Path where firewalls rule sets are exported | `exports` |
 | `KRAWL_BACKUPS_PATH` | Path where database dump are saved | `backups` |
 | `KRAWL_BACKUPS_CRON` | cron expression to control backup job schedule | `*/30 * * * *` |
+| `KRAWL_BACKUPS_ENABLED` | Boolean to enable db dump job | `true` |
 | `KRAWL_DATABASE_RETENTION_DAYS` | Days to retain data in database | `30` |
 | `KRAWL_HTTP_RISKY_METHODS_THRESHOLD` | Threshold for risky HTTP methods detection | `0.1` |
 | `KRAWL_VIOLATED_ROBOTS_THRESHOLD` | Threshold for robots.txt violations | `0.1` |
@@ -334,7 +335,20 @@ Alternatively, you can create a bunch of different "interesting" looking domains
 
 Additionally, you may configure your reverse proxy to forward all non-existing subdomains (e.g. nonexistent.example.com) to one of these domains so that any crawlers that are guessing domains at random will automatically end up at your Krawl instance.
 
+## Enable database dump job for backups
+
+To enable the database dump job, set the following variables (*config file example*)
+
+```yaml
+backups:
+    path: "backups" # where backup will be saved
+    cron: "*/30 * * * *" # frequency of the cronjob
+    enabled: true
+```
+
+
 ## Customizing the Canary Token
+
 To create a custom canary token, visit https://canarytokens.org
 
 and generate a “Web bug” canary token.

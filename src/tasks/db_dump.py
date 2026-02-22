@@ -16,7 +16,7 @@ app_logger = get_app_logger()
 TASK_CONFIG = {
     "name": "dump-krawl-data",
     "cron": f"{config.backups_cron}",
-    "enabled": True,
+    "enabled": config.backups_enabled,
     "run_when_loaded": True,
 }
 
