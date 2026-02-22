@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
 from typing import Dict, Tuple, Optional
-from collections import defaultdict
-from datetime import datetime
-from zoneinfo import ZoneInfo
 import re
 import urllib.parse
 
@@ -48,9 +45,6 @@ class AccessTracker:
         """
         self.max_pages_limit = max_pages_limit
         self.ban_duration_seconds = ban_duration_seconds
-
-        # Track pages visited by each IP (for good crawler limiting)
-        self.ip_page_visits: Dict[str, Dict[str, object]] = defaultdict(dict)
 
         # Load suspicious patterns from wordlists
         wl = get_wordlists()
@@ -372,14 +366,7 @@ class AccessTracker:
 
     def increment_page_visit(self, client_ip: str) -> int:
         """
-        Increment page visit counter for an IP and return the new count.
-        Implements incremental bans: each violation increases ban duration exponentially.
-
-        Ban duration formula: base_duration * (2 ^ violation_count)
-        - 1st violation: base_duration (e.g., 60 seconds)
-        - 2nd violation: base_duration * 2 (120 seconds)
-        - 3rd violation: base_duration * 4 (240 seconds)
-        - Nth violation: base_duration * 2^(N-1)
+        Increment page visit counter for an IP via DB and return the new count.
 
         Args:
             client_ip: The client IP address
@@ -387,7 +374,6 @@ class AccessTracker:
         Returns:
             The updated page visit count for this IP
         """
-        # Skip if this is the server's own IP
         from config import get_config
 
         config = get_config()
@@ -395,85 +381,24 @@ class AccessTracker:
         if server_ip and client_ip == server_ip:
             return 0
 
-        try:
-            # Initialize if not exists
-            if client_ip not in self.ip_page_visits:
-                self.ip_page_visits[client_ip] = {
-                    "count": 0,
-                    "ban_timestamp": None,
-                    "total_violations": 0,
-                    "ban_multiplier": 1,
-                }
-
-            # Increment count
-            self.ip_page_visits[client_ip]["count"] += 1
-
-            # Set ban if reached limit
-            if self.ip_page_visits[client_ip]["count"] >= self.max_pages_limit:
-                # Increment violation counter
-                self.ip_page_visits[client_ip]["total_violations"] += 1
-                violations = self.ip_page_visits[client_ip]["total_violations"]
-
-                # Calculate exponential ban multiplier: 2^(violations - 1)
-                # Violation 1: 2^0 = 1x
-                # Violation 2: 2^1 = 2x
-                # Violation 3: 2^2 = 4x
-                # Violation 4: 2^3 = 8x, etc.
-                self.ip_page_visits[client_ip]["ban_multiplier"] = 2 ** (violations - 1)
-
-                # Set ban timestamp
-                self.ip_page_visits[client_ip][
-                    "ban_timestamp"
-                ] = datetime.now().isoformat()
-
-            return self.ip_page_visits[client_ip]["count"]
-
-        except Exception:
+        if not self.db:
             return 0
+
+        return self.db.increment_page_visit(client_ip, self.max_pages_limit)
 
     def is_banned_ip(self, client_ip: str) -> bool:
         """
-        Check if an IP is currently banned due to exceeding page visit limits.
-        Uses incremental ban duration based on violation count.
-
-        Ban duration = base_duration * (2 ^ (violations - 1))
-        Each time an IP is banned again, duration doubles.
+        Check if an IP is currently banned.
 
         Args:
             client_ip: The client IP address
         Returns:
             True if the IP is banned, False otherwise
         """
-        try:
-            if client_ip in self.ip_page_visits:
-                ban_timestamp = self.ip_page_visits[client_ip].get("ban_timestamp")
-                if ban_timestamp is not None:
-                    # Get the ban multiplier for this violation
-                    ban_multiplier = self.ip_page_visits[client_ip].get(
-                        "ban_multiplier", 1
-                    )
-
-                    # Calculate effective ban duration based on violations
-                    effective_ban_duration = self.ban_duration_seconds * ban_multiplier
-
-                    # Check if ban period has expired
-                    ban_time = datetime.fromisoformat(ban_timestamp)
-                    time_diff = datetime.now() - ban_time
-
-                    if time_diff.total_seconds() > effective_ban_duration:
-                        # Ban expired, reset for next cycle
-                        # Keep violation count for next offense
-                        self.ip_page_visits[client_ip]["count"] = 0
-                        self.ip_page_visits[client_ip]["ban_timestamp"] = None
-                        return False
-                    else:
-                        # Still banned
-                        return True
-
+        if not self.db:
             return False
 
-        except Exception:
-            return False
+        return self.db.is_banned_ip(client_ip, self.ban_duration_seconds)
 
     def get_ban_info(self, client_ip: str) -> dict:
         """
@@ -482,64 +407,15 @@ class AccessTracker:
         Returns:
             Dictionary with ban status, violations, and remaining ban time
         """
-        try:
-            if client_ip not in self.ip_page_visits:
-                return {
-                    "is_banned": False,
-                    "violations": 0,
-                    "ban_multiplier": 1,
-                    "remaining_ban_seconds": 0,
-                }
-
-            ip_data = self.ip_page_visits[client_ip]
-            ban_timestamp = ip_data.get("ban_timestamp")
-
-            if ban_timestamp is None:
-                return {
-                    "is_banned": False,
-                    "violations": ip_data.get("total_violations", 0),
-                    "ban_multiplier": ip_data.get("ban_multiplier", 1),
-                    "remaining_ban_seconds": 0,
-                }
-
-            # Ban is active, calculate remaining time
-            ban_multiplier = ip_data.get("ban_multiplier", 1)
-            effective_ban_duration = self.ban_duration_seconds * ban_multiplier
-
-            ban_time = datetime.fromisoformat(ban_timestamp)
-            time_diff = datetime.now() - ban_time
-            remaining_seconds = max(
-                0, effective_ban_duration - time_diff.total_seconds()
-            )
-
-            return {
-                "is_banned": remaining_seconds > 0,
-                "violations": ip_data.get("total_violations", 0),
-                "ban_multiplier": ban_multiplier,
-                "effective_ban_duration_seconds": effective_ban_duration,
-                "remaining_ban_seconds": remaining_seconds,
-            }
-
-        except Exception:
+        if not self.db:
             return {
                 "is_banned": False,
                 "violations": 0,
                 "ban_multiplier": 1,
                 "remaining_ban_seconds": 0,
             }
-        """
-        Get the current page visit count for an IP.
 
-        Args:
-            client_ip: The client IP address
-
-        Returns:
-            The page visit count for this IP
-        """
-        try:
-            return self.ip_page_visits.get(client_ip, 0)
-        except Exception:
-            return 0
+        return self.db.get_ban_info(client_ip, self.ban_duration_seconds)
 
     def get_stats(self) -> Dict:
         """Get statistics summary from database."""
@@ -560,44 +436,3 @@ class AccessTracker:
 
         return stats
 
-    def cleanup_memory(self) -> None:
-        """
-        Clean up in-memory structures to prevent unbounded growth.
-        Should be called periodically (e.g., every 5 minutes).
-        """
-        # Clean expired ban entries from ip_page_visits
-        current_time = datetime.now()
-        for ip, data in self.ip_page_visits.items():
-            ban_timestamp = data.get("ban_timestamp")
-            if ban_timestamp is not None:
-                try:
-                    ban_time = datetime.fromisoformat(ban_timestamp)
-                    time_diff = (current_time - ban_time).total_seconds()
-                    effective_duration = self.ban_duration_seconds * data.get(
-                        "ban_multiplier", 1
-                    )
-                    if time_diff > effective_duration:
-                        data["count"] = 0
-                        data["ban_timestamp"] = None
-                except (ValueError, TypeError):
-                    pass
-
-        # Remove IPs with zero activity and no active ban
-        ips_to_remove = [
-            ip
-            for ip, data in self.ip_page_visits.items()
-            if data.get("count", 0) == 0 and data.get("ban_timestamp") is None
-        ]
-        for ip in ips_to_remove:
-            del self.ip_page_visits[ip]
-
-    def get_memory_stats(self) -> Dict[str, int]:
-        """
-        Get current memory usage statistics for monitoring.
-
-        Returns:
-            Dictionary with counts of in-memory items
-        """
-        return {
-            "ip_page_visits": len(self.ip_page_visits),
-        }

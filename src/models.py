@@ -204,6 +204,12 @@ class IpStats(Base):
         Boolean, default=False, nullable=True
     )
 
+    # Ban/rate-limit state (moved from in-memory tracker to DB)
+    page_visit_count: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
+    ban_timestamp: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    total_violations: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
+    ban_multiplier: Mapped[int] = mapped_column(Integer, default=1, nullable=True)
+
     def __repr__(self) -> str:
         return f"<IpStats(ip='{self.ip}', total_requests={self.total_requests})>"
 

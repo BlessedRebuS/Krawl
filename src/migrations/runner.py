@@ -48,6 +48,24 @@ def _migrate_need_reevaluation_column(cursor) -> bool:
     return True
 
 
+def _migrate_ban_state_columns(cursor) -> List[str]:
+    """Add ban/rate-limit columns to ip_stats if missing."""
+    added = []
+    columns = {
+        "page_visit_count": "INTEGER DEFAULT 0",
+        "ban_timestamp": "DATETIME",
+        "total_violations": "INTEGER DEFAULT 0",
+        "ban_multiplier": "INTEGER DEFAULT 1",
+    }
+    for col_name, col_type in columns.items():
+        if not _column_exists(cursor, "ip_stats", col_name):
+            cursor.execute(
+                f"ALTER TABLE ip_stats ADD COLUMN {col_name} {col_type}"
+            )
+            added.append(col_name)
+    return added
+
+
 def _migrate_performance_indexes(cursor) -> List[str]:
     """Add performance indexes to attack_detections if missing."""
     added = []
@@ -89,6 +107,10 @@ def run_migrations(database_path: str) -> None:
 
         if _migrate_need_reevaluation_column(cursor):
             applied.append("add need_reevaluation column to ip_stats")
+
+        ban_cols = _migrate_ban_state_columns(cursor)
+        for col in ban_cols:
+            applied.append(f"add {col} column to ip_stats")
 
         idx_added = _migrate_performance_indexes(cursor)
         for idx in idx_added:
