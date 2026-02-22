@@ -97,6 +97,11 @@ class DatabaseManager:
         # Run automatic migrations for backward compatibility
         self._run_migrations(database_path)
 
+        # Run schema migrations (columns & indexes on existing tables)
+        from migrations.runner import run_migrations
+
+        run_migrations(database_path)
+
         # Set restrictive file permissions (owner read/write only)
         if os.path.exists(database_path):
             try:
