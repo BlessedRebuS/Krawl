@@ -200,6 +200,15 @@ class IpStats(Base):
     category_scores: Mapped[Dict[str, int]] = mapped_column(JSON, nullable=True)
     manual_category: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
     last_analysis: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    need_reevaluation: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=True
+    )
+
+    # Ban/rate-limit state (moved from in-memory tracker to DB)
+    page_visit_count: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
+    ban_timestamp: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    total_violations: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
+    ban_multiplier: Mapped[int] = mapped_column(Integer, default=1, nullable=True)
 
     def __repr__(self) -> str:
         return f"<IpStats(ip='{self.ip}', total_requests={self.total_requests})>"

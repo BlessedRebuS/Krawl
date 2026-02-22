@@ -94,12 +94,13 @@ def main():
             "attack_url": 0,
         },
     }
-    # Get IPs with recent activity (last minute to match cron schedule)
-    recent_accesses = db_manager.get_access_logs(limit=999999999, since_minutes=1)
-    ips_to_analyze = {item["ip"] for item in recent_accesses}
+    # Get IPs flagged for reevaluation (set when a suspicious request arrives)
+    ips_to_analyze = set(db_manager.get_ips_needing_reevaluation())
 
     if not ips_to_analyze:
-        app_logger.debug("[Background Task] analyze-ips: No recent activity, skipping")
+        app_logger.debug(
+            "[Background Task] analyze-ips: No IPs need reevaluation, skipping"
+        )
         return
 
     for ip in ips_to_analyze:

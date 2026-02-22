@@ -29,10 +29,11 @@ async def lifespan(app: FastAPI):
     initialize_logging()
     app_logger = get_app_logger()
 
-    # Initialize database
+    # Initialize database and run pending migrations before accepting traffic
     try:
+        app_logger.info(f"Initializing database at: {config.database_path}")
         initialize_database(config.database_path)
-        app_logger.info(f"Database initialized at: {config.database_path}")
+        app_logger.info("Database ready")
     except Exception as e:
         app_logger.warning(
             f"Database initialization failed: {e}. Continuing with in-memory only."

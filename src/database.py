@@ -97,6 +97,11 @@ class DatabaseManager:
         # Run automatic migrations for backward compatibility
         self._run_migrations(database_path)
 
+        # Run schema migrations (columns & indexes on existing tables)
+        from migrations.runner import run_migrations
+
+        run_migrations(database_path)
+
         # Set restrictive file permissions (owner read/write only)
         if os.path.exists(database_path):
             try:
@@ -256,7 +261,7 @@ class DatabaseManager:
                     session.add(detection)
 
             # Update IP stats
-            self._update_ip_stats(session, ip)
+            self._update_ip_stats(session, ip, is_suspicious)
 
             session.commit()
             return access_log.id
@@ -308,13 +313,16 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def _update_ip_stats(self, session: Session, ip: str) -> None:
+    def _update_ip_stats(
+        self, session: Session, ip: str, is_suspicious: bool = False
+    ) -> None:
         """
         Update IP statistics (upsert pattern).
 
         Args:
             session: Active database session
             ip: IP address to update
+            is_suspicious: Whether the request was flagged as suspicious
         """
         sanitized_ip = sanitize_ip(ip)
         now = datetime.now()
@@ -324,11 +332,158 @@ class DatabaseManager:
         if ip_stats:
             ip_stats.total_requests += 1
             ip_stats.last_seen = now
+            if is_suspicious:
+                ip_stats.need_reevaluation = True
         else:
             ip_stats = IpStats(
-                ip=sanitized_ip, total_requests=1, first_seen=now, last_seen=now
+                ip=sanitized_ip,
+                total_requests=1,
+                first_seen=now,
+                last_seen=now,
+                need_reevaluation=is_suspicious,
             )
             session.add(ip_stats)
+
+    def increment_page_visit(self, ip: str, max_pages_limit: int) -> int:
+        """
+        Increment the page visit counter for an IP and apply ban if limit reached.
+
+        Args:
+            ip: Client IP address
+            max_pages_limit: Page visit threshold before banning
+
+        Returns:
+            The updated page visit count
+        """
+        session = self.session
+        try:
+            sanitized_ip = sanitize_ip(ip)
+            ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
+
+            if not ip_stats:
+                now = datetime.now()
+                ip_stats = IpStats(
+                    ip=sanitized_ip,
+                    total_requests=0,
+                    first_seen=now,
+                    last_seen=now,
+                    page_visit_count=1,
+                )
+                session.add(ip_stats)
+                session.commit()
+                return 1
+
+            ip_stats.page_visit_count = (ip_stats.page_visit_count or 0) + 1
+
+            if ip_stats.page_visit_count >= max_pages_limit:
+                ip_stats.total_violations = (ip_stats.total_violations or 0) + 1
+                ip_stats.ban_multiplier = 2 ** (ip_stats.total_violations - 1)
+                ip_stats.ban_timestamp = datetime.now()
+
+            session.commit()
+            return ip_stats.page_visit_count
+
+        except Exception as e:
+            session.rollback()
+            applogger.error(f"Error incrementing page visit for {ip}: {e}")
+            return 0
+        finally:
+            self.close_session()
+
+    def is_banned_ip(self, ip: str, ban_duration_seconds: int) -> bool:
+        """
+        Check if an IP is currently banned.
+
+        Args:
+            ip: Client IP address
+            ban_duration_seconds: Base ban duration in seconds
+
+        Returns:
+            True if the IP is currently banned
+        """
+        session = self.session
+        try:
+            sanitized_ip = sanitize_ip(ip)
+            ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
+
+            if not ip_stats or ip_stats.ban_timestamp is None:
+                return False
+
+            effective_duration = ban_duration_seconds * (ip_stats.ban_multiplier or 1)
+            elapsed = (datetime.now() - ip_stats.ban_timestamp).total_seconds()
+
+            if elapsed > effective_duration:
+                # Ban expired — reset count for next cycle
+                ip_stats.page_visit_count = 0
+                ip_stats.ban_timestamp = None
+                session.commit()
+                return False
+
+            return True
+
+        except Exception as e:
+            applogger.error(f"Error checking ban status for {ip}: {e}")
+            return False
+        finally:
+            self.close_session()
+
+    def get_ban_info(self, ip: str, ban_duration_seconds: int) -> dict:
+        """
+        Get detailed ban information for an IP.
+
+        Args:
+            ip: Client IP address
+            ban_duration_seconds: Base ban duration in seconds
+
+        Returns:
+            Dictionary with ban status details
+        """
+        session = self.session
+        try:
+            sanitized_ip = sanitize_ip(ip)
+            ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
+
+            if not ip_stats:
+                return {
+                    "is_banned": False,
+                    "violations": 0,
+                    "ban_multiplier": 1,
+                    "remaining_ban_seconds": 0,
+                }
+
+            violations = ip_stats.total_violations or 0
+            multiplier = ip_stats.ban_multiplier or 1
+
+            if ip_stats.ban_timestamp is None:
+                return {
+                    "is_banned": False,
+                    "violations": violations,
+                    "ban_multiplier": multiplier,
+                    "remaining_ban_seconds": 0,
+                }
+
+            effective_duration = ban_duration_seconds * multiplier
+            elapsed = (datetime.now() - ip_stats.ban_timestamp).total_seconds()
+            remaining = max(0, effective_duration - elapsed)
+
+            return {
+                "is_banned": remaining > 0,
+                "violations": violations,
+                "ban_multiplier": multiplier,
+                "effective_ban_duration_seconds": effective_duration,
+                "remaining_ban_seconds": remaining,
+            }
+
+        except Exception as e:
+            applogger.error(f"Error getting ban info for {ip}: {e}")
+            return {
+                "is_banned": False,
+                "violations": 0,
+                "ban_multiplier": 1,
+                "remaining_ban_seconds": 0,
+            }
+        finally:
+            self.close_session()
 
     def update_ip_stats_analysis(
         self,
@@ -380,6 +535,7 @@ class DatabaseManager:
         ip_stats.category = category
         ip_stats.category_scores = category_scores
         ip_stats.last_analysis = last_analysis
+        ip_stats.need_reevaluation = False
 
         try:
             session.commit()
@@ -628,6 +784,24 @@ class DatabaseManager:
                 else:
                     raise
 
+            return [ip[0] for ip in ips]
+        finally:
+            self.close_session()
+
+    def get_ips_needing_reevaluation(self) -> List[str]:
+        """
+        Get all IP addresses that have been flagged for reevaluation.
+
+        Returns:
+            List of IP addresses where need_reevaluation is True
+        """
+        session = self.session
+        try:
+            ips = (
+                session.query(IpStats.ip)
+                .filter(IpStats.need_reevaluation == True)
+                .all()
+            )
             return [ip[0] for ip in ips]
         finally:
             self.close_session()
