@@ -59,9 +59,7 @@ def _migrate_ban_state_columns(cursor) -> List[str]:
     }
     for col_name, col_type in columns.items():
         if not _column_exists(cursor, "ip_stats", col_name):
-            cursor.execute(
-                f"ALTER TABLE ip_stats ADD COLUMN {col_name} {col_type}"
-            )
+            cursor.execute(f"ALTER TABLE ip_stats ADD COLUMN {col_name} {col_type}")
             added.append(col_name)
     return added
 

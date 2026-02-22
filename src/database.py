@@ -358,9 +358,7 @@ class DatabaseManager:
         session = self.session
         try:
             sanitized_ip = sanitize_ip(ip)
-            ip_stats = (
-                session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
-            )
+            ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
 
             if not ip_stats:
                 now = datetime.now()
@@ -406,9 +404,7 @@ class DatabaseManager:
         session = self.session
         try:
             sanitized_ip = sanitize_ip(ip)
-            ip_stats = (
-                session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
-            )
+            ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
 
             if not ip_stats or ip_stats.ban_timestamp is None:
                 return False
@@ -445,9 +441,7 @@ class DatabaseManager:
         session = self.session
         try:
             sanitized_ip = sanitize_ip(ip)
-            ip_stats = (
-                session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
-            )
+            ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
 
             if not ip_stats:
                 return {

@@ -98,7 +98,9 @@ def main():
     ips_to_analyze = set(db_manager.get_ips_needing_reevaluation())
 
     if not ips_to_analyze:
-        app_logger.debug("[Background Task] analyze-ips: No IPs need reevaluation, skipping")
+        app_logger.debug(
+            "[Background Task] analyze-ips: No IPs need reevaluation, skipping"
+        )
         return
 
     for ip in ips_to_analyze:

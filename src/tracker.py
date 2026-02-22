@@ -435,4 +435,3 @@ class AccessTracker:
         stats["credential_attempts"] = self.db.get_credential_attempts(limit=50)
 
         return stats
-
