@@ -180,7 +180,7 @@ async def htmx_access_logs_by_ip(
 ):
     db = get_db()
     result = db.get_access_logs_paginated(
-        page=max(1, page),page_size=25, ip_filter=ip_filter
+        page=max(1, page), page_size=25, ip_filter=ip_filter
     )
 
     # Normalize pagination key (DB returns total_attackers, template expects total)

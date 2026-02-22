@@ -888,31 +888,34 @@ class DatabaseManager:
             logs = query.offset(offset).limit(page_size).all()
             # Get total count of attackers
             total_access_logs = (
-                session.query(AccessLog).filter(AccessLog.ip == sanitize_ip(ip_filter)).count()
+                session.query(AccessLog)
+                .filter(AccessLog.ip == sanitize_ip(ip_filter))
+                .count()
             )
             total_pages = (total_access_logs + page_size - 1) // page_size
 
             return {
-                    "access_logs": [
+                "access_logs": [
                     {
-                            "id": log.id,
-                            "ip": log.ip,
-                            "path": log.path,
-                            "user_agent": log.user_agent,
-                            "method": log.method,
-                            "is_suspicious": log.is_suspicious,
-                            "is_honeypot_trigger": log.is_honeypot_trigger,
-                            "timestamp": log.timestamp.isoformat(),
-                            "attack_types": [d.attack_type for d in log.attack_detections],
-                }
-                for log in logs ],
+                        "id": log.id,
+                        "ip": log.ip,
+                        "path": log.path,
+                        "user_agent": log.user_agent,
+                        "method": log.method,
+                        "is_suspicious": log.is_suspicious,
+                        "is_honeypot_trigger": log.is_honeypot_trigger,
+                        "timestamp": log.timestamp.isoformat(),
+                        "attack_types": [d.attack_type for d in log.attack_detections],
+                    }
+                    for log in logs
+                ],
                 "pagination": {
                     "page": page,
                     "page_size": page_size,
                     "total_logs": total_access_logs,
                     "total_pages": total_pages,
                 },
-                }
+            }
         finally:
             self.close_session()
 

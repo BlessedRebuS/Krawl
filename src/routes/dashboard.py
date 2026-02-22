@@ -40,6 +40,7 @@ async def dashboard_page(request: Request):
         },
     )
 
+
 @router.get("/ip/{ip_address:path}")
 async def ip_page(ip_address: str, request: Request):
     db = get_db()
@@ -57,7 +58,7 @@ async def ip_page(ip_address: str, request: Request):
                     "request": request,
                     "dashboard_path": dashboard_path,
                     "stats": stats,
-                    "ip_address": ip_address
+                    "ip_address": ip_address,
                 },
             )
         else:
@@ -67,4 +68,3 @@ async def ip_page(ip_address: str, request: Request):
     except Exception as e:
         get_app_logger().error(f"Error fetching IP stats: {e}")
         return JSONResponse(content={"error": str(e)})
-
