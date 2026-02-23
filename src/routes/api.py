@@ -73,7 +73,7 @@ async def all_ips(
 ):
     db = get_db()
     page = max(1, page)
-    page_size = min(max(1, page_size), 100)
+    page_size = min(max(1, page_size), 10000)
 
     try:
         result = db.get_all_ips_paginated(
