@@ -626,6 +626,11 @@ tbody {
 .marker-unknown:hover {
     box-shadow: 0 0 15px rgba(139, 148, 158, 1), inset 0 0 6px rgba(139, 148, 158, 0.7);
 }
+/* Custom pie-chart cluster icons */
+.ip-cluster-icon {
+    background: none !important;
+    border: none !important;
+}
 .leaflet-bottom.leaflet-right {
     display: none !important;
 }
