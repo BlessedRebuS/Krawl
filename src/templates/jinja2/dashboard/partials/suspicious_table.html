@@ -22,7 +22,7 @@
                 </td>
                 <td>{{ activity.path | e }}</td>
                 <td style="word-break: break-all;">{{ (activity.user_agent | default(''))[:80] | e }}</td>
-                <td>{{ activity.timestamp | format_ts(time_only=True) }}</td>
+                <td>{{ activity.timestamp | format_ts }}</td>
             </tr>
             <tr class="ip-stats-row" style="display: none;">
                 <td colspan="4" class="ip-stats-cell">

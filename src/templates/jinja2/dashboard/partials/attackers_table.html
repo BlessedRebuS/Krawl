@@ -25,8 +25,16 @@
                 hx-swap="innerHTML">
                 Total Requests
             </th>
-            <th>First Seen</th>
-            <th>Last Seen</th>
+            <th class="sortable {% if sort_by == 'first_seen' %}{{ sort_order }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=first_seen&sort_order={% if sort_by == 'first_seen' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML">
+                First Seen</th>
+            <th class="sortable {% if sort_by == 'last_seen' %}{{ sort_order }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=last_seen&sort_order={% if sort_by == 'last_seen' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML">
+                Last Seen</th>
             <th>Location</th>
         </tr>
     </thead>
