@@ -1,0 +1,158 @@
+{# HTMX fragment: Search results for attacks and IPs #}
+<div class="search-results">
+
+    <div class="search-results-header">
+        <span class="search-results-summary">
+            Found <strong>{{ pagination.total_attacks }}</strong> attack{{ 's' if pagination.total_attacks != 1 else '' }}
+            and <strong>{{ pagination.total_ips }}</strong> IP{{ 's' if pagination.total_ips != 1 else '' }}
+            for &ldquo;<em>{{ query | e }}</em>&rdquo;
+        </span>
+        <button class="search-close-btn" onclick="document.getElementById('search-input').value=''; document.getElementById('search-results-container').innerHTML='';">&times;</button>
+    </div>
+
+    {# ── Matching IPs ─────────────────────────────────── #}
+    {% if ips %}
+    <div class="search-section">
+        <h3 class="search-section-title">Matching IPs</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>IP Address</th>
+                    <th>Requests</th>
+                    <th>Category</th>
+                    <th>Location</th>
+                    <th>ISP / ASN</th>
+                    <th>Last Seen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ip in ips %}
+                <tr class="ip-row" data-ip="{{ ip.ip | e }}">
+                    <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
+                    <td class="ip-clickable"
+                        hx-get="{{ dashboard_path }}/htmx/ip-detail/{{ ip.ip | e }}"
+                        hx-target="next .ip-stats-row .ip-stats-dropdown"
+                        hx-swap="innerHTML"
+                        @click="toggleIpDetail($event)">
+                        {{ ip.ip | e }}
+                    </td>
+                    <td>{{ ip.total_requests }}</td>
+                    <td>
+                        {% if ip.category %}
+                        <span class="category-badge category-{{ ip.category | default('unknown') | replace(' ', '-') | lower }}">
+                            {{ ip.category | e }}
+                        </span>
+                        {% else %}
+                        <span class="category-badge category-unknown">unknown</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ ip.city | default('') | e }}{% if ip.city and ip.country_code %}, {% endif %}{{ ip.country_code | default('N/A') | e }}</td>
+                    <td>{{ ip.isp | default(ip.asn_org | default('N/A')) | e }}</td>
+                    <td>{{ ip.last_seen | format_ts }}</td>
+                </tr>
+                <tr class="ip-stats-row" style="display: none;">
+                    <td colspan="7" class="ip-stats-cell">
+                        <div class="ip-stats-dropdown">
+                            <div class="loading">Loading stats...</div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {# ── Matching Attacks ─────────────────────────────── #}
+    {% if attacks %}
+    <div class="search-section">
+        <h3 class="search-section-title">Matching Attacks</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>IP Address</th>
+                    <th>Path</th>
+                    <th>Attack Types</th>
+                    <th>User-Agent</th>
+                    <th>Time</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attack in attacks %}
+                <tr class="ip-row" data-ip="{{ attack.ip | e }}">
+                    <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
+                    <td class="ip-clickable"
+                        hx-get="{{ dashboard_path }}/htmx/ip-detail/{{ attack.ip | e }}"
+                        hx-target="next .ip-stats-row .ip-stats-dropdown"
+                        hx-swap="innerHTML"
+                        @click="toggleIpDetail($event)">
+                        {{ attack.ip | e }}
+                    </td>
+                    <td>
+                        <div class="path-cell-container">
+                            <span class="path-truncated">{{ attack.path | e }}</span>
+                            {% if attack.path | length > 30 %}
+                            <div class="path-tooltip">{{ attack.path | e }}</div>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="attack-types-cell">
+                            {% set types_str = attack.attack_types | join(', ') %}
+                            <span class="attack-types-truncated">{{ types_str | e }}</span>
+                            {% if types_str | length > 30 %}
+                            <div class="attack-types-tooltip">{{ types_str | e }}</div>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>{{ (attack.user_agent | default(''))[:50] | e }}</td>
+                    <td>{{ attack.timestamp | format_ts }}</td>
+                    <td>
+                        {% if attack.log_id %}
+                        <button class="view-btn" @click="viewRawRequest({{ attack.log_id }})">View Request</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr class="ip-stats-row" style="display: none;">
+                    <td colspan="7" class="ip-stats-cell">
+                        <div class="ip-stats-dropdown">
+                            <div class="loading">Loading stats...</div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {# ── Pagination ───────────────────────────────────── #}
+    {% if pagination.total_pages > 1 %}
+    <div class="search-pagination">
+        <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }}</span>
+        <div style="display: flex; gap: 8px;">
+            <button class="pagination-btn"
+                    hx-get="{{ dashboard_path }}/htmx/search?q={{ query | urlencode }}&page={{ pagination.page - 1 }}"
+                    hx-target="#search-results-container"
+                    hx-swap="innerHTML"
+                    {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
+            <button class="pagination-btn"
+                    hx-get="{{ dashboard_path }}/htmx/search?q={{ query | urlencode }}&page={{ pagination.page + 1 }}"
+                    hx-target="#search-results-container"
+                    hx-swap="innerHTML"
+                    {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── No results ───────────────────────────────────── #}
+    {% if not attacks and not ips %}
+    <div class="search-no-results">
+        No results found for &ldquo;<em>{{ query | e }}</em>&rdquo;
+    </div>
+    {% endif %}
+
+</div>

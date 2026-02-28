@@ -2,7 +2,7 @@
 
 """
 HTMX fragment endpoints.
-Server-rendered HTML partials for table pagination, sorting, and IP details.
+Server-rendered HTML partials for table pagination, sorting, IP details, and search.
 """
 
 from fastapi import APIRouter, Request, Response, Query
@@ -367,5 +367,35 @@ async def htmx_ip_detail(ip_address: str, request: Request):
             "request": request,
             "dashboard_path": _dashboard_path(request),
             "stats": stats,
+        },
+    )
+
+
+# ── Search ───────────────────────────────────────────────────────────
+
+
+@router.get("/htmx/search")
+async def htmx_search(
+    request: Request,
+    q: str = Query(""),
+    page: int = Query(1),
+):
+    q = q.strip()
+    if not q:
+        return Response(content="", media_type="text/html")
+
+    db = get_db()
+    result = db.search_attacks_and_ips(query=q, page=max(1, page), page_size=20)
+
+    templates = get_templates()
+    return templates.TemplateResponse(
+        "dashboard/partials/search_results.html",
+        {
+            "request": request,
+            "dashboard_path": _dashboard_path(request),
+            "attacks": result["attacks"],
+            "ips": result["ips"],
+            "query": q,
+            "pagination": result["pagination"],
         },
     )
