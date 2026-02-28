@@ -2136,7 +2136,9 @@ class DatabaseManager:
                 {
                     "ip": stat.ip,
                     "total_requests": stat.total_requests,
-                    "first_seen": stat.first_seen.isoformat() if stat.first_seen else None,
+                    "first_seen": (
+                        stat.first_seen.isoformat() if stat.first_seen else None
+                    ),
                     "last_seen": stat.last_seen.isoformat() if stat.last_seen else None,
                     "country_code": stat.country_code,
                     "city": stat.city,
@@ -2148,7 +2150,9 @@ class DatabaseManager:
             ]
 
             total = total_attacks + total_ips
-            total_pages = max(1, (max(total_attacks, total_ips) + page_size - 1) // page_size)
+            total_pages = max(
+                1, (max(total_attacks, total_ips) + page_size - 1) // page_size
+            )
 
             return {
                 "attacks": attacks,
