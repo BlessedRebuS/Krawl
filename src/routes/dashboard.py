@@ -23,7 +23,7 @@ async def dashboard_page(request: Request):
 
     # Get initial data for server-rendered sections
     stats = db.get_dashboard_counts()
-    suspicious = db.get_recent_suspicious(limit=20)
+    suspicious = db.get_recent_suspicious(limit=10)
 
     # Get credential count for the stats card
     cred_result = db.get_credentials_paginated(page=1, page_size=1)

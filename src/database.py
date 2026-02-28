@@ -1767,7 +1767,11 @@ class DatabaseManager:
 
             # Filter out local/private IPs and server IP, then sort
             filtered = [
-                {"ip": row.ip, "count": row.count, "category": row.category or "unknown"}
+                {
+                    "ip": row.ip,
+                    "count": row.count,
+                    "category": row.category or "unknown",
+                }
                 for row in results
                 if is_valid_public_ip(row.ip, server_ip)
             ]
