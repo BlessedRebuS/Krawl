@@ -1755,14 +1755,19 @@ class DatabaseManager:
             offset = (page - 1) * page_size
 
             results = (
-                session.query(AccessLog.ip, func.count(AccessLog.id).label("count"))
-                .group_by(AccessLog.ip)
+                session.query(
+                    AccessLog.ip,
+                    func.count(AccessLog.id).label("count"),
+                    IpStats.category,
+                )
+                .outerjoin(IpStats, AccessLog.ip == IpStats.ip)
+                .group_by(AccessLog.ip, IpStats.category)
                 .all()
             )
 
             # Filter out local/private IPs and server IP, then sort
             filtered = [
-                {"ip": row.ip, "count": row.count}
+                {"ip": row.ip, "count": row.count, "category": row.category or "unknown"}
                 for row in results
                 if is_valid_public_ip(row.ip, server_ip)
             ]

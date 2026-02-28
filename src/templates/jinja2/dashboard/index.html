@@ -41,21 +41,10 @@
     </div>
 
     {# ==================== OVERVIEW TAB ==================== #}
-    <div x-show="tab === 'overview'">
+    <div x-show="tab === 'overview'" x-init="$nextTick(() => { if (!mapInitialized && typeof initializeAttackerMap === 'function') { initializeAttackerMap(); mapInitialized = true; } })">
 
-        {# Suspicious Activity - server-rendered #}
-        {% include "dashboard/partials/suspicious_table.html" %}
-
-        {# Honeypot Triggers - HTMX loaded #}
-        <div class="table-container alert-section">
-            <h2>Honeypot Triggers by IP</h2>
-            <div class="htmx-container"
-                 hx-get="{{ dashboard_path }}/htmx/honeypot?page=1"
-                 hx-trigger="load"
-                 hx-swap="innerHTML">
-                <div class="htmx-indicator">Loading...</div>
-            </div>
-        </div>
+        {# Map section #}
+        {% include "dashboard/partials/map_section.html" %}
 
         {# Top IPs + Top User-Agents side by side #}
         <div style="display: flex; gap: 20px; flex-wrap: wrap;">
@@ -89,13 +78,13 @@
                 <div class="htmx-indicator">Loading...</div>
             </div>
         </div>
+
+        {# Suspicious Activity - server-rendered #}
+        {% include "dashboard/partials/suspicious_table.html" %}
     </div>
 
     {# ==================== ATTACKS TAB ==================== #}
     <div x-show="tab === 'attacks'" x-cloak>
-
-        {# Map section #}
-        {% include "dashboard/partials/map_section.html" %}
 
         {# Attackers table - HTMX loaded #}
         <div class="table-container alert-section">
@@ -113,6 +102,17 @@
             <h2>Captured Credentials</h2>
             <div class="htmx-container"
                  hx-get="{{ dashboard_path }}/htmx/credentials?page=1"
+                 hx-trigger="revealed"
+                 hx-swap="innerHTML">
+                <div class="htmx-indicator">Loading...</div>
+            </div>
+        </div>
+
+        {# Honeypot Triggers - HTMX loaded #}
+        <div class="table-container alert-section">
+            <h2>Honeypot Triggers by IP</h2>
+            <div class="htmx-container"
+                 hx-get="{{ dashboard_path }}/htmx/honeypot?page=1"
                  hx-trigger="revealed"
                  hx-swap="innerHTML">
                 <div class="htmx-indicator">Loading...</div>

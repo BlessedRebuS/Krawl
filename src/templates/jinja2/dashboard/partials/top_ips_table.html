@@ -19,13 +19,14 @@
         <tr>
             <th>#</th>
             <th>IP Address</th>
+            <th>Category</th>
             <th class="sortable {% if sort_by == 'count' %}{{ sort_order }}{% endif %}"
                 hx-get="{{ dashboard_path }}/htmx/top-ips?page=1&sort_by=count&sort_order={% if sort_by == 'count' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML">
                 Access Count
             </th>
-            <th>Actions</th>
+            <th style="width: 40px;"></th>
         </tr>
     </thead>
     <tbody>
@@ -39,6 +40,11 @@
                 @click="toggleIpDetail($event)">
                 {{ item.ip | e }}
             </td>
+            <td>
+                {% set cat = item.category | default('unknown') %}
+                {% set cat_colors = {'attacker': '#f85149', 'good_crawler': '#3fb950', 'bad_crawler': '#f0883e', 'regular_user': '#58a6ff', 'unknown': '#8b949e'} %}
+                <span class="category-dot" style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: {{ cat_colors.get(cat, '#8b949e') }};" title="{{ cat | replace('_', ' ') | title }}"></span>
+            </td>
             <td>{{ item.count }}</td>
             <td>
                 <button class="inspect-btn" @click="openIpInsight('{{ item.ip | e }}')" title="Inspect IP">
@@ -47,14 +53,14 @@
             </td>
         </tr>
         <tr class="ip-stats-row" style="display: none;">
-            <td colspan="4" class="ip-stats-cell">
+            <td colspan="5" class="ip-stats-cell">
                 <div class="ip-stats-dropdown">
                     <div class="loading">Loading stats...</div>
                 </div>
             </td>
         </tr>
         {% else %}
-        <tr><td colspan="4" style="text-align: center;">No data</td></tr>
+        <tr><td colspan="5" style="text-align: center;">No data</td></tr>
         {% endfor %}
     </tbody>
 </table>

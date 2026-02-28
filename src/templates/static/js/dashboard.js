@@ -45,15 +45,9 @@ document.addEventListener('alpine:init', () => {
             this.tab = 'attacks';
             window.location.hash = '#ip-stats';
 
-            // Delay initialization to ensure the container is visible and
-            // the browser has reflowed after x-show removes display:none.
-            // Leaflet and Chart.js need visible containers with real dimensions.
+            // Delay chart initialization to ensure the container is visible
             this.$nextTick(() => {
                 setTimeout(() => {
-                    if (!this.mapInitialized && typeof initializeAttackerMap === 'function') {
-                        initializeAttackerMap();
-                        this.mapInitialized = true;
-                    }
                     if (!this.chartLoaded && typeof loadAttackTypesChart === 'function') {
                         loadAttackTypesChart();
                         this.chartLoaded = true;

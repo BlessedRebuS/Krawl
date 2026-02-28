@@ -26,7 +26,7 @@
                 hx-swap="innerHTML">
                 Time
             </th>
-            <th>Actions</th>
+            <th style="width: 100px;"></th>
         </tr>
     </thead>
     <tbody>
@@ -50,14 +50,14 @@
             </td>
         </tr>
         <tr class="ip-stats-row" style="display: none;">
-            <td colspan="7" class="ip-stats-cell">
+            <td colspan="5" class="ip-stats-cell">
                 <div class="ip-stats-dropdown">
                     <div class="loading">Loading stats...</div>
                 </div>
             </td>
         </tr>
         {% else %}
-        <tr><td colspan="7" style="text-align: center;">No logs detected</td></tr>
+        <tr><td colspan="5" style="text-align: center;">No logs detected</td></tr>
         {% endfor %}
     </tbody>
 </table>
