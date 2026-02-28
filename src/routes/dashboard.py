@@ -50,6 +50,10 @@ async def ip_page(ip_address: str, request: Request):
         dashboard_path = "/" + config.dashboard_secret_path.lstrip("/")
 
         if stats:
+            # Transform fields for template compatibility
+            list_on = stats.get("list_on") or {}
+            stats["blocklist_memberships"] = list(list_on.keys()) if list_on else []
+            stats["reverse_dns"] = stats.get("reverse")
 
             templates = get_templates()
             return templates.TemplateResponse(

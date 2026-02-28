@@ -340,6 +340,15 @@ function buildMapMarkers(ips) {
                     `;
                 }
 
+                // Add inspect button
+                popupContent += `
+                    <div style="margin-top: 12px; border-top: 1px solid #30363d; padding-top: 12px; text-align: center;">
+                        <button onclick="window.openIpInsight('${ip.ip}')" class="inspect-btn" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: #21262d; color: #58a6ff; border: 1px solid #30363d; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
+                        </button>
+                    </div>
+                `;
+
                 popupContent += '</div>';
                 marker.setPopupContent(popupContent);
             } catch (err) {
@@ -362,6 +371,11 @@ function buildMapMarkers(ips) {
                         </div>
                         <div style="margin-top: 12px; border-top: 1px solid #30363d; padding-top: 12px; text-align: center; color: #f85149; font-size: 11px;">
                             Failed to load chart: ${err.message}
+                        </div>
+                        <div style="margin-top: 12px; text-align: center;">
+                            <button onclick="window.openIpInsight('${ip.ip}')" class="inspect-btn" style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: #21262d; color: #58a6ff; border: 1px solid #30363d; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
+                            </button>
                         </div>
                     </div>
                 `;

@@ -1,21 +1,5 @@
-{% extends "base.html" %}
-
-{% block content %}
-<div class="container" x-data="dashboardApp()" x-init="init()">
-
-    {# GitHub logo #}
-    <a href="https://github.com/BlessedRebuS/Krawl" target="_blank" class="github-logo">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-        <span class="github-logo-text">Krawl</span>
-    </a>
-
-    {# Back to dashboard link #}
-    <div style="position: absolute; top: 0; right: 0;">
-        <a href="{{ dashboard_path }}/" class="download-btn" style="text-decoration: none;">
-            &larr; Back to Dashboard
-        </a>
-    </div>
-
+{# HTMX fragment: IP Insight - full IP detail view for inline display #}
+<div class="ip-insight-content" id="ip-insight-content">
     {# Page header #}
     <div class="ip-page-header">
         <h1>
@@ -161,11 +145,6 @@
                 </div>
             </div>
 
-            {# Single IP Map #}
-            <div class="table-container">
-                <h2>Location</h2>
-                <div id="single-ip-map" style="height: 300px; border-radius: 6px; border: 1px solid #30363d;"></div>
-            </div>
         </div>
 
         {# Right column: Radar Chart + Timeline #}
@@ -175,7 +154,7 @@
             <div class="table-container">
                 <h2>Category Analysis</h2>
                 <div class="radar-chart-container">
-                    <div class="radar-chart" id="ip-radar-chart"></div>
+                    <div class="radar-chart" id="insight-radar-chart"></div>
                 </div>
             </div>
             {% endif %}
@@ -203,6 +182,12 @@
         </div>
     </div>
 
+    {# Single IP Map - full width #}
+    <div class="table-container" style="margin-top: 20px;">
+        <h2>Location</h2>
+        <div id="insight-ip-map" style="height: 300px; border-radius: 6px; border: 1px solid #30363d;"></div>
+    </div>
+
     {# Access History table #}
     <div class="table-container alert-section" style="margin-top: 20px;">
         <h2>Access History</h2>
@@ -213,32 +198,15 @@
             <div class="htmx-indicator">Loading...</div>
         </div>
     </div>
-
-    {# Raw Request Modal #}
-    <div class="raw-request-modal" x-show="rawModal.show" @click.self="closeRawModal()" x-cloak>
-        <div class="raw-request-modal-content">
-            <div class="raw-request-modal-header">
-                <h3>Raw Request</h3>
-                <span class="raw-request-modal-close" @click="closeRawModal()">&times;</span>
-            </div>
-            <div class="raw-request-modal-body">
-                <pre class="raw-request-content" x-text="rawModal.content"></pre>
-            </div>
-            <div class="raw-request-modal-footer">
-                <button class="raw-request-download-btn" @click="downloadRawRequest()">Download</button>
-            </div>
-        </div>
-    </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
+{# Inline script for initializing map and chart after HTMX swap #}
 <script>
 (function() {
     // Initialize radar chart
     {% if stats.category_scores %}
     const scores = {{ stats.category_scores | tojson }};
-    const container = document.getElementById('ip-radar-chart');
+    const container = document.getElementById('insight-radar-chart');
     if (container && typeof generateRadarChart === 'function') {
         container.innerHTML = generateRadarChart(scores, 220, true);
     }
@@ -246,65 +214,66 @@
 
     // Initialize single IP map
     {% if stats.latitude and stats.longitude %}
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-            const mapContainer = document.getElementById('single-ip-map');
-            if (!mapContainer || typeof L === 'undefined') return;
+    setTimeout(function() {
+        const mapContainer = document.getElementById('insight-ip-map');
+        if (!mapContainer || typeof L === 'undefined') return;
 
-            const lat = {{ stats.latitude }};
-            const lng = {{ stats.longitude }};
-            const category = '{{ stats.category | default("unknown") | lower }}';
-
-            const categoryColors = {
-                attacker: '#f85149',
-                bad_crawler: '#f0883e',
-                good_crawler: '#3fb950',
-                regular_user: '#58a6ff',
-                unknown: '#8b949e'
-            };
-
-            const map = L.map('single-ip-map', {
-                center: [lat, lng],
-                zoom: 6,
-                zoomControl: true,
-                scrollWheelZoom: true
-            });
-
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; CartoDB | &copy; OpenStreetMap contributors',
-                maxZoom: 19,
-                subdomains: 'abcd'
-            }).addTo(map);
-
-            const color = categoryColors[category] || '#8b949e';
-            const markerHtml = `
-                <div style="
-                    width: 24px;
-                    height: 24px;
-                    background: ${color};
-                    border: 3px solid #fff;
-                    border-radius: 50%;
-                    box-shadow: 0 0 12px ${color}, 0 0 24px ${color}80;
-                "></div>
-            `;
-
-            const icon = L.divIcon({
-                html: markerHtml,
-                iconSize: [24, 24],
-                className: 'single-ip-marker'
-            });
-
-            L.marker([lat, lng], { icon: icon }).addTo(map);
-        }, 100);
-    });
-    {% else %}
-    document.addEventListener('DOMContentLoaded', function() {
-        const mapContainer = document.getElementById('single-ip-map');
-        if (mapContainer) {
-            mapContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #8b949e;">Location data not available</div>';
+        // Clean up any existing map instance
+        if (mapContainer._leaflet_id) {
+            mapContainer._leaflet_id = null;
         }
-    });
+        mapContainer.innerHTML = '';
+
+        const lat = {{ stats.latitude }};
+        const lng = {{ stats.longitude }};
+        const category = '{{ stats.category | default("unknown") | lower }}';
+
+        const categoryColors = {
+            attacker: '#f85149',
+            bad_crawler: '#f0883e',
+            good_crawler: '#3fb950',
+            regular_user: '#58a6ff',
+            unknown: '#8b949e'
+        };
+
+        const map = L.map('insight-ip-map', {
+            center: [lat, lng],
+            zoom: 6,
+            zoomControl: true,
+            scrollWheelZoom: true
+        });
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; CartoDB | &copy; OpenStreetMap contributors',
+            maxZoom: 19,
+            subdomains: 'abcd'
+        }).addTo(map);
+
+        const color = categoryColors[category] || '#8b949e';
+        const markerHtml = `
+            <div style="
+                width: 24px;
+                height: 24px;
+                background: ${color};
+                border: 3px solid #fff;
+                border-radius: 50%;
+                box-shadow: 0 0 12px ${color}, 0 0 24px ${color}80;
+            "></div>
+        `;
+
+        const icon = L.divIcon({
+            html: markerHtml,
+            iconSize: [24, 24],
+            className: 'single-ip-marker'
+        });
+
+        L.marker([lat, lng], { icon: icon }).addTo(map);
+    }, 100);
+    {% else %}
+    const mapContainer = document.getElementById('insight-ip-map');
+    if (mapContainer) {
+        mapContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #8b949e;">Location data not available</div>';
+    }
     {% endif %}
 })();
 </script>
-{% endblock %}

@@ -35,6 +35,9 @@
     <div class="tabs-container">
         <a class="tab-button" :class="{ active: tab === 'overview' }" @click.prevent="switchToOverview()" href="#overview">Overview</a>
         <a class="tab-button" :class="{ active: tab === 'attacks' }" @click.prevent="switchToAttacks()" href="#ip-stats">Attacks</a>
+        <a class="tab-button" :class="{ active: tab === 'ip-insight', disabled: !insightIp }" @click.prevent="insightIp && switchToIpInsight()" href="#ip-insight">
+            IP Insight<span x-show="insightIp" x-text="' (' + insightIp + ')'"></span>
+        </a>
     </div>
 
     {# ==================== OVERVIEW TAB ==================== #}
@@ -144,6 +147,19 @@
                     <div class="htmx-indicator">Loading...</div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    {# ==================== IP INSIGHT TAB ==================== #}
+    <div x-show="tab === 'ip-insight'" x-cloak>
+        {# IP Insight content - loaded via HTMX when IP is selected #}
+        <div id="ip-insight-container">
+            <template x-if="!insightIp">
+                <div class="table-container" style="text-align: center; padding: 60px 20px;">
+                    <p style="color: #8b949e; font-size: 16px;">Select an IP address from any table to view detailed insights.</p>
+                </div>
+            </template>
+            <div x-show="insightIp" id="ip-insight-htmx-container"></div>
         </div>
     </div>
 

@@ -1084,6 +1084,8 @@ class DatabaseManager:
                 "region": stat.region,
                 "region_name": stat.region_name,
                 "timezone": stat.timezone,
+                "latitude": stat.latitude,
+                "longitude": stat.longitude,
                 "isp": stat.isp,
                 "reverse": stat.reverse,
                 "asn": stat.asn,

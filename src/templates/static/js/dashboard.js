@@ -17,19 +17,26 @@ document.addEventListener('alpine:init', () => {
         // Chart state
         chartLoaded: false,
 
+        // IP Insight state
+        insightIp: null,
+
         init() {
             // Handle hash-based tab routing
             const hash = window.location.hash.slice(1);
             if (hash === 'ip-stats' || hash === 'attacks') {
                 this.switchToAttacks();
             }
+            // ip-insight tab is only accessible via lens buttons, not direct hash navigation
 
             window.addEventListener('hashchange', () => {
                 const h = window.location.hash.slice(1);
                 if (h === 'ip-stats' || h === 'attacks') {
                     this.switchToAttacks();
-                } else {
-                    this.switchToOverview();
+                } else if (h !== 'ip-insight') {
+                    // Don't switch away from ip-insight via hash if already there
+                    if (this.tab !== 'ip-insight') {
+                        this.switchToOverview();
+                    }
                 }
             });
         },
@@ -58,6 +65,31 @@ document.addEventListener('alpine:init', () => {
         switchToOverview() {
             this.tab = 'overview';
             window.location.hash = '#overview';
+        },
+
+        switchToIpInsight() {
+            // Only allow switching if an IP is selected
+            if (!this.insightIp) return;
+            this.tab = 'ip-insight';
+            window.location.hash = '#ip-insight';
+        },
+
+        openIpInsight(ip) {
+            // Set the IP and load the insight content
+            this.insightIp = ip;
+            this.tab = 'ip-insight';
+            window.location.hash = '#ip-insight';
+
+            // Load IP insight content via HTMX
+            this.$nextTick(() => {
+                const container = document.getElementById('ip-insight-htmx-container');
+                if (container && typeof htmx !== 'undefined') {
+                    htmx.ajax('GET', `${this.dashboardPath}/htmx/ip-insight/${encodeURIComponent(ip)}`, {
+                        target: '#ip-insight-htmx-container',
+                        swap: 'innerHTML'
+                    });
+                }
+            });
         },
 
         async viewRawRequest(logId) {
@@ -109,6 +141,19 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 });
+
+// Global function for opening IP Insight (used by map popups)
+window.openIpInsight = function(ip) {
+    // Find the Alpine component and call openIpInsight
+    const container = document.querySelector('[x-data="dashboardApp()"]');
+    if (container) {
+        // Try Alpine 3.x API first, then fall back to older API
+        const data = Alpine.$data ? Alpine.$data(container) : (container._x_dataStack && container._x_dataStack[0]);
+        if (data && typeof data.openIpInsight === 'function') {
+            data.openIpInsight(ip);
+        }
+    }
+};
 
 // Utility function for formatting timestamps (used by map popups)
 function formatTimestamp(isoTimestamp) {

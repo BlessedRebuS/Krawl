@@ -44,8 +44,8 @@
             <td>{{ (log.user_agent | default(''))[:50] | e }}</td>
             <td>{{ log.timestamp | format_ts }}</td>
             <td>
-                {% if log.log_id %}
-                <button class="view-btn" @click="viewRawRequest({{ log.log_id }})">View Request</button>
+                {% if log.id %}
+                <button class="view-btn" @click="viewRawRequest({{ log.id }})">View Request</button>
                 {% endif %}
             </td>
         </tr>

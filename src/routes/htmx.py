@@ -58,7 +58,7 @@ async def htmx_top_ips(
 ):
     db = get_db()
     result = db.get_top_ips_paginated(
-        page=max(1, page), page_size=5, sort_by=sort_by, sort_order=sort_order
+        page=max(1, page), page_size=8, sort_by=sort_by, sort_order=sort_order
     )
 
     templates = get_templates()
@@ -312,6 +312,34 @@ async def htmx_patterns(
                 "total": total,
                 "total_pages": total_pages,
             },
+        },
+    )
+
+
+# ── IP Insight (full IP page as partial) ─────────────────────────────
+
+
+@router.get("/htmx/ip-insight/{ip_address:path}")
+async def htmx_ip_insight(ip_address: str, request: Request):
+    db = get_db()
+    stats = db.get_ip_stats_by_ip(ip_address)
+
+    if not stats:
+        stats = {"ip": ip_address, "total_requests": "N/A"}
+
+    # Transform fields for template compatibility
+    list_on = stats.get("list_on") or {}
+    stats["blocklist_memberships"] = list(list_on.keys()) if list_on else []
+    stats["reverse_dns"] = stats.get("reverse")
+
+    templates = get_templates()
+    return templates.TemplateResponse(
+        "dashboard/partials/ip_insight.html",
+        {
+            "request": request,
+            "dashboard_path": _dashboard_path(request),
+            "stats": stats,
+            "ip_address": ip_address,
         },
     )
 
