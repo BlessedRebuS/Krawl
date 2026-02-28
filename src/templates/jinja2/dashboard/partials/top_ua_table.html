@@ -31,11 +31,11 @@
         {% for item in items %}
         <tr>
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
-            <td>{{ item.user_agent | e }}</td>
+            <td style="font-size: 11px; word-break: break-all; max-width: 400px;">{{ item.user_agent | e }}</td>
             <td>{{ item.count }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="3" style="text-align: center;">No data</td></tr>
+        <tr><td colspan="3" class="empty-state">No data</td></tr>
         {% endfor %}
     </tbody>
 </table>

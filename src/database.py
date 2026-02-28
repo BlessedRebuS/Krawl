@@ -1973,6 +1973,122 @@ class DatabaseManager:
         finally:
             self.close_session()
 
+    def search_attacks_and_ips(
+        self,
+        query: str,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> Dict[str, Any]:
+        """
+        Search attacks and IPs matching a query string.
+
+        Searches across AttackDetection (attack_type, matched_pattern),
+        AccessLog (ip, path), and IpStats (ip, city, country, isp, asn_org).
+
+        Args:
+            query: Search term (partial match)
+            page: Page number (1-indexed)
+            page_size: Results per page
+
+        Returns:
+            Dictionary with matching attacks, ips, and pagination info
+        """
+        session = self.session
+        try:
+            offset = (page - 1) * page_size
+            like_q = f"%{query}%"
+
+            # --- Search attacks (AccessLog + AttackDetection) ---
+            attack_query = (
+                session.query(AccessLog)
+                .join(AttackDetection)
+                .filter(
+                    or_(
+                        AccessLog.ip.ilike(like_q),
+                        AccessLog.path.ilike(like_q),
+                        AttackDetection.attack_type.ilike(like_q),
+                        AttackDetection.matched_pattern.ilike(like_q),
+                    )
+                )
+                .distinct(AccessLog.id)
+            )
+
+            total_attacks = attack_query.count()
+            attack_logs = (
+                attack_query.order_by(AccessLog.timestamp.desc())
+                .offset(offset)
+                .limit(page_size)
+                .all()
+            )
+
+            attacks = [
+                {
+                    "id": log.id,
+                    "ip": log.ip,
+                    "path": log.path,
+                    "user_agent": log.user_agent,
+                    "timestamp": log.timestamp.isoformat() if log.timestamp else None,
+                    "attack_types": [d.attack_type for d in log.attack_detections],
+                    "log_id": log.id,
+                }
+                for log in attack_logs
+            ]
+
+            # --- Search IPs (IpStats) ---
+            ip_query = session.query(IpStats).filter(
+                or_(
+                    IpStats.ip.ilike(like_q),
+                    IpStats.city.ilike(like_q),
+                    IpStats.country.ilike(like_q),
+                    IpStats.country_code.ilike(like_q),
+                    IpStats.isp.ilike(like_q),
+                    IpStats.asn_org.ilike(like_q),
+                    IpStats.reverse.ilike(like_q),
+                )
+            )
+
+            total_ips = ip_query.count()
+            ips = (
+                ip_query.order_by(IpStats.total_requests.desc())
+                .offset(offset)
+                .limit(page_size)
+                .all()
+            )
+
+            ip_results = [
+                {
+                    "ip": stat.ip,
+                    "total_requests": stat.total_requests,
+                    "first_seen": stat.first_seen.isoformat() if stat.first_seen else None,
+                    "last_seen": stat.last_seen.isoformat() if stat.last_seen else None,
+                    "country_code": stat.country_code,
+                    "city": stat.city,
+                    "category": stat.category,
+                    "isp": stat.isp,
+                    "asn_org": stat.asn_org,
+                }
+                for stat in ips
+            ]
+
+            total = total_attacks + total_ips
+            total_pages = max(1, (max(total_attacks, total_ips) + page_size - 1) // page_size)
+
+            return {
+                "attacks": attacks,
+                "ips": ip_results,
+                "query": query,
+                "pagination": {
+                    "page": page,
+                    "page_size": page_size,
+                    "total_attacks": total_attacks,
+                    "total_ips": total_ips,
+                    "total": total,
+                    "total_pages": total_pages,
+                },
+            }
+        finally:
+            self.close_session()
+
 
 # Module-level singleton instance
 _db_manager = DatabaseManager()

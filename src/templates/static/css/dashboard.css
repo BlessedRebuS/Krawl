@@ -41,6 +41,8 @@ h1 {
     color: #58a6ff;
     text-align: center;
     margin-bottom: 40px;
+    font-weight: 900;
+    font-family: 'Google Sans Flex', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 .download-section {
     position: absolute;
@@ -74,20 +76,21 @@ h1 {
     display: block;
     width: 100%;
     padding: 8px 14px;
-    background: #238636;
-    color: #ffffff;
+    background: rgba(35, 134, 54, 0.4);
+    color: rgba(255, 255, 255, 0.7);
     text-decoration: none;
     border-radius: 6px;
     font-weight: 500;
     font-size: 13px;
-    transition: background 0.2s;
-    border: 1px solid #2ea043;
+    transition: background 0.2s, color 0.2s;
+    border: 1px solid rgba(46, 160, 67, 0.4);
     cursor: pointer;
     text-align: left;
     box-sizing: border-box;
 }
 .banlist-dropdown-btn:hover {
-    background: #2ea043;
+    background: rgba(46, 160, 67, 0.6);
+    color: #ffffff;
 }
 .banlist-dropdown-menu {
     display: none;
@@ -189,8 +192,8 @@ tr:hover {
     font-weight: bold;
 }
 .alert-section {
-    background: #1c1917;
-    border-left: 4px solid #f85149;
+    background: #161b22;
+    border-left: 6px solid rgba(248, 81, 73, 0.4);
 }
 th.sortable {
     cursor: pointer;
@@ -1252,4 +1255,135 @@ tbody {
 /* Alpine.js cloak */
 [x-cloak] {
     display: none !important;
+}
+
+/* ── Search Bar ────────────────────────────────────── */
+.search-bar-container {
+    max-width: 100%;
+    margin: 0 0 20px 0;
+}
+.search-bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.search-icon {
+    position: absolute;
+    left: 14px;
+    width: 18px;
+    height: 18px;
+    color: #8b949e;
+    pointer-events: none;
+}
+.search-bar input[type="search"] {
+    width: 100%;
+    padding: 12px 40px 12px 42px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #c9d1d9;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-bar input[type="search"]::placeholder {
+    color: #6e7681;
+}
+.search-bar input[type="search"]:focus {
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
+}
+.search-bar input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%238b949e'%3E%3Cpath d='M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z'/%3E%3C/svg%3E") center/contain no-repeat;
+    cursor: pointer;
+}
+.search-spinner {
+    position: absolute;
+    right: 14px;
+    font-size: 18px;
+    color: #58a6ff;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ── Search Results ───────────────────────────────── */
+.search-results {
+    margin-top: 12px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 16px;
+    animation: fadeIn 0.3s ease-in;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.search-results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #30363d;
+}
+.search-results-summary {
+    color: #8b949e;
+    font-size: 13px;
+}
+.search-results-summary strong {
+    color: #58a6ff;
+}
+.search-close-btn {
+    background: none;
+    border: none;
+    color: #8b949e;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+    transition: color 0.2s;
+}
+.search-close-btn:hover {
+    color: #f85149;
+}
+.search-section {
+    margin-bottom: 16px;
+}
+.search-section:last-of-type {
+    margin-bottom: 0;
+}
+.search-section-title {
+    color: #58a6ff;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+}
+.search-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #30363d;
+}
+.search-no-results {
+    text-align: center;
+    color: #4a515a;
+    padding: 24px 0;
+    font-size: 14px;
+}
+
+/* ── Empty State (no data rows) ───────────────────── */
+.empty-state {
+    text-align: center;
+    color: #4a515a;
+    padding: 20px 12px;
 }
