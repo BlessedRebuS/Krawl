@@ -28,6 +28,8 @@ data:
       enabled: {{ .Values.config.backups.enabled }}
     exports:
       path: {{ .Values.config.exports.path | quote }}
+    logging:
+      level: {{ .Values.config.logging.level | quote }}
     database:
       path: {{ .Values.config.database.path | quote }}
       retention_days: {{ .Values.config.database.retention_days }}

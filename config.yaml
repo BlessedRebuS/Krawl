@@ -33,6 +33,9 @@ backups:
 exports:
   path: "exports"
 
+logging:
+  level: "DEBUG"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+
 database:
   path: "data/krawl.db"
   retention_days: 30

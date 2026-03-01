@@ -86,10 +86,12 @@ config:
     secret_path: null  # Auto-generated if not set, or set to "/my-secret-dashboard"
   backups:
     path: "backups"
-    enabled: true
+    enabled: false
     cron: "*/30 * * * *"
   exports:
     path: "exports"
+  logging:
+    level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
   database:
     path: "data/krawl.db"
     retention_days: 30
