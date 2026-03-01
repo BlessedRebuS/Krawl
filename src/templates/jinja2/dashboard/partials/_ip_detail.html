@@ -1,0 +1,282 @@
+{# Shared IP detail content – included by ip.html and ip_insight.html.
+   Expects: stats, ip_address, dashboard_path, uid (unique prefix for element IDs) #}
+
+{# Page header #}
+<div class="ip-page-header">
+    <h1>
+        <span class="ip-address-title">{{ ip_address }}</span>
+        {% if stats.category %}
+        <span class="category-badge category-{{ stats.category | lower | replace('_', '-') }}">
+            {{ stats.category | replace('_', ' ') | title }}
+        </span>
+        {% endif %}
+    </h1>
+    {% if stats.city or stats.country %}
+    <p class="ip-location-subtitle">
+        {{ stats.city | default('') }}{% if stats.city and stats.country %}, {% endif %}{{ stats.country | default(stats.country_code | default('')) }}
+    </p>
+    {% endif %}
+</div>
+
+{# ── Two-column layout: Info + Radar/Timeline ───── #}
+<div class="ip-page-grid">
+    {# Left column: single IP Information card #}
+    <div class="ip-page-left">
+        <div class="table-container ip-detail-card ip-info-card">
+            <h2>IP Information</h2>
+
+            {# Activity section #}
+            <h3 class="ip-section-heading">Activity</h3>
+            <dl class="ip-dl">
+                <div class="ip-dl-row">
+                    <dt>Total Requests</dt>
+                    <dd>{{ stats.total_requests | default('N/A') }}</dd>
+                </div>
+                <div class="ip-dl-row">
+                    <dt>First Seen</dt>
+                    <dd class="ip-dl-highlight">{{ stats.first_seen | format_ts }}</dd>
+                </div>
+                <div class="ip-dl-row">
+                    <dt>Last Seen</dt>
+                    <dd class="ip-dl-highlight">{{ stats.last_seen | format_ts }}</dd>
+                </div>
+                {% if stats.last_analysis %}
+                <div class="ip-dl-row">
+                    <dt>Last Analysis</dt>
+                    <dd class="ip-dl-highlight">{{ stats.last_analysis | format_ts }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+
+            {# Geo & Network section #}
+            <h3 class="ip-section-heading">Geo & Network</h3>
+            <dl class="ip-dl">
+                {% if stats.city or stats.country %}
+                <div class="ip-dl-row">
+                    <dt>Location</dt>
+                    <dd>{{ stats.city | default('') | e }}{% if stats.city and stats.country %}, {% endif %}{{ stats.country | default(stats.country_code | default('')) | e }}</dd>
+                </div>
+                {% endif %}
+                {% if stats.region_name %}
+                <div class="ip-dl-row">
+                    <dt>Region</dt>
+                    <dd>{{ stats.region_name | e }}</dd>
+                </div>
+                {% endif %}
+                {% if stats.timezone %}
+                <div class="ip-dl-row">
+                    <dt>Timezone</dt>
+                    <dd>{{ stats.timezone | e }}</dd>
+                </div>
+                {% endif %}
+                {% if stats.isp %}
+                <div class="ip-dl-row">
+                    <dt>ISP</dt>
+                    <dd>{{ stats.isp | e }}</dd>
+                </div>
+                {% endif %}
+                {% if stats.asn_org %}
+                <div class="ip-dl-row">
+                    <dt>Organization</dt>
+                    <dd>{{ stats.asn_org | e }}</dd>
+                </div>
+                {% endif %}
+                {% if stats.asn %}
+                <div class="ip-dl-row">
+                    <dt>ASN</dt>
+                    <dd>AS{{ stats.asn }}</dd>
+                </div>
+                {% endif %}
+                {% if stats.reverse_dns %}
+                <div class="ip-dl-row">
+                    <dt>Reverse DNS</dt>
+                    <dd class="ip-dl-mono">{{ stats.reverse_dns | e }}</dd>
+                </div>
+                {% endif %}
+            </dl>
+
+            {# Reputation section #}
+            <h3 class="ip-section-heading">Reputation</h3>
+            <div class="ip-rep-scroll">
+                {# Flags #}
+                {% set flags = [] %}
+                {% if stats.is_proxy %}{% set _ = flags.append('Proxy') %}{% endif %}
+                {% if stats.is_hosting %}{% set _ = flags.append('Hosting') %}{% endif %}
+                {% if flags %}
+                <div class="ip-rep-row">
+                    <span class="ip-rep-label">Flags</span>
+                    <div class="ip-rep-tags">
+                        {% for flag in flags %}
+                        <span class="ip-flag">{{ flag }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {# Blocklists #}
+                <div class="ip-rep-row">
+                    <span class="ip-rep-label">Listed On</span>
+                    {% if stats.blocklist_memberships %}
+                    <div class="ip-rep-tags">
+                        {% for bl in stats.blocklist_memberships %}
+                        <span class="reputation-badge">{{ bl | e }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <span class="reputation-clean">Clean</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Right column: Category Analysis + Timeline + Attack Types #}
+    <div class="ip-page-right">
+        {% if stats.category_scores %}
+        <div class="table-container ip-detail-card">
+            <h2>Category Analysis</h2>
+            <div class="radar-chart-container">
+                <div class="radar-chart" id="{{ uid }}-radar-chart"></div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Bottom row: Behavior Timeline + Attack Types side by side #}
+        <div class="ip-bottom-row">
+            {% if stats.category_history %}
+            <div class="table-container ip-detail-card ip-timeline-card">
+                <h2>Behavior Timeline</h2>
+                <div class="ip-timeline-scroll">
+                    <div class="ip-timeline-hz">
+                        {% for entry in stats.category_history %}
+                        <div class="ip-tl-entry">
+                            <div class="ip-tl-dot {{ entry.new_category | default('unknown') | replace('_', '-') }}"></div>
+                            <div class="ip-tl-content">
+                                <span class="ip-tl-cat">{{ entry.new_category | default('unknown') | replace('_', ' ') | title }}</span>
+                                {% if entry.old_category %}
+                                <span class="ip-tl-from">from {{ entry.old_category | replace('_', ' ') | title }}</span>
+                                {% else %}
+                                <span class="ip-tl-from">initial classification</span>
+                                {% endif %}
+                                <span class="ip-tl-time">{{ entry.timestamp | format_ts }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="table-container ip-detail-card ip-attack-types-card">
+                <h2>Attack Types</h2>
+                <div class="ip-attack-chart-wrapper">
+                    <canvas id="{{ uid }}-attack-types-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Location map #}
+{% if stats.latitude and stats.longitude %}
+<div class="table-container" style="margin-top: 20px;">
+    <h2>Location</h2>
+    <div id="{{ uid }}-ip-map" style="height: 300px; border-radius: 6px; border: 1px solid #30363d;"></div>
+</div>
+{% endif %}
+
+{# Access History table #}
+<div class="table-container alert-section" style="margin-top: 20px;">
+    <h2>Access History</h2>
+    <div class="htmx-container"
+         hx-get="{{ dashboard_path }}/htmx/access-logs?page=1&ip_filter={{ ip_address }}"
+         hx-trigger="revealed"
+         hx-swap="innerHTML">
+        <div class="htmx-indicator">Loading...</div>
+    </div>
+</div>
+
+{# Inline init script #}
+<script>
+(function() {
+    var UID = '{{ uid }}';
+
+    // Radar chart
+    {% if stats.category_scores %}
+    var scores = {{ stats.category_scores | tojson }};
+    var radarEl = document.getElementById(UID + '-radar-chart');
+    if (radarEl && typeof generateRadarChart === 'function') {
+        radarEl.innerHTML = generateRadarChart(scores, 280, true, 'side');
+    }
+    {% endif %}
+
+    // Attack types chart
+    function initAttackChart() {
+        if (typeof loadAttackTypesChart === 'function') {
+            loadAttackTypesChart(UID + '-attack-types-chart', '{{ ip_address }}', 'bottom');
+        }
+    }
+    if (typeof Chart !== 'undefined') {
+        initAttackChart();
+    } else {
+        document.addEventListener('DOMContentLoaded', initAttackChart);
+    }
+
+    // Location map
+    {% if stats.latitude and stats.longitude %}
+    function initMap() {
+        var mapContainer = document.getElementById(UID + '-ip-map');
+        if (!mapContainer || typeof L === 'undefined') return;
+
+        if (mapContainer._leaflet_id) {
+            mapContainer._leaflet_id = null;
+        }
+        mapContainer.innerHTML = '';
+
+        var lat = {{ stats.latitude }};
+        var lng = {{ stats.longitude }};
+        var category = '{{ stats.category | default("unknown") | lower }}';
+
+        var categoryColors = {
+            attacker: '#f85149',
+            bad_crawler: '#f0883e',
+            good_crawler: '#3fb950',
+            regular_user: '#58a6ff',
+            unknown: '#8b949e'
+        };
+
+        var map = L.map(UID + '-ip-map', {
+            center: [lat, lng],
+            zoom: 6,
+            zoomControl: true,
+            scrollWheelZoom: true
+        });
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; CartoDB | &copy; OpenStreetMap contributors',
+            maxZoom: 19,
+            subdomains: 'abcd'
+        }).addTo(map);
+
+        var color = categoryColors[category] || '#8b949e';
+        var markerHtml = '<div style="width:24px;height:24px;background:' + color +
+            ';border:3px solid #fff;border-radius:50%;box-shadow:0 0 12px ' + color +
+            ',0 0 24px ' + color + '80;"></div>';
+
+        var icon = L.divIcon({
+            html: markerHtml,
+            iconSize: [24, 24],
+            className: 'single-ip-marker'
+        });
+
+        L.marker([lat, lng], { icon: icon }).addTo(map);
+    }
+    setTimeout(initMap, 100);
+    {% else %}
+    var mapContainer = document.getElementById(UID + '-ip-map');
+    if (mapContainer) {
+        mapContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8b949e;">Location data not available</div>';
+    }
+    {% endif %}
+})();
+</script>

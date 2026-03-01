@@ -269,8 +269,8 @@ tbody {
 }
 .radar-chart {
     position: relative;
-    width: 220px;
-    height: 220px;
+    width: 280px;
+    height: 280px;
     overflow: visible;
 }
 .radar-legend {
@@ -452,7 +452,7 @@ tbody {
     animation: fadeIn 0.3s ease-in;
 }
 .ip-page-header {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 .ip-page-header h1 {
     display: flex;
@@ -471,61 +471,214 @@ tbody {
     font-size: 14px;
     margin: 4px 0 0 0;
 }
+
+/* Quick stats bar */
+.ip-stats-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.ip-stat-chip {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 12px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1 1 0;
+}
+.ip-stat-chip-value {
+    color: #e6edf3;
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ip-stat-chip-label {
+    color: #8b949e;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+/* Two-column grid */
 .ip-page-grid {
     display: grid;
-    grid-template-columns: 3fr 2fr;
+    grid-template-columns: 1fr 1fr;
     gap: 20px;
-    align-items: start;
+    align-items: stretch;
 }
 .ip-page-left,
 .ip-page-right {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    min-height: 0;
 }
-.ip-info-card h2 {
+/* Left card fills column height */
+.ip-info-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+/* Timeline card grows to fill remaining space */
+.ip-timeline-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* Detail cards */
+.ip-detail-card h2 {
     margin-top: 0;
+    margin-bottom: 16px;
 }
-.ip-info-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+/* Remove bottom margin inside grid columns (gap handles spacing) */
+.ip-page-left .table-container,
+.ip-page-right .table-container {
+    margin-bottom: 0;
+}
+
+/* Definition list for IP info */
+.ip-dl {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
     gap: 0;
 }
-.ip-info-section {
-    padding: 14px 16px;
-    border-right: 1px solid #21262d;
-}
-.ip-info-section:last-child {
-    border-right: none;
-}
-.ip-info-section h3 {
-    color: #58a6ff;
-    font-size: 13px;
-    font-weight: 600;
-    margin: 0 0 10px 0;
-    padding-bottom: 6px;
+.ip-dl-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 8px 0;
     border-bottom: 1px solid #21262d;
+    gap: 16px;
 }
-.ip-info-section .stat-row {
-    padding: 3px 0;
+.ip-dl-row:last-child {
+    border-bottom: none;
+}
+.ip-dl dt {
+    color: #8b949e;
     font-size: 13px;
+    font-weight: 500;
+    flex-shrink: 0;
+    min-width: 100px;
 }
-.blocklist-badges {
+.ip-dl dd {
+    margin: 0;
+    color: #e6edf3;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: right;
+    word-break: break-word;
+}
+.ip-dl-mono {
+    font-family: monospace;
+    font-size: 12px;
+}
+
+/* Section headings inside IP info card */
+.ip-section-heading {
+    color: #e6edf3;
+    font-size: 15px;
+    font-weight: 700;
+    margin: 18px 0 8px 0;
+    padding: 0;
+}
+.ip-section-heading:first-of-type {
+    margin-top: 0;
+}
+/* Highlighted date values */
+.ip-dl-highlight {
+    color: #58a6ff;
+}
+
+/* Scrollable reputation container */
+.ip-rep-scroll {
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #30363d #161b22;
+}
+.ip-rep-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+.ip-rep-scroll::-webkit-scrollbar-track {
+    background: #161b22;
+    border-radius: 3px;
+}
+.ip-rep-scroll::-webkit-scrollbar-thumb {
+    background: #30363d;
+    border-radius: 3px;
+}
+.ip-rep-scroll::-webkit-scrollbar-thumb:hover {
+    background: #484f58;
+}
+
+/* Scrollable behavior timeline – show ~5 entries max */
+.ip-timeline-scroll {
+    max-height: 230px;
+    overflow-y: auto;
+    min-height: 0;
+    scrollbar-width: thin;
+    scrollbar-color: #30363d #161b22;
+}
+.ip-timeline-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+.ip-timeline-scroll::-webkit-scrollbar-track {
+    background: #161b22;
+    border-radius: 3px;
+}
+.ip-timeline-scroll::-webkit-scrollbar-thumb {
+    background: #30363d;
+    border-radius: 3px;
+}
+.ip-timeline-scroll::-webkit-scrollbar-thumb:hover {
+    background: #484f58;
+}
+
+/* Reputation section */
+.ip-rep-row {
+    padding: 10px 0;
+    border-bottom: 1px solid #21262d;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+.ip-rep-row:last-child {
+    border-bottom: none;
+}
+.ip-rep-label {
+    color: #8b949e;
+    font-size: 13px;
+    font-weight: 500;
+    flex-shrink: 0;
+    min-width: 80px;
+    padding-top: 2px;
+}
+.ip-rep-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
-    max-height: 120px;
-    overflow-y: auto;
+    gap: 6px;
 }
+
+/* Flags & badges */
 .ip-flag {
     display: inline-block;
     background: #1c2128;
-    border: 1px solid #30363d;
+    border: 1px solid #f0883e4d;
     border-radius: 4px;
-    padding: 2px 8px;
-    font-size: 11px;
+    padding: 3px 10px;
+    font-size: 12px;
     color: #f0883e;
-    margin-right: 4px;
+    font-weight: 500;
 }
 .reputation-score {
     font-weight: 700;
@@ -533,29 +686,130 @@ tbody {
 .reputation-score.bad { color: #f85149; }
 .reputation-score.medium { color: #f0883e; }
 .reputation-score.good { color: #3fb950; }
+.blocklist-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* Bottom row: Timeline + Attack Types side by side */
+.ip-bottom-row {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+    min-height: 0;
+}
+.ip-bottom-row .ip-timeline-card {
+    flex: 1;
+    min-width: 0;
+}
+.ip-attack-types-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.ip-attack-chart-wrapper {
+    flex: 1;
+    position: relative;
+    min-height: 180px;
+}
+
+/* Radar chart */
 .radar-chart-container {
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 10px 0;
 }
-.ip-timeline-scroll {
-    max-height: 280px;
-    overflow-y: auto;
+
+/* ── Behavior Timeline (full-width horizontal) ──── */
+.ip-timeline-hz {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    padding-left: 24px;
 }
+.ip-timeline-hz::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: #30363d;
+}
+.ip-tl-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    position: relative;
+    padding: 10px 0;
+}
+.ip-tl-entry:not(:last-child) {
+    border-bottom: 1px solid #161b22;
+}
+.ip-tl-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid #0d1117;
+    position: absolute;
+    left: -24px;
+    top: 12px;
+    z-index: 1;
+}
+.ip-tl-dot.attacker { background: #f85149; box-shadow: 0 0 6px #f8514980; }
+.ip-tl-dot.good-crawler { background: #3fb950; box-shadow: 0 0 6px #3fb95080; }
+.ip-tl-dot.bad-crawler { background: #f0883e; box-shadow: 0 0 6px #f0883e80; }
+.ip-tl-dot.regular-user { background: #58a6ff; box-shadow: 0 0 6px #58a6ff80; }
+.ip-tl-dot.unknown { background: #8b949e; }
+.ip-tl-content {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+.ip-tl-cat {
+    color: #e6edf3;
+    font-weight: 600;
+    font-size: 14px;
+}
+.ip-tl-from {
+    color: #8b949e;
+    font-size: 13px;
+}
+.ip-tl-time {
+    color: #484f58;
+    font-size: 12px;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+/* Legacy compat (unused) */
+
 @media (max-width: 900px) {
     .ip-page-grid {
         grid-template-columns: 1fr;
     }
-    .ip-info-grid {
-        grid-template-columns: 1fr;
+    .ip-stats-bar {
+        flex-direction: column;
     }
-    .ip-info-section {
-        border-right: none;
-        border-bottom: 1px solid #21262d;
+    .ip-stat-chip {
+        flex: 1 1 auto;
     }
-    .ip-info-section:last-child {
-        border-bottom: none;
+    .ip-bottom-row {
+        flex-direction: column;
+    }
+    .ip-tl-content {
+        flex-direction: column;
+        gap: 2px;
+    }
+    .ip-tl-time {
+        margin-left: 0;
     }
 }
 

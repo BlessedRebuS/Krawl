@@ -815,8 +815,8 @@ class DatabaseManager:
     def flag_stale_ips_for_reevaluation(self) -> int:
         """
         Flag IPs for reevaluation where:
-        - last_seen is between 15 and 30 days ago
-        - last_analysis is more than 10 days ago (or never analyzed)
+        - last_seen is between 5 and 30 days ago
+        - last_analysis is more than 5 days ago
 
         Returns:
             Number of IPs flagged for reevaluation
@@ -825,18 +825,15 @@ class DatabaseManager:
         try:
             now = datetime.now()
             last_seen_lower = now - timedelta(days=30)
-            last_seen_upper = now - timedelta(days=15)
-            last_analysis_cutoff = now - timedelta(days=10)
+            last_seen_upper = now - timedelta(days=5)
+            last_analysis_cutoff = now - timedelta(days=5)
 
             count = (
                 session.query(IpStats)
                 .filter(
                     IpStats.last_seen >= last_seen_lower,
                     IpStats.last_seen <= last_seen_upper,
-                    or_(
-                        IpStats.last_analysis <= last_analysis_cutoff,
-                        IpStats.last_analysis.is_(None),
-                    ),
+                    IpStats.last_analysis <= last_analysis_cutoff,
                     IpStats.need_reevaluation == False,
                     IpStats.manual_category == False,
                 )
@@ -2029,12 +2026,15 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_attack_types_stats(self, limit: int = 20) -> Dict[str, Any]:
+    def get_attack_types_stats(
+        self, limit: int = 20, ip_filter: str | None = None
+    ) -> Dict[str, Any]:
         """
         Get aggregated statistics for attack types (efficient for large datasets).
 
         Args:
             limit: Maximum number of attack types to return
+            ip_filter: Optional IP address to filter results for
 
         Returns:
             Dictionary with attack type counts
@@ -2044,12 +2044,18 @@ class DatabaseManager:
             from sqlalchemy import func
 
             # Aggregate attack types with count
+            query = session.query(
+                AttackDetection.attack_type,
+                func.count(AttackDetection.id).label("count"),
+            )
+
+            if ip_filter:
+                query = query.join(
+                    AccessLog, AttackDetection.access_log_id == AccessLog.id
+                ).filter(AccessLog.ip == ip_filter)
+
             results = (
-                session.query(
-                    AttackDetection.attack_type,
-                    func.count(AttackDetection.id).label("count"),
-                )
-                .group_by(AttackDetection.attack_type)
+                query.group_by(AttackDetection.attack_type)
                 .order_by(func.count(AttackDetection.id).desc())
                 .limit(limit)
                 .all()

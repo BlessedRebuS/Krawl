@@ -214,12 +214,13 @@ async def top_user_agents(
 async def attack_types_stats(
     request: Request,
     limit: int = Query(20),
+    ip_filter: str = Query(None),
 ):
     db = get_db()
     limit = min(max(1, limit), 100)
 
     try:
-        result = db.get_attack_types_stats(limit=limit)
+        result = db.get_attack_types_stats(limit=limit, ip_filter=ip_filter)
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
         get_app_logger().error(f"Error fetching attack types stats: {e}")

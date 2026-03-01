@@ -4,14 +4,25 @@
 let attackTypesChart = null;
 let attackTypesChartLoaded = false;
 
-async function loadAttackTypesChart() {
+/**
+ * Load an attack types doughnut chart into a canvas element.
+ * @param {string} [canvasId='attack-types-chart'] - Canvas element ID
+ * @param {string} [ipFilter] - Optional IP address to scope results
+ * @param {string} [legendPosition='right'] - Legend position
+ */
+async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
+    canvasId = canvasId || 'attack-types-chart';
+    legendPosition = legendPosition || 'right';
     const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
 
     try {
-        const canvas = document.getElementById('attack-types-chart');
+        const canvas = document.getElementById(canvasId);
         if (!canvas) return;
 
-        const response = await fetch(DASHBOARD_PATH + '/api/attack-types-stats?limit=10', {
+        let url = DASHBOARD_PATH + '/api/attack-types-stats?limit=10';
+        if (ipFilter) url += '&ip_filter=' + encodeURIComponent(ipFilter);
+
+        const response = await fetch(url, {
             cache: 'no-store',
             headers: {
                 'Cache-Control': 'no-cache',
@@ -25,7 +36,7 @@ async function loadAttackTypesChart() {
         const attackTypes = data.attack_types || [];
 
         if (attackTypes.length === 0) {
-            canvas.style.display = 'none';
+            canvas.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8b949e;font-size:13px;">No attack data</div>';
             return;
         }
 
@@ -63,13 +74,14 @@ async function loadAttackTypesChart() {
         const borderColors = labels.map(label => generateColorFromHash(label).border);
         const hoverColors = labels.map(label => generateColorFromHash(label).hover);
 
-        // Create or update chart
-        if (attackTypesChart) {
-            attackTypesChart.destroy();
+        // Create or update chart (track per canvas)
+        if (!loadAttackTypesChart._instances) loadAttackTypesChart._instances = {};
+        if (loadAttackTypesChart._instances[canvasId]) {
+            loadAttackTypesChart._instances[canvasId].destroy();
         }
 
         const ctx = canvas.getContext('2d');
-        attackTypesChart = new Chart(ctx, {
+        const chartInstance = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: labels,
@@ -88,7 +100,7 @@ async function loadAttackTypesChart() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'right',
+                        position: legendPosition,
                         labels: {
                             color: '#c9d1d9',
                             font: {
@@ -160,6 +172,8 @@ async function loadAttackTypesChart() {
             }]
         });
 
+        loadAttackTypesChart._instances[canvasId] = chartInstance;
+        attackTypesChart = chartInstance;
         attackTypesChartLoaded = true;
     } catch (err) {
         console.error('Error loading attack types chart:', err);
