@@ -295,13 +295,10 @@ Contributions welcome! Please:
 3. Make your changes
 4. Submit a pull request (explain the changes!)
 
-<div align="center">
 
 ## Disclaimer
 > [!CAUTION]
->
 > This is a deception/honeypot system. Deploy in isolated environments and monitor carefully for security events. Use responsibly and in compliance with applicable laws and regulations.
 
 ## Star History
 <img src="https://api.star-history.com/svg?repos=BlessedRebuS/Krawl&type=Date" width="600" alt="Star History Chart" />
-
