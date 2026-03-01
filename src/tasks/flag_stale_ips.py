@@ -9,7 +9,7 @@ TASK_CONFIG = {
     "name": "flag-stale-ips",
     "cron": "0 2 * * *",  # Run daily at 2 AM
     "enabled": True,
-    "run_when_loaded": False,
+    "run_when_loaded": True,
 }
 
 
