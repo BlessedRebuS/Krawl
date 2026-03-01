@@ -26,7 +26,7 @@ async def lifespan(app: FastAPI):
     config = get_config()
 
     # Initialize logging
-    initialize_logging()
+    initialize_logging(log_level=config.log_level)
     app_logger = get_app_logger()
 
     # Initialize database and run pending migrations before accepting traffic

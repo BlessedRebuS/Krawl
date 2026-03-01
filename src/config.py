@@ -56,6 +56,8 @@ class Config:
     user_agents_used_threshold: float = None
     attack_urls_threshold: float = None
 
+    log_level: str = "INFO"
+
     _server_ip: Optional[str] = None
     _server_ip_cache_time: float = 0
     _ip_cache_ttl: int = 300
@@ -163,6 +165,7 @@ class Config:
         behavior = data.get("behavior", {})
         analyzer = data.get("analyzer") or {}
         crawl = data.get("crawl", {})
+        logging_cfg = data.get("logging", {})
 
         # Handle dashboard_secret_path - auto-generate if null/not set
         dashboard_path = dashboard.get("secret_path")
@@ -217,6 +220,9 @@ class Config:
             ),
             max_pages_limit=crawl.get("max_pages_limit", 250),
             ban_duration_seconds=crawl.get("ban_duration_seconds", 600),
+            log_level=os.getenv(
+                "KRAWL_LOG_LEVEL", logging_cfg.get("level", "INFO")
+            ).upper(),
         )
 
 

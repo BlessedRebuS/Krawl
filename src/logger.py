@@ -36,12 +36,13 @@ class LoggerManager:
             cls._instance._initialized = False
         return cls._instance
 
-    def initialize(self, log_dir: str = "logs") -> None:
+    def initialize(self, log_dir: str = "logs", log_level: str = "INFO") -> None:
         """
         Initialize the logging system with rotating file handlers.loggers
 
         Args:
             log_dir: Directory for log files (created if not exists)
+            log_level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         """
         if self._initialized:
             return
@@ -59,9 +60,11 @@ class LoggerManager:
         max_bytes = 1048576  # 1MB
         backup_count = 5
 
+        level = getattr(logging, log_level.upper(), logging.INFO)
+
         # Setup application logger
         self._app_logger = logging.getLogger("krawl.app")
-        self._app_logger.setLevel(logging.INFO)
+        self._app_logger.setLevel(level)
         self._app_logger.handlers.clear()
 
         app_file_handler = RotatingFileHandler(
@@ -78,7 +81,7 @@ class LoggerManager:
 
         # Setup access logger
         self._access_logger = logging.getLogger("krawl.access")
-        self._access_logger.setLevel(logging.INFO)
+        self._access_logger.setLevel(level)
         self._access_logger.handlers.clear()
 
         access_file_handler = RotatingFileHandler(
@@ -95,7 +98,7 @@ class LoggerManager:
 
         # Setup credential logger (special format, no stream handler)
         self._credential_logger = logging.getLogger("krawl.credentials")
-        self._credential_logger.setLevel(logging.INFO)
+        self._credential_logger.setLevel(level)
         self._credential_logger.handlers.clear()
 
         # Credential logger uses a simple format: timestamp|ip|username|password|path
@@ -152,6 +155,6 @@ def get_credential_logger() -> logging.Logger:
     return _logger_manager.credentials
 
 
-def initialize_logging(log_dir: str = "logs") -> None:
+def initialize_logging(log_dir: str = "logs", log_level: str = "INFO") -> None:
     """Initialize the logging system."""
-    _logger_manager.initialize(log_dir)
+    _logger_manager.initialize(log_dir, log_level)

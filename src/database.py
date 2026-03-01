@@ -848,6 +848,33 @@ class DatabaseManager:
             session.rollback()
             raise
 
+    def flag_all_ips_for_reevaluation(self) -> int:
+        """
+        Flag ALL IPs for reevaluation, regardless of staleness.
+        Skips IPs that have a manual category set.
+
+        Returns:
+            Number of IPs flagged for reevaluation
+        """
+        session = self.session
+        try:
+            count = (
+                session.query(IpStats)
+                .filter(
+                    IpStats.need_reevaluation == False,
+                    IpStats.manual_category == False,
+                )
+                .update(
+                    {IpStats.need_reevaluation: True},
+                    synchronize_session=False,
+                )
+            )
+            session.commit()
+            return count
+        except Exception as e:
+            session.rollback()
+            raise
+
     def get_access_logs_paginated(
         self,
         page: int = 1,
