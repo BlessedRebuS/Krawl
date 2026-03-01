@@ -77,5 +77,5 @@ def main():
     finally:
         try:
             db.close_session()
-        except Exception:
-            pass
+        except Exception as e:
+            app_logger.error(f"Error closing DB session after retention cleanup: {e}")

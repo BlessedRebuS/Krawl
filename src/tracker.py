@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
 from typing import Dict, Tuple, Optional
+import logging
 import re
 import urllib.parse
 
 from wordlists import get_wordlists
 from database import get_database, DatabaseManager
+
+logger = logging.getLogger("krawl")
 
 # Module-level singleton for background task access
 _tracker_instance: "AccessTracker | None" = None
@@ -103,9 +106,8 @@ class AccessTracker:
         if self._db_manager is None:
             try:
                 self._db_manager = get_database()
-            except Exception:
-                # Database not initialized, persistence disabled
-                pass
+            except Exception as e:
+                logger.error(f"Failed to initialize database manager: {e}")
         return self._db_manager
 
     def parse_credentials(self, post_data: str) -> Tuple[str, str]:
@@ -206,9 +208,8 @@ class AccessTracker:
                 self.db.persist_credential(
                     ip=ip, path=path, username=username, password=password
                 )
-            except Exception:
-                # Don't crash if database persistence fails
-                pass
+            except Exception as e:
+                logger.error(f"Failed to persist credential attempt: {e}")
 
     def record_access(
         self,
@@ -271,9 +272,8 @@ class AccessTracker:
                     attack_types=attack_findings if attack_findings else None,
                     raw_request=raw_request if raw_request else None,
                 )
-            except Exception:
-                # Don't crash if database persistence fails
-                pass
+            except Exception as e:
+                logger.error(f"Failed to persist access record: {e}")
 
     def detect_attack_type(self, data: str) -> list[str]:
         """

@@ -94,7 +94,7 @@ class Config:
                         ip = response.text.strip()
                         if ip:
                             break
-                except Exception:
+                except requests.RequestException:
                     continue
 
             if not ip:
