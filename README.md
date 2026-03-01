@@ -87,12 +87,19 @@ Krawl provides a comprehensive dashboard, accessible at a **random secret path**
 The dashboard is organized in three main tabs:
 
 - **Overview** — High-level view of attack activity: an interactive map of IP origins, recent suspicious requests, and top IPs, User-Agents, and paths.
-- **Attacks** — Detailed breakdown of captured credentials, honeypot triggers, and detected attack types (SQLi, XSS, path traversal, etc.) with charts and tables.
-- **IP Insight** — In-depth forensic view of a selected IP: geolocation, ISP/ASN info, reputation flags, behavioral timeline, attack type distribution, and full access history.
 
 ![geoip](img/geoip_dashboard.png)
 
+- **Attacks** — Detailed breakdown of captured credentials, honeypot triggers, and detected attack types (SQLi, XSS, path traversal, etc.) with charts and tables.
+
+![attack_types](img/attack_types.png)
+
+- **IP Insight** — In-depth forensic view of a selected IP: geolocation, ISP/ASN info, reputation flags, behavioral timeline, attack type distribution, and full access history.
+
 ![ipinsight](img/ip_insight_dashboard.png)
+
+For more details, see the [Dashboard documentation](docs/dashboard.md).
+
 
 ## 🚀 Installation
 
