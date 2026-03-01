@@ -70,7 +70,7 @@ def main():
             "risky_http_methods": 6,
             "robots_violations": 4,
             "uneven_request_timing": 3,
-            "different_user_agents": 8,
+            "different_user_agents": 2,
             "attack_url": 15,
         },
         "good_crawler": {
@@ -84,7 +84,7 @@ def main():
             "risky_http_methods": 2,
             "robots_violations": 7,
             "uneven_request_timing": 0,
-            "different_user_agents": 5,
+            "different_user_agents": 7,
             "attack_url": 5,
         },
         "regular_user": {
