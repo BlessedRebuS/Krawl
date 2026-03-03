@@ -815,16 +815,19 @@ class DatabaseManager:
     def flag_stale_ips_for_reevaluation(self) -> int:
         """
         Flag IPs for reevaluation where:
-        - last_seen is more than 30 days ago
+        - last_seen is older than the configured retention period
         - last_analysis is more than 5 days ago
 
         Returns:
             Number of IPs flagged for reevaluation
         """
+        from config import get_config
+
         session = self.session
         try:
             now = datetime.now()
-            last_seen_cutoff = now - timedelta(days=30)
+            retention_days = get_config().database_retention_days
+            last_seen_cutoff = now - timedelta(days=retention_days)
             last_analysis_cutoff = now - timedelta(days=5)
 
             count = (

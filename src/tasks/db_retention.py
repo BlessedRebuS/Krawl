@@ -26,12 +26,18 @@ app_logger = get_app_logger()
 
 def main():
     """
-    Delete access logs, credential attempts, and attack detections
-    older than the configured retention period.
+    Delete all records older than the configured retention period.
+    Covers: AccessLog, AttackDetection, CredentialAttempt, IpStats, CategoryHistory.
     """
     try:
         from config import get_config
-        from models import AccessLog, CredentialAttempt, AttackDetection
+        from models import (
+            AccessLog,
+            CredentialAttempt,
+            AttackDetection,
+            IpStats,
+            CategoryHistory,
+        )
 
         config = get_config()
         retention_days = config.database_retention_days
@@ -63,13 +69,37 @@ def main():
             .delete(synchronize_session=False)
         )
 
+        # Delete IPs not seen within the retention period
+        ips_deleted = (
+            session.query(IpStats)
+            .filter(IpStats.last_seen < cutoff)
+            .delete(synchronize_session=False)
+        )
+
+        # Delete old category history records
+        history_deleted = (
+            session.query(CategoryHistory)
+            .filter(CategoryHistory.timestamp < cutoff)
+            .delete(synchronize_session=False)
+        )
+
         session.commit()
 
-        if logs_deleted or creds_deleted or detections_deleted:
+        total = (
+            logs_deleted
+            + detections_deleted
+            + creds_deleted
+            + ips_deleted
+            + history_deleted
+        )
+        if total:
             app_logger.info(
                 f"DB retention: Deleted {logs_deleted} access logs, "
                 f"{detections_deleted} attack detections, "
-                f"{creds_deleted} credential attempts older than {retention_days} days"
+                f"{creds_deleted} credential attempts, "
+                f"{ips_deleted} stale IPs, "
+                f"{history_deleted} category history records "
+                f"older than {retention_days} days"
             )
 
     except Exception as e:
