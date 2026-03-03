@@ -815,7 +815,7 @@ class DatabaseManager:
     def flag_stale_ips_for_reevaluation(self) -> int:
         """
         Flag IPs for reevaluation where:
-        - last_seen is older than the configured retention period
+        - last_seen is newer than the configured retention period
         - last_analysis is more than 5 days ago
 
         Returns:
@@ -833,7 +833,7 @@ class DatabaseManager:
             count = (
                 session.query(IpStats)
                 .filter(
-                    IpStats.last_seen <= last_seen_cutoff,
+                    IpStats.last_seen >= last_seen_cutoff,
                     IpStats.last_analysis <= last_analysis_cutoff,
                     IpStats.need_reevaluation == False,
                     IpStats.manual_category == False,
