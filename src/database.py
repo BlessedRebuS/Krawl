@@ -902,7 +902,11 @@ class DatabaseManager:
         session = self.session
         try:
             offset = (page - 1) * page_size
-            order = AccessLog.timestamp.asc() if sort_order == "asc" else AccessLog.timestamp.desc()
+            order = (
+                AccessLog.timestamp.asc()
+                if sort_order == "asc"
+                else AccessLog.timestamp.desc()
+            )
             query = session.query(AccessLog).order_by(order)
 
             if ip_filter:
