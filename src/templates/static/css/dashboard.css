@@ -1620,8 +1620,8 @@ tbody {
     background: rgba(88, 166, 255, 0.1);
 }
 .view-btn svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     fill: currentColor;
 }
 .view-btn-tooltip {
@@ -1656,8 +1656,8 @@ tbody {
     transition: color 0.2s, background 0.2s;
 }
 .inspect-btn svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     fill: currentColor;
 }
 .inspect-btn:hover {
