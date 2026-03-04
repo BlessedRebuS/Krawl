@@ -1108,20 +1108,47 @@ tbody {
     border-top: 1px solid #30363d;
     border-radius: 0 0 6px 6px;
     text-align: right;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
 }
-.raw-request-download-btn {
-    padding: 8px 16px;
-    background: #238636;
-    color: #ffffff;
-    border: none;
+.raw-request-icon-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #21262d;
+    color: #8b949e;
+    border: 1px solid #30363d;
     border-radius: 6px;
-    font-weight: 500;
-    font-size: 13px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
 }
-.raw-request-download-btn:hover {
-    background: #2ea043;
+.raw-request-icon-btn:hover {
+    background: #30363d;
+    color: #58a6ff;
+    border-color: #58a6ff;
+}
+.raw-request-icon-tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    background: #1c2128;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+}
+.raw-request-icon-btn:hover .raw-request-icon-tooltip {
+    opacity: 1;
 }
 
 /* Attack Types Cell Styling */
