@@ -883,6 +883,7 @@ class DatabaseManager:
         ip_filter: Optional[str] = None,
         suspicious_only: bool = False,
         since_minutes: Optional[int] = None,
+        sort_order: str = "desc",
     ) -> Dict[str, Any]:
         """
         Retrieve access logs with pagination and optional filtering.
@@ -893,6 +894,7 @@ class DatabaseManager:
             ip_filter: Filter by IP address
             suspicious_only: Only return suspicious requests
             since_minutes: Only return logs from the last N minutes
+            sort_order: Sort direction for timestamp ('asc' or 'desc')
 
         Returns:
             List of access log dictionaries
@@ -900,7 +902,12 @@ class DatabaseManager:
         session = self.session
         try:
             offset = (page - 1) * page_size
-            query = session.query(AccessLog).order_by(AccessLog.timestamp.desc())
+            order = (
+                AccessLog.timestamp.asc()
+                if sort_order == "asc"
+                else AccessLog.timestamp.desc()
+            )
+            query = session.query(AccessLog).order_by(order)
 
             if ip_filter:
                 query = query.filter(AccessLog.ip == sanitize_ip(ip_filter))
