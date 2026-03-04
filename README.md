@@ -43,6 +43,7 @@
   - [Docker Run](#docker-run)
   - [Docker Compose](#docker-compose)
   - [Kubernetes](#kubernetes)
+  - [Local (Python)](#local-python)
 - [Configuration](#configuration)
   - [config.yaml](#configuration-via-configyaml)
   - [Environment Variables](#configuration-via-enviromental-variables)
@@ -63,6 +64,8 @@ Tip: crawl the `robots.txt` paths for additional fun
 
 It creates realistic fake web applications filled with low‑hanging fruit such as admin panels, configuration files, and exposed fake credentials to attract and identify suspicious activity.
 
+![dashboard](img/deception-page.png)
+
 By wasting attacker resources, Krawl helps clearly distinguish malicious behavior from legitimate crawlers.
 
 It features:
@@ -77,8 +80,9 @@ It features:
 - **Customizable Wordlists**: Easy JSON-based configuration
 - **Random Error Injection**: Mimic real server behavior
 
-![dashboard](img/deception-page.png)
+You can easily expose Krawl alongside your other services to shield them from web crawlers and malicious users using a reverse proxy. For more details, see the [Reverse Proxy documentation](docs/reverse-proxy.md).
 
+![use case](img/use-case.png)
 
 ## Krawl Dashboard
 
@@ -159,6 +163,17 @@ docker-compose down
 
 ### Kubernetes
 **Krawl is also available natively on Kubernetes**. Installation can be done either [via manifest](kubernetes/README.md) or [using the helm chart](helm/README.md).
+
+### Python + Uvicorn
+
+Run Krawl directly with Python (suggested version 13) and uvicorn for local development or testing:
+
+```bash
+pip install -r requirements.txt
+uvicorn app:app --host 0.0.0.0 --port 5000 --app-dir src
+```
+
+Access the server at `http://localhost:5000`
 
 
 ## Configuration
