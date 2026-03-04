@@ -1504,6 +1504,7 @@ class DatabaseManager:
                     "path": log.path,
                     "user_agent": log.user_agent,
                     "timestamp": log.timestamp.isoformat(),
+                    "log_id": log.id,
                 }
                 for log in logs
             ]
