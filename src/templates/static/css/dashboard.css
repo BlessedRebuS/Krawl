@@ -1603,19 +1603,45 @@ tbody {
 
 /* Dynamically injected button styles (previously in JS) */
 .view-btn {
-    padding: 4px 10px;
-    background: #21262d;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    background: none;
+    color: #8b949e;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s;
+}
+.view-btn:hover {
     color: #58a6ff;
+    background: rgba(88, 166, 255, 0.1);
+}
+.view-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+.view-btn-tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    background: #1c2128;
+    color: #e6edf3;
     border: 1px solid #30363d;
     border-radius: 4px;
     font-size: 11px;
-    cursor: pointer;
-    transition: all 0.2s;
     white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
 }
-.view-btn:hover {
-    background: #30363d;
-    border-color: #58a6ff;
+.view-btn:hover .view-btn-tooltip {
+    opacity: 1;
 }
 .inspect-btn {
     display: inline-flex;
