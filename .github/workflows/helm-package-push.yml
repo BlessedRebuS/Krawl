@@ -4,18 +4,11 @@ on:
   push:
     branches:
       - main
-      - beta
       - dev
       - github-actions-ci
     paths:
       - 'helm/**'
       - '.github/workflows/helm-package-push.yml'
-    tags:
-      - 'v*'
-  release:
-    types:
-      - published
-      - created
   workflow_dispatch:
 
 env:

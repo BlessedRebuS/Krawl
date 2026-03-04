@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - beta
       - dev
       - github-actions-ci
     paths:
@@ -15,10 +14,6 @@ on:
       - 'requirements.txt'
       - 'entrypoint.sh'
       - '.github/workflows/docker-build-push.yml'
-    tags:
-      - 'v*.*.*'
-  release:
-    types: [published]
   workflow_dispatch:
 
 env:
