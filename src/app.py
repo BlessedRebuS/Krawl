@@ -72,11 +72,15 @@ async def lifespan(app: FastAPI):
     tasks_master = get_tasksmaster()
     tasks_master.run_scheduled_tasks()
 
+    password_line = ""
+    if config.dashboard_password_generated:
+        password_line = f"\n\nDASHBOARD PASSWORD (auto-generated)\n{config.dashboard_password}"
+
     banner = f"""
 
 ============================================================
 DASHBOARD AVAILABLE AT
-{config.dashboard_secret_path}
+{config.dashboard_secret_path}{password_line}
 ============================================================
     """
     app_logger.info(banner)

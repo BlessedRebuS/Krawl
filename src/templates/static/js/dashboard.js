@@ -20,7 +20,16 @@ document.addEventListener('alpine:init', () => {
         // IP Insight state
         insightIp: null,
 
-        init() {
+        // Auth state (UI only — actual security enforced server-side via cookie)
+        authenticated: false,
+
+        async init() {
+            // Check if already authenticated (cookie-based)
+            try {
+                const resp = await fetch(`${this.dashboardPath}/api/auth/check`, { credentials: 'same-origin' });
+                if (resp.ok) this.authenticated = true;
+            } catch {}
+
             // Handle hash-based tab routing
             const hash = window.location.hash.slice(1);
             if (hash === 'ip-stats' || hash === 'attacks') {
@@ -32,8 +41,9 @@ document.addEventListener('alpine:init', () => {
                 const h = window.location.hash.slice(1);
                 if (h === 'ip-stats' || h === 'attacks') {
                     this.switchToAttacks();
+                } else if (h === 'admin') {
+                    if (this.authenticated) this.switchToAdmin();
                 } else if (h !== 'ip-insight') {
-                    // Don't switch away from ip-insight via hash if already there
                     if (this.tab !== 'ip-insight') {
                         this.switchToOverview();
                     }
@@ -59,6 +69,53 @@ document.addEventListener('alpine:init', () => {
         switchToOverview() {
             this.tab = 'overview';
             window.location.hash = '#overview';
+        },
+
+        switchToAdmin() {
+            if (!this.authenticated) return;
+            this.tab = 'admin';
+            window.location.hash = '#admin';
+            this.$nextTick(() => {
+                const container = document.getElementById('admin-htmx-container');
+                if (container && typeof htmx !== 'undefined') {
+                    htmx.ajax('GET', `${this.dashboardPath}/htmx/admin`, {
+                        target: '#admin-htmx-container',
+                        swap: 'innerHTML'
+                    });
+                }
+            });
+        },
+
+        async logout() {
+            try {
+                await fetch(`${this.dashboardPath}/api/auth/logout`, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                });
+            } catch {}
+            this.authenticated = false;
+            if (this.tab === 'admin') this.switchToOverview();
+        },
+
+        async promptAuth() {
+            const password = prompt('Enter dashboard password:');
+            if (!password) return;
+            try {
+                const resp = await fetch(`${this.dashboardPath}/api/auth`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ password }),
+                });
+                if (resp.ok) {
+                    this.authenticated = true;
+                    this.switchToAdmin();
+                } else {
+                    alert('Invalid password');
+                }
+            } catch {
+                alert('Authentication failed');
+            }
         },
 
         switchToIpInsight() {

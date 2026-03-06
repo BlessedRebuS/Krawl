@@ -29,6 +29,7 @@ class Config:
     canary_token_tries: int = 10
     dashboard_secret_path: str = None
     dashboard_password: Optional[str] = None
+    dashboard_password_generated: bool = False
     probability_error_codes: int = 0  # Percentage (0-100)
 
     # Crawl limiting settings - for legitimate vs malicious crawlers
@@ -179,8 +180,10 @@ class Config:
 
         # Handle dashboard_password - auto-generate if null/not set
         dashboard_password = dashboard.get("password")
+        dashboard_password_generated = False
         if dashboard_password is None:
             dashboard_password = os.urandom(25).hex()
+            dashboard_password_generated = True
 
         return cls(
             port=server.get("port", 5000),
@@ -203,6 +206,7 @@ class Config:
             canary_token_tries=canary.get("token_tries", 10),
             dashboard_secret_path=dashboard_path,
             dashboard_password=dashboard_password,
+            dashboard_password_generated=dashboard_password_generated,
             probability_error_codes=behavior.get("probability_error_codes", 0),
             exports_path=exports.get("path", "exports"),
             backups_path=backups.get("path", "backups"),

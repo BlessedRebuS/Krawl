@@ -6,8 +6,10 @@ Server-rendered HTML partials for table pagination, sorting, IP details, and sea
 """
 
 from fastapi import APIRouter, Request, Response, Query
+from fastapi.responses import HTMLResponse
 
 from dependencies import get_db, get_templates
+from routes.api import verify_auth
 
 router = APIRouter()
 
@@ -406,5 +408,29 @@ async def htmx_search(
             "ips": result["ips"],
             "query": q,
             "pagination": result["pagination"],
+        },
+    )
+
+
+# ── Protected Admin Panel ────────────────────────────────────────────
+
+
+@router.get("/htmx/admin")
+async def htmx_admin(request: Request):
+    if not verify_auth(request):
+        return HTMLResponse(
+            '<div class="table-container" style="text-align:center;padding:80px 20px;">'
+            '<h1 style="color:#f0883e;font-size:48px;margin:20px 0 10px;">Nice try bozo</h1>'
+            '<br>'
+            '<img src="https://media0.giphy.com/media/v1.Y2lkPTZjMDliOTUyaHQ3dHRuN2wyOW1kZndjaHdkY2dhYzJ6d2gzMDJkNm53ZnNrdnNlZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mOY97EXNisstZqJht9/200w.gif" alt="Diddy">'
+            '</div>',
+            status_code=200,
+        )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        "dashboard/partials/admin_panel.html",
+        {
+            "request": request,
+            "dashboard_path": _dashboard_path(request),
         },
     )

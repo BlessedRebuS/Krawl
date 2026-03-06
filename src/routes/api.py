@@ -7,12 +7,18 @@ All endpoints are prefixed with the secret dashboard path.
 """
 
 import os
+import secrets
+import hmac
 
-from fastapi import APIRouter, Request, Response, Query
+from fastapi import APIRouter, Request, Response, Query, Cookie
 from fastapi.responses import JSONResponse, PlainTextResponse
+from pydantic import BaseModel
 
 from dependencies import get_db
 from logger import get_app_logger
+
+# Server-side session token store (valid tokens for authenticated sessions)
+_auth_tokens: set = set()
 
 router = APIRouter()
 
@@ -24,6 +30,54 @@ def _no_cache_headers() -> dict:
         "Expires": "0",
         "Access-Control-Allow-Origin": "*",
     }
+
+
+class AuthRequest(BaseModel):
+    password: str
+
+
+def verify_auth(request: Request) -> bool:
+    """Check if the request has a valid auth session cookie."""
+    token = request.cookies.get("krawl_auth")
+    return token is not None and token in _auth_tokens
+
+
+@router.post("/api/auth")
+async def authenticate(request: Request, body: AuthRequest):
+    config = request.app.state.config
+    if hmac.compare_digest(body.password, config.dashboard_password):
+        token = secrets.token_hex(32)
+        _auth_tokens.add(token)
+        response = JSONResponse(content={"authenticated": True})
+        response.set_cookie(
+            key="krawl_auth",
+            value=token,
+            httponly=True,
+            samesite="strict",
+        )
+        return response
+    return JSONResponse(
+        content={"authenticated": False, "error": "Invalid password"},
+        status_code=401,
+    )
+
+
+@router.post("/api/auth/logout")
+async def logout(request: Request):
+    token = request.cookies.get("krawl_auth")
+    if token and token in _auth_tokens:
+        _auth_tokens.discard(token)
+    response = JSONResponse(content={"authenticated": False})
+    response.delete_cookie(key="krawl_auth")
+    return response
+
+
+@router.get("/api/auth/check")
+async def auth_check(request: Request):
+    """Check if the current session is authenticated."""
+    if verify_auth(request):
+        return JSONResponse(content={"authenticated": True})
+    return JSONResponse(content={"authenticated": False}, status_code=401)
 
 
 @router.get("/api/all-ip-stats")
