@@ -117,6 +117,7 @@ docker run -d \
   -e KRAWL_PORT=5000 \
   -e KRAWL_DELAY=100 \
   -e KRAWL_DASHBOARD_SECRET_PATH="/my-secret-dashboard" \
+  -e KRAWL_DASHBOARD_PASSWORD="my-secret-password" \
   -v krawl-data:/app/data \
   --name krawl \
   ghcr.io/blessedrebus/krawl:latest
@@ -138,6 +139,7 @@ services:
     environment:
       - CONFIG_LOCATION=config.yaml
       - TZ=Europe/Rome
+      # - KRAWL_DASHBOARD_PASSWORD=my-secret-password
     volumes:
       - ./config.yaml:/app/config.yaml:ro
       # bind mount for firewall exporters
@@ -197,6 +199,7 @@ You can use the [config.yaml](config.yaml) file for advanced configurations, suc
 | `KRAWL_CANARY_TOKEN_URL` | External canary token URL | None |
 | `KRAWL_CANARY_TOKEN_TRIES` | Requests before showing canary token | `10` |
 | `KRAWL_DASHBOARD_SECRET_PATH` | Custom dashboard path | Auto-generated |
+| `KRAWL_DASHBOARD_PASSWORD` | Password for protected dashboard panels | Auto-generated |
 | `KRAWL_PROBABILITY_ERROR_CODES` | Error response probability (0-100%) | `0` |
 | `KRAWL_DATABASE_PATH` | Database file location | `data/krawl.db` |
 | `KRAWL_EXPORTS_PATH` | Path where firewalls rule sets are exported | `exports` |
@@ -228,8 +231,9 @@ export KRAWL_LINKS_PER_PAGE_RANGE="5,25"
 export KRAWL_HTTP_RISKY_METHODS_THRESHOLD="0.2"
 export KRAWL_VIOLATED_ROBOTS_THRESHOLD="0.15"
 
-# Set custom dashboard path
+# Set custom dashboard path and password
 export KRAWL_DASHBOARD_SECRET_PATH="/my-secret-dashboard"
+export KRAWL_DASHBOARD_PASSWORD="my-secret-password"
 ```
 
 Example of a Docker run with env variables:
@@ -239,6 +243,7 @@ docker run -d \
   -p 5000:5000 \
   -e KRAWL_PORT=5000 \
   -e KRAWL_DELAY=100 \
+  -e KRAWL_DASHBOARD_PASSWORD="my-secret-password" \
   -e KRAWL_CANARY_TOKEN_URL="http://your-canary-token-url" \
   --name krawl \
   ghcr.io/blessedrebus/krawl:latest

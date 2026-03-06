@@ -10,6 +10,8 @@ services:
       - "5000:5000"
     environment:
       - CONFIG_LOCATION=config.yaml
+      # Uncomment to set a custom dashboard password (auto-generated if not set)
+      # - KRAWL_DASHBOARD_PASSWORD=your-secret-password
       # set this to change timezone, alternatively mount /etc/timezone or /etc/localtime based on the time system management of the host environment
       # - TZ=${TZ}
     volumes:
