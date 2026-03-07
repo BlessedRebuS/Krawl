@@ -20,7 +20,17 @@ document.addEventListener('alpine:init', () => {
         // IP Insight state
         insightIp: null,
 
-        init() {
+        // Auth state (UI only — actual security enforced server-side via cookie)
+        authenticated: false,
+        authModal: { show: false, password: '', error: '', loading: false },
+
+        async init() {
+            // Check if already authenticated (cookie-based)
+            try {
+                const resp = await fetch(`${this.dashboardPath}/api/auth/check`, { credentials: 'same-origin' });
+                if (resp.ok) this.authenticated = true;
+            } catch {}
+
             // Handle hash-based tab routing
             const hash = window.location.hash.slice(1);
             if (hash === 'ip-stats' || hash === 'attacks') {
@@ -32,8 +42,9 @@ document.addEventListener('alpine:init', () => {
                 const h = window.location.hash.slice(1);
                 if (h === 'ip-stats' || h === 'attacks') {
                     this.switchToAttacks();
+                } else if (h === 'admin') {
+                    if (this.authenticated) this.switchToAdmin();
                 } else if (h !== 'ip-insight') {
-                    // Don't switch away from ip-insight via hash if already there
                     if (this.tab !== 'ip-insight') {
                         this.switchToOverview();
                     }
@@ -59,6 +70,93 @@ document.addEventListener('alpine:init', () => {
         switchToOverview() {
             this.tab = 'overview';
             window.location.hash = '#overview';
+        },
+
+        switchToAdmin() {
+            if (!this.authenticated) return;
+            this.tab = 'admin';
+            window.location.hash = '#admin';
+            this.$nextTick(() => {
+                const container = document.getElementById('admin-htmx-container');
+                if (container && typeof htmx !== 'undefined') {
+                    htmx.ajax('GET', `${this.dashboardPath}/htmx/admin`, {
+                        target: '#admin-htmx-container',
+                        swap: 'innerHTML'
+                    });
+                }
+            });
+        },
+
+        async logout() {
+            try {
+                await fetch(`${this.dashboardPath}/api/auth/logout`, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                });
+            } catch {}
+            this.authenticated = false;
+            if (this.tab === 'admin') this.switchToOverview();
+        },
+
+        promptAuth() {
+            this.authModal = { show: true, password: '', error: '', loading: false };
+            this.$nextTick(() => {
+                if (this.$refs.authPasswordInput) this.$refs.authPasswordInput.focus();
+            });
+        },
+
+        closeAuthModal() {
+            this.authModal.show = false;
+            this.authModal.password = '';
+            this.authModal.error = '';
+            this.authModal.loading = false;
+        },
+
+        async submitAuth() {
+            const password = this.authModal.password;
+            if (!password) {
+                this.authModal.error = 'Please enter a password';
+                return;
+            }
+            this.authModal.error = '';
+            this.authModal.loading = true;
+            try {
+                const msgBuf = new TextEncoder().encode(password);
+                const hashBuf = await crypto.subtle.digest('SHA-256', msgBuf);
+                const fingerprint = Array.from(new Uint8Array(hashBuf))
+                    .map(b => b.toString(16).padStart(2, '0')).join('');
+                const resp = await fetch(`${this.dashboardPath}/api/auth`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ fingerprint }),
+                });
+                if (resp.ok) {
+                    this.authenticated = true;
+                    this.closeAuthModal();
+                    this.switchToAdmin();
+                } else {
+                    const data = await resp.json().catch(() => ({}));
+                    this.authModal.error = data.error || 'Invalid password';
+                    this.authModal.password = '';
+                    this.authModal.loading = false;
+                    if (data.locked && data.retry_after) {
+                        let remaining = data.retry_after;
+                        const interval = setInterval(() => {
+                            remaining--;
+                            if (remaining <= 0) {
+                                clearInterval(interval);
+                                this.authModal.error = '';
+                            } else {
+                                this.authModal.error = `Too many attempts. Try again in ${remaining}s`;
+                            }
+                        }, 1000);
+                    }
+                }
+            } catch {
+                this.authModal.error = 'Authentication failed';
+                this.authModal.loading = false;
+            }
         },
 
         switchToIpInsight() {

@@ -96,6 +96,7 @@ The following table lists the main configuration parameters of the Krawl chart a
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `config.dashboard.secret_path` | Secret dashboard path (auto-generated if null) | `null` |
+| `dashboardPassword` | Password for protected panels (injected via Secret as `KRAWL_DASHBOARD_PASSWORD` env, auto-generated if empty) | `""` |
 
 ### API Configuration
 

@@ -60,6 +60,10 @@ tolerations: []
 
 affinity: {}
 
+# Dashboard password for protected panels
+# If empty, a random password will be auto-generated and printed in the logs
+dashboardPassword: ""
+
 # Application configuration (config.yaml structure)
 config:
   server:

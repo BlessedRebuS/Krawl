@@ -33,6 +33,12 @@ spec:
         env:
         - name: CONFIG_LOCATION
           value: "config.yaml"
+        # Uncomment to use dashboard password from secret
+        # - name: KRAWL_DASHBOARD_PASSWORD
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: krawl-dashboard
+        #       key: dashboard-password
         volumeMounts:
         - name: config
           mountPath: /app/config.yaml
