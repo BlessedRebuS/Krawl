@@ -22,6 +22,7 @@ document.addEventListener('alpine:init', () => {
 
         // Auth state (UI only — actual security enforced server-side via cookie)
         authenticated: false,
+        authModal: { show: false, password: '', error: '', loading: false },
 
         async init() {
             // Check if already authenticated (cookie-based)
@@ -97,24 +98,50 @@ document.addEventListener('alpine:init', () => {
             if (this.tab === 'admin') this.switchToOverview();
         },
 
-        async promptAuth() {
-            const password = prompt('Enter dashboard password:');
-            if (!password) return;
+        promptAuth() {
+            this.authModal = { show: true, password: '', error: '', loading: false };
+            this.$nextTick(() => {
+                if (this.$refs.authPasswordInput) this.$refs.authPasswordInput.focus();
+            });
+        },
+
+        closeAuthModal() {
+            this.authModal.show = false;
+            this.authModal.password = '';
+            this.authModal.error = '';
+            this.authModal.loading = false;
+        },
+
+        async submitAuth() {
+            const password = this.authModal.password;
+            if (!password) {
+                this.authModal.error = 'Please enter a password';
+                return;
+            }
+            this.authModal.error = '';
+            this.authModal.loading = true;
             try {
+                const msgBuf = new TextEncoder().encode(password);
+                const hashBuf = await crypto.subtle.digest('SHA-256', msgBuf);
+                const fingerprint = Array.from(new Uint8Array(hashBuf))
+                    .map(b => b.toString(16).padStart(2, '0')).join('');
                 const resp = await fetch(`${this.dashboardPath}/api/auth`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'same-origin',
-                    body: JSON.stringify({ password }),
+                    body: JSON.stringify({ fingerprint }),
                 });
                 if (resp.ok) {
                     this.authenticated = true;
+                    this.closeAuthModal();
                     this.switchToAdmin();
                 } else {
-                    alert('Invalid password');
+                    this.authModal.error = 'Invalid password';
+                    this.authModal.loading = false;
                 }
             } catch {
-                alert('Authentication failed');
+                this.authModal.error = 'Authentication failed';
+                this.authModal.loading = false;
             }
         },
 

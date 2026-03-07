@@ -6,9 +6,10 @@ Migrated from handler.py dashboard API endpoints.
 All endpoints are prefixed with the secret dashboard path.
 """
 
+import hashlib
+import hmac
 import os
 import secrets
-import hmac
 
 from fastapi import APIRouter, Request, Response, Query, Cookie
 from fastapi.responses import JSONResponse, PlainTextResponse
@@ -33,7 +34,7 @@ def _no_cache_headers() -> dict:
 
 
 class AuthRequest(BaseModel):
-    password: str
+    fingerprint: str
 
 
 def verify_auth(request: Request) -> bool:
@@ -45,7 +46,8 @@ def verify_auth(request: Request) -> bool:
 @router.post("/api/auth")
 async def authenticate(request: Request, body: AuthRequest):
     config = request.app.state.config
-    if hmac.compare_digest(body.password, config.dashboard_password):
+    expected = hashlib.sha256(config.dashboard_password.encode()).hexdigest()
+    if hmac.compare_digest(body.fingerprint, expected):
         token = secrets.token_hex(32)
         _auth_tokens.add(token)
         response = JSONResponse(content={"authenticated": True})
