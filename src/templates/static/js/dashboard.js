@@ -31,6 +31,10 @@ document.addEventListener('alpine:init', () => {
                 if (resp.ok) this.authenticated = true;
             } catch {}
 
+            // Sync ban action button visibility with auth state
+            this.$watch('authenticated', (val) => updateBanActionVisibility(val));
+            updateBanActionVisibility(this.authenticated);
+
             // Handle hash-based tab routing
             const hash = window.location.hash.slice(1);
             if (hash === 'ip-stats' || hash === 'attacks') {
@@ -42,8 +46,8 @@ document.addEventListener('alpine:init', () => {
                 const h = window.location.hash.slice(1);
                 if (h === 'ip-stats' || h === 'attacks') {
                     this.switchToAttacks();
-                } else if (h === 'admin') {
-                    if (this.authenticated) this.switchToAdmin();
+                } else if (h === 'banlist') {
+                    if (this.authenticated) this.switchToBanlist();
                 } else if (h !== 'ip-insight') {
                     if (this.tab !== 'ip-insight') {
                         this.switchToOverview();
@@ -72,15 +76,15 @@ document.addEventListener('alpine:init', () => {
             window.location.hash = '#overview';
         },
 
-        switchToAdmin() {
+        switchToBanlist() {
             if (!this.authenticated) return;
-            this.tab = 'admin';
-            window.location.hash = '#admin';
+            this.tab = 'banlist';
+            window.location.hash = '#banlist';
             this.$nextTick(() => {
-                const container = document.getElementById('admin-htmx-container');
+                const container = document.getElementById('banlist-htmx-container');
                 if (container && typeof htmx !== 'undefined') {
-                    htmx.ajax('GET', `${this.dashboardPath}/htmx/admin`, {
-                        target: '#admin-htmx-container',
+                    htmx.ajax('GET', `${this.dashboardPath}/htmx/banlist`, {
+                        target: '#banlist-htmx-container',
                         swap: 'innerHTML'
                     });
                 }
@@ -95,7 +99,7 @@ document.addEventListener('alpine:init', () => {
                 });
             } catch {}
             this.authenticated = false;
-            if (this.tab === 'admin') this.switchToOverview();
+            if (this.tab === 'banlist') this.switchToOverview();
         },
 
         promptAuth() {
@@ -134,7 +138,7 @@ document.addEventListener('alpine:init', () => {
                 if (resp.ok) {
                     this.authenticated = true;
                     this.closeAuthModal();
-                    this.switchToAdmin();
+                    this.switchToBanlist();
                 } else {
                     const data = await resp.json().catch(() => ({}));
                     this.authModal.error = data.error || 'Invalid password';
@@ -248,18 +252,122 @@ document.addEventListener('alpine:init', () => {
     }));
 });
 
+// Helper to access Alpine.js component data
+function getAlpineData(selector) {
+    const container = document.querySelector(selector);
+    if (!container) return null;
+    return Alpine.$data ? Alpine.$data(container) : (container._x_dataStack && container._x_dataStack[0]);
+}
+
 // Global function for opening IP Insight (used by map popups)
 window.openIpInsight = function(ip) {
-    // Find the Alpine component and call openIpInsight
-    const container = document.querySelector('[x-data="dashboardApp()"]');
-    if (container) {
-        // Try Alpine 3.x API first, then fall back to older API
-        const data = Alpine.$data ? Alpine.$data(container) : (container._x_dataStack && container._x_dataStack[0]);
-        if (data && typeof data.openIpInsight === 'function') {
-            data.openIpInsight(ip);
-        }
+    const data = getAlpineData('[x-data="dashboardApp()"]');
+    if (data && typeof data.openIpInsight === 'function') {
+        data.openIpInsight(ip);
     }
 };
+
+// Escape HTML to prevent XSS when inserting into innerHTML
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// Custom modal system (replaces native confirm/alert)
+window.krawlModal = {
+    _create(icon, iconClass, message, buttons) {
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.className = 'krawl-modal-overlay';
+            overlay.innerHTML = `
+                <div class="krawl-modal-box">
+                    <div class="krawl-modal-icon ${iconClass}">
+                        <span class="material-symbols-outlined">${icon}</span>
+                    </div>
+                    <div class="krawl-modal-message">${message}</div>
+                    <div class="krawl-modal-actions" id="krawl-modal-actions"></div>
+                </div>`;
+            const actions = overlay.querySelector('#krawl-modal-actions');
+            buttons.forEach(btn => {
+                const el = document.createElement('button');
+                el.className = `auth-modal-btn ${btn.cls}`;
+                el.textContent = btn.label;
+                el.onclick = () => { overlay.remove(); resolve(btn.value); };
+                actions.appendChild(el);
+            });
+            overlay.addEventListener('click', e => {
+                if (e.target === overlay) { overlay.remove(); resolve(false); }
+            });
+            document.body.appendChild(overlay);
+        });
+    },
+    confirm(message) {
+        return this._create('warning', 'krawl-modal-icon-warn', message, [
+            { label: 'Cancel', cls: 'auth-modal-btn-cancel', value: false },
+            { label: 'Confirm', cls: 'auth-modal-btn-submit', value: true },
+        ]);
+    },
+    success(message) {
+        return this._create('check_circle', 'krawl-modal-icon-success', message, [
+            { label: 'OK', cls: 'auth-modal-btn-submit', value: true },
+        ]);
+    },
+    error(message) {
+        return this._create('error', 'krawl-modal-icon-error', message, [
+            { label: 'OK', cls: 'auth-modal-btn-cancel', value: true },
+        ]);
+    },
+};
+
+// Global ban action for IP insight page (auth-gated)
+window.ipBanAction = async function(ip, action) {
+    // Check if authenticated
+    const data = getAlpineData('[x-data="dashboardApp()"]');
+    if (!data || !data.authenticated) {
+        if (data && typeof data.promptAuth === 'function') data.promptAuth();
+        return;
+    }
+    const safeIp = escapeHtml(ip);
+    const safeAction = escapeHtml(action);
+    const confirmed = await krawlModal.confirm(`Are you sure you want to ${safeAction} IP <strong>${safeIp}</strong>?`);
+    if (!confirmed) return;
+    try {
+        const resp = await fetch(`${window.__DASHBOARD_PATH__}/api/ban-override`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ ip, action }),
+        });
+        const result = await resp.json().catch(() => ({}));
+        if (resp.ok) {
+            krawlModal.success(escapeHtml(result.message || `${action} successful for ${ip}`));
+            const overrides = document.getElementById('overrides-container');
+            if (overrides) {
+                htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/ban/overrides?page=1`, {
+                    target: '#overrides-container',
+                    swap: 'innerHTML'
+                });
+            }
+        } else {
+            krawlModal.error(escapeHtml(result.error || `Failed to ${action} IP ${ip}`));
+        }
+    } catch {
+        krawlModal.error('Request failed');
+    }
+};
+
+// Show/hide ban action buttons based on auth state
+function updateBanActionVisibility(authenticated) {
+    document.querySelectorAll('.ip-ban-actions').forEach(el => {
+        el.style.display = authenticated ? 'inline-flex' : 'none';
+    });
+}
+// Update visibility after HTMX swaps in new content
+document.addEventListener('htmx:afterSwap', () => {
+    const data = getAlpineData('[x-data="dashboardApp()"]');
+    if (data) updateBanActionVisibility(data.authenticated);
+});
 
 // Utility function for formatting timestamps (used by map popups)
 function formatTimestamp(isoTimestamp) {

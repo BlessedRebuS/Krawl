@@ -210,6 +210,11 @@ class IpStats(Base):
     total_violations: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
     ban_multiplier: Mapped[int] = mapped_column(Integer, default=1, nullable=True)
 
+    # Admin ban override: True = force ban, False = force unban, None = automatic
+    ban_override: Mapped[Optional[bool]] = mapped_column(
+        Boolean, nullable=True, default=None
+    )
+
     def __repr__(self) -> str:
         return f"<IpStats(ip='{self.ip}', total_requests={self.total_requests})>"
 

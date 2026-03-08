@@ -3,14 +3,30 @@
 
 {# Page header #}
 <div class="ip-page-header">
-    <h1>
-        <span class="ip-address-title">{{ ip_address }}</span>
-        {% if stats.category %}
-        <span class="category-badge category-{{ stats.category | lower | replace('_', '-') }}">
-            {{ stats.category | replace('_', ' ') | title }}
+    <div class="ip-page-header-row">
+        <h1>
+            <span class="ip-address-title">{{ ip_address }}</span>
+            {% if stats.category %}
+            <span class="category-badge category-{{ stats.category | lower | replace('_', '-') }}">
+                {{ stats.category | replace('_', ' ') | title }}
+            </span>
+            {% endif %}
+        </h1>
+        {# Ban/Unban actions — visible only when authenticated #}
+        <span class="ip-ban-actions" style="display: none; gap: 4px;">
+            {% if stats.category and stats.category | lower == 'attacker' %}
+            <button class="ban-icon-btn ban-icon-unban" onclick="ipBanAction('{{ ip_address | e }}', 'unban')" title="Unban">
+                <span class="material-symbols-outlined">health_and_safety</span>
+                <span class="ban-icon-tooltip">Unban</span>
+            </button>
+            {% else %}
+            <button class="ban-icon-btn ban-icon-ban" onclick="ipBanAction('{{ ip_address | e }}', 'ban')" title="Add to banlist">
+                <span class="material-symbols-outlined">gavel</span>
+                <span class="ban-icon-tooltip">Add to banlist</span>
+            </button>
+            {% endif %}
         </span>
-        {% endif %}
-    </h1>
+    </div>
     {% if stats.city or stats.country %}
     <p class="ip-location-subtitle">
         {{ stats.city | default('') }}{% if stats.city and stats.country %}, {% endif %}{{ stats.country | default(stats.country_code | default('')) }}

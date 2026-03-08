@@ -454,6 +454,12 @@ tbody {
 .ip-page-header {
     margin-bottom: 20px;
 }
+.ip-page-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
 .ip-page-header h1 {
     display: flex;
     align-items: center;
@@ -710,9 +716,8 @@ tbody {
     min-width: 0;
 }
 .ip-attack-chart-wrapper {
-    flex: 1;
     position: relative;
-    min-height: 180px;
+    height: 220px;
 }
 
 /* Radar chart */
@@ -1299,6 +1304,164 @@ tbody {
 .auth-modal-btn-submit:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+/* Ban Management */
+.ban-form-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    background: rgba(248, 81, 73, 0.15);
+    color: #f85149;
+    border: 1px solid rgba(248, 81, 73, 0.3);
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.ban-form-btn:hover:not(:disabled) {
+    background: rgba(248, 81, 73, 0.3);
+    border-color: rgba(248, 81, 73, 0.5);
+}
+.ban-form-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.ban-form-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+.ban-icon-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    background: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s;
+}
+.ban-icon-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+.ban-icon-btn .material-symbols-outlined {
+    font-size: 20px;
+}
+.ban-icon-unban {
+    color: #3fb950;
+}
+.ban-icon-unban:hover {
+    background: rgba(63, 185, 80, 0.15);
+}
+.ban-icon-reset {
+    color: #8b949e;
+}
+.ban-icon-reset:hover {
+    color: #c9d1d9;
+    background: rgba(139, 148, 158, 0.15);
+}
+.ban-icon-ban {
+    color: #f85149;
+}
+.ban-icon-ban:hover {
+    background: rgba(248, 81, 73, 0.15);
+}
+.ban-icon-tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    background: #1c2128;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+}
+.ban-icon-btn:hover .ban-icon-tooltip {
+    opacity: 1;
+}
+
+/* Custom confirm/alert modal */
+.krawl-modal-overlay {
+    position: fixed;
+    z-index: 1100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+.krawl-modal-box {
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    width: 380px;
+    max-width: 90vw;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    animation: authModalIn 0.2s ease-out;
+    overflow: hidden;
+}
+.krawl-modal-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 24px 0;
+}
+.krawl-modal-icon .material-symbols-outlined {
+    font-size: 40px;
+}
+.krawl-modal-icon.krawl-modal-icon-warn .material-symbols-outlined {
+    color: #d29922;
+}
+.krawl-modal-icon.krawl-modal-icon-success .material-symbols-outlined {
+    color: #3fb950;
+}
+.krawl-modal-icon.krawl-modal-icon-error .material-symbols-outlined {
+    color: #f85149;
+}
+.krawl-modal-message {
+    padding: 16px 24px 8px;
+    text-align: center;
+    color: #e6edf3;
+    font-size: 15px;
+    line-height: 1.5;
+}
+.krawl-modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 24px 24px;
+}
+.ban-override-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.ban-override-banned {
+    background: rgba(248, 81, 73, 0.15);
+    color: #f85149;
+}
+.ban-override-unbanned {
+    background: rgba(63, 185, 80, 0.15);
+    color: #3fb950;
 }
 
 /* Attack Types Cell Styling */

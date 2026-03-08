@@ -45,9 +45,25 @@ def main():
         session = db.session
 
         # Query attacker IPs from IpStats (same as dashboard "Attackers by Total Requests")
-        attackers = (
+        # Also include IPs with ban_override=True (force-banned by admin)
+        # Exclude IPs with ban_override=False (force-unbanned by admin)
+        from sqlalchemy import or_, and_
+
+        banned_ips = (
             session.query(IpStats)
-            .filter(IpStats.category == "attacker")
+            .filter(
+                or_(
+                    # Automatic: attacker category without explicit unban
+                    and_(
+                        IpStats.category == "attacker",
+                        or_(
+                            IpStats.ban_override.is_(None), IpStats.ban_override == True
+                        ),
+                    ),
+                    # Manual: force-banned by admin regardless of category
+                    IpStats.ban_override == True,
+                )
+            )
             .order_by(IpStats.total_requests.desc())
             .all()
         )
@@ -56,9 +72,7 @@ def main():
         server_ip = config.get_server_ip()
 
         public_ips = [
-            attacker.ip
-            for attacker in attackers
-            if is_valid_public_ip(attacker.ip, server_ip)
+            entry.ip for entry in banned_ips if is_valid_public_ip(entry.ip, server_ip)
         ]
 
         # Ensure exports directory exists
@@ -81,7 +95,7 @@ def main():
 
                 app_logger.info(
                     f"[Background Task] {task_name} exported {len(public_ips)} in {fwname} public IPs"
-                    f"(filtered {len(attackers) - len(public_ips)} local/private IPs) to {output_file}"
+                    f"(filtered {len(banned_ips) - len(public_ips)} local/private IPs) to {output_file}"
                 )
 
     except Exception as e:

@@ -412,11 +412,11 @@ async def htmx_search(
     )
 
 
-# ── Protected Admin Panel ────────────────────────────────────────────
+# ── Protected Banlist Panel ───────────────────────────────────────────
 
 
-@router.get("/htmx/admin")
-async def htmx_admin(request: Request):
+@router.get("/htmx/banlist")
+async def htmx_banlist(request: Request):
     if not verify_auth(request):
         return HTMLResponse(
             '<div class="table-container" style="text-align:center;padding:80px 20px;">'
@@ -428,9 +428,62 @@ async def htmx_admin(request: Request):
         )
     templates = get_templates()
     return templates.TemplateResponse(
-        "dashboard/partials/admin_panel.html",
+        "dashboard/partials/banlist_panel.html",
         {
             "request": request,
             "dashboard_path": _dashboard_path(request),
+        },
+    )
+
+
+# ── Ban Management HTMX Endpoints ───────────────────────────────────
+
+
+@router.get("/htmx/ban/attackers")
+async def htmx_ban_attackers(
+    request: Request,
+    page: int = Query(1),
+    page_size: int = Query(25),
+):
+    if not verify_auth(request):
+        return HTMLResponse(
+            "<p style='color:#f85149;'>Unauthorized</p>", status_code=200
+        )
+
+    db = get_db()
+    result = db.get_attackers_paginated(page=max(1, page), page_size=page_size)
+    templates = get_templates()
+    return templates.TemplateResponse(
+        "dashboard/partials/ban_attackers_table.html",
+        {
+            "request": request,
+            "dashboard_path": _dashboard_path(request),
+            "items": result["attackers"],
+            "pagination": result["pagination"],
+        },
+    )
+
+
+@router.get("/htmx/ban/overrides")
+async def htmx_ban_overrides(
+    request: Request,
+    page: int = Query(1),
+    page_size: int = Query(25),
+):
+    if not verify_auth(request):
+        return HTMLResponse(
+            "<p style='color:#f85149;'>Unauthorized</p>", status_code=200
+        )
+
+    db = get_db()
+    result = db.get_ban_overrides_paginated(page=max(1, page), page_size=page_size)
+    templates = get_templates()
+    return templates.TemplateResponse(
+        "dashboard/partials/ban_overrides_table.html",
+        {
+            "request": request,
+            "dashboard_path": _dashboard_path(request),
+            "items": result["overrides"],
+            "pagination": result["pagination"],
         },
     )

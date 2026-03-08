@@ -137,6 +137,40 @@ async def auth_check(request: Request):
     return JSONResponse(content={"authenticated": False}, status_code=401)
 
 
+# ── Protected Ban Management API ─────────────────────────────────────
+
+
+class BanOverrideRequest(BaseModel):
+    ip: str
+    action: str  # "ban", "unban", or "reset"
+
+
+@router.post("/api/ban-override")
+async def ban_override(request: Request, body: BanOverrideRequest):
+    if not verify_auth(request):
+        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
+
+    db = get_db()
+    action_map = {"ban": True, "unban": False, "reset": None}
+    if body.action not in action_map:
+        return JSONResponse(
+            content={"error": "Invalid action. Use: ban, unban, reset"},
+            status_code=400,
+        )
+
+    if body.action == "ban":
+        success = db.force_ban_ip(body.ip)
+    else:
+        success = db.set_ban_override(body.ip, action_map[body.action])
+
+    if success:
+        get_app_logger().info(f"Ban override: {body.action} on IP {body.ip}")
+        return JSONResponse(
+            content={"success": True, "ip": body.ip, "action": body.action}
+        )
+    return JSONResponse(content={"error": "IP not found"}, status_code=404)
+
+
 @router.get("/api/all-ip-stats")
 async def all_ip_stats(request: Request):
     db = get_db()
