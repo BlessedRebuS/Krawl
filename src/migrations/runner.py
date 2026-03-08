@@ -84,6 +84,14 @@ def _migrate_performance_indexes(cursor) -> List[str]:
     return added
 
 
+def _migrate_ban_override_column(cursor) -> bool:
+    """Add ban_override column to ip_stats if missing."""
+    if _column_exists(cursor, "ip_stats", "ban_override"):
+        return False
+    cursor.execute("ALTER TABLE ip_stats ADD COLUMN ban_override BOOLEAN DEFAULT NULL")
+    return True
+
+
 def run_migrations(database_path: str) -> None:
     """
     Check the database schema and apply any pending migrations.
@@ -109,6 +117,9 @@ def run_migrations(database_path: str) -> None:
         ban_cols = _migrate_ban_state_columns(cursor)
         for col in ban_cols:
             applied.append(f"add {col} column to ip_stats")
+
+        if _migrate_ban_override_column(cursor):
+            applied.append("add ban_override column to ip_stats")
 
         idx_added = _migrate_performance_indexes(cursor)
         for idx in idx_added:
