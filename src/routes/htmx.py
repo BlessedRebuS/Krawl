@@ -412,11 +412,11 @@ async def htmx_search(
     )
 
 
-# ── Protected Admin Panel ────────────────────────────────────────────
+# ── Protected Banlist Panel ───────────────────────────────────────────
 
 
-@router.get("/htmx/admin")
-async def htmx_admin(request: Request):
+@router.get("/htmx/banlist")
+async def htmx_banlist(request: Request):
     if not verify_auth(request):
         return HTMLResponse(
             '<div class="table-container" style="text-align:center;padding:80px 20px;">'
@@ -428,7 +428,7 @@ async def htmx_admin(request: Request):
         )
     templates = get_templates()
     return templates.TemplateResponse(
-        "dashboard/partials/admin_panel.html",
+        "dashboard/partials/banlist_panel.html",
         {
             "request": request,
             "dashboard_path": _dashboard_path(request),

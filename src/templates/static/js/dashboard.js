@@ -46,8 +46,8 @@ document.addEventListener('alpine:init', () => {
                 const h = window.location.hash.slice(1);
                 if (h === 'ip-stats' || h === 'attacks') {
                     this.switchToAttacks();
-                } else if (h === 'admin') {
-                    if (this.authenticated) this.switchToAdmin();
+                } else if (h === 'banlist') {
+                    if (this.authenticated) this.switchToBanlist();
                 } else if (h !== 'ip-insight') {
                     if (this.tab !== 'ip-insight') {
                         this.switchToOverview();
@@ -76,15 +76,15 @@ document.addEventListener('alpine:init', () => {
             window.location.hash = '#overview';
         },
 
-        switchToAdmin() {
+        switchToBanlist() {
             if (!this.authenticated) return;
-            this.tab = 'admin';
-            window.location.hash = '#admin';
+            this.tab = 'banlist';
+            window.location.hash = '#banlist';
             this.$nextTick(() => {
-                const container = document.getElementById('admin-htmx-container');
+                const container = document.getElementById('banlist-htmx-container');
                 if (container && typeof htmx !== 'undefined') {
-                    htmx.ajax('GET', `${this.dashboardPath}/htmx/admin`, {
-                        target: '#admin-htmx-container',
+                    htmx.ajax('GET', `${this.dashboardPath}/htmx/banlist`, {
+                        target: '#banlist-htmx-container',
                         swap: 'innerHTML'
                     });
                 }
@@ -99,7 +99,7 @@ document.addEventListener('alpine:init', () => {
                 });
             } catch {}
             this.authenticated = false;
-            if (this.tab === 'admin') this.switchToOverview();
+            if (this.tab === 'banlist') this.switchToOverview();
         },
 
         promptAuth() {
@@ -138,7 +138,7 @@ document.addEventListener('alpine:init', () => {
                 if (resp.ok) {
                     this.authenticated = true;
                     this.closeAuthModal();
-                    this.switchToAdmin();
+                    this.switchToBanlist();
                 } else {
                     const data = await resp.json().catch(() => ({}));
                     this.authModal.error = data.error || 'Invalid password';
