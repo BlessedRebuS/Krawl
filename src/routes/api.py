@@ -152,7 +152,6 @@ async def ban_override(request: Request, body: BanOverrideRequest):
 
     db = get_db()
     action_map = {"ban": True, "unban": False, "reset": None}
-    override_value = action_map.get(body.action)
     if body.action not in action_map:
         return JSONResponse(
             content={"error": "Invalid action. Use: ban, unban, reset"},
@@ -162,7 +161,7 @@ async def ban_override(request: Request, body: BanOverrideRequest):
     if body.action == "ban":
         success = db.force_ban_ip(body.ip)
     else:
-        success = db.set_ban_override(body.ip, override_value)
+        success = db.set_ban_override(body.ip, action_map[body.action])
 
     if success:
         get_app_logger().info(f"Ban override: {body.action} on IP {body.ip}")

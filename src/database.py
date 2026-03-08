@@ -2269,8 +2269,8 @@ class DatabaseManager:
             ip_stats = IpStats(
                 ip=sanitized_ip,
                 total_requests=0,
-                first_seen=datetime.utcnow(),
-                last_seen=datetime.utcnow(),
+                first_seen=datetime.now(),
+                last_seen=datetime.now(),
             )
             session.add(ip_stats)
 

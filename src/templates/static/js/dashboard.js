@@ -252,18 +252,27 @@ document.addEventListener('alpine:init', () => {
     }));
 });
 
+// Helper to access Alpine.js component data
+function getAlpineData(selector) {
+    const container = document.querySelector(selector);
+    if (!container) return null;
+    return Alpine.$data ? Alpine.$data(container) : (container._x_dataStack && container._x_dataStack[0]);
+}
+
 // Global function for opening IP Insight (used by map popups)
 window.openIpInsight = function(ip) {
-    // Find the Alpine component and call openIpInsight
-    const container = document.querySelector('[x-data="dashboardApp()"]');
-    if (container) {
-        // Try Alpine 3.x API first, then fall back to older API
-        const data = Alpine.$data ? Alpine.$data(container) : (container._x_dataStack && container._x_dataStack[0]);
-        if (data && typeof data.openIpInsight === 'function') {
-            data.openIpInsight(ip);
-        }
+    const data = getAlpineData('[x-data="dashboardApp()"]');
+    if (data && typeof data.openIpInsight === 'function') {
+        data.openIpInsight(ip);
     }
 };
+
+// Escape HTML to prevent XSS when inserting into innerHTML
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
 
 // Custom modal system (replaces native confirm/alert)
 window.krawlModal = {
@@ -314,13 +323,14 @@ window.krawlModal = {
 // Global ban action for IP insight page (auth-gated)
 window.ipBanAction = async function(ip, action) {
     // Check if authenticated
-    const container = document.querySelector('[x-data="dashboardApp()"]');
-    const data = container && (Alpine.$data ? Alpine.$data(container) : (container._x_dataStack && container._x_dataStack[0]));
+    const data = getAlpineData('[x-data="dashboardApp()"]');
     if (!data || !data.authenticated) {
         if (data && typeof data.promptAuth === 'function') data.promptAuth();
         return;
     }
-    const confirmed = await krawlModal.confirm(`Are you sure you want to ${action} IP <strong>${ip}</strong>?`);
+    const safeIp = escapeHtml(ip);
+    const safeAction = escapeHtml(action);
+    const confirmed = await krawlModal.confirm(`Are you sure you want to ${safeAction} IP <strong>${safeIp}</strong>?`);
     if (!confirmed) return;
     try {
         const resp = await fetch(`${window.__DASHBOARD_PATH__}/api/ban-override`, {
@@ -331,7 +341,7 @@ window.ipBanAction = async function(ip, action) {
         });
         const result = await resp.json().catch(() => ({}));
         if (resp.ok) {
-            krawlModal.success(result.message || `${action} successful for ${ip}`);
+            krawlModal.success(escapeHtml(result.message || `${action} successful for ${ip}`));
             const overrides = document.getElementById('overrides-container');
             if (overrides) {
                 htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/ban/overrides?page=1`, {
@@ -340,7 +350,7 @@ window.ipBanAction = async function(ip, action) {
                 });
             }
         } else {
-            krawlModal.error(result.error || `Failed to ${action} IP ${ip}`);
+            krawlModal.error(escapeHtml(result.error || `Failed to ${action} IP ${ip}`));
         }
     } catch {
         krawlModal.error('Request failed');
@@ -355,8 +365,7 @@ function updateBanActionVisibility(authenticated) {
 }
 // Update visibility after HTMX swaps in new content
 document.addEventListener('htmx:afterSwap', () => {
-    const container = document.querySelector('[x-data="dashboardApp()"]');
-    const data = container && (Alpine.$data ? Alpine.$data(container) : (container._x_dataStack && container._x_dataStack[0]));
+    const data = getAlpineData('[x-data="dashboardApp()"]');
     if (data) updateBanActionVisibility(data.authenticated);
 });
 
