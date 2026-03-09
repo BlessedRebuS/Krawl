@@ -29,6 +29,7 @@ class BanCheckMiddleware(BaseHTTPMiddleware):
             get_access_logger().info(
                 f"[BANNED] [{request.method}] {client_ip} - {request.url.path}"
             )
+            request.state.banned = True
             transport = request.scope.get("transport")
             if transport:
                 transport.close()
