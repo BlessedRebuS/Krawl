@@ -73,6 +73,7 @@ async def authenticate(request: Request, body: AuthRequest):
     if hmac.compare_digest(body.fingerprint, expected):
         # Success — clear failed attempts
         _auth_attempts.pop(ip, None)
+        get_app_logger().info(f"[AUTH] Successful login from {ip}")
         token = secrets.token_hex(32)
         _auth_tokens.add(token)
         response = JSONResponse(content={"authenticated": True})
@@ -85,6 +86,7 @@ async def authenticate(request: Request, body: AuthRequest):
         return response
 
     # Failed attempt — track and possibly lock out
+    get_app_logger().warning(f"[AUTH] Failed login attempt from {ip}")
     if not record:
         record = {"attempts": 0, "locked_until": 0, "lockouts": 0}
         _auth_attempts[ip] = record

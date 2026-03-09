@@ -258,6 +258,9 @@ def override_config_from_env(config: Config = None):
             try:
                 field_type = config.__dataclass_fields__[field].type
                 env_value = os.environ[env_var]
+                # If password is overridden, it's no longer auto-generated
+                if field == "dashboard_password":
+                    config.dashboard_password_generated = False
                 if field_type == int:
                     setattr(config, field, int(env_value))
                 elif field_type == float:
