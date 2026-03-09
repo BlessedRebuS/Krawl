@@ -129,8 +129,16 @@ def create_app() -> FastAPI:
     # Access log middleware (outermost — logs every request with real client IP)
     @application.middleware("http")
     async def access_log_middleware(request: Request, call_next):
-        response: Response = await call_next(request)
         from dependencies import get_client_ip
+
+        try:
+            response: Response = await call_next(request)
+        except ConnectionResetError:
+            client_ip = get_client_ip(request)
+            path = request.url.path
+            method = request.method
+            get_access_logger().info(f"[BANNED] [{method}] {client_ip} - {path}")
+            raise
 
         client_ip = get_client_ip(request)
         path = request.url.path

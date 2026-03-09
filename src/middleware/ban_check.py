@@ -2,6 +2,7 @@
 
 """
 Middleware for checking if client IP is banned.
+Resets the connection for banned IPs instead of sending a response.
 """
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -9,6 +10,13 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from dependencies import get_client_ip
+
+
+class ConnectionResetResponse(Response):
+    """Response that abruptly closes the connection without sending data."""
+
+    async def __call__(self, scope, receive, send):
+        raise ConnectionResetError()
 
 
 class BanCheckMiddleware(BaseHTTPMiddleware):
@@ -23,7 +31,7 @@ class BanCheckMiddleware(BaseHTTPMiddleware):
         tracker = request.app.state.tracker
 
         if tracker.is_banned_ip(client_ip):
-            return Response(status_code=500)
+            return ConnectionResetResponse()
 
         response = await call_next(request)
         return response
