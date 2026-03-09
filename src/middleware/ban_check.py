@@ -12,13 +12,6 @@ from starlette.responses import Response
 from dependencies import get_client_ip
 
 
-class ConnectionResetResponse(Response):
-    """Response that abruptly closes the connection without sending data."""
-
-    async def __call__(self, scope, receive, send):
-        raise ConnectionResetError()
-
-
 class BanCheckMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Skip ban check for dashboard routes
@@ -31,7 +24,15 @@ class BanCheckMiddleware(BaseHTTPMiddleware):
         tracker = request.app.state.tracker
 
         if tracker.is_banned_ip(client_ip):
-            return ConnectionResetResponse()
+            from logger import get_access_logger
+
+            get_access_logger().info(
+                f"[BANNED] [{request.method}] {client_ip} - {request.url.path}"
+            )
+            transport = request.scope.get("transport")
+            if transport:
+                transport.close()
+            return Response(status_code=500)
 
         response = await call_next(request)
         return response
