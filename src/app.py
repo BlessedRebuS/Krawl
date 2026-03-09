@@ -16,7 +16,7 @@ from config import get_config
 from tracker import AccessTracker, set_tracker
 from database import initialize_database
 from tasks_master import get_tasksmaster
-from logger import initialize_logging, get_app_logger
+from logger import initialize_logging, get_app_logger, get_access_logger
 from generators import random_server_header
 
 
@@ -121,10 +121,34 @@ def create_app() -> FastAPI:
 
     application.add_middleware(DeceptionMiddleware)
 
-    # Banned IP check middleware (outermost — runs first on request)
+    # Banned IP check middleware
     from middleware.ban_check import BanCheckMiddleware
 
     application.add_middleware(BanCheckMiddleware)
+
+    # Access log middleware (outermost — logs every request with real client IP)
+    @application.middleware("http")
+    async def access_log_middleware(request: Request, call_next):
+        response: Response = await call_next(request)
+        from dependencies import get_client_ip
+
+        client_ip = get_client_ip(request)
+        path = request.url.path
+        method = request.method
+        status = response.status_code
+        access_logger = get_access_logger()
+
+        user_agent = request.headers.get("User-Agent", "")
+        tracker = request.app.state.tracker
+        suspicious = tracker.is_suspicious_user_agent(user_agent)
+
+        if suspicious:
+            access_logger.warning(
+                f"[SUSPICIOUS] [{method}] {client_ip} - {path} - {status} - {user_agent[:50]}"
+            )
+        else:
+            access_logger.info(f"[{method}] {client_ip} - {path} - {status}")
+        return response
 
     # Mount static files for the dashboard
     config = get_config()

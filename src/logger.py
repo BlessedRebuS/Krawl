@@ -112,6 +112,10 @@ class LoggerManager:
         credential_file_handler.setFormatter(credential_format)
         self._credential_logger.addHandler(credential_file_handler)
 
+        # Disable uvicorn's default access log to avoid duplicate entries
+        # with the wrong (proxy) IP. Our custom access logger handles this.
+        logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+
         self._initialized = True
 
     @property
