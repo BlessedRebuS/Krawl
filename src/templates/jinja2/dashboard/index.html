@@ -59,7 +59,8 @@
         <a class="tab-button" :class="{ active: tab === 'ip-insight', disabled: !insightIp }" @click.prevent="insightIp && switchToIpInsight()" href="#ip-insight">
             IP Insight<span x-show="insightIp" x-text="' (' + insightIp + ')'"></span>
         </a>
-        <a class="tab-button tab-right" :class="{ active: tab === 'banlist' }" x-show="authenticated" x-cloak @click.prevent="switchToBanlist()" href="#banlist">IP Banlist</a>
+        <a class="tab-button tab-right" :class="{ active: tab === 'tracked-ips' }" x-show="authenticated" x-cloak @click.prevent="switchToTrackedIps()" href="#tracked-ips">Tracked IPs</a>
+        <a class="tab-button" :class="{ active: tab === 'banlist' }" x-show="authenticated" x-cloak @click.prevent="switchToBanlist()" href="#banlist">IP Banlist</a>
         {# Lock icon (not authenticated) #}
         <a class="tab-button tab-lock-btn" :class="{ 'tab-right': !authenticated }" @click.prevent="promptAuth()" x-show="!authenticated" href="#" title="Unlock protected panels">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
@@ -195,6 +196,11 @@
             </template>
             <div x-show="insightIp" id="ip-insight-htmx-container"></div>
         </div>
+    </div>
+
+    {# ==================== TRACKED IPS TAB (protected, loaded via HTMX with server-side auth) ==================== #}
+    <div x-show="tab === 'tracked-ips'" x-cloak>
+        <div id="tracked-ips-htmx-container"></div>
     </div>
 
     {# ==================== IP BANLIST TAB (protected, loaded via HTMX with server-side auth) ==================== #}

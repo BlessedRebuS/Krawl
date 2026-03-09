@@ -48,6 +48,8 @@ document.addEventListener('alpine:init', () => {
                     this.switchToAttacks();
                 } else if (h === 'banlist') {
                     if (this.authenticated) this.switchToBanlist();
+                } else if (h === 'tracked-ips') {
+                    if (this.authenticated) this.switchToTrackedIps();
                 } else if (h !== 'ip-insight') {
                     if (this.tab !== 'ip-insight') {
                         this.switchToOverview();
@@ -91,6 +93,21 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
+        switchToTrackedIps() {
+            if (!this.authenticated) return;
+            this.tab = 'tracked-ips';
+            window.location.hash = '#tracked-ips';
+            this.$nextTick(() => {
+                const container = document.getElementById('tracked-ips-htmx-container');
+                if (container && typeof htmx !== 'undefined') {
+                    htmx.ajax('GET', `${this.dashboardPath}/htmx/tracked-ips`, {
+                        target: '#tracked-ips-htmx-container',
+                        swap: 'innerHTML'
+                    });
+                }
+            });
+        },
+
         async logout() {
             try {
                 await fetch(`${this.dashboardPath}/api/auth/logout`, {
@@ -99,7 +116,7 @@ document.addEventListener('alpine:init', () => {
                 });
             } catch {}
             this.authenticated = false;
-            if (this.tab === 'banlist') this.switchToOverview();
+            if (this.tab === 'banlist' || this.tab === 'tracked-ips') this.switchToOverview();
         },
 
         promptAuth() {
@@ -351,6 +368,43 @@ window.ipBanAction = async function(ip, action) {
             }
         } else {
             krawlModal.error(escapeHtml(result.error || `Failed to ${action} IP ${ip}`));
+        }
+    } catch {
+        krawlModal.error('Request failed');
+    }
+};
+
+// Global track action for IP insight page (auth-gated)
+window.ipTrackAction = async function(ip, action) {
+    const data = getAlpineData('[x-data="dashboardApp()"]');
+    if (!data || !data.authenticated) {
+        if (data && typeof data.promptAuth === 'function') data.promptAuth();
+        return;
+    }
+    const safeIp = escapeHtml(ip);
+    const label = action === 'track' ? 'track' : 'untrack';
+    const confirmed = await krawlModal.confirm(`Are you sure you want to ${label} IP <strong>${safeIp}</strong>?`);
+    if (!confirmed) return;
+    try {
+        const resp = await fetch(`${window.__DASHBOARD_PATH__}/api/track-ip`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ ip, action }),
+        });
+        const result = await resp.json().catch(() => ({}));
+        if (resp.ok) {
+            krawlModal.success(escapeHtml(result.message || `${label} successful for ${ip}`));
+            // Refresh tracked IPs list if visible
+            const container = document.getElementById('tracked-ips-container');
+            if (container && typeof htmx !== 'undefined') {
+                htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/tracked-ips/list?page=1`, {
+                    target: '#tracked-ips-container',
+                    swap: 'innerHTML'
+                });
+            }
+        } else {
+            krawlModal.error(escapeHtml(result.error || `Failed to ${label} IP ${ip}`));
         }
     } catch {
         krawlModal.error('Request failed');

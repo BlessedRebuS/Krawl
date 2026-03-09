@@ -171,6 +171,38 @@ async def ban_override(request: Request, body: BanOverrideRequest):
     return JSONResponse(content={"error": "IP not found"}, status_code=404)
 
 
+# ── Protected IP Tracking API ────────────────────────────────────────
+
+
+class TrackIpRequest(BaseModel):
+    ip: str
+    action: str  # "track" or "untrack"
+
+
+@router.post("/api/track-ip")
+async def track_ip(request: Request, body: TrackIpRequest):
+    if not verify_auth(request):
+        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
+
+    db = get_db()
+    if body.action == "track":
+        success = db.track_ip(body.ip)
+    elif body.action == "untrack":
+        success = db.untrack_ip(body.ip)
+    else:
+        return JSONResponse(
+            content={"error": "Invalid action. Use: track, untrack"},
+            status_code=400,
+        )
+
+    if success:
+        get_app_logger().info(f"IP tracking: {body.action} on IP {body.ip}")
+        return JSONResponse(
+            content={"success": True, "ip": body.ip, "action": body.action}
+        )
+    return JSONResponse(content={"error": "IP not found"}, status_code=404)
+
+
 @router.get("/api/all-ip-stats")
 async def all_ip_stats(request: Request):
     db = get_db()

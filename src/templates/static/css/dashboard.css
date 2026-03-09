@@ -1338,7 +1338,7 @@ tbody {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 4px;
+    padding: 6px;
     background: none;
     border: none;
     border-radius: 4px;
@@ -1346,12 +1346,12 @@ tbody {
     transition: color 0.2s, background 0.2s;
 }
 .ban-icon-btn svg {
-    width: 18px;
-    height: 18px;
+    width: 24px;
+    height: 24px;
     fill: currentColor;
 }
 .ban-icon-btn .material-symbols-outlined {
-    font-size: 20px;
+    font-size: 26px;
 }
 .ban-icon-unban {
     color: #3fb950;
@@ -1390,6 +1390,53 @@ tbody {
 }
 .ban-icon-btn:hover .ban-icon-tooltip {
     opacity: 1;
+}
+
+/* IP Tracking buttons */
+.track-form-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    background: rgba(88, 166, 255, 0.15);
+    color: #58a6ff;
+    border: 1px solid rgba(88, 166, 255, 0.3);
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.track-form-btn:hover:not(:disabled) {
+    background: rgba(88, 166, 255, 0.3);
+    border-color: rgba(88, 166, 255, 0.5);
+}
+.track-form-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.track-form-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+.track-icon-track {
+    color: #58a6ff;
+}
+.track-icon-track:hover {
+    background: rgba(88, 166, 255, 0.15);
+}
+.track-icon-untrack {
+    color: #8b949e;
+}
+.track-icon-untrack:hover {
+    color: #c9d1d9;
+    background: rgba(139, 148, 158, 0.15);
+}
+.track-icon-inspect {
+    color: #d2a8ff;
+}
+.track-icon-inspect:hover {
+    background: rgba(210, 168, 255, 0.15);
 }
 
 /* Custom confirm/alert modal */

@@ -244,6 +244,32 @@ class CategoryHistory(Base):
         return f"<CategoryHistory(ip='{self.ip}', {self.old_category} -> {self.new_category})>"
 
 
+class TrackedIp(Base):
+    """
+    Manually tracked IP addresses for monitoring.
+
+    Stores a snapshot of essential ip_stats data at tracking time
+    so the tracked IPs panel never needs to query the large ip_stats table.
+    """
+
+    __tablename__ = "tracked_ips"
+
+    ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), primary_key=True)
+    tracked_since: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.utcnow
+    )
+
+    # Snapshot from ip_stats at tracking time
+    category: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    total_requests: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
+    country_code: Mapped[Optional[str]] = mapped_column(String(2), nullable=True)
+    city: Mapped[Optional[str]] = mapped_column(String(MAX_CITY_LENGTH), nullable=True)
+    last_seen: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<TrackedIp(ip='{self.ip}')>"
+
+
 # class IpLog(Base):
 #     """
 #     Records all IPs that have accessed the honeypot, along with aggregated stats and inferred user category.

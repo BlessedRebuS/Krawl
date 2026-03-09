@@ -343,6 +343,8 @@ async def htmx_ip_insight(ip_address: str, request: Request):
     stats["blocklist_memberships"] = list(list_on.keys()) if list_on else []
     stats["reverse_dns"] = stats.get("reverse")
 
+    is_tracked = db.is_ip_tracked(ip_address)
+
     templates = get_templates()
     return templates.TemplateResponse(
         "dashboard/partials/ip_insight.html",
@@ -351,6 +353,7 @@ async def htmx_ip_insight(ip_address: str, request: Request):
             "dashboard_path": _dashboard_path(request),
             "stats": stats,
             "ip_address": ip_address,
+            "is_tracked": is_tracked,
         },
     )
 
@@ -371,6 +374,8 @@ async def htmx_ip_detail(ip_address: str, request: Request):
     stats["blocklist_memberships"] = list(list_on.keys()) if list_on else []
     stats["reverse_dns"] = stats.get("reverse")
 
+    is_tracked = db.is_ip_tracked(ip_address)
+
     templates = get_templates()
     return templates.TemplateResponse(
         "dashboard/partials/ip_detail.html",
@@ -378,6 +383,7 @@ async def htmx_ip_detail(ip_address: str, request: Request):
             "request": request,
             "dashboard_path": _dashboard_path(request),
             "stats": stats,
+            "is_tracked": is_tracked,
         },
     )
 
@@ -459,6 +465,55 @@ async def htmx_ban_attackers(
             "request": request,
             "dashboard_path": _dashboard_path(request),
             "items": result["attackers"],
+            "pagination": result["pagination"],
+        },
+    )
+
+
+# ── Protected Tracked IPs Panel ──────────────────────────────────────
+
+
+@router.get("/htmx/tracked-ips")
+async def htmx_tracked_ips(request: Request):
+    if not verify_auth(request):
+        return HTMLResponse(
+            '<div class="table-container" style="text-align:center;padding:80px 20px;">'
+            '<h1 style="color:#f0883e;font-size:48px;margin:20px 0 10px;">Nice try bozo</h1>'
+            "<br>"
+            '<img src="https://media0.giphy.com/media/v1.Y2lkPTZjMDliOTUyaHQ3dHRuN2wyOW1kZndjaHdkY2dhYzJ6d2gzMDJkNm53ZnNrdnNlZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mOY97EXNisstZqJht9/200w.gif" alt="Diddy">'
+            "</div>",
+            status_code=200,
+        )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        "dashboard/partials/tracked_ips_panel.html",
+        {
+            "request": request,
+            "dashboard_path": _dashboard_path(request),
+        },
+    )
+
+
+@router.get("/htmx/tracked-ips/list")
+async def htmx_tracked_ips_list(
+    request: Request,
+    page: int = Query(1),
+    page_size: int = Query(25),
+):
+    if not verify_auth(request):
+        return HTMLResponse(
+            "<p style='color:#f85149;'>Unauthorized</p>", status_code=200
+        )
+
+    db = get_db()
+    result = db.get_tracked_ips_paginated(page=max(1, page), page_size=page_size)
+    templates = get_templates()
+    return templates.TemplateResponse(
+        "dashboard/partials/tracked_ips_table.html",
+        {
+            "request": request,
+            "dashboard_path": _dashboard_path(request),
+            "items": result["tracked_ips"],
             "pagination": result["pagination"],
         },
     )
