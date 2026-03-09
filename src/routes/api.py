@@ -16,7 +16,7 @@ from fastapi import APIRouter, Request, Response, Query, Cookie
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
 
-from dependencies import get_db
+from dependencies import get_db, get_client_ip
 from logger import get_app_logger
 
 # Server-side session token store (valid tokens for authenticated sessions)
@@ -52,7 +52,7 @@ def verify_auth(request: Request) -> bool:
 
 @router.post("/api/auth")
 async def authenticate(request: Request, body: AuthRequest):
-    ip = request.client.host
+    ip = get_client_ip(request)
 
     # Check if IP is currently locked out
     record = _auth_attempts.get(ip)
