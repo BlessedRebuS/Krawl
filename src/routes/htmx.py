@@ -60,7 +60,11 @@ async def htmx_top_ips(
     sort_order: str = Query("desc"),
 ):
     # Serve from cache on default first-page request
-    cached = get_cached("top_ips") if (page == 1 and sort_by == "count" and sort_order == "desc" and is_warm()) else None
+    cached = (
+        get_cached("top_ips")
+        if (page == 1 and sort_by == "count" and sort_order == "desc" and is_warm())
+        else None
+    )
     if cached:
         result = cached
     else:
@@ -93,7 +97,11 @@ async def htmx_top_paths(
     sort_by: str = Query("count"),
     sort_order: str = Query("desc"),
 ):
-    cached = get_cached("top_paths") if (page == 1 and sort_by == "count" and sort_order == "desc" and is_warm()) else None
+    cached = (
+        get_cached("top_paths")
+        if (page == 1 and sort_by == "count" and sort_order == "desc" and is_warm())
+        else None
+    )
     if cached:
         result = cached
     else:
@@ -126,7 +134,11 @@ async def htmx_top_ua(
     sort_by: str = Query("count"),
     sort_order: str = Query("desc"),
 ):
-    cached = get_cached("top_ua") if (page == 1 and sort_by == "count" and sort_order == "desc" and is_warm()) else None
+    cached = (
+        get_cached("top_ua")
+        if (page == 1 and sort_by == "count" and sort_order == "desc" and is_warm())
+        else None
+    )
     if cached:
         result = cached
     else:

@@ -254,7 +254,13 @@ async def all_ips(
     page_size = min(max(1, page_size), 10000)
 
     # Serve from cache on default map request (top 100 IPs)
-    if page == 1 and page_size == 100 and sort_by == "total_requests" and sort_order == "desc" and is_warm():
+    if (
+        page == 1
+        and page_size == 100
+        and sort_by == "total_requests"
+        and sort_order == "desc"
+        and is_warm()
+    ):
         cached = get_cached("map_ips")
         if cached:
             return JSONResponse(content=cached, headers=_no_cache_headers())
