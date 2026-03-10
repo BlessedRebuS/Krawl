@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from logger import get_app_logger
 
 from dependencies import get_db, get_templates
+from dashboard_cache import get_cached, is_warm
 
 router = APIRouter()
 
@@ -17,17 +18,19 @@ router = APIRouter()
 @router.get("")
 @router.get("/")
 async def dashboard_page(request: Request):
-    db = get_db()
     config = request.app.state.config
     dashboard_path = "/" + config.dashboard_secret_path.lstrip("/")
 
-    # Get initial data for server-rendered sections
-    stats = db.get_dashboard_counts()
-    suspicious = db.get_recent_suspicious(limit=10)
-
-    # Get credential count for the stats card
-    cred_result = db.get_credentials_paginated(page=1, page_size=1)
-    stats["credential_count"] = cred_result["pagination"]["total"]
+    # Serve from pre-computed cache when available, fall back to live queries
+    if is_warm():
+        stats = get_cached("stats")
+        suspicious = get_cached("suspicious")
+    else:
+        db = get_db()
+        stats = db.get_dashboard_counts()
+        suspicious = db.get_recent_suspicious(limit=10)
+        cred_result = db.get_credentials_paginated(page=1, page_size=1)
+        stats["credential_count"] = cred_result["pagination"]["total"]
 
     templates = get_templates()
     return templates.TemplateResponse(
