@@ -210,6 +210,11 @@ class IpStats(Base):
     total_violations: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
     ban_multiplier: Mapped[int] = mapped_column(Integer, default=1, nullable=True)
 
+    # Admin ban override: True = force ban, False = force unban, None = automatic
+    ban_override: Mapped[Optional[bool]] = mapped_column(
+        Boolean, nullable=True, default=None
+    )
+
     def __repr__(self) -> str:
         return f"<IpStats(ip='{self.ip}', total_requests={self.total_requests})>"
 
@@ -237,6 +242,32 @@ class CategoryHistory(Base):
 
     def __repr__(self) -> str:
         return f"<CategoryHistory(ip='{self.ip}', {self.old_category} -> {self.new_category})>"
+
+
+class TrackedIp(Base):
+    """
+    Manually tracked IP addresses for monitoring.
+
+    Stores a snapshot of essential ip_stats data at tracking time
+    so the tracked IPs panel never needs to query the large ip_stats table.
+    """
+
+    __tablename__ = "tracked_ips"
+
+    ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), primary_key=True)
+    tracked_since: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.utcnow
+    )
+
+    # Snapshot from ip_stats at tracking time
+    category: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    total_requests: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
+    country_code: Mapped[Optional[str]] = mapped_column(String(2), nullable=True)
+    city: Mapped[Optional[str]] = mapped_column(String(MAX_CITY_LENGTH), nullable=True)
+    last_seen: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<TrackedIp(ip='{self.ip}')>"
 
 
 # class IpLog(Base):

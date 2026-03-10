@@ -16,7 +16,7 @@ from config import get_config
 from tracker import AccessTracker, set_tracker
 from database import initialize_database
 from tasks_master import get_tasksmaster
-from logger import initialize_logging, get_app_logger
+from logger import initialize_logging, get_app_logger, get_access_logger
 from generators import random_server_header
 
 
@@ -72,11 +72,17 @@ async def lifespan(app: FastAPI):
     tasks_master = get_tasksmaster()
     tasks_master.run_scheduled_tasks()
 
+    password_line = ""
+    if config.dashboard_password_generated:
+        password_line = (
+            f"\n\nDASHBOARD PASSWORD (auto-generated)\n{config.dashboard_password}"
+        )
+
     banner = f"""
 
 ============================================================
 DASHBOARD AVAILABLE AT
-{config.dashboard_secret_path}
+{config.dashboard_secret_path}{password_line}
 ============================================================
     """
     app_logger.info(banner)
@@ -115,10 +121,39 @@ def create_app() -> FastAPI:
 
     application.add_middleware(DeceptionMiddleware)
 
-    # Banned IP check middleware (outermost — runs first on request)
+    # Banned IP check middleware
     from middleware.ban_check import BanCheckMiddleware
 
     application.add_middleware(BanCheckMiddleware)
+
+    # Access log middleware (outermost — logs every request with real client IP)
+    @application.middleware("http")
+    async def access_log_middleware(request: Request, call_next):
+        from dependencies import get_client_ip
+
+        response: Response = await call_next(request)
+
+        # Banned requests are already logged by BanCheckMiddleware
+        if getattr(request.state, "banned", False):
+            return response
+
+        client_ip = get_client_ip(request)
+        path = request.url.path
+        method = request.method
+        status = response.status_code
+        access_logger = get_access_logger()
+
+        user_agent = request.headers.get("User-Agent", "")
+        tracker = request.app.state.tracker
+        suspicious = tracker.is_suspicious_user_agent(user_agent)
+
+        if suspicious:
+            access_logger.warning(
+                f"[SUSPICIOUS] [{method}] {client_ip} - {path} - {status} - {user_agent[:50]}"
+            )
+        else:
+            access_logger.info(f"[{method}] {client_ip} - {path} - {status}")
+        return response
 
     # Mount static files for the dashboard
     config = get_config()

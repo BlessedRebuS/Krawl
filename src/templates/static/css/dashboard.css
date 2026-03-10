@@ -454,6 +454,12 @@ tbody {
 .ip-page-header {
     margin-bottom: 20px;
 }
+.ip-page-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
 .ip-page-header h1 {
     display: flex;
     align-items: center;
@@ -710,9 +716,8 @@ tbody {
     min-width: 0;
 }
 .ip-attack-chart-wrapper {
-    flex: 1;
     position: relative;
-    min-height: 180px;
+    height: 220px;
 }
 
 /* Radar chart */
@@ -853,6 +858,23 @@ tbody {
 .tab-button.disabled:hover {
     color: #484f58;
     background: transparent;
+}
+.tab-right {
+    margin-left: auto;
+}
+.tab-lock-btn {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    color: #8b949e;
+}
+.tab-lock-btn:hover {
+    color: #f0883e;
+    background: #1c2128;
+}
+.tab-lock-btn svg {
+    width: 16px;
+    height: 16px;
 }
 .tab-content {
     display: none;
@@ -1149,6 +1171,344 @@ tbody {
 }
 .raw-request-icon-btn:hover .raw-request-icon-tooltip {
     opacity: 1;
+}
+
+/* Auth Modal */
+.auth-modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+.auth-modal-content {
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    width: 400px;
+    max-width: 90vw;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    animation: authModalIn 0.2s ease-out;
+}
+@keyframes authModalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.auth-modal-header {
+    padding: 20px 24px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #30363d;
+}
+.auth-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #58a6ff;
+}
+.auth-modal-title h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #e6edf3;
+}
+.auth-modal-close {
+    color: #8b949e;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 20px;
+    transition: color 0.2s;
+}
+.auth-modal-close:hover {
+    color: #c9d1d9;
+}
+.auth-modal-body {
+    padding: 24px;
+}
+.auth-modal-description {
+    margin: 0 0 20px;
+    color: #8b949e;
+    font-size: 14px;
+    line-height: 1.5;
+}
+.auth-modal-input-group {
+    margin-bottom: 20px;
+}
+.auth-modal-input {
+    width: 100%;
+    padding: 10px 14px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #e6edf3;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+.auth-modal-input:focus {
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
+}
+.auth-modal-input-error {
+    border-color: #f85149;
+}
+.auth-modal-input-error:focus {
+    border-color: #f85149;
+    box-shadow: 0 0 0 3px rgba(248, 81, 73, 0.15);
+}
+.auth-modal-error {
+    margin: 8px 0 0;
+    color: #f85149;
+    font-size: 13px;
+}
+.auth-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+.auth-modal-btn {
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+.auth-modal-btn-cancel {
+    background: transparent;
+    border-color: #30363d;
+    color: #8b949e;
+}
+.auth-modal-btn-cancel:hover {
+    background: #21262d;
+    color: #c9d1d9;
+}
+.auth-modal-btn-submit {
+    background: #238636;
+    color: #fff;
+    border-color: rgba(240, 246, 252, 0.1);
+}
+.auth-modal-btn-submit:hover {
+    background: #2ea043;
+}
+.auth-modal-btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Ban Management */
+.ban-form-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    background: rgba(248, 81, 73, 0.15);
+    color: #f85149;
+    border: 1px solid rgba(248, 81, 73, 0.3);
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.ban-form-btn:hover:not(:disabled) {
+    background: rgba(248, 81, 73, 0.3);
+    border-color: rgba(248, 81, 73, 0.5);
+}
+.ban-form-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.ban-form-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+.ban-icon-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    background: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s;
+}
+.ban-icon-btn svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+}
+.ban-icon-btn .material-symbols-outlined {
+    font-size: 26px;
+}
+.ban-icon-unban {
+    color: #3fb950;
+}
+.ban-icon-unban:hover {
+    background: rgba(63, 185, 80, 0.15);
+}
+.ban-icon-reset {
+    color: #8b949e;
+}
+.ban-icon-reset:hover {
+    color: #c9d1d9;
+    background: rgba(139, 148, 158, 0.15);
+}
+.ban-icon-ban {
+    color: #f85149;
+}
+.ban-icon-ban:hover {
+    background: rgba(248, 81, 73, 0.15);
+}
+.ban-icon-tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    background: #1c2128;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+}
+.ban-icon-btn:hover .ban-icon-tooltip {
+    opacity: 1;
+}
+
+/* IP Tracking buttons */
+.track-form-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    background: rgba(88, 166, 255, 0.15);
+    color: #58a6ff;
+    border: 1px solid rgba(88, 166, 255, 0.3);
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.track-form-btn:hover:not(:disabled) {
+    background: rgba(88, 166, 255, 0.3);
+    border-color: rgba(88, 166, 255, 0.5);
+}
+.track-form-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.track-form-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+.track-icon-track {
+    color: #58a6ff;
+}
+.track-icon-track:hover {
+    background: rgba(88, 166, 255, 0.15);
+}
+.track-icon-untrack {
+    color: #8b949e;
+}
+.track-icon-untrack:hover {
+    color: #c9d1d9;
+    background: rgba(139, 148, 158, 0.15);
+}
+.track-icon-inspect {
+    color: #d2a8ff;
+}
+.track-icon-inspect:hover {
+    background: rgba(210, 168, 255, 0.15);
+}
+
+/* Custom confirm/alert modal */
+.krawl-modal-overlay {
+    position: fixed;
+    z-index: 1100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+.krawl-modal-box {
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    width: 380px;
+    max-width: 90vw;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    animation: authModalIn 0.2s ease-out;
+    overflow: hidden;
+}
+.krawl-modal-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 24px 0;
+}
+.krawl-modal-icon .material-symbols-outlined {
+    font-size: 40px;
+}
+.krawl-modal-icon.krawl-modal-icon-warn .material-symbols-outlined {
+    color: #d29922;
+}
+.krawl-modal-icon.krawl-modal-icon-success .material-symbols-outlined {
+    color: #3fb950;
+}
+.krawl-modal-icon.krawl-modal-icon-error .material-symbols-outlined {
+    color: #f85149;
+}
+.krawl-modal-message {
+    padding: 16px 24px 8px;
+    text-align: center;
+    color: #e6edf3;
+    font-size: 15px;
+    line-height: 1.5;
+}
+.krawl-modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 24px 24px;
+}
+.ban-override-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.ban-override-banned {
+    background: rgba(248, 81, 73, 0.15);
+    color: #f85149;
+}
+.ban-override-unbanned {
+    background: rgba(63, 185, 80, 0.15);
+    color: #3fb950;
 }
 
 /* Attack Types Cell Styling */

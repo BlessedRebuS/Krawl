@@ -1,0 +1,101 @@
+{# Ban management panel #}
+<div x-data="banManagement()" x-init="init()">
+
+    {# Force ban IP form #}
+    <div class="table-container" style="margin-bottom: 20px;">
+        <h2>IP Banlist</h2>
+        <p style="color: #8b949e; font-size: 14px; margin-bottom: 16px;">
+            Force-ban a new IP or manage existing ban overrides. Changes take effect on the next banlist export cycle (every 5 minutes).
+        </p>
+        <form @submit.prevent="forceBan()" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 4px;">IP Address</label>
+                <input type="text"
+                       x-model="newBanIp"
+                       placeholder="e.g. 192.168.1.100"
+                       class="auth-modal-input"
+                       style="width: 100%;" />
+            </div>
+            <button type="submit" class="ban-form-btn" :disabled="!newBanIp || banLoading">
+                <span class="material-symbols-outlined">gavel</span>
+                <span x-text="banLoading ? 'Banning...' : 'Force Ban IP'"></span>
+            </button>
+        </form>
+        <p x-show="banMessage" x-text="banMessage" :style="{ color: banSuccess ? '#3fb950' : '#f85149' }" style="margin-top: 10px; font-size: 13px;" x-cloak></p>
+    </div>
+
+    {# Attackers list with unban option #}
+    <div class="table-container" style="margin-bottom: 20px;">
+        <h2>Detected Attackers</h2>
+        <div class="htmx-container"
+             hx-get="{{ dashboard_path }}/htmx/ban/attackers?page=1"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <div class="htmx-indicator">Loading...</div>
+        </div>
+    </div>
+
+    {# Active overrides #}
+    <div class="table-container">
+        <h2>Active Ban Overrides</h2>
+        <div id="overrides-container"
+             class="htmx-container"
+             hx-get="{{ dashboard_path }}/htmx/ban/overrides?page=1"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <div class="htmx-indicator">Loading...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('banManagement', () => ({
+        newBanIp: '',
+        banLoading: false,
+        banMessage: '',
+        banSuccess: false,
+
+        init() {},
+
+        async forceBan() {
+            if (!this.newBanIp) return;
+            this.banLoading = true;
+            this.banMessage = '';
+            try {
+                const resp = await fetch(`${window.__DASHBOARD_PATH__}/api/ban-override`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ ip: this.newBanIp, action: 'ban' }),
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    this.banSuccess = true;
+                    this.banMessage = `IP ${this.newBanIp} added to banlist`;
+                    this.newBanIp = '';
+                    this.refreshOverrides();
+                } else {
+                    this.banSuccess = false;
+                    this.banMessage = data.error || 'Failed to ban IP';
+                }
+            } catch {
+                this.banSuccess = false;
+                this.banMessage = 'Request failed';
+            }
+            this.banLoading = false;
+        },
+
+        refreshOverrides() {
+            const container = document.getElementById('overrides-container');
+            if (container && typeof htmx !== 'undefined') {
+                htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/ban/overrides?page=1`, {
+                    target: '#overrides-container',
+                    swap: 'innerHTML'
+                });
+            }
+        },
+    }));
+});
+
+</script>

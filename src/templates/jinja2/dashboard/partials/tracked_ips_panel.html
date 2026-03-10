@@ -1,0 +1,89 @@
+{# IP Tracking management panel #}
+<div x-data="trackManagement()" x-init="init()">
+
+    {# Track IP form #}
+    <div class="table-container" style="margin-bottom: 20px;">
+        <h2>Tracked IPs</h2>
+        <p style="color: #8b949e; font-size: 14px; margin-bottom: 16px;">
+            Track an IP address to monitor its activity. You can also track IPs from the IP Insight page.
+        </p>
+        <form @submit.prevent="trackIp()" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 4px;">IP Address</label>
+                <input type="text"
+                       x-model="newTrackIp"
+                       placeholder="e.g. 192.168.1.100"
+                       class="auth-modal-input"
+                       style="width: 100%;" />
+            </div>
+            <button type="submit" class="track-form-btn" :disabled="!newTrackIp || trackLoading">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                <span x-text="trackLoading ? 'Tracking...' : 'Track IP'"></span>
+            </button>
+        </form>
+        <p x-show="trackMessage" x-text="trackMessage" :style="{ color: trackSuccess ? '#3fb950' : '#f85149' }" style="margin-top: 10px; font-size: 13px;" x-cloak></p>
+    </div>
+
+    {# Tracked IPs list #}
+    <div class="table-container">
+        <h2>Currently Tracked</h2>
+        <div id="tracked-ips-container"
+             class="htmx-container"
+             hx-get="{{ dashboard_path }}/htmx/tracked-ips/list?page=1"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <div class="htmx-indicator">Loading...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('trackManagement', () => ({
+        newTrackIp: '',
+        trackLoading: false,
+        trackMessage: '',
+        trackSuccess: false,
+
+        init() {},
+
+        async trackIp() {
+            if (!this.newTrackIp) return;
+            this.trackLoading = true;
+            this.trackMessage = '';
+            try {
+                const resp = await fetch(`${window.__DASHBOARD_PATH__}/api/track-ip`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ ip: this.newTrackIp, action: 'track' }),
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    this.trackSuccess = true;
+                    this.trackMessage = `IP ${this.newTrackIp} is now being tracked`;
+                    this.newTrackIp = '';
+                    this.refreshList();
+                } else {
+                    this.trackSuccess = false;
+                    this.trackMessage = data.error || 'Failed to track IP';
+                }
+            } catch {
+                this.trackSuccess = false;
+                this.trackMessage = 'Request failed';
+            }
+            this.trackLoading = false;
+        },
+
+        refreshList() {
+            const container = document.getElementById('tracked-ips-container');
+            if (container && typeof htmx !== 'undefined') {
+                htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/tracked-ips/list?page=1`, {
+                    target: '#tracked-ips-container',
+                    swap: 'innerHTML'
+                });
+            }
+        },
+    }));
+});
+</script>

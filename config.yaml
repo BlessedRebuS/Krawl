@@ -25,6 +25,11 @@ dashboard:
   # secret_path: super-secret-dashboard-path
   secret_path: null
 
+  # Password for accessing protected dashboard panels.
+  # If null, a random password will be generated and printed in the logs.
+  # Can also be set via KRAWL_DASHBOARD_PASSWORD env var.
+  password: null
+
 backups:
   path: "backups"
   cron: "*/30 * * * *"

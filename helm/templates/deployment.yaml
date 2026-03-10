@@ -47,6 +47,13 @@ spec:
         - name: TZ
           value: {{ .Values.timezone | quote }}
         {{- end }}
+        {{- if .Values.dashboardPassword }}
+        - name: KRAWL_DASHBOARD_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "krawl.fullname" . }}-dashboard
+              key: dashboard-password
+        {{- end }}
         volumeMounts:
         - name: config
           mountPath: /app/config.yaml

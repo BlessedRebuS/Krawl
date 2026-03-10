@@ -6,13 +6,28 @@ Migrated from handler.py dashboard API endpoints.
 All endpoints are prefixed with the secret dashboard path.
 """
 
+import hashlib
+import hmac
 import os
+import secrets
+import time
 
-from fastapi import APIRouter, Request, Response, Query
+from fastapi import APIRouter, Request, Response, Query, Cookie
 from fastapi.responses import JSONResponse, PlainTextResponse
+from pydantic import BaseModel
 
-from dependencies import get_db
+from dependencies import get_db, get_client_ip
 from logger import get_app_logger
+from dashboard_cache import get_cached, is_warm
+
+# Server-side session token store (valid tokens for authenticated sessions)
+_auth_tokens: set = set()
+
+# Bruteforce protection: tracks failed attempts per IP
+# { ip: { "attempts": int, "locked_until": float } }
+_auth_attempts: dict = {}
+_AUTH_MAX_ATTEMPTS = 5
+_AUTH_BASE_LOCKOUT = 30  # seconds, doubles on each lockout
 
 router = APIRouter()
 
@@ -24,6 +39,171 @@ def _no_cache_headers() -> dict:
         "Expires": "0",
         "Access-Control-Allow-Origin": "*",
     }
+
+
+class AuthRequest(BaseModel):
+    fingerprint: str
+
+
+def verify_auth(request: Request) -> bool:
+    """Check if the request has a valid auth session cookie."""
+    token = request.cookies.get("krawl_auth")
+    return token is not None and token in _auth_tokens
+
+
+@router.post("/api/auth")
+async def authenticate(request: Request, body: AuthRequest):
+    ip = get_client_ip(request)
+
+    # Check if IP is currently locked out
+    record = _auth_attempts.get(ip)
+    if record and record["locked_until"] > time.time():
+        remaining = int(record["locked_until"] - time.time())
+        return JSONResponse(
+            content={
+                "authenticated": False,
+                "error": f"Too many attempts. Try again in {remaining}s",
+                "locked": True,
+                "retry_after": remaining,
+            },
+            status_code=429,
+        )
+
+    config = request.app.state.config
+    expected = hashlib.sha256(config.dashboard_password.encode()).hexdigest()
+    if hmac.compare_digest(body.fingerprint, expected):
+        # Success — clear failed attempts
+        _auth_attempts.pop(ip, None)
+        get_app_logger().info(f"[AUTH] Successful login from {ip}")
+        token = secrets.token_hex(32)
+        _auth_tokens.add(token)
+        response = JSONResponse(content={"authenticated": True})
+        response.set_cookie(
+            key="krawl_auth",
+            value=token,
+            httponly=True,
+            samesite="strict",
+        )
+        return response
+
+    # Failed attempt — track and possibly lock out
+    get_app_logger().warning(f"[AUTH] Failed login attempt from {ip}")
+    if not record:
+        record = {"attempts": 0, "locked_until": 0, "lockouts": 0}
+        _auth_attempts[ip] = record
+    record["attempts"] += 1
+
+    if record["attempts"] >= _AUTH_MAX_ATTEMPTS:
+        lockout = _AUTH_BASE_LOCKOUT * (2 ** record["lockouts"])
+        record["locked_until"] = time.time() + lockout
+        record["lockouts"] += 1
+        record["attempts"] = 0
+        get_app_logger().warning(
+            f"Auth bruteforce: IP {ip} locked out for {lockout}s "
+            f"(lockout #{record['lockouts']})"
+        )
+        return JSONResponse(
+            content={
+                "authenticated": False,
+                "error": f"Too many attempts. Locked for {lockout}s",
+                "locked": True,
+                "retry_after": lockout,
+            },
+            status_code=429,
+        )
+
+    remaining_attempts = _AUTH_MAX_ATTEMPTS - record["attempts"]
+    return JSONResponse(
+        content={
+            "authenticated": False,
+            "error": f"Invalid password. {remaining_attempts} attempt{'s' if remaining_attempts != 1 else ''} remaining",
+        },
+        status_code=401,
+    )
+
+
+@router.post("/api/auth/logout")
+async def logout(request: Request):
+    token = request.cookies.get("krawl_auth")
+    if token and token in _auth_tokens:
+        _auth_tokens.discard(token)
+    response = JSONResponse(content={"authenticated": False})
+    response.delete_cookie(key="krawl_auth")
+    return response
+
+
+@router.get("/api/auth/check")
+async def auth_check(request: Request):
+    """Check if the current session is authenticated."""
+    if verify_auth(request):
+        return JSONResponse(content={"authenticated": True})
+    return JSONResponse(content={"authenticated": False}, status_code=401)
+
+
+# ── Protected Ban Management API ─────────────────────────────────────
+
+
+class BanOverrideRequest(BaseModel):
+    ip: str
+    action: str  # "ban", "unban", or "reset"
+
+
+@router.post("/api/ban-override")
+async def ban_override(request: Request, body: BanOverrideRequest):
+    if not verify_auth(request):
+        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
+
+    db = get_db()
+    action_map = {"ban": True, "unban": False, "reset": None}
+    if body.action not in action_map:
+        return JSONResponse(
+            content={"error": "Invalid action. Use: ban, unban, reset"},
+            status_code=400,
+        )
+
+    if body.action == "ban":
+        success = db.force_ban_ip(body.ip)
+    else:
+        success = db.set_ban_override(body.ip, action_map[body.action])
+
+    if success:
+        get_app_logger().info(f"Ban override: {body.action} on IP {body.ip}")
+        return JSONResponse(
+            content={"success": True, "ip": body.ip, "action": body.action}
+        )
+    return JSONResponse(content={"error": "IP not found"}, status_code=404)
+
+
+# ── Protected IP Tracking API ────────────────────────────────────────
+
+
+class TrackIpRequest(BaseModel):
+    ip: str
+    action: str  # "track" or "untrack"
+
+
+@router.post("/api/track-ip")
+async def track_ip(request: Request, body: TrackIpRequest):
+    if not verify_auth(request):
+        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
+
+    db = get_db()
+    if body.action == "track":
+        success = db.track_ip(body.ip)
+    elif body.action == "untrack":
+        success = db.untrack_ip(body.ip)
+    else:
+        return JSONResponse(
+            content={"error": "Invalid action. Use: track, untrack"},
+            status_code=400,
+        )
+
+    if success:
+        get_app_logger().info(f"IP tracking: {body.action} on IP {body.ip}")
+        return JSONResponse(
+            content={"success": True, "ip": body.ip, "action": body.action}
+        )
+    return JSONResponse(content={"error": "IP not found"}, status_code=404)
 
 
 @router.get("/api/all-ip-stats")
@@ -70,10 +250,22 @@ async def all_ips(
     sort_by: str = Query("total_requests"),
     sort_order: str = Query("desc"),
 ):
-    db = get_db()
     page = max(1, page)
     page_size = min(max(1, page_size), 10000)
 
+    # Serve from cache on default map request (top 100 IPs)
+    if (
+        page == 1
+        and page_size == 100
+        and sort_by == "total_requests"
+        and sort_order == "desc"
+        and is_warm()
+    ):
+        cached = get_cached("map_ips")
+        if cached:
+            return JSONResponse(content=cached, headers=_no_cache_headers())
+
+    db = get_db()
     try:
         result = db.get_all_ips_paginated(
             page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order

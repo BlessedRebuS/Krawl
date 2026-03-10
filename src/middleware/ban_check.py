@@ -2,6 +2,7 @@
 
 """
 Middleware for checking if client IP is banned.
+Resets the connection for banned IPs instead of sending a response.
 """
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -23,6 +24,15 @@ class BanCheckMiddleware(BaseHTTPMiddleware):
         tracker = request.app.state.tracker
 
         if tracker.is_banned_ip(client_ip):
+            from logger import get_access_logger
+
+            get_access_logger().info(
+                f"[BANNED] [{request.method}] {client_ip} - {request.url.path}"
+            )
+            request.state.banned = True
+            transport = request.scope.get("transport")
+            if transport:
+                transport.close()
             return Response(status_code=500)
 
         response = await call_next(request)

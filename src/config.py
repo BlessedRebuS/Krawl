@@ -28,6 +28,8 @@ class Config:
     canary_token_url: Optional[str] = None
     canary_token_tries: int = 10
     dashboard_secret_path: str = None
+    dashboard_password: Optional[str] = None
+    dashboard_password_generated: bool = False
     probability_error_codes: int = 0  # Percentage (0-100)
 
     # Crawl limiting settings - for legitimate vs malicious crawlers
@@ -176,6 +178,13 @@ class Config:
             if dashboard_path[:1] != "/":
                 dashboard_path = f"/{dashboard_path}"
 
+        # Handle dashboard_password - auto-generate if null/not set
+        dashboard_password = dashboard.get("password")
+        dashboard_password_generated = False
+        if dashboard_password is None:
+            dashboard_password = os.urandom(25).hex()
+            dashboard_password_generated = True
+
         return cls(
             port=server.get("port", 5000),
             delay=server.get("delay", 100),
@@ -196,6 +205,8 @@ class Config:
             canary_token_url=canary.get("token_url"),
             canary_token_tries=canary.get("token_tries", 10),
             dashboard_secret_path=dashboard_path,
+            dashboard_password=dashboard_password,
+            dashboard_password_generated=dashboard_password_generated,
             probability_error_codes=behavior.get("probability_error_codes", 0),
             exports_path=exports.get("path", "exports"),
             backups_path=backups.get("path", "backups"),
@@ -247,6 +258,9 @@ def override_config_from_env(config: Config = None):
             try:
                 field_type = config.__dataclass_fields__[field].type
                 env_value = os.environ[env_var]
+                # If password is overridden, it's no longer auto-generated
+                if field == "dashboard_password":
+                    config.dashboard_password_generated = False
                 if field_type == int:
                     setattr(config, field, int(env_value))
                 elif field_type == float:

@@ -1,0 +1,49 @@
+{# HTMX fragment: Attackers with unban action #}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} attackers</span>
+    <div style="display: flex; gap: 8px;">
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/ban/attackers?page={{ pagination.page - 1 }}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML"
+                {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/ban/attackers?page={{ pagination.page + 1 }}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML"
+                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
+    </div>
+</div>
+<table class="ip-stats-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>IP Address</th>
+            <th>Total Requests</th>
+            <th>Category</th>
+            <th>Location</th>
+            <th>Last Seen</th>
+            <th style="width: 40px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for ip in items %}
+        <tr>
+            <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
+            <td>{{ ip.ip | e }}</td>
+            <td>{{ ip.total_requests }}</td>
+            <td><span class="category-badge category-{{ ip.category | default('unknown') | replace('_', '-') }}">{{ ip.category | default('unknown') | replace('_', ' ') | title }}</span></td>
+            <td>{{ ip.city | default('') | e }}{% if ip.city and ip.country_code %}, {% endif %}{{ ip.country_code | default('N/A') | e }}</td>
+            <td>{{ ip.last_seen | format_ts }}</td>
+            <td>
+                <button class="ban-icon-btn ban-icon-unban" onclick="ipBanAction('{{ ip.ip | e }}', 'unban')" title="Unban">
+                    <span class="material-symbols-outlined">health_and_safety</span>
+                    <span class="ban-icon-tooltip">Unban</span>
+                </button>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="empty-state">No attackers found</td></tr>
+        {% endfor %}
+    </tbody>
+</table>

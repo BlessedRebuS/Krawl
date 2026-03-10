@@ -39,11 +39,11 @@
 - [Demo](#demo)
 - [What is Krawl?](#what-is-krawl)
 - [Krawl Dashboard](#krawl-dashboard)
-- [Installation](#-installation)
+- [Quickstart](#quickstart)
   - [Docker Run](#docker-run)
   - [Docker Compose](#docker-compose)
   - [Kubernetes](#kubernetes)
-  - [Local (Python)](#local-python)
+  - [Uvicorn (Python)](#uvicorn-python)
 - [Configuration](#configuration)
   - [config.yaml](#configuration-via-configyaml)
   - [Environment Variables](#configuration-via-enviromental-variables)
@@ -51,7 +51,7 @@
 - [IP Reputation](#ip-reputation)
 - [Forward Server Header](#forward-server-header)
 - [Additional Documentation](#additional-documentation)
-- [Contributing](#-contributing)
+- [Contributing](#contributing)
 
 ## Demo
 Tip: crawl the `robots.txt` paths for additional fun
@@ -88,24 +88,29 @@ You can easily expose Krawl alongside your other services to shield them from we
 
 Krawl provides a comprehensive dashboard, accessible at a **random secret path** generated at startup or at a **custom path** configured via `KRAWL_DASHBOARD_SECRET_PATH`. This keeps the dashboard hidden from attackers scanning your honeypot.
 
-The dashboard is organized in three main tabs:
+The dashboard is organized in five tabs:
 
-- **Overview** — High-level view of attack activity: an interactive map of IP origins, recent suspicious requests, and top IPs, User-Agents, and paths.
+- **Overview**: high-level view of attack activity: an interactive map of IP origins, recent suspicious requests, and top IPs, User-Agents, and paths.
 
 ![geoip](img/geoip_dashboard.png)
 
-- **Attacks** — Detailed breakdown of captured credentials, honeypot triggers, and detected attack types (SQLi, XSS, path traversal, etc.) with charts and tables.
+- **Attacks**: detailed breakdown of captured credentials, honeypot triggers, and detected attack types (SQLi, XSS, path traversal, etc.) with charts and tables.
 
 ![attack_types](img/attack_types.png)
 
-- **IP Insight** — In-depth forensic view of a selected IP: geolocation, ISP/ASN info, reputation flags, behavioral timeline, attack type distribution, and full access history.
+- **IP Insight**: in-depth forensic view of a selected IP: geolocation, ISP/ASN info, reputation flags, behavioral timeline, attack type distribution, and full access history.
 
 ![ipinsight](img/ip_insight_dashboard.png)
+
+Additionally, after authenticating with the dashboard password, two protected tabs become available:
+
+- **Tracked IPs**: maintain a watchlist of IP addresses you want to monitor over time.
+- **IP Banlist**: manage IP bans, view detected attackers, and export the banlist in raw or IPTables format.
 
 For more details, see the [Dashboard documentation](docs/dashboard.md).
 
 
-## 🚀 Installation
+## Quickstart
 
 ### Docker Run
 
@@ -117,6 +122,7 @@ docker run -d \
   -e KRAWL_PORT=5000 \
   -e KRAWL_DELAY=100 \
   -e KRAWL_DASHBOARD_SECRET_PATH="/my-secret-dashboard" \
+  -e KRAWL_DASHBOARD_PASSWORD="my-secret-password" \
   -v krawl-data:/app/data \
   --name krawl \
   ghcr.io/blessedrebus/krawl:latest
@@ -138,6 +144,8 @@ services:
     environment:
       - CONFIG_LOCATION=config.yaml
       - TZ=Europe/Rome
+      # - KRAWL_DASHBOARD_SECRET_PATH="/my-secret-dashboard"
+      # - KRAWL_DASHBOARD_PASSWORD=my-secret-password
     volumes:
       - ./config.yaml:/app/config.yaml:ro
       # bind mount for firewall exporters
@@ -164,7 +172,7 @@ docker-compose down
 ### Kubernetes
 **Krawl is also available natively on Kubernetes**. Installation can be done either [via manifest](kubernetes/README.md) or [using the helm chart](helm/README.md).
 
-### Python + Uvicorn
+### Uvicorn (Python)
 
 Run Krawl directly with Python (suggested version 13) and uvicorn for local development or testing:
 
@@ -197,6 +205,7 @@ You can use the [config.yaml](config.yaml) file for advanced configurations, suc
 | `KRAWL_CANARY_TOKEN_URL` | External canary token URL | None |
 | `KRAWL_CANARY_TOKEN_TRIES` | Requests before showing canary token | `10` |
 | `KRAWL_DASHBOARD_SECRET_PATH` | Custom dashboard path | Auto-generated |
+| `KRAWL_DASHBOARD_PASSWORD` | Password for protected dashboard panels | Auto-generated |
 | `KRAWL_PROBABILITY_ERROR_CODES` | Error response probability (0-100%) | `0` |
 | `KRAWL_DATABASE_PATH` | Database file location | `data/krawl.db` |
 | `KRAWL_EXPORTS_PATH` | Path where firewalls rule sets are exported | `exports` |
@@ -228,8 +237,9 @@ export KRAWL_LINKS_PER_PAGE_RANGE="5,25"
 export KRAWL_HTTP_RISKY_METHODS_THRESHOLD="0.2"
 export KRAWL_VIOLATED_ROBOTS_THRESHOLD="0.15"
 
-# Set custom dashboard path
+# Set custom dashboard path and password
 export KRAWL_DASHBOARD_SECRET_PATH="/my-secret-dashboard"
+export KRAWL_DASHBOARD_PASSWORD="my-secret-password"
 ```
 
 Example of a Docker run with env variables:
@@ -239,6 +249,7 @@ docker run -d \
   -p 5000:5000 \
   -e KRAWL_PORT=5000 \
   -e KRAWL_DELAY=100 \
+  -e KRAWL_DASHBOARD_PASSWORD="my-secret-password" \
   -e KRAWL_CANARY_TOKEN_URL="http://your-canary-token-url" \
   --name krawl \
   ghcr.io/blessedrebus/krawl:latest
@@ -302,7 +313,7 @@ location / {
 | [Wordlist](docs/wordlist.md) | Customize fake usernames, passwords, and directory listings |
 | [Dashboard](docs/dashboard.md) | Access and explore the real-time monitoring dashboard |
 
-## 🤝 Contributing
+## Contributing
 
 Contributions welcome! Please:
 1. Fork the repository

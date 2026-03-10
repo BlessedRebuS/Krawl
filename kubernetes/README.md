@@ -22,12 +22,16 @@ Once the EXTERNAL-IP is assigned, access your deception server at `http://<EXTER
 
 ### Retrieving Dashboard Path
 
-Check server startup logs or get the secret with 
+Check server startup logs or get the secret with
 
 ```bash
 kubectl get secret krawl-server -n krawl-system \
   -o jsonpath='{.data.dashboard-path}' | base64 -d && echo
 ```
+
+### Setting Dashboard Password
+
+To set a custom password for protected dashboard panels, create the `secret.yaml` manifest (see `kubernetes/manifests/secret.yaml`) and uncomment the `KRAWL_DASHBOARD_PASSWORD` env var in the deployment. If not set, a random password is auto-generated and printed in the pod logs.
 
 ### From Source (Python 3.11+)
 
