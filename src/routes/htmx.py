@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse
 
 from dependencies import get_db, get_templates
 from routes.api import verify_auth
+from dashboard_cache import get_cached, is_warm
 
 router = APIRouter()
 
@@ -58,10 +59,19 @@ async def htmx_top_ips(
     sort_by: str = Query("count"),
     sort_order: str = Query("desc"),
 ):
-    db = get_db()
-    result = db.get_top_ips_paginated(
-        page=max(1, page), page_size=8, sort_by=sort_by, sort_order=sort_order
+    # Serve from cache on default first-page request
+    cached = (
+        get_cached("top_ips")
+        if (page == 1 and sort_by == "count" and sort_order == "desc" and is_warm())
+        else None
     )
+    if cached:
+        result = cached
+    else:
+        db = get_db()
+        result = db.get_top_ips_paginated(
+            page=max(1, page), page_size=8, sort_by=sort_by, sort_order=sort_order
+        )
 
     templates = get_templates()
     return templates.TemplateResponse(
@@ -87,10 +97,18 @@ async def htmx_top_paths(
     sort_by: str = Query("count"),
     sort_order: str = Query("desc"),
 ):
-    db = get_db()
-    result = db.get_top_paths_paginated(
-        page=max(1, page), page_size=5, sort_by=sort_by, sort_order=sort_order
+    cached = (
+        get_cached("top_paths")
+        if (page == 1 and sort_by == "count" and sort_order == "desc" and is_warm())
+        else None
     )
+    if cached:
+        result = cached
+    else:
+        db = get_db()
+        result = db.get_top_paths_paginated(
+            page=max(1, page), page_size=5, sort_by=sort_by, sort_order=sort_order
+        )
 
     templates = get_templates()
     return templates.TemplateResponse(
@@ -116,10 +134,18 @@ async def htmx_top_ua(
     sort_by: str = Query("count"),
     sort_order: str = Query("desc"),
 ):
-    db = get_db()
-    result = db.get_top_user_agents_paginated(
-        page=max(1, page), page_size=5, sort_by=sort_by, sort_order=sort_order
+    cached = (
+        get_cached("top_ua")
+        if (page == 1 and sort_by == "count" and sort_order == "desc" and is_warm())
+        else None
     )
+    if cached:
+        result = cached
+    else:
+        db = get_db()
+        result = db.get_top_user_agents_paginated(
+            page=max(1, page), page_size=5, sort_by=sort_by, sort_order=sort_order
+        )
 
     templates = get_templates()
     return templates.TemplateResponse(

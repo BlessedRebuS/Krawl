@@ -14,7 +14,7 @@ A Helm chart for deploying the Krawl honeypot application on Kubernetes.
 
 ```bash
 helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
-  --version 1.1.3 \
+  --version 1.2.0 \
   --namespace krawl-system \
   --create-namespace \
   -f values.yaml  # optional
@@ -170,7 +170,7 @@ kubectl get secret krawl-server -n krawl-system \
 You can override individual values with `--set` without a values file:
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 1.1.3 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 1.2.0 \
   --set ingress.hosts[0].host=honeypot.example.com \
   --set config.canary.token_url=https://canarytokens.com/your-token
 ```
@@ -178,7 +178,7 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 1.1.3 \
 ## Upgrading
 
 ```bash
-helm upgrade krawl oci://ghcr.io/blessedrebus/krawl-chart --version 1.1.3 -f values.yaml
+helm upgrade krawl oci://ghcr.io/blessedrebus/krawl-chart --version 1.2.0 -f values.yaml
 ```
 
 ## Uninstalling
