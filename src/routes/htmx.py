@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse
 
 from dependencies import get_db, get_templates
 from routes.api import verify_auth
+from config import get_config
 from dashboard_cache import get_cached, is_warm
 
 router = APIRouter()
@@ -62,7 +63,13 @@ async def htmx_top_ips(
     # Serve from cache on default first-page request
     cached = (
         get_cached("top_ips")
-        if (page == 1 and sort_by == "count" and sort_order == "desc" and is_warm())
+        if (
+            get_config().dashboard_cache_warmup
+            and page == 1
+            and sort_by == "count"
+            and sort_order == "desc"
+            and is_warm()
+        )
         else None
     )
     if cached:
@@ -99,7 +106,13 @@ async def htmx_top_paths(
 ):
     cached = (
         get_cached("top_paths")
-        if (page == 1 and sort_by == "count" and sort_order == "desc" and is_warm())
+        if (
+            get_config().dashboard_cache_warmup
+            and page == 1
+            and sort_by == "count"
+            and sort_order == "desc"
+            and is_warm()
+        )
         else None
     )
     if cached:
@@ -136,7 +149,13 @@ async def htmx_top_ua(
 ):
     cached = (
         get_cached("top_ua")
-        if (page == 1 and sort_by == "count" and sort_order == "desc" and is_warm())
+        if (
+            get_config().dashboard_cache_warmup
+            and page == 1
+            and sort_by == "count"
+            and sort_order == "desc"
+            and is_warm()
+        )
         else None
     )
     if cached:

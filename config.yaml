@@ -30,6 +30,11 @@ dashboard:
   # Can also be set via KRAWL_DASHBOARD_PASSWORD env var.
   password: null
 
+  # Enable background cache warmup task for the dashboard.
+  # When enabled, dashboard data is pre-computed every 5 minutes for instant page loads.
+  # When disabled, all dashboard queries hit the database directly on each request.
+  cache_warmup: true
+
 backups:
   path: "backups"
   cron: "*/30 * * * *"
@@ -44,6 +49,10 @@ logging:
 database:
   path: "data/krawl.db"
   retention_days: 30
+  # Only persist suspicious requests to the access log.
+  # When enabled, non-suspicious requests still increment IP stats counters
+  # but won't be stored as individual access log entries, saving disk I/O.
+  persist_suspicious_only: false
 
 behavior:
   probability_error_codes: 0  # 0-100 percentage

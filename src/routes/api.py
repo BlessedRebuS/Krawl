@@ -18,6 +18,7 @@ from pydantic import BaseModel
 
 from dependencies import get_db, get_client_ip
 from logger import get_app_logger
+from config import get_config
 from dashboard_cache import get_cached, is_warm
 
 # Server-side session token store (valid tokens for authenticated sessions)
@@ -255,7 +256,8 @@ async def all_ips(
 
     # Serve from cache on default map request (top 100 IPs)
     if (
-        page == 1
+        get_config().dashboard_cache_warmup
+        and page == 1
         and page_size == 100
         and sort_by == "total_requests"
         and sort_order == "desc"

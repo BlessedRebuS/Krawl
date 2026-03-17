@@ -31,7 +31,7 @@
     </thead>
     <tbody>
         {% for log in items %}
-        <tr class="ip-row" data-ip="{{ log.ip | e }}">
+        <tr class="ip-row{% if log.is_suspicious %} access-row-suspicious{% endif %}" data-ip="{{ log.ip | e }}">
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
             <td>
                 <div class="path-cell-container">
@@ -44,7 +44,7 @@
             <td>{{ (log.user_agent | default(''))[:50] | e }}</td>
             <td>{{ log.timestamp | format_ts }}</td>
             <td>
-                {% if log.id %}
+                {% if log.is_suspicious and log.id %}
                 <button class="view-btn" @click="viewRawRequest({{ log.id }})" title="View Request">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6zm5.2 0L19.2 12l-4.6-4.6L16 6l6 6-6 6z"/></svg>
                     <span class="view-btn-tooltip">View Request</span>

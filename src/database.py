@@ -20,10 +20,15 @@ from ip_utils import is_local_or_private_ip, is_valid_public_ip
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
-    """Enable WAL mode and set busy timeout for SQLite connections."""
+    """Enable WAL mode, set busy timeout, and tune performance for SQLite."""
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA journal_mode=WAL")
     cursor.execute("PRAGMA busy_timeout=30000")
+    cursor.execute("PRAGMA synchronous=NORMAL")
+    cursor.execute("PRAGMA wal_autocheckpoint=5000")
+    cursor.execute("PRAGMA cache_size=-65536")
+    cursor.execute("PRAGMA temp_store=MEMORY")
+    cursor.execute("PRAGMA mmap_size=30000000")
     cursor.close()
 
 
@@ -232,40 +237,50 @@ class DatabaseManager:
         Returns:
             The ID of the created AccessLog record, or None on error
         """
+        from config import get_config
+
+        persist_suspicious_only = get_config().database_persist_suspicious_only
+
         session = self.session
         try:
-            # Create access log with sanitized fields
-            access_log = AccessLog(
-                ip=sanitize_ip(ip),
-                path=sanitize_path(path),
-                user_agent=sanitize_user_agent(user_agent),
-                method=method[:10],
-                is_suspicious=is_suspicious,
-                is_honeypot_trigger=is_honeypot_trigger,
-                timestamp=datetime.now(),
-                raw_request=raw_request,
-            )
-            session.add(access_log)
-            session.flush()  # Get the ID before committing
+            access_log_id = None
 
-            # Add attack detections if any
-            if attack_types:
-                matched_patterns = matched_patterns or {}
-                for attack_type in attack_types:
-                    detection = AttackDetection(
-                        access_log_id=access_log.id,
-                        attack_type=attack_type[:50],
-                        matched_pattern=sanitize_attack_pattern(
-                            matched_patterns.get(attack_type, "")
-                        ),
-                    )
-                    session.add(detection)
+            # Skip persisting the access log entry for non-suspicious requests
+            # when persist_suspicious_only is enabled (counters still update below)
+            if not persist_suspicious_only or is_suspicious:
+                # Create access log with sanitized fields
+                access_log = AccessLog(
+                    ip=sanitize_ip(ip),
+                    path=sanitize_path(path),
+                    user_agent=sanitize_user_agent(user_agent),
+                    method=method[:10],
+                    is_suspicious=is_suspicious,
+                    is_honeypot_trigger=is_honeypot_trigger,
+                    timestamp=datetime.now(),
+                    raw_request=raw_request,
+                )
+                session.add(access_log)
+                session.flush()  # Get the ID before committing
+                access_log_id = access_log.id
 
-            # Update IP stats
+                # Add attack detections if any
+                if attack_types:
+                    matched_patterns = matched_patterns or {}
+                    for attack_type in attack_types:
+                        detection = AttackDetection(
+                            access_log_id=access_log.id,
+                            attack_type=attack_type[:50],
+                            matched_pattern=sanitize_attack_pattern(
+                                matched_patterns.get(attack_type, "")
+                            ),
+                        )
+                        session.add(detection)
+
+            # Always update IP stats counters
             self._update_ip_stats(session, ip, is_suspicious)
 
             session.commit()
-            return access_log.id
+            return access_log_id
 
         except Exception as e:
             session.rollback()

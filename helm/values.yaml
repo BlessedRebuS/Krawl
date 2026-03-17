@@ -81,6 +81,7 @@ config:
     token_tries: 10
   dashboard:
     secret_path: null  # Auto-generated if not set, or set to "/my-secret-dashboard"
+    cache_warmup: true  # Pre-compute dashboard data every 5 minutes for instant page loads
   backups:
     path: "backups"
     enabled: false
@@ -92,6 +93,7 @@ config:
   database:
     path: "data/krawl.db"
     retention_days: 30
+    persist_suspicious_only: false  # Only persist suspicious requests to access log
   behavior:
     probability_error_codes: 0
   analyzer:

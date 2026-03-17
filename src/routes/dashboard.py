@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from logger import get_app_logger
 
 from dependencies import get_db, get_templates
+from config import get_config
 from dashboard_cache import get_cached, is_warm
 
 router = APIRouter()
@@ -22,7 +23,7 @@ async def dashboard_page(request: Request):
     dashboard_path = "/" + config.dashboard_secret_path.lstrip("/")
 
     # Serve from pre-computed cache when available, fall back to live queries
-    if is_warm():
+    if get_config().dashboard_cache_warmup and is_warm():
         stats = get_cached("stats")
         suspicious = get_cached("suspicious")
     else:

@@ -2003,6 +2003,13 @@ tbody {
 .view-btn:hover .view-btn-tooltip {
     opacity: 1;
 }
+.access-row-suspicious {
+    border-left: 3px solid #f85149;
+    background: rgba(248, 81, 73, 0.06);
+}
+.access-row-suspicious:hover {
+    background: rgba(248, 81, 73, 0.12);
+}
 .inspect-btn {
     display: inline-flex;
     align-items: center;

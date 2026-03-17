@@ -30,6 +30,7 @@ class Config:
     dashboard_secret_path: str = None
     dashboard_password: Optional[str] = None
     dashboard_password_generated: bool = False
+    dashboard_cache_warmup: bool = True
     probability_error_codes: int = 0  # Percentage (0-100)
 
     # Crawl limiting settings - for legitimate vs malicious crawlers
@@ -49,6 +50,7 @@ class Config:
     # Database settings
     database_path: str = "data/krawl.db"
     database_retention_days: int = 30
+    database_persist_suspicious_only: bool = False
 
     # Analyzer settings
     http_risky_methods_threshold: float = None
@@ -207,6 +209,7 @@ class Config:
             dashboard_secret_path=dashboard_path,
             dashboard_password=dashboard_password,
             dashboard_password_generated=dashboard_password_generated,
+            dashboard_cache_warmup=dashboard.get("cache_warmup", True),
             probability_error_codes=behavior.get("probability_error_codes", 0),
             exports_path=exports.get("path", "exports"),
             backups_path=backups.get("path", "backups"),
@@ -214,6 +217,9 @@ class Config:
             backups_cron=backups.get("cron"),
             database_path=database.get("path", "data/krawl.db"),
             database_retention_days=database.get("retention_days", 30),
+            database_persist_suspicious_only=database.get(
+                "persist_suspicious_only", False
+            ),
             http_risky_methods_threshold=analyzer.get(
                 "http_risky_methods_threshold", 0.1
             ),

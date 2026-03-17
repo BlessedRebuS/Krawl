@@ -6,6 +6,7 @@ This keeps SQLite page buffers warm and lets the dashboard respond instantly.
 """
 
 from logger import get_app_logger
+from config import get_config
 from database import get_database
 from dashboard_cache import set_cached
 
@@ -31,6 +32,14 @@ def main():
     TasksMaster will call this function based on the cron schedule.
     """
     task_name = TASK_CONFIG.get("name")
+
+    config = get_config()
+    if not config.dashboard_cache_warmup:
+        app_logger.info(
+            f"[Background Task] {task_name} skipped (cache_warmup disabled in config)."
+        )
+        return
+
     app_logger.info(f"[Background Task] {task_name} starting...")
 
     try:
