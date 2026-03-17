@@ -22,6 +22,7 @@ data:
       token_tries: {{ .Values.config.canary.token_tries }}
     dashboard:
       secret_path: {{ .Values.config.dashboard.secret_path | toYaml }}
+      cache_warmup: {{ .Values.config.dashboard.cache_warmup }}
     backups:
       path: {{ .Values.config.backups.path | quote }}
       cron: {{ .Values.config.backups.cron | quote }}

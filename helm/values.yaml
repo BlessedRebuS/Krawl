@@ -81,6 +81,7 @@ config:
     token_tries: 10
   dashboard:
     secret_path: null  # Auto-generated if not set, or set to "/my-secret-dashboard"
+    cache_warmup: true  # Pre-compute dashboard data every 5 minutes for instant page loads
   backups:
     path: "backups"
     enabled: false
