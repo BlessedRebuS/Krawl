@@ -20,10 +20,15 @@ from ip_utils import is_local_or_private_ip, is_valid_public_ip
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
-    """Enable WAL mode and set busy timeout for SQLite connections."""
+    """Enable WAL mode, set busy timeout, and tune performance for SQLite."""
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA journal_mode=WAL")
     cursor.execute("PRAGMA busy_timeout=30000")
+    cursor.execute("PRAGMA synchronous=NORMAL")
+    cursor.execute("PRAGMA wal_autocheckpoint=5000")
+    cursor.execute("PRAGMA cache_size=-65536")
+    cursor.execute("PRAGMA temp_store=MEMORY")
+    cursor.execute("PRAGMA mmap_size=30000000")
     cursor.close()
 
 
