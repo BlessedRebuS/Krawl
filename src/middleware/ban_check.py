@@ -30,6 +30,7 @@ class BanCheckMiddleware(BaseHTTPMiddleware):
             get_access_logger().info(
                 f"[BANNED] [{request.method}] {client_ip} - {request.url.path}"
             )
+            request.state.banned = True
             retry_after = int(ban_info["remaining_ban_seconds"])
             return Response(
                 status_code=429,
