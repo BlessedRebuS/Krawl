@@ -136,10 +136,6 @@ def create_app() -> FastAPI:
 
         response: Response = await call_next(request)
 
-        # Banned requests are already logged by BanCheckMiddleware
-        if getattr(request.state, "banned", False):
-            return response
-
         client_ip = get_client_ip(request)
         path = request.url.path
         method = request.method
