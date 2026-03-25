@@ -43,7 +43,14 @@ def main():
                 timezone = geoloc_data.get("timezone")
                 isp = geoloc_data.get("isp")
                 reverse = geoloc_data.get("reverse")
-                asn = geoloc_data.get("asn")
+                asn_raw = geoloc_data.get("asn")
+                # ASN may come as "AS13335" or "" — extract the integer or None
+                asn = None
+                if asn_raw:
+                    try:
+                        asn = int(str(asn_raw).replace("AS", "").strip())
+                    except (ValueError, TypeError):
+                        asn = None
                 asn_org = geoloc_data.get("org")
                 latitude = geoloc_data.get("latitude")
                 longitude = geoloc_data.get("longitude")
@@ -64,7 +71,7 @@ def main():
                 sanitized_country = sanitize_for_storage(country, 100)
                 sanitized_region = sanitize_for_storage(region, 2)
                 sanitized_region_name = sanitize_for_storage(region_name, 100)
-                sanitized_asn = sanitize_for_storage(asn, 100)
+                sanitized_asn = asn  # already int or None
                 sanitized_asn_org = sanitize_for_storage(asn_org, 100)
                 sanitized_city = sanitize_for_storage(city, 100) if city else None
                 sanitized_timezone = sanitize_for_storage(timezone, 50)
