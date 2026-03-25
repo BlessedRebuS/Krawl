@@ -5,6 +5,8 @@ HTMX fragment endpoints.
 Server-rendered HTML partials for table pagination, sorting, IP details, and search.
 """
 
+import asyncio
+
 from fastapi import APIRouter, Request, Response, Query
 from fastapi.responses import HTMLResponse
 
@@ -38,8 +40,12 @@ async def htmx_honeypot(
         result = cached
     else:
         db = get_db()
-        result = db.get_honeypot_paginated(
-            page=page, page_size=5, sort_by=sort_by, sort_order=sort_order
+        result = await asyncio.to_thread(
+            db.get_honeypot_paginated,
+            page=page,
+            page_size=5,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         set_cached_table(cache_key, result)
 
@@ -83,8 +89,12 @@ async def htmx_top_ips(
         result = cached
     else:
         db = get_db()
-        result = db.get_top_ips_paginated(
-            page=max(1, page), page_size=8, sort_by=sort_by, sort_order=sort_order
+        result = await asyncio.to_thread(
+            db.get_top_ips_paginated,
+            page=max(1, page),
+            page_size=8,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
 
     templates = get_templates()
@@ -126,8 +136,12 @@ async def htmx_top_paths(
         result = cached
     else:
         db = get_db()
-        result = db.get_top_paths_paginated(
-            page=max(1, page), page_size=5, sort_by=sort_by, sort_order=sort_order
+        result = await asyncio.to_thread(
+            db.get_top_paths_paginated,
+            page=max(1, page),
+            page_size=5,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
 
     templates = get_templates()
@@ -169,8 +183,12 @@ async def htmx_top_ua(
         result = cached
     else:
         db = get_db()
-        result = db.get_top_user_agents_paginated(
-            page=max(1, page), page_size=5, sort_by=sort_by, sort_order=sort_order
+        result = await asyncio.to_thread(
+            db.get_top_user_agents_paginated,
+            page=max(1, page),
+            page_size=5,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
 
     templates = get_templates()
@@ -204,8 +222,12 @@ async def htmx_attackers(
         result = cached
     else:
         db = get_db()
-        result = db.get_attackers_paginated(
-            page=page, page_size=25, sort_by=sort_by, sort_order=sort_order
+        result = await asyncio.to_thread(
+            db.get_attackers_paginated,
+            page=page,
+            page_size=25,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         set_cached_table(cache_key, result)
 
@@ -246,7 +268,8 @@ async def htmx_access_logs_by_ip(
         result = cached
     else:
         db = get_db()
-        result = db.get_access_logs_paginated(
+        result = await asyncio.to_thread(
+            db.get_access_logs_paginated,
             page=page,
             page_size=25,
             ip_filter=ip_filter,
@@ -291,8 +314,12 @@ async def htmx_credentials(
         result = cached
     else:
         db = get_db()
-        result = db.get_credentials_paginated(
-            page=page, page_size=5, sort_by=sort_by, sort_order=sort_order
+        result = await asyncio.to_thread(
+            db.get_credentials_paginated,
+            page=page,
+            page_size=5,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         set_cached_table(cache_key, result)
 
@@ -328,7 +355,8 @@ async def htmx_attacks(
         result = cached
     else:
         db = get_db()
-        result = db.get_attack_types_paginated(
+        result = await asyncio.to_thread(
+            db.get_attack_types_paginated,
             page=page,
             page_size=5,
             sort_by=sort_by,
@@ -384,7 +412,7 @@ async def htmx_patterns(
     else:
         db = get_db()
         # Get all attack type stats and paginate manually
-        result = db.get_attack_types_stats(limit=100)
+        result = await asyncio.to_thread(db.get_attack_types_stats, limit=100)
         set_cached_table(cache_key, result)
     all_patterns = [
         {"pattern": item["type"], "count": item["count"]}
@@ -419,7 +447,7 @@ async def htmx_patterns(
 @router.get("/htmx/ip-insight/{ip_address:path}")
 async def htmx_ip_insight(ip_address: str, request: Request):
     db = get_db()
-    stats = db.get_ip_stats_by_ip(ip_address)
+    stats = await asyncio.to_thread(db.get_ip_stats_by_ip, ip_address)
 
     if not stats:
         stats = {"ip": ip_address, "total_requests": "N/A"}
@@ -429,7 +457,7 @@ async def htmx_ip_insight(ip_address: str, request: Request):
     stats["blocklist_memberships"] = list(list_on.keys()) if list_on else []
     stats["reverse_dns"] = stats.get("reverse")
 
-    is_tracked = db.is_ip_tracked(ip_address)
+    is_tracked = await asyncio.to_thread(db.is_ip_tracked, ip_address)
 
     templates = get_templates()
     return templates.TemplateResponse(
@@ -450,7 +478,7 @@ async def htmx_ip_insight(ip_address: str, request: Request):
 @router.get("/htmx/ip-detail/{ip_address:path}")
 async def htmx_ip_detail(ip_address: str, request: Request):
     db = get_db()
-    stats = db.get_ip_stats_by_ip(ip_address)
+    stats = await asyncio.to_thread(db.get_ip_stats_by_ip, ip_address)
 
     if not stats:
         stats = {"ip": ip_address, "total_requests": "N/A"}
@@ -460,7 +488,7 @@ async def htmx_ip_detail(ip_address: str, request: Request):
     stats["blocklist_memberships"] = list(list_on.keys()) if list_on else []
     stats["reverse_dns"] = stats.get("reverse")
 
-    is_tracked = db.is_ip_tracked(ip_address)
+    is_tracked = await asyncio.to_thread(db.is_ip_tracked, ip_address)
 
     templates = get_templates()
     return templates.TemplateResponse(
@@ -488,7 +516,9 @@ async def htmx_search(
         return Response(content="", media_type="text/html")
 
     db = get_db()
-    result = db.search_attacks_and_ips(query=q, page=max(1, page), page_size=20)
+    result = await asyncio.to_thread(
+        db.search_attacks_and_ips, query=q, page=max(1, page), page_size=20
+    )
 
     templates = get_templates()
     return templates.TemplateResponse(
@@ -543,7 +573,9 @@ async def htmx_ban_attackers(
         )
 
     db = get_db()
-    result = db.get_attackers_paginated(page=max(1, page), page_size=page_size)
+    result = await asyncio.to_thread(
+        db.get_attackers_paginated, page=max(1, page), page_size=page_size
+    )
     templates = get_templates()
     return templates.TemplateResponse(
         request,
@@ -592,7 +624,9 @@ async def htmx_tracked_ips_list(
         )
 
     db = get_db()
-    result = db.get_tracked_ips_paginated(page=max(1, page), page_size=page_size)
+    result = await asyncio.to_thread(
+        db.get_tracked_ips_paginated, page=max(1, page), page_size=page_size
+    )
     templates = get_templates()
     return templates.TemplateResponse(
         request,
@@ -617,7 +651,9 @@ async def htmx_ban_overrides(
         )
 
     db = get_db()
-    result = db.get_ban_overrides_paginated(page=max(1, page), page_size=page_size)
+    result = await asyncio.to_thread(
+        db.get_ban_overrides_paginated, page=max(1, page), page_size=page_size
+    )
     templates = get_templates()
     return templates.TemplateResponse(
         request,

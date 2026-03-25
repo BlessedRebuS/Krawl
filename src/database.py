@@ -72,6 +72,10 @@ class DatabaseManager:
         if self._initialized:
             return
 
+        from config import get_config
+
+        sql_echo = get_config().log_level == "DEBUG"
+
         self._mode = mode
 
         if mode == "scalable":
@@ -93,7 +97,7 @@ class DatabaseManager:
                 max_overflow=20,
                 pool_pre_ping=True,
                 pool_recycle=1800,
-                echo=False,
+                echo=sql_echo,
             )
             applogger.info(
                 f"Using MariaDB at {mariadb_config['host']}:{mariadb_config['port']}"
@@ -109,7 +113,7 @@ class DatabaseManager:
             self._engine = create_engine(
                 database_url,
                 connect_args={"check_same_thread": False},
-                echo=False,
+                echo=sql_echo,
             )
 
             # Register SQLite PRAGMAs on this specific engine instance

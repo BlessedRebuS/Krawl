@@ -6,6 +6,7 @@ Migrated from handler.py dashboard API endpoints.
 All endpoints are prefixed with the secret dashboard path.
 """
 
+import asyncio
 import hashlib
 import hmac
 import os
@@ -169,9 +170,11 @@ async def ban_override(request: Request, body: BanOverrideRequest):
         )
 
     if body.action == "ban":
-        success = db.force_ban_ip(body.ip)
+        success = await asyncio.to_thread(db.force_ban_ip, body.ip)
     else:
-        success = db.set_ban_override(body.ip, action_map[body.action])
+        success = await asyncio.to_thread(
+            db.set_ban_override, body.ip, action_map[body.action]
+        )
 
     if success:
         get_app_logger().info(f"Ban override: {body.action} on IP {body.ip}")
@@ -197,9 +200,9 @@ async def track_ip(request: Request, body: TrackIpRequest):
 
     db = get_db()
     if body.action == "track":
-        success = db.track_ip(body.ip)
+        success = await asyncio.to_thread(db.track_ip, body.ip)
     elif body.action == "untrack":
-        success = db.untrack_ip(body.ip)
+        success = await asyncio.to_thread(db.untrack_ip, body.ip)
     else:
         return JSONResponse(
             content={"error": "Invalid action. Use: track, untrack"},
@@ -223,7 +226,7 @@ async def all_ip_stats(request: Request):
 
     db = get_db()
     try:
-        ip_stats_list = db.get_ip_stats(limit=500)
+        ip_stats_list = await asyncio.to_thread(db.get_ip_stats, limit=500)
         result = {"ips": ip_stats_list}
         set_cached_table("api:all_ip_stats", result)
         return JSONResponse(
@@ -248,8 +251,12 @@ async def attackers(
     page_size = min(max(1, page_size), 100)
 
     try:
-        result = db.get_attackers_paginated(
-            page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order
+        result = await asyncio.to_thread(
+            db.get_attackers_paginated,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
@@ -283,8 +290,12 @@ async def all_ips(
 
     db = get_db()
     try:
-        result = db.get_all_ips_paginated(
-            page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order
+        result = await asyncio.to_thread(
+            db.get_all_ips_paginated,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
@@ -296,7 +307,7 @@ async def all_ips(
 async def ip_stats(ip_address: str, request: Request):
     db = get_db()
     try:
-        stats = db.get_ip_stats_by_ip(ip_address)
+        stats = await asyncio.to_thread(db.get_ip_stats_by_ip, ip_address)
         if stats:
             return JSONResponse(content=stats, headers=_no_cache_headers())
         else:
@@ -321,8 +332,12 @@ async def honeypot(
     page_size = min(max(1, page_size), 100)
 
     try:
-        result = db.get_honeypot_paginated(
-            page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order
+        result = await asyncio.to_thread(
+            db.get_honeypot_paginated,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
@@ -343,8 +358,12 @@ async def credentials(
     page_size = min(max(1, page_size), 100)
 
     try:
-        result = db.get_credentials_paginated(
-            page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order
+        result = await asyncio.to_thread(
+            db.get_credentials_paginated,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
@@ -365,8 +384,12 @@ async def top_ips(
     page_size = min(max(1, page_size), 100)
 
     try:
-        result = db.get_top_ips_paginated(
-            page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order
+        result = await asyncio.to_thread(
+            db.get_top_ips_paginated,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
@@ -387,8 +410,12 @@ async def top_paths(
     page_size = min(max(1, page_size), 100)
 
     try:
-        result = db.get_top_paths_paginated(
-            page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order
+        result = await asyncio.to_thread(
+            db.get_top_paths_paginated,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
@@ -409,8 +436,12 @@ async def top_user_agents(
     page_size = min(max(1, page_size), 100)
 
     try:
-        result = db.get_top_user_agents_paginated(
-            page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order
+        result = await asyncio.to_thread(
+            db.get_top_user_agents_paginated,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
@@ -433,7 +464,9 @@ async def attack_types_stats(
 
     db = get_db()
     try:
-        result = db.get_attack_types_stats(limit=limit, ip_filter=ip_filter)
+        result = await asyncio.to_thread(
+            db.get_attack_types_stats, limit=limit, ip_filter=ip_filter
+        )
         set_cached_table(cache_key, result)
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
@@ -454,8 +487,12 @@ async def attack_types(
     page_size = min(max(1, page_size), 100)
 
     try:
-        result = db.get_attack_types_paginated(
-            page=page, page_size=page_size, sort_by=sort_by, sort_order=sort_order
+        result = await asyncio.to_thread(
+            db.get_attack_types_paginated,
+            page=page,
+            page_size=page_size,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
@@ -467,7 +504,7 @@ async def attack_types(
 async def raw_request(log_id: int, request: Request):
     db = get_db()
     try:
-        raw = db.get_raw_request_by_id(log_id)
+        raw = await asyncio.to_thread(db.get_raw_request_by_id, log_id)
         if raw is None:
             return JSONResponse(
                 content={"error": "Raw request not found"}, status_code=404

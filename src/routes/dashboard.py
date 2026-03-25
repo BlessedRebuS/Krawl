@@ -27,10 +27,14 @@ async def dashboard_page(request: Request):
         stats = get_cached("stats")
         suspicious = get_cached("suspicious")
     else:
+        import asyncio
+
         db = get_db()
-        stats = db.get_dashboard_counts()
-        suspicious = db.get_recent_suspicious(limit=10)
-        cred_result = db.get_credentials_paginated(page=1, page_size=1)
+        stats = await asyncio.to_thread(db.get_dashboard_counts)
+        suspicious = await asyncio.to_thread(db.get_recent_suspicious, 10)
+        cred_result = await asyncio.to_thread(
+            db.get_credentials_paginated, page=1, page_size=1
+        )
         stats["credential_count"] = cred_result["pagination"]["total"]
 
     templates = get_templates()
@@ -47,9 +51,11 @@ async def dashboard_page(request: Request):
 
 @router.get("/ip/{ip_address:path}")
 async def ip_page(ip_address: str, request: Request):
+    import asyncio
+
     db = get_db()
     try:
-        stats = db.get_ip_stats_by_ip(ip_address)
+        stats = await asyncio.to_thread(db.get_ip_stats_by_ip, ip_address)
         config = request.app.state.config
         dashboard_path = "/" + config.dashboard_secret_path.lstrip("/")
 
