@@ -26,9 +26,9 @@ _lock = threading.Lock()
 _cache: dict[str, Any] = {}
 _redis_client = None
 _REDIS_PREFIX = "krawl:cache:"
-_REDIS_TTL = 600  # 10 minutes for dashboard warmup data
-_REDIS_SHORT_TTL = 30  # 30 seconds for hot-path data (ban info, IP categories)
-_REDIS_TABLE_TTL = 120  # 2 minutes for paginated dashboard tables
+_REDIS_TTL = 600  # default: 10 minutes for dashboard warmup data
+_REDIS_SHORT_TTL = 30  # default: 30 seconds for hot-path data (ban info, IP categories)
+_REDIS_TABLE_TTL = 120  # default: 2 minutes for paginated dashboard tables
 
 
 def _json_serializer(obj):
@@ -38,16 +38,22 @@ def _json_serializer(obj):
     raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
 
-def initialize_cache(mode: str = "standalone", redis_config: dict = None) -> None:
+def initialize_cache(mode: str = "standalone", redis_config: dict = None, ttl_config: dict = None) -> None:
     """
     Initialize the cache backend.
 
     Args:
         mode: "standalone" for in-memory dict, "scalable" for Redis
         redis_config: Redis connection settings (host, port, db, password)
+        ttl_config: Optional TTL overrides (cache_ttl, hot_ttl, table_ttl)
     """
-    global _backend, _redis_client
+    global _backend, _redis_client, _REDIS_TTL, _REDIS_SHORT_TTL, _REDIS_TABLE_TTL
     _backend = mode
+
+    if ttl_config:
+        _REDIS_TTL = ttl_config.get("cache_ttl", _REDIS_TTL)
+        _REDIS_SHORT_TTL = ttl_config.get("hot_ttl", _REDIS_SHORT_TTL)
+        _REDIS_TABLE_TTL = ttl_config.get("table_ttl", _REDIS_TABLE_TTL)
 
     if mode == "scalable":
         import redis

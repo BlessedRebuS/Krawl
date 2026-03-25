@@ -77,6 +77,8 @@ class AccessLog(Base):
         Index("ix_access_logs_ip_timestamp", "ip", "timestamp"),
         Index("ix_access_logs_is_suspicious", "is_suspicious"),
         Index("ix_access_logs_is_honeypot_trigger", "is_honeypot_trigger"),
+        Index("ix_access_logs_path", "path"),
+        Index("ix_access_logs_user_agent", "user_agent"),
     )
 
     def __repr__(self) -> str:
@@ -214,6 +216,12 @@ class IpStats(Base):
     # Admin ban override: True = force ban, False = force unban, None = automatic
     ban_override: Mapped[Optional[bool]] = mapped_column(
         Boolean, nullable=True, default=None
+    )
+
+    __table_args__ = (
+        Index("ix_ip_stats_category", "category"),
+        Index("ix_ip_stats_need_reevaluation", "need_reevaluation"),
+        Index("ix_ip_stats_total_requests", "total_requests"),
     )
 
     def __repr__(self) -> str:

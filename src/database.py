@@ -12,7 +12,7 @@ from typing import Optional, List, Dict, Any
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import create_engine, func, distinct, case, event, or_
-from sqlalchemy.orm import sessionmaker, scoped_session, Session
+from sqlalchemy.orm import sessionmaker, scoped_session, Session, joinedload
 from sqlalchemy.engine import Engine
 
 from ip_utils import is_local_or_private_ip, is_valid_public_ip
@@ -815,17 +815,6 @@ class DatabaseManager:
                             IpStats.latitude.is_(None),
                             IpStats.longitude.is_(None),
                         ),
-                        ~IpStats.ip.like("10.%"),
-                        ~IpStats.ip.like("172.16.%"),
-                        ~IpStats.ip.like("172.17.%"),
-                        ~IpStats.ip.like("172.18.%"),
-                        ~IpStats.ip.like("172.19.%"),
-                        ~IpStats.ip.like("172.2_.%"),
-                        ~IpStats.ip.like("172.30.%"),
-                        ~IpStats.ip.like("172.31.%"),
-                        ~IpStats.ip.like("192.168.%"),
-                        ~IpStats.ip.like("127.%"),
-                        ~IpStats.ip.like("169.254.%"),
                     )
                     .limit(limit)
                     .all()
@@ -837,17 +826,6 @@ class DatabaseManager:
                         session.query(IpStats.ip)
                         .filter(
                             or_(IpStats.country_code.is_(None), IpStats.city.is_(None)),
-                            ~IpStats.ip.like("10.%"),
-                            ~IpStats.ip.like("172.16.%"),
-                            ~IpStats.ip.like("172.17.%"),
-                            ~IpStats.ip.like("172.18.%"),
-                            ~IpStats.ip.like("172.19.%"),
-                            ~IpStats.ip.like("172.2_.%"),
-                            ~IpStats.ip.like("172.30.%"),
-                            ~IpStats.ip.like("172.31.%"),
-                            ~IpStats.ip.like("192.168.%"),
-                            ~IpStats.ip.like("127.%"),
-                            ~IpStats.ip.like("169.254.%"),
                         )
                         .limit(limit)
                         .all()
@@ -978,7 +956,7 @@ class DatabaseManager:
                 if sort_order == "asc"
                 else AccessLog.timestamp.desc()
             )
-            query = session.query(AccessLog).order_by(order)
+            query = session.query(AccessLog).options(joinedload(AccessLog.attack_detections)).order_by(order)
 
             if ip_filter:
                 query = query.filter(AccessLog.ip == sanitize_ip(ip_filter))
@@ -989,12 +967,16 @@ class DatabaseManager:
                 query = query.filter(AccessLog.timestamp >= cutoff_time)
 
             logs = query.offset(offset).limit(page_size).all()
-            # Get total count of attackers
-            total_access_logs = (
-                session.query(AccessLog)
-                .filter(AccessLog.ip == sanitize_ip(ip_filter))
-                .count()
-            )
+
+            # Count query with same filters
+            count_query = session.query(func.count(AccessLog.id))
+            if ip_filter:
+                count_query = count_query.filter(AccessLog.ip == sanitize_ip(ip_filter))
+            if suspicious_only:
+                count_query = count_query.filter(AccessLog.is_suspicious == True)
+            if since_minutes is not None:
+                count_query = count_query.filter(AccessLog.timestamp >= cutoff_time)
+            total_access_logs = count_query.scalar()
             total_pages = (total_access_logs + page_size - 1) // page_size
 
             return {
@@ -1045,7 +1027,7 @@ class DatabaseManager:
         """
         session = self.session
         try:
-            query = session.query(AccessLog).order_by(AccessLog.timestamp.desc())
+            query = session.query(AccessLog).options(joinedload(AccessLog.attack_detections)).order_by(AccessLog.timestamp.desc())
 
             if ip_filter:
                 query = query.filter(AccessLog.ip == sanitize_ip(ip_filter))
@@ -1417,22 +1399,7 @@ class DatabaseManager:
             self.close_session()
 
     def _public_ip_filter(self, query, ip_column, server_ip: Optional[str] = None):
-        """Apply SQL-level filters to exclude local/private IPs and server IP."""
-        query = query.filter(
-            ~ip_column.like("10.%"),
-            ~ip_column.like("172.16.%"),
-            ~ip_column.like("172.17.%"),
-            ~ip_column.like("172.18.%"),
-            ~ip_column.like("172.19.%"),
-            ~ip_column.like("172.2_.%"),
-            ~ip_column.like("172.30.%"),
-            ~ip_column.like("172.31.%"),
-            ~ip_column.like("192.168.%"),
-            ~ip_column.like("127.%"),
-            ~ip_column.like("0.%"),
-            ~ip_column.like("169.254.%"),
-            ip_column != "::1",
-        )
+        """Apply SQL-level filter to exclude the server's own IP."""
         if server_ip:
             query = query.filter(ip_column != server_ip)
         return query
@@ -1614,29 +1581,20 @@ class DatabaseManager:
         """
         session = self.session
         try:
-            # Get server IP to filter it out
-            from config import get_config
-
-            config = get_config()
-            server_ip = config.get_server_ip()
-
-            # Get all honeypot triggers grouped by IP
+            # Get distinct IP/path combos for honeypot triggers
             results = (
                 session.query(AccessLog.ip, AccessLog.path)
                 .filter(AccessLog.is_honeypot_trigger == True)
+                .group_by(AccessLog.ip, AccessLog.path)
                 .all()
             )
 
-            # Group paths by IP, filtering out local/private IPs and server IP
+            # Group paths by IP
             ip_paths: Dict[str, List[str]] = {}
             for row in results:
-                # Skip invalid IPs
-                if not is_valid_public_ip(row.ip, server_ip):
-                    continue
                 if row.ip not in ip_paths:
                     ip_paths[row.ip] = []
-                if row.path not in ip_paths[row.ip]:
-                    ip_paths[row.ip].append(row.path)
+                ip_paths[row.ip].append(row.path)
 
             return [(ip, paths) for ip, paths in ip_paths.items()]
         finally:
@@ -1657,6 +1615,7 @@ class DatabaseManager:
             # Get access logs that have attack detections
             logs = (
                 session.query(AccessLog)
+                .options(joinedload(AccessLog.attack_detections))
                 .join(AttackDetection)
                 .order_by(AccessLog.timestamp.desc())
                 .limit(limit)
@@ -1739,7 +1698,7 @@ class DatabaseManager:
                         AccessLog.is_honeypot_trigger == True,
                         AccessLog.ip.in_(paginated_ips),
                     )
-                    .distinct(AccessLog.ip, AccessLog.path)
+                    .group_by(AccessLog.ip, AccessLog.path)
                     .all()
                 )
                 ip_paths: Dict[str, List[str]] = {}
@@ -2082,13 +2041,13 @@ class DatabaseManager:
                 base_filters.append(AccessLog.ip == ip_filter)
 
             # Count total unique access logs with attack detections
-            count_query = session.query(AccessLog).join(AttackDetection)
+            count_subq = session.query(AccessLog.id).join(AttackDetection)
             if base_filters:
-                count_query = count_query.filter(*base_filters)
-            total_attacks = count_query.distinct(AccessLog.id).count()
+                count_subq = count_subq.filter(*base_filters)
+            total_attacks = count_subq.distinct().count()
 
             # Get paginated access logs with attack detections
-            query = session.query(AccessLog).join(AttackDetection)
+            query = session.query(AccessLog).options(joinedload(AccessLog.attack_detections)).join(AttackDetection)
             if base_filters:
                 query = query.filter(*base_filters)
             query = query.distinct(AccessLog.id)
@@ -2225,13 +2184,14 @@ class DatabaseManager:
             # --- Search attacks (AccessLog + AttackDetection) ---
             attack_query = (
                 session.query(AccessLog)
+                .options(joinedload(AccessLog.attack_detections))
                 .join(AttackDetection)
                 .filter(
                     or_(
-                        AccessLog.ip.ilike(like_q),
-                        AccessLog.path.ilike(like_q),
-                        AttackDetection.attack_type.ilike(like_q),
-                        AttackDetection.matched_pattern.ilike(like_q),
+                        AccessLog.ip.like(like_q),
+                        AccessLog.path.like(like_q),
+                        AttackDetection.attack_type.like(like_q),
+                        AttackDetection.matched_pattern.like(like_q),
                     )
                 )
                 .distinct(AccessLog.id)
@@ -2261,13 +2221,13 @@ class DatabaseManager:
             # --- Search IPs (IpStats) ---
             ip_query = session.query(IpStats).filter(
                 or_(
-                    IpStats.ip.ilike(like_q),
-                    IpStats.city.ilike(like_q),
-                    IpStats.country.ilike(like_q),
-                    IpStats.country_code.ilike(like_q),
-                    IpStats.isp.ilike(like_q),
-                    IpStats.asn_org.ilike(like_q),
-                    IpStats.reverse.ilike(like_q),
+                    IpStats.ip.like(like_q),
+                    IpStats.city.like(like_q),
+                    IpStats.country.like(like_q),
+                    IpStats.country_code.like(like_q),
+                    IpStats.isp.like(like_q),
+                    IpStats.asn_org.like(like_q),
+                    IpStats.reverse.like(like_q),
                 )
             )
 

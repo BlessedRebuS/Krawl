@@ -77,6 +77,11 @@ async def lifespan(app: FastAPI):
                     "db": config.redis_db,
                     "password": config.redis_password,
                 },
+                ttl_config={
+                    "cache_ttl": config.redis_cache_ttl,
+                    "hot_ttl": config.redis_hot_ttl,
+                    "table_ttl": config.redis_table_ttl,
+                },
             )
             app_logger.info(
                 f"Cache initialized with Redis at {config.redis_host}:{config.redis_port}"

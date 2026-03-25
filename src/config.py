@@ -33,6 +33,9 @@ class Config:
     redis_port: int = 6379
     redis_db: int = 0
     redis_password: Optional[str] = None
+    redis_cache_ttl: int = 600
+    redis_hot_ttl: int = 30
+    redis_table_ttl: int = 120
 
     port: int = 5000
     delay: int = 100  # milliseconds
@@ -204,6 +207,9 @@ class Config:
             redis_port=redis_cfg.get("port", 6379),
             redis_db=redis_cfg.get("db", 0),
             redis_password=redis_cfg.get("password") or None,
+            redis_cache_ttl=redis_cfg.get("cache_ttl", 600),
+            redis_hot_ttl=redis_cfg.get("hot_ttl", 30),
+            redis_table_ttl=redis_cfg.get("table_ttl", 120),
             port=server.get("port", 5000),
             delay=server.get("delay", 100),
             server_header=server.get("server_header", ""),
