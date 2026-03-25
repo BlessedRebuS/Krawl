@@ -1,4 +1,4 @@
-{{- if and (eq .Values.mode "scalable") .Values.redis.enabled }}
+{{- if .Values.redis.enabled }}
 ---
 {{- if .Values.redis.persistence.enabled }}
 apiVersion: v1
