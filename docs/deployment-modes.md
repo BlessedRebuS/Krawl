@@ -78,7 +78,7 @@ KRAWL_MARIADB_DATABASE=krawl
 KRAWL_REDIS_HOST=localhost
 KRAWL_REDIS_PORT=6379
 KRAWL_REDIS_DB=0
-KRAWL_REDIS_PASSWORD=
+# KRAWL_REDIS_PASSWORD=  # omit or leave unset if Redis has no password
 ```
 
 ### What changes between modes
