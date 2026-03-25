@@ -177,7 +177,7 @@ The following table lists the main configuration parameters of the Krawl chart a
 | `mariadb.port` | MariaDB port | `3306` |
 | `mariadb.user` | MariaDB username | `krawl` |
 | `mariadb.password` | MariaDB password | `krawl` |
-| `mariadb.rootPassword` | MariaDB root password (bundled only) | `krawl-root` |
+| `mariadb.rootPassword` | MariaDB root password (bundled only) | `rootpass` |
 | `mariadb.database` | MariaDB database name | `krawl` |
 | `mariadb.existingSecret` | Use an existing Secret for the password | `` |
 | `mariadb.existingSecretKey` | Key in the existing Secret | `mariadb-password` |

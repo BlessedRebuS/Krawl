@@ -329,16 +329,54 @@ docker compose -f docker-compose.scalable.yaml run --rm \
 
 In Kubernetes, the SQLite data lives on a PersistentVolumeClaim. The Helm chart includes a migration Job that mounts the existing PVC and writes to MariaDB.
 
+#### With bundled MariaDB
+
+If you're using the chart's built-in MariaDB StatefulSet, deploy it first, then run the migration:
+
 ```bash
 # 1. Scale down Krawl to release the SQLite PVC and avoid locks
 kubectl scale deployment <release>-krawl --replicas=0
 
-# 2. Ensure MariaDB is deployed and reachable in the same namespace
+# 2. Deploy bundled MariaDB (and optionally Redis) — keep mode=standalone
+#    so the existing SQLite PVC is not removed
+helm upgrade <release> ./helm \
+  --set mariadb.enabled=true \
+  --set mariadb.password=<mariadb-password> \
+  --set mariadb.rootPassword=<root-password> \
+  --set redis.enabled=true \
+  --set redis.password=<redis-password> \
+  --set migration.enabled=true
+
+# 3. Wait for the migration Job to complete and verify
+kubectl wait --for=condition=complete job/<release>-krawl-migrate --timeout=600s
+kubectl logs job/<release>-krawl-migrate
+
+# 4. Switch to scalable mode
+helm upgrade <release> ./helm \
+  --set mode=scalable \
+  --set migration.enabled=false \
+  --set mariadb.enabled=true \
+  --set mariadb.password=<mariadb-password> \
+  --set mariadb.rootPassword=<root-password> \
+  --set redis.enabled=true \
+  --set redis.password=<redis-password> \
+  --set replicaCount=2
+```
+
+#### With external MariaDB
+
+If MariaDB is already running outside the chart (managed service, separate Helm release, etc.):
+
+```bash
+# 1. Scale down Krawl to release the SQLite PVC and avoid locks
+kubectl scale deployment <release>-krawl --replicas=0
+
+# 2. Ensure MariaDB is reachable from the namespace
 
 # 3. Run the migration Job
 helm upgrade <release> ./helm \
   --set migration.enabled=true \
-  --set mariadb.host=mariadb \
+  --set mariadb.host=<mariadb-host> \
   --set mariadb.password=<mariadb-password>
 
 # 4. Wait for the Job to complete and verify
@@ -349,9 +387,9 @@ kubectl logs job/<release>-krawl-migrate
 helm upgrade <release> ./helm \
   --set mode=scalable \
   --set migration.enabled=false \
-  --set mariadb.host=mariadb \
+  --set mariadb.host=<mariadb-host> \
   --set mariadb.password=<mariadb-password> \
-  --set redis.host=redis \
+  --set redis.host=<redis-host> \
   --set replicaCount=2
 ```
 
