@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import or_
 
 from database import get_database
+from dashboard_cache import invalidate_table_cache
 from logger import get_app_logger
 
 # ----------------------
@@ -108,6 +109,8 @@ def main():
 
         total = logs_deleted + detections_deleted + ips_deleted + history_deleted
         if total:
+            # Invalidate cached dashboard tables so stale deleted data isn't served
+            invalidate_table_cache()
             app_logger.info(
                 f"DB retention: Deleted {logs_deleted} access logs, "
                 f"{detections_deleted} attack detections, "

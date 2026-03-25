@@ -1,5 +1,7 @@
 # tasks/db_dump.py
 
+from datetime import datetime, date, time
+from decimal import Decimal
 from logger import get_app_logger
 from database import get_database
 from config import get_config
@@ -24,6 +26,27 @@ TASK_CONFIG = {
 # ----------------------
 # TASK LOGIC
 # ----------------------
+def _sql_value(value) -> str:
+    """Format a Python value as a valid SQL literal for INSERT statements."""
+    if value is None:
+        return "NULL"
+    if isinstance(value, bool):
+        return "1" if value else "0"
+    if isinstance(value, (int, float, Decimal)):
+        return str(value)
+    if isinstance(value, datetime):
+        return f"'{value.strftime('%Y-%m-%d %H:%M:%S')}'"
+    if isinstance(value, date):
+        return f"'{value.strftime('%Y-%m-%d')}'"
+    if isinstance(value, time):
+        return f"'{value.strftime('%H:%M:%S')}'"
+    if isinstance(value, bytes):
+        return f"X'{value.hex()}'"
+    # String — escape single quotes
+    escaped = str(value).replace("'", "''")
+    return f"'{escaped}'"
+
+
 def main():
     """
     Dump krawl database to a sql file for backups
@@ -80,7 +103,7 @@ def main():
                         for row in rows:
                             # Build INSERT statement
                             columns = ", ".join([col.name for col in table.columns])
-                            values = ", ".join([repr(value) for value in row])
+                            values = ", ".join([_sql_value(v) for v in row])
                             f.write(
                                 f"INSERT INTO {table_name} ({columns}) VALUES ({values});\n"
                             )
