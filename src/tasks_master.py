@@ -170,7 +170,10 @@ class TasksMaster:
                 ):
                     # schedule the task now that everything has checked out above...
                     self._schedule_task(
-                        task_name, module_name, task_cron, run_when_loaded,
+                        task_name,
+                        module_name,
+                        task_cron,
+                        run_when_loaded,
                         interval_seconds=interval_seconds,
                     )
                     if interval_seconds:

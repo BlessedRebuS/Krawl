@@ -414,7 +414,9 @@ class DatabaseManager:
 
         except Exception as e:
             session.rollback()
-            applogger.error(f"Error flushing access log buffer ({len(entries)} entries): {e}")
+            applogger.error(
+                f"Error flushing access log buffer ({len(entries)} entries): {e}"
+            )
             # Re-queue failed entries so they aren't lost
             with _write_lock:
                 _write_buffer.extendleft(reversed(entries))
@@ -514,6 +516,7 @@ class DatabaseManager:
                 ip_stats.ban_timestamp = now
                 # Invalidate cached ban info so the new ban is enforced immediately
                 from dashboard_cache import delete_cached_short
+
                 delete_cached_short(f"ban:{sanitized_ip}")
 
         return page_visit_count
@@ -587,7 +590,9 @@ class DatabaseManager:
             sanitized_ip = sanitize_ip(ip)
             row = (
                 session.query(
-                    IpStats.ban_timestamp, IpStats.ban_multiplier, IpStats.page_visit_count
+                    IpStats.ban_timestamp,
+                    IpStats.ban_multiplier,
+                    IpStats.page_visit_count,
                 )
                 .filter(IpStats.ip == sanitized_ip)
                 .first()
@@ -601,7 +606,9 @@ class DatabaseManager:
 
             if elapsed > effective_duration:
                 # Ban expired — reset count for next cycle
-                ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
+                ip_stats = (
+                    session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
+                )
                 ip_stats.page_visit_count = 0
                 ip_stats.ban_timestamp = None
                 session.commit()
@@ -674,7 +681,9 @@ class DatabaseManager:
                     "ban_multiplier": multiplier,
                     "remaining_ban_seconds": ban_duration_seconds,
                 }
-                set_cached_short(f"ban:{sanitized_ip}", result, ttl=ban_duration_seconds)
+                set_cached_short(
+                    f"ban:{sanitized_ip}", result, ttl=ban_duration_seconds
+                )
                 return result
             if ban_override is False:
                 result = {
@@ -1969,7 +1978,9 @@ class DatabaseManager:
                 sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
             )
 
-            total_credentials = session.query(func.count(CredentialAttempt.id)).scalar() or 0
+            total_credentials = (
+                session.query(func.count(CredentialAttempt.id)).scalar() or 0
+            )
 
             # Build query with sorting
             query = session.query(CredentialAttempt)
@@ -2120,9 +2131,7 @@ class DatabaseManager:
             path_expr = AccessLog.path.label("path")
 
             # Get total number of distinct paths
-            total_paths = (
-                session.query(func.count(distinct(path_expr))).scalar() or 0
-            )
+            total_paths = session.query(func.count(distinct(path_expr))).scalar() or 0
 
             # Build query with SQL-level sorting and pagination
             query = session.query(path_expr, count_col).group_by(path_expr)
@@ -2133,9 +2142,7 @@ class DatabaseManager:
                 )
             else:
                 order_expr = (
-                    path_expr.desc()
-                    if sort_order == "desc"
-                    else path_expr.asc()
+                    path_expr.desc() if sort_order == "desc" else path_expr.asc()
                 )
 
             results = query.order_by(order_expr).offset(offset).limit(page_size).all()
@@ -2194,9 +2201,7 @@ class DatabaseManager:
 
             # Build query with SQL-level sorting and pagination
             query = (
-                session.query(ua_expr, count_col)
-                .filter(*base_filter)
-                .group_by(ua_expr)
+                session.query(ua_expr, count_col).filter(*base_filter).group_by(ua_expr)
             )
 
             if sort_by == "count":
@@ -2204,11 +2209,7 @@ class DatabaseManager:
                     count_col.desc() if sort_order == "desc" else count_col.asc()
                 )
             else:
-                order_expr = (
-                    ua_expr.desc()
-                    if sort_order == "desc"
-                    else ua_expr.asc()
-                )
+                order_expr = ua_expr.desc() if sort_order == "desc" else ua_expr.asc()
 
             results = query.order_by(order_expr).offset(offset).limit(page_size).all()
             total_pages = max(1, (total_uas + page_size - 1) // page_size)
@@ -2266,7 +2267,9 @@ class DatabaseManager:
                 base_filters.append(AccessLog.ip == ip_filter)
 
             # Count total unique access logs with attack detections
-            count_q = session.query(func.count(distinct(AccessLog.id))).join(AttackDetection)
+            count_q = session.query(func.count(distinct(AccessLog.id))).join(
+                AttackDetection
+            )
             if base_filters:
                 count_q = count_q.filter(*base_filters)
             total_attacks = count_q.scalar() or 0
@@ -2290,7 +2293,9 @@ class DatabaseManager:
             if base_filters:
                 ids_q = ids_q.filter(*base_filters)
 
-            paginated_ids = ids_q.order_by(order_expr).offset(offset).limit(page_size).subquery()
+            paginated_ids = (
+                ids_q.order_by(order_expr).offset(offset).limit(page_size).subquery()
+            )
 
             logs = (
                 session.query(AccessLog)
@@ -2432,7 +2437,12 @@ class DatabaseManager:
                 .distinct()
             )
 
-            total_attacks = session.query(func.count()).select_from(matching_ids_q.subquery()).scalar() or 0
+            total_attacks = (
+                session.query(func.count())
+                .select_from(matching_ids_q.subquery())
+                .scalar()
+                or 0
+            )
 
             paginated_ids = (
                 matching_ids_q.order_by(AccessLog.id.desc())
@@ -2475,17 +2485,22 @@ class DatabaseManager:
                 )
             )
 
-            total_ips = session.query(func.count(IpStats.ip)).filter(
-                or_(
-                    IpStats.ip.like(like_q),
-                    IpStats.city.like(like_q),
-                    IpStats.country.like(like_q),
-                    IpStats.country_code.like(like_q),
-                    IpStats.isp.like(like_q),
-                    IpStats.asn_org.like(like_q),
-                    IpStats.reverse.like(like_q),
+            total_ips = (
+                session.query(func.count(IpStats.ip))
+                .filter(
+                    or_(
+                        IpStats.ip.like(like_q),
+                        IpStats.city.like(like_q),
+                        IpStats.country.like(like_q),
+                        IpStats.country_code.like(like_q),
+                        IpStats.isp.like(like_q),
+                        IpStats.asn_org.like(like_q),
+                        IpStats.reverse.like(like_q),
+                    )
                 )
-            ).scalar() or 0
+                .scalar()
+                or 0
+            )
             ips = (
                 ip_query.order_by(IpStats.total_requests.desc())
                 .offset(offset)
@@ -2596,7 +2611,12 @@ class DatabaseManager:
         session = self.session
         try:
             base_query = session.query(IpStats).filter(IpStats.ban_override.isnot(None))
-            total = session.query(func.count(IpStats.ip)).filter(IpStats.ban_override.isnot(None)).scalar() or 0
+            total = (
+                session.query(func.count(IpStats.ip))
+                .filter(IpStats.ban_override.isnot(None))
+                .scalar()
+                or 0
+            )
             total_pages = max(1, (total + page_size - 1) // page_size)
 
             results = (
