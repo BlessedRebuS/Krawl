@@ -132,43 +132,63 @@ The standalone compose file (`docker-compose.yaml`) remains unchanged for standa
 
 ### Kubernetes (Helm)
 
-Set the mode in your Helm values:
+The Helm chart can either **bundle** MariaDB and Redis as StatefulSets or connect to **external** instances.
 
-```yaml
-# values.yaml
-mode: scalable
+#### Bundled MariaDB and Redis
 
-mariadb:
-  host: "mariadb"
-  port: 3306
-  user: "krawl"
-  password: "krawl"
-  database: "krawl"
-
-redis:
-  host: "redis"
-  port: 6379
-  db: 0
-  password: ""
-```
-
-Or via `--set` flags:
+Deploy everything in one command — the chart creates StatefulSets with Services in the same namespace:
 
 ```bash
-helm upgrade krawl ./helm \
+helm install krawl ./helm -n krawl-system --create-namespace \
   --set mode=scalable \
-  --set mariadb.host=mariadb \
+  --set mariadb.enabled=true \
   --set mariadb.password=krawl \
-  --set redis.host=redis
+  --set mariadb.rootPassword=rootpass \
+  --set redis.enabled=true \
+  --set redis.password=redispass \
+  --set replicaCount=2
 ```
+
+Or in `values.yaml`:
+
+```yaml
+mode: scalable
+replicaCount: 2
+
+mariadb:
+  enabled: true
+  host: "mariadb"
+  password: "krawl"
+  rootPassword: "rootpass"
+
+redis:
+  enabled: true
+  host: "redis"
+  password: "redispass"
+```
+
+Both StatefulSets include persistence by default. See the [Helm README](../helm/README.md) for all available parameters (`image`, `persistence`, `resources`).
+
+#### External MariaDB and Redis
+
+Connect to existing instances (managed services, separately deployed charts, etc.):
+
+```bash
+helm install krawl ./helm -n krawl-system --create-namespace \
+  --set mode=scalable \
+  --set mariadb.host=your-mariadb-host \
+  --set mariadb.password=krawl \
+  --set redis.host=your-redis-host \
+  --set replicaCount=2
+```
+
+Leave `mariadb.enabled` and `redis.enabled` as `false` (default) when using external databases.
 
 When `mode=scalable`:
 - The SQLite PVC is **not created**
 - The deployment strategy switches to `RollingUpdate`
 - MariaDB and Redis credentials are injected via Kubernetes Secrets
 - `replicaCount` can be safely increased above 1
-
-> **Note**: You are responsible for deploying MariaDB and Redis separately (e.g., via their official Helm charts or managed services). The Krawl chart only configures the connection to them.
 
 ### Docker Run
 

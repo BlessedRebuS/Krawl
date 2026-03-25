@@ -6,7 +6,8 @@ A Helm chart for deploying the Krawl honeypot application on Kubernetes.
 
 - Kubernetes 1.19+
 - Helm 3.0+
-- Persistent Volume provisioner (optional, for database persistence)
+- Persistent Volume provisioner (for standalone mode database persistence)
+- MariaDB and Redis (for scalable mode — bundled via the chart or external/managed)
 
 ## Installation
 
@@ -36,6 +37,54 @@ kubectl get svc krawl -n krawl-system
 
 Then access the deception server at `http://<EXTERNAL-IP>:5000`
 
+## Deployment Modes
+
+The chart supports two deployment modes controlled by the `mode` value:
+
+- **`standalone`** (default): SQLite database with in-memory cache. Single replica only. Requires a PVC for the database file. Deployment strategy is `Recreate`.
+- **`scalable`**: MariaDB + Redis backends. Supports multiple replicas. No PVC needed. Deployment strategy is `RollingUpdate`.
+
+### Standalone (default)
+
+```bash
+helm install krawl ./helm -n krawl-system --create-namespace
+```
+
+### Scalable (bundled MariaDB and Redis)
+
+Deploy MariaDB and Redis as StatefulSets alongside Krawl:
+
+```bash
+helm install krawl ./helm -n krawl-system --create-namespace \
+  --set mode=scalable \
+  --set mariadb.enabled=true \
+  --set mariadb.password=your-password \
+  --set mariadb.rootPassword=your-root-password \
+  --set redis.enabled=true \
+  --set redis.password=your-redis-password \
+  --set replicaCount=2
+```
+
+This deploys MariaDB and Redis StatefulSets with Services in the same namespace. Persistence is enabled by default.
+
+### Scalable (external MariaDB and Redis)
+
+Connect to existing MariaDB and Redis instances (e.g., managed services or separately deployed):
+
+```bash
+helm install krawl ./helm -n krawl-system --create-namespace \
+  --set mode=scalable \
+  --set mariadb.host=your-mariadb-host \
+  --set mariadb.password=your-password \
+  --set redis.host=your-redis-host \
+  --set redis.password=your-redis-password \
+  --set replicaCount=2
+```
+
+> **Note**: When using external databases, leave `mariadb.enabled` and `redis.enabled` as `false` (default). Only set the connection parameters.
+
+For full details on modes, Redis cache tiers, and data migration, see the [Deployment Modes documentation](../docs/deployment-modes.md).
+
 ## Configuration
 
 The following table lists the main configuration parameters of the Krawl chart and their default values.
@@ -44,9 +93,10 @@ The following table lists the main configuration parameters of the Krawl chart a
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `replicaCount` | Number of pod replicas | `1` |
+| `mode` | Deployment mode (`standalone` or `scalable`) | `standalone` |
+| `replicaCount` | Number of pod replicas (>1 only in scalable mode) | `1` |
 | `image.repository` | Image repository | `ghcr.io/blessedrebus/krawl` |
-| `image.tag` | Image tag | `latest` |
+| `image.tag` | Image tag | `1.2.0` |
 | `image.pullPolicy` | Image pull policy | `Always` |
 
 ### Service Configuration
@@ -106,15 +156,73 @@ The following table lists the main configuration parameters of the Krawl chart a
 | `config.api.server_port` | API server port | `8080` |
 | `config.api.server_path` | API server path | `/api/v2/users` |
 
-### Database Configuration
+### Database Configuration (Standalone)
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `config.database.path` | Database file path | `data/krawl.db` |
 | `config.database.retention_days` | Data retention in days | `30` |
-| `database.persistence.enabled` | Enable persistent volume | `true` |
+| `database.persistence.enabled` | Enable persistent volume (standalone only) | `true` |
 | `database.persistence.size` | Persistent volume size | `1Gi` |
 | `database.persistence.accessMode` | Access mode | `ReadWriteOnce` |
+| `database.persistence.storageClassName` | Storage class name | `` (default) |
+| `database.persistence.existingClaim` | Use an existing PVC | `` |
+
+### MariaDB Configuration (Scalable)
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `mariadb.enabled` | Deploy a bundled MariaDB StatefulSet | `false` |
+| `mariadb.host` | MariaDB hostname (also used as Service name when bundled) | `mariadb` |
+| `mariadb.port` | MariaDB port | `3306` |
+| `mariadb.user` | MariaDB username | `krawl` |
+| `mariadb.password` | MariaDB password | `krawl` |
+| `mariadb.rootPassword` | MariaDB root password (bundled only) | `krawl-root` |
+| `mariadb.database` | MariaDB database name | `krawl` |
+| `mariadb.existingSecret` | Use an existing Secret for the password | `` |
+| `mariadb.existingSecretKey` | Key in the existing Secret | `mariadb-password` |
+| `mariadb.image.repository` | MariaDB image repository (bundled only) | `mariadb` |
+| `mariadb.image.tag` | MariaDB image tag | `11` |
+| `mariadb.image.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `mariadb.persistence.enabled` | Enable persistent storage for MariaDB | `true` |
+| `mariadb.persistence.size` | PVC size | `5Gi` |
+| `mariadb.persistence.accessMode` | PVC access mode | `ReadWriteOnce` |
+| `mariadb.persistence.storageClassName` | Storage class name | `` |
+| `mariadb.resources` | CPU/memory resource requests and limits | `{}` |
+
+### Redis Configuration (Scalable)
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `redis.enabled` | Deploy a bundled Redis StatefulSet | `false` |
+| `redis.host` | Redis hostname (also used as Service name when bundled) | `redis` |
+| `redis.port` | Redis port | `6379` |
+| `redis.db` | Redis database number | `0` |
+| `redis.password` | Redis password | `` |
+| `redis.existingSecret` | Use an existing Secret for the password | `` |
+| `redis.existingSecretKey` | Key in the existing Secret | `redis-password` |
+| `redis.image.repository` | Redis image repository (bundled only) | `redis` |
+| `redis.image.tag` | Redis image tag | `7-alpine` |
+| `redis.image.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `redis.persistence.enabled` | Enable persistent storage for Redis | `true` |
+| `redis.persistence.size` | PVC size | `1Gi` |
+| `redis.persistence.accessMode` | PVC access mode | `ReadWriteOnce` |
+| `redis.persistence.storageClassName` | Storage class name | `` |
+| `redis.resources` | CPU/memory resource requests and limits | `{}` |
+
+### Migration Job (SQLite to MariaDB)
+
+A one-shot Kubernetes Job that copies data from an existing SQLite PVC into MariaDB. See [Deployment Modes](../docs/deployment-modes.md) for step-by-step instructions.
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `migration.enabled` | Create the migration Job | `false` |
+| `migration.sqliteFilename` | SQLite filename inside the PVC | `krawl.db` |
+| `migration.batchSize` | Rows per INSERT batch | `1000` |
+| `migration.dropExisting` | Drop existing MariaDB tables before migrating | `false` |
+| `migration.existingClaim` | Override the source PVC name | `<release>-krawl-db` |
+| `migration.backoffLimit` | Job retry attempts | `3` |
+| `migration.ttlSecondsAfterFinished` | Auto-cleanup completed Job after (seconds) | `3600` |
 
 ### Behavior Configuration
 
@@ -167,12 +275,49 @@ kubectl get secret krawl-server -n krawl-system \
 
 ## Usage Examples
 
-You can override individual values with `--set` without a values file:
+### Standalone with custom settings
 
 ```bash
 helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 1.2.0 \
+  --set mode=standalone \
   --set ingress.hosts[0].host=honeypot.example.com \
   --set config.canary.token_url=https://canarytokens.com/your-token
+```
+
+### Scalable with bundled MariaDB and Redis
+
+```bash
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 1.2.0 \
+  --set mode=scalable \
+  --set replicaCount=3 \
+  --set mariadb.enabled=true \
+  --set mariadb.password=your-password \
+  --set mariadb.rootPassword=your-root-password \
+  --set redis.enabled=true \
+  --set redis.password=your-redis-password \
+  --set ingress.hosts[0].host=honeypot.example.com
+```
+
+### Scalable with external MariaDB and Redis
+
+```bash
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 1.2.0 \
+  --set mode=scalable \
+  --set replicaCount=3 \
+  --set mariadb.host=your-mariadb-host \
+  --set mariadb.password=your-password \
+  --set redis.host=your-redis-host \
+  --set redis.password=your-redis-password \
+  --set ingress.hosts[0].host=honeypot.example.com
+```
+
+### Run migration from SQLite to MariaDB
+
+```bash
+helm upgrade krawl ./helm \
+  --set migration.enabled=true \
+  --set mariadb.host=mariadb \
+  --set mariadb.password=your-password
 ```
 
 ## Upgrading
@@ -217,11 +362,18 @@ kubectl logs -l app.kubernetes.io/name=krawl
 
 - `Chart.yaml` - Chart metadata
 - `values.yaml` - Default configuration values
+- `values-minimal.yaml` - Minimal configuration example
 - `templates/` - Kubernetes resource templates
-  - `deployment.yaml` - Krawl deployment
+  - `deployment.yaml` - Krawl deployment (branches on `mode` for strategy, env vars, volumes)
   - `service.yaml` - Service configuration
   - `configmap.yaml` - Application configuration
-  - `pvc.yaml` - Persistent volume claim
+  - `wordlists-configmap.yaml` - Wordlists configuration
+  - `secret.yaml` - Dashboard password secret
+  - `secret-scalable.yaml` - MariaDB and Redis password secrets (scalable mode only)
+  - `mariadb.yaml` - Bundled MariaDB StatefulSet, Service, and PVC (scalable mode, `mariadb.enabled`)
+  - `redis.yaml` - Bundled Redis StatefulSet, Service, and PVC (scalable mode, `redis.enabled`)
+  - `pvc.yaml` - Persistent volume claim (standalone mode only)
+  - `migration-job.yaml` - SQLite to MariaDB migration Job
   - `ingress.yaml` - Ingress configuration
   - `network-policy.yaml` - Network policies
 

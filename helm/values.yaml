@@ -113,17 +113,38 @@ config:
 
 # MariaDB settings (only used when mode=scalable)
 mariadb:
+  # Deploy MariaDB as part of this chart (set to false if using an external instance)
+  enabled: false
   host: "mariadb"
   port: 3306
   user: "krawl"
   password: "krawl"
   database: "krawl"
+  rootPassword: "rootpass"
   # Use an existing secret for the MariaDB password instead of plaintext
   # existingSecret: ""
   # existingSecretKey: "mariadb-password"
+  image:
+    repository: mariadb
+    tag: "11"
+    pullPolicy: IfNotPresent
+  persistence:
+    enabled: true
+    size: 5Gi
+    accessMode: ReadWriteOnce
+    # storageClassName: ""
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
 
 # Redis settings (only used when mode=scalable)
 redis:
+  # Deploy Redis as part of this chart (set to false if using an external instance)
+  enabled: false
   host: "redis"
   port: 6379
   db: 0
@@ -131,6 +152,22 @@ redis:
   # Use an existing secret for the Redis password instead of plaintext
   # existingSecret: ""
   # existingSecretKey: "redis-password"
+  image:
+    repository: redis
+    tag: "7-alpine"
+    pullPolicy: IfNotPresent
+  persistence:
+    enabled: true
+    size: 1Gi
+    accessMode: ReadWriteOnce
+    # storageClassName: ""
+  resources:
+    limits:
+      cpu: 250m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
 
 # SQLite -> MariaDB migration job settings
 migration:
