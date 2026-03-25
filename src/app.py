@@ -90,6 +90,13 @@ async def lifespan(app: FastAPI):
         )
         initialize_cache(mode="standalone")
 
+    # Resolve server IP once (used to exclude self-traffic from stats)
+    config.resolve_server_ip()
+    if config.get_server_ip():
+        app_logger.info(f"Server public IP: {config.get_server_ip()}")
+    else:
+        app_logger.warning("Server public IP could not be determined")
+
     # Initialize tracker
     tracker = AccessTracker(config.max_pages_limit, config.ban_duration_seconds)
     set_tracker(tracker)

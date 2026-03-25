@@ -79,71 +79,50 @@ class Config:
     log_level: str = "INFO"
 
     _server_ip: Optional[str] = None
-    _server_ip_cache_time: float = 0
-    _ip_cache_ttl: int = 300
+    _server_ip_resolved: bool = False
 
-    def get_server_ip(self, refresh: bool = False) -> Optional[str]:
+    def resolve_server_ip(self) -> None:
         """
-        Get the server's own public IP address.
-        Excludes requests from the server itself from being tracked.
+        Resolve the server's public IP once at startup.
+        Stores the result (or None) permanently — no repeated lookups.
         """
-
-        current_time = time.time()
-
-        # Check if cache is valid and not forced refresh
-        if (
-            self._server_ip is not None
-            and not refresh
-            and (current_time - self._server_ip_cache_time) < self._ip_cache_ttl
-        ):
-            return self._server_ip
+        if self._server_ip_resolved:
+            return
 
         try:
-            # Try multiple external IP detection services (fallback chain)
             ip_detection_services = [
-                "https://api.ipify.org",  # Plain text response
-                "http://ident.me",  # Plain text response
-                "https://ifconfig.me",  # Plain text response
+                "https://api.ipify.org",
+                "http://ident.me",
+                "https://ifconfig.me",
             ]
 
-            ip = None
             for service_url in ip_detection_services:
                 try:
                     response = requests.get(service_url, timeout=5)
                     if response.status_code == 200:
                         ip = response.text.strip()
                         if ip:
-                            break
+                            self._server_ip = ip
+                            self._server_ip_resolved = True
+                            return
                 except requests.RequestException:
                     continue
 
-            if not ip:
-                get_app_logger().warning(
-                    "Could not determine server IP from external services. "
-                    "All IPs will be tracked (including potential server IP)."
-                )
-                return None
-
-            self._server_ip = ip
-            self._server_ip_cache_time = current_time
-            return ip
-
+            get_app_logger().warning(
+                "Could not determine server IP from external services. "
+                "All IPs will be tracked (including potential server IP)."
+            )
         except Exception as e:
             get_app_logger().warning(
                 f"Could not determine server IP address: {e}. "
                 "All IPs will be tracked (including potential server IP)."
             )
-            return None
 
-    def refresh_server_ip(self) -> Optional[str]:
-        """
-        Force refresh the cached server IP.
-        Use this if you suspect the IP has changed.
+        self._server_ip_resolved = True
 
-        Returns:
-            New server IP address or None if unable to determine
-        """
-        return self.get_server_ip(refresh=True)
+    def get_server_ip(self) -> Optional[str]:
+        """Get the server's public IP (resolved once at startup)."""
+        return self._server_ip
 
     @classmethod
     def from_yaml(cls) -> "Config":
