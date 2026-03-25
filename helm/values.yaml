@@ -1,4 +1,4 @@
-# Deployment mode: "standalone" (SQLite + in-memory cache) or "scalable" (MariaDB + Redis)
+# Deployment mode: "standalone" (SQLite + in-memory cache) or "scalable" (PostgreSQL + Redis)
 mode: standalone
 
 replicaCount: 1
@@ -111,22 +111,21 @@ config:
     max_pages_limit: 250
     ban_duration_seconds: 600
 
-# MariaDB settings (only used when mode=scalable)
-mariadb:
-  # Deploy MariaDB as part of this chart (set to false if using an external instance)
+# PostgreSQL settings (only used when mode=scalable)
+postgres:
+  # Deploy PostgreSQL as part of this chart (set to false if using an external instance)
   enabled: false
-  host: "mariadb"
-  port: 3306
+  host: "postgres"
+  port: 5432
   user: "krawl"
   password: "krawl"
   database: "krawl"
-  rootPassword: "rootpass"
-  # Use an existing secret for the MariaDB password instead of plaintext
+  # Use an existing secret for the PostgreSQL password instead of plaintext
   # existingSecret: ""
-  # existingSecretKey: "mariadb-password"
+  # existingSecretKey: "postgres-password"
   image:
-    repository: mariadb
-    tag: "11"
+    repository: postgres
+    tag: "16-alpine"
     pullPolicy: IfNotPresent
   persistence:
     enabled: true
@@ -173,14 +172,14 @@ redis:
       cpu: 50m
       memory: 64Mi
 
-# SQLite -> MariaDB migration job settings
+# SQLite -> PostgreSQL migration job settings
 migration:
   enabled: false
   # SQLite filename inside the PVC (default: krawl.db)
   sqliteFilename: "krawl.db"
   # Rows per batch insert
   batchSize: 1000
-  # Drop existing MariaDB tables before migrating
+  # Drop existing PostgreSQL tables before migrating
   dropExisting: false
   # Use a specific existing PVC (defaults to <release>-krawl-db)
   # existingClaim: ""

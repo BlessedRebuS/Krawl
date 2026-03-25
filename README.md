@@ -117,23 +117,23 @@ Krawl supports two deployment modes, controlled by the `mode` setting in `config
 
 | | Standalone (default) | Scalable |
 |---|---|---|
-| **Database** | SQLite (WAL mode) | MariaDB |
+| **Database** | SQLite (WAL mode) | PostgreSQL |
 | **Cache** | In-memory Python dict | Redis (multi-tier TTL) |
 | **Replicas** | 1 (single instance) | 1+ (horizontal scaling) |
-| **External deps** | None | MariaDB + Redis |
+| **External deps** | None | PostgreSQL + Redis |
 | **Best for** | Single-node, development, low-traffic | Production, HA, high-traffic |
 
 **Standalone** is the default and requires zero additional configuration. Just run Krawl and it works.
 
-**Scalable** mode requires a running MariaDB and Redis instance. Set it via:
+**Scalable** mode requires a running PostgreSQL and Redis instance. Set it via:
 
 ```yaml
 # config.yaml
 mode: scalable
 
-mariadb:
-  host: "mariadb"
-  port: 3306
+postgres:
+  host: "postgres"
+  port: 5432
   user: "krawl"
   password: "krawl"
   database: "krawl"
@@ -152,17 +152,17 @@ Or via environment variables:
 
 ```bash
 KRAWL_MODE=scalable
-KRAWL_MARIADB_HOST=mariadb
-KRAWL_MARIADB_USER=krawl
-KRAWL_MARIADB_PASSWORD=krawl
-KRAWL_MARIADB_DATABASE=krawl
+KRAWL_POSTGRES_HOST=postgres
+KRAWL_POSTGRES_USER=krawl
+KRAWL_POSTGRES_PASSWORD=krawl
+KRAWL_POSTGRES_DATABASE=krawl
 KRAWL_REDIS_HOST=redis
 # KRAWL_REDIS_CACHE_TTL=600
 # KRAWL_REDIS_HOT_TTL=30
 # KRAWL_REDIS_TABLE_TTL=120
 ```
 
-For detailed instructions on running scalable mode with Docker Compose, Kubernetes/Helm, and migrating existing data from SQLite to MariaDB, see the [Deployment Modes documentation](docs/deployment-modes.md).
+For detailed instructions on running scalable mode with Docker Compose, Kubernetes/Helm, and migrating existing data from SQLite to PostgreSQL, see the [Deployment Modes documentation](docs/deployment-modes.md).
 
 ## Quickstart
 
@@ -213,7 +213,7 @@ volumes:
   krawl-data:
 ```
 
-For scalable mode with MariaDB and Redis, use `docker-compose.scalable.yaml` instead. See [Deployment Modes](docs/deployment-modes.md) for details.
+For scalable mode with PostgreSQL and Redis, use `docker-compose.scalable.yaml` instead. See [Deployment Modes](docs/deployment-modes.md) for details.
 
 Run with:
 
@@ -284,11 +284,11 @@ You can use the [config.yaml](config.yaml) file for advanced configurations, suc
 | `KRAWL_BAN_DURATION_SECONDS` | Ban duration in seconds for rate-limited IPs | `600` |
 | **Scalable mode** | | |
 | `KRAWL_MODE` | Deployment mode (`standalone` or `scalable`) | `standalone` |
-| `KRAWL_MARIADB_HOST` | MariaDB hostname | `localhost` |
-| `KRAWL_MARIADB_PORT` | MariaDB port | `3306` |
-| `KRAWL_MARIADB_USER` | MariaDB username | `krawl` |
-| `KRAWL_MARIADB_PASSWORD` | MariaDB password | `krawl` |
-| `KRAWL_MARIADB_DATABASE` | MariaDB database name | `krawl` |
+| `KRAWL_POSTGRES_HOST` | PostgreSQL hostname | `localhost` |
+| `KRAWL_POSTGRES_PORT` | PostgreSQL port | `5432` |
+| `KRAWL_POSTGRES_USER` | PostgreSQL username | `krawl` |
+| `KRAWL_POSTGRES_PASSWORD` | PostgreSQL password | `krawl` |
+| `KRAWL_POSTGRES_DATABASE` | PostgreSQL database name | `krawl` |
 | `KRAWL_REDIS_HOST` | Redis hostname | `localhost` |
 | `KRAWL_REDIS_PORT` | Redis port | `6379` |
 | `KRAWL_REDIS_DB` | Redis database number | `0` |
@@ -377,7 +377,7 @@ location / {
 
 | Topic | Description |
 |-------|-------------|
-| [Deployment Modes](docs/deployment-modes.md) | Standalone (SQLite) vs Scalable (MariaDB + Redis) mode, configuration, and data migration |
+| [Deployment Modes](docs/deployment-modes.md) | Standalone (SQLite) vs Scalable (PostgreSQL + Redis) mode, configuration, and data migration |
 | [API](docs/api.md) | External APIs used by Krawl for IP data, reputation, and geolocation |
 | [Honeypot](docs/honeypot.md) | Full overview of honeypot pages: fake logins, directory listings, credential files, SQLi/XSS/XXE/command injection traps, and more |
 | [Reverse Proxy](docs/reverse-proxy.md) | How to deploy Krawl behind NGINX or use decoy subdomains |

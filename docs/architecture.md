@@ -9,7 +9,7 @@ Krawl is a cloud-native deception honeypot server built on **FastAPI**. It creat
 | Layer | Technology |
 |-------|-----------|
 | **Backend** | FastAPI, Uvicorn, Python 3.11 |
-| **ORM / DB** | SQLAlchemy 2.0, SQLite (WAL mode) or MariaDB |
+| **ORM / DB** | SQLAlchemy 2.0, SQLite (WAL mode) or PostgreSQL |
 | **Templating** | Jinja2 (server-side rendering) |
 | **Reactivity** | Alpine.js 3.14 |
 | **Partial Updates** | HTMX 2.0 |
@@ -90,7 +90,7 @@ Krawl/
 Startup                              Shutdown
   │                                    │
   ├─ Initialize logging                └─ Log shutdown
-  ├─ Initialize database (SQLite or MariaDB)
+  ├─ Initialize database (SQLite or PostgreSQL)
   ├─ Initialize cache (in-memory or Redis)
   ├─ Resolve server public IP (once)
   ├─ Create AccessTracker
@@ -232,7 +232,7 @@ Each returns a server-rendered Jinja2 partial (`hx-swap="innerHTML"`):
 
 **SQLite config** (standalone): WAL mode, 30s busy timeout, file permissions 600.
 
-**MariaDB config** (scalable): Connection pool (10 + 20 overflow), pre-ping enabled, connections recycled every 30 minutes.
+**PostgreSQL config** (scalable): Connection pool (10 + 20 overflow), pre-ping enabled, connections recycled every 30 minutes.
 
 ## Frontend Architecture
 
@@ -312,9 +312,9 @@ database:
   retention_days: 30
 
 # Scalable mode only
-mariadb:
+postgres:
   host: "localhost"
-  port: 3306
+  port: 5432
 
 redis:
   host: "localhost"

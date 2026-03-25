@@ -36,16 +36,16 @@ async def lifespan(app: FastAPI):
     # Initialize database and run pending migrations before accepting traffic
     try:
         if config.mode == "scalable":
-            app_logger.info(f"Initializing database in scalable mode (MariaDB)")
+            app_logger.info(f"Initializing database in scalable mode (PostgreSQL)")
             initialize_database(
                 database_path=config.database_path,
                 mode="scalable",
-                mariadb_config={
-                    "host": config.mariadb_host,
-                    "port": config.mariadb_port,
-                    "user": config.mariadb_user,
-                    "password": config.mariadb_password,
-                    "database": config.mariadb_database,
+                postgres_config={
+                    "host": config.postgres_host,
+                    "port": config.postgres_port,
+                    "user": config.postgres_user,
+                    "password": config.postgres_password,
+                    "database": config.postgres_database,
                 },
             )
         else:
@@ -56,7 +56,7 @@ async def lifespan(app: FastAPI):
         if config.mode == "scalable":
             app_logger.error(
                 f"Database initialization failed in scalable mode: {e}. "
-                "Cannot safely continue without MariaDB; exiting."
+                "Cannot safely continue without PostgreSQL; exiting."
             )
             import sys
 

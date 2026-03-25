@@ -4,7 +4,7 @@ Checks the database schema and applies any pending migrations at startup.
 All checks are idempotent — safe to run on every boot.
 
 Uses SQLAlchemy Inspector for dialect-agnostic schema introspection,
-supporting both SQLite (standalone mode) and MariaDB (scalable mode).
+supporting both SQLite (standalone mode) and PostgreSQL (scalable mode).
 
 Note: table creation (e.g. category_history) is already handled by
 Base.metadata.create_all() in DatabaseManager.initialize() and is NOT
@@ -103,20 +103,27 @@ def _migrate_performance_indexes(engine: Engine) -> List[str]:
 
 
 def _migrate_scalable_indexes(engine: Engine) -> List[str]:
-    """Add indexes for MariaDB query performance (also benefits SQLite)."""
+    """Add indexes for query performance (benefits both SQLite and PostgreSQL)."""
     added = []
-    indexes = {
-        "ix_access_logs_path": ("access_logs", "path"),
-        "ix_access_logs_user_agent": ("access_logs", "user_agent"),
-        "ix_ip_stats_category": ("ip_stats", "category"),
-        "ix_ip_stats_need_reevaluation": ("ip_stats", "need_reevaluation"),
-        "ix_ip_stats_total_requests": ("ip_stats", "total_requests"),
-    }
-    for idx_name, (table, column) in indexes.items():
+
+    # (index_name, table, column)
+    indexes = [
+        ("ix_access_logs_path", "access_logs", "path"),
+        ("ix_access_logs_user_agent", "access_logs", "user_agent"),
+        ("ix_access_logs_is_suspicious", "access_logs", "is_suspicious"),
+        ("ix_access_logs_is_honeypot_trigger", "access_logs", "is_honeypot_trigger"),
+        ("ix_ip_stats_category", "ip_stats", "category"),
+        ("ix_ip_stats_need_reevaluation", "ip_stats", "need_reevaluation"),
+        ("ix_ip_stats_total_requests", "ip_stats", "total_requests"),
+    ]
+    for idx_name, table, column in indexes:
         if not _index_exists(engine, table, idx_name):
-            with engine.begin() as conn:
-                conn.execute(text(f"CREATE INDEX {idx_name} ON {table}({column})"))
-            added.append(idx_name)
+            try:
+                with engine.begin() as conn:
+                    conn.execute(text(f"CREATE INDEX {idx_name} ON {table}({column})"))
+                added.append(idx_name)
+            except Exception as e:
+                logger.error(f"Failed to create index {idx_name}: {e}")
     return added
 
 

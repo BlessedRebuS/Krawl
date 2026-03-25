@@ -126,17 +126,22 @@ def get_cached_short(key: str) -> Optional[Any]:
     return None
 
 
-def set_cached_short(key: str, value: Any) -> None:
+def set_cached_short(key: str, value: Any, ttl: int = None) -> None:
     """Set a value in the short-TTL hot-path cache (scalable mode only).
 
-    Uses a short TTL (30s) for data that changes frequently but is
+    Uses a short TTL (default 30s) for data that changes frequently but is
     expensive to query on every request (ban info, IP categories).
     In standalone mode, this is a no-op.
+
+    Args:
+        key: Cache key
+        value: Value to cache
+        ttl: Optional TTL override in seconds (defaults to _REDIS_SHORT_TTL)
     """
     if _backend == "scalable" and _redis_client is not None:
         _redis_client.setex(
             f"{_REDIS_PREFIX}hot:{key}",
-            _REDIS_SHORT_TTL,
+            ttl or _REDIS_SHORT_TTL,
             json.dumps(value, default=_json_serializer),
         )
 

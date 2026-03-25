@@ -1,12 +1,12 @@
 # Krawl Honeypot Configuration
 
-# Deployment mode: "standalone" (SQLite + in-memory cache) or "scalable" (MariaDB + Redis)
+# Deployment mode: "standalone" (SQLite + in-memory cache) or "scalable" (PostgreSQL + Redis)
 mode: standalone
 
-# MariaDB settings (only used in scalable mode)
-mariadb:
+# PostgreSQL settings (only used in scalable mode)
+postgres:
   host: "localhost"
-  port: 3306
+  port: 5432
   user: "krawl"
   password: "krawl"
   database: "krawl"

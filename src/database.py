@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import create_engine, func, distinct, case, event, or_
+from sqlalchemy import create_engine, func, distinct, event, or_
 from sqlalchemy.orm import sessionmaker, scoped_session, Session, joinedload
 from sqlalchemy.engine import Engine
 
@@ -38,6 +38,29 @@ from logger import get_app_logger
 
 applogger = get_app_logger()
 
+# ── Access-log write buffer (scalable mode) ──────────────────────────
+# Instead of INSERT-per-request over the network, access log entries are
+# buffered in memory and flushed in bulk every few seconds by a background task.
+# IP stats counters are still updated synchronously (needed for ban checks).
+import collections
+import threading
+
+_write_buffer: collections.deque = collections.deque()
+_write_lock = threading.Lock()
+_FLUSH_BATCH_SIZE = 200
+
+
+def _buffer_access_log_entry(**kwargs) -> None:
+    """Append an access-log entry to the in-memory write buffer."""
+    kwargs["_buffered_at"] = datetime.now()
+    with _write_lock:
+        _write_buffer.append(kwargs)
+
+
+def get_write_buffer_size() -> int:
+    """Return current buffer depth (for monitoring)."""
+    return len(_write_buffer)
+
 
 class DatabaseManager:
     """
@@ -59,37 +82,32 @@ class DatabaseManager:
         self,
         database_path: str = "data/krawl.db",
         mode: str = "standalone",
-        mariadb_config: dict = None,
+        postgres_config: dict = None,
     ) -> None:
         """
         Initialize the database connection and create tables.
 
         Args:
             database_path: Path to the SQLite database file (standalone mode)
-            mode: "standalone" for SQLite, "scalable" for MariaDB
-            mariadb_config: MariaDB connection settings (host, port, user, password, database)
+            mode: "standalone" for SQLite, "scalable" for PostgreSQL
+            postgres_config: PostgreSQL connection settings (host, port, user, password, database)
         """
         if self._initialized:
             return
 
-        from config import get_config
-
-        sql_echo = get_config().log_level == "DEBUG"
-
         self._mode = mode
 
         if mode == "scalable":
-            mariadb_config = mariadb_config or {}
+            postgres_config = postgres_config or {}
             from sqlalchemy.engine import URL
 
             database_url = URL.create(
-                drivername="mysql+pymysql",
-                username=mariadb_config.get("user", "krawl"),
-                password=mariadb_config.get("password", ""),
-                host=mariadb_config.get("host", "localhost"),
-                port=int(mariadb_config.get("port", 3306)),
-                database=mariadb_config.get("database", "krawl"),
-                query={"charset": "utf8mb4"},
+                drivername="postgresql+psycopg2",
+                username=postgres_config.get("user", "krawl"),
+                password=postgres_config.get("password", ""),
+                host=postgres_config.get("host", "localhost"),
+                port=int(postgres_config.get("port", 5432)),
+                database=postgres_config.get("database", "krawl"),
             )
             self._engine = create_engine(
                 database_url,
@@ -97,11 +115,11 @@ class DatabaseManager:
                 max_overflow=20,
                 pool_pre_ping=True,
                 pool_recycle=1800,
-                echo=sql_echo,
+                echo=False,
             )
             applogger.info(
-                f"Using MariaDB at {mariadb_config['host']}:{mariadb_config['port']}"
-                f"/{mariadb_config['database']}"
+                f"Using PostgreSQL at {postgres_config['host']}:{postgres_config['port']}"
+                f"/{postgres_config['database']}"
             )
         else:
             # Standalone: SQLite
@@ -113,7 +131,7 @@ class DatabaseManager:
             self._engine = create_engine(
                 database_url,
                 connect_args={"check_same_thread": False},
-                echo=sql_echo,
+                echo=False,
             )
 
             # Register SQLite PRAGMAs on this specific engine instance
@@ -254,7 +272,9 @@ class DatabaseManager:
         attack_types: Optional[List[str]] = None,
         matched_patterns: Optional[Dict[str, str]] = None,
         raw_request: Optional[str] = None,
-    ) -> Optional[int]:
+        increment_page_visit: bool = False,
+        max_pages_limit: int = 0,
+    ) -> int:
         """
         Persist an access log entry to the database.
 
@@ -268,39 +288,117 @@ class DatabaseManager:
             attack_types: List of detected attack types
             matched_patterns: Dict mapping attack_type to matched pattern
             raw_request: Full raw HTTP request for forensic analysis
+            increment_page_visit: Also bump the page visit counter in the same tx
+            max_pages_limit: Ban threshold (used with increment_page_visit)
 
         Returns:
-            The ID of the created AccessLog record, or None on error
+            The page visit count (0 when increment_page_visit is False)
         """
         from config import get_config
 
-        persist_suspicious_only = get_config().database_persist_suspicious_only
+        config = get_config()
+        persist_suspicious_only = config.database_persist_suspicious_only
+        scalable = config.mode == "scalable"
 
         session = self.session
         try:
-            access_log_id = None
+            # In scalable mode, buffer access log writes and flush in bulk later.
+            # In standalone mode (local SQLite), write immediately.
+            if scalable:
+                if not persist_suspicious_only or is_suspicious:
+                    _buffer_access_log_entry(
+                        ip=ip,
+                        path=path,
+                        user_agent=user_agent,
+                        method=method,
+                        is_suspicious=is_suspicious,
+                        is_honeypot_trigger=is_honeypot_trigger,
+                        attack_types=attack_types,
+                        matched_patterns=matched_patterns,
+                        raw_request=raw_request,
+                    )
+            else:
+                if not persist_suspicious_only or is_suspicious:
+                    access_log = AccessLog(
+                        ip=sanitize_ip(ip),
+                        path=sanitize_path(path),
+                        user_agent=sanitize_user_agent(user_agent),
+                        method=method[:10],
+                        is_suspicious=is_suspicious,
+                        is_honeypot_trigger=is_honeypot_trigger,
+                        timestamp=datetime.now(),
+                        raw_request=raw_request,
+                    )
+                    session.add(access_log)
+                    session.flush()
 
-            # Skip persisting the access log entry for non-suspicious requests
-            # when persist_suspicious_only is enabled (counters still update below)
-            if not persist_suspicious_only or is_suspicious:
-                # Create access log with sanitized fields
+                    if attack_types:
+                        matched_patterns = matched_patterns or {}
+                        for attack_type in attack_types:
+                            detection = AttackDetection(
+                                access_log_id=access_log.id,
+                                attack_type=attack_type[:50],
+                                matched_pattern=sanitize_attack_pattern(
+                                    matched_patterns.get(attack_type, "")
+                                ),
+                            )
+                            session.add(detection)
+
+            # Always update IP stats counters (+ optional page visit increment)
+            page_visit_count = self._update_ip_stats(
+                session,
+                ip,
+                is_suspicious,
+                increment_page_visit=increment_page_visit,
+                max_pages_limit=max_pages_limit,
+            )
+
+            session.commit()
+            return page_visit_count
+
+        except Exception as e:
+            session.rollback()
+            applogger.critical(f"Database error persisting access: {e}")
+            return 0
+        finally:
+            self.close_session()
+
+    def flush_access_log_buffer(self) -> int:
+        """
+        Bulk-insert buffered access log entries into the database.
+
+        Called periodically by a background task in scalable mode.
+        Returns the number of entries flushed.
+        """
+        entries = []
+        with _write_lock:
+            for _ in range(min(len(_write_buffer), _FLUSH_BATCH_SIZE)):
+                entries.append(_write_buffer.popleft())
+
+        if not entries:
+            return 0
+
+        session = self.session
+        try:
+            for entry in entries:
+                ts = entry.pop("_buffered_at", datetime.now())
+                attack_types = entry.pop("attack_types", None)
+                matched_patterns = entry.pop("matched_patterns", None) or {}
+
                 access_log = AccessLog(
-                    ip=sanitize_ip(ip),
-                    path=sanitize_path(path),
-                    user_agent=sanitize_user_agent(user_agent),
-                    method=method[:10],
-                    is_suspicious=is_suspicious,
-                    is_honeypot_trigger=is_honeypot_trigger,
-                    timestamp=datetime.now(),
-                    raw_request=raw_request,
+                    ip=sanitize_ip(entry["ip"]),
+                    path=sanitize_path(entry["path"]),
+                    user_agent=sanitize_user_agent(entry.get("user_agent", "")),
+                    method=(entry.get("method", "GET"))[:10],
+                    is_suspicious=entry.get("is_suspicious", False),
+                    is_honeypot_trigger=entry.get("is_honeypot_trigger", False),
+                    timestamp=ts,
+                    raw_request=entry.get("raw_request"),
                 )
                 session.add(access_log)
-                session.flush()  # Get the ID before committing
-                access_log_id = access_log.id
 
-                # Add attack detections if any
                 if attack_types:
-                    matched_patterns = matched_patterns or {}
+                    session.flush()
                     for attack_type in attack_types:
                         detection = AttackDetection(
                             access_log_id=access_log.id,
@@ -311,17 +409,16 @@ class DatabaseManager:
                         )
                         session.add(detection)
 
-            # Always update IP stats counters
-            self._update_ip_stats(session, ip, is_suspicious)
-
             session.commit()
-            return access_log_id
+            return len(entries)
 
         except Exception as e:
             session.rollback()
-            # Log error but don't crash - database persistence is secondary to honeypot function
-            applogger.critical(f"Database error persisting access: {e}")
-            return None
+            applogger.error(f"Error flushing access log buffer ({len(entries)} entries): {e}")
+            # Re-queue failed entries so they aren't lost
+            with _write_lock:
+                _write_buffer.extendleft(reversed(entries))
+            return 0
         finally:
             self.close_session()
 
@@ -365,8 +462,13 @@ class DatabaseManager:
             self.close_session()
 
     def _update_ip_stats(
-        self, session: Session, ip: str, is_suspicious: bool = False
-    ) -> None:
+        self,
+        session: Session,
+        ip: str,
+        is_suspicious: bool = False,
+        increment_page_visit: bool = False,
+        max_pages_limit: int = 0,
+    ) -> int:
         """
         Update IP statistics (upsert pattern).
 
@@ -374,6 +476,11 @@ class DatabaseManager:
             session: Active database session
             ip: IP address to update
             is_suspicious: Whether the request was flagged as suspicious
+            increment_page_visit: Also increment page visit counter
+            max_pages_limit: Ban threshold (only used when increment_page_visit=True)
+
+        Returns:
+            The page visit count (0 if increment_page_visit is False)
         """
         sanitized_ip = sanitize_ip(ip)
         now = datetime.now()
@@ -392,8 +499,24 @@ class DatabaseManager:
                 first_seen=now,
                 last_seen=now,
                 need_reevaluation=is_suspicious,
+                page_visit_count=0,
             )
             session.add(ip_stats)
+
+        page_visit_count = 0
+        if increment_page_visit:
+            ip_stats.page_visit_count = (ip_stats.page_visit_count or 0) + 1
+            page_visit_count = ip_stats.page_visit_count
+
+            if max_pages_limit > 0 and page_visit_count >= max_pages_limit:
+                ip_stats.total_violations = (ip_stats.total_violations or 0) + 1
+                ip_stats.ban_multiplier = 2 ** (ip_stats.total_violations - 1)
+                ip_stats.ban_timestamp = now
+                # Invalidate cached ban info so the new ban is enforced immediately
+                from dashboard_cache import delete_cached_short
+                delete_cached_short(f"ban:{sanitized_ip}")
+
+        return page_visit_count
 
     def increment_page_visit(self, ip: str, max_pages_limit: int) -> int:
         """
@@ -462,16 +585,23 @@ class DatabaseManager:
         session = self.session
         try:
             sanitized_ip = sanitize_ip(ip)
-            ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
+            row = (
+                session.query(
+                    IpStats.ban_timestamp, IpStats.ban_multiplier, IpStats.page_visit_count
+                )
+                .filter(IpStats.ip == sanitized_ip)
+                .first()
+            )
 
-            if not ip_stats or ip_stats.ban_timestamp is None:
+            if not row or row.ban_timestamp is None:
                 return False
 
-            effective_duration = ban_duration_seconds * (ip_stats.ban_multiplier or 1)
-            elapsed = (datetime.now() - ip_stats.ban_timestamp).total_seconds()
+            effective_duration = ban_duration_seconds * (row.ban_multiplier or 1)
+            elapsed = (datetime.now() - row.ban_timestamp).total_seconds()
 
             if elapsed > effective_duration:
                 # Ban expired — reset count for next cycle
+                ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
                 ip_stats.page_visit_count = 0
                 ip_stats.ban_timestamp = None
                 session.commit()
@@ -490,7 +620,7 @@ class DatabaseManager:
         Get detailed ban information for an IP.
 
         In scalable mode, results are cached in Redis with a short TTL (30s)
-        to avoid hitting MariaDB on every incoming request.
+        to avoid hitting the database on every incoming request.
 
         Args:
             ip: Client IP address
@@ -510,9 +640,19 @@ class DatabaseManager:
 
         session = self.session
         try:
-            ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
+            # Only fetch the 4 columns needed for ban check (not all 30+)
+            row = (
+                session.query(
+                    IpStats.ban_timestamp,
+                    IpStats.total_violations,
+                    IpStats.ban_multiplier,
+                    IpStats.ban_override,
+                )
+                .filter(IpStats.ip == sanitized_ip)
+                .first()
+            )
 
-            if not ip_stats:
+            if not row:
                 result = {
                     "is_banned": False,
                     "violations": 0,
@@ -522,10 +662,31 @@ class DatabaseManager:
                 set_cached_short(f"ban:{sanitized_ip}", result)
                 return result
 
-            violations = ip_stats.total_violations or 0
-            multiplier = ip_stats.ban_multiplier or 1
+            ban_timestamp, violations_raw, multiplier_raw, ban_override = row
+            violations = violations_raw or 0
+            multiplier = multiplier_raw or 1
 
-            if ip_stats.ban_timestamp is None:
+            # Honour manual ban/unban overrides
+            if ban_override is True:
+                result = {
+                    "is_banned": True,
+                    "violations": violations,
+                    "ban_multiplier": multiplier,
+                    "remaining_ban_seconds": ban_duration_seconds,
+                }
+                set_cached_short(f"ban:{sanitized_ip}", result, ttl=ban_duration_seconds)
+                return result
+            if ban_override is False:
+                result = {
+                    "is_banned": False,
+                    "violations": violations,
+                    "ban_multiplier": multiplier,
+                    "remaining_ban_seconds": 0,
+                }
+                set_cached_short(f"ban:{sanitized_ip}", result)
+                return result
+
+            if ban_timestamp is None:
                 result = {
                     "is_banned": False,
                     "violations": violations,
@@ -536,7 +697,7 @@ class DatabaseManager:
                 return result
 
             effective_duration = ban_duration_seconds * multiplier
-            elapsed = (datetime.now() - ip_stats.ban_timestamp).total_seconds()
+            elapsed = (datetime.now() - ban_timestamp).total_seconds()
             remaining = max(0, effective_duration - elapsed)
 
             result = {
@@ -546,7 +707,10 @@ class DatabaseManager:
                 "effective_ban_duration_seconds": effective_duration,
                 "remaining_ban_seconds": remaining,
             }
-            set_cached_short(f"ban:{sanitized_ip}", result)
+            # Cache banned IPs for the remaining ban duration (no need to re-check
+            # until the ban expires). Not-banned IPs use the default short TTL.
+            cache_ttl = max(int(remaining), 1) if remaining > 0 else None
+            set_cached_short(f"ban:{sanitized_ip}", result, ttl=cache_ttl)
             return result
 
         except Exception as e:
@@ -617,6 +781,8 @@ class DatabaseManager:
         except Exception as e:
             session.rollback()
             applogger.error(f"Error updating IP stats analysis: {e}")
+        finally:
+            self.close_session()
 
     def manual_update_category(self, ip: str, category: str) -> None:
         """
@@ -650,6 +816,8 @@ class DatabaseManager:
         except Exception as e:
             session.rollback()
             applogger.error(f"Error updating manual category: {e}")
+        finally:
+            self.close_session()
 
     def _record_category_change(
         self,
@@ -681,6 +849,8 @@ class DatabaseManager:
         except Exception as e:
             session.rollback()
             applogger.error(f"Error recording category change: {e}")
+        finally:
+            self.close_session()
 
     def get_category_history(self, ip: str) -> List[Dict[str, Any]]:
         """
@@ -901,6 +1071,8 @@ class DatabaseManager:
         except Exception as e:
             session.rollback()
             raise
+        finally:
+            self.close_session()
 
     def flag_all_ips_for_reevaluation(self) -> int:
         """
@@ -928,6 +1100,8 @@ class DatabaseManager:
         except Exception as e:
             session.rollback()
             raise
+        finally:
+            self.close_session()
 
     def get_access_logs_paginated(
         self,
@@ -1249,9 +1423,12 @@ class DatabaseManager:
                 sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
             )
 
-            # Get total count of attackers
+            # Get total count of attackers (direct count avoids subquery with all columns)
             total_attackers = (
-                session.query(IpStats).filter(IpStats.category == "attacker").count()
+                session.query(func.count(IpStats.ip))
+                .filter(IpStats.category == "attacker")
+                .scalar()
+                or 0
             )
 
             # Build query with sorting
@@ -1347,11 +1524,13 @@ class DatabaseManager:
 
             # Build query with optional category filter
             query = session.query(IpStats)
+            count_query = session.query(func.count(IpStats.ip))
             if categories:
                 query = query.filter(IpStats.category.in_(categories))
+                count_query = count_query.filter(IpStats.category.in_(categories))
 
-            # Get total count
-            total_ips = query.count()
+            # Get total count (direct count avoids subquery with all columns)
+            total_ips = count_query.scalar() or 0
 
             # Apply sorting
             if sort_by == "total_requests":
@@ -1420,6 +1599,11 @@ class DatabaseManager:
         """
         Get aggregate statistics for the dashboard (excludes local/private IPs and server IP).
 
+        Derives total_accesses and unique_ips from ip_stats (one row per IP)
+        to avoid full table scans on the large access_logs table.
+        Boolean-indexed columns are queried individually so the database can
+        use index range scans instead of a single full-table aggregation.
+
         Returns:
             Dictionary with total_accesses, unique_ips, unique_paths,
             suspicious_accesses, honeypot_triggered, honeypot_ips
@@ -1431,40 +1615,53 @@ class DatabaseManager:
             config = get_config()
             server_ip = config.get_server_ip()
 
-            # Single aggregation query instead of loading all rows
-            base = session.query(
-                func.count(AccessLog.id).label("total_accesses"),
-                func.count(distinct(AccessLog.ip)).label("unique_ips"),
-                func.count(distinct(AccessLog.path)).label("unique_paths"),
-                func.count(case((AccessLog.is_suspicious == True, 1))).label(
-                    "suspicious_accesses"
-                ),
-                func.count(case((AccessLog.is_honeypot_trigger == True, 1))).label(
-                    "honeypot_triggered"
-                ),
+            # --- Fast path: derive from ip_stats (tiny table, one row per IP) ---
+            ip_base = session.query(
+                func.sum(IpStats.total_requests).label("total_accesses"),
+                func.count(IpStats.ip).label("unique_ips"),
             )
-            base = self._public_ip_filter(base, AccessLog.ip, server_ip)
-            row = base.one()
-
-            # Honeypot unique IPs (separate query for distinct on filtered subset)
-            hp_query = session.query(func.count(distinct(AccessLog.ip))).filter(
-                AccessLog.is_honeypot_trigger == True
-            )
-            hp_query = self._public_ip_filter(hp_query, AccessLog.ip, server_ip)
-            honeypot_ips = hp_query.scalar() or 0
+            ip_base = self._public_ip_filter(ip_base, IpStats.ip, server_ip)
+            ip_row = ip_base.one()
 
             unique_attackers = (
-                session.query(IpStats).filter(IpStats.category == "attacker").count()
+                session.query(func.count(IpStats.ip))
+                .filter(IpStats.category == "attacker")
+                .scalar()
+                or 0
             )
 
+            # --- Indexed queries on access_logs (use boolean indexes) ---
+            suspicious_q = session.query(func.count(AccessLog.id)).filter(
+                AccessLog.is_suspicious == True
+            )
+            suspicious_q = self._public_ip_filter(suspicious_q, AccessLog.ip, server_ip)
+            suspicious_accesses = suspicious_q.scalar() or 0
+
+            honeypot_q = session.query(func.count(AccessLog.id)).filter(
+                AccessLog.is_honeypot_trigger == True
+            )
+            honeypot_q = self._public_ip_filter(honeypot_q, AccessLog.ip, server_ip)
+            honeypot_triggered = honeypot_q.scalar() or 0
+
+            hp_ips_q = session.query(func.count(distinct(AccessLog.ip))).filter(
+                AccessLog.is_honeypot_trigger == True
+            )
+            hp_ips_q = self._public_ip_filter(hp_ips_q, AccessLog.ip, server_ip)
+            honeypot_ips = hp_ips_q.scalar() or 0
+
+            # --- Remaining: unique_paths still needs access_logs scan ---
+            paths_q = session.query(func.count(distinct(AccessLog.path)))
+            paths_q = self._public_ip_filter(paths_q, AccessLog.ip, server_ip)
+            unique_paths = paths_q.scalar() or 0
+
             return {
-                "total_accesses": row.total_accesses or 0,
-                "unique_ips": row.unique_ips or 0,
-                "unique_paths": row.unique_paths or 0,
-                "suspicious_accesses": row.suspicious_accesses or 0,
-                "honeypot_triggered": row.honeypot_triggered or 0,
-                "honeypot_ips": honeypot_ips,
-                "unique_attackers": unique_attackers,
+                "total_accesses": int(ip_row.total_accesses or 0),
+                "unique_ips": int(ip_row.unique_ips or 0),
+                "unique_paths": int(unique_paths),
+                "suspicious_accesses": int(suspicious_accesses),
+                "honeypot_triggered": int(honeypot_triggered),
+                "honeypot_ips": int(honeypot_ips),
+                "unique_attackers": int(unique_attackers),
             }
         finally:
             self.close_session()
@@ -1684,7 +1881,11 @@ class DatabaseManager:
             base_query = base_query.group_by(AccessLog.ip)
 
             # Get total count of distinct honeypot IPs
-            total_honeypots = base_query.count()
+            count_hp = session.query(func.count(distinct(AccessLog.ip))).filter(
+                AccessLog.is_honeypot_trigger == True
+            )
+            count_hp = self._public_ip_filter(count_hp, AccessLog.ip, server_ip)
+            total_honeypots = count_hp.scalar() or 0
 
             # Apply sorting
             if sort_by == "count":
@@ -1768,7 +1969,7 @@ class DatabaseManager:
                 sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
             )
 
-            total_credentials = session.query(CredentialAttempt).count()
+            total_credentials = session.query(func.count(CredentialAttempt.id)).scalar() or 0
 
             # Build query with sorting
             query = session.query(CredentialAttempt)
@@ -1850,7 +2051,11 @@ class DatabaseManager:
             base_query = session.query(IpStats)
             base_query = self._public_ip_filter(base_query, IpStats.ip, server_ip)
 
-            total_ips = base_query.count()
+            # Direct count avoids subquery with all columns
+            count_q = session.query(func.count(IpStats.ip))
+            if server_ip:
+                count_q = count_q.filter(IpStats.ip != server_ip)
+            total_ips = count_q.scalar() or 0
 
             if sort_by == "count":
                 order_col = IpStats.total_requests
@@ -1895,6 +2100,9 @@ class DatabaseManager:
         """
         Retrieve paginated list of top paths by access count.
 
+        Groups access logs by path with SQL-level sorting and pagination. Honeypot paths are nearly always <255 chars
+        so this gives correct results in practice.
+
         Args:
             page: Page number (1-indexed)
             page_size: Number of results per page
@@ -1907,16 +2115,17 @@ class DatabaseManager:
         session = self.session
         try:
             offset = (page - 1) * page_size
-
             count_col = func.count(AccessLog.id).label("count")
+
+            path_expr = AccessLog.path.label("path")
 
             # Get total number of distinct paths
             total_paths = (
-                session.query(func.count(distinct(AccessLog.path))).scalar() or 0
+                session.query(func.count(distinct(path_expr))).scalar() or 0
             )
 
             # Build query with SQL-level sorting and pagination
-            query = session.query(AccessLog.path, count_col).group_by(AccessLog.path)
+            query = session.query(path_expr, count_col).group_by(path_expr)
 
             if sort_by == "count":
                 order_expr = (
@@ -1924,9 +2133,9 @@ class DatabaseManager:
                 )
             else:
                 order_expr = (
-                    AccessLog.path.desc()
+                    path_expr.desc()
                     if sort_order == "desc"
-                    else AccessLog.path.asc()
+                    else path_expr.asc()
                 )
 
             results = query.order_by(order_expr).offset(offset).limit(page_size).all()
@@ -1937,7 +2146,7 @@ class DatabaseManager:
                 "pagination": {
                     "page": page,
                     "page_size": page_size,
-                    "total": total_paths,
+                    "total": int(total_paths),
                     "total_pages": total_pages,
                 },
             }
@@ -1954,6 +2163,9 @@ class DatabaseManager:
         """
         Retrieve paginated list of top user agents by access count.
 
+        Groups access logs by user agent with SQL-level sorting and
+        index and avoid a full table scan.
+
         Args:
             page: Page number (1-indexed)
             page_size: Number of results per page
@@ -1966,14 +2178,15 @@ class DatabaseManager:
         session = self.session
         try:
             offset = (page - 1) * page_size
-
             count_col = func.count(AccessLog.id).label("count")
+
+            ua_expr = AccessLog.user_agent.label("user_agent")
 
             base_filter = [AccessLog.user_agent.isnot(None), AccessLog.user_agent != ""]
 
             # Get total number of distinct user agents
             total_uas = (
-                session.query(func.count(distinct(AccessLog.user_agent)))
+                session.query(func.count(distinct(ua_expr)))
                 .filter(*base_filter)
                 .scalar()
                 or 0
@@ -1981,9 +2194,9 @@ class DatabaseManager:
 
             # Build query with SQL-level sorting and pagination
             query = (
-                session.query(AccessLog.user_agent, count_col)
+                session.query(ua_expr, count_col)
                 .filter(*base_filter)
-                .group_by(AccessLog.user_agent)
+                .group_by(ua_expr)
             )
 
             if sort_by == "count":
@@ -1992,9 +2205,9 @@ class DatabaseManager:
                 )
             else:
                 order_expr = (
-                    AccessLog.user_agent.desc()
+                    ua_expr.desc()
                     if sort_order == "desc"
-                    else AccessLog.user_agent.asc()
+                    else ua_expr.asc()
                 )
 
             results = query.order_by(order_expr).offset(offset).limit(page_size).all()
@@ -2008,7 +2221,7 @@ class DatabaseManager:
                 "pagination": {
                     "page": page,
                     "page_size": page_size,
-                    "total": total_uas,
+                    "total": int(total_uas),
                     "total_pages": total_pages,
                 },
             }
@@ -2053,34 +2266,39 @@ class DatabaseManager:
                 base_filters.append(AccessLog.ip == ip_filter)
 
             # Count total unique access logs with attack detections
-            count_subq = session.query(AccessLog.id).join(AttackDetection)
+            count_q = session.query(func.count(distinct(AccessLog.id))).join(AttackDetection)
             if base_filters:
-                count_subq = count_subq.filter(*base_filters)
-            total_attacks = count_subq.distinct().count()
+                count_q = count_q.filter(*base_filters)
+            total_attacks = count_q.scalar() or 0
 
-            # Get paginated access logs with attack detections
-            query = (
-                session.query(AccessLog)
-                .options(joinedload(AccessLog.attack_detections))
+            # Get distinct matching AccessLog IDs, then load full objects.
+            # Avoids DISTINCT ON + ORDER BY conflicts on PostgreSQL.
+            if sort_by == "timestamp":
+                order_col = AccessLog.timestamp
+            elif sort_by == "ip":
+                order_col = AccessLog.ip
+            else:
+                order_col = AccessLog.timestamp
+
+            order_expr = order_col.desc() if sort_order == "desc" else order_col.asc()
+
+            ids_q = (
+                session.query(AccessLog.id, order_col)
                 .join(AttackDetection)
+                .group_by(AccessLog.id, order_col)
             )
             if base_filters:
-                query = query.filter(*base_filters)
-            query = query.distinct(AccessLog.id)
+                ids_q = ids_q.filter(*base_filters)
 
-            if sort_by == "timestamp":
-                query = query.order_by(
-                    AccessLog.timestamp.desc()
-                    if sort_order == "desc"
-                    else AccessLog.timestamp.asc()
-                )
-            elif sort_by == "ip":
-                query = query.order_by(
-                    AccessLog.ip.desc() if sort_order == "desc" else AccessLog.ip.asc()
-                )
+            paginated_ids = ids_q.order_by(order_expr).offset(offset).limit(page_size).subquery()
 
-            # Apply LIMIT and OFFSET at database level
-            logs = query.offset(offset).limit(page_size).all()
+            logs = (
+                session.query(AccessLog)
+                .options(joinedload(AccessLog.attack_detections))
+                .join(paginated_ids, AccessLog.id == paginated_ids.c.id)
+                .order_by(order_expr)
+                .all()
+            )
 
             # Convert to attack list (exclude raw_request for performance - it's too large)
             paginated = [
@@ -2198,9 +2416,10 @@ class DatabaseManager:
             like_q = f"%{query}%"
 
             # --- Search attacks (AccessLog + AttackDetection) ---
-            attack_query = (
-                session.query(AccessLog)
-                .options(joinedload(AccessLog.attack_detections))
+            # Get distinct AccessLog IDs matching the search, then load full objects.
+            # This avoids DISTINCT ON + ORDER BY conflicts on PostgreSQL.
+            matching_ids_q = (
+                session.query(AccessLog.id)
                 .join(AttackDetection)
                 .filter(
                     or_(
@@ -2210,14 +2429,23 @@ class DatabaseManager:
                         AttackDetection.matched_pattern.like(like_q),
                     )
                 )
-                .distinct(AccessLog.id)
+                .distinct()
             )
 
-            total_attacks = attack_query.count()
-            attack_logs = (
-                attack_query.order_by(AccessLog.timestamp.desc())
+            total_attacks = session.query(func.count()).select_from(matching_ids_q.subquery()).scalar() or 0
+
+            paginated_ids = (
+                matching_ids_q.order_by(AccessLog.id.desc())
                 .offset(offset)
                 .limit(page_size)
+                .subquery()
+            )
+
+            attack_logs = (
+                session.query(AccessLog)
+                .options(joinedload(AccessLog.attack_detections))
+                .join(paginated_ids, AccessLog.id == paginated_ids.c.id)
+                .order_by(AccessLog.timestamp.desc())
                 .all()
             )
 
@@ -2247,7 +2475,17 @@ class DatabaseManager:
                 )
             )
 
-            total_ips = ip_query.count()
+            total_ips = session.query(func.count(IpStats.ip)).filter(
+                or_(
+                    IpStats.ip.like(like_q),
+                    IpStats.city.like(like_q),
+                    IpStats.country.like(like_q),
+                    IpStats.country_code.like(like_q),
+                    IpStats.isp.like(like_q),
+                    IpStats.asn_org.like(like_q),
+                    IpStats.reverse.like(like_q),
+                )
+            ).scalar() or 0
             ips = (
                 ip_query.order_by(IpStats.total_requests.desc())
                 .offset(offset)
@@ -2318,6 +2556,8 @@ class DatabaseManager:
             session.rollback()
             applogger.error(f"Error setting ban override for {sanitized_ip}: {e}")
             return False
+        finally:
+            self.close_session()
 
     def force_ban_ip(self, ip: str) -> bool:
         """
@@ -2344,6 +2584,8 @@ class DatabaseManager:
             session.rollback()
             applogger.error(f"Error force-banning {sanitized_ip}: {e}")
             return False
+        finally:
+            self.close_session()
 
     def get_ban_overrides_paginated(
         self,
@@ -2354,7 +2596,7 @@ class DatabaseManager:
         session = self.session
         try:
             base_query = session.query(IpStats).filter(IpStats.ban_override.isnot(None))
-            total = base_query.count()
+            total = session.query(func.count(IpStats.ip)).filter(IpStats.ban_override.isnot(None)).scalar() or 0
             total_pages = max(1, (total + page_size - 1) // page_size)
 
             results = (
@@ -2419,6 +2661,8 @@ class DatabaseManager:
             session.rollback()
             applogger.error(f"Error tracking IP {sanitized_ip}: {e}")
             return False
+        finally:
+            self.close_session()
 
     def untrack_ip(self, ip: str) -> bool:
         """Remove an IP from the tracked list."""
@@ -2435,6 +2679,8 @@ class DatabaseManager:
             session.rollback()
             applogger.error(f"Error untracking IP {sanitized_ip}: {e}")
             return False
+        finally:
+            self.close_session()
 
     def is_ip_tracked(self, ip: str) -> bool:
         """Check if an IP is currently tracked."""
@@ -2456,7 +2702,7 @@ class DatabaseManager:
         """Get all tracked IPs, paginated. Reads only from tracked_ips table."""
         session = self.session
         try:
-            total = session.query(TrackedIp).count()
+            total = session.query(func.count(TrackedIp.id)).scalar() or 0
             total_pages = max(1, (total + page_size - 1) // page_size)
 
             tracked_rows = (
@@ -2508,7 +2754,7 @@ def get_database() -> DatabaseManager:
 def initialize_database(
     database_path: str = "data/krawl.db",
     mode: str = "standalone",
-    mariadb_config: dict = None,
+    postgres_config: dict = None,
 ) -> None:
     """Initialize the database system."""
-    _db_manager.initialize(database_path, mode=mode, mariadb_config=mariadb_config)
+    _db_manager.initialize(database_path, mode=mode, postgres_config=postgres_config)

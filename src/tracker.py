@@ -219,11 +219,12 @@ class AccessTracker:
         body: str = "",
         method: str = "GET",
         raw_request: str = "",
-    ):
+        increment_page_visit: bool = False,
+    ) -> int:
         """
         Record an access attempt.
 
-        Stores in both in-memory structures and SQLite database.
+        Stores in both in-memory structures and database.
         Skips recording if the IP is the server's own public IP.
 
         Args:
@@ -233,6 +234,10 @@ class AccessTracker:
             body: Request body (for POST/PUT)
             method: HTTP method
             raw_request: Full raw HTTP request for forensic analysis
+            increment_page_visit: Also bump page visit counter in the same DB tx
+
+        Returns:
+            The page visit count (0 when increment_page_visit is False or on error)
         """
         # Skip if this is the server's own IP
         from config import get_config
@@ -240,7 +245,7 @@ class AccessTracker:
         config = get_config()
         server_ip = config.get_server_ip()
         if server_ip and ip == server_ip:
-            return
+            return 0
 
         # Path attack type detection
         attack_findings = self.detect_attack_type(path)
@@ -258,11 +263,10 @@ class AccessTracker:
         )
         is_honeypot = self.is_honeypot_path(path)
 
-        # In-memory storage for dashboard
         # Persist to database
         if self.db:
             try:
-                self.db.persist_access(
+                return self.db.persist_access(
                     ip=ip,
                     path=path,
                     user_agent=user_agent,
@@ -271,9 +275,12 @@ class AccessTracker:
                     is_honeypot_trigger=is_honeypot,
                     attack_types=attack_findings if attack_findings else None,
                     raw_request=raw_request if raw_request else None,
+                    increment_page_visit=increment_page_visit,
+                    max_pages_limit=self.max_pages_limit if increment_page_visit else 0,
                 )
             except Exception as e:
                 logger.error(f"Failed to persist access record: {e}")
+        return 0
 
     def detect_attack_type(self, data: str) -> list[str]:
         """
