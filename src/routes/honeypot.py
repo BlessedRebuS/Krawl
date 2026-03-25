@@ -41,6 +41,16 @@ from deception_responses import (
 from wordlists import get_wordlists
 from logger import get_app_logger, get_access_logger, get_credential_logger
 
+
+async def _safe_body(request: Request) -> str:
+    """Read request body, returning empty string on client disconnect."""
+    try:
+        body_bytes = await request.body()
+        return body_bytes.decode("utf-8", errors="replace")
+    except Exception:
+        return ""
+
+
 # --- Auto-tracking dependency ---
 # Records requests that match attack patterns or honeypot trap paths.
 
@@ -54,8 +64,7 @@ async def _track_honeypot_request(request: Request):
 
     body = ""
     if request.method in ("POST", "PUT"):
-        body_bytes = await request.body()
-        body = body_bytes.decode("utf-8", errors="replace")
+        body = await _safe_body(request)
 
     # Check attack patterns in path and body
     attack_findings = tracker.detect_attack_type(path)
@@ -116,8 +125,7 @@ async def sql_endpoint_post(request: Request):
     client_ip = get_client_ip(request)
     access_logger = get_access_logger()
 
-    body_bytes = await request.body()
-    post_data = body_bytes.decode("utf-8", errors="replace")
+    post_data = await _safe_body(request)
 
     base_path = request.url.path
     access_logger.info(
@@ -148,8 +156,7 @@ async def contact_post(request: Request):
     access_logger = get_access_logger()
     app_logger = get_app_logger()
 
-    body_bytes = await request.body()
-    post_data = body_bytes.decode("utf-8", errors="replace")
+    post_data = await _safe_body(request)
 
     parsed_data = {}
     if post_data:
@@ -178,8 +185,7 @@ async def credential_capture_post(request: Request, path: str):
     access_logger = get_access_logger()
     credential_logger = get_credential_logger()
 
-    body_bytes = await request.body()
-    post_data = body_bytes.decode("utf-8", errors="replace")
+    post_data = await _safe_body(request)
 
     full_path = f"/{path}"
 
