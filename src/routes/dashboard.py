@@ -35,9 +35,9 @@ async def dashboard_page(request: Request):
 
     templates = get_templates()
     return templates.TemplateResponse(
+        request,
         "dashboard/index.html",
         {
-            "request": request,
             "dashboard_path": dashboard_path,
             "stats": stats,
             "suspicious_activities": suspicious,
@@ -61,9 +61,9 @@ async def ip_page(ip_address: str, request: Request):
 
             templates = get_templates()
             return templates.TemplateResponse(
+                request,
                 "dashboard/ip.html",
                 {
-                    "request": request,
                     "dashboard_path": dashboard_path,
                     "stats": stats,
                     "ip_address": ip_address,
