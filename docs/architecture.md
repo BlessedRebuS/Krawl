@@ -9,7 +9,7 @@ Krawl is a cloud-native deception honeypot server built on **FastAPI**. It creat
 | Layer | Technology |
 |-------|-----------|
 | **Backend** | FastAPI, Uvicorn, Python 3.11 |
-| **ORM / DB** | SQLAlchemy 2.0, SQLite (WAL mode) |
+| **ORM / DB** | SQLAlchemy 2.0, SQLite (WAL mode) or MariaDB |
 | **Templating** | Jinja2 (server-side rendering) |
 | **Reactivity** | Alpine.js 3.14 |
 | **Partial Updates** | HTMX 2.0 |
@@ -90,9 +90,10 @@ Krawl/
 Startup                              Shutdown
   │                                    │
   ├─ Initialize logging                └─ Log shutdown
-  ├─ Initialize SQLite DB
+  ├─ Initialize database (SQLite or MariaDB)
+  ├─ Initialize cache (in-memory or Redis)
+  ├─ Resolve server public IP (once)
   ├─ Create AccessTracker
-  ├─ Load webpages file (optional)
   ├─ Store config + tracker in app.state
   ├─ Start APScheduler background tasks
   └─ Log dashboard URL
@@ -229,7 +230,9 @@ Each returns a server-rendered Jinja2 partial (`hx-swap="innerHTML"`):
 └─────────────────┘
 ```
 
-**SQLite config:** WAL mode, 30s busy timeout, file permissions 600.
+**SQLite config** (standalone): WAL mode, 30s busy timeout, file permissions 600.
+
+**MariaDB config** (scalable): Connection pool (10 + 20 overflow), pre-ping enabled, connections recycled every 30 minutes.
 
 ## Frontend Architecture
 
@@ -273,6 +276,7 @@ Managed by `TasksMaster` (APScheduler). Tasks are auto-discovered from `src/task
 |------|----------|---------|
 | `analyze_ips` | Every 1 min | Score IPs into categories (attacker, crawler, user) |
 | `fetch_ip_rep` | Every 5 min | Enrich IPs with geolocation + blocklist data |
+| `dashboard_warmup` | Every 5 min | Pre-compute dashboard overview data (optional, disable via `cache_warmup: false`) |
 | `db_dump` | Configurable | Export database backups |
 | `memory_cleanup` | Periodic | Trim in-memory lists |
 | `top_attacking_ips` | Periodic | Cache top attackers |
@@ -293,16 +297,31 @@ Categories: `attacker`, `bad_crawler`, `good_crawler`, `regular_user`, `unknown`
 `config.yaml` with environment variable overrides (`KRAWL_{FIELD}`):
 
 ```yaml
+mode: standalone                # "standalone" or "scalable"
+
 server:
   port: 5000
   delay: 100                    # Response delay (ms)
 
 dashboard:
   secret_path: "test"           # Auto-generates if null
+  cache_warmup: true            # Background cache refresh (optional in scalable mode)
 
 database:
   path: "data/krawl.db"
   retention_days: 30
+
+# Scalable mode only
+mariadb:
+  host: "localhost"
+  port: 3306
+
+redis:
+  host: "localhost"
+  port: 6379
+  cache_ttl: 600                # Dashboard warmup data TTL
+  hot_ttl: 30                   # Ban info / IP category TTL
+  table_ttl: 120                # Paginated table TTL
 
 crawl:
   infinite_pages_for_malicious: true

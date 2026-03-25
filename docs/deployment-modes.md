@@ -62,6 +62,9 @@ redis:
   port: 6379
   db: 0
   password: null
+  cache_ttl: 600    # Dashboard warmup data TTL (seconds)
+  hot_ttl: 30       # Hot-path cache TTL (ban info, IP categories)
+  table_ttl: 120    # Paginated dashboard table TTL
 ```
 
 Or via environment variables:
@@ -79,6 +82,9 @@ KRAWL_REDIS_HOST=localhost
 KRAWL_REDIS_PORT=6379
 KRAWL_REDIS_DB=0
 # KRAWL_REDIS_PASSWORD=  # omit or leave unset if Redis has no password
+KRAWL_REDIS_CACHE_TTL=600
+KRAWL_REDIS_HOT_TTL=30
+KRAWL_REDIS_TABLE_TTL=120
 ```
 
 ### What changes between modes
@@ -95,15 +101,17 @@ KRAWL_REDIS_DB=0
 
 ### Redis cache tiers (scalable mode)
 
-In scalable mode, Redis is used across three cache tiers to reduce database load:
+In scalable mode, Redis is used across three cache tiers to reduce database load. All TTLs are configurable via `redis.cache_ttl`, `redis.hot_ttl`, and `redis.table_ttl` in `config.yaml` (or the corresponding `KRAWL_REDIS_*_TTL` environment variables).
 
-| Tier | TTL | What it caches |
-|------|-----|----------------|
-| **Hot-path** | 30s | Ban info and IP stats/categories. Checked on every incoming request via middleware, avoiding a MariaDB round-trip per request. |
-| **Table** | 2min | Paginated dashboard tables (attackers, credentials, honeypot triggers, attacks, patterns, access logs, attack stats). Shared across all replicas so multiple dashboard users don't duplicate queries. Automatically invalidated on write operations (ban overrides, IP tracking changes). |
-| **Warmup** | 10min | Pre-computed overview stats, top IPs/paths/user-agents, and map data. Refreshed by a background task every 5 minutes. |
+| Tier | Default TTL | Config key | What it caches |
+|------|-------------|------------|----------------|
+| **Hot-path** | 30s | `redis.hot_ttl` | Ban info and IP stats/categories. Checked on every incoming request via middleware, avoiding a MariaDB round-trip per request. |
+| **Table** | 2min | `redis.table_ttl` | Paginated dashboard tables (attackers, credentials, honeypot triggers, attacks, patterns, access logs, attack stats). Shared across all replicas so multiple dashboard users don't duplicate queries. Automatically invalidated on write operations (ban overrides, IP tracking changes). |
+| **Warmup** | 10min | `redis.cache_ttl` | Pre-computed overview stats, top IPs/paths/user-agents, and map data. Refreshed by the dashboard warmup background task (if enabled). |
 
 In standalone mode, only the warmup cache is used (in-memory dict). The hot-path and table caches are no-ops since there's only one process and the database is local.
+
+> **Tip**: In scalable mode, you can disable `dashboard.cache_warmup` in your config. The table-tier cache already reduces DB load for dashboard requests without needing a background task. This avoids unnecessary periodic queries against MariaDB.
 
 ---
 
