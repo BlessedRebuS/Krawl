@@ -224,7 +224,7 @@ class Config:
             redis_host=redis_cfg.get("host", "localhost"),
             redis_port=redis_cfg.get("port", 6379),
             redis_db=redis_cfg.get("db", 0),
-            redis_password=redis_cfg.get("password"),
+            redis_password=redis_cfg.get("password") or None,
             port=server.get("port", 5000),
             delay=server.get("delay", 100),
             server_header=server.get("server_header", ""),
@@ -316,7 +316,8 @@ def override_config_from_env(config: Config = None):
                     if len(parts) == 2:
                         setattr(config, field, (int(parts[0]), int(parts[1])))
                 else:
-                    setattr(config, field, env_value)
+                    # Treat empty strings as None for Optional fields (e.g. passwords)
+                    setattr(config, field, env_value if env_value else None)
             except Exception as e:
                 get_app_logger().error(
                     f"Error overriding config '{field}' from environment variable '{env_var}': {e}"

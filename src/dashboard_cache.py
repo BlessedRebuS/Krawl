@@ -57,7 +57,7 @@ def initialize_cache(mode: str = "standalone", redis_config: dict = None) -> Non
             host=redis_config.get("host", "localhost"),
             port=redis_config.get("port", 6379),
             db=redis_config.get("db", 0),
-            password=redis_config.get("password"),
+            password=redis_config.get("password") or None,
             decode_responses=True,
             retry_on_timeout=True,
             socket_connect_timeout=5,
