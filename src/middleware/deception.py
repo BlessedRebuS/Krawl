@@ -31,8 +31,12 @@ class DeceptionMiddleware(BaseHTTPMiddleware):
         # Read body for POST requests
         body = ""
         if method == "POST":
-            body_bytes = await request.body()
-            body = body_bytes.decode("utf-8", errors="replace")
+            try:
+                body_bytes = await request.body()
+                body = body_bytes.decode("utf-8", errors="replace")
+            except Exception:
+                # Client disconnected before body was fully sent
+                body = ""
 
         result = detect_and_respond_deception(path, query, body, method)
 
