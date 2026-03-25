@@ -10,6 +10,7 @@ from typing import Optional, List, Dict
 
 from sqlalchemy import (
     String,
+    Text,
     Integer,
     Boolean,
     DateTime,
@@ -64,7 +65,7 @@ class AccessLog(Base):
         DateTime, nullable=False, default=datetime.utcnow, index=True
     )
     # Raw HTTP request for forensic analysis (nullable for backward compatibility)
-    raw_request: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    raw_request: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Relationship to attack detections
     attack_detections: Mapped[List["AttackDetection"]] = relationship(
@@ -196,7 +197,7 @@ class IpStats(Base):
 
     # Analyzed metrics, category and category scores
     analyzed_metrics: Mapped[Dict[str, object]] = mapped_column(JSON, nullable=True)
-    category: Mapped[str] = mapped_column(String, nullable=True)
+    category: Mapped[str] = mapped_column(String(50), nullable=True)
     category_scores: Mapped[Dict[str, int]] = mapped_column(JSON, nullable=True)
     manual_category: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
     last_analysis: Mapped[datetime] = mapped_column(DateTime, nullable=True)

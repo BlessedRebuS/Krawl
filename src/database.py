@@ -17,18 +17,6 @@ from sqlalchemy.engine import Engine
 
 from ip_utils import is_local_or_private_ip, is_valid_public_ip
 
-
-@event.listens_for(Engine, "connect")
-def set_sqlite_pragma(dbapi_connection, connection_record):
-    """Enable WAL mode, set busy timeout, and tune performance for SQLite."""
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA journal_mode=WAL")
-    cursor.execute("PRAGMA busy_timeout=30000")
-    cursor.execute("PRAGMA synchronous=NORMAL")
-    cursor.execute("PRAGMA wal_autocheckpoint=5000")
-    cursor.close()
-
-
 from models import (
     Base,
     AccessLog,
@@ -67,28 +55,65 @@ class DatabaseManager:
             cls._instance._initialized = False
         return cls._instance
 
-    def initialize(self, database_path: str = "data/krawl.db") -> None:
+    def initialize(
+        self,
+        database_path: str = "data/krawl.db",
+        mode: str = "standalone",
+        mariadb_config: dict = None,
+    ) -> None:
         """
         Initialize the database connection and create tables.
 
         Args:
-            database_path: Path to the SQLite database file
+            database_path: Path to the SQLite database file (standalone mode)
+            mode: "standalone" for SQLite, "scalable" for MariaDB
+            mariadb_config: MariaDB connection settings (host, port, user, password, database)
         """
         if self._initialized:
             return
 
-        # Create data directory if it doesn't exist
-        data_dir = os.path.dirname(database_path)
-        if data_dir and not os.path.exists(data_dir):
-            os.makedirs(data_dir, exist_ok=True)
+        self._mode = mode
 
-        # Create SQLite database with check_same_thread=False for multi-threaded access
-        database_url = f"sqlite:///{database_path}"
-        self._engine = create_engine(
-            database_url,
-            connect_args={"check_same_thread": False},
-            echo=False,  # Set to True for SQL debugging
-        )
+        if mode == "scalable":
+            mariadb_config = mariadb_config or {}
+            database_url = (
+                f"mysql+pymysql://{mariadb_config['user']}:{mariadb_config['password']}"
+                f"@{mariadb_config['host']}:{mariadb_config['port']}"
+                f"/{mariadb_config['database']}?charset=utf8mb4"
+            )
+            self._engine = create_engine(
+                database_url,
+                pool_size=10,
+                max_overflow=20,
+                pool_pre_ping=True,
+                echo=False,
+            )
+            applogger.info(
+                f"Using MariaDB at {mariadb_config['host']}:{mariadb_config['port']}"
+                f"/{mariadb_config['database']}"
+            )
+        else:
+            # Standalone: SQLite
+            data_dir = os.path.dirname(database_path)
+            if data_dir and not os.path.exists(data_dir):
+                os.makedirs(data_dir, exist_ok=True)
+
+            database_url = f"sqlite:///{database_path}"
+            self._engine = create_engine(
+                database_url,
+                connect_args={"check_same_thread": False},
+                echo=False,
+            )
+
+            # Register SQLite PRAGMAs on this specific engine instance
+            @event.listens_for(self._engine, "connect")
+            def set_sqlite_pragma(dbapi_connection, connection_record):
+                cursor = dbapi_connection.cursor()
+                cursor.execute("PRAGMA journal_mode=WAL")
+                cursor.execute("PRAGMA busy_timeout=30000")
+                cursor.execute("PRAGMA synchronous=NORMAL")
+                cursor.execute("PRAGMA wal_autocheckpoint=5000")
+                cursor.close()
 
         # Create session factory with scoped_session for thread safety
         session_factory = sessionmaker(bind=self._engine)
@@ -97,32 +122,34 @@ class DatabaseManager:
         # Create all tables
         Base.metadata.create_all(self._engine)
 
-        # Run automatic migrations for backward compatibility
-        self._run_migrations(database_path)
+        # Run migrations (dialect-agnostic via SQLAlchemy Inspector)
+        if mode == "standalone":
+            self._run_migrations(database_path)
 
-        # Run schema migrations (columns & indexes on existing tables)
         from migrations.runner import run_migrations
 
-        run_migrations(database_path)
+        run_migrations(self._engine)
 
-        # Set restrictive file permissions (owner read/write only)
-        if os.path.exists(database_path):
+        # Set restrictive file permissions for SQLite (owner read/write only)
+        if mode == "standalone" and os.path.exists(database_path):
             try:
                 os.chmod(database_path, stat.S_IRUSR | stat.S_IWUSR)  # 600
             except OSError:
-                # May fail on some systems, not critical
                 pass
 
         self._initialized = True
 
     def _run_migrations(self, database_path: str) -> None:
         """
-        Run automatic migrations for backward compatibility.
-        Adds missing columns that were added in newer versions.
+        Run legacy SQLite-specific auto-migrations for backward compatibility.
+        Only runs in standalone mode. Adds missing columns from older versions.
 
         Args:
             database_path: Path to the SQLite database file
         """
+        if getattr(self, "_mode", "standalone") != "standalone":
+            return
+
         import sqlite3
 
         try:
@@ -2456,6 +2483,10 @@ def get_database() -> DatabaseManager:
     return _db_manager
 
 
-def initialize_database(database_path: str = "data/krawl.db") -> None:
+def initialize_database(
+    database_path: str = "data/krawl.db",
+    mode: str = "standalone",
+    mariadb_config: dict = None,
+) -> None:
     """Initialize the database system."""
-    _db_manager.initialize(database_path)
+    _db_manager.initialize(database_path, mode=mode, mariadb_config=mariadb_config)

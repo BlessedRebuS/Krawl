@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from config import get_config
 from tracker import AccessTracker, set_tracker
 from database import initialize_database
+from dashboard_cache import initialize_cache
 from tasks_master import get_tasksmaster
 from logger import initialize_logging, get_app_logger, get_access_logger
 from generators import random_server_header
@@ -34,13 +35,47 @@ async def lifespan(app: FastAPI):
 
     # Initialize database and run pending migrations before accepting traffic
     try:
-        app_logger.info(f"Initializing database at: {config.database_path}")
-        initialize_database(config.database_path)
+        if config.mode == "scalable":
+            app_logger.info(f"Initializing database in scalable mode (MariaDB)")
+            initialize_database(
+                database_path=config.database_path,
+                mode="scalable",
+                mariadb_config={
+                    "host": config.mariadb_host,
+                    "port": config.mariadb_port,
+                    "user": config.mariadb_user,
+                    "password": config.mariadb_password,
+                    "database": config.mariadb_database,
+                },
+            )
+        else:
+            app_logger.info(f"Initializing database at: {config.database_path}")
+            initialize_database(config.database_path)
         app_logger.info("Database ready")
     except Exception as e:
         app_logger.warning(
             f"Database initialization failed: {e}. Continuing with in-memory only."
         )
+
+    # Initialize cache backend (in-memory dict for standalone, Redis for scalable)
+    try:
+        if config.mode == "scalable":
+            initialize_cache(
+                mode="scalable",
+                redis_config={
+                    "host": config.redis_host,
+                    "port": config.redis_port,
+                    "db": config.redis_db,
+                    "password": config.redis_password,
+                },
+            )
+            app_logger.info(f"Cache initialized with Redis at {config.redis_host}:{config.redis_port}")
+        else:
+            initialize_cache(mode="standalone")
+            app_logger.info("Cache initialized with in-memory backend")
+    except Exception as e:
+        app_logger.warning(f"Redis cache initialization failed: {e}. Falling back to in-memory cache.")
+        initialize_cache(mode="standalone")
 
     # Initialize tracker
     tracker = AccessTracker(config.max_pages_limit, config.ban_duration_seconds)
@@ -89,6 +124,7 @@ DASHBOARD AVAILABLE AT
 ============================================================
     """
     app_logger.info(banner)
+    app_logger.info(f"Running in {config.mode} mode")
     app_logger.info(f"Starting deception server on port {config.port}...")
     if config.canary_token_url:
         app_logger.info(

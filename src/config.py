@@ -18,6 +18,22 @@ import yaml
 class Config:
     """Configuration class for the deception server"""
 
+    # Deployment mode: "standalone" (SQLite + in-memory) or "scalable" (MariaDB + Redis)
+    mode: str = "standalone"
+
+    # MariaDB settings (scalable mode)
+    mariadb_host: str = "localhost"
+    mariadb_port: int = 3306
+    mariadb_user: str = "krawl"
+    mariadb_password: str = "krawl"
+    mariadb_database: str = "krawl"
+
+    # Redis settings (scalable mode)
+    redis_host: str = "localhost"
+    redis_port: int = 6379
+    redis_db: int = 0
+    redis_password: Optional[str] = None
+
     port: int = 5000
     delay: int = 100  # milliseconds
     server_header: str = ""
@@ -158,6 +174,9 @@ class Config:
             data = {}
 
         # Extract nested values with defaults
+        mode = data.get("mode", "standalone")
+        mariadb_cfg = data.get("mariadb", {})
+        redis_cfg = data.get("redis", {})
         server = data.get("server", {})
         links = data.get("links", {})
         canary = data.get("canary", {})
@@ -187,7 +206,25 @@ class Config:
             dashboard_password = os.urandom(25).hex()
             dashboard_password_generated = True
 
+        # Validate mode
+        if mode not in ("standalone", "scalable"):
+            print(
+                f"Error: Invalid mode '{mode}'. Must be 'standalone' or 'scalable'.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
         return cls(
+            mode=mode,
+            mariadb_host=mariadb_cfg.get("host", "localhost"),
+            mariadb_port=mariadb_cfg.get("port", 3306),
+            mariadb_user=mariadb_cfg.get("user", "krawl"),
+            mariadb_password=mariadb_cfg.get("password", "krawl"),
+            mariadb_database=mariadb_cfg.get("database", "krawl"),
+            redis_host=redis_cfg.get("host", "localhost"),
+            redis_port=redis_cfg.get("port", 6379),
+            redis_db=redis_cfg.get("db", 0),
+            redis_password=redis_cfg.get("password"),
             port=server.get("port", 5000),
             delay=server.get("delay", 100),
             server_header=server.get("server_header", ""),
