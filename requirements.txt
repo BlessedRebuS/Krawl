@@ -18,6 +18,6 @@ uvicorn[standard]>=0.30.0
 jinja2>=3.1.5
 python-multipart>=0.0.9
 
-# Scalable mode backends (MariaDB + Redis)
-PyMySQL>=1.1.0
+# Scalable mode backends (PostgreSQL + Redis)
+psycopg2-binary>=2.9.0
 redis>=5.0.0

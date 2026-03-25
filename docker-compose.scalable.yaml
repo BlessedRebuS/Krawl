@@ -1,22 +1,21 @@
 ---
-# Scalable mode: Krawl + MariaDB + Redis
+# Scalable mode: Krawl + PostgreSQL + Redis
 # Usage: docker compose -f docker-compose.scalable.yaml up
 services:
-  mariadb:
-    image: mariadb:11
-    container_name: krawl-mariadb
+  postgres:
+    image: postgres:16-alpine
+    container_name: krawl-postgres
     environment:
-      MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: krawl
-      MYSQL_USER: krawl
-      MYSQL_PASSWORD: krawl
+      POSTGRES_DB: krawl
+      POSTGRES_USER: krawl
+      POSTGRES_PASSWORD: krawl
     volumes:
-      - mariadb_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     ports:
-      - "3306:3306"
+      - "5432:5432"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD-SHELL", "pg_isready -U krawl -d krawl"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -45,11 +44,11 @@ services:
     environment:
       - CONFIG_LOCATION=config.yaml
       - KRAWL_MODE=scalable
-      - KRAWL_MARIADB_HOST=mariadb
-      - KRAWL_MARIADB_PORT=3306
-      - KRAWL_MARIADB_USER=krawl
-      - KRAWL_MARIADB_PASSWORD=krawl
-      - KRAWL_MARIADB_DATABASE=krawl
+      - KRAWL_POSTGRES_HOST=postgres
+      - KRAWL_POSTGRES_PORT=5432
+      - KRAWL_POSTGRES_USER=krawl
+      - KRAWL_POSTGRES_PASSWORD=krawl
+      - KRAWL_POSTGRES_DATABASE=krawl
       - KRAWL_REDIS_HOST=redis
       - KRAWL_REDIS_PORT=6379
       # Uncomment to set a custom dashboard password (auto-generated if not set)
@@ -62,7 +61,7 @@ services:
       - ./backups:/app/backups
     restart: unless-stopped
     depends_on:
-      mariadb:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -76,5 +75,5 @@ services:
           action: rebuild
 
 volumes:
-  mariadb_data:
+  postgres_data:
   redis_data:

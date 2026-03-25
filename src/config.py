@@ -18,15 +18,15 @@ import yaml
 class Config:
     """Configuration class for the deception server"""
 
-    # Deployment mode: "standalone" (SQLite + in-memory) or "scalable" (MariaDB + Redis)
+    # Deployment mode: "standalone" (SQLite + in-memory) or "scalable" (PostgreSQL + Redis)
     mode: str = "standalone"
 
-    # MariaDB settings (scalable mode)
-    mariadb_host: str = "localhost"
-    mariadb_port: int = 3306
-    mariadb_user: str = "krawl"
-    mariadb_password: str = "krawl"
-    mariadb_database: str = "krawl"
+    # PostgreSQL settings (scalable mode)
+    postgres_host: str = "localhost"
+    postgres_port: int = 5432
+    postgres_user: str = "krawl"
+    postgres_password: str = "krawl"
+    postgres_database: str = "krawl"
 
     # Redis settings (scalable mode)
     redis_host: str = "localhost"
@@ -157,7 +157,7 @@ class Config:
 
         # Extract nested values with defaults
         mode = data.get("mode", "standalone")
-        mariadb_cfg = data.get("mariadb", {})
+        postgres_cfg = data.get("postgres", {})
         redis_cfg = data.get("redis", {})
         server = data.get("server", {})
         links = data.get("links", {})
@@ -198,11 +198,11 @@ class Config:
 
         return cls(
             mode=mode,
-            mariadb_host=mariadb_cfg.get("host", "localhost"),
-            mariadb_port=mariadb_cfg.get("port", 3306),
-            mariadb_user=mariadb_cfg.get("user", "krawl"),
-            mariadb_password=mariadb_cfg.get("password", "krawl"),
-            mariadb_database=mariadb_cfg.get("database", "krawl"),
+            postgres_host=postgres_cfg.get("host", "localhost"),
+            postgres_port=postgres_cfg.get("port", 5432),
+            postgres_user=postgres_cfg.get("user", "krawl"),
+            postgres_password=postgres_cfg.get("password", "krawl"),
+            postgres_database=postgres_cfg.get("database", "krawl"),
             redis_host=redis_cfg.get("host", "localhost"),
             redis_port=redis_cfg.get("port", 6379),
             redis_db=redis_cfg.get("db", 0),

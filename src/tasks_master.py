@@ -18,6 +18,7 @@ app_logger = get_app_logger()
 try:
     from apscheduler.schedulers.background import BackgroundScheduler
     from apscheduler.triggers.cron import CronTrigger
+    from apscheduler.triggers.interval import IntervalTrigger
     from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 except ModuleNotFoundError:
     msg = (
@@ -128,6 +129,7 @@ class TasksMaster:
                     "cron": task_cron,
                     "enabled": module.TASK_CONFIG.get("enabled", False),
                     "run_when_loaded": module.TASK_CONFIG.get("run_when_loaded", False),
+                    "interval_seconds": module.TASK_CONFIG.get("interval_seconds"),
                 }
 
                 tasks.append(task)
@@ -151,6 +153,7 @@ class TasksMaster:
             run_when_loaded = task_to_run.get("run_when_loaded")
             module_name = os.path.splitext(task_to_run.get("filename"))[0]
             task_enabled = task_to_run.get("enabled", False)
+            interval_seconds = task_to_run.get("interval_seconds")
 
             # if no crontab set for this task, we use 15 as the default.
             task_cron = task_to_run.get("cron") or self.TASK_DEFAULT_CRON
@@ -167,12 +170,22 @@ class TasksMaster:
                 ):
                     # schedule the task now that everything has checked out above...
                     self._schedule_task(
-                        task_name, module_name, task_cron, run_when_loaded
+                        task_name,
+                        module_name,
+                        task_cron,
+                        run_when_loaded,
+                        interval_seconds=interval_seconds,
                     )
-                    app_logger.info(
-                        f"Scheduled {module_name} cron is set to {task_cron}.",
-                        extra={"task": task_to_run},
-                    )
+                    if interval_seconds:
+                        app_logger.info(
+                            f"Scheduled {module_name} interval is set to {interval_seconds}s.",
+                            extra={"task": task_to_run},
+                        )
+                    else:
+                        app_logger.info(
+                            f"Scheduled {module_name} cron is set to {task_cron}.",
+                            extra={"task": task_to_run},
+                        )
                 else:
                     app_logger.info(
                         f"Skipping invalid or unsafe file: {task_to_run.get('filename')}",
@@ -184,7 +197,9 @@ class TasksMaster:
                     f"Error scheduling task: {e}", extra={"tasks": task_to_run}
                 )
 
-    def _schedule_task(self, task_name, module_name, task_cron, run_when_loaded):
+    def _schedule_task(
+        self, task_name, module_name, task_cron, run_when_loaded, interval_seconds=None
+    ):
         try:
             # Dynamically import the module
             module = importlib.import_module(f"tasks.{module_name}")
@@ -196,11 +211,13 @@ class TasksMaster:
                 # unique_job_id
                 job_identifier = f"{module_name}__{task_name}"
 
-                # little insurance to make sure the cron is set to something and not none
-                if task_cron is None:
-                    task_cron = self.TASK_DEFAULT_CRON
-
-                trigger = CronTrigger.from_crontab(task_cron)
+                # Use IntervalTrigger for sub-minute scheduling, CronTrigger otherwise
+                if interval_seconds:
+                    trigger = IntervalTrigger(seconds=interval_seconds)
+                else:
+                    if task_cron is None:
+                        task_cron = self.TASK_DEFAULT_CRON
+                    trigger = CronTrigger.from_crontab(task_cron)
 
                 # schedule the task / job
                 if run_when_loaded:

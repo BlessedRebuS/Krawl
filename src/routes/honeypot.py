@@ -410,18 +410,25 @@ async def trap_page(request: Request, path: str):
 
     is_suspicious = tracker.is_suspicious_user_agent(user_agent)
 
-    # Record access unless the router dependency already handled it
-    # (attack pattern or honeypot path → already recorded by _track_honeypot_request)
+    # Record access + increment page visit in a single DB transaction.
+    # Skip if the router dependency already recorded this request
+    # (attack pattern or honeypot path → already recorded by _track_honeypot_request).
     if not tracker.detect_attack_type(full_path) and not tracker.is_honeypot_path(
         full_path
     ):
-        await asyncio.to_thread(
+        current_visit_count = await asyncio.to_thread(
             tracker.record_access,
             ip=client_ip,
             path=full_path,
             user_agent=user_agent,
             method=request.method,
             raw_request=build_raw_request(request) if is_suspicious else "",
+            increment_page_visit=True,
+        )
+    else:
+        # Already recorded by dependency; still need page visit count
+        current_visit_count = await asyncio.to_thread(
+            tracker.increment_page_visit, client_ip
         )
 
     # Random error response
@@ -432,11 +439,6 @@ async def trap_page(request: Request, path: str):
 
     # Response delay
     await asyncio.sleep(config.delay / 1000.0)
-
-    # Increment page visit counter
-    current_visit_count = await asyncio.to_thread(
-        tracker.increment_page_visit, client_ip
-    )
 
     # Generate page (sync function with DB calls, run in thread)
     page_html = await asyncio.to_thread(

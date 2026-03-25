@@ -1,9 +1,9 @@
 {{/*
-One-shot Job to migrate data from SQLite (standalone PVC) to MariaDB (scalable mode).
+One-shot Job to migrate data from SQLite (standalone PVC) to PostgreSQL (scalable mode).
 
 Prerequisites:
   - The Krawl deployment must have been running in standalone mode with a PVC
-  - MariaDB must be reachable before running this job
+  - PostgreSQL must be reachable before running this job
   - Scale down the Krawl deployment to 0 replicas first to avoid SQLite locks
 
 Usage:
@@ -43,30 +43,30 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command:
           - python
-          - /app/scripts/migrate_sqlite_to_mariadb.py
+          - /app/scripts/migrate_sqlite_to_postgres.py
           - --sqlite-path
           - /app/data/{{ .Values.migration.sqliteFilename | default "krawl.db" }}
-          - --mariadb-host
-          - {{ .Values.mariadb.host | quote }}
-          - --mariadb-port
-          - {{ .Values.mariadb.port | quote }}
-          - --mariadb-user
-          - {{ .Values.mariadb.user | quote }}
-          - --mariadb-password
-          - $(MARIADB_PASSWORD)
-          - --mariadb-database
-          - {{ .Values.mariadb.database | quote }}
+          - --postgres-host
+          - {{ .Values.postgres.host | quote }}
+          - --postgres-port
+          - {{ .Values.postgres.port | quote }}
+          - --postgres-user
+          - {{ .Values.postgres.user | quote }}
+          - --postgres-password
+          - $(POSTGRES_PASSWORD)
+          - --postgres-database
+          - {{ .Values.postgres.database | quote }}
           - --batch-size
           - {{ .Values.migration.batchSize | default 1000 | quote }}
           {{- if .Values.migration.dropExisting }}
           - --drop-existing
           {{- end }}
         env:
-        - name: MARIADB_PASSWORD
+        - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ include "krawl.fullname" . }}-mariadb
-              key: mariadb-password
+              name: {{ include "krawl.fullname" . }}-postgres
+              key: postgres-password
         volumeMounts:
         - name: database
           mountPath: /app/data

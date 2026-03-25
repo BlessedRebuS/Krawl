@@ -61,19 +61,19 @@ spec:
         {{- if eq .Values.mode "scalable" }}
         - name: KRAWL_MODE
           value: "scalable"
-        - name: KRAWL_MARIADB_HOST
-          value: {{ .Values.mariadb.host | quote }}
-        - name: KRAWL_MARIADB_PORT
-          value: {{ .Values.mariadb.port | quote }}
-        - name: KRAWL_MARIADB_USER
-          value: {{ .Values.mariadb.user | quote }}
-        - name: KRAWL_MARIADB_PASSWORD
+        - name: KRAWL_POSTGRES_HOST
+          value: {{ .Values.postgres.host | quote }}
+        - name: KRAWL_POSTGRES_PORT
+          value: {{ .Values.postgres.port | quote }}
+        - name: KRAWL_POSTGRES_USER
+          value: {{ .Values.postgres.user | quote }}
+        - name: KRAWL_POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ include "krawl.fullname" . }}-mariadb
-              key: mariadb-password
-        - name: KRAWL_MARIADB_DATABASE
-          value: {{ .Values.mariadb.database | quote }}
+              name: {{ include "krawl.fullname" . }}-postgres
+              key: postgres-password
+        - name: KRAWL_POSTGRES_DATABASE
+          value: {{ .Values.postgres.database | quote }}
         - name: KRAWL_REDIS_HOST
           value: {{ .Values.redis.host | quote }}
         - name: KRAWL_REDIS_PORT
