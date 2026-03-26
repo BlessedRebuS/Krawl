@@ -121,11 +121,16 @@ Krawl supports two deployment modes, controlled by the `mode` setting in `config
 | **Cache** | In-memory Python dict | Redis (multi-tier TTL) |
 | **Replicas** | 1 (single instance) | 1+ (horizontal scaling) |
 | **External deps** | None | PostgreSQL + Redis |
-| **Best for** | Single-node, development, low-traffic | Production, HA, high-traffic |
+| **Best for** | Dev, homelabs, <500k requests | Production, HA, >500k requests |
 
-**Standalone** requires zero additional configuration — just run Krawl and it works. Great for getting started quickly.
+**Standalone** — ideal for development environments or homelabs with low request counts. Zero additional configuration needed, just run Krawl and it works.
+- Single container deployment — no external dependencies
+- Lower RAM and resource usage
 
-**Scalable** mode uses PostgreSQL and Redis for production-grade deployments with horizontal scaling. The Helm chart defaults to scalable mode.
+**Scalable** — designed for production environments or high-traffic honeypots. The Helm chart defaults to this mode.
+- Faster, more responsive dashboard thanks to Redis multi-tier caching
+- Lower disk I/O with Redis acting as a hot-path cache in front of PostgreSQL
+- Horizontal scaling — increase the number of Krawl replicas behind a load balancer
 
 For detailed configuration, Docker Compose examples, Kubernetes/Helm setup, and step-by-step migration instructions, see the [Deployment Modes documentation](docs/deployment-modes.md).
 
