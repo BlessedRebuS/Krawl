@@ -44,7 +44,6 @@ class DeceptionMiddleware(BaseHTTPMiddleware):
             response_body, content_type, status_code = result
             client_ip = get_client_ip(request)
             user_agent = request.headers.get("User-Agent", "")
-            app_logger = get_app_logger()
             access_logger = get_access_logger()
 
             # Determine attack type for logging

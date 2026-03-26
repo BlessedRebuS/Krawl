@@ -756,7 +756,6 @@ class DatabaseManager:
         applogger.debug(
             f"Analyzed metrics {analyzed_metrics}, category {category}, category scores {category_scores}, last analysis {last_analysis}"
         )
-        applogger.info(f"IP: {ip} category has been updated to {category}")
 
         session = self.session
         sanitized_ip = sanitize_ip(ip)
@@ -778,6 +777,7 @@ class DatabaseManager:
             self._record_category_change(
                 sanitized_ip, old_category, category, last_analysis
             )
+            applogger.info(f"IP: {ip} category has been updated to {category}")
 
         ip_stats.analyzed_metrics = analyzed_metrics
         ip_stats.category = category
@@ -846,20 +846,13 @@ class DatabaseManager:
             timestamp: When the change occurred
         """
         session = self.session
-        try:
-            history_entry = CategoryHistory(
-                ip=ip,
-                old_category=old_category,
-                new_category=new_category,
-                timestamp=timestamp,
-            )
-            session.add(history_entry)
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            applogger.error(f"Error recording category change: {e}")
-        finally:
-            self.close_session()
+        history_entry = CategoryHistory(
+            ip=ip,
+            old_category=old_category,
+            new_category=new_category,
+            timestamp=timestamp,
+        )
+        session.add(history_entry)
 
     def get_category_history(self, ip: str) -> List[Dict[str, Any]]:
         """
