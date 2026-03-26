@@ -1,0 +1,23 @@
+---
+# Standalone mode: Krawl with SQLite + in-memory cache
+# Usage: docker compose -f docker/docker-compose.standalone.yaml up -d
+services:
+  krawl:
+    image: ghcr.io/blessedrebus/krawl:latest
+    container_name: krawl-server
+    ports:
+      - "5000:5000"
+    environment:
+      - CONFIG_LOCATION=config.yaml
+      # Uncomment to set a custom dashboard password (auto-generated if not set)
+      # - KRAWL_DASHBOARD_PASSWORD=your-secret-password
+      # Set this to change timezone
+      # - TZ=Europe/Rome
+    volumes:
+      - ./wordlists.json:/app/wordlists.json:ro
+      - ./config.yaml:/app/config.yaml:ro
+      - ./logs:/app/logs
+      - ./exports:/app/exports
+      - ./data:/app/data
+      - ./backups:/app/backups
+    restart: unless-stopped
