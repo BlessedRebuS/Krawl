@@ -3,6 +3,7 @@
 Geolocation utilities for IP lookups using ip-api.com.
 """
 
+import ipaddress
 import requests
 from typing import Optional, Dict, Any
 from logger import get_app_logger
@@ -24,6 +25,10 @@ def fetch_ip_geolocation(ip_address: str) -> Optional[Dict[str, Any]]:
         Dictionary containing geolocation data or None if lookup fails
     """
     try:
+        if ipaddress.ip_address(ip_address).is_private:
+            app_logger.debug(f"Skipping geolocation lookup for private IP {ip_address}")
+            return None
+
         url = f"http://ip-api.com/json/{ip_address}"
         params = {
             "fields": "status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,reverse,mobile,proxy,hosting,query"
