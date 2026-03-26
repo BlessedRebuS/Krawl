@@ -257,9 +257,12 @@ For more details on both modes, see [Deployment Modes](docs/deployment-modes.md)
 The Helm chart **defaults to scalable mode** with bundled PostgreSQL and Redis:
 
 ```bash
-helm install krawl ./helm -n krawl-system --create-namespace \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.0.0 \
+  -n krawl-system --create-namespace \
   --set postgres.password=your-password \
-  --set redis.password=your-redis-password
+  --set redis.password=your-redis-password \
+  --set dashboardPassword=your-dashboard-password \
+  --set config.dashboard.secret_path=/my-secret-dashboard
 ```
 
 Minimal example values files are provided for both modes:
