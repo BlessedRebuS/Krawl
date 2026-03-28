@@ -27,7 +27,7 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
 helm install krawl ./helm -n krawl-system --create-namespace -f values.yaml
 ```
 
-A minimal [values.yaml](values-minimal.yaml) example is provided in this directory.
+Minimal example values files are provided: [`values-minimal.yaml`](values-minimal.yaml) (scalable) and [`values-standalone.yaml`](values-standalone.yaml) (standalone).
 
 Once installed, get your service IP:
 
@@ -41,46 +41,128 @@ Then access the deception server at `http://<EXTERNAL-IP>:5000`
 
 The chart supports two deployment modes controlled by the `mode` value:
 
-- **`standalone`** (default): SQLite database with in-memory cache. Single replica only. Requires a PVC for the database file. Deployment strategy is `Recreate`.
-- **`scalable`**: PostgreSQL + Redis backends. Supports multiple replicas. No PVC needed. Deployment strategy is `RollingUpdate`.
+- **`scalable`** (default): PostgreSQL + Redis backends. Supports multiple replicas. No SQLite PVC needed. Deployment strategy is `RollingUpdate`. PostgreSQL and Redis are bundled by default.
+- **`standalone`**: SQLite database with in-memory cache. Single replica only. Requires a PVC for the database file. Deployment strategy is `Recreate`.
 
-### Standalone (default)
+Minimal example values files are provided: [`values-minimal.yaml`](values-minimal.yaml) (scalable) and [`values-standalone.yaml`](values-standalone.yaml) (standalone).
 
-```bash
-helm install krawl ./helm -n krawl-system --create-namespace
-```
-
-### Scalable (bundled PostgreSQL and Redis)
-
-Deploy PostgreSQL and Redis as StatefulSets alongside Krawl:
+### Scalable with bundled PostgreSQL and Redis (default)
 
 ```bash
 helm install krawl ./helm -n krawl-system --create-namespace \
-  --set mode=scalable \
-  --set postgres.enabled=true \
   --set postgres.password=your-password \
-  --set redis.enabled=true \
   --set redis.password=your-redis-password \
   --set replicaCount=2
 ```
 
 This deploys PostgreSQL and Redis StatefulSets with Services in the same namespace. Persistence is enabled by default.
 
-### Scalable (external PostgreSQL and Redis)
+> [!CAUTION]
+> The minimal values below use placeholder passwords. **Change `postgres.password` and `redis.password` before deploying to production.**
+
+Minimal `values-minimal.yaml` for scalable mode:
+
+```yaml
+mode: scalable
+replicaCount: 2
+
+image:
+  repository: ghcr.io/blessedrebus/krawl
+  tag: "latest"
+  pullPolicy: Always
+
+ingress:
+  enabled: true
+  className: traefik
+  hosts:
+    - host: krawl.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+postgres:
+  enabled: true
+  password: "change-me"
+
+redis:
+  enabled: true
+
+config:
+  dashboard:
+    secret_path: null
+  database:
+    retention_days: 30
+  server:
+    port: 5000
+    delay: 100
+```
+
+### Scalable with external PostgreSQL and Redis
 
 Connect to existing PostgreSQL and Redis instances (e.g., managed services or separately deployed):
 
 ```bash
 helm install krawl ./helm -n krawl-system --create-namespace \
-  --set mode=scalable \
+  --set postgres.enabled=false \
   --set postgres.host=your-postgres-host \
   --set postgres.password=your-password \
+  --set redis.enabled=false \
   --set redis.host=your-redis-host \
   --set redis.password=your-redis-password \
   --set replicaCount=2
 ```
 
-> **Note**: When using external databases, leave `postgres.enabled` and `redis.enabled` as `false` (default). Only set the connection parameters.
+> **Note**: Set `postgres.enabled=false` and `redis.enabled=false` when using external databases to skip the bundled StatefulSets.
+
+### Standalone
+
+```bash
+helm install krawl ./helm -n krawl-system --create-namespace -f values-standalone.yaml
+```
+
+Minimal `values-standalone.yaml`:
+
+```yaml
+mode: standalone
+replicaCount: 1
+
+image:
+  repository: ghcr.io/blessedrebus/krawl
+  tag: "latest"
+  pullPolicy: Always
+
+ingress:
+  enabled: true
+  className: traefik
+  hosts:
+    - host: krawl.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+# PostgreSQL and Redis are not needed in standalone mode
+postgres:
+  enabled: false
+
+redis:
+  enabled: false
+
+database:
+  persistence:
+    enabled: true
+    size: 1Gi
+    accessMode: ReadWriteOnce
+
+config:
+  dashboard:
+    secret_path: null
+  database:
+    path: "data/krawl.db"
+    retention_days: 30
+  server:
+    port: 5000
+    delay: 100
+```
 
 For full details on modes, Redis cache tiers, and data migration, see the [Deployment Modes documentation](../docs/deployment-modes.md).
 
@@ -92,7 +174,7 @@ The following table lists the main configuration parameters of the Krawl chart a
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `mode` | Deployment mode (`standalone` or `scalable`) | `standalone` |
+| `mode` | Deployment mode (`standalone` or `scalable`) | `scalable` |
 | `replicaCount` | Number of pod replicas (>1 only in scalable mode) | `1` |
 | `image.repository` | Image repository | `ghcr.io/blessedrebus/krawl` |
 | `image.tag` | Image tag | `1.3.0` |
@@ -171,7 +253,7 @@ The following table lists the main configuration parameters of the Krawl chart a
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `postgres.enabled` | Deploy a bundled PostgreSQL StatefulSet | `false` |
+| `postgres.enabled` | Deploy a bundled PostgreSQL StatefulSet | `true` |
 | `postgres.host` | PostgreSQL hostname (also used as Service name when bundled) | `postgres` |
 | `postgres.port` | PostgreSQL port | `5432` |
 | `postgres.user` | PostgreSQL username | `krawl` |
@@ -193,7 +275,7 @@ The following table lists the main configuration parameters of the Krawl chart a
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `redis.enabled` | Deploy a bundled Redis StatefulSet | `false` |
+| `redis.enabled` | Deploy a bundled Redis StatefulSet | `true` |
 | `redis.host` | Redis hostname (also used as Service name when bundled) | `redis` |
 | `redis.port` | Redis port | `6379` |
 | `redis.db` | Redis database number | `0` |
@@ -274,24 +356,12 @@ kubectl get secret krawl-server -n krawl-system \
 
 ## Usage Examples
 
-### Standalone with custom settings
+### Scalable with bundled PostgreSQL and Redis (default)
 
 ```bash
 helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 1.3.0 \
-  --set mode=standalone \
-  --set ingress.hosts[0].host=honeypot.example.com \
-  --set config.canary.token_url=https://canarytokens.com/your-token
-```
-
-### Scalable with bundled PostgreSQL and Redis
-
-```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 1.3.0 \
-  --set mode=scalable \
   --set replicaCount=3 \
-  --set postgres.enabled=true \
   --set postgres.password=your-password \
-  --set redis.enabled=true \
   --set redis.password=your-redis-password \
   --set ingress.hosts[0].host=honeypot.example.com
 ```
@@ -300,21 +370,35 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 1.3.0 \
 
 ```bash
 helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 1.3.0 \
-  --set mode=scalable \
   --set replicaCount=3 \
+  --set postgres.enabled=false \
   --set postgres.host=your-postgres-host \
   --set postgres.password=your-password \
+  --set redis.enabled=false \
   --set redis.host=your-redis-host \
   --set redis.password=your-redis-password \
   --set ingress.hosts[0].host=honeypot.example.com
 ```
 
+### Standalone with custom settings
+
+```bash
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 1.3.0 \
+  --set mode=standalone \
+  --set postgres.enabled=false \
+  --set redis.enabled=false \
+  --set ingress.hosts[0].host=honeypot.example.com \
+  --set config.canary.token_url=https://canarytokens.com/your-token
+```
+
 ### Run migration from SQLite to PostgreSQL
+
+See [Deployment Modes — Migration](../docs/deployment-modes.md#migrating-data-from-standalone-to-scalable) for detailed step-by-step instructions.
 
 ```bash
 helm upgrade krawl ./helm \
+  --set replicaCount=0 \
   --set migration.enabled=true \
-  --set postgres.host=postgres \
   --set postgres.password=your-password
 ```
 
@@ -360,7 +444,8 @@ kubectl logs -l app.kubernetes.io/name=krawl
 
 - `Chart.yaml` - Chart metadata
 - `values.yaml` - Default configuration values
-- `values-minimal.yaml` - Minimal configuration example
+- `values-minimal.yaml` - Minimal scalable mode example
+- `values-standalone.yaml` - Minimal standalone mode example
 - `templates/` - Kubernetes resource templates
   - `deployment.yaml` - Krawl deployment (branches on `mode` for strategy, env vars, volumes)
   - `service.yaml` - Service configuration

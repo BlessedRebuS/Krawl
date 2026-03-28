@@ -1,5 +1,5 @@
 # Deployment mode: "standalone" (SQLite + in-memory cache) or "scalable" (PostgreSQL + Redis)
-mode: standalone
+mode: scalable
 
 replicaCount: 1
 
@@ -114,7 +114,7 @@ config:
 # PostgreSQL settings (only used when mode=scalable)
 postgres:
   # Deploy PostgreSQL as part of this chart (set to false if using an external instance)
-  enabled: false
+  enabled: true
   host: "postgres"
   port: 5432
   user: "krawl"
@@ -143,7 +143,7 @@ postgres:
 # Redis settings (only used when mode=scalable)
 redis:
   # Deploy Redis as part of this chart (set to false if using an external instance)
-  enabled: false
+  enabled: true
   host: "redis"
   port: 6379
   db: 0

@@ -1,0 +1,42 @@
+# Minimal values for STANDALONE mode
+# Usage: helm install krawl ./helm -n krawl-system --create-namespace -f values-standalone.yaml
+
+mode: standalone
+replicaCount: 1
+
+image:
+  repository: ghcr.io/blessedrebus/krawl
+  tag: "latest"
+  pullPolicy: Always
+
+ingress:
+  enabled: true
+  className: traefik
+  hosts:
+    - host: krawl.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+# PostgreSQL and Redis are not needed in standalone mode
+postgres:
+  enabled: false
+
+redis:
+  enabled: false
+
+database:
+  persistence:
+    enabled: true
+    size: 1Gi
+    accessMode: ReadWriteOnce
+
+config:
+  dashboard:
+    secret_path: null
+  database:
+    path: "data/krawl.db"
+    retention_days: 30
+  server:
+    port: 5000
+    delay: 100

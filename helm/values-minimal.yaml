@@ -1,0 +1,35 @@
+# Minimal values for SCALABLE mode (default)
+# Usage: helm install krawl ./helm -n krawl-system --create-namespace -f values-minimal.yaml
+
+mode: scalable
+replicaCount: 2
+
+image:
+  repository: ghcr.io/blessedrebus/krawl
+  tag: "latest"
+  pullPolicy: Always
+
+ingress:
+  enabled: true
+  className: traefik
+  hosts:
+    - host: krawl.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+postgres:
+  enabled: true
+  password: "change-me"
+
+redis:
+  enabled: true
+
+config:
+  dashboard:
+    secret_path: null
+  database:
+    retention_days: 30
+  server:
+    port: 5000
+    delay: 100

@@ -1,6 +1,8 @@
 ---
 # Scalable mode: Krawl + PostgreSQL + Redis
-# Usage: docker compose -f docker-compose.scalable.yaml up
+# Usage: docker compose -f docker/docker-compose.scalable.yaml up -d
+#
+# !! IMPORTANT: Change the default PostgreSQL and Redis passwords before deploying to production !!
 services:
   postgres:
     image: postgres:16-alpine
@@ -11,8 +13,6 @@ services:
       POSTGRES_PASSWORD: krawl
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U krawl -d krawl"]
@@ -23,8 +23,6 @@ services:
   redis:
     image: redis:7-alpine
     container_name: krawl-redis
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     restart: unless-stopped
@@ -35,9 +33,7 @@ services:
       retries: 5
 
   krawl:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/blessedrebus/krawl:latest
     container_name: krawl-server
     ports:
       - "5000:5000"
@@ -53,6 +49,8 @@ services:
       - KRAWL_REDIS_PORT=6379
       # Uncomment to set a custom dashboard password (auto-generated if not set)
       # - KRAWL_DASHBOARD_PASSWORD=your-secret-password
+      # Set this to change timezone
+      # - TZ=Europe/Rome
     volumes:
       - ./wordlists.json:/app/wordlists.json:ro
       - ./config.yaml:/app/config.yaml:ro
@@ -65,14 +63,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    develop:
-      watch:
-        - path: ./Dockerfile
-          action: rebuild
-        - path: ./src/
-          action: rebuild
-        - path: ./docker-compose.scalable.yaml
-          action: rebuild
 
 volumes:
   postgres_data:

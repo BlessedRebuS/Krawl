@@ -42,7 +42,6 @@ venv.bak/
 helm/charts/
 helm/*.tgz
 helm/values-production.yaml
-helm/values-*.yaml
 !helm/values.yaml
 
 # Kubernetes secrets (if generated locally)
