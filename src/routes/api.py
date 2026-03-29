@@ -509,3 +509,82 @@ async def download_malicious_ips(request: Request):
     except Exception as e:
         get_app_logger().error(f"Error serving malicious IPs file: {e}")
         return PlainTextResponse("Internal server error", status_code=500)
+
+
+@router.post("/api/delete-generated-pages")
+async def delete_generated_pages(
+    request: Request,
+    before_date: str = Query(None),
+    delete_all: str = Query(None),
+    ids: str = Query(None),
+):
+    """Delete generated deception pages from database.
+    
+    Requires authentication. Can delete:
+    - All pages (delete_all=true)
+    - Pages created before a specific date (before_date=YYYY-MM-DD)
+    - Specific pages by ID (ids=id1,id2,id3)
+    """
+    if not verify_auth(request):
+        return JSONResponse(
+            content={"error": "Unauthorized"},
+            status_code=401,
+        )
+
+    db = get_db()
+    deleted_count = 0
+
+    try:
+        if delete_all == "true":
+            # Delete all generated pages
+            deleted_count = db.delete_all_generated_pages()
+            get_app_logger().info(f"[DECEPTION] Deleted all {deleted_count} generated pages")
+            message = f"✓ Deleted {deleted_count} generated pages"
+
+        elif before_date:
+            # Delete pages older than the specified date
+            # Expected format: YYYY-MM-DD
+            deleted_count = db.delete_generated_pages_before(before_date)
+            get_app_logger().info(f"[DECEPTION] Deleted {deleted_count} pages created before {before_date}")
+            message = f"✓ Deleted {deleted_count} pages created before {before_date}"
+
+        elif ids:
+            # Delete specific pages by path
+            page_ids = [id.strip() for id in ids.split(',') if id.strip()]
+            deleted_count = db.delete_generated_pages_by_ids(page_ids)
+            get_app_logger().info(f"[DECEPTION] Deleted {deleted_count} selected pages")
+            message = f"✓ Deleted {deleted_count} selected page(s)"
+
+        else:
+            return JSONResponse(
+                content={"error": "Please specify delete_all, before_date, or ids"},
+                status_code=400,
+            )
+
+        # Return the updated deception panel
+        from dependencies import get_templates
+        from routes.htmx import _dashboard_path
+
+        templates = get_templates()
+        return templates.TemplateResponse(
+            request,
+            "dashboard/partials/deception_panel_with_message.html",
+            {
+                "dashboard_path": _dashboard_path(request),
+                "message": message,
+                "deleted_count": deleted_count,
+            },
+        )
+
+    except ValueError as e:
+        get_app_logger().error(f"[DECEPTION] Delete error: {e}")
+        return JSONResponse(
+            content={"error": str(e)},
+            status_code=400,
+        )
+    except Exception as e:
+        get_app_logger().error(f"[DECEPTION] Unexpected error deleting pages: {e}")
+        return JSONResponse(
+            content={"error": "Internal server error"},
+            status_code=500,
+        )

@@ -222,6 +222,13 @@ You can use the [config.yaml](config.yaml) file for advanced configurations, suc
 | `KRAWL_INFINITE_PAGES_FOR_MALICIOUS` | Serve infinite pages to malicious IPs | `true` |
 | `KRAWL_MAX_PAGES_LIMIT` | Maximum page limit for crawlers | `250` |
 | `KRAWL_BAN_DURATION_SECONDS` | Ban duration in seconds for rate-limited IPs | `600` |
+| `KRAWL_AI_ENABLED` | Enable AI-generated deception pages | `false` |
+| `KRAWL_AI_PROVIDER` | AI provider (`"openrouter"` or `"openai"`) | `"openrouter"` |
+| `KRAWL_AI_API_KEY` | API key for AI provider | `None` |
+| `KRAWL_AI_MODEL` | AI model to use for page generation | `"nvidia/nemotron-3-super-120b-a12b:free"` |
+| `KRAWL_AI_TIMEOUT` | Request timeout in seconds for AI API calls | `60` |
+| `KRAWL_AI_MAX_DAILY_REQUESTS` | Max number of AI-generated pages per day (0 = unlimited) | `0` |
+| `KRAWL_AI_PROMPT` | Custom prompt template for AI page generation | Default prompt |
 
 For example
 
@@ -291,6 +298,32 @@ Each signal contributes to a weighted scoring model that assigns a reputation ca
 
 The resulting scores and metrics are stored in the database and used by Krawl to drive dashboards, reputation tracking, and automated mitigation actions such as IP banning or firewall integration.
 
+## AI-Generated Deception Pages
+
+Krawl can automatically generate realistic deception pages using AI models from **OpenRouter** or **OpenAI** APIs. This feature creates unique, plausible honeypot pages on-the-fly to deceive attackers without manual page creation.
+
+**Key Features:**
+- **Dynamic Generation**: Creates unique HTML pages for any request path
+- **Smart Caching**: Caches generated pages to avoid redundant API calls
+- **Daily Rate Limiting**: Control API costs with configurable request limits
+- **Multiple Providers**: Support for OpenRouter (free options) and OpenAI
+- **Graceful Fallback**: Falls back to standard honeypot when disabled or limit reached
+- **Cached Serving**: Previously generated pages served even when AI is disabled
+
+**Quick Setup:**
+
+```yaml
+ai:
+  enabled: true
+  provider: "openrouter"
+  api_key: "your-api-key"
+  model: "nvidia/nemotron-3-super-120b-a12b:free"
+  timeout: 60
+  max_daily_requests: 10
+```
+
+For detailed configuration and usage, see the [AI Generation documentation](docs/AI_GENERATION.md).
+
 ## Forward server header
 If Krawl is deployed behind a proxy such as NGINX the **server header** should be forwarded using the following configuration in your proxy:
 
@@ -305,13 +338,14 @@ location / {
 
 | Topic | Description |
 |-------|-------------|
-| [API](docs/api.md) | External APIs used by Krawl for IP data, reputation, and geolocation |
+| [AI Generation](docs/AI_GENERATION.md) | Configure AI-generated deception pages using OpenRouter or OpenAI |
 | [Honeypot](docs/honeypot.md) | Full overview of honeypot pages: fake logins, directory listings, credential files, SQLi/XSS/XXE/command injection traps, and more |
+| [Dashboard](docs/dashboard.md) | Access and explore the real-time monitoring dashboard |
+| [API](docs/api.md) | External APIs used by Krawl for IP data, reputation, and geolocation |
 | [Reverse Proxy](docs/reverse-proxy.md) | How to deploy Krawl behind NGINX or use decoy subdomains |
 | [Database Backups](docs/backups.md) | Enable and configure the automatic database dump job |
 | [Canary Token](docs/canary-token.md) | Set up external alert triggers via canarytokens.org |
 | [Wordlist](docs/wordlist.md) | Customize fake usernames, passwords, and directory listings |
-| [Dashboard](docs/dashboard.md) | Access and explore the real-time monitoring dashboard |
 
 ## Contributing
 

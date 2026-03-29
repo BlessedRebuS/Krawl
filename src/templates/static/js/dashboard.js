@@ -50,6 +50,8 @@ document.addEventListener('alpine:init', () => {
                     if (this.authenticated) this.switchToBanlist();
                 } else if (h === 'tracked-ips') {
                     if (this.authenticated) this.switchToTrackedIps();
+                } else if (h === 'deception') {
+                    if (this.authenticated) this.switchToDeception();
                 } else if (h !== 'ip-insight') {
                     if (this.tab !== 'ip-insight') {
                         this.switchToOverview();
@@ -108,6 +110,21 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
+        switchToDeception() {
+            if (!this.authenticated) return;
+            this.tab = 'deception';
+            window.location.hash = '#deception';
+            this.$nextTick(() => {
+                const container = document.getElementById('deception-htmx-container');
+                if (container && typeof htmx !== 'undefined') {
+                    htmx.ajax('GET', `${this.dashboardPath}/htmx/deception`, {
+                        target: '#deception-htmx-container',
+                        swap: 'innerHTML'
+                    });
+                }
+            });
+        },
+
         async logout() {
             try {
                 await fetch(`${this.dashboardPath}/api/auth/logout`, {
@@ -116,7 +133,7 @@ document.addEventListener('alpine:init', () => {
                 });
             } catch {}
             this.authenticated = false;
-            if (this.tab === 'banlist' || this.tab === 'tracked-ips') this.switchToOverview();
+            if (this.tab === 'banlist' || this.tab === 'tracked-ips' || this.tab === 'deception') this.switchToOverview();
         },
 
         promptAuth() {
@@ -282,6 +299,126 @@ window.openIpInsight = function(ip) {
     if (data && typeof data.openIpInsight === 'function') {
         data.openIpInsight(ip);
     }
+};
+
+// Deception panel delete functions
+window.reloadGeneratedPagesTable = function() {
+    const dashboardPath = document.querySelector('[x-data="dashboardApp()"]')?.__alpine_data?.dashboardPath || window.__DASHBOARD_PATH__ || '';
+    const htmxContainer = document.querySelector('#deception-htmx-container .htmx-container');
+    if (htmxContainer && typeof htmx !== 'undefined') {
+        const tableUrl = dashboardPath + '/htmx/generated-pages?page=1&sort_by=created_at&sort_order=desc';
+        htmx.ajax('GET', tableUrl, {
+            target: htmxContainer,
+            swap: 'innerHTML'
+        });
+    }
+};
+
+window.deletePagesBefore = function() {
+    const dashboardPath = document.querySelector('[x-data="dashboardApp()"]')?.__alpine_data?.dashboardPath || window.__DASHBOARD_PATH__ || '';
+    const dateInput = document.getElementById('delete-before-date');
+    if (!dateInput || !dateInput.value) {
+        alert('Please select a date');
+        return;
+    }
+    if (!confirm('Delete all pages created before ' + dateInput.value + '? This cannot be undone.')) {
+        return;
+    }
+    const url = dashboardPath + '/api/delete-generated-pages?before_date=' + encodeURIComponent(dateInput.value);
+    
+    fetch(url, { method: 'POST' })
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('deception-htmx-container').innerHTML = html;
+            // Reload table after a brief delay to ensure new DOM is ready
+            setTimeout(window.reloadGeneratedPagesTable, 100);
+        })
+        .catch(error => {
+            console.error('Delete error:', error);
+            alert('Error deleting pages');
+        });
+};
+
+window.deleteSelectedPages = function() {
+    const dashboardPath = document.querySelector('[x-data="dashboardApp()"]')?.__alpine_data?.dashboardPath || window.__DASHBOARD_PATH__ || '';
+    const container = document.getElementById('deception-htmx-container');
+    
+    if (!container) {
+        alert('Table not loaded. Please wait a moment.');
+        return;
+    }
+    
+    // Find all checked checkboxes in the container
+    const checkboxes = container.querySelectorAll('input[name="page-checkbox"]:checked');
+    
+    if (checkboxes.length === 0) {
+        alert('Please select at least one page to delete');
+        return;
+    }
+    
+    // Collect IDs and filter out empty ones
+    const ids = [];
+    checkboxes.forEach(cb => {
+        const val = cb.value || cb.getAttribute('value');
+        if (val && val.trim()) {
+            ids.push(val.trim());
+        }
+    });
+    
+    if (ids.length === 0) {
+        console.error('No valid checkbox values found. Checkbox values:', 
+            Array.from(checkboxes).map(cb => ({ value: cb.value, attr: cb.getAttribute('value') })));
+        alert('No valid page IDs found. Please try again.');
+        return;
+    }
+    
+    const idsString = ids.join(',');
+    
+    if (!confirm('Delete ' + ids.length + ' selected page(s)? This cannot be undone.')) {
+        return;
+    }
+    
+    const url = dashboardPath + '/api/delete-generated-pages?ids=' + encodeURIComponent(idsString);
+    
+    fetch(url, { method: 'POST' })
+        .then(response => response.text())
+        .then(html => {
+            container.innerHTML = html;
+            // Reload table after a brief delay to ensure new DOM is ready
+            setTimeout(window.reloadGeneratedPagesTable, 100);
+        })
+        .catch(error => {
+            console.error('Delete error:', error);
+            alert('Error deleting pages');
+        });
+};
+
+window.deleteAllPages = function() {
+    const dashboardPath = document.querySelector('[x-data="dashboardApp()"]')?.__alpine_data?.dashboardPath || window.__DASHBOARD_PATH__ || '';
+    if (!confirm('Delete ALL generated pages? This cannot be undone.')) {
+        return;
+    }
+    const url = dashboardPath + '/api/delete-generated-pages?delete_all=true';
+    
+    fetch(url, { method: 'POST' })
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('deception-htmx-container').innerHTML = html;
+            // Reload table after a brief delay to ensure new DOM is ready
+            setTimeout(window.reloadGeneratedPagesTable, 100);
+        })
+        .catch(error => {
+            console.error('Delete error:', error);
+            alert('Error deleting pages');
+        });
+};
+
+window.selectAllPages = function() {
+    const selectAllCheckbox = document.getElementById('select-all-pages');
+    if (!selectAllCheckbox) return;
+    document.querySelectorAll('#deception-htmx-container input[name="page-checkbox"]').forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+    });
 };
 
 // Escape HTML to prevent XSS when inserting into innerHTML

@@ -60,3 +60,24 @@ crawl:
   infinite_pages_for_malicious: true
   max_pages_limit: 250
   ban_duration_seconds: 600
+
+ai:
+  enabled: true
+  provider: "openrouter"  # "openrouter" or "openai"
+  api_key: ""
+  model: "" # for example nvidia/nemotron-3-super-120b-a12b:free or gpt-5.1-mini
+  timeout: 60  # Request timeout in seconds for API calls
+  max_daily_requests: 100  # Limit the number of AI-generated responses per day
+  prompt: |
+    Path: {path}{query_part}
+
+    The page should:
+    1. Be a plausible but fake intentionally vulnerable page that might appear on a real server
+    2. Include realistic content if necessary (links, text, forms, etc.)
+    3. NOT reveal it's a honeypot
+    4. Be in HTML format only (no markdown, code blocks, or explanation)
+    5. Include proper HTML structure with head and body tags
+    6. Return ONLY the HTML, nothing else
+    7. If the request is a common attack vector (e.g., SQLi, XSS), include fake data in response
+    8. If the request has a file extension, generate a RAW content relevant to that type (e.g. a fake json for .json requests)
+    Generate the complete HTML page:"""

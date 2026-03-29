@@ -60,6 +60,15 @@ class Config:
 
     log_level: str = "INFO"
 
+    # AI generation settings
+    ai_enabled: bool = False
+    ai_provider: str = "openrouter"
+    ai_api_key: Optional[str] = None
+    ai_model: str = "nvidia/nemotron-3-super-120b-a12b:free"
+    ai_prompt: str = ""
+    ai_timeout: int = 60
+    ai_max_daily_requests: int = 0
+    
     _server_ip: Optional[str] = None
     _server_ip_cache_time: float = 0
     _ip_cache_ttl: int = 300
@@ -168,6 +177,7 @@ class Config:
         analyzer = data.get("analyzer") or {}
         crawl = data.get("crawl", {})
         logging_cfg = data.get("logging", {})
+        ai = data.get("ai", {})
 
         # Handle dashboard_secret_path - auto-generate if null/not set
         dashboard_path = dashboard.get("secret_path")
@@ -234,6 +244,24 @@ class Config:
             log_level=os.getenv(
                 "KRAWL_LOG_LEVEL", logging_cfg.get("level", "INFO")
             ).upper(),
+            ai_enabled=ai.get("enabled", False),
+            ai_provider=ai.get("provider", "openrouter").lower(),
+            ai_api_key=ai.get("api_key"),
+            ai_model=ai.get("model", "nvidia/nemotron-3-super-120b-a12b:free"),
+            ai_prompt=ai.get("prompt", """Generate a realistic HTML page for the following request:
+Path: {path}{query_part}
+
+The page should:
+1. Be a plausible but fake page that might appear on a real server
+2. Include realistic content (links, text, forms, etc.)
+3. NOT reveal it's a honeypot
+4. Be in HTML format only (no markdown, code blocks, or explanation)
+5. Include proper HTML structure with head and body tags
+6. Return ONLY the HTML, nothing else
+
+Generate the complete HTML page:"""),
+            ai_timeout=ai.get("timeout", 60),
+            ai_max_daily_requests=ai.get("max_daily_requests", 0),
         )
 
 

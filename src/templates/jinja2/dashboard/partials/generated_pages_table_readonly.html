@@ -1,0 +1,88 @@
+{# HTMX fragment: Generated Deception Templates table (READ-ONLY) #}
+<h3 style="color: #58a6ff; margin: 0 0 12px 0; font-size: 1.1em;">Generated Deception Templates</h3>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <span style="color: #8b949e; font-size: 0.9em;">Page {{ pagination.page }}/{{ pagination.total_pages }} — {{ pagination.total }} total</span>
+    <div style="display: flex; gap: 8px;">
+        <button style="padding: 6px 12px; background: transparent; border: 1px solid #30363d; color: #c9d1d9; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-size: 0.85em;"
+                hx-get="{{ dashboard_path }}/htmx/generated-pages/readonly?page={{ pagination.page - 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
+                hx-target="closest .table-container"
+                hx-swap="innerHTML"
+                {% if pagination.page <= 1 %}disabled style="opacity: 0.5; cursor: not-allowed;"{% else %}onmouseover="this.style.borderColor='#58a6ff'; this.style.color='#58a6ff';" onmouseout="this.style.borderColor='#30363d'; this.style.color='#c9d1d9';"{% endif %}>Prev</button>
+        <button style="padding: 6px 12px; background: transparent; border: 1px solid #30363d; color: #c9d1d9; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-size: 0.85em;"
+                hx-get="{{ dashboard_path }}/htmx/generated-pages/readonly?page={{ pagination.page + 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
+                hx-target="closest .table-container"
+                hx-swap="innerHTML"
+                {% if pagination.page >= pagination.total_pages %}disabled style="opacity: 0.5; cursor: not-allowed;"{% else %}onmouseover="this.style.borderColor='#58a6ff'; this.style.color='#58a6ff';" onmouseout="this.style.borderColor='#30363d'; this.style.color='#c9d1d9';"{% endif %}>Next</button>
+    </div>
+</div>
+
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="border-bottom: 1px solid #30363d;">
+                <th style="text-align: left; padding: 12px 8px; color: #58a6ff; font-weight: 600; font-size: 0.9em;">#</th>
+                <th style="text-align: left; padding: 12px 8px; color: #58a6ff; font-weight: 600; font-size: 0.9em; cursor: pointer; user-select: none;"
+                    hx-get="{{ dashboard_path }}/htmx/generated-pages/readonly?page=1&sort_by=path&sort_order={% if sort_by == 'path' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                    hx-target="closest .table-container"
+                    hx-swap="innerHTML"
+                    onmouseover="this.style.color='#79c0ff';" 
+                    onmouseout="this.style.color='#58a6ff';">
+                    Path
+                </th>
+                <th style="text-align: left; padding: 12px 8px; color: #58a6ff; font-weight: 600; font-size: 0.9em; cursor: pointer; user-select: none;"
+                    hx-get="{{ dashboard_path }}/htmx/generated-pages/readonly?page=1&sort_by=created_at&sort_order={% if sort_by == 'created_at' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                    hx-target="closest .table-container"
+                    hx-swap="innerHTML"
+                    onmouseover="this.style.color='#79c0ff';" 
+                    onmouseout="this.style.color='#58a6ff';">
+                    Created
+                </th>
+                <th style="text-align: left; padding: 12px 8px; color: #58a6ff; font-weight: 600; font-size: 0.9em; cursor: pointer; user-select: none;"
+                    hx-get="{{ dashboard_path }}/htmx/generated-pages/readonly?page=1&sort_by=last_accessed&sort_order={% if sort_by == 'last_accessed' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                    hx-target="closest .table-container"
+                    hx-swap="innerHTML"
+                    onmouseover="this.style.color='#79c0ff';" 
+                    onmouseout="this.style.color='#58a6ff';">
+                    Last Accessed
+                </th>
+                <th style="text-align: left; padding: 12px 8px; color: #58a6ff; font-weight: 600; font-size: 0.9em; cursor: pointer; user-select: none;"
+                    hx-get="{{ dashboard_path }}/htmx/generated-pages/readonly?page=1&sort_by=access_count&sort_order={% if sort_by == 'access_count' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                    hx-target="closest .table-container"
+                    hx-swap="innerHTML"
+                    onmouseover="this.style.color='#79c0ff';" 
+                    onmouseout="this.style.color='#58a6ff';">
+                    Accesses
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr style="border-bottom: 1px solid #161b22;">
+                <td style="padding: 12px 8px; color: #8b949e; font-size: 0.9em;">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
+                <td style="padding: 12px 8px;">
+                    <a href="{{ item.path }}" target="_blank" 
+                       style="color: #58a6ff; text-decoration: none; cursor: pointer; transition: color 0.2s ease;"
+                       onmouseover="this.style.color='#79c0ff';"
+                       onmouseout="this.style.color='#58a6ff';">
+                        {{ item.path | e }}
+                    </a>
+                </td>
+                <td style="padding: 12px 8px; color: #8b949e; font-size: 0.85em;">
+                    {% if item.created_at %}
+                        {{ (item.created_at | replace('T', ' ') | replace('Z', ''))[:19] }}
+                    {% endif %}
+                </td>
+                <td style="padding: 12px 8px; color: #8b949e; font-size: 0.85em;">
+                    {% if item.last_accessed %}
+                        {{ (item.last_accessed | replace('T', ' ') | replace('Z', ''))[:19] }}
+                    {% endif %}
+                </td>
+                <td style="padding: 12px 8px; color: #8b949e; font-size: 0.9em;">{{ item.access_count }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 40px 8px; color: #8b949e; font-size: 0.9em;">No generated pages yet</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

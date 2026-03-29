@@ -10,6 +10,7 @@ from sqlalchemy import distinct
 from firewall.fwtype import FWType
 from firewall.iptables import Iptables
 from firewall.raw import Raw
+from firewall.nftables import Nftables
 
 config = get_config()
 app_logger = get_app_logger()

@@ -33,12 +33,16 @@ async def dashboard_page(request: Request):
         stats["credential_count"] = cred_result["pagination"]["total"]
 
     templates = get_templates()
+    
+    # Ensure stats is a clean dict with only serializable values
+    clean_stats = {k: v for k, v in stats.items() if isinstance(v, (int, str, float, type(None), bool))}
+    
     return templates.TemplateResponse(
+        request,
         "dashboard/index.html",
         {
-            "request": request,
             "dashboard_path": dashboard_path,
-            "stats": stats,
+            "stats": clean_stats,
             "suspicious_activities": suspicious,
         },
     )
@@ -58,13 +62,22 @@ async def ip_page(ip_address: str, request: Request):
             stats["blocklist_memberships"] = list(list_on.keys()) if list_on else []
             stats["reverse_dns"] = stats.get("reverse")
 
+            # Filter out unhashable types (dicts, lists) for Jinja2 template engine compatibility
+            clean_stats = {}
+            for k, v in stats.items():
+                if isinstance(v, (int, str, float, type(None), bool)):
+                    clean_stats[k] = v
+                elif k == "blocklist_memberships" and isinstance(v, list):
+                    # Keep list of strings (blocklist names)
+                    clean_stats[k] = v
+
             templates = get_templates()
             return templates.TemplateResponse(
                 "dashboard/ip.html",
                 {
                     "request": request,
                     "dashboard_path": dashboard_path,
-                    "stats": stats,
+                    "stats": clean_stats,
                     "ip_address": ip_address,
                 },
             )

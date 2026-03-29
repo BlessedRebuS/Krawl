@@ -38,6 +38,7 @@ from deception_responses import (
     generate_xss_response,
     generate_server_error,
 )
+from generative_ai import should_use_ai_for_path, generate_html_for_path, get_model, get_provider
 from wordlists import get_wordlists
 from logger import get_app_logger, get_access_logger, get_credential_logger
 
@@ -412,6 +413,23 @@ async def trap_page(request: Request, path: str):
         error_code = _get_random_error_code()
         access_logger.info(f"Returning error {error_code} to {client_ip} - {full_path}")
         return Response(status_code=error_code)
+
+    # Try AI generation for paths not in robots.txt
+    if should_use_ai_for_path(full_path):
+        try:
+            html_content, content_type, status_code, was_cached = await generate_html_for_path(
+                full_path, request.url.query or ""
+            )
+            model = get_model()
+            provider = get_provider()
+            cache_flag = "[CACHED]" if was_cached else ""
+            if cache_flag:
+                access_logger.info(f"[AI GENERATED] {cache_flag} {client_ip} - {full_path} - {provider}/{model}")
+            else:
+                access_logger.info(f"[AI GENERATED] {client_ip} - {full_path} - {provider}/{model}")
+            return HTMLResponse(content=html_content, status_code=status_code)
+        except Exception as err:
+            app_logger.warning(f"AI generation failed for {full_path}, falling back to default: {err}")
 
     # Response delay
     await asyncio.sleep(config.delay / 1000.0)

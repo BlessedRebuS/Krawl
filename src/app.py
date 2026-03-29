@@ -39,6 +39,15 @@ async def lifespan(app: FastAPI):
             f"Database initialization failed: {e}. Continuing with in-memory only."
         )
 
+    # Log AI configuration status
+    from generative_ai import is_ai_enabled, get_provider, get_model
+    if is_ai_enabled():
+        provider = get_provider()
+        model = get_model()
+        app_logger.info(f"AI generation enabled - Provider: {provider}, Model: {model}")
+    else:
+        app_logger.info("AI generation disabled - Cached AI pages will still be served if available")
+
     # Initialize tracker
     tracker = AccessTracker(config.max_pages_limit, config.ban_duration_seconds)
     set_tracker(tracker)

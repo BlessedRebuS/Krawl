@@ -270,6 +270,30 @@ class TrackedIp(Base):
         return f"<TrackedIp(ip='{self.ip}')>"
 
 
+class GeneratedPage(Base):
+    """
+    Stores AI-generated HTML pages for honeypot paths.
+
+    Caches generated HTML content in base64 format to avoid redundant
+    AI API calls for the same paths. Updated with access timestamp.
+    """
+
+    __tablename__ = "generated_pages"
+
+    path: Mapped[str] = mapped_column(String(MAX_PATH_LENGTH), primary_key=True)
+    html_content_b64: Mapped[str] = mapped_column(String, nullable=False)  # Base64 encoded HTML
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.utcnow, index=True
+    )
+    last_accessed: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.utcnow, index=True
+    )
+    access_count: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<GeneratedPage(path='{self.path}', accesses={self.access_count})>"
+
+
 # class IpLog(Base):
 #     """
 #     Records all IPs that have accessed the honeypot, along with aggregated stats and inferred user category.

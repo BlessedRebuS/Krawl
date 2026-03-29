@@ -12,6 +12,9 @@ APScheduler>=3.11.2
 
 requests>=2.32.5
 
+# Async HTTP client
+aiohttp>=3.9.0
+
 # Web framework
 fastapi>=0.115.0
 uvicorn[standard]>=0.30.0
