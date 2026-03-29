@@ -5,7 +5,10 @@ resources:
   - namespace.yaml
   - configmap.yaml
   - wordlists-configmap.yaml
+  - secret-scalable.yaml
   - pvc.yaml
+  - postgres.yaml
+  - redis.yaml
   - deployment.yaml
   - service.yaml
   - network-policy.yaml
