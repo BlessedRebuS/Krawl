@@ -5,6 +5,7 @@ HTMX fragment endpoints.
 Server-rendered HTML partials for table pagination, sorting, IP details, and search.
 """
 
+import asyncio
 from fastapi import APIRouter, Request, Response, Query
 from fastapi.responses import HTMLResponse
 
@@ -435,7 +436,7 @@ async def htmx_ip_insight(ip_address: str, request: Request):
             # Keep list of strings (blocklist names)
             clean_stats[k] = v
 
-    is_tracked = db.is_ip_tracked(ip_address)
+    is_tracked = await asyncio.to_thread(db.is_ip_tracked, ip_address)
 
     templates = get_templates()
     return templates.TemplateResponse(
@@ -475,7 +476,7 @@ async def htmx_ip_detail(ip_address: str, request: Request):
             # Keep list of strings (blocklist names)
             clean_stats[k] = v
 
-    is_tracked = db.is_ip_tracked(ip_address)
+    is_tracked = await asyncio.to_thread(db.is_ip_tracked, ip_address)
 
     templates = get_templates()
     return templates.TemplateResponse(

@@ -281,7 +281,9 @@ class GeneratedPage(Base):
     __tablename__ = "generated_pages"
 
     path: Mapped[str] = mapped_column(String(MAX_PATH_LENGTH), primary_key=True)
-    html_content_b64: Mapped[str] = mapped_column(String, nullable=False)  # Base64 encoded HTML
+    html_content_b64: Mapped[str] = mapped_column(
+        String, nullable=False
+    )  # Base64 encoded HTML
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=datetime.utcnow, index=True
     )

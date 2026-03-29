@@ -3,7 +3,6 @@ from firewall.fwtype import FWType
 
 
 class Raw(FWType):
-
     @override
     def getBanlist(self, ips) -> str:
         """

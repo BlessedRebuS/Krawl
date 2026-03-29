@@ -519,7 +519,7 @@ async def delete_generated_pages(
     ids: str = Query(None),
 ):
     """Delete generated deception pages from database.
-    
+
     Requires authentication. Can delete:
     - All pages (delete_all=true)
     - Pages created before a specific date (before_date=YYYY-MM-DD)
@@ -538,19 +538,23 @@ async def delete_generated_pages(
         if delete_all == "true":
             # Delete all generated pages
             deleted_count = db.delete_all_generated_pages()
-            get_app_logger().info(f"[DECEPTION] Deleted all {deleted_count} generated pages")
+            get_app_logger().info(
+                f"[DECEPTION] Deleted all {deleted_count} generated pages"
+            )
             message = f"✓ Deleted {deleted_count} generated pages"
 
         elif before_date:
             # Delete pages older than the specified date
             # Expected format: YYYY-MM-DD
             deleted_count = db.delete_generated_pages_before(before_date)
-            get_app_logger().info(f"[DECEPTION] Deleted {deleted_count} pages created before {before_date}")
+            get_app_logger().info(
+                f"[DECEPTION] Deleted {deleted_count} pages created before {before_date}"
+            )
             message = f"✓ Deleted {deleted_count} pages created before {before_date}"
 
         elif ids:
             # Delete specific pages by path
-            page_ids = [id.strip() for id in ids.split(',') if id.strip()]
+            page_ids = [id.strip() for id in ids.split(",") if id.strip()]
             deleted_count = db.delete_generated_pages_by_ids(page_ids)
             get_app_logger().info(f"[DECEPTION] Deleted {deleted_count} selected pages")
             message = f"✓ Deleted {deleted_count} selected page(s)"

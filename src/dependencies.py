@@ -22,12 +22,12 @@ _templates = None
 
 def get_templates() -> Jinja2Templates:
     """Get Jinja2Templates instance with custom filters.
-    
+
     Creates a fresh instance each request to avoid cache corruption issues
     with complex context data in Jinja2's internal cache mechanism.
     """
     from jinja2 import Environment, FileSystemLoader
-    
+
     templates_dir = os.path.join(os.path.dirname(__file__), "templates", "jinja2")
     # Create fresh environment with no caching
     env = Environment(
@@ -35,7 +35,7 @@ def get_templates() -> Jinja2Templates:
         cache_size=0,  # Disable caching completely
     )
     env.filters["format_ts"] = _format_ts
-    
+
     # Wrap in Jinja2Templates
     templates = Jinja2Templates(env=env)
     return templates

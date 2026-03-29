@@ -33,10 +33,14 @@ async def dashboard_page(request: Request):
         stats["credential_count"] = cred_result["pagination"]["total"]
 
     templates = get_templates()
-    
+
     # Ensure stats is a clean dict with only serializable values
-    clean_stats = {k: v for k, v in stats.items() if isinstance(v, (int, str, float, type(None), bool))}
-    
+    clean_stats = {
+        k: v
+        for k, v in stats.items()
+        if isinstance(v, (int, str, float, type(None), bool))
+    }
+
     return templates.TemplateResponse(
         request,
         "dashboard/index.html",

@@ -2455,7 +2455,7 @@ class DatabaseManager:
             Dictionary with generated pages list and pagination info
         """
         from models import GeneratedPage
-        
+
         session = self.session
         try:
             offset = (page - 1) * page_size
@@ -2499,8 +2499,12 @@ class DatabaseManager:
                     {
                         "id": row.path,
                         "path": row.path,
-                        "created_at": row.created_at.isoformat() if row.created_at else None,
-                        "last_accessed": row.last_accessed.isoformat() if row.last_accessed else None,
+                        "created_at": row.created_at.isoformat()
+                        if row.created_at
+                        else None,
+                        "last_accessed": row.last_accessed.isoformat()
+                        if row.last_accessed
+                        else None,
                         "access_count": row.access_count,
                     }
                     for row in results
@@ -2528,23 +2532,27 @@ class DatabaseManager:
 
     def count_generated_pages_created_today(self) -> int:
         """Count how many generated pages were created today.
-        
+
         Returns:
             Number of pages created today
         """
         from datetime import date
         from models import GeneratedPage
-        
+
         session = self.session
         try:
             today = date.today()
             today_start = datetime.combine(today, datetime.min.time())
             today_end = datetime.combine(today, datetime.max.time())
-            
-            count = session.query(GeneratedPage).filter(
-                GeneratedPage.created_at >= today_start,
-                GeneratedPage.created_at <= today_end
-            ).count()
+
+            count = (
+                session.query(GeneratedPage)
+                .filter(
+                    GeneratedPage.created_at >= today_start,
+                    GeneratedPage.created_at <= today_end,
+                )
+                .count()
+            )
             return count
         except Exception as e:
             applogger.error(f"Error counting generated pages created today: {e}")
@@ -2554,12 +2562,12 @@ class DatabaseManager:
 
     def delete_all_generated_pages(self) -> int:
         """Delete all generated deception pages from database.
-        
+
         Returns:
             Number of pages deleted
         """
         from models import GeneratedPage
-        
+
         session = self.session
         try:
             deleted_count = session.query(GeneratedPage).delete()
@@ -2574,28 +2582,30 @@ class DatabaseManager:
 
     def delete_generated_pages_before(self, date_str: str) -> int:
         """Delete generated pages created before a specific date.
-        
+
         Args:
             date_str: Date string in format YYYY-MM-DD
-            
+
         Returns:
             Number of pages deleted
-            
+
         Raises:
             ValueError: If date format is invalid
         """
         from models import GeneratedPage
         from datetime import datetime
-        
+
         session = self.session
         try:
             # Parse the date string
             target_date = datetime.fromisoformat(date_str)
-            
+
             # Delete all pages created before this date
-            deleted_count = session.query(GeneratedPage).filter(
-                GeneratedPage.created_at < target_date
-            ).delete()
+            deleted_count = (
+                session.query(GeneratedPage)
+                .filter(GeneratedPage.created_at < target_date)
+                .delete()
+            )
             session.commit()
             return deleted_count
         except ValueError:
@@ -2609,20 +2619,22 @@ class DatabaseManager:
 
     def delete_generated_pages_by_ids(self, page_ids: list) -> int:
         """Delete specific generated pages by their IDs (paths).
-        
+
         Args:
             page_ids: List of page paths to delete
-            
+
         Returns:
             Number of pages deleted
         """
         from models import GeneratedPage
-        
+
         session = self.session
         try:
-            deleted_count = session.query(GeneratedPage).filter(
-                GeneratedPage.path.in_(page_ids)
-            ).delete()
+            deleted_count = (
+                session.query(GeneratedPage)
+                .filter(GeneratedPage.path.in_(page_ids))
+                .delete()
+            )
             session.commit()
             return deleted_count
         except Exception as e:

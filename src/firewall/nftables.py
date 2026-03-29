@@ -3,7 +3,6 @@ from firewall.fwtype import FWType
 
 
 class Nftables(FWType):
-
     @override
     def getBanlist(self, ips) -> str:
         """
@@ -24,20 +23,24 @@ class Nftables(FWType):
         rules.append("")
         rules.append("# Create table and chain if they don't exist")
         rules.append("nft add table inet filter 2>/dev/null || true")
-        rules.append("nft add chain inet filter input { type filter hook input priority 0 \\; }")
+        rules.append(
+            "nft add chain inet filter input { type filter hook input priority 0 \\; }"
+        )
         rules.append("")
         rules.append("# Add IPs to blacklist set")
-        rules.append("nft add set inet filter blacklist { type ipv4_addr \\; elements = {")
-        
+        rules.append(
+            "nft add set inet filter blacklist { type ipv4_addr \\; elements = {"
+        )
+
         # Add all IPs to the set
         ip_list = []
         for ip in ips:
             ip = ip.strip()
             ip_list.append(ip)
-        
+
         if ip_list:
             rules.append("    " + ", ".join(ip_list))
-        
+
         rules.append("} }")
         rules.append("")
         rules.append("# Add rule to drop packets from blacklist")

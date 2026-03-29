@@ -33,9 +33,7 @@ class Config:
     probability_error_codes: int = 0  # Percentage (0-100)
 
     # Crawl limiting settings - for legitimate vs malicious crawlers
-    max_pages_limit: int = (
-        100  # Max pages limit for good crawlers and regular users (and bad crawlers/attackers if infinite_pages_for_malicious is False)
-    )
+    max_pages_limit: int = 100  # Max pages limit for good crawlers and regular users (and bad crawlers/attackers if infinite_pages_for_malicious is False)
     infinite_pages_for_malicious: bool = True  # Infinite pages for malicious crawlers
     ban_duration_seconds: int = 600  # Ban duration in seconds for IPs exceeding limits
 
@@ -68,7 +66,7 @@ class Config:
     ai_prompt: str = ""
     ai_timeout: int = 60
     ai_max_daily_requests: int = 0
-    
+
     _server_ip: Optional[str] = None
     _server_ip_cache_time: float = 0
     _ip_cache_ttl: int = 300
@@ -248,7 +246,9 @@ class Config:
             ai_provider=ai.get("provider", "openrouter").lower(),
             ai_api_key=ai.get("api_key"),
             ai_model=ai.get("model", "nvidia/nemotron-3-super-120b-a12b:free"),
-            ai_prompt=ai.get("prompt", """Generate a realistic HTML page for the following request:
+            ai_prompt=ai.get(
+                "prompt",
+                """Generate a realistic HTML page for the following request:
 Path: {path}{query_part}
 
 The page should:
@@ -259,7 +259,8 @@ The page should:
 5. Include proper HTML structure with head and body tags
 6. Return ONLY the HTML, nothing else
 
-Generate the complete HTML page:"""),
+Generate the complete HTML page:""",
+            ),
             ai_timeout=ai.get("timeout", 60),
             ai_max_daily_requests=ai.get("max_daily_requests", 0),
         )

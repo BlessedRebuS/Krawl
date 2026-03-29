@@ -3,7 +3,6 @@ from firewall.fwtype import FWType
 
 
 class Iptables(FWType):
-
     @override
     def getBanlist(self, ips) -> str:
         """
