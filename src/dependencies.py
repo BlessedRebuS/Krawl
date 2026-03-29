@@ -59,14 +59,14 @@ def get_db() -> DatabaseManager:
 
 
 def get_client_ip(request: Request) -> str:
-    """Extract client IP address from request, checking proxy headers first."""
-    forwarded_for = request.headers.get("X-Forwarded-For")
-    if forwarded_for:
-        return forwarded_for.split(",")[0].strip()
+    """Extract client IP address from request, checking proxy headers in order from wordlists."""
+    from wordlists import get_wordlists
 
-    real_ip = request.headers.get("X-Real-IP")
-    if real_ip:
-        return real_ip.strip()
+    for header in get_wordlists().proxy_headers:
+        value = request.headers.get(header)
+        if value:
+            # X-Forwarded-For can contain multiple IPs, take the first
+            return value.split(",")[0].strip()
 
     if request.client:
         return request.client.host

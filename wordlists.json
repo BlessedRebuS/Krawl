@@ -1,4 +1,9 @@
 {
+  "proxy_headers": [
+    "CF-Connecting-IP",
+    "X-Forwarded-For",
+    "X-Real-IP"
+  ],
   "usernames": {
     "prefixes": [
       "admin",

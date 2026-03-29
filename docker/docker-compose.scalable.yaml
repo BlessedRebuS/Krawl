@@ -7,6 +7,8 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: krawl-postgres
+    ports:
+      - 5432:5432
     environment:
       POSTGRES_DB: krawl
       POSTGRES_USER: krawl

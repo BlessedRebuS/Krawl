@@ -1,16 +1,17 @@
-# Source: krawl-chart/templates/pvc.yaml
+# Source: krawl-chart/templates/postgres.yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: krawl-db
+  name: krawl-postgres
   namespace: krawl-system
   labels:
     app.kubernetes.io/name: krawl
     app.kubernetes.io/instance: krawl
     app.kubernetes.io/version: "1.3.4"
+    app.kubernetes.io/component: postgres
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 5Gi

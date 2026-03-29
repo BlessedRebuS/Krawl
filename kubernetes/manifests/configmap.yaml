@@ -7,7 +7,7 @@ metadata:
   labels:
     app.kubernetes.io/name: krawl
     app.kubernetes.io/instance: krawl
-    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/version: "1.3.4"
 data:
   config.yaml: |
     # Krawl Honeypot Configuration
@@ -26,6 +26,7 @@ data:
       token_tries: 10
     dashboard:
       secret_path: null
+      cache_warmup: true
     backups:
       path: "backups"
       cron: "*/30 * * * *"
@@ -37,6 +38,7 @@ data:
     database:
       path: "data/krawl.db"
       retention_days: 30
+      persist_suspicious_only: false
     behavior:
       probability_error_codes: 0
     analyzer:

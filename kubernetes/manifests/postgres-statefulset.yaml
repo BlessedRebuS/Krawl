@@ -1,0 +1,80 @@
+# Source: krawl-chart/templates/postgres.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: krawl-postgres
+  namespace: krawl-system
+  labels:
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl
+    app.kubernetes.io/version: "1.3.4"
+    app.kubernetes.io/component: postgres
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: krawl-postgres
+      app.kubernetes.io/instance: krawl
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: krawl-postgres
+        app.kubernetes.io/instance: krawl
+    spec:
+      containers:
+      - name: postgres
+        image: "postgres:16-alpine"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: postgresql
+          containerPort: 5432
+          protocol: TCP
+        env:
+        - name: POSTGRES_DB
+          value: "krawl"
+        - name: POSTGRES_USER
+          value: "krawl"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: krawl-postgres
+              key: postgres-password
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+        livenessProbe:
+          exec:
+            command:
+              - pg_isready
+              - -U
+              - "krawl"
+              - -d
+              - "krawl"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          exec:
+            command:
+              - pg_isready
+              - -U
+              - "krawl"
+              - -d
+              - "krawl"
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: krawl-postgres

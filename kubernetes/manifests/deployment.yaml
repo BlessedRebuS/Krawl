@@ -7,11 +7,11 @@ metadata:
   labels:
     app.kubernetes.io/name: krawl
     app.kubernetes.io/instance: krawl
-    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/version: "1.3.4"
 spec:
   replicas: 1
   strategy:
-    type: Recreate
+    type: RollingUpdate
   selector:
     matchLabels:
       app.kubernetes.io/name: krawl
@@ -23,8 +23,8 @@ spec:
         app.kubernetes.io/instance: krawl
     spec:
       containers:
-      - name: krawl-chart
-        image: "ghcr.io/blessedrebus/krawl:1.0.0"
+      - name: krawl
+        image: "ghcr.io/blessedrebus/krawl:1.2.0"
         imagePullPolicy: Always
         ports:
         - name: http
@@ -39,6 +39,33 @@ spec:
         #     secretKeyRef:
         #       name: krawl-dashboard
         #       key: dashboard-password
+        - name: KRAWL_MODE
+          value: "scalable"
+        - name: KRAWL_POSTGRES_HOST
+          value: "postgres"
+        - name: KRAWL_POSTGRES_PORT
+          value: "5432"
+        - name: KRAWL_POSTGRES_USER
+          value: "krawl"
+        - name: KRAWL_POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: krawl-postgres
+              key: postgres-password
+        - name: KRAWL_POSTGRES_DATABASE
+          value: "krawl"
+        - name: KRAWL_REDIS_HOST
+          value: "redis"
+        - name: KRAWL_REDIS_PORT
+          value: "6379"
+        - name: KRAWL_REDIS_DB
+          value: "0"
+        - name: KRAWL_REDIS_CACHE_TTL
+          value: "600"
+        - name: KRAWL_REDIS_HOT_TTL
+          value: "30"
+        - name: KRAWL_REDIS_TABLE_TTL
+          value: "120"
         volumeMounts:
         - name: config
           mountPath: /app/config.yaml
@@ -48,8 +75,6 @@ spec:
           mountPath: /app/wordlists.json
           subPath: wordlists.json
           readOnly: true
-        - name: database
-          mountPath: /app/data
         resources:
             limits:
               cpu: 500m
@@ -64,6 +89,3 @@ spec:
       - name: wordlists
         configMap:
           name: krawl-wordlists
-      - name: database
-        persistentVolumeClaim:
-          claimName: krawl-db

@@ -1,0 +1,56 @@
+# Source: krawl-chart/templates/redis.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: krawl-redis
+  namespace: krawl-system
+  labels:
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl
+    app.kubernetes.io/version: "1.3.4"
+    app.kubernetes.io/component: redis
+spec:
+  serviceName: redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: krawl-redis
+      app.kubernetes.io/instance: krawl
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: krawl-redis
+        app.kubernetes.io/instance: krawl
+    spec:
+      containers:
+      - name: redis
+        image: "redis:7-alpine"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: redis
+          containerPort: 6379
+          protocol: TCP
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        resources:
+            limits:
+              cpu: 250m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+        livenessProbe:
+          tcpSocket:
+            port: redis
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: redis
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: krawl-redis

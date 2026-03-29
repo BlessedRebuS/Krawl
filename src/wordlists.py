@@ -36,6 +36,11 @@ class Wordlists:
     def _get_defaults(self):
         """Fallback default wordlists if JSON file is missing or invalid"""
         return {
+            "proxy_headers": [
+                "CF-Connecting-IP",
+                "X-Forwarded-For",
+                "X-Real-IP",
+            ],
             "usernames": {
                 "prefixes": ["admin", "user", "root"],
                 "suffixes": ["", "_prod", "_dev"],
@@ -154,6 +159,10 @@ class Wordlists:
     @property
     def password_fields(self):
         return self._data.get("credential_fields", {}).get("password_fields", [])
+
+    @property
+    def proxy_headers(self):
+        return self._data.get("proxy_headers", [])
 
     @property
     def attack_urls(self):
