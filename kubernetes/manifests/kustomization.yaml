@@ -7,8 +7,12 @@ resources:
   - wordlists-configmap.yaml
   - secret-scalable.yaml
   - pvc.yaml
-  - postgres.yaml
-  - redis.yaml
+  - postgres-pvc.yaml
+  - postgres-service.yaml
+  - postgres-statefulset.yaml
+  - redis-pvc.yaml
+  - redis-service.yaml
+  - redis-statefulset.yaml
   - deployment.yaml
   - service.yaml
   - network-policy.yaml
