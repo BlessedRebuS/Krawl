@@ -227,6 +227,11 @@ networkPolicy:
 
 # Wordlists configuration
 wordlists:
+  # Proxy headers to check for real client IP (checked in order, first match wins)
+  proxy_headers:
+    - CF-Connecting-IP
+    - X-Forwarded-For
+    - X-Real-IP
   usernames:
     prefixes:
       - admin
