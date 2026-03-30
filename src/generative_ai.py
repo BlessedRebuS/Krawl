@@ -57,6 +57,22 @@ def get_prompt() -> str:
     return config.ai_prompt
 
 
+def is_reasoning_enabled() -> bool:
+    """Get the reasoning is enabled from config."""
+    from config import get_config
+
+    config = get_config()
+    return config.ai_reasoning_enabled
+
+
+def get_reasoning_effort() -> str:
+    """Get the reasoning effort from config."""
+    from config import get_config
+
+    config = get_config()
+    return config.ai_reasoning_effort
+
+
 def get_timeout() -> int:
     """Get API request timeout from config."""
     from config import get_config
@@ -244,6 +260,7 @@ async def call_openrouter(
     model: str,
     prompt: str,
     timeout: int = 30,
+    reasoning_enabled: bool = True
 ) -> str:
     """Call OpenRouter API asynchronously and return the response.
 
@@ -266,6 +283,7 @@ async def call_openrouter(
         prompt=prompt,
         timeout=timeout,
         provider="OpenRouter",
+        reasoning_enabled=reasoning_enabled
     )
 
 
@@ -274,6 +292,7 @@ async def call_openai(
     model: str,
     prompt: str,
     timeout: int = 30,
+    reasoning_effort: str = "medium"
 ) -> str:
     """Call OpenAI API asynchronously and return the response.
 
@@ -296,6 +315,7 @@ async def call_openai(
         prompt=prompt,
         timeout=timeout,
         provider="OpenAI",
+        reasoning_effort=reasoning_effort
     )
 
 
@@ -306,6 +326,8 @@ async def _call_api(
     prompt: str,
     timeout: int,
     provider: str,
+    reasoning_enabled: Optional[bool],
+    reasoning_effort: Optional[str],
 ) -> str:
     """Generic API call handler for both OpenRouter and OpenAI.
 
@@ -332,6 +354,7 @@ async def _call_api(
             },
             {"role": "user", "content": prompt},
         ],
+        "reasoning": {"effort": reasoning_effort} if provider.lower() == 'openai' else {"enabled": reasoning_enabled}
     }
 
     headers = {
@@ -434,6 +457,8 @@ async def generate_html_for_path(
     query_part = f"?{query}" if query else ""
     prompt_template = get_prompt()
     prompt = prompt_template.format(path=path, query_part=query_part)
+    reasoning_enabled = is_reasoning_enabled()
+    reasoning_effort = get_reasoning_effort()
     timeout = get_timeout()
 
     try:
@@ -445,11 +470,11 @@ async def generate_html_for_path(
 
         if provider == "openai":
             html_content = await call_openai(
-                api_key=api_key, model=model, prompt=prompt, timeout=timeout
+                api_key=api_key, model=model, prompt=prompt, timeout=timeout, reasoning_effort=reasoning_effort
             )
         else:  # openrouter
             html_content = await call_openrouter(
-                api_key=api_key, model=model, prompt=prompt, timeout=timeout
+                api_key=api_key, model=model, prompt=prompt, timeout=timeout, reasoning_enabled=reasoning_enabled
             )
 
         # Strip markdown code blocks if present (common LLM behavior)

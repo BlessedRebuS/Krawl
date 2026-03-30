@@ -89,6 +89,8 @@ class Config:
     ai_prompt: str = ""
     ai_timeout: int = 60
     ai_max_daily_requests: int = 0
+    ai_reasoning_enabled: bool = True
+    ai_reasoning_effort: str = "medium"
 
     _server_ip: Optional[str] = None
     _server_ip_resolved: bool = False
@@ -276,6 +278,9 @@ class Config:
             ai_provider=ai.get("provider", "openrouter").lower(),
             ai_api_key=ai.get("api_key"),
             ai_model=ai.get("model", "nvidia/nemotron-3-super-120b-a12b:free"),
+            reasoning = ai.get("reasoning", {})
+            ai_reasoning_enabled=reasoning.get("enabled", True),
+            ai_reasoning_effort=reasoning.get("effort", "medium"),
             ai_prompt=ai.get(
                 "prompt",
                 """Generate a realistic HTML page for the following request:

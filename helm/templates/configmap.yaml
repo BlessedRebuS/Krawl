@@ -55,6 +55,9 @@ data:
       model: {{ .Values.config.ai.model | quote }}
       {{- end }}
       timeout: {{ .Values.config.ai.timeout }}
+      reasoning: 
+        enabled: {{ .Values.config.ai.reasoning.enabled }}
+        effort: {{ .Values.config.ai.reasoning.effort | quote }}
       max_daily_requests: {{ .Values.config.ai.max_daily_requests }}
       {{- if .Values.config.ai.prompt }}
       prompt: |

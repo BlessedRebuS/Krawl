@@ -101,6 +101,9 @@ ai:
   model: "" # for example nvidia/nemotron-3-super-120b-a12b:free or gpt-5.1-mini
   timeout: 60  # Request timeout in seconds for API calls
   max_daily_requests: 100  # Limit the number of AI-generated responses per day
+  reasoning: 
+    enabled: true
+    effort: "medium"  # "none", "minimal", "low", "medium", "high", "xhigh" (doc: https://openrouter.ai/docs/guides/best-practices/reasoning-tokens)
   prompt: |
     Path: {path}{query_part}
 
