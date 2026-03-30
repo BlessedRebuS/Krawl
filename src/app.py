@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from config import get_config
 from tracker import AccessTracker, set_tracker
 from database import initialize_database
-from dashboard_cache import initialize_cache
+from dashboard_cache import initialize_cache, flush_all as flush_cache
 from tasks_master import get_tasksmaster
 from logger import initialize_logging, get_app_logger, get_access_logger
 from generators import random_server_header
@@ -94,6 +94,13 @@ async def lifespan(app: FastAPI):
             f"Redis cache initialization failed: {e}. Falling back to in-memory cache."
         )
         initialize_cache(mode="standalone")
+
+    # Flush stale cache from previous run so the pod starts fresh
+    try:
+        flush_cache()
+        app_logger.info("Cache flushed on startup")
+    except Exception as e:
+        app_logger.warning(f"Cache flush on startup failed: {e}")
 
     # Resolve server IP once (used to exclude self-traffic from stats)
     config.resolve_server_ip()
