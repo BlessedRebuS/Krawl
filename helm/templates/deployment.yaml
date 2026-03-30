@@ -58,6 +58,13 @@ spec:
               name: {{ include "krawl.fullname" . }}-dashboard
               key: dashboard-password
         {{- end }}
+        {{- if .Values.config.ai.api_key }}
+        - name: KRAWL_AI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "krawl.fullname" . }}-ai
+              key: ai-api-key
+        {{- end }}
         {{- if eq .Values.mode "scalable" }}
         - name: KRAWL_MODE
           value: "scalable"
