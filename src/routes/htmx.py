@@ -536,12 +536,13 @@ async def htmx_ip_insight(ip_address: str, request: Request):
     stats["reverse_dns"] = stats.get("reverse")
 
     # Filter out unhashable types (dicts, lists) for Jinja2 template engine compatibility
+    # but keep specific fields needed by the template (category_scores, category_history, blocklist_memberships)
+    _keep_keys = {"blocklist_memberships", "category_scores", "category_history"}
     clean_stats = {}
     for k, v in stats.items():
         if isinstance(v, (int, str, float, type(None), bool)):
             clean_stats[k] = v
-        elif k == "blocklist_memberships" and isinstance(v, list):
-            # Keep list of strings (blocklist names)
+        elif k in _keep_keys:
             clean_stats[k] = v
 
     is_tracked = await asyncio.to_thread(db.is_ip_tracked, ip_address)
@@ -576,12 +577,13 @@ async def htmx_ip_detail(ip_address: str, request: Request):
     stats["reverse_dns"] = stats.get("reverse")
 
     # Filter out unhashable types (dicts, lists) for Jinja2 template engine compatibility
+    # but keep specific fields needed by the template (category_scores, category_history, blocklist_memberships)
+    _keep_keys = {"blocklist_memberships", "category_scores", "category_history"}
     clean_stats = {}
     for k, v in stats.items():
         if isinstance(v, (int, str, float, type(None), bool)):
             clean_stats[k] = v
-        elif k == "blocklist_memberships" and isinstance(v, list):
-            # Keep list of strings (blocklist names)
+        elif k in _keep_keys:
             clean_stats[k] = v
 
     is_tracked = await asyncio.to_thread(db.is_ip_tracked, ip_address)
