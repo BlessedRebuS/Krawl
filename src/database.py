@@ -2717,7 +2717,7 @@ class DatabaseManager:
         """Get all tracked IPs, paginated. Reads only from tracked_ips table."""
         session = self.session
         try:
-            total = session.query(func.count(TrackedIp.id)).scalar() or 0
+            total = session.query(func.count(TrackedIp.ip)).scalar() or 0
             total_pages = max(1, (total + page_size - 1) // page_size)
 
             tracked_rows = (
