@@ -10,6 +10,7 @@ from datetime import datetime
 
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
+from jinja2 import select_autoescape
 
 from config import Config
 from tracker import AccessTracker
@@ -21,24 +22,19 @@ _templates = None
 
 
 def get_templates() -> Jinja2Templates:
-    """Get Jinja2Templates instance with custom filters.
-
-    Creates a fresh instance each request to avoid cache corruption issues
-    with complex context data in Jinja2's internal cache mechanism.
-    """
-    from jinja2 import Environment, FileSystemLoader
-
-    templates_dir = os.path.join(os.path.dirname(__file__), "templates", "jinja2")
-    # Create fresh environment with no caching
-    env = Environment(
-        loader=FileSystemLoader(templates_dir),
-        cache_size=0,  # Disable caching completely
-    )
-    env.filters["format_ts"] = _format_ts
-
-    # Wrap in Jinja2Templates
-    templates = Jinja2Templates(env=env)
-    return templates
+    """Get shared Jinja2Templates instance with custom filters and secure configuration."""
+    global _templates
+    if _templates is None:
+        templates_dir = os.path.join(os.path.dirname(__file__), "templates", "jinja2")
+        _templates = Jinja2Templates(directory=templates_dir)
+        # Enable autoescape to prevent XSS vulnerabilities
+        _templates.env.autoescape = select_autoescape(
+            enabled_extensions=("html", "xml", "jinja2"),
+            default_for_string=True,
+            default=True,
+        )
+        _templates.env.filters["format_ts"] = _format_ts
+    return _templates
 
 
 def _format_ts(value, time_only=False):

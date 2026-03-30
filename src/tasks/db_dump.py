@@ -102,10 +102,14 @@ def main():
                         )
                         for row in rows:
                             # Build INSERT statement
-                            columns = ", ".join([col.name for col in table.columns])
+                            # nosec - SQL values are properly escaped by _sql_value(),
+                            # table/column names come from SQLAlchemy metadata (trusted source)
+                            columns = ", ".join(
+                                [f"`{col.name}`" for col in table.columns]
+                            )
                             values = ", ".join([_sql_value(v) for v in row])
                             f.write(
-                                f"INSERT INTO {table_name} ({columns}) VALUES ({values});\n"
+                                f"INSERT INTO `{table_name}` ({columns}) VALUES ({values});\n"
                             )
 
                         f.write("\n")

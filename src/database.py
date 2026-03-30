@@ -1626,12 +1626,13 @@ class DatabaseManager:
             ip_base = self._public_ip_filter(ip_base, IpStats.ip, server_ip)
             ip_row = ip_base.one()
 
-            unique_attackers = (
-                session.query(func.count(IpStats.ip))
-                .filter(IpStats.category == "attacker")
-                .scalar()
-                or 0
+            unique_attackers = session.query(func.count(IpStats.ip)).filter(
+                IpStats.category == "attacker"
             )
+            unique_attackers = self._public_ip_filter(
+                unique_attackers, IpStats.ip, server_ip
+            )
+            unique_attackers = unique_attackers.scalar() or 0
 
             # --- Indexed queries on access_logs (use boolean indexes) ---
             suspicious_q = session.query(func.count(AccessLog.id)).filter(
@@ -2819,6 +2820,12 @@ class DatabaseManager:
                     {
                         "id": row.path,
                         "path": row.path,
+                        "html_preview": (
+                            row.html_content_b64[:100] + "..."
+                            if row.html_content_b64 and len(row.html_content_b64) > 100
+                            else (row.html_content_b64 or "No preview available")
+                        ),
+                        "html_content_b64": row.html_content_b64 or "",
                         "created_at": row.created_at.isoformat()
                         if row.created_at
                         else None,
@@ -2890,8 +2897,12 @@ class DatabaseManager:
 
         session = self.session
         try:
-            deleted_count = session.query(GeneratedPage).delete()
+            deleted_count = session.query(GeneratedPage).delete(
+                synchronize_session=False
+            )
+            session.flush()  # Flush to ensure DELETE is executed
             session.commit()
+            applogger.debug(f"Deleted {deleted_count} all generated pages")
             return deleted_count
         except Exception as e:
             applogger.error(f"Error deleting all generated pages: {e}")
@@ -2924,9 +2935,13 @@ class DatabaseManager:
             deleted_count = (
                 session.query(GeneratedPage)
                 .filter(GeneratedPage.created_at < target_date)
-                .delete()
+                .delete(synchronize_session=False)
             )
+            session.flush()  # Flush to ensure DELETE is executed
             session.commit()
+            applogger.debug(
+                f"Deleted {deleted_count} generated pages created before {date_str}"
+            )
             return deleted_count
         except ValueError:
             raise ValueError(f"Invalid date format. Use YYYY-MM-DD (got: {date_str})")
@@ -2950,12 +2965,15 @@ class DatabaseManager:
 
         session = self.session
         try:
+            # Execute DELETE query with explicit flush to get accurate count
             deleted_count = (
                 session.query(GeneratedPage)
                 .filter(GeneratedPage.path.in_(page_ids))
-                .delete()
+                .delete(synchronize_session=False)
             )
+            session.flush()  # Flush to ensure DELETE is executed
             session.commit()
+            applogger.debug(f"Deleted {deleted_count} generated pages: {page_ids}")
             return deleted_count
         except Exception as e:
             applogger.error(f"Error deleting pages by paths: {e}")

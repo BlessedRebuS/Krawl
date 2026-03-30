@@ -251,7 +251,11 @@ def main():
     with dst_engine.begin() as conn:
         for table_name, model_class in TABLES_IN_ORDER:
             for col in model_class.__table__.columns:
-                if col.primary_key and isinstance(col.type, Integer) and col.autoincrement:
+                if (
+                    col.primary_key
+                    and isinstance(col.type, Integer)
+                    and col.autoincrement
+                ):
                     seq_name = f"{table_name}_{col.name}_seq"
                     try:
                         conn.execute(

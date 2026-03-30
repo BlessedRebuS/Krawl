@@ -90,3 +90,13 @@
         {% endfor %}
     </tbody>
 </table>
+
+<script>
+function selectAllPages() {
+    const checkboxes = document.querySelectorAll('input[name="page-checkbox"]');
+    const selectAll = document.getElementById('select-all-pages');
+    checkboxes.forEach(cb => cb.checked = selectAll.checked);
+}
+</script>
+
+

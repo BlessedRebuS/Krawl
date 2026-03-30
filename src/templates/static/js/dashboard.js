@@ -24,6 +24,9 @@ document.addEventListener('alpine:init', () => {
         authenticated: false,
         authModal: { show: false, password: '', error: '', loading: false },
 
+        // Flag to prevent double-triggering during init
+        _initializingHash: false,
+
         async init() {
             // Check if already authenticated (cookie-based)
             try {
@@ -35,34 +38,54 @@ document.addEventListener('alpine:init', () => {
             this.$watch('authenticated', (val) => updateBanActionVisibility(val));
             updateBanActionVisibility(this.authenticated);
 
-            // Handle hash-based tab routing
+            // Set flag to prevent double-triggering during initialization
+            this._initializingHash = true;
+
+            // Handle hash-based tab routing on page load
             const hash = window.location.hash.slice(1);
             if (hash === 'ip-stats' || hash === 'attacks') {
                 this.switchToAttacks();
+            } else if (hash === 'banlist' && this.authenticated) {
+                this.switchToBanlist();
+            } else if (hash === 'tracked-ips' && this.authenticated) {
+                this.switchToTrackedIps();
+            } else if (hash === 'deception' && this.authenticated) {
+                this.switchToDeception();
+            } else if (hash === 'overview' || !hash) {
+                this.switchToOverview();
+            } else {
+                // Default to overview if hash is unrecognized
+                this.switchToOverview();
             }
-            // ip-insight tab is only accessible via lens buttons, not direct hash navigation
 
-            window.addEventListener('hashchange', () => {
-                const h = window.location.hash.slice(1);
-                if (h === 'ip-stats' || h === 'attacks') {
-                    this.switchToAttacks();
-                } else if (h === 'banlist') {
-                    if (this.authenticated) this.switchToBanlist();
-                } else if (h === 'tracked-ips') {
-                    if (this.authenticated) this.switchToTrackedIps();
-                } else if (h === 'deception') {
-                    if (this.authenticated) this.switchToDeception();
-                } else if (h !== 'ip-insight') {
-                    if (this.tab !== 'ip-insight') {
-                        this.switchToOverview();
+            // Wait for this tick to complete, then allow hashchange events
+            this.$nextTick(() => {
+                this._initializingHash = false;
+                
+                // Listen for hash changes (after initialization)
+                window.addEventListener('hashchange', () => {
+                    const h = window.location.hash.slice(1);
+                    if (h === 'ip-stats' || h === 'attacks') {
+                        this.switchToAttacks();
+                    } else if (h === 'banlist') {
+                        if (this.authenticated) this.switchToBanlist();
+                    } else if (h === 'tracked-ips') {
+                        if (this.authenticated) this.switchToTrackedIps();
+                    } else if (h === 'deception') {
+                        if (this.authenticated) this.switchToDeception();
+                    } else if (h !== 'ip-insight') {
+                        if (this.tab !== 'ip-insight') {
+                            this.switchToOverview();
+                        }
                     }
-                }
+                });
             });
         },
 
         switchToAttacks() {
+            if (this.tab === 'attacks') return;  // Prevent duplicate loading
             this.tab = 'attacks';
-            window.location.hash = '#ip-stats';
+            window.location.hash = '#attacks';
 
             // Delay chart initialization to ensure the container is visible
             this.$nextTick(() => {
@@ -76,12 +99,14 @@ document.addEventListener('alpine:init', () => {
         },
 
         switchToOverview() {
+            if (this.tab === 'overview') return;  // Prevent duplicate loading
             this.tab = 'overview';
             window.location.hash = '#overview';
         },
 
         switchToBanlist() {
             if (!this.authenticated) return;
+            if (this.tab === 'banlist') return;  // Prevent duplicate loading
             this.tab = 'banlist';
             window.location.hash = '#banlist';
             this.$nextTick(() => {
@@ -97,6 +122,7 @@ document.addEventListener('alpine:init', () => {
 
         switchToTrackedIps() {
             if (!this.authenticated) return;
+            if (this.tab === 'tracked-ips') return;  // Prevent duplicate loading
             this.tab = 'tracked-ips';
             window.location.hash = '#tracked-ips';
             this.$nextTick(() => {
@@ -112,6 +138,7 @@ document.addEventListener('alpine:init', () => {
 
         switchToDeception() {
             if (!this.authenticated) return;
+            if (this.tab === 'deception') return;  // Prevent duplicate loading
             this.tab = 'deception';
             window.location.hash = '#deception';
             this.$nextTick(() => {

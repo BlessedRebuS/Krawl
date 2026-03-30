@@ -95,7 +95,7 @@ crawl:
   ban_duration_seconds: 600
 
 ai:
-  enabled: true
+  enabled: false
   provider: "openrouter"  # "openrouter" or "openai"
   api_key: ""
   model: "" # for example nvidia/nemotron-3-super-120b-a12b:free or gpt-5.1-mini

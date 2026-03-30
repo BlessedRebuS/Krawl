@@ -161,6 +161,19 @@ async def htmx_top_paths(
 # ── Generated Deception Templates ────────────────────────────────────
 
 
+@router.get("/htmx/deception")
+async def htmx_deception(request: Request):
+    """Load the deception panel with generated pages management interface."""
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/deception_panel.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+        },
+    )
+
+
 @router.get("/htmx/generated-pages")
 async def htmx_generated_pages(
     request: Request,
@@ -170,8 +183,12 @@ async def htmx_generated_pages(
 ):
     """Authenticated generated pages endpoint with checkboxes for deletion."""
     db = get_db()
-    result = db.get_generated_pages_paginated(
-        page=max(1, page), page_size=5, sort_by=sort_by, sort_order=sort_order
+    result = await asyncio.to_thread(
+        db.get_generated_pages_paginated,
+        page=max(1, page),
+        page_size=5,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
 
     templates = get_templates()
@@ -197,8 +214,12 @@ async def htmx_generated_pages_readonly(
 ):
     """Read-only generated pages endpoint (no authentication required, no checkboxes)."""
     db = get_db()
-    result = db.get_generated_pages_paginated(
-        page=max(1, page), page_size=5, sort_by=sort_by, sort_order=sort_order
+    result = await asyncio.to_thread(
+        db.get_generated_pages_paginated,
+        page=max(1, page),
+        page_size=5,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
 
     templates = get_templates()
