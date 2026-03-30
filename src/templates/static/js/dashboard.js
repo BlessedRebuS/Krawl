@@ -353,7 +353,7 @@ document.addEventListener('alpine:init', () => {
                     { cache: 'no-store' }
                 );
                 if (resp.status === 404) {
-                    alert('Raw request not available');
+                    krawlModal.error('Raw request not available');
                     return;
                 }
                 const data = await resp.json();
@@ -361,7 +361,7 @@ document.addEventListener('alpine:init', () => {
                 this.rawModal.logId = logId;
                 this.rawModal.show = true;
             } catch (err) {
-                alert('Failed to load raw request');
+                krawlModal.error('Failed to load raw request');
             }
         },
 
@@ -438,18 +438,17 @@ window.reloadGeneratedPagesTable = function() {
     }
 };
 
-window.deletePagesBefore = function() {
+window.deletePagesBefore = async function() {
     const dashboardPath = document.querySelector('[x-data="dashboardApp()"]')?.__alpine_data?.dashboardPath || window.__DASHBOARD_PATH__ || '';
     const dateInput = document.getElementById('delete-before-date');
     if (!dateInput || !dateInput.value) {
-        alert('Please select a date');
+        krawlModal.error('Please select a date');
         return;
     }
-    if (!confirm('Delete all pages created before ' + dateInput.value + '? This cannot be undone.')) {
-        return;
-    }
+    const confirmed = await krawlModal.confirm('Delete all pages created before ' + dateInput.value + '? This cannot be undone.');
+    if (!confirmed) return;
     const url = dashboardPath + '/api/delete-generated-pages?before_date=' + encodeURIComponent(dateInput.value);
-    
+
     fetch(url, { method: 'POST' })
         .then(response => response.text())
         .then(html => {
@@ -459,27 +458,27 @@ window.deletePagesBefore = function() {
         })
         .catch(error => {
             console.error('Delete error:', error);
-            alert('Error deleting pages');
+            krawlModal.error('Error deleting pages');
         });
 };
 
-window.deleteSelectedPages = function() {
+window.deleteSelectedPages = async function() {
     const dashboardPath = document.querySelector('[x-data="dashboardApp()"]')?.__alpine_data?.dashboardPath || window.__DASHBOARD_PATH__ || '';
     const container = document.getElementById('deception-htmx-container');
-    
+
     if (!container) {
-        alert('Table not loaded. Please wait a moment.');
+        krawlModal.error('Table not loaded. Please wait a moment.');
         return;
     }
-    
+
     // Find all checked checkboxes in the container
     const checkboxes = container.querySelectorAll('input[name="page-checkbox"]:checked');
-    
+
     if (checkboxes.length === 0) {
-        alert('Please select at least one page to delete');
+        krawlModal.error('Please select at least one page to delete');
         return;
     }
-    
+
     // Collect IDs and filter out empty ones
     const ids = [];
     checkboxes.forEach(cb => {
@@ -488,22 +487,21 @@ window.deleteSelectedPages = function() {
             ids.push(val.trim());
         }
     });
-    
+
     if (ids.length === 0) {
-        console.error('No valid checkbox values found. Checkbox values:', 
+        console.error('No valid checkbox values found. Checkbox values:',
             Array.from(checkboxes).map(cb => ({ value: cb.value, attr: cb.getAttribute('value') })));
-        alert('No valid page IDs found. Please try again.');
+        krawlModal.error('No valid page IDs found. Please try again.');
         return;
     }
-    
+
     const idsString = ids.join(',');
-    
-    if (!confirm('Delete ' + ids.length + ' selected page(s)? This cannot be undone.')) {
-        return;
-    }
-    
+
+    const confirmed = await krawlModal.confirm('Delete ' + ids.length + ' selected page(s)? This cannot be undone.');
+    if (!confirmed) return;
+
     const url = dashboardPath + '/api/delete-generated-pages?ids=' + encodeURIComponent(idsString);
-    
+
     fetch(url, { method: 'POST' })
         .then(response => response.text())
         .then(html => {
@@ -513,17 +511,16 @@ window.deleteSelectedPages = function() {
         })
         .catch(error => {
             console.error('Delete error:', error);
-            alert('Error deleting pages');
+            krawlModal.error('Error deleting pages');
         });
 };
 
-window.deleteAllPages = function() {
+window.deleteAllPages = async function() {
     const dashboardPath = document.querySelector('[x-data="dashboardApp()"]')?.__alpine_data?.dashboardPath || window.__DASHBOARD_PATH__ || '';
-    if (!confirm('Delete ALL generated pages? This cannot be undone.')) {
-        return;
-    }
+    const confirmed = await krawlModal.confirm('Delete ALL generated pages? This cannot be undone.');
+    if (!confirmed) return;
     const url = dashboardPath + '/api/delete-generated-pages?delete_all=true';
-    
+
     fetch(url, { method: 'POST' })
         .then(response => response.text())
         .then(html => {
@@ -533,7 +530,7 @@ window.deleteAllPages = function() {
         })
         .catch(error => {
             console.error('Delete error:', error);
-            alert('Error deleting pages');
+            krawlModal.error('Error deleting pages');
         });
 };
 
