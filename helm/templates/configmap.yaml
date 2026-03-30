@@ -48,3 +48,15 @@ data:
       infinite_pages_for_malicious: {{ .Values.config.crawl.infinite_pages_for_malicious }}
       max_pages_limit: {{ .Values.config.crawl.max_pages_limit }}
       ban_duration_seconds: {{ .Values.config.crawl.ban_duration_seconds }}
+    ai:
+      enabled: {{ .Values.config.ai.enabled }}
+      provider: {{ .Values.config.ai.provider | quote }}
+      {{- if .Values.config.ai.model }}
+      model: {{ .Values.config.ai.model | quote }}
+      {{- end }}
+      timeout: {{ .Values.config.ai.timeout }}
+      max_daily_requests: {{ .Values.config.ai.max_daily_requests }}
+      {{- if .Values.config.ai.prompt }}
+      prompt: |
+        {{- .Values.config.ai.prompt | nindent 8 }}
+      {{- end }}
