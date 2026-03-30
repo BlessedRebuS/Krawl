@@ -2826,12 +2826,12 @@ class DatabaseManager:
                             else (row.html_content_b64 or "No preview available")
                         ),
                         "html_content_b64": row.html_content_b64 or "",
-                        "created_at": row.created_at.isoformat()
-                        if row.created_at
-                        else None,
-                        "last_accessed": row.last_accessed.isoformat()
-                        if row.last_accessed
-                        else None,
+                        "created_at": (
+                            row.created_at.isoformat() if row.created_at else None
+                        ),
+                        "last_accessed": (
+                            row.last_accessed.isoformat() if row.last_accessed else None
+                        ),
                         "access_count": row.access_count,
                     }
                     for row in results

@@ -46,12 +46,10 @@ def add_raw_request_column(db_path: str) -> bool:
 
         # Add the column
         print("Adding 'raw_request' column to access_logs table...")
-        cursor.execute(
-            """
+        cursor.execute("""
             ALTER TABLE access_logs 
             ADD COLUMN raw_request TEXT
-        """
-        )
+        """)
 
         conn.commit()
         conn.close()
