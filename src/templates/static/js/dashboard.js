@@ -1,5 +1,102 @@
 // Alpine.js Dashboard Application
 document.addEventListener('alpine:init', () => {
+
+    // Register HTMX-loaded panel components here (not in partials)
+    // so they are available before Alpine processes the DOM.
+    Alpine.data('banManagement', () => ({
+        newBanIp: '',
+        banLoading: false,
+        banMessage: '',
+        banSuccess: false,
+
+        init() {},
+
+        async forceBan() {
+            if (!this.newBanIp) return;
+            this.banLoading = true;
+            this.banMessage = '';
+            try {
+                const resp = await fetch(`${window.__DASHBOARD_PATH__}/api/ban-override`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ ip: this.newBanIp, action: 'ban' }),
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    this.banSuccess = true;
+                    this.banMessage = `IP ${this.newBanIp} added to banlist`;
+                    this.newBanIp = '';
+                    this.refreshOverrides();
+                } else {
+                    this.banSuccess = false;
+                    this.banMessage = data.error || 'Failed to ban IP';
+                }
+            } catch {
+                this.banSuccess = false;
+                this.banMessage = 'Request failed';
+            }
+            this.banLoading = false;
+        },
+
+        refreshOverrides() {
+            const container = document.getElementById('overrides-container');
+            if (container && typeof htmx !== 'undefined') {
+                htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/ban/overrides?page=1`, {
+                    target: '#overrides-container',
+                    swap: 'innerHTML'
+                });
+            }
+        },
+    }));
+
+    Alpine.data('trackManagement', () => ({
+        newTrackIp: '',
+        trackLoading: false,
+        trackMessage: '',
+        trackSuccess: false,
+
+        init() {},
+
+        async trackIp() {
+            if (!this.newTrackIp) return;
+            this.trackLoading = true;
+            this.trackMessage = '';
+            try {
+                const resp = await fetch(`${window.__DASHBOARD_PATH__}/api/track-ip`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ ip: this.newTrackIp, action: 'track' }),
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    this.trackSuccess = true;
+                    this.trackMessage = `IP ${this.newTrackIp} is now being tracked`;
+                    this.newTrackIp = '';
+                    this.refreshList();
+                } else {
+                    this.trackSuccess = false;
+                    this.trackMessage = data.error || 'Failed to track IP';
+                }
+            } catch {
+                this.trackSuccess = false;
+                this.trackMessage = 'Request failed';
+            }
+            this.trackLoading = false;
+        },
+
+        refreshList() {
+            const container = document.getElementById('tracked-ips-container');
+            if (container && typeof htmx !== 'undefined') {
+                htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/tracked-ips/list?page=1`, {
+                    target: '#tracked-ips-container',
+                    swap: 'innerHTML'
+                });
+            }
+        },
+    }));
+
     Alpine.data('dashboardApp', () => ({
         // State
         tab: 'overview',
