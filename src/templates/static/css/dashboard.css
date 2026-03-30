@@ -76,20 +76,20 @@ h1 {
     display: block;
     width: 100%;
     padding: 8px 14px;
-    background: rgba(35, 134, 54, 0.4);
+    background: rgba(63, 185, 80, 0.4);
     color: rgba(255, 255, 255, 0.7);
     text-decoration: none;
     border-radius: 6px;
     font-weight: 500;
     font-size: 13px;
     transition: background 0.2s, color 0.2s;
-    border: 1px solid rgba(46, 160, 67, 0.4);
+    border: 1px solid rgba(63, 185, 80, 0.4);
     cursor: pointer;
     text-align: left;
     box-sizing: border-box;
 }
 .banlist-dropdown-btn:hover {
-    background: rgba(46, 160, 67, 0.6);
+    background: rgba(63, 185, 80, 0.6);
     color: #ffffff;
 }
 .banlist-dropdown-menu {
@@ -1600,7 +1600,7 @@ tbody {
     transition: all 0.2s;
 }
 .path-truncated:hover {
-    color: #ff7369 !important;
+    color: #f85149 !important;
     text-decoration-style: solid;
 }
 .path-cell-container:hover .path-tooltip {
