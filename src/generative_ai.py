@@ -466,7 +466,7 @@ async def generate_html_for_path(
     timeout = get_timeout()
 
     try:
-        logger.debug(
+        logger.info(
             f"[AI GENERATION] Generating response for path: {path} with {provider} (timeout: {timeout}s)"
         )
         logger.debug(f"Using model: {model}")
