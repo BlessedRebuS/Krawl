@@ -326,8 +326,8 @@ async def _call_api(
     prompt: str,
     timeout: int,
     provider: str,
-    reasoning_enabled: Optional[bool],
-    reasoning_effort: Optional[str],
+    reasoning_enabled: bool = True,
+    reasoning_effort: str = "medium",
 ) -> str:
     """Generic API call handler for both OpenRouter and OpenAI.
 
@@ -466,7 +466,7 @@ async def generate_html_for_path(
     timeout = get_timeout()
 
     try:
-        logger.debug(
+        logger.info(
             f"[AI GENERATION] Generating response for path: {path} with {provider} (timeout: {timeout}s)"
         )
         logger.debug(f"Using model: {model}")
