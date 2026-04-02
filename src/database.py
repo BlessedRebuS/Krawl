@@ -2484,8 +2484,15 @@ class DatabaseManager:
             daily_data = {t: {d: 0 for d in dates} for t in top_type_names}
             for row in daily_q:
                 # row.day may be a date object or string depending on the DB backend
-                day_str = row.day.strftime("%Y-%m-%d") if hasattr(row.day, "strftime") else str(row.day)
-                if row.attack_type in daily_data and day_str in daily_data[row.attack_type]:
+                day_str = (
+                    row.day.strftime("%Y-%m-%d")
+                    if hasattr(row.day, "strftime")
+                    else str(row.day)
+                )
+                if (
+                    row.attack_type in daily_data
+                    and day_str in daily_data[row.attack_type]
+                ):
                     daily_data[row.attack_type][day_str] = row.count
 
             return {
