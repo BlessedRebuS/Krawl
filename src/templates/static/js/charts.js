@@ -182,11 +182,32 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
 
 
 /**
- * Load a daily attack trends line chart with interactive legend filtering.
- * Clicking a legend item filters the Detected Attack Types table via HTMX.
- * @param {string} [canvasId='attack-trends-chart'] - Canvas element ID
+ * Attack Trends line chart with period navigation, totals sidebar,
+ * and interactive legend that filters the Detected Attack Types table.
  */
 let attackTrendsChart = null;
+let _trendsOffsetDays = 0;
+const _trendsDays = 30;
+
+// Hash-based consistent colors (shared with doughnut chart)
+function _trendsHashCode(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash = hash & hash;
+    }
+    return Math.abs(hash);
+}
+
+function _trendsColor(label, alpha) {
+    const h = _trendsHashCode(label);
+    const hue = h % 360;
+    const sat = 70 + (h % 20);
+    const lit = 50 + (h % 10);
+    return alpha !== undefined
+        ? `hsla(${hue}, ${sat}%, ${lit}%, ${alpha})`
+        : `hsl(${hue}, ${sat}%, ${lit}%)`;
+}
 
 async function loadAttackTrendsChart(canvasId) {
     canvasId = canvasId || 'attack-trends-chart';
@@ -196,7 +217,8 @@ async function loadAttackTrendsChart(canvasId) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
 
-        const response = await fetch(DASHBOARD_PATH + '/api/attack-types-daily?limit=10&days=30', {
+        const url = `${DASHBOARD_PATH}/api/attack-types-daily?limit=10&days=${_trendsDays}&offset_days=${_trendsOffsetDays}`;
+        const response = await fetch(url, {
             cache: 'no-store',
             headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
         });
@@ -207,32 +229,17 @@ async function loadAttackTrendsChart(canvasId) {
         const attackTypes = data.attack_types || [];
         const dates = data.dates || [];
 
+        // Update period label
+        _updateTrendsPeriodLabel(dates);
+
+        // Update totals sidebar
+        _updateTrendsTotals(attackTypes);
+
         if (attackTypes.length === 0) {
-            canvas.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8b949e;font-size:13px;">No attack data</div>';
+            canvas.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8b949e;font-size:13px;">No attack data for this period</div>';
             return;
         }
 
-        // Hash-based consistent colors (reuse from doughnut chart)
-        function hashCode(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                hash = ((hash << 5) - hash) + str.charCodeAt(i);
-                hash = hash & hash;
-            }
-            return Math.abs(hash);
-        }
-
-        function colorFromHash(label, alpha) {
-            const h = hashCode(label);
-            const hue = h % 360;
-            const sat = 70 + (h % 20);
-            const lit = 50 + (h % 10);
-            return alpha !== undefined
-                ? `hsla(${hue}, ${sat}%, ${lit}%, ${alpha})`
-                : `hsl(${hue}, ${sat}%, ${lit}%)`;
-        }
-
-        // Format dates as short labels (e.g. "Mar 15")
         const shortLabels = dates.map(d => {
             const dt = new Date(d + 'T00:00:00');
             return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -241,19 +248,18 @@ async function loadAttackTrendsChart(canvasId) {
         const datasets = attackTypes.map(at => ({
             label: `${at.type} (${at.total})`,
             data: at.daily,
-            borderColor: colorFromHash(at.type),
-            backgroundColor: colorFromHash(at.type, 0.1),
+            borderColor: _trendsColor(at.type),
+            backgroundColor: _trendsColor(at.type, 0.05),
             borderWidth: 2,
             pointRadius: 0,
             pointHitRadius: 8,
             pointHoverRadius: 4,
-            pointHoverBackgroundColor: colorFromHash(at.type),
-            tension: 0.3,
+            pointHoverBackgroundColor: _trendsColor(at.type),
+            tension: 0.15,
             fill: false,
             _attackType: at.type,
         }));
 
-        // Destroy previous instance
         if (attackTrendsChart) {
             attackTrendsChart.destroy();
         }
@@ -265,10 +271,7 @@ async function loadAttackTrendsChart(canvasId) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
-                },
+                interaction: { mode: 'index', intersect: false },
                 plugins: {
                     legend: {
                         position: 'bottom',
@@ -279,17 +282,13 @@ async function loadAttackTrendsChart(canvasId) {
                             usePointStyle: true,
                             pointStyle: 'line',
                         },
-                        onClick: function(e, legendItem, legend) {
-                            // Default toggle behavior
+                        onClick: function(_, legendItem, legend) {
                             const index = legendItem.datasetIndex;
                             const ci = legend.chart;
                             const meta = ci.getDatasetMeta(index);
                             meta.hidden = meta.hidden === null ? !ci.data.datasets[index].hidden : null;
                             ci.update();
-
-                            // Filter the attacks table by clicking the attack type name
-                            const attackType = ci.data.datasets[index]._attackType;
-                            filterAttackTableByType(attackType);
+                            filterAttackTableByType(ci.data.datasets[index]._attackType);
                         }
                     },
                     tooltip: {
@@ -311,22 +310,12 @@ async function loadAttackTrendsChart(canvasId) {
                 },
                 scales: {
                     x: {
-                        ticks: {
-                            color: '#8b949e',
-                            font: { size: 10 },
-                            maxRotation: 0,
-                            autoSkip: true,
-                            maxTicksLimit: 15,
-                        },
+                        ticks: { color: '#8b949e', font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 15 },
                         grid: { color: 'rgba(48, 54, 61, 0.3)' },
                     },
                     y: {
                         beginAtZero: true,
-                        ticks: {
-                            color: '#8b949e',
-                            font: { size: 10 },
-                            precision: 0,
-                        },
+                        ticks: { color: '#8b949e', font: { size: 10 }, precision: 0 },
                         grid: { color: 'rgba(48, 54, 61, 0.3)' },
                     }
                 },
@@ -337,6 +326,50 @@ async function loadAttackTrendsChart(canvasId) {
     } catch (err) {
         console.error('Error loading attack trends chart:', err);
     }
+}
+
+function _updateTrendsPeriodLabel(dates) {
+    const label = document.getElementById('trends-period-label');
+    if (!label || dates.length === 0) return;
+
+    const start = new Date(dates[0] + 'T00:00:00');
+    const end = new Date(dates[dates.length - 1] + 'T00:00:00');
+    const fmt = { month: 'short', day: 'numeric' };
+    label.textContent = `${start.toLocaleDateString('en-US', fmt)} — ${end.toLocaleDateString('en-US', fmt)}`;
+
+    // Disable "next" if we're at the current period
+    const nextBtn = document.getElementById('trends-next');
+    if (nextBtn) nextBtn.disabled = (_trendsOffsetDays <= 0);
+}
+
+function _updateTrendsTotals(attackTypes) {
+    const container = document.getElementById('trends-totals');
+    if (!container) return;
+
+    if (attackTypes.length === 0) {
+        container.innerHTML = '<span style="color: #8b949e; font-size: 0.8em;">No data</span>';
+        return;
+    }
+
+    let html = '<span style="color: #8b949e; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Totals (period)</span>';
+    attackTypes.forEach(at => {
+        const color = _trendsColor(at.type);
+        html += `<div style="display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; border-radius: 4px; transition: background 0.15s;"
+                      onmouseover="this.style.background='rgba(255,255,255,0.03)'"
+                      onmouseout="this.style.background='transparent'"
+                      onclick="filterAttackTableByType('${at.type.replace(/'/g, "\\'")}')">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: ${color}; flex-shrink: 0;"></span>
+            <span style="color: #c9d1d9; font-size: 0.8em; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${at.type}">${at.type}</span>
+            <span style="color: ${color}; font-size: 0.85em; font-weight: 600; font-variant-numeric: tabular-nums;">${at.total.toLocaleString()}</span>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+/** Shift the trends chart period by N windows (negative = older, positive = newer) */
+function shiftTrendsPeriod(direction) {
+    _trendsOffsetDays = Math.max(0, _trendsOffsetDays - (direction * _trendsDays));
+    loadAttackTrendsChart();
 }
 
 /** Active attack type filter (null = show all) */
@@ -352,21 +385,10 @@ function filterAttackTableByType(attackType) {
     if (!container) return;
 
     if (_activeAttackTypeFilter === attackType) {
-        // Clear filter
         _activeAttackTypeFilter = null;
         htmx.ajax('GET', DASHBOARD_PATH + '/htmx/attacks?page=1', { target: container, swap: 'innerHTML' });
     } else {
-        // Apply filter
         _activeAttackTypeFilter = attackType;
         htmx.ajax('GET', DASHBOARD_PATH + '/htmx/attacks?page=1&attack_type_filter=' + encodeURIComponent(attackType), { target: container, swap: 'innerHTML' });
     }
-
-    // Update legend styling to show active filter
-    updateTrendsLegendHighlight();
-}
-
-function updateTrendsLegendHighlight() {
-    if (!attackTrendsChart) return;
-    // Chart.js will re-render legend on next update; the visual cue
-    // is the dataset toggle (hidden/visible) which already happens in onClick
 }

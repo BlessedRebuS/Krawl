@@ -187,10 +187,6 @@ document.addEventListener('alpine:init', () => {
             // Delay chart initialization to ensure the container is visible
             this.$nextTick(() => {
                 setTimeout(() => {
-                    if (!this.chartLoaded && typeof loadAttackTypesChart === 'function') {
-                        loadAttackTypesChart();
-                        this.chartLoaded = true;
-                    }
                     if (typeof loadAttackTrendsChart === 'function') {
                         loadAttackTrendsChart();
                     }

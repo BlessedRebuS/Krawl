@@ -2410,9 +2410,17 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_attack_types_daily(self, limit: int = 10, days: int = 30) -> Dict[str, Any]:
+    def get_attack_types_daily(
+        self, limit: int = 10, days: int = 30, offset_days: int = 0
+    ) -> Dict[str, Any]:
         """
-        Get daily attack type counts over the last N days (for line chart).
+        Get daily attack type counts for a sliding window (for line chart).
+
+        Args:
+            limit: Max attack types to return
+            days: Window size in days
+            offset_days: How many days back to shift the window end
+                         (0 = ending today, 30 = ending 30 days ago, etc.)
 
         Returns top N attack types with their daily breakdown and totals.
         """
@@ -2420,7 +2428,14 @@ class DatabaseManager:
         try:
             from datetime import datetime, timedelta
 
-            cutoff = datetime.now() - timedelta(days=days)
+            end = datetime.now() - timedelta(days=offset_days)
+            cutoff = end - timedelta(days=days)
+
+            # Time range filter used by both queries
+            time_filter = [
+                AccessLog.timestamp >= cutoff,
+                AccessLog.timestamp <= end,
+            ]
 
             # Get top N attack types by total count in the period
             top_types_q = (
@@ -2429,7 +2444,7 @@ class DatabaseManager:
                     func.count(AttackDetection.id).label("total"),
                 )
                 .join(AccessLog, AttackDetection.access_log_id == AccessLog.id)
-                .filter(AccessLog.timestamp >= cutoff)
+                .filter(*time_filter)
                 .group_by(AttackDetection.attack_type)
                 .order_by(func.count(AttackDetection.id).desc())
                 .limit(limit)
@@ -2445,7 +2460,7 @@ class DatabaseManager:
             # Build list of dates in the period
             dates = []
             for i in range(days, -1, -1):
-                d = (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
+                d = (end - timedelta(days=i)).strftime("%Y-%m-%d")
                 dates.append(d)
 
             # Get daily breakdown for those types using func.date() for portability
@@ -2458,7 +2473,7 @@ class DatabaseManager:
                 )
                 .join(AccessLog, AttackDetection.access_log_id == AccessLog.id)
                 .filter(
-                    AccessLog.timestamp >= cutoff,
+                    *time_filter,
                     AttackDetection.attack_type.in_(top_type_names),
                 )
                 .group_by(AttackDetection.attack_type, day_expr)
