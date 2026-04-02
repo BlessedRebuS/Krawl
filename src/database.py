@@ -2431,7 +2431,7 @@ class DatabaseManager:
 
             end = datetime.now() - timedelta(days=offset_days)
             cutoff = end - timedelta(days=days)
-            use_hourly = days <= 7
+            use_hourly = True
 
             # Time range filter used by both queries
             time_filter = [
