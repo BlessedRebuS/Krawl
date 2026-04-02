@@ -575,20 +575,10 @@ async def generate_html_for_path(
 
     except RuntimeError as err:
         logger.error(f"AI generation failed for path {path}: {err}")
-        return (
-            "<html><body><h1>500 Internal Server Error</h1></body></html>",
-            "text/html",
-            500,
-            False,
-        )
+        raise
     except Exception as err:
         logger.error(f"Unexpected error in AI generation for path {path}: {err}")
-        return (
-            "<html><body><h1>500 Internal Server Error</h1></body></html>",
-            "text/html",
-            500,
-            False,
-        )
+        raise RuntimeError(f"AI generation failed: {err}") from err
 
 
 def should_use_ai_for_path(path: str) -> bool:
