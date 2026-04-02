@@ -2247,6 +2247,7 @@ class DatabaseManager:
         sort_by: str = "timestamp",
         sort_order: str = "desc",
         ip_filter: Optional[str] = None,
+        attack_type_filter: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Retrieve paginated list of detected attack types with access logs.
@@ -2257,6 +2258,7 @@ class DatabaseManager:
             sort_by: Field to sort by (timestamp, ip, attack_type)
             sort_order: Sort order (asc or desc)
             ip_filter: Optional IP address to filter results
+            attack_type_filter: Optional attack type to filter results
 
         Returns:
             Dictionary with attacks list and pagination info
@@ -2276,6 +2278,8 @@ class DatabaseManager:
             base_filters = []
             if ip_filter:
                 base_filters.append(AccessLog.ip == ip_filter)
+            if attack_type_filter:
+                base_filters.append(AttackDetection.attack_type == attack_type_filter)
 
             # Count total unique access logs with attack detections
             count_q = session.query(func.count(distinct(AccessLog.id))).join(
@@ -2402,6 +2406,105 @@ class DatabaseManager:
                 "attack_types": [
                     {"type": row.attack_type, "count": row.count} for row in results
                 ]
+            }
+        finally:
+            self.close_session()
+
+    def get_attack_types_daily(
+        self, limit: int = 10, days: int = 30, offset_days: int = 0
+    ) -> Dict[str, Any]:
+        """
+        Get daily attack type counts for a sliding window (for line chart).
+
+        Args:
+            limit: Max attack types to return
+            days: Window size in days
+            offset_days: How many days back to shift the window end
+                         (0 = ending today, 30 = ending 30 days ago, etc.)
+
+        Returns top N attack types with their daily breakdown and totals.
+        """
+        session = self.session
+        try:
+            from datetime import datetime, timedelta
+
+            end = datetime.now() - timedelta(days=offset_days)
+            cutoff = end - timedelta(days=days)
+
+            # Time range filter used by both queries
+            time_filter = [
+                AccessLog.timestamp >= cutoff,
+                AccessLog.timestamp <= end,
+            ]
+
+            # Get top N attack types by total count in the period
+            top_types_q = (
+                session.query(
+                    AttackDetection.attack_type,
+                    func.count(AttackDetection.id).label("total"),
+                )
+                .join(AccessLog, AttackDetection.access_log_id == AccessLog.id)
+                .filter(*time_filter)
+                .group_by(AttackDetection.attack_type)
+                .order_by(func.count(AttackDetection.id).desc())
+                .limit(limit)
+                .all()
+            )
+
+            if not top_types_q:
+                return {"attack_types": [], "dates": []}
+
+            top_type_names = [row.attack_type for row in top_types_q]
+            totals = {row.attack_type: row.total for row in top_types_q}
+
+            # Build list of dates in the period
+            dates = []
+            for i in range(days, -1, -1):
+                d = (end - timedelta(days=i)).strftime("%Y-%m-%d")
+                dates.append(d)
+
+            # Get daily breakdown for those types using func.date() for portability
+            day_expr = func.date(AccessLog.timestamp)
+            daily_q = (
+                session.query(
+                    AttackDetection.attack_type,
+                    day_expr.label("day"),
+                    func.count(AttackDetection.id).label("count"),
+                )
+                .join(AccessLog, AttackDetection.access_log_id == AccessLog.id)
+                .filter(
+                    *time_filter,
+                    AttackDetection.attack_type.in_(top_type_names),
+                )
+                .group_by(AttackDetection.attack_type, day_expr)
+                .all()
+            )
+
+            # Build daily data per attack type
+            daily_data = {t: {d: 0 for d in dates} for t in top_type_names}
+            for row in daily_q:
+                # row.day may be a date object or string depending on the DB backend
+                day_str = (
+                    row.day.strftime("%Y-%m-%d")
+                    if hasattr(row.day, "strftime")
+                    else str(row.day)
+                )
+                if (
+                    row.attack_type in daily_data
+                    and day_str in daily_data[row.attack_type]
+                ):
+                    daily_data[row.attack_type][day_str] = row.count
+
+            return {
+                "attack_types": [
+                    {
+                        "type": t,
+                        "total": totals[t],
+                        "daily": [daily_data[t][d] for d in dates],
+                    }
+                    for t in top_type_names
+                ],
+                "dates": dates,
             }
         finally:
             self.close_session()

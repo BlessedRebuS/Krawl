@@ -179,3 +179,226 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
         console.error('Error loading attack types chart:', err);
     }
 }
+
+
+/**
+ * Attack Trends line chart with period navigation, totals sidebar,
+ * and interactive legend that filters the Detected Attack Types table.
+ */
+let attackTrendsChart = null;
+let _trendsOffsetDays = 0;
+const _trendsDays = 30;
+
+// Hash-based consistent colors (shared with doughnut chart)
+function _trendsHashCode(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash = hash & hash;
+    }
+    return Math.abs(hash);
+}
+
+function _trendsColor(label, alpha) {
+    const h = _trendsHashCode(label);
+    const hue = h % 360;
+    const sat = 70 + (h % 20);
+    const lit = 50 + (h % 10);
+    return alpha !== undefined
+        ? `hsla(${hue}, ${sat}%, ${lit}%, ${alpha})`
+        : `hsl(${hue}, ${sat}%, ${lit}%)`;
+}
+
+async function loadAttackTrendsChart(canvasId) {
+    canvasId = canvasId || 'attack-trends-chart';
+    const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
+
+    try {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+
+        const url = `${DASHBOARD_PATH}/api/attack-types-daily?limit=10&days=${_trendsDays}&offset_days=${_trendsOffsetDays}`;
+        const response = await fetch(url, {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch daily attack data');
+
+        const data = await response.json();
+        const attackTypes = data.attack_types || [];
+        const dates = data.dates || [];
+
+        // Update period label
+        _updateTrendsPeriodLabel(dates);
+
+        // Update totals sidebar
+        _updateTrendsTotals(attackTypes);
+
+        if (attackTrendsChart) {
+            attackTrendsChart.destroy();
+            attackTrendsChart = null;
+        }
+
+        if (attackTypes.length === 0) {
+            canvas.style.display = 'none';
+            let emptyMsg = canvas.parentElement.querySelector('.trends-empty-msg');
+            if (!emptyMsg) {
+                emptyMsg = document.createElement('div');
+                emptyMsg.className = 'trends-empty-msg';
+                emptyMsg.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:#8b949e;font-size:13px;';
+                canvas.parentElement.appendChild(emptyMsg);
+            }
+            emptyMsg.textContent = 'No attack data for this period';
+            emptyMsg.style.display = 'flex';
+            return;
+        }
+
+        // Restore canvas if previously hidden
+        canvas.style.display = '';
+        const oldMsg = canvas.parentElement.querySelector('.trends-empty-msg');
+        if (oldMsg) oldMsg.style.display = 'none';
+
+        const shortLabels = dates.map(d => {
+            const dt = new Date(d + 'T00:00:00');
+            return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        });
+
+        const datasets = attackTypes.map(at => ({
+            label: `${at.type} (${at.total})`,
+            data: at.daily,
+            borderColor: _trendsColor(at.type),
+            backgroundColor: _trendsColor(at.type, 0.05),
+            borderWidth: 2,
+            pointRadius: 0,
+            pointHitRadius: 8,
+            pointHoverRadius: 4,
+            pointHoverBackgroundColor: _trendsColor(at.type),
+            tension: 0.15,
+            fill: false,
+            _attackType: at.type,
+        }));
+
+        const ctx = canvas.getContext('2d');
+        attackTrendsChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: shortLabels, datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(22, 27, 34, 0.95)',
+                        titleColor: '#58a6ff',
+                        bodyColor: '#c9d1d9',
+                        borderColor: '#30363d',
+                        borderWidth: 1,
+                        padding: 10,
+                        titleFont: { size: 12, weight: 'bold' },
+                        bodyFont: { size: 11 },
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset._attackType}: ${context.parsed.y}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#8b949e', font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 15 },
+                        grid: { color: 'rgba(48, 54, 61, 0.3)' },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#8b949e', font: { size: 10 }, precision: 0 },
+                        grid: { color: 'rgba(48, 54, 61, 0.3)' },
+                    }
+                },
+                animation: { enabled: false },
+            }
+        });
+
+    } catch (err) {
+        console.error('Error loading attack trends chart:', err);
+    }
+}
+
+function _updateTrendsPeriodLabel(dates) {
+    const label = document.getElementById('trends-period-label');
+
+    // Always update button states regardless of data
+    const nextBtn = document.getElementById('trends-next');
+    if (nextBtn) nextBtn.disabled = (_trendsOffsetDays <= 0);
+
+    if (!label) return;
+
+    if (dates.length === 0) {
+        // Show computed date range even when no data exists
+        const end = new Date();
+        end.setDate(end.getDate() - _trendsOffsetDays);
+        const start = new Date(end);
+        start.setDate(start.getDate() - _trendsDays);
+        const fmt = { month: 'short', day: 'numeric' };
+        label.textContent = `${start.toLocaleDateString('en-US', fmt)} — ${end.toLocaleDateString('en-US', fmt)}`;
+        return;
+    }
+
+    const start = new Date(dates[0] + 'T00:00:00');
+    const end = new Date(dates[dates.length - 1] + 'T00:00:00');
+    const fmt = { month: 'short', day: 'numeric' };
+    label.textContent = `${start.toLocaleDateString('en-US', fmt)} — ${end.toLocaleDateString('en-US', fmt)}`;
+}
+
+function _updateTrendsTotals(attackTypes) {
+    const container = document.getElementById('trends-totals');
+    if (!container) return;
+
+    if (attackTypes.length === 0) {
+        container.innerHTML = '<span style="color: #8b949e; font-size: 0.8em;">No data</span>';
+        return;
+    }
+
+    let html = '<span style="color: #8b949e; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Totals (period)</span>';
+    attackTypes.forEach(at => {
+        const color = _trendsColor(at.type);
+        html += `<div style="display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; border-radius: 4px; transition: background 0.15s;"
+                      onmouseover="this.style.background='rgba(255,255,255,0.03)'"
+                      onmouseout="this.style.background='transparent'"
+                      onclick="filterAttackTableByType('${at.type.replace(/'/g, "\\'")}')">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: ${color}; flex-shrink: 0;"></span>
+            <span style="color: #c9d1d9; font-size: 0.8em; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${at.type}">${at.type}</span>
+            <span style="color: ${color}; font-size: 0.85em; font-weight: 600; font-variant-numeric: tabular-nums;">${at.total.toLocaleString()}</span>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+/** Shift the trends chart period by N windows (negative = older, positive = newer) */
+function shiftTrendsPeriod(direction) {
+    _trendsOffsetDays = Math.max(0, _trendsOffsetDays - (direction * _trendsDays));
+    loadAttackTrendsChart();
+}
+
+/** Active attack type filter (null = show all) */
+let _activeAttackTypeFilter = null;
+
+/**
+ * Filter the Detected Attack Types table by a specific attack type.
+ * Clicking the same type again clears the filter.
+ */
+function filterAttackTableByType(attackType) {
+    const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
+    const container = document.getElementById('attacks-htmx-container');
+    if (!container) return;
+
+    if (_activeAttackTypeFilter === attackType) {
+        _activeAttackTypeFilter = null;
+        htmx.ajax('GET', DASHBOARD_PATH + '/htmx/attacks?page=1', { target: container, swap: 'innerHTML' });
+    } else {
+        _activeAttackTypeFilter = attackType;
+        htmx.ajax('GET', DASHBOARD_PATH + '/htmx/attacks?page=1&attack_type_filter=' + encodeURIComponent(attackType), { target: container, swap: 'innerHTML' });
+    }
+}

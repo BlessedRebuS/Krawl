@@ -474,6 +474,34 @@ async def attack_types_stats(
         return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
 
 
+@router.get("/api/attack-types-daily")
+async def attack_types_daily(
+    request: Request,
+    limit: int = Query(10),
+    days: int = Query(30),
+    offset_days: int = Query(0),
+):
+    limit = min(max(1, limit), 20)
+    days = min(max(1, days), 90)
+    offset_days = max(0, offset_days)
+
+    cache_key = f"api:attack_daily:{limit}:{days}:{offset_days}"
+    cached = get_cached_table(cache_key)
+    if cached:
+        return JSONResponse(content=cached, headers=_no_cache_headers())
+
+    db = get_db()
+    try:
+        result = await asyncio.to_thread(
+            db.get_attack_types_daily, limit=limit, days=days, offset_days=offset_days
+        )
+        set_cached_table(cache_key, result)
+        return JSONResponse(content=result, headers=_no_cache_headers())
+    except Exception as e:
+        get_app_logger().error(f"Error fetching daily attack types: {e}")
+        return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
+
+
 @router.get("/api/attack-types")
 async def attack_types(
     request: Request,

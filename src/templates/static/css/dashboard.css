@@ -2215,3 +2215,67 @@ tbody {
     color: #4a515a;
     padding: 20px 12px;
 }
+
+/* Map marker pop-in animation for batch loading */
+@keyframes marker-pop {
+    0%   { transform: scale(0); opacity: 0; }
+    60%  { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+.marker-pop-in {
+    animation: marker-pop 0.4s ease-out forwards;
+}
+
+/* Map legend items */
+.map-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid #30363d;
+    background: transparent;
+    transition: background 0.15s, opacity 0.15s, border-color 0.15s;
+    user-select: none;
+}
+.map-legend-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+.map-legend-item:not(.active) {
+    opacity: 0.4;
+    border-color: transparent;
+}
+.map-legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.map-legend-label {
+    color: #c9d1d9;
+    font-size: 0.8em;
+    white-space: nowrap;
+}
+
+/* Map limit selector buttons */
+.map-limit-btn {
+    background: transparent;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.78em;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.map-limit-btn:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: #c9d1d9;
+}
+.map-limit-btn.active {
+    background: #58a6ff;
+    color: #0d1117;
+    border-color: #58a6ff;
+    font-weight: 600;
+}

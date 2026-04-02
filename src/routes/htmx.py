@@ -186,7 +186,7 @@ async def htmx_generated_pages(
     result = await asyncio.to_thread(
         db.get_generated_pages_paginated,
         page=max(1, page),
-        page_size=5,
+        page_size=15,
         sort_by=sort_by,
         sort_order=sort_order,
     )
@@ -217,7 +217,7 @@ async def htmx_generated_pages_readonly(
     result = await asyncio.to_thread(
         db.get_generated_pages_paginated,
         page=max(1, page),
-        page_size=5,
+        page_size=15,
         sort_by=sort_by,
         sort_order=sort_order,
     )
@@ -303,7 +303,7 @@ async def htmx_attackers(
         result = await asyncio.to_thread(
             db.get_attackers_paginated,
             page=page,
-            page_size=25,
+            page_size=10,
             sort_by=sort_by,
             sort_order=sort_order,
         )
@@ -425,9 +425,10 @@ async def htmx_attacks(
     sort_by: str = Query("timestamp"),
     sort_order: str = Query("desc"),
     ip_filter: str = Query(None),
+    attack_type_filter: str = Query(None),
 ):
     page = max(1, page)
-    cache_key = f"attacks:{page}:{sort_by}:{sort_order}:{ip_filter or ''}"
+    cache_key = f"attacks:{page}:{sort_by}:{sort_order}:{ip_filter or ''}:{attack_type_filter or ''}"
     cached = get_cached_table(cache_key)
     if cached:
         result = cached
@@ -436,10 +437,11 @@ async def htmx_attacks(
         result = await asyncio.to_thread(
             db.get_attack_types_paginated,
             page=page,
-            page_size=5,
+            page_size=15,
             sort_by=sort_by,
             sort_order=sort_order,
             ip_filter=ip_filter,
+            attack_type_filter=attack_type_filter,
         )
         set_cached_table(cache_key, result)
 
@@ -468,6 +470,7 @@ async def htmx_attacks(
             "sort_by": sort_by,
             "sort_order": sort_order,
             "ip_filter": ip_filter or "",
+            "attack_type_filter": attack_type_filter or "",
         },
     )
 

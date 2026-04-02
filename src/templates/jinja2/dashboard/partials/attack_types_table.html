@@ -1,14 +1,27 @@
 {# HTMX fragment: Detected Attack Types table #}
+{% set filter_qs %}{% if ip_filter %}&ip_filter={{ ip_filter }}{% endif %}{% if attack_type_filter %}&attack_type_filter={{ attack_type_filter }}{% endif %}{% endset %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-    <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} total</span>
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} total</span>
+        {% if attack_type_filter %}
+        <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(88, 166, 255, 0.1); color: #58a6ff; padding: 3px 10px; border-radius: 12px; font-size: 0.8em; font-weight: 500;">
+            {{ attack_type_filter }}
+            <span style="cursor: pointer; opacity: 0.7; font-size: 1.1em;"
+                  hx-get="{{ dashboard_path }}/htmx/attacks?page=1&sort_by={{ sort_by }}&sort_order={{ sort_order }}{% if ip_filter %}&ip_filter={{ ip_filter }}{% endif %}"
+                  hx-target="closest .htmx-container"
+                  hx-swap="innerHTML"
+                  title="Clear filter">&times;</span>
+        </span>
+        {% endif %}
+    </div>
     <div style="display: flex; gap: 8px;">
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/attacks?page={{ pagination.page - 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{% if ip_filter %}&ip_filter={{ ip_filter }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/attacks?page={{ pagination.page - 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
                 {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/attacks?page={{ pagination.page + 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{% if ip_filter %}&ip_filter={{ ip_filter }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/attacks?page={{ pagination.page + 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
                 {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
@@ -23,7 +36,7 @@
             <th>Attack Types</th>
             <th>User-Agent</th>
             <th class="sortable {% if sort_by == 'timestamp' %}{{ sort_order }}{% endif %}"
-                hx-get="{{ dashboard_path }}/htmx/attacks?page=1&sort_by=timestamp&sort_order={% if sort_by == 'timestamp' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{% if ip_filter %}&ip_filter={{ ip_filter }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/attacks?page=1&sort_by=timestamp&sort_order={% if sort_by == 'timestamp' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML">
                 Time

@@ -166,14 +166,137 @@ function getIPCoordinates(ip) {
     return null;
 }
 
-// Fetch IPs from the API, handling pagination for "all"
-async function fetchIpsForMap(limit) {
+// Shared coordinate-dedup state (reset per full build)
+let _usedCoordinates = {};
+
+function _getUniqueCoordinates(baseCoords) {
+    const key = `${baseCoords[0].toFixed(4)},${baseCoords[1].toFixed(4)}`;
+    _usedCoordinates[key] = (_usedCoordinates[key] || 0) + 1;
+    if (_usedCoordinates[key] === 1) return baseCoords;
+    const angle = (_usedCoordinates[key] * 137.5) % 360;
+    const distance = 0.05 * Math.sqrt(_usedCoordinates[key]);
+    return [
+        baseCoords[0] + distance * Math.cos(angle * Math.PI / 180),
+        baseCoords[1] + distance * Math.sin(angle * Math.PI / 180)
+    ];
+}
+
+/**
+ * Create a single Leaflet marker for an IP object.
+ * @param {boolean} animate - add pop-in CSS class
+ */
+function _createIpMarker(ip, animate) {
+    const baseCoords = getIPCoordinates(ip);
+    if (!baseCoords) return null;
+    const category = ip.category.toLowerCase();
+    if (!categoryColors[category]) return null;
+
+    const coords = _getUniqueCoordinates(baseCoords);
+    const requestsForScale = Math.min(ip.total_requests, 10000);
+    const sizeRatio = Math.pow(requestsForScale / 10000, 0.5);
+    const markerSize = Math.max(10, Math.min(30, 10 + (sizeRatio * 20)));
+
+    const popClass = animate ? ' marker-pop-in' : '';
+    const html = `<div class="ip-marker marker-${category}${popClass}" style="width:${markerSize}px;height:${markerSize}px;font-size:${markerSize * 0.5}px;">\u25CF</div>`;
+
+    const marker = L.marker(coords, {
+        icon: L.divIcon({
+            html: html,
+            iconSize: [markerSize, markerSize],
+            className: `ip-custom-marker category-${category}`
+        }),
+        category: category
+    });
+
+    const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
+    const categoryColor = categoryColors[category] || '#8b949e';
+    const categoryLabels = { attacker: 'Attacker', bad_crawler: 'Bad Crawler', good_crawler: 'Good Crawler', regular_user: 'Regular User', unknown: 'Unknown' };
+
+    marker.bindPopup('', { maxWidth: 550, className: 'ip-detail-popup' });
+
+    marker.on('click', async function() {
+        const loadingPopup = `
+            <div style="padding: 12px; min-width: 280px; max-width: 320px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <strong style="color: #58a6ff; font-size: 14px;">${ip.ip}</strong>
+                    <span style="background: ${categoryColor}1a; color: ${categoryColor}; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">${categoryLabels[category]}</span>
+                </div>
+                <div style="text-align: center; padding: 20px; color: #8b949e;"><div style="font-size: 12px;">Loading details...</div></div>
+            </div>`;
+        marker.setPopupContent(loadingPopup);
+        marker.openPopup();
+
+        try {
+            const response = await fetch(`${DASHBOARD_PATH}/api/ip-stats/${ip.ip}`);
+            if (!response.ok) throw new Error('Failed to fetch IP stats');
+            const stats = await response.json();
+
+            let popupContent = `
+                <div style="padding: 12px; min-width: 200px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                        <strong style="color: #58a6ff; font-size: 14px;">${ip.ip}</strong>
+                        <button onclick="window.openIpInsight('${ip.ip}')" class="inspect-btn" style="display: inline-flex; align-items: center; padding: 4px; background: none; color: #8b949e; border: none; cursor: pointer; border-radius: 4px;" title="Inspect IP">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
+                        </button>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span style="background: ${categoryColor}1a; color: ${categoryColor}; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">${categoryLabels[category]}</span>
+                    </div>
+                    <span style="color: #8b949e; font-size: 12px;">${ip.city ? (ip.country_code ? `${ip.city}, ${ip.country_code}` : ip.city) : (ip.country_code || 'Unknown')}</span><br/>
+                    <div style="margin-top: 8px; border-top: 1px solid #30363d; padding-top: 8px;">
+                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">Requests:</span> <span style="color: ${categoryColor}; font-weight: bold;">${ip.total_requests}</span></div>
+                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">First Seen:</span> <span style="color: #58a6ff; font-size: 11px;">${formatTimestamp(ip.first_seen)}</span></div>
+                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">Last Seen:</span> <span style="color: #58a6ff; font-size: 11px;">${formatTimestamp(ip.last_seen)}</span></div>
+                    </div>`;
+
+            if (stats.category_scores && Object.keys(stats.category_scores).length > 0) {
+                popupContent += `<div style="margin-top: 12px; border-top: 1px solid #30363d; padding-top: 12px;">${generateMapPanelRadarChart(stats.category_scores)}</div>`;
+            }
+            popupContent += '</div>';
+            marker.setPopupContent(popupContent);
+        } catch (err) {
+            console.error('Error fetching IP stats:', err);
+            marker.setPopupContent(`
+                <div style="padding: 12px; min-width: 200px;">
+                    <strong style="color: #58a6ff;">${ip.ip}</strong>
+                    <div style="margin-top: 8px; color: #f85149; font-size: 11px;">Failed to load details: ${err.message}</div>
+                </div>`);
+        }
+    });
+
+    return marker;
+}
+
+/**
+ * Fetch IPs and stream batches to the map (with pop animation) when loading "all".
+ * For fixed limits, fetches once and builds all markers at once.
+ */
+async function fetchAndBuildMap(limit) {
     const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
     const headers = { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' };
 
+    // Reset state
+    if (clusterGroup) {
+        attackerMap.removeLayer(clusterGroup);
+        clusterGroup.clearLayers();
+    }
+    mapMarkers = [];
+    _usedCoordinates = {};
+    allIps = [];
+
+    clusterGroup = L.markerClusterGroup({
+        maxClusterRadius: 35,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        disableClusteringAtZoom: 8,
+        iconCreateFunction: createClusterIcon,
+        animateAddingMarkers: true,
+    });
+    attackerMap.addLayer(clusterGroup);
+
     if (limit === 'all') {
-        // Fetch in pages of 1000 until we have everything
-        let collected = [];
+        // Stream pages of 1000, adding each batch with pop animation
         let page = 1;
         const pageSize = 1000;
         while (true) {
@@ -183,33 +306,74 @@ async function fetchIpsForMap(limit) {
             );
             if (!response.ok) throw new Error('Failed to fetch IPs');
             const data = await response.json();
-            collected = collected.concat(data.ips || []);
+            const batch = data.ips || [];
+            allIps = allIps.concat(batch);
+
+            // Build markers for this batch with pop animation
+            const batchMarkers = [];
+            batch.forEach(ip => {
+                if (!ip.country_code || !ip.category) return;
+                const marker = _createIpMarker(ip, true);
+                if (marker) {
+                    mapMarkers.push(marker);
+                    batchMarkers.push(marker);
+                }
+            });
+
+            // Add batch to cluster group (triggers pop-in)
+            if (batchMarkers.length > 0) {
+                const visible = batchMarkers.filter(m => !hiddenCategories.has(m.options.category));
+                clusterGroup.addLayers(visible);
+            }
+
+            // Update overlay counter
+            const overlay = document.getElementById('map-loading-overlay');
+            if (overlay) overlay.textContent = `Loading IPs... ${allIps.length} loaded`;
+
             if (page >= data.pagination.total_pages) break;
             page++;
+
+            // Small delay to let the browser paint the batch
+            await new Promise(r => setTimeout(r, 80));
         }
-        return collected;
+    } else {
+        // Single fetch, no animation needed
+        const pageSize = parseInt(limit, 10);
+        const response = await fetch(
+            `${DASHBOARD_PATH}/api/all-ips?page=1&page_size=${pageSize}&sort_by=total_requests&sort_order=desc`,
+            { cache: 'no-store', headers }
+        );
+        if (!response.ok) throw new Error('Failed to fetch IPs');
+        const data = await response.json();
+        allIps = data.ips || [];
+
+        allIps.forEach(ip => {
+            if (!ip.country_code || !ip.category) return;
+            const marker = _createIpMarker(ip, false);
+            if (marker) mapMarkers.push(marker);
+        });
+
+        const visible = mapMarkers.filter(m => !hiddenCategories.has(m.options.category));
+        clusterGroup.addLayers(visible);
     }
 
-    const pageSize = parseInt(limit, 10);
-    const response = await fetch(
-        `${DASHBOARD_PATH}/api/all-ips?page=1&page_size=${pageSize}&sort_by=total_requests&sort_order=desc`,
-        { cache: 'no-store', headers }
-    );
-    if (!response.ok) throw new Error('Failed to fetch IPs');
-    const data = await response.json();
-    return data.ips || [];
+    // Fit bounds to visible markers
+    const visibleMarkers = mapMarkers.filter(m => !hiddenCategories.has(m.options.category));
+    if (visibleMarkers.length > 0) {
+        const bounds = L.featureGroup(visibleMarkers).getBounds();
+        attackerMap.fitBounds(bounds, { padding: [50, 50] });
+    }
 }
 
-// Build markers from an IP list and add them to the map
+// Legacy wrapper kept for filter rebuilds
 function buildMapMarkers(ips) {
-    // Clear existing cluster group
     if (clusterGroup) {
         attackerMap.removeLayer(clusterGroup);
         clusterGroup.clearLayers();
     }
     mapMarkers = [];
+    _usedCoordinates = {};
 
-    // Single cluster group with custom pie-chart icons
     clusterGroup = L.markerClusterGroup({
         maxClusterRadius: 35,
         spiderfyOnMaxZoom: true,
@@ -219,176 +383,18 @@ function buildMapMarkers(ips) {
         iconCreateFunction: createClusterIcon
     });
 
-    // Track used coordinates to add small offsets for overlapping markers
-    const usedCoordinates = {};
-    function getUniqueCoordinates(baseCoords) {
-        const key = `${baseCoords[0].toFixed(4)},${baseCoords[1].toFixed(4)}`;
-        if (!usedCoordinates[key]) {
-            usedCoordinates[key] = 0;
-        }
-        usedCoordinates[key]++;
-
-        if (usedCoordinates[key] === 1) {
-            return baseCoords;
-        }
-
-        const angle = (usedCoordinates[key] * 137.5) % 360;
-        const distance = 0.05 * Math.sqrt(usedCoordinates[key]);
-        const latOffset = distance * Math.cos(angle * Math.PI / 180);
-        const lngOffset = distance * Math.sin(angle * Math.PI / 180);
-
-        return [
-            baseCoords[0] + latOffset,
-            baseCoords[1] + lngOffset
-        ];
-    }
-
-    const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
-
     ips.forEach(ip => {
         if (!ip.country_code || !ip.category) return;
-
-        const baseCoords = getIPCoordinates(ip);
-        if (!baseCoords) return;
-
-        const coords = getUniqueCoordinates(baseCoords);
-        const category = ip.category.toLowerCase();
-        if (!categoryColors[category]) return;
-
-        const requestsForScale = Math.min(ip.total_requests, 10000);
-        const sizeRatio = Math.pow(requestsForScale / 10000, 0.5);
-        const markerSize = Math.max(10, Math.min(30, 10 + (sizeRatio * 20)));
-
-        const markerElement = document.createElement('div');
-        markerElement.className = `ip-marker marker-${category}`;
-        markerElement.style.width = markerSize + 'px';
-        markerElement.style.height = markerSize + 'px';
-        markerElement.style.fontSize = (markerSize * 0.5) + 'px';
-        markerElement.textContent = '\u25CF';
-
-        const marker = L.marker(coords, {
-            icon: L.divIcon({
-                html: markerElement.outerHTML,
-                iconSize: [markerSize, markerSize],
-                className: `ip-custom-marker category-${category}`
-            }),
-            category: category
-        });
-
-        const categoryColor = categoryColors[category] || '#8b949e';
-        const categoryLabels = {
-            attacker: 'Attacker',
-            bad_crawler: 'Bad Crawler',
-            good_crawler: 'Good Crawler',
-            regular_user: 'Regular User',
-            unknown: 'Unknown'
-        };
-
-        marker.bindPopup('', {
-            maxWidth: 550,
-            className: 'ip-detail-popup'
-        });
-
-        marker.on('click', async function(e) {
-            const loadingPopup = `
-                <div style="padding: 12px; min-width: 280px; max-width: 320px;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                        <strong style="color: #58a6ff; font-size: 14px;">${ip.ip}</strong>
-                        <span style="background: ${categoryColor}1a; color: ${categoryColor}; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
-                            ${categoryLabels[category]}
-                        </span>
-                    </div>
-                    <div style="text-align: center; padding: 20px; color: #8b949e;">
-                        <div style="font-size: 12px;">Loading details...</div>
-                    </div>
-                </div>
-            `;
-
-            marker.setPopupContent(loadingPopup);
-            marker.openPopup();
-
-            try {
-                const response = await fetch(`${DASHBOARD_PATH}/api/ip-stats/${ip.ip}`);
-                if (!response.ok) throw new Error('Failed to fetch IP stats');
-
-                const stats = await response.json();
-
-                let popupContent = `
-                    <div style="padding: 12px; min-width: 200px;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-                            <strong style="color: #58a6ff; font-size: 14px;">${ip.ip}</strong>
-                            <button onclick="window.openIpInsight('${ip.ip}')" class="inspect-btn" style="display: inline-flex; align-items: center; padding: 4px; background: none; color: #8b949e; border: none; cursor: pointer; border-radius: 4px;" title="Inspect IP">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
-                            </button>
-                        </div>
-                        <div style="margin-bottom: 8px;">
-                            <span style="background: ${categoryColor}1a; color: ${categoryColor}; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
-                                ${categoryLabels[category]}
-                            </span>
-                        </div>
-                        <span style="color: #8b949e; font-size: 12px;">
-                            ${ip.city ? (ip.country_code ? `${ip.city}, ${ip.country_code}` : ip.city) : (ip.country_code || 'Unknown')}
-                        </span><br/>
-                        <div style="margin-top: 8px; border-top: 1px solid #30363d; padding-top: 8px;">
-                            <div style="margin-bottom: 4px;"><span style="color: #8b949e;">Requests:</span> <span style="color: ${categoryColor}; font-weight: bold;">${ip.total_requests}</span></div>
-                            <div style="margin-bottom: 4px;"><span style="color: #8b949e;">First Seen:</span> <span style="color: #58a6ff; font-size: 11px;">${formatTimestamp(ip.first_seen)}</span></div>
-                            <div style="margin-bottom: 4px;"><span style="color: #8b949e;">Last Seen:</span> <span style="color: #58a6ff; font-size: 11px;">${formatTimestamp(ip.last_seen)}</span></div>
-                        </div>
-                `;
-
-                if (stats.category_scores && Object.keys(stats.category_scores).length > 0) {
-                    const chartHtml = generateMapPanelRadarChart(stats.category_scores);
-                    popupContent += `
-                        <div style="margin-top: 12px; border-top: 1px solid #30363d; padding-top: 12px;">
-                            ${chartHtml}
-                        </div>
-                    `;
-                }
-
-                popupContent += '</div>';
-                marker.setPopupContent(popupContent);
-            } catch (err) {
-                console.error('Error fetching IP stats:', err);
-                const errorPopup = `
-                    <div style="padding: 12px; min-width: 280px; max-width: 320px;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-                            <strong style="color: #58a6ff; font-size: 14px;">${ip.ip}</strong>
-                            <button onclick="window.openIpInsight('${ip.ip}')" class="inspect-btn" style="display: inline-flex; align-items: center; padding: 4px; background: none; color: #8b949e; border: none; cursor: pointer; border-radius: 4px;" title="Inspect IP">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
-                            </button>
-                        </div>
-                        <div style="margin-bottom: 8px;">
-                            <span style="background: ${categoryColor}1a; color: ${categoryColor}; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
-                                ${categoryLabels[category]}
-                            </span>
-                        </div>
-                        <span style="color: #8b949e; font-size: 12px;">
-                            ${ip.city ? (ip.country_code ? `${ip.city}, ${ip.country_code}` : ip.city) : (ip.country_code || 'Unknown')}
-                        </span><br/>
-                        <div style="margin-top: 8px; border-top: 1px solid #30363d; padding-top: 8px;">
-                            <div style="margin-bottom: 4px;"><span style="color: #8b949e;">Requests:</span> <span style="color: ${categoryColor}; font-weight: bold;">${ip.total_requests}</span></div>
-                            <div style="margin-bottom: 4px;"><span style="color: #8b949e;">First Seen:</span> <span style="color: #58a6ff; font-size: 11px;">${formatTimestamp(ip.first_seen)}</span></div>
-                            <div style="margin-bottom: 4px;"><span style="color: #8b949e;">Last Seen:</span> <span style="color: #58a6ff; font-size: 11px;">${formatTimestamp(ip.last_seen)}</span></div>
-                        </div>
-                        <div style="margin-top: 12px; border-top: 1px solid #30363d; padding-top: 12px; text-align: center; color: #f85149; font-size: 11px;">
-                            Failed to load chart: ${err.message}
-                        </div>
-                    </div>
-                `;
-                marker.setPopupContent(errorPopup);
+        const marker = _createIpMarker(ip, false);
+        if (marker) {
+            mapMarkers.push(marker);
+            if (!hiddenCategories.has(marker.options.category)) {
+                clusterGroup.addLayer(marker);
             }
-        });
-
-        mapMarkers.push(marker);
-        // Only add to cluster if category is not hidden
-        if (!hiddenCategories.has(category)) {
-            clusterGroup.addLayer(marker);
         }
     });
 
     attackerMap.addLayer(clusterGroup);
-
-    // Fit map to visible markers
     const visibleMarkers = mapMarkers.filter(m => !hiddenCategories.has(m.options.category));
     if (visibleMarkers.length > 0) {
         const bounds = L.featureGroup(visibleMarkers).getBounds();
@@ -413,20 +419,16 @@ async function initializeAttackerMap() {
             ]
         });
 
-        // Get the selected limit from the dropdown (default 100)
-        const limitSelect = document.getElementById('map-ip-limit');
-        const limit = limitSelect ? limitSelect.value : '100';
+        const activeBtn = document.querySelector('.map-limit-btn.active');
+        const limit = activeBtn ? activeBtn.dataset.value : '1000';
 
-        allIps = await fetchIpsForMap(limit);
+        await fetchAndBuildMap(limit);
 
         if (allIps.length === 0) {
             mapContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #8b949e;">No IP location data available</div>';
             return;
         }
 
-        buildMapMarkers(allIps);
-
-        // Force Leaflet to recalculate container size after the tab becomes visible.
         setTimeout(() => {
             if (attackerMap) attackerMap.invalidateSize();
         }, 300);
@@ -437,11 +439,9 @@ async function initializeAttackerMap() {
     }
 }
 
-// Reload map markers when the user changes the IP limit selector
 async function reloadMapWithLimit(limit) {
     if (!attackerMap) return;
 
-    // Show loading state
     const mapContainer = document.getElementById('attacker-map');
     const overlay = document.createElement('div');
     overlay.id = 'map-loading-overlay';
@@ -451,8 +451,7 @@ async function reloadMapWithLimit(limit) {
     mapContainer.appendChild(overlay);
 
     try {
-        allIps = await fetchIpsForMap(limit);
-        buildMapMarkers(allIps);
+        await fetchAndBuildMap(limit);
     } catch (err) {
         console.error('Error reloading map:', err);
     } finally {

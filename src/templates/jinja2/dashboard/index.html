@@ -133,8 +133,40 @@
         </div>
     </div>
 
-    {# ==================== ATTACKS TAB ==================== #}
-    <div x-show="tab === 'attacks'" x-cloak>
+    {# ==================== ATTACKS TAB (lazy-rendered on navigation) ==================== #}
+    <template x-if="tab === 'attacks'">
+    <div>
+
+        {# Attack Trends line chart with period navigation and totals sidebar #}
+        <div class="table-container alert-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h2 style="margin: 0;">Attack Trends <span style="color: #8b949e; font-size: 0.7em; font-weight: 400;">(click legend to filter table)</span></h2>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button id="trends-prev" onclick="shiftTrendsPeriod(-1)" class="pagination-btn" style="padding: 4px 10px; font-size: 0.85em;">&#8592;</button>
+                    <span id="trends-period-label" style="color: #c9d1d9; font-size: 0.85em; min-width: 160px; text-align: center;">Last 30 days</span>
+                    <button id="trends-next" onclick="shiftTrendsPeriod(1)" class="pagination-btn" style="padding: 4px 10px; font-size: 0.85em;" disabled>&#8594;</button>
+                </div>
+            </div>
+            <div style="display: flex; gap: 16px;">
+                <div class="chart-wrapper" style="height: 300px; flex: 1; min-width: 0;">
+                    <canvas id="attack-trends-chart"></canvas>
+                </div>
+                <div id="trends-totals" style="min-width: 180px; max-width: 220px; display: flex; flex-direction: column; gap: 6px; padding-top: 4px; overflow-y: auto; max-height: 300px;">
+                    <span style="color: #8b949e; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Totals (period)</span>
+                </div>
+            </div>
+        </div>
+
+        {# Attack Types table #}
+        <div class="table-container alert-section">
+            <h2>Detected Attack Types</h2>
+            <div id="attacks-htmx-container" class="htmx-container"
+                 hx-get="{{ dashboard_path }}/htmx/attacks?page=1"
+                 hx-trigger="revealed"
+                 hx-swap="innerHTML">
+                <div class="htmx-indicator">Loading...</div>
+            </div>
+        </div>
 
         {# Attackers table - HTMX loaded #}
         <div class="table-container alert-section">
@@ -168,37 +200,8 @@
                 <div class="htmx-indicator">Loading...</div>
             </div>
         </div>
-
-        {# Attack Types table #}
-        <div class="table-container alert-section">
-            <h2>Detected Attack Types</h2>
-            <div class="htmx-container"
-                 hx-get="{{ dashboard_path }}/htmx/attacks?page=1"
-                 hx-trigger="revealed"
-                 hx-swap="innerHTML">
-                <div class="htmx-indicator">Loading...</div>
-            </div>
-        </div>
-
-        {# Charts + Patterns side by side #}
-        <div class="charts-container">
-            <div class="table-container chart-section">
-                <h2>Most Recurring Attack Types</h2>
-                <div class="chart-wrapper">
-                    <canvas id="attack-types-chart"></canvas>
-                </div>
-            </div>
-            <div class="table-container chart-section">
-                <h2>Most Recurring Attack Patterns</h2>
-                <div class="htmx-container"
-                     hx-get="{{ dashboard_path }}/htmx/patterns?page=1"
-                     hx-trigger="revealed"
-                     hx-swap="innerHTML">
-                    <div class="htmx-indicator">Loading...</div>
-                </div>
-            </div>
-        </div>
     </div>
+    </template>
 
     {# ==================== IP INSIGHT TAB ==================== #}
     <div x-show="tab === 'ip-insight'" x-cloak>
