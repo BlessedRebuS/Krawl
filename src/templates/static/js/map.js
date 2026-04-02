@@ -419,8 +419,8 @@ async function initializeAttackerMap() {
             ]
         });
 
-        const limitSelect = document.getElementById('map-ip-limit');
-        const limit = limitSelect ? limitSelect.value : '100';
+        const activeBtn = document.querySelector('.map-limit-btn.active');
+        const limit = activeBtn ? activeBtn.dataset.value : '1000';
 
         await fetchAndBuildMap(limit);
 
