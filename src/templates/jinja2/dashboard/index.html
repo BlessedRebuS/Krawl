@@ -141,10 +141,17 @@
         <div class="table-container alert-section">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <h2 style="margin: 0;">Attack Trends <span style="color: #8b949e; font-size: 0.7em; font-weight: 400;">(click legend to filter table)</span></h2>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <button id="trends-prev" onclick="shiftTrendsPeriod(-1)" class="pagination-btn" style="padding: 4px 10px; font-size: 0.85em;">&#8592;</button>
-                    <span id="trends-period-label" style="color: #c9d1d9; font-size: 0.85em; min-width: 160px; text-align: center;">Last 30 days</span>
-                    <button id="trends-next" onclick="shiftTrendsPeriod(1)" class="pagination-btn" style="padding: 4px 10px; font-size: 0.85em;" disabled>&#8594;</button>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="display: flex; gap: 4px;" id="trends-span-selector">
+                        <button class="map-limit-btn" data-days="7" onclick="setTrendsSpan(7, this)">7D</button>
+                        <button class="map-limit-btn active" data-days="30" onclick="setTrendsSpan(30, this)">30D</button>
+                        <button class="map-limit-btn" data-days="90" onclick="setTrendsSpan(90, this)">90D</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <button id="trends-prev" onclick="shiftTrendsPeriod(-1)" class="pagination-btn" style="padding: 4px 10px; font-size: 0.85em;">&#8592;</button>
+                        <span id="trends-period-label" style="color: #c9d1d9; font-size: 0.85em; min-width: 160px; text-align: center;">Last 30 days</span>
+                        <button id="trends-next" onclick="shiftTrendsPeriod(1)" class="pagination-btn" style="padding: 4px 10px; font-size: 0.85em;" disabled>&#8594;</button>
+                    </div>
                 </div>
             </div>
             <div style="display: flex; gap: 16px;">

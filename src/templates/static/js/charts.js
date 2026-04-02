@@ -187,7 +187,7 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
  */
 let attackTrendsChart = null;
 let _trendsOffsetDays = 0;
-const _trendsDays = 30;
+let _trendsDays = 30;
 
 // Hash-based consistent colors (shared with doughnut chart)
 function _trendsHashCode(str) {
@@ -379,6 +379,15 @@ function _updateTrendsTotals(attackTypes) {
 /** Shift the trends chart period by N windows (negative = older, positive = newer) */
 function shiftTrendsPeriod(direction) {
     _trendsOffsetDays = Math.max(0, _trendsOffsetDays - (direction * _trendsDays));
+    loadAttackTrendsChart();
+}
+
+/** Switch the trends time span (7, 30, 90 days) and reset to current period */
+function setTrendsSpan(days, btn) {
+    _trendsDays = days;
+    _trendsOffsetDays = 0;
+    document.querySelectorAll('#trends-span-selector .map-limit-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
     loadAttackTrendsChart();
 }
 
