@@ -67,10 +67,6 @@ def main():
         )
 
         # --- HTMX Overview tables (first page, default sort) ---
-        top_ips = _timed(
-            "get_top_ips_paginated",
-            lambda: db.get_top_ips_paginated(page=1, page_size=8),
-        )
         top_ua = _timed(
             "get_top_user_agents_paginated",
             lambda: db.get_top_user_agents_paginated(page=1, page_size=5),
@@ -81,12 +77,35 @@ def main():
         )
 
         # --- Map data (default: top 100 IPs by total_requests) ---
+        # Also used to derive top_ips (first 8), avoiding a redundant DB query
         map_ips = _timed(
             "get_all_ips_paginated",
             lambda: db.get_all_ips_paginated(
                 page=1, page_size=100, sort_by="total_requests", sort_order="desc"
             ),
         )
+
+        # Derive top_ips from map_ips (both sorted by total_requests desc)
+        top_ips_from_map = map_ips.get("ips", [])[:8]
+        top_ips = {
+            "ips": [
+                {
+                    "ip": ip["ip"],
+                    "count": ip["total_requests"],
+                    "category": ip.get("category") or "unknown",
+                }
+                for ip in top_ips_from_map
+            ],
+            "pagination": {
+                "page": 1,
+                "page_size": 8,
+                "total": map_ips.get("pagination", {}).get("total", 0),
+                "total_pages": max(
+                    1,
+                    (map_ips.get("pagination", {}).get("total", 0) + 7) // 8,
+                ),
+            },
+        }
 
         # Store everything in the cache (overwrites previous values)
         set_cached("stats", stats)
