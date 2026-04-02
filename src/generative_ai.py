@@ -241,7 +241,7 @@ def get_generated_page_from_db(path: str) -> Optional[str]:
 
             if page:
                 # Update last_accessed and increment access count
-                page.last_accessed = datetime.utcnow()
+                page.last_accessed = datetime.now()
                 page.access_count = (page.access_count or 0) + 1
                 session.commit()
 
@@ -289,15 +289,15 @@ def save_generated_page_to_db(path: str, html_content: str) -> bool:
             if existing_page:
                 # Update existing entry
                 existing_page.html_content_b64 = html_b64
-                existing_page.last_accessed = datetime.utcnow()
+                existing_page.last_accessed = datetime.now()
                 logger.debug(f"Updated generated page in DB for path: {path}")
             else:
                 # Create new entry
                 new_page = GeneratedPage(
                     path=path,
                     html_content_b64=html_b64,
-                    created_at=datetime.utcnow(),
-                    last_accessed=datetime.utcnow(),
+                    created_at=datetime.now(),
+                    last_accessed=datetime.now(),
                     access_count=0,
                 )
                 session.add(new_page)
