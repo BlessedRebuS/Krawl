@@ -283,9 +283,7 @@ def save_generated_page_to_db(path: str, html_content: str) -> bool:
 
             # Check if path already exists (upsert)
             existing_page = (
-                session.query(GeneratedPage)
-                .filter(GeneratedPage.path == path)
-                .first()
+                session.query(GeneratedPage).filter(GeneratedPage.path == path).first()
             )
 
             if existing_page:
@@ -448,9 +446,7 @@ async def _call_api(
         ) as response:
             if response.status != 200:
                 error_body = await response.text()
-                raise RuntimeError(
-                    f"{provider} HTTP {response.status}: {error_body}"
-                )
+                raise RuntimeError(f"{provider} HTTP {response.status}: {error_body}")
             body = await response.json()
     except aiohttp.ClientError as err:
         raise RuntimeError(f"{provider} network error: {err}") from err

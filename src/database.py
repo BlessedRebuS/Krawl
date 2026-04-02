@@ -1650,9 +1650,9 @@ class DatabaseManager:
             from sqlalchemy import case
 
             logs_q = session.query(
-                func.count(
-                    case((AccessLog.is_suspicious == True, AccessLog.id))
-                ).label("suspicious_accesses"),
+                func.count(case((AccessLog.is_suspicious == True, AccessLog.id))).label(
+                    "suspicious_accesses"
+                ),
                 func.count(
                     case((AccessLog.is_honeypot_trigger == True, AccessLog.id))
                 ).label("honeypot_triggered"),
