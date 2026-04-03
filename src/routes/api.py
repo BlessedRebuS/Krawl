@@ -703,7 +703,9 @@ async def download_generated_page(
         html_content = base64.b64decode(page.html_content_b64).decode("utf-8")
         # Build a safe filename from the path
         safe_name = path.strip("/").replace("/", "_") or "index"
-        safe_name = safe_name[:100] + ".html"
+        safe_name = safe_name[:100]
+        if not safe_name.endswith(".html"):
+            safe_name += ".html"
 
         return Response(
             content=html_content,

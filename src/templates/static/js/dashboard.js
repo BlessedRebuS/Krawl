@@ -566,6 +566,28 @@ window.deleteGeneratedPage = async function(path) {
         });
 };
 
+// Toggle danger state on deception delete buttons based on conditions
+window.toggleDeceptionBtnState = function() {
+    const dateInput = document.getElementById('delete-before-date');
+    const beforeBtn = document.getElementById('btn-delete-before');
+    if (beforeBtn) {
+        beforeBtn.classList.toggle('deception-action-btn-danger', !!(dateInput && dateInput.value));
+    }
+
+    const selectedBtn = document.getElementById('btn-delete-selected');
+    if (selectedBtn) {
+        const checked = document.querySelectorAll('#deception-htmx-container input[name="page-checkbox"]:checked');
+        selectedBtn.classList.toggle('deception-action-btn-danger', checked.length > 0);
+    }
+};
+
+// Listen for checkbox changes inside HTMX-loaded deception table
+document.addEventListener('change', function(e) {
+    if (e.target.name === 'page-checkbox' || e.target.id === 'select-all-pages') {
+        toggleDeceptionBtnState();
+    }
+});
+
 // Escape HTML to prevent XSS when inserting into innerHTML
 function escapeHtml(str) {
     const div = document.createElement('div');
