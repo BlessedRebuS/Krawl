@@ -2279,3 +2279,63 @@ tbody {
     border-color: #58a6ff;
     font-weight: 600;
 }
+
+/* Deception panel action buttons */
+.deception-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    background: transparent;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    font-size: 0.78em;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+}
+.deception-action-btn:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: #c9d1d9;
+    border-color: #484f58;
+}
+.deception-action-btn-danger {
+    color: #f85149;
+    border-color: #f8514966;
+}
+.deception-action-btn-danger:hover {
+    background: rgba(248, 81, 73, 0.1);
+    color: #f85149;
+    border-color: #f85149;
+}
+.deception-action-btn-active {
+    color: #58a6ff;
+    border-color: #58a6ff66;
+}
+.deception-action-btn-active:hover {
+    background: rgba(88, 166, 255, 0.1);
+    color: #58a6ff;
+    border-color: #58a6ff;
+}
+
+/* Upload dropzone */
+.upload-dropzone {
+    border: 2px dashed #30363d;
+    border-radius: 8px;
+    padding: 24px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+}
+.upload-dropzone:hover {
+    border-color: #484f58;
+    background: rgba(255, 255, 255, 0.02);
+}
+.upload-dropzone-active {
+    border-color: #58a6ff;
+    background: rgba(88, 166, 255, 0.05);
+}

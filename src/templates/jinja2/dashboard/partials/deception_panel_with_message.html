@@ -6,36 +6,29 @@
     <h2 style="color: #58a6ff; margin: 0; font-size: 1.4em;">Generated Deception Templates</h2>
 
     {# Delete controls section #}
-    <div style="display: flex; gap: 8px; align-items: center;">
-        {# Delete older than date #}
-        <input type="date" 
-               id="delete-before-date"
-               style="padding: 8px 12px; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; border-radius: 4px; font-size: 0.9em; height: 36px; cursor: pointer;"
-               placeholder="Select date..." />
-        <button type="button"
-                onClick="deletePagesBefore()"
-                style="padding: 8px 14px; background: #f85149; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.2s; height: 36px; font-size: 0.9em;"
-                onmouseover="this.style.background='#f85149'; this.style.boxShadow='0 0 8px rgba(218, 54, 51, 0.4)';"
-                onmouseout="this.style.background='#f85149'; this.style.boxShadow='none'">
-            Delete before
+    <div style="display: flex; gap: 6px; align-items: center;">
+        <input type="date" id="delete-before-date"
+               onchange="toggleDeceptionBtnState()"
+               style="padding: 5px 10px; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; font-size: 0.78em; height: 30px; cursor: pointer;" />
+        <button id="btn-delete-before" class="deception-action-btn" onclick="deletePagesBefore()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.14.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg>
+            Before date
         </button>
-
-        {# Delete selected pages #}
-        <button type="button"
-                onClick="deleteSelectedPages()"
-                style="padding: 8px 14px; background: #f85149; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.2s; height: 36px; font-size: 0.9em;"
-                onmouseover="this.style.background='#f85149'; this.style.boxShadow='0 0 8px rgba(218, 54, 51, 0.4)';"
-                onmouseout="this.style.background='#f85149'; this.style.boxShadow='none'">
-            Delete Selected
+        <button id="btn-delete-selected" class="deception-action-btn" onclick="deleteSelectedPages()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M11 1.75V0H5v1.75H1v1.5h1.5v10c0 .966.784 1.75 1.75 1.75h7.5A1.75 1.75 0 0 0 13.5 13.25v-10H15v-1.5Zm-7.5 0V1.5h9v.25ZM12 13.25a.25.25 0 0 1-.25.25h-7.5a.25.25 0 0 1-.25-.25v-10h8Z"/></svg>
+            Delete
         </button>
-
-        {# Delete all #}
-        <button type="button"
-                onClick="deleteAllPages()"
-                style="padding: 8px 14px; background: #f85149; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.2s; height: 36px; font-size: 0.9em;"
-                onmouseover="this.style.background='#f85149'; this.style.boxShadow='0 0 8px rgba(218, 54, 51, 0.4)';"
-                onmouseout="this.style.background='#f85149'; this.style.boxShadow='none'">
+        <button class="deception-action-btn deception-action-btn-danger" onclick="deleteAllPages()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M11 1.75V0H5v1.75H1v1.5h1.5v10c0 .966.784 1.75 1.75 1.75h7.5A1.75 1.75 0 0 0 13.5 13.25v-10H15v-1.5Zm-7.5 0V1.5h9v.25ZM12 13.25a.25.25 0 0 1-.25.25h-7.5a.25.25 0 0 1-.25-.25v-10h8Z"/></svg>
             Delete All
+        </button>
+        <button id="btn-download-selected" class="deception-action-btn" onclick="downloadSelectedPages()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06Z"/></svg>
+            Download
+        </button>
+        <button class="deception-action-btn" onclick="openUploadModal()" style="color: #3fb950; border-color: #3fb95066;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 1.75a.75.75 0 0 1 1.5 0V8.06l1.97-1.97a.749.749 0 1 1 1.06 1.06L8.53 10.4a.749.749 0 0 1-1.06 0L4.22 7.15a.749.749 0 1 1 1.06-1.06l1.97 1.97Z" transform="rotate(180 8 8)"/></svg>
+            Upload
         </button>
     </div>
 </div>

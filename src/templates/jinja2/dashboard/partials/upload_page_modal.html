@@ -1,0 +1,79 @@
+{# Upload custom page modal - Alpine.js controlled #}
+<div class="auth-modal"
+     x-show="uploadModal.show"
+     x-cloak
+     @click.self="uploadModal.show = false"
+     @keydown.escape.window="uploadModal.show && (uploadModal.show = false)"
+>
+    <div class="auth-modal-content" style="width: 480px;">
+        <div class="auth-modal-header">
+            <div class="auth-modal-title">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
+                    <path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 8.311V2a.75.75 0 0 1 1.5 0v6.311l1.97-1.97a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 7.401a.749.749 0 1 1 1.06-1.06Z"/>
+                </svg>
+                <h3>Upload Custom Page</h3>
+            </div>
+            <span class="auth-modal-close" @click="uploadModal.show = false">&times;</span>
+        </div>
+        <div class="auth-modal-body">
+            <p class="auth-modal-description">Upload a file to serve as a custom deception page. Supported formats: HTML, XML, JSON, TXT.</p>
+
+            <div class="auth-modal-input-group">
+                <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Serve path</label>
+                <div style="display: flex; align-items: center; gap: 0;">
+                    <span style="padding: 10px 12px; background: #161b22; border: 1px solid #30363d; border-right: none; border-radius: 6px 0 0 6px; color: #8b949e; font-size: 14px; white-space: nowrap;">/</span>
+                    <input type="text"
+                           class="auth-modal-input"
+                           style="border-radius: 0 6px 6px 0;"
+                           x-model="uploadModal.path"
+                           placeholder="e.g. admin/config.html"
+                           autocomplete="off" />
+                </div>
+            </div>
+
+            <div class="auth-modal-input-group" style="margin-bottom: 0;">
+                <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">File</label>
+                <div class="upload-dropzone"
+                     @click="$refs.uploadFileInput.click()"
+                     @dragover.prevent="uploadModal.dragging = true"
+                     @dragleave.prevent="uploadModal.dragging = false"
+                     @drop.prevent="uploadModal.dragging = false; handleUploadDrop($event)"
+                     :class="{ 'upload-dropzone-active': uploadModal.dragging }">
+                    <input type="file"
+                           x-ref="uploadFileInput"
+                           accept=".html,.htm,.xml,.json,.txt,.css,.js"
+                           @change="handleUploadFile($event)"
+                           style="display: none;" />
+                    <template x-if="!uploadModal.fileName">
+                        <div style="text-align: center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="24" height="24" fill="#8b949e" style="margin-bottom: 6px;"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM8.75 1.75a.75.75 0 0 0-1.5 0v6.311L5.28 6.091a.749.749 0 1 0-1.06 1.06l3.25 3.25a.749.749 0 0 0 1.06 0l3.25-3.25a.749.749 0 1 0-1.06-1.06L8.75 8.061Z"/></svg>
+                            <p style="color: #8b949e; font-size: 13px; margin: 0;">Click or drag a file here</p>
+                            <p style="color: #484f58; font-size: 11px; margin: 4px 0 0;">HTML, XML, JSON, TXT</p>
+                        </div>
+                    </template>
+                    <template x-if="uploadModal.fileName">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="#3fb950"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>
+                            <span style="color: #c9d1d9; font-size: 13px;" x-text="uploadModal.fileName"></span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <p class="auth-modal-error" x-show="uploadModal.error" x-text="uploadModal.error" x-cloak
+               style="margin-top: 12px; margin-bottom: 0; color: #f85149; font-size: 13px;"></p>
+            <p x-show="uploadModal.success" x-text="uploadModal.success" x-cloak
+               style="margin-top: 12px; margin-bottom: 0; color: #3fb950; font-size: 13px;"></p>
+
+            <div class="auth-modal-footer" style="margin-top: 20px;">
+                <button type="button" class="auth-modal-btn auth-modal-btn-cancel" @click="uploadModal.show = false">Cancel</button>
+                <button type="button" class="auth-modal-btn auth-modal-btn-submit"
+                        :disabled="uploadModal.loading || !uploadModal.path || !uploadModal.fileContent"
+                        @click="submitUploadPage()">
+                    <span x-show="!uploadModal.loading">Upload</span>
+                    <span x-show="uploadModal.loading" x-cloak>Uploading...</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

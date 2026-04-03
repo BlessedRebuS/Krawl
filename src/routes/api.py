@@ -679,3 +679,110 @@ async def delete_generated_pages(
             content={"error": "Internal server error"},
             status_code=500,
         )
+
+
+@router.get("/api/download-generated-page")
+async def download_generated_page(
+    request: Request,
+    path: str = Query(...),
+):
+    """Download a generated deception page as an HTML file."""
+    if not verify_auth(request):
+        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
+
+    import base64
+    from models import GeneratedPage
+
+    db = get_db()
+    try:
+        session = db.session
+        page = session.query(GeneratedPage).filter(GeneratedPage.path == path).first()
+        if not page:
+            return JSONResponse(content={"error": "Page not found"}, status_code=404)
+
+        html_content = base64.b64decode(page.html_content_b64).decode("utf-8")
+        # Build a safe filename from the path
+        safe_name = path.strip("/").replace("/", "_") or "index"
+        safe_name = safe_name[:100]
+        if not safe_name.endswith(".html"):
+            safe_name += ".html"
+
+        return Response(
+            content=html_content,
+            media_type="text/html",
+            headers={
+                "Content-Disposition": f'attachment; filename="{safe_name}"',
+            },
+        )
+    except Exception as e:
+        get_app_logger().error(f"[DECEPTION] Download error: {e}")
+        return JSONResponse(content={"error": "Internal server error"}, status_code=500)
+    finally:
+        db.close_session()
+
+
+class UploadPageRequest(BaseModel):
+    path: str
+    content: str
+
+
+@router.post("/api/upload-generated-page")
+async def upload_generated_page(request: Request, body: UploadPageRequest):
+    """Upload a custom page to serve as a deception page."""
+    if not verify_auth(request):
+        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
+
+    import base64
+    from datetime import datetime
+    from models import GeneratedPage
+
+    path = body.path.strip()
+    content = body.content
+
+    if not path or not content:
+        return JSONResponse(
+            content={"error": "Path and content are required"}, status_code=400
+        )
+
+    # Ensure path starts with /
+    if not path.startswith("/"):
+        path = "/" + path
+
+    # Validate file extension
+    allowed_exts = (".html", ".htm", ".xml", ".json", ".txt", ".css", ".js")
+    if not any(path.endswith(ext) for ext in allowed_exts):
+        # No extension — treat as html
+        pass
+
+    db = get_db()
+    try:
+        session = db.session
+        html_b64 = base64.b64encode(content.encode("utf-8")).decode("utf-8")
+
+        existing = (
+            session.query(GeneratedPage).filter(GeneratedPage.path == path).first()
+        )
+        if existing:
+            existing.html_content_b64 = html_b64
+            existing.last_accessed = datetime.now()
+            get_app_logger().info(f"[DECEPTION] Updated uploaded page: {path}")
+        else:
+            page = GeneratedPage(
+                path=path,
+                html_content_b64=html_b64,
+                created_at=datetime.now(),
+                last_accessed=datetime.now(),
+                access_count=0,
+            )
+            session.add(page)
+            get_app_logger().info(f"[DECEPTION] Uploaded new custom page: {path}")
+
+        session.commit()
+        return JSONResponse(content={"ok": True, "path": path})
+
+    except Exception as e:
+        session.rollback()
+        get_app_logger().error(f"[DECEPTION] Upload error: {e}")
+        return JSONResponse(content={"error": "Internal server error"}, status_code=500)
+    finally:
+        db.close_session()

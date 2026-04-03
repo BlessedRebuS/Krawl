@@ -50,10 +50,11 @@
                 hx-get="{{ dashboard_path }}/htmx/generated-pages?page=1&sort_by=access_count&sort_order={% if sort_by == 'access_count' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
-                onmouseover="this.style.color='#79c0ff';" 
+                onmouseover="this.style.color='#79c0ff';"
                 onmouseout="this.style.color='#58a6ff';">
                 Accesses
             </th>
+            <th style="width: 80px; padding: 12px 8px;"></th>
         </tr>
     </thead>
     <tbody>
@@ -64,7 +65,7 @@
             </td>
             <td style="padding: 12px 8px; color: #8b949e; font-size: 0.9em;">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
             <td style="padding: 12px 8px;">
-                <a href="{{ item.path }}" target="_blank" 
+                <a href="{{ item.path }}" target="_blank"
                    style="color: #58a6ff; text-decoration: none; cursor: pointer; transition: color 0.2s ease;"
                    onmouseover="this.style.color='#79c0ff';"
                    onmouseout="this.style.color='#58a6ff';">
@@ -82,10 +83,20 @@
                 {% endif %}
             </td>
             <td style="padding: 12px 8px; color: #8b949e; font-size: 0.9em;">{{ item.access_count }}</td>
+            <td style="display: flex; gap: 4px; padding: 12px 8px;">
+                <button class="ban-icon-btn" style="color: #58a6ff;" onclick="downloadGeneratedPage('{{ item.path | e }}')" title="Download">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06Z"/></svg>
+                    <span class="ban-icon-tooltip">Download</span>
+                </button>
+                <button class="ban-icon-btn" style="color: #f85149;" onclick="deleteGeneratedPage('{{ item.path | e }}')" title="Delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M11 1.75V0H5v1.75H1v1.5h1.5v10c0 .966.784 1.75 1.75 1.75h7.5A1.75 1.75 0 0 0 13.5 13.25v-10H15v-1.5Zm-7.5 0V1.5h9v.25ZM12 13.25a.25.25 0 0 1-.25.25h-7.5a.25.25 0 0 1-.25-.25v-10h8ZM6.5 5.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5a.75.75 0 0 1 .75-.75Zm3 0a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5a.75.75 0 0 1 .75-.75Z"/></svg>
+                    <span class="ban-icon-tooltip">Delete</span>
+                </button>
+            </td>
         </tr>
         {% else %}
         <tr>
-            <td colspan="6" style="text-align: center; padding: 40px 8px; color: #8b949e; font-size: 0.9em;">No generated pages yet</td>
+            <td colspan="7" style="text-align: center; padding: 40px 8px; color: #8b949e; font-size: 0.9em;">No generated pages yet</td>
         </tr>
         {% endfor %}
     </tbody>

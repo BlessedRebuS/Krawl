@@ -120,6 +120,7 @@ document.addEventListener('alpine:init', () => {
         // Auth state (UI only — actual security enforced server-side via cookie)
         authenticated: false,
         authModal: { show: false, password: '', error: '', loading: false },
+        uploadModal: { show: false, path: '', fileName: '', fileContent: '', error: '', success: '', loading: false, dragging: false },
 
         // Flag to prevent double-triggering during init
         _initializingHash: false,
@@ -543,6 +544,166 @@ window.selectAllPages = function() {
     document.querySelectorAll('#deception-htmx-container input[name="page-checkbox"]').forEach(checkbox => {
         checkbox.checked = selectAllCheckbox.checked;
     });
+};
+
+window.downloadGeneratedPage = function(path) {
+    const dashboardPath = window.__DASHBOARD_PATH__ || '';
+    window.open(dashboardPath + '/api/download-generated-page?path=' + encodeURIComponent(path), '_blank');
+};
+
+window.deleteGeneratedPage = async function(path) {
+    const dashboardPath = window.__DASHBOARD_PATH__ || '';
+    const confirmed = await krawlModal.confirm('Delete this generated page? This cannot be undone.');
+    if (!confirmed) return;
+    fetch(dashboardPath + '/api/delete-generated-pages?ids=' + encodeURIComponent(path), { method: 'POST' })
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('deception-htmx-container').innerHTML = html;
+            setTimeout(window.reloadGeneratedPagesTable, 100);
+        })
+        .catch(error => {
+            console.error('Delete error:', error);
+            krawlModal.error('Error deleting page');
+        });
+};
+
+// Toggle danger state on deception delete buttons based on conditions
+window.toggleDeceptionBtnState = function() {
+    const dateInput = document.getElementById('delete-before-date');
+    const beforeBtn = document.getElementById('btn-delete-before');
+    if (beforeBtn) {
+        beforeBtn.classList.toggle('deception-action-btn-danger', !!(dateInput && dateInput.value));
+    }
+
+    const checked = document.querySelectorAll('#deception-htmx-container input[name="page-checkbox"]:checked');
+    const hasSelection = checked.length > 0;
+
+    const selectedBtn = document.getElementById('btn-delete-selected');
+    if (selectedBtn) {
+        selectedBtn.classList.toggle('deception-action-btn-danger', hasSelection);
+    }
+
+    const downloadBtn = document.getElementById('btn-download-selected');
+    if (downloadBtn) {
+        downloadBtn.classList.toggle('deception-action-btn-active', hasSelection);
+    }
+};
+
+// Listen for checkbox changes inside HTMX-loaded deception table
+document.addEventListener('change', function(e) {
+    if (e.target.name === 'page-checkbox' || e.target.id === 'select-all-pages') {
+        toggleDeceptionBtnState();
+    }
+});
+
+window.downloadSelectedPages = function() {
+    const dashboardPath = window.__DASHBOARD_PATH__ || '';
+    const container = document.getElementById('deception-htmx-container');
+    if (!container) return;
+
+    const checkboxes = container.querySelectorAll('input[name="page-checkbox"]:checked');
+    if (checkboxes.length === 0) {
+        krawlModal.error('Please select at least one page to download');
+        return;
+    }
+
+    // Download each selected page
+    checkboxes.forEach(cb => {
+        const path = cb.value;
+        window.open(dashboardPath + '/api/download-generated-page?path=' + encodeURIComponent(path), '_blank');
+    });
+};
+
+// Upload page modal handlers
+const _allowedUploadExts = ['.html', '.htm', '.xml', '.json', '.txt', '.css', '.js'];
+
+function _getAlpineData() {
+    const el = document.querySelector('[x-data="dashboardApp()"]');
+    return el && el._x_dataStack ? el._x_dataStack[0] : null;
+}
+
+window.openUploadModal = function() {
+    const app = _getAlpineData();
+    if (!app) return;
+    Object.assign(app.uploadModal, { show: true, path: '', fileName: '', fileContent: '', error: '', success: '', loading: false, dragging: false });
+};
+
+window.handleUploadFile = function(event) {
+    const file = event.target.files[0];
+    if (file) _processUploadFile(file);
+};
+
+window.handleUploadDrop = function(event) {
+    const file = event.dataTransfer.files[0];
+    if (file) _processUploadFile(file);
+};
+
+function _processUploadFile(file) {
+    const app = _getAlpineData();
+    if (!app) return;
+    const ext = '.' + file.name.split('.').pop().toLowerCase();
+    if (!_allowedUploadExts.includes(ext)) {
+        app.uploadModal.error = 'Unsupported file type. Use: ' + _allowedUploadExts.join(', ');
+        app.uploadModal.fileName = '';
+        app.uploadModal.fileContent = '';
+        return;
+    }
+    app.uploadModal.error = '';
+    app.uploadModal.fileName = file.name;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        app.uploadModal.fileContent = e.target.result;
+        // Auto-fill path from filename if empty
+        if (!app.uploadModal.path) {
+            app.uploadModal.path = file.name;
+        }
+    };
+    reader.readAsText(file);
+}
+
+window.submitUploadPage = async function() {
+    const app = _getAlpineData();
+    if (!app) return;
+    const modal = app.uploadModal;
+    modal.error = '';
+    modal.success = '';
+
+    let path = modal.path.trim();
+    if (!path) { modal.error = 'Please enter a path'; return; }
+    if (!modal.fileContent) { modal.error = 'Please select a file'; return; }
+
+    // Ensure path starts with /
+    if (!path.startsWith('/')) path = '/' + path;
+
+    modal.loading = true;
+    const dashboardPath = window.__DASHBOARD_PATH__ || '';
+
+    try {
+        const resp = await fetch(dashboardPath + '/api/upload-generated-page', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ path: path, content: modal.fileContent }),
+        });
+        const data = await resp.json();
+        if (resp.ok) {
+            modal.success = 'Page uploaded to ' + path;
+            modal.error = '';
+            // Reset form after short delay
+            setTimeout(() => {
+                modal.show = false;
+                if (typeof window.reloadGeneratedPagesTable === 'function') {
+                    window.reloadGeneratedPagesTable();
+                }
+            }, 1200);
+        } else {
+            modal.error = data.error || 'Upload failed';
+        }
+    } catch (err) {
+        modal.error = 'Request failed: ' + err.message;
+    }
+    modal.loading = false;
 };
 
 // Escape HTML to prevent XSS when inserting into innerHTML
