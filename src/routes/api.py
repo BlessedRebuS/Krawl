@@ -275,11 +275,11 @@ async def all_ips(
     page = max(1, page)
     page_size = min(max(1, page_size), 10000)
 
-    # Serve from cache on default map request (top 100 IPs)
+    # Serve from warmup cache on default map request (top 1000 IPs)
     if (
         get_config().dashboard_cache_warmup
         and page == 1
-        and page_size == 100
+        and page_size == 1000
         and sort_by == "total_requests"
         and sort_order == "desc"
         and is_warm()
@@ -287,6 +287,12 @@ async def all_ips(
         cached = get_cached("map_ips")
         if cached:
             return JSONResponse(content=cached, headers=_no_cache_headers())
+
+    # Check table cache for any paginated request
+    cache_key = f"all_ips:{page}:{page_size}:{sort_by}:{sort_order}"
+    cached = get_cached_table(cache_key)
+    if cached:
+        return JSONResponse(content=cached, headers=_no_cache_headers())
 
     db = get_db()
     try:
@@ -297,6 +303,7 @@ async def all_ips(
             sort_by=sort_by,
             sort_order=sort_order,
         )
+        set_cached_table(cache_key, result)
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
         get_app_logger().error(f"Error fetching all IPs: {e}")
