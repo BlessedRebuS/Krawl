@@ -9,7 +9,7 @@ import time
 from logger import get_app_logger
 from config import get_config
 from database import get_database
-from dashboard_cache import set_cached
+from dashboard_cache import set_cached, set_cached_table
 
 app_logger = get_app_logger()
 
@@ -56,11 +56,8 @@ def main():
         # --- Server-rendered data (stats cards + suspicious table) ---
         stats = _timed("get_dashboard_counts", db.get_dashboard_counts)
 
-        cred_result = _timed(
-            "get_credentials_paginated",
-            lambda: db.get_credentials_paginated(page=1, page_size=1),
-        )
-        stats["credential_count"] = cred_result["pagination"]["total"]
+        # credential_count is derived from the full credentials query below
+        # (avoids a redundant DB call)
 
         suspicious = _timed(
             "get_recent_suspicious", lambda: db.get_recent_suspicious(limit=10)
@@ -107,6 +104,39 @@ def main():
             },
         }
 
+        # --- Attack panel data (first page, default sort) ---
+        attacks = _timed(
+            "get_attack_types_paginated",
+            lambda: db.get_attack_types_paginated(
+                page=1, page_size=15, sort_by="timestamp", sort_order="desc"
+            ),
+        )
+        attackers = _timed(
+            "get_attackers_paginated",
+            lambda: db.get_attackers_paginated(
+                page=1, page_size=10, sort_by="total_requests", sort_order="desc"
+            ),
+        )
+        credentials = _timed(
+            "get_credentials_paginated",
+            lambda: db.get_credentials_paginated(
+                page=1, page_size=5, sort_by="timestamp", sort_order="desc"
+            ),
+        )
+        honeypot = _timed(
+            "get_honeypot_paginated",
+            lambda: db.get_honeypot_paginated(
+                page=1, page_size=5, sort_by="count", sort_order="desc"
+            ),
+        )
+        attack_trends = _timed(
+            "get_attack_types_daily",
+            lambda: db.get_attack_types_daily(limit=10, days=7, offset_days=0),
+        )
+
+        # Derive credential count from the full credentials query
+        stats["credential_count"] = credentials.get("pagination", {}).get("total", 0)
+
         # Store everything in the cache (overwrites previous values)
         set_cached("stats", stats)
         set_cached("suspicious", suspicious)
@@ -114,6 +144,13 @@ def main():
         set_cached("top_ua", top_ua)
         set_cached("top_paths", top_paths)
         set_cached("map_ips", map_ips)
+
+        # Attack panel table caches (used by HTMX and API endpoints)
+        set_cached_table("attacks:1:timestamp:desc::", attacks)
+        set_cached_table("attackers:1:total_requests:desc", attackers)
+        set_cached_table("credentials:1:timestamp:desc", credentials)
+        set_cached_table("honeypot:1:count:desc", honeypot)
+        set_cached_table("api:attack_daily:10:7:0", attack_trends)
 
         app_logger.info(f"[Background Task] {task_name} cache refreshed successfully.")
 
