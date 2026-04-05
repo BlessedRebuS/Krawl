@@ -53,9 +53,7 @@ class Config:
     probability_error_codes: int = 0  # Percentage (0-100)
 
     # Crawl limiting settings - for legitimate vs malicious crawlers
-    max_pages_limit: int = (
-        100  # Max pages limit for good crawlers and regular users (and bad crawlers/attackers if infinite_pages_for_malicious is False)
-    )
+    max_pages_limit: int = 100  # Max pages limit for good crawlers and regular users (and bad crawlers/attackers if infinite_pages_for_malicious is False)
     infinite_pages_for_malicious: bool = True  # Infinite pages for malicious crawlers
     ban_duration_seconds: int = 600  # Ban duration in seconds for IPs exceeding limits
 
@@ -78,6 +76,10 @@ class Config:
     uneven_request_timing_time_window_seconds: float = None
     user_agents_used_threshold: float = None
     attack_urls_threshold: float = None
+
+    # Tarpit settings - opt-in feature to slow down and confuse AI crawlers
+    tarpit_enabled: bool = False
+    tarpit_delay_seconds: int = 5
 
     log_level: str = "INFO"
 
@@ -181,6 +183,7 @@ class Config:
         behavior = data.get("behavior", {})
         analyzer = data.get("analyzer") or {}
         crawl = data.get("crawl", {})
+        tarpit = data.get("tarpit", {})
         logging_cfg = data.get("logging", {})
         ai = data.get("ai", {})
 
@@ -271,6 +274,8 @@ class Config:
             ),
             max_pages_limit=crawl.get("max_pages_limit", 250),
             ban_duration_seconds=crawl.get("ban_duration_seconds", 600),
+            tarpit_enabled=tarpit.get("enabled", False),
+            tarpit_delay_seconds=tarpit.get("delay_seconds", 5),
             log_level=os.getenv(
                 "KRAWL_LOG_LEVEL", logging_cfg.get("level", "INFO")
             ).upper(),

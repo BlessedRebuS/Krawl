@@ -116,6 +116,9 @@ data:
 
         Path: {path}{query_part}
         Generate the complete HTML page.
+    tarpit:
+      enabled: false
+      delay_seconds: 5
 ---
 # Source: krawl-chart/templates/wordlists-configmap.yaml
 apiVersion: v1

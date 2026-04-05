@@ -94,6 +94,9 @@ crawl:
   max_pages_limit: 250
   ban_duration_seconds: 600
 
+tarpit:
+  enabled: false  # Opt-in: trap AI agents with slow responses and random text
+  delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active
 ai:
   enabled: false
   provider: "openrouter"  # "openrouter" or "openai"

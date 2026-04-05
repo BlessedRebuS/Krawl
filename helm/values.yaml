@@ -135,6 +135,9 @@ config:
 
       Path: {path}{query_part}
       Generate the complete HTML page.
+  tarpit:
+    enabled: false  # Opt-in: trap AI agents with slow responses and random text
+    delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active
 
 # PostgreSQL settings (only used when mode=scalable)
 postgres:
