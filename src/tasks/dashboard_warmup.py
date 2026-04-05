@@ -73,12 +73,12 @@ def main():
             lambda: db.get_top_paths_paginated(page=1, page_size=5),
         )
 
-        # --- Map data (default: top 100 IPs by total_requests) ---
+        # --- Map data (default: top 1000 IPs by total_requests) ---
         # Also used to derive top_ips (first 8), avoiding a redundant DB query
         map_ips = _timed(
             "get_all_ips_paginated",
             lambda: db.get_all_ips_paginated(
-                page=1, page_size=100, sort_by="total_requests", sort_order="desc"
+                page=1, page_size=1000, sort_by="total_requests", sort_order="desc"
             ),
         )
 
