@@ -197,7 +197,7 @@ def main():
         if time_diffs:
             mean = sum(time_diffs) / len(time_diffs)
             variance = sum((x - mean) ** 2 for x in time_diffs) / len(time_diffs)
-            std = variance ** 0.5
+            std = variance**0.5
             cv = std / mean
             app_logger.debug(
                 f"Mean: {mean} - Variance {variance} - Standard Deviation {std} - Coefficient of Variation: {cv}"
