@@ -63,3 +63,6 @@ data:
       prompt: |
         {{- .Values.config.ai.prompt | nindent 8 }}
       {{- end }}
+    tarpit:
+      enabled: {{ .Values.config.tarpit.enabled }}
+      delay_seconds: {{ .Values.config.tarpit.delay_seconds }}
