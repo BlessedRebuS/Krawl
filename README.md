@@ -374,19 +374,21 @@ docker run -d \
 ```
 
 ## Use Krawl to Ban Malicious IPs
-Krawl uses a reputation-based system to classify attacker IP addresses. Every five minutes, Krawl exports the identified malicious IPs to a `malicious_ips.txt` file.
+Krawl uses a reputation-based system to classify attacker IP addresses and provides two ways to export IP lists for firewall integration.
 
-This file can either be mounted from the Docker container into another system or downloaded directly via `curl`:
+The `/api/export-ips` endpoint queries the database directly and supports filtering by IP category (`attacker`, `bad_crawler`, `regular_user`, `good_crawler`) and output format (`raw`, `iptables`, `nftables`):
 
 ```bash
-curl https://your-krawl-instance/<DASHBOARD-PATH>/api/download/malicious_ips.txt
+curl "https://your-krawl-instance/<DASHBOARD-PATH>/api/export-ips?categories=attacker&fwtype=raw"
 ```
 
-This file enables automatic blocking of malicious traffic across various platforms. You can use it to update firewall rules on:
+This enables automatic blocking of malicious traffic across various platforms:
 * [OPNsense and pfSense](https://www.allthingstech.ch/using-opnsense-and-ip-blocklists-to-block-malicious-traffic)
 * [RouterOS](https://rentry.co/krawl-routeros)
 * [IPtables](plugins/iptables/README.md) and [Nftables](plugins/nftables/README.md)
 * [Fail2Ban](plugins/fail2ban/README.md)
+
+For full API parameters, examples, and adding custom firewall formats, see the [Firewall Exporters documentation](docs/firewall-exporters.md).
 
 ## IP Reputation
 Krawl [uses tasks that analyze recent traffic to build and continuously update an IP reputation](src/tasks/analyze_ips.py) score. It runs periodically and evaluates each active IP address based on multiple behavioral indicators to classify it as an attacker, crawler, or regular user. Thresholds are fully customizable.
