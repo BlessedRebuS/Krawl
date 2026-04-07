@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import create_engine, func, distinct, event, or_
+from sqlalchemy import create_engine, func, distinct, event, or_, and_
 from sqlalchemy.orm import sessionmaker, scoped_session, Session, joinedload
 from sqlalchemy.engine import Engine
 
@@ -1601,6 +1601,31 @@ class DatabaseManager:
                     "total_pages": total_pages,
                 },
             }
+        finally:
+            self.close_session()
+
+    def get_ips_for_export(self, categories: List[str]) -> List[str]:
+        """
+        Return IP strings filtered by categories, for banlist export.
+        Only SELECT the ip column for minimal overhead.
+        Includes force-banned IPs (ban_override=True) regardless of category.
+        Excludes force-unbanned IPs (ban_override=False).
+        """
+        session = self.session
+        try:
+            query = session.query(IpStats.ip).filter(
+                or_(
+                    and_(
+                        IpStats.category.in_(categories),
+                        or_(
+                            IpStats.ban_override.is_(None),
+                            IpStats.ban_override == True,
+                        ),
+                    ),
+                    IpStats.ban_override == True,
+                )
+            )
+            return [row.ip for row in query.all()]
         finally:
             self.close_session()
 

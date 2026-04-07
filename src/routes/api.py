@@ -550,6 +550,56 @@ async def raw_request(log_id: int, request: Request):
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
+@router.get("/api/export-ips")
+async def export_ips(
+    request: Request,
+    categories: str = Query(...),
+    fwtype: str = Query("raw"),
+):
+    valid_categories = {"attacker", "bad_crawler", "regular_user", "good_crawler"}
+    cat_list = [c.strip() for c in categories.split(",") if c.strip()]
+    if not cat_list or not all(c in valid_categories for c in cat_list):
+        return JSONResponse(content={"error": "Invalid categories"}, status_code=400)
+
+    from firewall.fwtype import FWType
+    from firewall.iptables import Iptables  # noqa: F401 - register
+    from firewall.nftables import Nftables  # noqa: F401 - register
+    from firewall.raw import Raw  # noqa: F401 - register
+
+    try:
+        fw = FWType.create(fwtype)
+    except ValueError as e:
+        return JSONResponse(content={"error": str(e)}, status_code=400)
+
+    try:
+        db = get_db()
+        config = request.app.state.config
+        server_ip = config.get_server_ip()
+
+        ips = await asyncio.to_thread(db.get_ips_for_export, cat_list)
+
+        from ip_utils import is_valid_public_ip
+
+        public_ips = [ip for ip in ips if is_valid_public_ip(ip, server_ip)]
+        content = fw.getBanlist(public_ips)
+
+        cat_label = "_".join(sorted(cat_list))
+        filename = f"{fwtype}_{cat_label}_export.txt"
+
+        return Response(
+            content=content,
+            status_code=200,
+            media_type="text/plain",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Content-Length": str(len(content.encode("utf-8"))),
+            },
+        )
+    except Exception as e:
+        get_app_logger().error(f"Error exporting IPs: {e}")
+        return JSONResponse(content={"error": "Internal server error"}, status_code=500)
+
+
 @router.get("/api/get_banlist")
 async def get_banlist(request: Request, fwtype: str = Query("iptables")):
     config = request.app.state.config

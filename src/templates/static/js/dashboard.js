@@ -102,8 +102,8 @@ document.addEventListener('alpine:init', () => {
         tab: 'overview',
         dashboardPath: window.__DASHBOARD_PATH__ || '',
 
-        // Banlist dropdown
-        banlistOpen: false,
+        // Export IPs modal
+        exportModal: { show: false, categories: ['attacker'], fwtype: 'raw', error: '', loading: false },
 
         // Raw request modal
         rawModal: { show: false, content: '', logId: null },
@@ -704,6 +704,63 @@ window.submitUploadPage = async function() {
         modal.error = 'Request failed: ' + err.message;
     }
     modal.loading = false;
+};
+
+// === Export IPs modal ===
+window.openExportModal = function() {
+    const app = _getAlpineData();
+    if (!app) return;
+    Object.assign(app.exportModal, { show: true, categories: ['attacker'], fwtype: 'raw', error: '', loading: false });
+};
+
+window.submitExport = async function() {
+    const app = _getAlpineData();
+    if (!app) return;
+    const modal = app.exportModal;
+    modal.error = '';
+
+    if (modal.categories.length === 0) {
+        modal.error = 'Select at least one category';
+        return;
+    }
+
+    modal.loading = true;
+    const dashboardPath = window.__DASHBOARD_PATH__ || '';
+    const params = new URLSearchParams({
+        categories: modal.categories.join(','),
+        fwtype: modal.fwtype,
+    });
+
+    try {
+        const resp = await fetch(`${dashboardPath}/api/export-ips?${params}`, {
+            credentials: 'same-origin',
+        });
+        if (!resp.ok) {
+            const data = await resp.json();
+            modal.error = data.error || 'Export failed';
+            return;
+        }
+        const blob = await resp.blob();
+        const disposition = resp.headers.get('Content-Disposition');
+        let filename = 'export.txt';
+        if (disposition) {
+            const match = disposition.match(/filename="(.+)"/);
+            if (match) filename = match[1];
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        modal.show = false;
+    } catch (e) {
+        modal.error = 'Network error';
+    } finally {
+        modal.loading = false;
+    }
 };
 
 // Escape HTML to prevent XSS when inserting into innerHTML

@@ -9,24 +9,11 @@
         <span class="github-logo-text">Krawl</span>
     </a>
 
-    {# Banlist export dropdown - Alpine.js #}
+    {# Export IPs button - opens modal #}
     <div class="download-section">
-        <div class="banlist-dropdown" @click.outside="banlistOpen = false">
-            <button class="banlist-dropdown-btn" @click="banlistOpen = !banlistOpen">
-                Export IPs Banlist ▾
-            </button>
-            <div class="banlist-dropdown-menu" :class="{ 'show': banlistOpen }">
-                <a :href="dashboardPath + '/api/get_banlist?fwtype=raw'" download>
-                    <span class="banlist-icon">📄</span> RAW IPs List
-                </a>
-                <a :href="dashboardPath + '/api/get_banlist?fwtype=iptables'" download>
-                    <span class="banlist-icon">🔥</span> IPTables Rules
-                </a>
-                <a :href="dashboardPath + '/api/get_banlist?fwtype=nftables'" download>
-                    <span class="banlist-icon">🔥</span> NFTables Rules
-                </a>
-            </div>
-        </div>
+        <button class="banlist-dropdown-btn" @click="openExportModal()">
+            Export IPs Banlist
+        </button>
     </div>
 
     <h1>Krawl Dashboard</h1>
@@ -246,6 +233,9 @@
 
     {# Upload page modal - Alpine.js #}
     {% include "dashboard/partials/upload_page_modal.html" %}
+
+    {# Export IPs modal - Alpine.js #}
+    {% include "dashboard/partials/export_modal.html" %}
 
 </div>
 {% endblock %}
