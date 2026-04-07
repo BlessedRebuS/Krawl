@@ -2171,7 +2171,11 @@ class DatabaseManager:
             )
 
             # Build query with SQL-level sorting and pagination
-            query = session.query(path_expr, count_col).filter(*search_filter).group_by(path_expr)
+            query = (
+                session.query(path_expr, count_col)
+                .filter(*search_filter)
+                .group_by(path_expr)
+            )
 
             if sort_by == "count":
                 order_expr = (
