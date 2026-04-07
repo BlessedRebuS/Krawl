@@ -2042,6 +2042,7 @@ class DatabaseManager:
         page_size: int = 5,
         sort_by: str = "count",
         sort_order: str = "desc",
+        search: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Retrieve paginated list of top IP addresses by access count.
@@ -2054,6 +2055,7 @@ class DatabaseManager:
             page_size: Number of results per page
             sort_by: Field to sort by (count or ip)
             sort_order: Sort order (asc or desc)
+            search: Optional search string to filter IPs
 
         Returns:
             Dictionary with IPs list and pagination info
@@ -2073,10 +2075,15 @@ class DatabaseManager:
             )
             base_query = self._public_ip_filter(base_query, IpStats.ip, server_ip)
 
+            if search:
+                base_query = base_query.filter(IpStats.ip.ilike(f"%{search}%"))
+
             # Direct count avoids subquery with all columns
             count_q = session.query(func.count(IpStats.ip))
             if server_ip:
                 count_q = count_q.filter(IpStats.ip != server_ip)
+            if search:
+                count_q = count_q.filter(IpStats.ip.ilike(f"%{search}%"))
             total_ips = count_q.scalar() or 0
 
             if sort_by == "count":
@@ -2118,6 +2125,7 @@ class DatabaseManager:
         page_size: int = 5,
         sort_by: str = "count",
         sort_order: str = "desc",
+        search: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Retrieve paginated list of top paths by access count.
@@ -2130,6 +2138,7 @@ class DatabaseManager:
             page_size: Number of results per page
             sort_by: Field to sort by (count or path)
             sort_order: Sort order (asc or desc)
+            search: Optional search string to filter paths
 
         Returns:
             Dictionary with paths list and pagination info
@@ -2141,11 +2150,18 @@ class DatabaseManager:
 
             path_expr = AccessLog.path.label("path")
 
+            search_filter = [AccessLog.path.ilike(f"%{search}%")] if search else []
+
             # Get total number of distinct paths
-            total_paths = session.query(func.count(distinct(path_expr))).scalar() or 0
+            total_paths = (
+                session.query(func.count(distinct(path_expr)))
+                .filter(*search_filter)
+                .scalar()
+                or 0
+            )
 
             # Build query with SQL-level sorting and pagination
-            query = session.query(path_expr, count_col).group_by(path_expr)
+            query = session.query(path_expr, count_col).filter(*search_filter).group_by(path_expr)
 
             if sort_by == "count":
                 order_expr = (
@@ -2177,6 +2193,7 @@ class DatabaseManager:
         page_size: int = 5,
         sort_by: str = "count",
         sort_order: str = "desc",
+        search: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Retrieve paginated list of top user agents by access count.
@@ -2189,6 +2206,7 @@ class DatabaseManager:
             page_size: Number of results per page
             sort_by: Field to sort by (count or user_agent)
             sort_order: Sort order (asc or desc)
+            search: Optional search string to filter user agents
 
         Returns:
             Dictionary with user agents list and pagination info
@@ -2201,6 +2219,8 @@ class DatabaseManager:
             ua_expr = AccessLog.user_agent.label("user_agent")
 
             base_filter = [AccessLog.user_agent.isnot(None), AccessLog.user_agent != ""]
+            if search:
+                base_filter.append(AccessLog.user_agent.ilike(f"%{search}%"))
 
             # Get total number of distinct user agents
             total_uas = (
