@@ -556,9 +556,6 @@ async def export_ips(
     categories: str = Query(...),
     fwtype: str = Query("raw"),
 ):
-    if not verify_auth(request):
-        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
-
     valid_categories = {"attacker", "bad_crawler", "regular_user", "good_crawler"}
     cat_list = [c.strip() for c in categories.split(",") if c.strip()]
     if not cat_list or not all(c in valid_categories for c in cat_list):
