@@ -18,6 +18,63 @@
                 <span class="auth-modal-close" @click="expandOverlay.show = false" style="position: static; font-size: 28px;">&times;</span>
             </div>
         </div>
+
+        {# Contextual filter bar - shown based on endpoint #}
+        <div x-show="expandOverlay.endpoint === 'top-ips' || expandOverlay.endpoint === 'top-paths'"
+             x-cloak
+             style="padding: 8px 24px; border-bottom: 1px solid #30363d; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+
+            {# Category filters for Top IPs #}
+            <template x-if="expandOverlay.endpoint === 'top-ips'">
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                    <span style="color: #8b949e; font-size: 0.8em; margin-right: 4px;">Category</span>
+                    <div class="map-legend-item"
+                         :class="{ active: expandOverlay.categories.includes('attacker') }"
+                         @click="toggleExpandCategory('attacker')">
+                        <span class="map-legend-dot" style="background: #f85149;"></span>
+                        <span class="map-legend-label">Attackers</span>
+                    </div>
+                    <div class="map-legend-item"
+                         :class="{ active: expandOverlay.categories.includes('bad_crawler') }"
+                         @click="toggleExpandCategory('bad_crawler')">
+                        <span class="map-legend-dot" style="background: #f0883e;"></span>
+                        <span class="map-legend-label">Bad Crawlers</span>
+                    </div>
+                    <div class="map-legend-item"
+                         :class="{ active: expandOverlay.categories.includes('good_crawler') }"
+                         @click="toggleExpandCategory('good_crawler')">
+                        <span class="map-legend-dot" style="background: #3fb950;"></span>
+                        <span class="map-legend-label">Good Crawlers</span>
+                    </div>
+                    <div class="map-legend-item"
+                         :class="{ active: expandOverlay.categories.includes('regular_user') }"
+                         @click="toggleExpandCategory('regular_user')">
+                        <span class="map-legend-dot" style="background: #58a6ff;"></span>
+                        <span class="map-legend-label">Regular Users</span>
+                    </div>
+                    <div class="map-legend-item"
+                         :class="{ active: expandOverlay.categories.includes('unknown') }"
+                         @click="toggleExpandCategory('unknown')">
+                        <span class="map-legend-dot" style="background: #8b949e;"></span>
+                        <span class="map-legend-label">Unknown</span>
+                    </div>
+                </div>
+            </template>
+
+            {# Honeypot toggle for Top Paths #}
+            <template x-if="expandOverlay.endpoint === 'top-paths'">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="color: #8b949e; font-size: 0.8em; margin-right: 4px;">Filter</span>
+                    <div class="map-legend-item"
+                         :class="{ active: expandOverlay.honeypotOnly }"
+                         @click="toggleExpandHoneypot()">
+                        <span class="map-legend-dot" style="background: #f85149;"></span>
+                        <span class="map-legend-label">Honeypot Only</span>
+                    </div>
+                </div>
+            </template>
+        </div>
+
         <div class="expand-overlay-body">
             <div class="htmx-container" id="expand-overlay-table">
                 <div style="text-align: center; padding: 40px; color: #8b949e;">Loading...</div>

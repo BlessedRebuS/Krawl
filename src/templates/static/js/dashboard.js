@@ -123,7 +123,7 @@ document.addEventListener('alpine:init', () => {
         uploadModal: { show: false, path: '', fileName: '', fileContent: '', error: '', success: '', loading: false, dragging: false },
 
         // Expand overlay state
-        expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '' },
+        expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false },
 
         // Flag to prevent double-triggering during init
         _initializingHash: false,
@@ -713,22 +713,58 @@ window.submitUploadPage = async function() {
 window.openExpandOverlay = function(title, endpoint, pageSize) {
     const app = _getAlpineData();
     if (!app) return;
-    Object.assign(app.expandOverlay, { show: true, title: title, endpoint: endpoint, pageSize: pageSize || 25, search: '' });
-    _loadExpandContent(endpoint, pageSize || 25, '');
+    Object.assign(app.expandOverlay, {
+        show: true, title: title, endpoint: endpoint,
+        pageSize: pageSize || 25, search: '',
+        categories: [], honeypotOnly: false,
+    });
+    _reloadExpandOverlay();
 };
 
 window.triggerExpandSearch = function() {
+    _reloadExpandOverlay();
+};
+
+window.toggleExpandCategory = function(cat) {
+    const app = _getAlpineData();
+    if (!app) return;
+    const cats = app.expandOverlay.categories;
+    const idx = cats.indexOf(cat);
+    if (idx >= 0) cats.splice(idx, 1);
+    else cats.push(cat);
+    _reloadExpandOverlay();
+};
+
+window.toggleExpandHoneypot = function() {
+    const app = _getAlpineData();
+    if (!app) return;
+    app.expandOverlay.honeypotOnly = !app.expandOverlay.honeypotOnly;
+    _reloadExpandOverlay();
+};
+
+function _reloadExpandOverlay() {
     const app = _getAlpineData();
     if (!app) return;
     const ov = app.expandOverlay;
-    _loadExpandContent(ov.endpoint, ov.pageSize, ov.search);
-};
-
-function _loadExpandContent(endpoint, pageSize, search) {
     const dashboardPath = window.__DASHBOARD_PATH__ || '';
     const container = document.getElementById('expand-overlay-table');
     if (!container) return;
-    const url = `${dashboardPath}/htmx/${endpoint}?page=1&page_size=${pageSize}&search=${encodeURIComponent(search || '')}`;
+
+    const params = new URLSearchParams({
+        page: '1',
+        page_size: String(ov.pageSize),
+        search: ov.search || '',
+    });
+
+    // Contextual filters
+    if (ov.endpoint === 'top-ips' && ov.categories.length > 0) {
+        params.set('categories', ov.categories.join(','));
+    }
+    if (ov.endpoint === 'top-paths' && ov.honeypotOnly) {
+        params.set('honeypot_only', '1');
+    }
+
+    const url = `${dashboardPath}/htmx/${ov.endpoint}?${params}`;
     container.innerHTML = '<div style="text-align: center; padding: 40px; color: #8b949e;">Loading...</div>';
     htmx.ajax('GET', url, { target: container, swap: 'innerHTML' });
 }
