@@ -102,8 +102,8 @@ document.addEventListener('alpine:init', () => {
         tab: 'overview',
         dashboardPath: window.__DASHBOARD_PATH__ || '',
 
-        // Banlist dropdown
-        banlistOpen: false,
+        // Export IPs modal
+        exportModal: { show: false, categories: ['attacker'], fwtype: 'raw', error: '', loading: false },
 
         // Raw request modal
         rawModal: { show: false, content: '', logId: null },
