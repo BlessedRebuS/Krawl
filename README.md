@@ -52,6 +52,7 @@
 - [IP Reputation](#ip-reputation)
 - [Forward Server Header](#forward-server-header)
 - [Additional Documentation](#additional-documentation)
+- [Deception using AI](#ai-generated-deception-pages)
 - [Contributing](#contributing)
 
 ## Demo
@@ -80,6 +81,7 @@ It features:
 - **Real-time Dashboard**: Monitor suspicious activity
 - **Customizable Wordlists**: Easy JSON-based configuration
 - **Random Error Injection**: Mimic real server behavior
+- **[AI Generated Deception Pages](docs/ai_generation.md)**: Fake vulnerable HTML template generated on request
 
 You can easily expose Krawl alongside your other services to shield them from web crawlers and malicious users using a reverse proxy. For more details, see the [Reverse Proxy documentation](docs/reverse-proxy.md).
 
@@ -110,7 +112,6 @@ Additionally, after authenticating with the dashboard password, two protected ta
 - **Deception**: manage AI generated pages, export them or import new ones.
 
 For more details, see the [Dashboard documentation](docs/dashboard.md).
-
 
 ## Deployment Modes
 
