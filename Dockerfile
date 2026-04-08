@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.source=https://github.com/BlessedRebuS/Krawl
 WORKDIR /app
 
 # Install gosu for dropping privileges
-RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends gosu && \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends gosu postgresql-client && \
     rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /app/
@@ -19,7 +19,7 @@ COPY entrypoint.sh /app/
 COPY config.yaml /app/
 
 RUN useradd -m -u 1000 krawl && \
-    mkdir -p /app/logs /app/data /app/exports && \
+    mkdir -p /app/logs /app/data && \
     chown -R krawl:krawl /app && \
     chmod +x /app/entrypoint.sh
 
