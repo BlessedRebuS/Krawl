@@ -51,7 +51,7 @@ To use AI Generation without charges, use **Free Models** like `nvidia/nemotron-
 **Register**: https://openrouter.ai
 
 ### OpenAI
-Commercial API with various models. It is more than fine a small model like `gpt-5.1-mini` for this use case.
+Commercial API with various models. A small model like `gpt-5.1-mini` is more than enough for this use case.
 
 **Register**: https://openai.com/api
 
@@ -94,7 +94,7 @@ When limit is reached:
 
 ### Cost Estimation
 
-**Pricing Modelfor gpt-5.1-mini**: [$0.25 input / $2 output per million tokens](https://developers.openai.com/api/docs/models/gpt-5-mini)
+**Pricing Model for gpt-5.1-mini**: [$0.25 input / $2 output per million tokens](https://developers.openai.com/api/docs/models/gpt-5-mini)
 
 **Standard Response**: ~500 tokens per HTML page + ~100 tokens for prompt input
 

@@ -33,19 +33,22 @@ kubectl get secret krawl-server -n krawl-system \
 
 To set a custom password for protected dashboard panels, create the `secret.yaml` manifest (see `kubernetes/manifests/secret.yaml`) and uncomment the `KRAWL_DASHBOARD_PASSWORD` env var in the deployment. If not set, a random password is auto-generated and printed in the pod logs.
 
-### From Source (Python 3.11+)
+### From Source (Python 3.13+)
 
 Clone the repository:
 
 ```bash
 git clone https://github.com/blessedrebus/krawl.git
-cd krawl/src
+cd krawl
 ```
 
 Run the server:
 
 ```bash
-python3 server.py
+pip install -r requirements.txt
+uvicorn app:app --host 0.0.0.0 --port 5000 --app-dir src
 ```
 
 Visit `http://localhost:5000` and access the dashboard at `http://localhost:5000/<dashboard-secret-path>`
+
+For Helm-based deployment, see the [Helm chart documentation](../helm/README.md).

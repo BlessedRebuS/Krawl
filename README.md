@@ -47,7 +47,7 @@
   - [Uvicorn (Python)](#uvicorn-python)
 - [Configuration](#configuration)
   - [config.yaml](#configuration-via-configyaml)
-  - [Environment Variables](#configuration-via-enviromental-variables)
+  - [Environment Variables](#configuration-via-environmental-variables)
 - [Ban Malicious IPs](#use-krawl-to-ban-malicious-ips)
 - [IP Reputation](#ip-reputation)
 - [Forward Server Header](#forward-server-header)
@@ -89,7 +89,7 @@ You can easily expose Krawl alongside your other services to shield them from we
 
 Krawl provides a comprehensive dashboard, accessible at a **random secret path** generated at startup or at a **custom path** configured via `KRAWL_DASHBOARD_SECRET_PATH`. This keeps the dashboard hidden from attackers scanning your honeypot.
 
-The dashboard is organized in five tabs:
+The dashboard is organized in six tabs:
 
 - **Overview**: high-level view of attack activity: an interactive map of IP origins, recent suspicious requests, and top IPs, User-Agents, and paths.
 
@@ -107,6 +107,7 @@ Additionally, after authenticating with the dashboard password, two protected ta
 
 - **Tracked IPs**: maintain a watchlist of IP addresses you want to monitor over time.
 - **IP Banlist**: manage IP bans, view detected attackers, and export the banlist in raw or IPTables format.
+- **Deception**: manage AI generated pages, export them or import new ones.
 
 For more details, see the [Dashboard documentation](docs/dashboard.md).
 
@@ -257,7 +258,7 @@ For more details on both modes, see [Deployment Modes](docs/deployment-modes.md)
 The Helm chart **defaults to scalable mode** with bundled PostgreSQL and Redis:
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 1.3.3 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.0.0 \
   -n krawl-system --create-namespace \
   --set postgres.password=your-password \
   --set redis.password=your-redis-password \
@@ -273,7 +274,7 @@ See [Deployment Modes](docs/deployment-modes.md) and [Chart documentation](helm/
 
 ### Uvicorn (Python)
 
-Run Krawl directly with Python (suggested version 13) and uvicorn for local development or testing:
+Run Krawl directly with Python 3.13+ and uvicorn for local development or testing:
 
 ```bash
 pip install -r requirements.txt
@@ -289,7 +290,7 @@ Krawl uses a **configuration hierarchy** in which **environment variables take p
 ### Configuration via config.yaml
 You can use the [config.yaml](config.yaml) file for advanced configurations, such as Docker Compose or Helm chart deployments.
 
-### Configuration via Enviromental Variables
+### Configuration via Environmental Variables
 
 | Environment Variable | Description | Default |
 |----------------------|-------------|---------|
@@ -435,7 +436,7 @@ ai:
   max_daily_requests: 10
 ```
 
-For detailed configuration and usage, see the [AI Generation documentation](docs/AI_GENERATION.md).
+For detailed configuration and usage, see the [AI Generation documentation](docs/ai_generation.md).
 
 ## Forward server header
 If Krawl is deployed behind a proxy such as NGINX the **server header** should be forwarded using the following configuration in your proxy:
@@ -451,7 +452,7 @@ location / {
 
 | Topic | Description |
 |-------|-------------|
-| [AI Generation](docs/AI_GENERATION.md) | Configure AI-generated deception pages using OpenRouter or OpenAI |
+| [AI Generation](docs/ai_generation.md) | Configure AI-generated deception pages using OpenRouter or OpenAI |
 | [Deployment Modes](docs/deployment-modes.md) | Standalone (SQLite) vs Scalable (PostgreSQL + Redis) mode, configuration, and data migration |
 | [Honeypot](docs/honeypot.md) | Full overview of honeypot pages: fake logins, directory listings, credential files, SQLi/XSS/XXE/command injection traps, and more |
 | [Dashboard](docs/dashboard.md) | Access and explore the real-time monitoring dashboard |
@@ -460,6 +461,8 @@ location / {
 | [Database Backups](docs/backups.md) | Enable and configure the automatic database dump job |
 | [Canary Token](docs/canary-token.md) | Set up external alert triggers via canarytokens.org |
 | [Wordlist](docs/wordlist.md) | Customize fake usernames, passwords, and directory listings |
+| [Architecture](docs/architecture.md) | Technical overview of the codebase, request pipeline, database schema, and background tasks |
+| [Firewall Exporters](docs/firewall-exporters.md) | Export IP banlists in raw, iptables, or nftables format via REST API |
 
 ## Contributing
 
