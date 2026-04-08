@@ -280,21 +280,46 @@ def _setup_openapi(application: FastAPI, dashboard_prefix: str) -> None:
 
     openapi_url = f"{dashboard_prefix}/openapi.json"
 
+    # Endpoints that require authentication (cookie-based session)
+    protected_endpoints = {
+        "/api/ban-override",
+        "/api/track-ip",
+        "/api/delete-generated-pages",
+        "/api/download-generated-page",
+        "/api/upload-generated-page",
+    }
+
     def custom_openapi():
         if application.openapi_schema:
             return application.openapi_schema
         schema = get_openapi(
             title="Krawl Dashboard API",
             version="2.0.0",
-            description="API endpoints for the Krawl honeypot dashboard.",
+            description="API endpoints for the Krawl honeypot dashboard.\n\n"
+            "Endpoints marked with a lock icon require authentication. "
+            "Authenticate via `POST /api/auth` to obtain a session cookie.",
             routes=application.routes,
         )
         # Only keep routes under the dashboard prefix
         filtered = {}
         for path, methods in schema.get("paths", {}).items():
             if path.startswith(dashboard_prefix + "/api/"):
+                # Mark protected endpoints
+                relative = path[len(dashboard_prefix):]
+                if relative in protected_endpoints:
+                    for method_detail in methods.values():
+                        if isinstance(method_detail, dict):
+                            method_detail["security"] = [{"cookieAuth": []}]
                 filtered[path] = methods
         schema["paths"] = filtered
+        schema.setdefault("components", {})["securitySchemes"] = {
+            "cookieAuth": {
+                "type": "apiKey",
+                "in": "cookie",
+                "name": "krawl_auth",
+                "description": "Session cookie obtained via POST /api/auth",
+            }
+        }
         application.openapi_schema = schema
         return schema
 
