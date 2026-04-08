@@ -1,6 +1,6 @@
 # Database Backups
 
-Krawl includes an automatic database dump job that periodically exports the full database to a SQL file.
+Krawl includes an automatic backup job that periodically creates a database backup using native tools for each deployment mode.
 
 ## Configuration
 
@@ -23,42 +23,43 @@ backups:
 
 ## How It Works
 
-- The backup job runs on the configured cron schedule (default: every 30 minutes).
-- It exports the **full database schema and data** to a single SQL dump file at `{backups_path}/db_dump.sql`.
-- Each backup **overwrites** the previous dump file.
-- The dump includes `CREATE TABLE` statements and `INSERT` statements for all tables.
-- The job also runs once immediately on startup (`run_when_loaded: true`).
+The backup method depends on the deployment mode:
 
-## Backup Format
+### Standalone Mode (SQLite)
 
-The output is a standard SQL file that can be executed by any SQL-compatible tool:
+Uses Python's `sqlite3.backup()` API to create an **atomic, consistent copy** of the database file.
 
-```sql
--- Schema
-CREATE TABLE IF NOT EXISTS access_logs (...);
-CREATE TABLE IF NOT EXISTS ip_stats (...);
-...
+- **Output**: `{backups_path}/krawl_backup.db` (a full SQLite database file)
+- Writes to a temporary file first, then atomically renames it — a partial backup never replaces a good one
+- Safe to run while Krawl is serving requests (SQLite WAL mode allows concurrent reads)
 
--- Data
-INSERT INTO access_logs VALUES (...);
-...
-```
-
-## Restoring from a Backup
-
-There is no built-in restore command. To restore, use standard SQL tools:
-
-**SQLite (standalone mode):**
+**Restoring:**
 ```bash
-sqlite3 data/krawl.db < backups/db_dump.sql
+# Stop Krawl first
+cp backups/krawl_backup.db data/krawl.db
 ```
 
-**PostgreSQL (scalable mode):**
+### Scalable Mode (PostgreSQL)
+
+Uses `pg_dump` to create a standard SQL dump of the PostgreSQL database.
+
+- **Output**: `{backups_path}/db_dump.sql`
+- Requires `pg_dump` to be available in the container (included in the Krawl Docker image)
+- Uses `--no-owner --no-privileges` for portable dumps
+- 5-minute timeout to prevent hung backups
+
+**Restoring:**
 ```bash
 psql -h localhost -U krawl -d krawl < backups/db_dump.sql
 ```
 
-> **Note**: You should stop Krawl before restoring to avoid conflicts with the running database.
+> **Note**: If `pg_dump` is not available, an error is logged. Install `postgresql-client` to enable PostgreSQL backups.
+
+## Schedule
+
+- The backup job runs on the configured cron schedule (default: every 30 minutes).
+- Each backup **overwrites** the previous file.
+- The job also runs once immediately on startup.
 
 ## Data Retention
 
@@ -79,7 +80,7 @@ It removes:
 Check that the backup file exists and is recent:
 
 ```bash
-ls -la backups/db_dump.sql
+ls -la backups/
 ```
 
 Check the Krawl logs for backup task output:
