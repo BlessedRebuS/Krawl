@@ -11,6 +11,7 @@ import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from config import get_config
@@ -263,10 +264,56 @@ def create_app() -> FastAPI:
     application.include_router(api_router, prefix=dashboard_prefix)
     application.include_router(htmx_router, prefix=dashboard_prefix)
 
+    # OpenAPI spec and Swagger UI served under the secret dashboard path
+    _setup_openapi(application, dashboard_prefix)
+
     # Honeypot routes (catch-all must be last)
     application.include_router(honeypot_router)
 
     return application
+
+
+def _setup_openapi(application: FastAPI, dashboard_prefix: str) -> None:
+    """Mount OpenAPI spec and Swagger UI under the secret dashboard path."""
+    from fastapi.openapi.utils import get_openapi
+    from fastapi.responses import HTMLResponse
+
+    openapi_url = f"{dashboard_prefix}/openapi.json"
+
+    def custom_openapi():
+        if application.openapi_schema:
+            return application.openapi_schema
+        schema = get_openapi(
+            title="Krawl Dashboard API",
+            version="2.0.0",
+            description="API endpoints for the Krawl honeypot dashboard.",
+            routes=application.routes,
+        )
+        # Only keep routes under the dashboard prefix
+        filtered = {}
+        for path, methods in schema.get("paths", {}).items():
+            if path.startswith(dashboard_prefix + "/api/"):
+                filtered[path] = methods
+        schema["paths"] = filtered
+        application.openapi_schema = schema
+        return schema
+
+    @application.get(openapi_url, include_in_schema=False)
+    async def get_openapi_schema():
+        return JSONResponse(custom_openapi())
+
+    @application.get(f"{dashboard_prefix}/docs", include_in_schema=False)
+    async def swagger_ui():
+        return HTMLResponse(f"""
+<!DOCTYPE html>
+<html><head>
+<title>Krawl API Docs</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+</head><body>
+<div id="swagger-ui"></div>
+<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+<script>SwaggerUIBundle({{url: "{openapi_url}", dom_id: "#swagger-ui"}})</script>
+</body></html>""")
 
 
 app = create_app()
