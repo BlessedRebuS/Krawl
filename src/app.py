@@ -305,7 +305,7 @@ def _setup_openapi(application: FastAPI, dashboard_prefix: str) -> None:
         for path, methods in schema.get("paths", {}).items():
             if path.startswith(dashboard_prefix + "/api/"):
                 # Mark protected endpoints
-                relative = path[len(dashboard_prefix):]
+                relative = path[len(dashboard_prefix) :]
                 if relative in protected_endpoints:
                     for method_detail in methods.values():
                         if isinstance(method_detail, dict):
