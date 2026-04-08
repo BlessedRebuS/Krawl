@@ -25,7 +25,7 @@ If this returns tables, use nftables. Otherwise, use iptables.
 ```bash
 #!/bin/bash
 KRAWL_URL="https://your-krawl-instance/your-dashboard-path"
-curl -s "${KRAWL_URL}/api/get_banlist?fwtype=nftables" > /tmp/krawl_nftables_rules.sh
+curl -s "${KRAWL_URL}/api/export-ips?categories=attacker&fwtype=nftables" > /tmp/krawl_nftables_rules.sh
 sudo bash /tmp/krawl_nftables_rules.sh
 rm -f /tmp/krawl_nftables_rules.sh
 echo "Krawl nftables rules updated"
@@ -87,7 +87,7 @@ sudo nft flush set inet filter blacklist
 
 ## How It Works
 
-1. Script fetches nftables-formatted rules from Krawl API (`/api/get_banlist?fwtype=nftables`)
+1. Script fetches nftables-formatted rules from Krawl API (`/api/export-ips?categories=attacker&fwtype=nftables`)
 2. Executes the downloaded bash script
 3. Creates `inet filter` table and `blacklist` set
 4. Drops all traffic from blacklisted IPs immediately

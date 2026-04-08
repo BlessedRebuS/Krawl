@@ -6,7 +6,7 @@
 KRAWL_URL="https://your-krawl-instance/your-dashboard-path"
 
 # Fetch iptables-formatted rules from Krawl API
-curl -s "${KRAWL_URL}/api/get_banlist?fwtype=iptables" > /tmp/krawl_iptables_rules.sh
+curl -s "${KRAWL_URL}/api/export-ips?categories=attacker&fwtype=iptables" > /tmp/krawl_iptables_rules.sh
 
 # Verify the file was downloaded successfully
 if [ ! -s /tmp/krawl_iptables_rules.sh ]; then

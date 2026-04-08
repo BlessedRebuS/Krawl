@@ -1,6 +1,6 @@
 # Firewall Exporters
 
-Krawl provides two ways to export IP lists for firewall integration: a real-time **Export API** and a **legacy file-based export** via background task.
+Krawl provides a real-time **Export API** to export IP lists for firewall integration.
 
 ## Export API
 
@@ -59,24 +59,6 @@ curl -o /etc/iptables/krawl-banlist.sh \
 
 The same functionality is available from the dashboard via the **Export IPs Banlist** button, which opens a modal where you can select categories and format before downloading.
 
-## Legacy File Export
-
-A background task (`export-malicious-ips`) runs every 5 minutes and writes attacker IPs to static files in the `exports_path` directory. This only exports IPs in the `attacker` category.
-
-Generated files:
-- `malicious_ips.txt` — raw IP list
-- `iptables_banlist.txt` — IPTables rules
-- `nftables_banlist.txt` — NFTables rules
-
-These can be downloaded via:
-```bash
-curl "https://your-krawl-instance/<DASHBOARD-PATH>/api/get_banlist?fwtype=raw"
-curl "https://your-krawl-instance/<DASHBOARD-PATH>/api/get_banlist?fwtype=iptables"
-curl "https://your-krawl-instance/<DASHBOARD-PATH>/api/get_banlist?fwtype=nftables"
-```
-
-Or mounted from the Docker container volume.
-
 ## Architecture
 
 The firewall export feature uses a strategy pattern with an abstract class and subclasses for each firewall system:
@@ -122,7 +104,7 @@ class Yourfirewall(FWType):
         # Add your implementation here
 ```
 
-Then import it in `src/server.py` and `src/tasks/top_attacking_ips.py`:
+Then import it in `src/routes/api.py` (inside the `export_ips` handler):
 
 ```python
 from firewall.yourfirewall import Yourfirewall

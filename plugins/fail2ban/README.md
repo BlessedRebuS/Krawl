@@ -60,7 +60,7 @@ action = iptables-allports[name=krawl-ban, port=all, protocol=all]
 If Krawl is deployed on another instance, you can use the Krawl API to get malicious IPs via a **curl** command scheduled with **cron**.
 
 ```bash
-curl http://your-krawl-instance/dashboard-path/api/get_banlist?fwtype=raw -o malicious_ips.txt
+curl http://your-krawl-instance/dashboard-path/api/export-ips?categories=attacker&fwtype=raw -o malicious_ips.txt
 ```
 
 #### Cron Setup
@@ -74,7 +74,7 @@ sudo crontab -e
 Add this single cron job to fetch malicious IPs every hour:
 
 ```bash
-0 * * * * curl http://your-krawl-instance/dashboard-path/api/get_banlist?fwtype=raw -o /tmp/malicious_ips.txt
+0 * * * * curl http://your-krawl-instance/dashboard-path/api/export-ips?categories=attacker&fwtype=raw -o /tmp/malicious_ips.txt
 ```
 
 Replace the `krawl-jail.conf` **logpath** with `/tmp/malicious_ips.txt`.

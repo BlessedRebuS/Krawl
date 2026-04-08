@@ -52,7 +52,7 @@ Krawl/
 │   │   ├── fetch_ip_rep.py       # Geolocation + blocklist enrichment
 │   │   ├── db_dump.py            # Database export
 │   │   ├── memory_cleanup.py     # In-memory list trimming
-│   │   └── top_attacking_ips.py  # Top attacker caching
+│   │   └── db_retention.py       # Data retention cleanup
 │   │
 │   ├── tasks_master.py           # Task discovery + APScheduler orchestrator
 │   ├── firewall/                 # Banlist export (iptables, raw)
@@ -175,7 +175,7 @@ Dashboard, API, and HTMX routers are mounted with `prefix=f"/{secret}"` in `app.
 | `GET` | `/api/attack-types-stats` | Attack type distribution |
 | `GET` | `/api/attack-types` | Paginated attack log |
 | `GET` | `/api/raw-request/{id}` | Full HTTP request |
-| `GET` | `/api/get_banlist` | Export ban rules |
+| `GET` | `/api/export-ips` | Export IPs for firewall integration |
 
 ### HTMX Fragment Routes (`routes/htmx.py`)
 
@@ -279,7 +279,7 @@ Managed by `TasksMaster` (APScheduler). Tasks are auto-discovered from `src/task
 | `dashboard_warmup` | Every 5 min | Pre-compute dashboard overview data (optional, disable via `cache_warmup: false`) |
 | `db_dump` | Configurable | Export database backups |
 | `memory_cleanup` | Periodic | Trim in-memory lists |
-| `top_attacking_ips` | Periodic | Cache top attackers |
+| `db_retention` | Daily (3 AM) | Clean up old records based on retention policy |
 
 ### IP Categorization Model
 

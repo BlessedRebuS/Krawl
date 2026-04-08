@@ -17,7 +17,7 @@ Automatically block malicious IPs detected by Krawl using iptables firewall rule
 ```bash
 #!/bin/bash
 KRAWL_URL="https://your-krawl-instance/your-dashboard-path"
-curl -s "${KRAWL_URL}/api/get_banlist?fwtype=iptables" > /tmp/krawl_iptables_rules.sh
+curl -s "${KRAWL_URL}/api/export-ips?categories=attacker&fwtype=iptables" > /tmp/krawl_iptables_rules.sh
 sudo bash /tmp/krawl_iptables_rules.sh
 rm -f /tmp/krawl_iptables_rules.sh
 echo "Krawl iptables rules updated"
@@ -80,6 +80,6 @@ sudo iptables-save > /etc/iptables/rules.v4
 
 ## How It Works
 
-1. Script fetches iptables-formatted rules from Krawl API (`/api/get_banlist?fwtype=iptables`)
+1. Script fetches iptables-formatted rules from Krawl API (`/api/export-ips?categories=attacker&fwtype=iptables`)
 2. Executes the downloaded bash script
 3. Drops all traffic from blacklisted IPs immediately
