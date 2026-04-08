@@ -17,6 +17,7 @@ COPY scripts/ /app/scripts/
 COPY wordlists.json /app/
 COPY entrypoint.sh /app/
 COPY config.yaml /app/
+COPY helm/Chart.yaml /app/Chart.yaml
 
 RUN useradd -m -u 1000 krawl && \
     mkdir -p /app/logs /app/data && \
