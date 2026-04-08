@@ -281,6 +281,46 @@ document.addEventListener('alpine:init', () => {
             this.authModal.loading = false;
         },
 
+        async submitExport() {
+            if (this.exportModal.categories.length === 0) {
+                this.exportModal.error = 'Select at least one category';
+                return;
+            }
+            this.exportModal.error = '';
+            this.exportModal.loading = true;
+            try {
+                const params = new URLSearchParams({
+                    categories: this.exportModal.categories.join(','),
+                    fwtype: this.exportModal.fwtype,
+                });
+                const resp = await fetch(`${this.dashboardPath}/api/export-ips?${params}`, {
+                    credentials: 'same-origin',
+                });
+                if (!resp.ok) {
+                    const data = await resp.json().catch(() => ({}));
+                    this.exportModal.error = data.error || 'Export failed';
+                    return;
+                }
+                const blob = await resp.blob();
+                const disposition = resp.headers.get('Content-Disposition') || '';
+                const match = disposition.match(/filename="?([^"]+)"?/);
+                const filename = match ? match[1] : 'export.txt';
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+                this.exportModal.show = false;
+            } catch (e) {
+                this.exportModal.error = 'Network error';
+            } finally {
+                this.exportModal.loading = false;
+            }
+        },
+
         async submitAuth() {
             const password = this.authModal.password;
             if (!password) {
