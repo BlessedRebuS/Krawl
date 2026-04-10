@@ -111,6 +111,7 @@ def get_provider() -> str:
         return "openrouter"
     return provider
 
+
 def get_openai_base_url() -> str:
     """Get OpenAI base URL from config or environment variable."""
     from config import get_config
@@ -118,6 +119,7 @@ def get_openai_base_url() -> str:
     config = get_config()
     openai_base_url = config.ai_openai_base_url
     return openai_base_url
+
 
 def get_max_daily_requests() -> int:
     """Get max daily AI requests limit from config."""
