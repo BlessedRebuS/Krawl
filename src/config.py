@@ -85,6 +85,7 @@ class Config:
     # AI generation settings
     ai_enabled: bool = False
     ai_provider: str = "openrouter"
+    ai_openai_base_url: Optional[str] = "https://api.openai.com/v1"
     ai_api_key: Optional[str] = None
     ai_model: str = "nvidia/nemotron-3-super-120b-a12b:free"
     ai_prompt: str = ""
@@ -278,6 +279,7 @@ class Config:
             ).upper(),
             ai_enabled=ai.get("enabled", False),
             ai_provider=ai.get("provider", "openrouter").lower(),
+            ai_openai_base_url=ai.get("openai_base_url", "https://api.openai.com/v1"),
             ai_api_key=ai.get("api_key"),
             ai_model=ai.get("model", "nvidia/nemotron-3-super-120b-a12b:free"),
             ai_reasoning_enabled=ai.get("reasoning", {}).get("enabled", True),

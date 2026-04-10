@@ -77,7 +77,7 @@ def get_prompt() -> str:
 
 
 def is_reasoning_enabled() -> bool:
-    """Get the reasoning is enabled from config."""
+    """Get whether reasoning is enabled from config."""
     from config import get_config
 
     config = get_config()
@@ -85,7 +85,7 @@ def is_reasoning_enabled() -> bool:
 
 
 def get_reasoning_effort() -> str:
-    """Get the reasoning effort from config."""
+    """Get the reasoning effort level from config."""
     from config import get_config
 
     config = get_config()
@@ -110,6 +110,15 @@ def get_provider() -> str:
         logger.warning(f"Invalid provider '{provider}', defaulting to openrouter")
         return "openrouter"
     return provider
+
+
+def get_openai_base_url() -> str:
+    """Get OpenAI base URL from config or environment variable."""
+    from config import get_config
+
+    config = get_config()
+    openai_base_url = config.ai_openai_base_url
+    return openai_base_url
 
 
 def get_max_daily_requests() -> int:
@@ -317,7 +326,7 @@ async def call_openrouter(
     model: str,
     prompt: str,
     timeout: int = 30,
-    reasoning_enabled: bool = True,
+    reasoning_enabled: bool = False,
 ) -> str:
     """Call OpenRouter API asynchronously and return the response.
 
@@ -326,6 +335,7 @@ async def call_openrouter(
         model: Model name to use
         prompt: Prompt to send to the API
         timeout: Request timeout in seconds
+        reasoning_enabled: Enable reasoning for OpenRouter models
 
     Returns:
         Response content from the API
@@ -346,15 +356,16 @@ async def call_openrouter(
 
 async def call_openai(
     api_key: str,
+    openai_base_url: str,
     model: str,
     prompt: str,
     timeout: int = 30,
-    reasoning_effort: str = "medium",
 ) -> str:
     """Call OpenAI API asynchronously and return the response.
 
     Args:
         api_key: OpenAI API key
+        openai_base_url: Base URL for OpenAI API (e.g., "https://api.openai.com/v1")
         model: Model name to use (e.g., "gpt-4", "gpt-3.5-turbo")
         prompt: Prompt to send to the API
         timeout: Request timeout in seconds
@@ -366,13 +377,12 @@ async def call_openai(
         RuntimeError: If API call fails
     """
     return await _call_api(
-        url="https://api.openai.com/v1/chat/completions",
+        url=f"{openai_base_url}/chat/completions",
         api_key=api_key,
         model=model,
         prompt=prompt,
         timeout=timeout,
         provider="OpenAI",
-        reasoning_effort=reasoning_effort,
     )
 
 
@@ -383,8 +393,7 @@ async def _call_api(
     prompt: str,
     timeout: int,
     provider: str,
-    reasoning_enabled: bool = True,
-    reasoning_effort: str = "medium",
+    reasoning_enabled: bool = False,
 ) -> str:
     """Generic API call handler for both OpenRouter and OpenAI.
 
@@ -395,6 +404,7 @@ async def _call_api(
         prompt: Prompt text
         timeout: Request timeout
         provider: Provider name for logging
+        reasoning_enabled: Enable reasoning (only for OpenRouter)
 
     Returns:
         Response content
@@ -411,12 +421,11 @@ async def _call_api(
             },
             {"role": "user", "content": prompt},
         ],
-        "reasoning": (
-            {"effort": reasoning_effort}
-            if provider.lower() == "openai"
-            else {"enabled": reasoning_enabled}
-        ),
     }
+
+    # Add reasoning for OpenRouter only
+    if reasoning_enabled and provider.lower() == "openrouter":
+        payload["reasoning"] = {"enabled": True}
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -512,13 +521,13 @@ async def generate_html_for_path(
 
     model = get_model()
     provider = get_provider()
+    openai_base_url = get_openai_base_url()
 
     # Build prompt for AI
     query_part = f"?{query}" if query else ""
     prompt_template = get_prompt()
     prompt = prompt_template.format(path=path, query_part=query_part)
     reasoning_enabled = is_reasoning_enabled()
-    reasoning_effort = get_reasoning_effort()
     timeout = get_timeout()
 
     try:
@@ -527,14 +536,15 @@ async def generate_html_for_path(
         )
         logger.debug(f"Using model: {model}")
         logger.debug(f"Using prompt: {prompt[:100]}...")
+        logger.debug(f"Using openai_base_url: {openai_base_url}")
 
         if provider == "openai":
             html_content = await call_openai(
                 api_key=api_key,
+                openai_base_url=openai_base_url,
                 model=model,
                 prompt=prompt,
                 timeout=timeout,
-                reasoning_effort=reasoning_effort,
             )
         else:  # openrouter
             html_content = await call_openrouter(

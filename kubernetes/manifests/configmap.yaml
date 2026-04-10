@@ -50,3 +50,5 @@ data:
       infinite_pages_for_malicious: true
       max_pages_limit: 250
       ban_duration_seconds: 600
+    ai:
+      enabled: false

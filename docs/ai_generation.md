@@ -20,6 +20,7 @@ Set in `config.yaml`:
 ai:
   enabled: true
   provider: "openrouter"  # or "openai"
+  openai_base_url: "your-custom-base-url" #optional for custom API endpoints
   api_key: "your-api-key-here"
   model: "nvidia/nemotron-3-super-120b-a12b:free"
   timeout: 60
@@ -34,6 +35,7 @@ Or use environment variables:
 export KRAWL_AI_ENABLED=true
 export KRAWL_AI_PROVIDER=openrouter
 export KRAWL_AI_API_KEY=your-api-key
+export KRAWL_AI_OPENAI_BASE_URL=your-custom-base-url
 export KRAWL_AI_MODEL=nvidia/nemotron-3-super-120b-a12b:free
 export KRAWL_AI_TIMEOUT=60
 export KRAWL_AI_MAX_DAILY_REQUESTS=10

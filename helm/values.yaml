@@ -111,12 +111,13 @@ config:
   ai:
     enabled: false
     provider: "openrouter"  # "openrouter" or "openai"
-    api_key: null
+# openai_base_url: "https://api.openai.com/v1" is only needed if provider is set to "openai" and you want to use a custom endpoint to reach different models
+    api_key: null # set your OpenAI or OpenRouter API key here
     model: null  # for example nvidia/nemotron-3-super-120b-a12b:free or gpt-5.1-mini
     timeout: 60  # Request timeout in seconds for API calls
     max_daily_requests: 100  # Limit the number of AI-generated responses per day
     reasoning:
-      enabled: true
+      enabled: false # only supported for OpenRouter's models with reasoning capabilities
       effort: "medium"  # "none", "minimal", "low", "medium", "high", "xhigh" (doc: https://openrouter.ai/docs/guides/best-practices/reasoning-tokens)
     prompt: |
       Your goal is to create a plausible but fake intentionally vulnerable page that might appear on a real server, that can distract attackers. 

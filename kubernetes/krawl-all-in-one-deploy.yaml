@@ -94,7 +94,7 @@ data:
       ban_duration_seconds: 600
     ai:
       enabled: false
-      provider: "openrouter"
+      provider: "openrouter"  # "openrouter" or "openai"
       model: null
       api_key: null
       timeout: 60
