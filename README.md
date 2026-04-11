@@ -322,6 +322,7 @@ You can use the [config.yaml](config.yaml) file for advanced configurations, suc
 | `KRAWL_BAN_DURATION_SECONDS` | Ban duration in seconds for rate-limited IPs | `600` |
 | `KRAWL_AI_ENABLED` | Enable AI-generated deception pages | `false` |
 | `KRAWL_AI_PROVIDER` | AI provider (`"openrouter"` or `"openai"`) | `"openrouter"` |
+| `KRAWL_AI_OPENAI_BASE_URL` | Optional OpenAI Base URL for custom API endpoints | `"https://api.openai.com/v1"` |
 | `KRAWL_AI_API_KEY` | API key for AI provider | `None` |
 | `KRAWL_AI_MODEL` | AI model to use for page generation | `"nvidia/nemotron-3-super-120b-a12b:free"` |
 | `KRAWL_AI_TIMEOUT` | Request timeout in seconds for AI API calls | `60` |
@@ -428,6 +429,7 @@ Krawl can automatically generate realistic deception pages using AI models from 
 ai:
   enabled: true
   provider: "openrouter"
+  openai_base_url: "your-custom-base-url"
   api_key: "your-api-key"
   model: "nvidia/nemotron-3-super-120b-a12b:free"
   timeout: 60
