@@ -339,7 +339,8 @@ def _setup_openapi(application: FastAPI, dashboard_prefix: str) -> None:
 
     @application.get(f"{dashboard_prefix}/docs", include_in_schema=False)
     async def swagger_ui():
-        return HTMLResponse(f"""<!DOCTYPE html>
+        return HTMLResponse(
+            f"""<!DOCTYPE html>
 <html><head>
 <title>Krawl API Docs</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
@@ -347,7 +348,8 @@ def _setup_openapi(application: FastAPI, dashboard_prefix: str) -> None:
 <div id="swagger-ui"></div>
 <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
 <script>SwaggerUIBundle({{url: "{openapi_url}", dom_id: "#swagger-ui"}})</script>
-</body></html>""")
+</body></html>"""
+        )
 
 
 app = create_app()

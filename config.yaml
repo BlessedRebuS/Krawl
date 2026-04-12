@@ -94,10 +94,14 @@ crawl:
 tarpit:
   enabled: false  # Opt-in: trap AI agents with slow responses and random text
   delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active
+
+### AI-Generated Deception pages. Here it can be used either OpenRouter or OpenAI as provider, but also self-hosted LLMs with an API-compatible endpoint 
+### by setting the provider to "openai" and pointing the openai_base_url to the local LLM server URL. Note that the krawl-llm is the service name of the llama.cpp server in the docker-compose.yaml.
 ai:
   enabled: false
   provider: "openrouter"  # "openrouter" or "openai"
-# openai_base_url: "https://api.openai.com/v1" is only needed if provider is set to "openai" and you want to use a custom endpoint to reach different models
+  # openai_base_url: "https://api.openai.com/v1" # this is only needed if provider is set to "openai" and you want to use a custom endpoint to reach different models
+  # openai_base_url: "http://krawl-llm:8080/v1"
   api_key: "" # set your OpenAI or OpenRouter API key here
   model: "" # for example nvidia/nemotron-3-super-120b-a12b:free or gpt-5.1-mini
   timeout: 60  # Request timeout in seconds for API calls
