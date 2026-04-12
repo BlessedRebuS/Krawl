@@ -72,6 +72,7 @@ By wasting attacker resources, Krawl helps clearly distinguish malicious behavio
 
 It features:
 
+- **[AI Generated Deception Pages](docs/ai_generation.md)**: **Let attackers help generate your fake vulnerable attack surface**
 - **Spider Trap Pages**: Infinite random links to waste crawler resources based on the [spidertrap project](https://github.com/adhdproject/spidertrap)
 - **Fake Login Pages**: WordPress, phpMyAdmin, admin panels
 - **Honeypot Paths**: Advertised in robots.txt to catch scanners
@@ -81,7 +82,6 @@ It features:
 - **Real-time Dashboard**: Monitor suspicious activity
 - **Customizable Wordlists**: Easy JSON-based configuration
 - **Random Error Injection**: Mimic real server behavior
-- **[AI Generated Deception Pages](docs/ai_generation.md)**: Fake vulnerable HTML template generated on request
 
 You can easily expose Krawl alongside your other services to shield them from web crawlers and malicious users using a reverse proxy. For more details, see the [Reverse Proxy documentation](docs/reverse-proxy.md).
 

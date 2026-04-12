@@ -1,0 +1,31 @@
+---
+# THIS IS FOR DEVELOPMENT PURPOSES
+services:
+  krawl:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: krawl-server
+    ports:
+      - "5000:5000"
+    environment:
+      - CONFIG_LOCATION=config.yaml
+      # Uncomment to set a custom dashboard password (auto-generated if not set)
+      # - KRAWL_DASHBOARD_PASSWORD=your-secret-password
+      # set this to change timezone, alternatively mount /etc/timezone or /etc/localtime based on the time system management of the host environment
+      # - TZ=${TZ}
+    volumes:
+      - ./wordlists.json:/app/wordlists.json:ro
+      - ./config.yaml:/app/config.yaml:ro
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./backups:/app/backups
+    restart: unless-stopped
+    develop:
+      watch:
+        - path: ./Dockerfile
+          action: rebuild
+        - path: ./src/
+          action: rebuild
+        - path: ./docker-compose.yaml
+          action: rebuild

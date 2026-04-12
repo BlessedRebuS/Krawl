@@ -1,31 +1,125 @@
 ---
-# THIS IS FOR DEVELOPMENT PURPOSES
+# Scalable mode: Krawl + PostgreSQL + Redis
+# Usage: docker compose -f docker/docker-compose.scalable.yaml up -d
+#
+# !! IMPORTANT: Change the default PostgreSQL and Redis passwords before deploying to production !!
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: krawl-postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: krawl
+      POSTGRES_USER: krawl
+      POSTGRES_PASSWORD: krawl
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U krawl -d krawl"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: krawl-redis
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ### Default LLM service using llama.cpp. You can switch to Ollama or another LLM server by commenting/uncommenting the relevant sections below.
+  ### Make sure to select the GGUF model file using the repo and file parameters in the command section: https://github.com/ggml-org/llama.cpp/blob/master/docs/docker.md
+  llama.cpp:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    container_name: krawl-llm
+    ports:
+      - "8080:8080"
+    # environment:
+    #  - HF_TOKEN=${HF_TOKEN:-}
+    volumes:
+      - ./models:/models
+      - llm_cache:/root/.cache
+    restart: unless-stopped
+    command: >
+      --hf-repo Qwen/Qwen1.5-1.8B-Chat-GGUF
+      --hf-file qwen1_5-1_8b-chat-q4_k_m.gguf
+      --port 8080
+      --host 0.0.0.0
+      -n -1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ### ALTERNATIVE: Use Ollama instead of llama.cpp. Specify the model in the command section https://docs.ollama.com/docker#docker
+  ### Remember to specify the "model" parameter also in the config.yaml file.
+  # ollama:
+  #     image: ollama/ollama:latest
+  #     container_name: krawl-llm
+  #     ports:
+  #       - "8080:8080"
+  #     environment:
+  #       - OLLAMA_MODELS=/models
+  #       - OLLAMA_HOST=0.0.0.0:8080
+  #     volumes:
+  #       - ./models:/models
+  #       - llm_cache:/root/.ollama
+  #     restart: unless-stopped
+  #     entrypoint: >
+  #       sh -c "
+  #         /bin/ollama serve &
+  #         until /bin/ollama list > /dev/null 2>&1; do
+  #           sleep 2;
+  #         done;
+  #         /bin/ollama pull qwen:1.8b;
+  #         wait
+  #       "
+  #     healthcheck:
+  #       test: ["CMD", "/bin/ollama", "list"]
+  #       interval: 10s
+  #       timeout: 5s
+  #       retries: 5
+
   krawl:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/blessedrebus/krawl:2.0.1-dev
     container_name: krawl-server
     ports:
       - "5000:5000"
     environment:
       - CONFIG_LOCATION=config.yaml
+      - KRAWL_MODE=scalable
+      - KRAWL_POSTGRES_HOST=postgres
+      - KRAWL_POSTGRES_PORT=5432
+      - KRAWL_POSTGRES_USER=krawl
+      - KRAWL_POSTGRES_PASSWORD=krawl
+      - KRAWL_POSTGRES_DATABASE=krawl
+      - KRAWL_REDIS_HOST=redis
+      - KRAWL_REDIS_PORT=6379
       # Uncomment to set a custom dashboard password (auto-generated if not set)
       # - KRAWL_DASHBOARD_PASSWORD=your-secret-password
-      # set this to change timezone, alternatively mount /etc/timezone or /etc/localtime based on the time system management of the host environment
-      # - TZ=${TZ}
+      # Set this to change timezone
+      # - TZ=Europe/Rome
     volumes:
       - ./wordlists.json:/app/wordlists.json:ro
       - ./config.yaml:/app/config.yaml:ro
       - ./logs:/app/logs
-      - ./data:/app/data
       - ./backups:/app/backups
     restart: unless-stopped
-    develop:
-      watch:
-        - path: ./Dockerfile
-          action: rebuild
-        - path: ./src/
-          action: rebuild
-        - path: ./docker-compose.yaml
-          action: rebuild
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  llm_cache:
