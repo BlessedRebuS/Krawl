@@ -36,28 +36,28 @@ services:
 
   ### Default LLM service using llama.cpp. You can switch to Ollama or another LLM server by commenting/uncommenting the relevant sections below.
   ### Make sure to select the GGUF model file using the repo and file parameters in the command section: https://github.com/ggml-org/llama.cpp/blob/master/docs/docker.md
-  llama.cpp:
-    image: ghcr.io/ggml-org/llama.cpp:server
-    container_name: krawl-llm
-    ports:
-      - "8080:8080"
-    # environment:
-    #  - HF_TOKEN=${HF_TOKEN:-}
-    volumes:
-      - ./models:/models
-      - llm_cache:/root/.cache
-    restart: unless-stopped
-    command: >
-      --hf-repo Qwen/Qwen1.5-1.8B-Chat-GGUF
-      --hf-file qwen1_5-1_8b-chat-q4_k_m.gguf
-      --port 8080
-      --host 0.0.0.0
-      -n -1
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # llama.cpp:
+  #   image: ghcr.io/ggml-org/llama.cpp:server
+  #   container_name: krawl-llm
+  #   ports:
+  #     - "8080:8080"
+  #   # environment:
+  #   #  - HF_TOKEN=${HF_TOKEN:-}
+  #   volumes:
+  #     - ./models:/models
+  #     - llm_cache:/root/.cache
+  #   restart: unless-stopped
+  #   command: >
+  #     --hf-repo Qwen/Qwen1.5-1.8B-Chat-GGUF
+  #     --hf-file qwen1_5-1_8b-chat-q4_k_m.gguf
+  #     --port 8080
+  #     --host 0.0.0.0
+  #     -n -1
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
   ### ALTERNATIVE: Use Ollama instead of llama.cpp. Specify the model in the command section https://docs.ollama.com/docker#docker
   ### Remember to specify the "model" parameter also in the config.yaml file.
