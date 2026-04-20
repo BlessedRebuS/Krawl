@@ -100,10 +100,10 @@ services:
       # Set this to change timezone
       # - TZ=Europe/Rome
     volumes:
-      - ./wordlists.json:/app/wordlists.json:ro
-      - ./config.yaml:/app/config.yaml:ro
-      - ./logs:/app/logs
-      - ./backups:/app/backups
+      - ../wordlists.json:/app/wordlists.json:ro
+      - ../config.yaml:/app/config.yaml:ro
+      - ../logs:/app/logs
+      - ../backups:/app/backups
     restart: unless-stopped
     depends_on:
       postgres:
