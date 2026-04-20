@@ -7,7 +7,6 @@ All endpoints are prefixed with the secret dashboard path.
 """
 
 import asyncio
-import hashlib
 import hmac
 import secrets
 import time
@@ -49,7 +48,7 @@ def _no_cache_headers() -> dict:
 
 
 class AuthRequest(BaseModel):
-    fingerprint: str
+    password: str
 
 
 def verify_auth(request: Request) -> bool:
@@ -77,8 +76,8 @@ async def authenticate(request: Request, body: AuthRequest):
         )
 
     config = request.app.state.config
-    expected = hashlib.sha256(config.dashboard_password.encode()).hexdigest()
-    if hmac.compare_digest(body.fingerprint, expected):
+    expected = config.dashboard_password.strip()
+    if hmac.compare_digest(body.password, expected):
         # Success — clear failed attempts
         _auth_attempts.pop(ip, None)
         get_app_logger().info(f"[AUTH] Successful login from {ip}")
