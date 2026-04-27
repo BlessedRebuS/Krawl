@@ -59,6 +59,15 @@ dashboard:
   # already reduces DB load without needing a background warmup task.
   cache_warmup: true
 
+  # Number of pages to pre-warm per table panel (attacks, attackers, credentials, honeypot).
+  # Only has effect in scalable mode (set_cached_table is a no-op in standalone).
+  warmup_pages: 10
+
+  # Pre-compute full top_paths/top_ua aggregations so any page is served instantly
+  # with zero DB queries (works in both standalone and scalable modes).
+  # Disabled by default in standalone; enable in scalable via Helm values or this flag.
+  warmup_aggregation: false
+
 backups:
   path: "backups"
   cron: "*/30 * * * *"
