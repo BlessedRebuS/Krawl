@@ -13,7 +13,13 @@ from fastapi.responses import HTMLResponse
 from dependencies import get_db, get_templates
 from routes.api import verify_auth
 from config import get_config
-from dashboard_cache import get_cached, is_warm, get_cached_table, set_cached_table
+from dashboard_cache import (
+    get_cached,
+    is_warm,
+    get_cached_table,
+    set_cached_table,
+    paginate_cached_list,
+)
 
 router = APIRouter()
 
@@ -138,23 +144,41 @@ async def htmx_top_paths(
 ):
     search = search.strip() or None
     is_honeypot = honeypot_only.strip().lower() in ("1", "true", "yes")
-    cached = (
-        get_cached("top_paths")
-        if (
-            get_config().dashboard_cache_warmup
-            and page == 1
-            and page_size == 5
-            and sort_by == "count"
-            and sort_order == "desc"
-            and not search
-            and not is_honeypot
-            and is_warm()
-        )
-        else None
-    )
-    if cached:
-        result = cached
-    else:
+    config = get_config()
+    result = None
+
+    # Aggregation path: serves any page instantly when no filter and default sort
+    if (
+        config.dashboard_cache_warmup
+        and config.dashboard_warmup_aggregation
+        and sort_by == "count"
+        and sort_order == "desc"
+        and not search
+        and not is_honeypot
+        and is_warm()
+    ):
+        agg = get_cached("agg:top_paths")
+        if agg is not None:
+            sliced = paginate_cached_list(
+                agg, page=max(1, page), page_size=min(page_size, 100)
+            )
+            result = {"paths": sliced["items"], "pagination": sliced["pagination"]}
+
+    # Legacy page-1 warmup fallback
+    if result is None and (
+        config.dashboard_cache_warmup
+        and page == 1
+        and page_size == 5
+        and sort_by == "count"
+        and sort_order == "desc"
+        and not search
+        and not is_honeypot
+        and is_warm()
+    ):
+        result = get_cached("top_paths")
+
+    # DB fallback
+    if result is None:
         db = get_db()
         result = await asyncio.to_thread(
             db.get_top_paths_paginated,
@@ -273,22 +297,42 @@ async def htmx_top_ua(
     search: str = Query(""),
 ):
     search = search.strip() or None
-    cached = (
-        get_cached("top_ua")
-        if (
-            get_config().dashboard_cache_warmup
-            and page == 1
-            and page_size == 5
-            and sort_by == "count"
-            and sort_order == "desc"
-            and not search
-            and is_warm()
-        )
-        else None
-    )
-    if cached:
-        result = cached
-    else:
+    config = get_config()
+    result = None
+
+    # Aggregation path: serves any page instantly when no filter and default sort
+    if (
+        config.dashboard_cache_warmup
+        and config.dashboard_warmup_aggregation
+        and sort_by == "count"
+        and sort_order == "desc"
+        and not search
+        and is_warm()
+    ):
+        agg = get_cached("agg:top_ua")
+        if agg is not None:
+            sliced = paginate_cached_list(
+                agg, page=max(1, page), page_size=min(page_size, 100)
+            )
+            result = {
+                "user_agents": sliced["items"],
+                "pagination": sliced["pagination"],
+            }
+
+    # Legacy page-1 warmup fallback
+    if result is None and (
+        config.dashboard_cache_warmup
+        and page == 1
+        and page_size == 5
+        and sort_by == "count"
+        and sort_order == "desc"
+        and not search
+        and is_warm()
+    ):
+        result = get_cached("top_ua")
+
+    # DB fallback
+    if result is None:
         db = get_db()
         result = await asyncio.to_thread(
             db.get_top_user_agents_paginated,
