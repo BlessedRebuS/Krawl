@@ -24,6 +24,7 @@ from dashboard_cache import (
     invalidate_table_cache,
     get_cached_table,
     set_cached_table,
+    paginate_cached_list,
 )
 
 # Server-side session token store (valid tokens for authenticated sessions)
@@ -272,10 +273,27 @@ async def all_ips(
 ):
     page = max(1, page)
     page_size = min(max(1, page_size), 10000)
+    config = get_config()
+
+    # Serve from full aggregation cache (up to 50k IPs, default sort only)
+    if (
+        config.dashboard_cache_warmup
+        and config.dashboard_warmup_aggregation
+        and sort_by == "total_requests"
+        and sort_order == "desc"
+        and is_warm()
+    ):
+        agg = get_cached("agg:map_ips")
+        if agg is not None:
+            sliced = paginate_cached_list(agg, page=page, page_size=page_size)
+            return JSONResponse(
+                content={"ips": sliced["items"], "pagination": sliced["pagination"]},
+                headers=_no_cache_headers(),
+            )
 
     # Serve from warmup cache on default map request (top 1000 IPs)
     if (
-        get_config().dashboard_cache_warmup
+        config.dashboard_cache_warmup
         and page == 1
         and page_size == 1000
         and sort_by == "total_requests"
@@ -421,6 +439,7 @@ async def top_paths(
             page_size=page_size,
             sort_by=sort_by,
             sort_order=sort_order,
+            min_count=get_config().dashboard_top_n_min_count,
         )
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
@@ -447,6 +466,7 @@ async def top_user_agents(
             page_size=page_size,
             sort_by=sort_by,
             sort_order=sort_order,
+            min_count=get_config().dashboard_top_n_min_count,
         )
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
