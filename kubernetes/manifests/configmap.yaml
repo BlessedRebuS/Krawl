@@ -27,6 +27,9 @@ data:
     dashboard:
       secret_path: null
       cache_warmup: true
+      warmup_pages: 10
+      warmup_aggregation: true
+      top_n_min_count: 5
     backups:
       path: "backups"
       cron: "*/30 * * * *"

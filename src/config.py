@@ -50,6 +50,9 @@ class Config:
     dashboard_password: Optional[str] = None
     dashboard_password_generated: bool = False
     dashboard_cache_warmup: bool = True
+    dashboard_warmup_pages: int = 10
+    dashboard_warmup_aggregation: bool = False
+    dashboard_top_n_min_count: int = 5
     probability_error_codes: int = 0  # Percentage (0-100)
 
     # Crawl limiting settings - for legitimate vs malicious crawlers
@@ -246,6 +249,9 @@ class Config:
             dashboard_password=dashboard_password,
             dashboard_password_generated=dashboard_password_generated,
             dashboard_cache_warmup=dashboard.get("cache_warmup", True),
+            dashboard_warmup_pages=int(dashboard.get("warmup_pages", 10)),
+            dashboard_warmup_aggregation=dashboard.get("warmup_aggregation", False),
+            dashboard_top_n_min_count=int(dashboard.get("top_n_min_count", 5)),
             probability_error_codes=behavior.get("probability_error_codes", 0),
             backups_path=backups.get("path", "backups"),
             backups_enabled=backups.get("enabled", False),
