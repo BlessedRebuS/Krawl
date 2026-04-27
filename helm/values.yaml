@@ -85,6 +85,8 @@ config:
   dashboard:
     secret_path: null  # Auto-generated if not set, or set to "/my-secret-dashboard"
     cache_warmup: true  # Pre-compute dashboard data every 5 minutes. In scalable mode with Redis, consider setting to false — table caching handles it.
+    warmup_pages: 10  # Number of pages to pre-warm per table panel (attacks, attackers, credentials, honeypot)
+    warmup_aggregation: true  # Pre-compute full top_paths/top_ua aggregations for instant any-page serving (recommended for scalable)
   backups:
     path: "backups"
     enabled: false

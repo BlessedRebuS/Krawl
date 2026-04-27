@@ -23,6 +23,8 @@ data:
     dashboard:
       secret_path: {{ .Values.config.dashboard.secret_path | toYaml }}
       cache_warmup: {{ .Values.config.dashboard.cache_warmup }}
+      warmup_pages: {{ .Values.config.dashboard.warmup_pages }}
+      warmup_aggregation: {{ .Values.config.dashboard.warmup_aggregation }}
     backups:
       path: {{ .Values.config.backups.path | quote }}
       cron: {{ .Values.config.backups.cron | quote }}
