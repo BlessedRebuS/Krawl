@@ -40,20 +40,36 @@ async def htmx_honeypot(
     sort_order: str = Query("desc"),
 ):
     page = max(1, page)
-    cache_key = f"honeypot:{page}:{sort_by}:{sort_order}"
-    cached = get_cached_table(cache_key)
-    if cached:
-        result = cached
-    else:
-        db = get_db()
-        result = await asyncio.to_thread(
-            db.get_honeypot_paginated,
-            page=page,
-            page_size=5,
-            sort_by=sort_by,
-            sort_order=sort_order,
-        )
-        set_cached_table(cache_key, result)
+    config = get_config()
+    result = None
+
+    if (
+        config.dashboard_cache_warmup
+        and config.dashboard_warmup_aggregation
+        and sort_by == "count"
+        and sort_order == "desc"
+        and is_warm()
+    ):
+        agg = get_cached("agg:honeypot")
+        if agg is not None:
+            sliced = paginate_cached_list(agg, page=page, page_size=5)
+            result = {"honeypots": sliced["items"], "pagination": sliced["pagination"]}
+
+    if result is None:
+        cache_key = f"honeypot:{page}:{sort_by}:{sort_order}"
+        cached = get_cached_table(cache_key)
+        if cached:
+            result = cached
+        else:
+            db = get_db()
+            result = await asyncio.to_thread(
+                db.get_honeypot_paginated,
+                page=page,
+                page_size=5,
+                sort_by=sort_by,
+                sort_order=sort_order,
+            )
+            set_cached_table(cache_key, result)
 
     templates = get_templates()
     return templates.TemplateResponse(
@@ -188,6 +204,7 @@ async def htmx_top_paths(
             sort_order=sort_order,
             search=search,
             honeypot_only=is_honeypot,
+            min_count=config.dashboard_top_n_min_count,
         )
 
     templates = get_templates()
@@ -341,6 +358,7 @@ async def htmx_top_ua(
             sort_by=sort_by,
             sort_order=sort_order,
             search=search,
+            min_count=config.dashboard_top_n_min_count,
         )
 
     templates = get_templates()
@@ -369,20 +387,36 @@ async def htmx_attackers(
     sort_order: str = Query("desc"),
 ):
     page = max(1, page)
-    cache_key = f"attackers:{page}:{sort_by}:{sort_order}"
-    cached = get_cached_table(cache_key)
-    if cached:
-        result = cached
-    else:
-        db = get_db()
-        result = await asyncio.to_thread(
-            db.get_attackers_paginated,
-            page=page,
-            page_size=10,
-            sort_by=sort_by,
-            sort_order=sort_order,
-        )
-        set_cached_table(cache_key, result)
+    config = get_config()
+    result = None
+
+    if (
+        config.dashboard_cache_warmup
+        and config.dashboard_warmup_aggregation
+        and sort_by == "total_requests"
+        and sort_order == "desc"
+        and is_warm()
+    ):
+        agg = get_cached("agg:attackers")
+        if agg is not None:
+            sliced = paginate_cached_list(agg, page=page, page_size=10)
+            result = {"attackers": sliced["items"], "pagination": sliced["pagination"]}
+
+    if result is None:
+        cache_key = f"attackers:{page}:{sort_by}:{sort_order}"
+        cached = get_cached_table(cache_key)
+        if cached:
+            result = cached
+        else:
+            db = get_db()
+            result = await asyncio.to_thread(
+                db.get_attackers_paginated,
+                page=page,
+                page_size=10,
+                sort_by=sort_by,
+                sort_order=sort_order,
+            )
+            set_cached_table(cache_key, result)
 
     # Normalize pagination key (DB returns total_attackers, template expects total)
     pagination = result["pagination"]

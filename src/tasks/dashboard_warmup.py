@@ -37,6 +37,7 @@ def main():
     config = get_config()
     warmup_pages = config.dashboard_warmup_pages
     warmup_aggregation = config.dashboard_warmup_aggregation
+    min_count = config.dashboard_top_n_min_count
     if not config.dashboard_cache_warmup:
         app_logger.info(
             f"[Background Task] {task_name} skipped (cache_warmup disabled in config)."
@@ -69,7 +70,7 @@ def main():
         if warmup_aggregation:
             top_ua_all = _timed(
                 "get_top_ua_all",
-                lambda: db.get_top_user_agents(limit=100_000),
+                lambda: db.get_top_user_agents(limit=100_000, min_count=min_count),
             )
             agg_ua = [{"user_agent": ua, "count": c} for ua, c in top_ua_all]
             set_cached("agg:top_ua", agg_ua)
@@ -86,7 +87,7 @@ def main():
 
             top_paths_all = _timed(
                 "get_top_paths_all",
-                lambda: db.get_top_paths(limit=100_000),
+                lambda: db.get_top_paths(limit=100_000, min_count=min_count),
             )
             agg_paths = [{"path": p, "count": c} for p, c in top_paths_all]
             set_cached("agg:top_paths", agg_paths)
@@ -100,24 +101,69 @@ def main():
                 },
             }
             set_cached("top_paths", top_paths)
+
+            attackers_all = _timed(
+                "get_attackers_all",
+                lambda: db.get_attackers_paginated(
+                    page=1,
+                    page_size=100_000,
+                    sort_by="total_requests",
+                    sort_order="desc",
+                ),
+            )
+            set_cached("agg:attackers", attackers_all["attackers"])
+
+            honeypot_all = _timed(
+                "get_honeypot_all",
+                lambda: db.get_honeypot_paginated(
+                    page=1, page_size=100_000, sort_by="count", sort_order="desc"
+                ),
+            )
+            set_cached("agg:honeypot", honeypot_all["honeypots"])
         else:
             top_ua = _timed(
                 "get_top_user_agents_paginated",
-                lambda: db.get_top_user_agents_paginated(page=1, page_size=5),
+                lambda: db.get_top_user_agents_paginated(
+                    page=1, page_size=5, min_count=min_count
+                ),
             )
             top_paths = _timed(
                 "get_top_paths_paginated",
-                lambda: db.get_top_paths_paginated(page=1, page_size=5),
+                lambda: db.get_top_paths_paginated(
+                    page=1, page_size=5, min_count=min_count
+                ),
             )
 
-        # --- Map data (default: top 1000 IPs by total_requests) ---
+        # --- Map data ---
         # Also used to derive top_ips (first 8), avoiding a redundant DB query
-        map_ips = _timed(
-            "get_all_ips_paginated",
-            lambda: db.get_all_ips_paginated(
-                page=1, page_size=1000, sort_by="total_requests", sort_order="desc"
-            ),
-        )
+        if warmup_aggregation:
+            map_ips_all = _timed(
+                "get_all_ips_paginated_50k",
+                lambda: db.get_all_ips_paginated(
+                    page=1,
+                    page_size=50_000,
+                    sort_by="total_requests",
+                    sort_order="desc",
+                ),
+            )
+            set_cached("agg:map_ips", map_ips_all["ips"])
+            total_ips = map_ips_all["pagination"]["total"]
+            map_ips = {
+                "ips": map_ips_all["ips"][:1000],
+                "pagination": {
+                    "page": 1,
+                    "page_size": 1000,
+                    "total": total_ips,
+                    "total_pages": max(1, (total_ips + 999) // 1000),
+                },
+            }
+        else:
+            map_ips = _timed(
+                "get_all_ips_paginated",
+                lambda: db.get_all_ips_paginated(
+                    page=1, page_size=1000, sort_by="total_requests", sort_order="desc"
+                ),
+            )
 
         # Derive top_ips from map_ips (both sorted by total_requests desc)
         top_ips_from_map = map_ips.get("ips", [])[:8]
