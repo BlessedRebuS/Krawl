@@ -68,6 +68,11 @@ dashboard:
   # Disabled by default in standalone; enable in scalable via Helm values or this flag.
   warmup_aggregation: false
 
+  # Minimum access count for top paths and top user agents to be shown or cached.
+  # Entries below this threshold are excluded at the database level, reducing noise
+  # and keeping the aggregation data compact. Set to 1 to disable filtering.
+  top_n_min_count: 5
+
 backups:
   path: "backups"
   cron: "*/30 * * * *"
