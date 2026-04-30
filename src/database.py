@@ -1733,22 +1733,25 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_top_paths(self, limit: int = 10) -> List[tuple]:
+    def get_top_paths(self, limit: int = 10, min_count: int = 1) -> List[tuple]:
         """
         Get top paths by access count.
 
         Args:
             limit: Maximum number of results
+            min_count: Minimum access count threshold (paths below this are excluded)
 
         Returns:
             List of (path, count) tuples ordered by count descending
         """
         session = self.session
         try:
+            count_col = func.count(AccessLog.id)
             results = (
-                session.query(AccessLog.path, func.count(AccessLog.id).label("count"))
+                session.query(AccessLog.path, count_col.label("count"))
                 .group_by(AccessLog.path)
-                .order_by(func.count(AccessLog.id).desc())
+                .having(count_col >= min_count)
+                .order_by(count_col.desc())
                 .limit(limit)
                 .all()
             )
@@ -1757,25 +1760,26 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_top_user_agents(self, limit: int = 10) -> List[tuple]:
+    def get_top_user_agents(self, limit: int = 10, min_count: int = 1) -> List[tuple]:
         """
         Get top user agents by access count.
 
         Args:
             limit: Maximum number of results
+            min_count: Minimum access count threshold (user agents below this are excluded)
 
         Returns:
             List of (user_agent, count) tuples ordered by count descending
         """
         session = self.session
         try:
+            count_col = func.count(AccessLog.id)
             results = (
-                session.query(
-                    AccessLog.user_agent, func.count(AccessLog.id).label("count")
-                )
+                session.query(AccessLog.user_agent, count_col.label("count"))
                 .filter(AccessLog.user_agent.isnot(None), AccessLog.user_agent != "")
                 .group_by(AccessLog.user_agent)
-                .order_by(func.count(AccessLog.id).desc())
+                .having(count_col >= min_count)
+                .order_by(count_col.desc())
                 .limit(limit)
                 .all()
             )
@@ -2158,6 +2162,7 @@ class DatabaseManager:
         sort_order: str = "desc",
         search: Optional[str] = None,
         honeypot_only: bool = False,
+        min_count: int = 1,
     ) -> Dict[str, Any]:
         """
         Retrieve paginated list of top paths by access count.
@@ -2172,6 +2177,7 @@ class DatabaseManager:
             sort_order: Sort order (asc or desc)
             search: Optional search string to filter paths
             honeypot_only: If True, only include honeypot-triggered paths
+            min_count: Minimum access count threshold (paths below this are excluded)
 
         Returns:
             Dictionary with paths list and pagination info
@@ -2187,12 +2193,16 @@ class DatabaseManager:
             if honeypot_only:
                 search_filter.append(AccessLog.is_honeypot_trigger == True)
 
-            # Get total number of distinct paths
-            total_paths = (
-                session.query(func.count(distinct(path_expr)))
+            # Count distinct paths that meet the min_count threshold
+            count_subq = (
+                session.query(path_expr)
                 .filter(*search_filter)
-                .scalar()
-                or 0
+                .group_by(path_expr)
+                .having(func.count(AccessLog.id) >= min_count)
+                .subquery()
+            )
+            total_paths = (
+                session.query(func.count()).select_from(count_subq).scalar() or 0
             )
 
             # Build query with SQL-level sorting and pagination
@@ -2200,6 +2210,7 @@ class DatabaseManager:
                 session.query(path_expr, count_col)
                 .filter(*search_filter)
                 .group_by(path_expr)
+                .having(func.count(AccessLog.id) >= min_count)
             )
 
             if sort_by == "count":
@@ -2233,6 +2244,7 @@ class DatabaseManager:
         sort_by: str = "count",
         sort_order: str = "desc",
         search: Optional[str] = None,
+        min_count: int = 1,
     ) -> Dict[str, Any]:
         """
         Retrieve paginated list of top user agents by access count.
@@ -2246,6 +2258,7 @@ class DatabaseManager:
             sort_by: Field to sort by (count or user_agent)
             sort_order: Sort order (asc or desc)
             search: Optional search string to filter user agents
+            min_count: Minimum access count threshold (user agents below this are excluded)
 
         Returns:
             Dictionary with user agents list and pagination info
@@ -2261,17 +2274,24 @@ class DatabaseManager:
             if search:
                 base_filter.append(AccessLog.user_agent.ilike(f"%{search}%"))
 
-            # Get total number of distinct user agents
-            total_uas = (
-                session.query(func.count(distinct(ua_expr)))
+            # Count distinct user agents that meet the min_count threshold
+            count_subq = (
+                session.query(ua_expr)
                 .filter(*base_filter)
-                .scalar()
-                or 0
+                .group_by(ua_expr)
+                .having(func.count(AccessLog.id) >= min_count)
+                .subquery()
+            )
+            total_uas = (
+                session.query(func.count()).select_from(count_subq).scalar() or 0
             )
 
             # Build query with SQL-level sorting and pagination
             query = (
-                session.query(ua_expr, count_col).filter(*base_filter).group_by(ua_expr)
+                session.query(ua_expr, count_col)
+                .filter(*base_filter)
+                .group_by(ua_expr)
+                .having(func.count(AccessLog.id) >= min_count)
             )
 
             if sort_by == "count":

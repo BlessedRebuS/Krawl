@@ -59,6 +59,20 @@ dashboard:
   # already reduces DB load without needing a background warmup task.
   cache_warmup: true
 
+  # Number of pages to pre-warm per table panel (attacks, attackers, credentials, honeypot).
+  # Only has effect in scalable mode (set_cached_table is a no-op in standalone).
+  warmup_pages: 10
+
+  # Pre-compute full top_paths/top_ua aggregations so any page is served instantly
+  # with zero DB queries (works in both standalone and scalable modes).
+  # Disabled by default in standalone; enable in scalable via Helm values or this flag.
+  warmup_aggregation: false
+
+  # Minimum access count for top paths and top user agents to be shown or cached.
+  # Entries below this threshold are excluded at the database level, reducing noise
+  # and keeping the aggregation data compact. Set to 1 to disable filtering.
+  top_n_min_count: 5
+
 backups:
   path: "backups"
   cron: "*/30 * * * *"
@@ -94,15 +108,20 @@ crawl:
 tarpit:
   enabled: false  # Opt-in: trap AI agents with slow responses and random text
   delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active
+
+### AI-Generated Deception pages. Here it can be used either OpenRouter or OpenAI as provider, but also self-hosted LLMs with an API-compatible endpoint 
+### by setting the provider to "openai" and pointing the openai_base_url to the local LLM server URL. Note that the krawl-llm is the service name of the llama.cpp server in the docker-compose.yaml.
 ai:
   enabled: false
   provider: "openrouter"  # "openrouter" or "openai"
-  api_key: ""
+  # openai_base_url: "https://api.openai.com/v1" # this is only needed if provider is set to "openai" and you want to use a custom endpoint to reach different models
+  # openai_base_url: "http://krawl-llm:8080/v1"
+  api_key: "" # set your OpenAI or OpenRouter API key here
   model: "" # for example nvidia/nemotron-3-super-120b-a12b:free or gpt-5.1-mini
   timeout: 60  # Request timeout in seconds for API calls
   max_daily_requests: 100  # Limit the number of AI-generated responses per day
   reasoning: 
-    enabled: true
+    enabled: false # Enable advanced reasoning for AI-generated responses (works only for OpenRouter's models with reasoning)
     effort: "medium"  # "none", "minimal", "low", "medium", "high", "xhigh" (doc: https://openrouter.ai/docs/guides/best-practices/reasoning-tokens)
   prompt: |
     Your goal is to create a plausible but fake intentionally vulnerable page that might appear on a real server, that can distract attackers. 

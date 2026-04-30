@@ -24,6 +24,7 @@ share/python-wheels/
 MANIFEST
 
 # Virtual Environment
+.venv/
 venv/
 env/
 ENV/
@@ -68,6 +69,7 @@ data/
 *.sqlite
 *.sqlite3
 backups/
+models/
 
 # Temporary files
 *.tmp

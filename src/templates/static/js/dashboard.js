@@ -322,7 +322,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         async submitAuth() {
-            const password = this.authModal.password;
+            const password = this.authModal.password.trim();
             if (!password) {
                 this.authModal.error = 'Please enter a password';
                 return;
@@ -330,15 +330,11 @@ document.addEventListener('alpine:init', () => {
             this.authModal.error = '';
             this.authModal.loading = true;
             try {
-                const msgBuf = new TextEncoder().encode(password);
-                const hashBuf = await crypto.subtle.digest('SHA-256', msgBuf);
-                const fingerprint = Array.from(new Uint8Array(hashBuf))
-                    .map(b => b.toString(16).padStart(2, '0')).join('');
                 const resp = await fetch(`${this.dashboardPath}/api/auth`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'same-origin',
-                    body: JSON.stringify({ fingerprint }),
+                    body: JSON.stringify({ password }),
                 });
                 if (resp.ok) {
                     this.authenticated = true;

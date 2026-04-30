@@ -6,7 +6,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/blessedrebus/krawl
   pullPolicy: Always
-  tag: "1.2.0"
+  tag: "2.0.0"
 
 imagePullSecrets: []
 nameOverride: "krawl"
@@ -85,6 +85,9 @@ config:
   dashboard:
     secret_path: null  # Auto-generated if not set, or set to "/my-secret-dashboard"
     cache_warmup: true  # Pre-compute dashboard data every 5 minutes. In scalable mode with Redis, consider setting to false — table caching handles it.
+    warmup_pages: 10  # Number of pages to pre-warm per table panel (attacks, attackers, credentials, honeypot)
+    warmup_aggregation: true  # Pre-compute full top_paths/top_ua aggregations for instant any-page serving (recommended for scalable)
+    top_n_min_count: 5  # Minimum access count to include a path/user-agent in top-N panels (set to 1 to disable)
   backups:
     path: "backups"
     enabled: false
@@ -111,12 +114,13 @@ config:
   ai:
     enabled: false
     provider: "openrouter"  # "openrouter" or "openai"
-    api_key: null
+# openai_base_url: "https://api.openai.com/v1" is only needed if provider is set to "openai" and you want to use a custom endpoint to reach different models
+    api_key: null # set your OpenAI or OpenRouter API key here
     model: null  # for example nvidia/nemotron-3-super-120b-a12b:free or gpt-5.1-mini
     timeout: 60  # Request timeout in seconds for API calls
     max_daily_requests: 100  # Limit the number of AI-generated responses per day
     reasoning:
-      enabled: true
+      enabled: false # only supported for OpenRouter's models with reasoning capabilities
       effort: "medium"  # "none", "minimal", "low", "medium", "high", "xhigh" (doc: https://openrouter.ai/docs/guides/best-practices/reasoning-tokens)
     prompt: |
       Your goal is to create a plausible but fake intentionally vulnerable page that might appear on a real server, that can distract attackers. 

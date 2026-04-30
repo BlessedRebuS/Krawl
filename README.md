@@ -72,6 +72,7 @@ By wasting attacker resources, Krawl helps clearly distinguish malicious behavio
 
 It features:
 
+- **[AI Generated Deception Pages](docs/ai_generation.md)**: **Let attackers help generate your fake vulnerable attack surface**
 - **Spider Trap Pages**: Infinite random links to waste crawler resources based on the [spidertrap project](https://github.com/adhdproject/spidertrap)
 - **Fake Login Pages**: WordPress, phpMyAdmin, admin panels
 - **Honeypot Paths**: Advertised in robots.txt to catch scanners
@@ -81,7 +82,6 @@ It features:
 - **Real-time Dashboard**: Monitor suspicious activity
 - **Customizable Wordlists**: Easy JSON-based configuration
 - **Random Error Injection**: Mimic real server behavior
-- **[AI Generated Deception Pages](docs/ai_generation.md)**: Fake vulnerable HTML template generated on request
 
 You can easily expose Krawl alongside your other services to shield them from web crawlers and malicious users using a reverse proxy. For more details, see the [Reverse Proxy documentation](docs/reverse-proxy.md).
 
@@ -322,6 +322,7 @@ You can use the [config.yaml](config.yaml) file for advanced configurations, suc
 | `KRAWL_BAN_DURATION_SECONDS` | Ban duration in seconds for rate-limited IPs | `600` |
 | `KRAWL_AI_ENABLED` | Enable AI-generated deception pages | `false` |
 | `KRAWL_AI_PROVIDER` | AI provider (`"openrouter"` or `"openai"`) | `"openrouter"` |
+| `KRAWL_AI_OPENAI_BASE_URL` | Optional OpenAI Base URL for custom API endpoints | `"https://api.openai.com/v1"` |
 | `KRAWL_AI_API_KEY` | API key for AI provider | `None` |
 | `KRAWL_AI_MODEL` | AI model to use for page generation | `"nvidia/nemotron-3-super-120b-a12b:free"` |
 | `KRAWL_AI_TIMEOUT` | Request timeout in seconds for AI API calls | `60` |
@@ -428,6 +429,7 @@ Krawl can automatically generate realistic deception pages using AI models from 
 ai:
   enabled: true
   provider: "openrouter"
+  openai_base_url: "your-custom-base-url"
   api_key: "your-api-key"
   model: "nvidia/nemotron-3-super-120b-a12b:free"
   timeout: 60
