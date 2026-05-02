@@ -257,7 +257,9 @@ class AccessTracker:
         if len(body) > 0:
             decoded_body = urllib.parse.unquote(body)
             attack_findings.extend(
-                self.detect_attack_type(decoded_body, exclude={"common_probes", "login_attempt"})
+                self.detect_attack_type(
+                    decoded_body, exclude={"common_probes", "login_attempt"}
+                )
             )
             # If credentials were submitted (even on non-login paths like AI-generated pages),
             # tag as login_attempt
@@ -292,7 +294,9 @@ class AccessTracker:
                 logger.error(f"Failed to persist access record: {e}")
         return 0
 
-    def detect_attack_type(self, data: str, exclude: set[str] | None = None) -> list[str]:
+    def detect_attack_type(
+        self, data: str, exclude: set[str] | None = None
+    ) -> list[str]:
         """
         Returns a list of all attack types found in path data
         """
