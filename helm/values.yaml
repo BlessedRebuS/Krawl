@@ -692,8 +692,34 @@ wordlists:
     lfi_rfi: "(file://|php://|expect://|data://|zip://|phar://|/etc/passwd|/etc/shadow|/proc/self|c:\\\\windows)"
     xxe_injection: "(<!ENTITY|<!DOCTYPE|SYSTEM\\s+[\"']|PUBLIC\\s+[\"']|&\\w+;|file://|php://filter|expect://)"
     ldap_injection: "(\\*\\)|\\(\\||\\(&)"
-    command_injection: "(cmd=|exec=|command=|execute=|system=|ping=|host=|&&|\\|\\||;|\\$\\{|\\$\\(|`|\\bid\\b|\\bwhoami\\b|\\buname\\b|\\bcat\\b|\\bls\\b|\\bpwd\\b|\\becho\\b|\\bwget\\b|\\bcurl\\b|\\bnc\\b|\\bnetcat\\b|\\bbash\\b|\\bsh\\b|\\bps\\b|\\bkill\\b|\\bchmod\\b|\\bchown\\b|\\bcp\\b|\\bmv\\b|\\brm\\b|/bin/bash|/bin/sh|cmd\\.exe|/bin/|/usr/bin/|/sbin/)"
+    command_injection: "(cmd=|exec=|command=|execute=|system=|ping=|host=|&&|\\|\\||;|\\$\\{|\\$\\(|`|\\bid\\b|\\bwhoami\\b|\\buname\\b|\\becho\\b|\\bwget\\b|\\bcurl\\b|\\bnc\\b|\\bnetcat\\b|\\bbash\\b|\\bkill\\b|\\bchmod\\b|\\bchown\\b|\\brm\\b|(?:;|&&|\\|\\||`|\\$\\(|\\$\\{)\\s*(?:ls|pwd|cat|sh|ps|cp|mv)\\b|/bin/bash|/bin/sh|cmd\\.exe|/bin/|/usr/bin/|/sbin/)"
     common_probes: "(/admin|/wp-admin|/phpMyAdmin|/phpmyadmin|/feedback|\\.env|/credentials\\.txt|/passwords\\.txt|\\.git|/backup\\.sql|/db_backup\\.sql)"
+    login_attempt: "(/wp-login\\.php|/wp-login|/admin/login|/admin/signin|/user/login|/users/login|/account/login|/portal/login|/secure/login|/login\\.php|/login\\.asp|/login\\.aspx|/signin|/sign-in|/sign_in|/auth/login|/api/auth|/api/login|/api/signin|/api/token|/oauth/login|/sso/login|/xmlrpc\\.php|/session/new|action=login)"
+  scoring_weights:
+    attacker:
+      risky_http_methods: 6
+      robots_violations: 4
+      uneven_request_timing: 3
+      different_user_agents: 2
+      attack_url: 15
+    good_crawler:
+      risky_http_methods: 1
+      robots_violations: 0
+      uneven_request_timing: 0
+      different_user_agents: 0
+      attack_url: 0
+    bad_crawler:
+      risky_http_methods: 2
+      robots_violations: 6
+      uneven_request_timing: 0
+      different_user_agents: 6
+      attack_url: 4
+    regular_user:
+      risky_http_methods: 0
+      robots_violations: 0
+      uneven_request_timing: 8
+      different_user_agents: 3
+      attack_url: 0
   suspicious_patterns:
     - sqlmap
     - nessus

@@ -165,6 +165,10 @@ class Wordlists:
         return self._data.get("proxy_headers", [])
 
     @property
+    def scoring_weights(self):
+        return self._data.get("scoring_weights", {})
+
+    @property
     def attack_urls(self):
         """Deprecated: use attack_patterns instead. Returns attack_patterns for backward compatibility."""
         return self._data.get("attack_patterns", {})
