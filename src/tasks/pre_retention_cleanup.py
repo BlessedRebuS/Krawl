@@ -96,6 +96,7 @@ FALLBACK_ATTACK_PATTERNS = {
     "sql_injection": r"('|--|;|\bOR\b|\bUNION\b|\bSELECT\b|\bDROP\b)",
     "xss_attempt": r"(<script|javascript:|onerror=|onload=)",
     "common_probes": r"(/admin|/backup|/config|/database|/private|/uploads|/wp-admin|/login|/phpMyAdmin|/phpmyadmin|/users|/search|/contact|/info|/input|/feedback|/server|/api/v1/|/api/v2/|/api/search|/api/sql|/api/database|\.env|/credentials\.txt|/passwords\.txt|\.git|/backup\.sql|/db_backup\.sql)",
+    "login_attempt": r"(/wp-login\.php|/wp-login|/admin/login|/admin/signin|/user/login|/users/login|/account/login|/portal/login|/secure/login|/login\.php|/login\.asp|/login\.aspx|/signin|/sign-in|/sign_in|/auth/login|/api/auth|/api/login|/api/signin|/api/token|/oauth/login|/sso/login|/xmlrpc\.php|/session/new|action=login)",
     "command_injection": r"(\||;|`|\$\(|&&)",
 }
 
