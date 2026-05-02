@@ -11,7 +11,7 @@ import hmac
 import secrets
 import time
 
-from fastapi import APIRouter, Request, Response, Query, Cookie
+from fastapi import APIRouter, Request, Response, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
