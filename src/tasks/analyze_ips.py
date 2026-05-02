@@ -7,6 +7,7 @@ import urllib.parse
 from wordlists import get_wordlists
 from config import get_config
 from logger import get_app_logger
+from prometheus_client import Counter as prometheusCounter, REGISTRY
 
 # ----------------------
 # TASK CONFIG
@@ -18,11 +19,22 @@ TASK_CONFIG = {
     "enabled": True,
     "run_when_loaded": True,
 }
+num_clients = prometheusCounter(
+    "clients_total",
+    "Total number of IPs categorized as attackers",
+    labelnames=["category"],
+    namespace="krawl",
+    registry=REGISTRY,
+)
+db_manager = get_database()
+num_clients.labels("attacker")._value.set(db_manager.count_category("attacker"))
+num_clients.labels("good_crawler")._value.set(db_manager.count_category("good_crawler"))
+num_clients.labels("bad_crawler")._value.set(db_manager.count_category("bad_crawler"))
+num_clients.labels("regular_user")._value.set(db_manager.count_category("regular_user"))
 
 
 def main():
     config = get_config()
-    db_manager = get_database()
     app_logger = get_app_logger()
 
     http_risky_methods_threshold = config.http_risky_methods_threshold
@@ -382,7 +394,10 @@ def main():
             "bad_crawler": bad_crawler_score,
             "regular_user": regular_user_score,
         }
+
         category = max(category_scores, key=category_scores.get)
+        num_clients.labels(category).inc()
+
         last_analysis = datetime.now()
         db_manager.update_ip_stats_analysis(
             ip, analyzed_metrics, category, category_scores, last_analysis
