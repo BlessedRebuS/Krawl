@@ -65,7 +65,7 @@ def main():
     }
 
     # 1-3 low, 4-6 mid, 7-9 high, 10-20 extreme
-    weights = {
+    _default_weights = {
         "attacker": {
             "risky_http_methods": 6,
             "robots_violations": 4,
@@ -82,10 +82,10 @@ def main():
         },
         "bad_crawler": {
             "risky_http_methods": 2,
-            "robots_violations": 7,
+            "robots_violations": 6,
             "uneven_request_timing": 0,
-            "different_user_agents": 7,
-            "attack_url": 5,
+            "different_user_agents": 6,
+            "attack_url": 4,
         },
         "regular_user": {
             "risky_http_methods": 0,
@@ -95,6 +95,7 @@ def main():
             "attack_url": 0,
         },
     }
+    weights = get_wordlists().scoring_weights or _default_weights
     # Parse robots.txt once before the loop (it never changes during a run)
     robots_disallows = []
     robots_path = Path(__file__).parent.parent / "templates" / "html" / "robots.txt"
