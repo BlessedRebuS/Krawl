@@ -248,14 +248,23 @@ class AccessTracker:
         if server_ip and ip == server_ip:
             return 0
 
-        # Path attack type detection
-        attack_findings = self.detect_attack_type(path)
+        # login_attempt only makes sense for POST requests
+        path_exclude = {"login_attempt"} if method != "POST" else None
+        attack_findings = self.detect_attack_type(path, exclude=path_exclude)
 
-        # POST/PUT body attack detection
+        # common_probes and login_attempt are path-based — skip them on body to avoid
+        # false positives from form fields like redirect_to=/wp-admin/
         if len(body) > 0:
-            # Decode URL-encoded body so patterns can match (e.g., %3Cscript%3E -> <script>)
             decoded_body = urllib.parse.unquote(body)
-            attack_findings.extend(self.detect_attack_type(decoded_body))
+            attack_findings.extend(
+                self.detect_attack_type(decoded_body, exclude={"common_probes", "login_attempt"})
+            )
+            # If credentials were submitted (even on non-login paths like AI-generated pages),
+            # tag as login_attempt
+            if method == "POST" and "login_attempt" not in attack_findings:
+                username, password = self.parse_credentials(decoded_body)
+                if username or password:
+                    attack_findings.append("login_attempt")
 
         is_suspicious = (
             self.is_suspicious_user_agent(user_agent)
@@ -283,12 +292,14 @@ class AccessTracker:
                 logger.error(f"Failed to persist access record: {e}")
         return 0
 
-    def detect_attack_type(self, data: str) -> list[str]:
+    def detect_attack_type(self, data: str, exclude: set[str] | None = None) -> list[str]:
         """
         Returns a list of all attack types found in path data
         """
         findings = []
         for name, pattern in self.attack_types.items():
+            if exclude and name in exclude:
+                continue
             if re.search(pattern, data, re.IGNORECASE):
                 findings.append(name)
         return findings
