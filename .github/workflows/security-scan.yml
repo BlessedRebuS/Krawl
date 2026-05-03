@@ -66,13 +66,21 @@ jobs:
             const reportPath = process.env.BANDIT_REPORT_PATH;
             const hasFailed = process.env.EXIT_CODE !== '0';
 
-            let body;
-            if (hasFailed) {
-              const report = fs.readFileSync(reportPath, 'utf8').trim();
-              body = `${marker}
+            const report = fs.readFileSync(reportPath, 'utf8').trim();
+            const summaryMatch = report.match(/Code scanned:[\s\S]*/);
+            const summary = summaryMatch ? summaryMatch[0].trim() : '';
+            const status = hasFailed
+              ? 'HIGH severity issues were found. Review and fix them before merging.'
+              : 'No HIGH severity issues found.';
+
+            const body = `${marker}
             ### Bandit — security issues
 
-            HIGH severity issues were found. Review and fix them before merging.
+            ${status}
+
+            \`\`\`
+            ${summary}
+            \`\`\`
 
             <details>
             <summary>View full report</summary>
@@ -82,22 +90,6 @@ jobs:
             \`\`\`
 
             </details>`;
-            } else {
-              const report = fs.readFileSync(reportPath, 'utf8').trim();
-              body = `${marker}
-            ### Bandit — security issues
-
-            No HIGH severity issues found.
-
-            <details>
-            <summary>View full report</summary>
-
-            \`\`\`
-            ${report.slice(0, 60000)}
-            \`\`\`
-
-            </details>`;
-            }
 
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
