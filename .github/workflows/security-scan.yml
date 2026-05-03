@@ -9,6 +9,8 @@ on:
 
 permissions:
   contents: read
+  issues: write
+  pull-requests: write
 
 jobs:
   security-checks:
@@ -26,26 +28,97 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install bandit safety
+          pip install bandit pip-audit
 
       - name: Bandit security check
+        id: bandit
+        continue-on-error: true
         run: |
-          bandit -r src/ -f txt | tee bandit-report.txt
-          
-          # Extract HIGH severity (not confidence) - look for the severity section
-          SEVERITY_SECTION=$(sed -n '/Total issues (by severity):/,/Total issues (by confidence):/p' bandit-report.txt)
+          bandit -r src/ -f txt | tee "$RUNNER_TEMP/bandit-report.txt"
+
+          SEVERITY_SECTION=$(sed -n '/Total issues (by severity):/,/Total issues (by confidence):/p' "$RUNNER_TEMP/bandit-report.txt")
           HIGH_COUNT=$(echo "$SEVERITY_SECTION" | grep "High:" | grep -o "[0-9]*" | head -1)
-          
+
           if [ -z "$HIGH_COUNT" ]; then
             HIGH_COUNT=0
           fi
-          
+
+          echo "high_count=${HIGH_COUNT}" >> "$GITHUB_OUTPUT"
+
           if [ "$HIGH_COUNT" -gt 0 ]; then
             echo "Found $HIGH_COUNT HIGH severity security issues"
-            exit 1
+            echo "exit_code=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "✓ No HIGH severity security issues found"
+            echo "exit_code=0" >> "$GITHUB_OUTPUT"
           fi
-          echo "✓ No HIGH severity security issues found"
 
-      - name: Safety check for dependencies
-        run: safety check --json || true
-        
+      - name: Comment Bandit findings on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          BANDIT_REPORT_PATH: ${{ runner.temp }}/bandit-report.txt
+          EXIT_CODE: ${{ steps.bandit.outputs.exit_code }}
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- bandit-report -->';
+            const reportPath = process.env.BANDIT_REPORT_PATH;
+            const hasFailed = process.env.EXIT_CODE !== '0';
+
+            const report = fs.readFileSync(reportPath, 'utf8').trim();
+            const summaryMatch = report.match(/Code scanned:[\s\S]*/);
+            const summary = summaryMatch ? summaryMatch[0].trim() : '';
+            const status = hasFailed
+              ? 'HIGH severity issues were found. Review and fix them before merging.'
+              : 'No HIGH severity issues found.';
+
+            const body = `${marker}
+            ### Bandit — security issues
+
+            ${status}
+
+            \`\`\`
+            ${summary}
+            \`\`\`
+
+            <details>
+            <summary>View full report</summary>
+
+            \`\`\`
+            ${report.slice(0, 60000)}
+            \`\`\`
+
+            </details>`;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+
+            const existing = comments.find((c) => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      - name: Fail on HIGH severity issues
+        if: steps.bandit.outputs.exit_code != '0'
+        run: exit 1
+
+      - name: Dependency vulnerability audit
+        run: |
+          pip-audit -r requirements.txt || true
