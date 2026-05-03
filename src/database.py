@@ -9,13 +9,10 @@ import os
 import stat
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
-from zoneinfo import ZoneInfo
 
 from sqlalchemy import create_engine, func, distinct, event, or_, and_
 from sqlalchemy.orm import sessionmaker, scoped_session, Session, joinedload
-from sqlalchemy.engine import Engine
 
-from ip_utils import is_local_or_private_ip, is_valid_public_ip
 
 from models import (
     Base,
@@ -25,7 +22,6 @@ from models import (
     IpStats,
     CategoryHistory,
     TrackedIp,
-    GeneratedPage,
 )
 from sanitizer import (
     sanitize_ip,
@@ -2461,7 +2457,6 @@ class DatabaseManager:
         """
         session = self.session
         try:
-            from sqlalchemy import func
 
             # Aggregate attack types with count
             query = session.query(
@@ -3107,6 +3102,18 @@ class DatabaseManager:
                     "total_pages": 0,
                 },
             }
+        finally:
+            self.close_session()
+
+    def count_category(self, category: str) -> int:
+        """Count the total number of ips in a given category."""
+        session = self.session
+        try:
+            count = session.query(IpStats).filter(IpStats.category == category).count()
+            return count or 0
+        except Exception as e:
+            applogger.error(f"Error counting {category}: {e}")
+            return 0
         finally:
             self.close_session()
 
