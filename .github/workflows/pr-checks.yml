@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   lint-and-test:
-    name: Lint & Test
+    name: Lint & Dependency Checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,7 +27,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install black flake8 pylint pytest
+          pip install black pip-check-reqs ruff
 
       - name: Black format check
         run: |
@@ -36,6 +36,14 @@ jobs:
             black --diff src/
             exit 1
           fi
+
+      - name: Ruff lint check
+        run: ruff check src/
+
+      - name: Check for unused requirements
+        run: |
+          pip-missing-reqs src/
+          pip-extra-reqs src/
 
   build-docker:
     name: Build Docker
