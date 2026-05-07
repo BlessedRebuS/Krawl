@@ -225,6 +225,23 @@ def flush_all() -> None:
         _cache.clear()
 
 
+def paginate_cached_list(items: list, page: int, page_size: int) -> dict:
+    """Slice a pre-computed sorted list into a paginated response."""
+    total = len(items)
+    total_pages = max(1, (total + page_size - 1) // page_size)
+    page = max(1, min(page, total_pages))
+    offset = (page - 1) * page_size
+    return {
+        "items": items[offset : offset + page_size],
+        "pagination": {
+            "page": page,
+            "page_size": page_size,
+            "total": total,
+            "total_pages": total_pages,
+        },
+    }
+
+
 def is_warm() -> bool:
     """Check if the cache has been populated at least once."""
     if _backend == "scalable" and _redis_client is not None:

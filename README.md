@@ -72,6 +72,7 @@ By wasting attacker resources, Krawl helps clearly distinguish malicious behavio
 
 It features:
 
+- **[AI Generated Deception Pages](docs/ai_generation.md)**: **Let attackers help generate your fake vulnerable attack surface**
 - **Spider Trap Pages**: Infinite random links to waste crawler resources based on the [spidertrap project](https://github.com/adhdproject/spidertrap)
 - **Fake Login Pages**: WordPress, phpMyAdmin, admin panels
 - **Honeypot Paths**: Advertised in robots.txt to catch scanners
@@ -81,7 +82,6 @@ It features:
 - **Real-time Dashboard**: Monitor suspicious activity
 - **Customizable Wordlists**: Easy JSON-based configuration
 - **Random Error Injection**: Mimic real server behavior
-- **[AI Generated Deception Pages](docs/ai_generation.md)**: Fake vulnerable HTML template generated on request
 
 You can easily expose Krawl alongside your other services to shield them from web crawlers and malicious users using a reverse proxy. For more details, see the [Reverse Proxy documentation](docs/reverse-proxy.md).
 
@@ -257,7 +257,7 @@ For more details on both modes, see [Deployment Modes](docs/deployment-modes.md)
 The Helm chart **defaults to scalable mode** with bundled PostgreSQL and Redis:
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.0.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.1.0 \
   -n krawl-system --create-namespace \
   --set postgres.password=your-password \
   --set redis.password=your-redis-password \
@@ -305,12 +305,19 @@ You can use the [config.yaml](config.yaml) file for advanced configurations, suc
 | `KRAWL_CANARY_TOKEN_TRIES` | Requests before showing canary token | `10` |
 | `KRAWL_DASHBOARD_SECRET_PATH` | Custom dashboard path | Auto-generated |
 | `KRAWL_DASHBOARD_PASSWORD` | Password for protected dashboard panels | Auto-generated |
+| `KRAWL_DASHBOARD_CACHE_WARMUP` | Pre-compute dashboard data every 5 minutes for instant page loads | `true` |
+| `KRAWL_DASHBOARD_WARMUP_PAGES` | Number of pages to pre-warm per table panel | `10` |
+| `KRAWL_DASHBOARD_WARMUP_AGGREGATION` | Pre-compute full top_paths/top_ua aggregations for zero-query serving | `false` |
+| `KRAWL_DASHBOARD_TOP_N_MIN_COUNT` | Minimum access count for top paths/user agents panels (set to 1 to disable) | `5` |
 | `KRAWL_PROBABILITY_ERROR_CODES` | Error response probability (0-100%) | `0` |
 | `KRAWL_DATABASE_PATH` | Database file location | `data/krawl.db` |
+| `KRAWL_DATABASE_PERSIST_SUSPICIOUS_ONLY` | Only persist suspicious requests to the access log | `false` |
 | `KRAWL_BACKUPS_PATH` | Path where database dump are saved | `backups` |
 | `KRAWL_BACKUPS_CRON` | cron expression to control backup job schedule | `*/30 * * * *` |
 | `KRAWL_BACKUPS_ENABLED` | Boolean to enable db dump job | `true` |
 | `KRAWL_DATABASE_RETENTION_DAYS` | Days to retain data in database | `30` |
+| `KRAWL_TARPIT_ENABLED` | Trap AI agents with slow responses and random text | `false` |
+| `KRAWL_TARPIT_DELAY_SECONDS` | Extra delay in seconds added per response when tarpit is active | `5` |
 | `KRAWL_HTTP_RISKY_METHODS_THRESHOLD` | Threshold for risky HTTP methods detection | `0.1` |
 | `KRAWL_VIOLATED_ROBOTS_THRESHOLD` | Threshold for robots.txt violations | `0.1` |
 | `KRAWL_UNEVEN_REQUEST_TIMING_THRESHOLD` | Coefficient of variation threshold for timing | `0.5` |
@@ -322,6 +329,7 @@ You can use the [config.yaml](config.yaml) file for advanced configurations, suc
 | `KRAWL_BAN_DURATION_SECONDS` | Ban duration in seconds for rate-limited IPs | `600` |
 | `KRAWL_AI_ENABLED` | Enable AI-generated deception pages | `false` |
 | `KRAWL_AI_PROVIDER` | AI provider (`"openrouter"` or `"openai"`) | `"openrouter"` |
+| `KRAWL_AI_OPENAI_BASE_URL` | Optional OpenAI Base URL for custom API endpoints | `"https://api.openai.com/v1"` |
 | `KRAWL_AI_API_KEY` | API key for AI provider | `None` |
 | `KRAWL_AI_MODEL` | AI model to use for page generation | `"nvidia/nemotron-3-super-120b-a12b:free"` |
 | `KRAWL_AI_TIMEOUT` | Request timeout in seconds for AI API calls | `60` |
@@ -338,6 +346,9 @@ You can use the [config.yaml](config.yaml) file for advanced configurations, suc
 | `KRAWL_REDIS_PORT` | Redis port | `6379` |
 | `KRAWL_REDIS_DB` | Redis database number | `0` |
 | `KRAWL_REDIS_PASSWORD` | Redis password | None |
+| `KRAWL_REDIS_CACHE_TTL` | TTL in seconds for dashboard warmup data | `600` |
+| `KRAWL_REDIS_HOT_TTL` | TTL in seconds for hot-path data (ban info, IP categories) | `30` |
+| `KRAWL_REDIS_TABLE_TTL` | TTL in seconds for paginated dashboard tables | `120` |
 
 For example
 
@@ -428,6 +439,7 @@ Krawl can automatically generate realistic deception pages using AI models from 
 ai:
   enabled: true
   provider: "openrouter"
+  openai_base_url: "your-custom-base-url"
   api_key: "your-api-key"
   model: "nvidia/nemotron-3-super-120b-a12b:free"
   timeout: 60

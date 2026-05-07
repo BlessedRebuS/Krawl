@@ -7,7 +7,7 @@ metadata:
   labels:
     app.kubernetes.io/name: krawl
     app.kubernetes.io/instance: krawl
-    app.kubernetes.io/version: "1.3.4"
+    app.kubernetes.io/version: "2.1.0"
 data:
   config.yaml: |
     # Krawl Honeypot Configuration
@@ -27,6 +27,9 @@ data:
     dashboard:
       secret_path: null
       cache_warmup: true
+      warmup_pages: 10
+      warmup_aggregation: true
+      top_n_min_count: 5
     backups:
       path: "backups"
       cron: "*/30 * * * *"
@@ -50,3 +53,5 @@ data:
       infinite_pages_for_malicious: true
       max_pages_limit: 250
       ban_duration_seconds: 600
+    ai:
+      enabled: false

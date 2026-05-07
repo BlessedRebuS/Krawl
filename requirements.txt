@@ -19,7 +19,6 @@ aiohttp>=3.9.0
 fastapi>=0.115.0
 uvicorn[standard]>=0.30.0
 jinja2>=3.1.5
-python-multipart>=0.0.9
 
 # Scalable mode backends (PostgreSQL + Redis)
 psycopg2-binary>=2.9.0

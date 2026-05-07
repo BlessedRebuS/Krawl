@@ -1,25 +1,18 @@
 # AI-Generated Deception Pages
+Krawl AI Deception generation is used to trick attackers into generating useful deception pages. In this way **attackers help generate your fake vulnerable attack surface**.
 
-Krawl can automatically generate realistic deception pages using AI models from OpenRouter or OpenAI APIs. This feature creates unique, plausible honeypot pages on-the-fly to attract and deceive attackers.
-
-## Features
-
-- **Dynamic Page Generation**: Creates unique HTML pages for any request path
-- **AI Provider Support**: OpenRouter and OpenAI
-- **Smart Caching**: Caches generated pages to avoid redundant API calls
-- **Daily Rate Limiting**: Control API costs with configurable daily request limits
-- **Fallback Behavior**: Gracefully falls back to standard honeypot when disabled or limit reached
-- **Cached Page Serving**: Serve previously cached pages even when AI generation is disabled
+Krawl can automatically generate realistic deception pages using AI models from OpenRouter, OpenAI APIs or self-hosted LLMs. This feature creates unique, plausible honeypot pages on-the-fly to attract and deceive attackers.
 
 ## Configuration
 
-### Enable AI Generation
+### Enable AI Generation with external services (OpenRouter / OpenAI)
 
 Set in `config.yaml`:
 ```yaml
 ai:
   enabled: true
   provider: "openrouter"  # or "openai"
+  # openai_base_url: "your-custom-base-url" #optional for custom API endpoints
   api_key: "your-api-key-here"
   model: "nvidia/nemotron-3-super-120b-a12b:free"
   timeout: 60
@@ -34,10 +27,21 @@ Or use environment variables:
 export KRAWL_AI_ENABLED=true
 export KRAWL_AI_PROVIDER=openrouter
 export KRAWL_AI_API_KEY=your-api-key
+export KRAWL_AI_OPENAI_BASE_URL=your-custom-base-url
 export KRAWL_AI_MODEL=nvidia/nemotron-3-super-120b-a12b:free
 export KRAWL_AI_TIMEOUT=60
 export KRAWL_AI_MAX_DAILY_REQUESTS=10
 ```
+
+### Enable AI Generation with self-hosted LLMs
+
+Krawl can be configured to use a self-hosted LLM to generate deception pages using [llama.cpp](https://github.com/ggml-org/llama.cpp) or [ollama](https://ollama.com/).
+
+The [docker-compose setup](../docker-compose.yaml) includes both **llama.cpp** and **Ollama** as optional services.
+
+The LLM endpoint can be configured via `openai_base_url` environment variable pointing to the local service because it is OpenAI compatible. For docker deployments it can be used `http://krawl-llm:8080/v1` as endpoint because it is the service name of the llm.
+
+For detailed configuration options, see [Self-Hosted LLM](#self-hosted-llm-recommended-for-privacy) section below.
 
 ## Supported Providers
 
@@ -54,6 +58,78 @@ To use AI Generation without charges, use **Free Models** like `nvidia/nemotron-
 Commercial API with various models. A small model like `gpt-5.1-mini` is more than enough for this use case.
 
 **Register**: https://openai.com/api
+
+### Self-Hosted LLM
+For maximum privacy and cost efficiency, Krawl can run with self-hosted LLMs using **llama.cpp** or **Ollama**, either through Docker Compose deployments or on external CPU / GPU-backed instances.
+
+**llama.cpp** is a lightweight C++ inference engine that runs GGUF models directly with minimal overhead, offering maximum raw performance and low memory usage. It provides a simple HTTP server and is ideal when you need full control over a single model.
+
+**Ollama** builds on top of llama.cpp and adds a convenient model management layer, making deployment and model switching easier. The tradeoff is a small performance overhead compared to running llama.cpp directly.
+
+See both [llama.cpp](https://github.com/ggml-org/llama.cpp) and [Ollama](https://docs.ollama.com/) documentation to choose the best engine for your setup.
+
+In our tests, we used models like [Qwen 1.5-1.8B](https://huggingface.co/Qwen/Qwen1.5-1.8B) and [Qwen3.5-4B](https://huggingface.co/Qwen/Qwen3.5-4B) to perform basic **JSON, TXT, and fake vulnerable static HTML page** generation. In order to modify the result on your scenario, modify the  [prompt section](../config.yaml)  in the config.yaml file
+
+In general, the larger the model parameter count, the more polished, realistic, and complex the generated HTML pages tend to be.
+
+> [!NOTE]
+> If you do want to use external LLMs (not hosted on docker) just change the `openai_base_url` pointing to your LLMs APIs endpoint
+
+#### Option 1: llama.cpp with Docker Compose
+
+- Deploy the [docker-compose.yaml](../docker-compose.yaml) uncommenting the preferred LLM
+- Specify the model from HuggingFace on first run with **repo/model** standard and specify the GGUF file name. [See GGUF documentation for more information](https://huggingface.co/docs/hub/gguf-llamacpp).
+```yaml
+command: >
+  --hf-repo Qwen/Qwen1.5-1.8B-Chat-GGUF
+  --hf-file qwen1_5-1_8b-chat-q4_k_m.gguf
+  --port 8080
+  --host 0.0.0.0
+  -n -1
+```
+- Exposes LLM API on your chosen port. Default is `8080`.
+
+**Configuration**:
+```yaml
+ai:
+  enabled: true
+  provider: "openai"  # OpenAI compatible engine 
+  api_key: "krawl"    # Keep this for compatibility
+  timeout: 60
+  max_daily_requests: 1000  # No API cost, can be higher
+```
+
+You can specify the **HuggingFace Token** with the env variable
+```bash
+HF_TOKEN=your_hf_token
+```
+
+#### Option 2: Ollama with Docker Compose
+
+- Set up the alternative service in [docker-compose.yaml](../docker-compose.yaml) uncommenting ollama
+- Modify the entrypoint with your desired model [from the ollama library](https://ollama.com/library)
+```yaml
+entrypoint: >
+  sh -c "
+    /bin/ollama serve &
+    until /bin/ollama list > /dev/null 2>&1; do
+      sleep 2;
+    done;
+    /bin/ollama pull qwen:1.8b;
+    wait
+```
+- Exposes LLM API on your chosen port. Default is `8080`.
+
+**Configuration**:
+```yaml
+ai:
+  enabled: true
+  provider: "openai"  # OpenAI compatible engine 
+  api_key: "krawl"    # Keep this for compatibility
+  model: "qwen:1.8b-chat"  # Model name on Ollama. This is required to build the request
+  timeout: 60
+  max_daily_requests: 1000  # No API cost, can be higher
+```
 
 ## How It Works
 
@@ -89,8 +165,7 @@ ai:
 
 When limit is reached:
 - New requests fall back to standard honeypot behavior
-- Previously cached pages continue to be served
-- Warning logged: "Daily AI generation limit reached"
+- **Previously cached pages continue to be served**
 
 ### Cost Estimation
 
@@ -106,6 +181,8 @@ When limit is reached:
 - 1,000 pages/month: ~$1.00
 
 **Using OpenRouter Free Model**: $0 (rate limited, no charge)
+
+**Using self-hosted LLMs**: $0 (unlimited, no charge)
 
 ## Customization
 
@@ -141,25 +218,3 @@ Access generated pages tab in the Krawl dashboard:
 3. View all generated pages
 4. See generation timestamps and access counts
 5. Manage and delete cached pages
-
-### Set the Daily Quota
-
-Option 1: Increase limit
-```yaml
-ai:
-  max_daily_requests: 20
-```
-
-If you want to disable AI, it is possible to keep serving cached pages
-```yaml
-ai:
-  enabled: false  # Cached pages still served
-```
-
-### Cached Page Serving Issues
-
-Cached pages are managed in the dashboard **Deception** tab:
-- View all cached pages
-- See access statistics
-- Delete individual pages or by date range
-- Bulk operations available
