@@ -7,7 +7,7 @@ import urllib.parse
 from wordlists import get_wordlists
 from config import get_config
 from logger import get_app_logger
-from prometheus_client import Gauge, REGISTRY
+import metrics
 
 # ----------------------
 # TASK CONFIG
@@ -20,24 +20,15 @@ TASK_CONFIG = {
     "run_when_loaded": True,
 }
 
-CATEGORIES = ("attacker", "good_crawler", "bad_crawler", "regular_user")
-
-num_clients = Gauge(
-    "clients_total",
-    "Total number of IPs per classification category",
-    labelnames=["category"],
-    namespace="krawl",
-    registry=REGISTRY,
-)
-
 
 def main():
     config = get_config()
     db_manager = get_database()
     app_logger = get_app_logger()
 
-    for category in CATEGORIES:
-        num_clients.labels(category).set(db_manager.count_category(category))
+    metrics.refresh_detection_classification(db_manager)
+    metrics.refresh_ai(db_manager)
+    metrics.refresh_system(db_manager)
 
     http_risky_methods_threshold = config.http_risky_methods_threshold
     violated_robots_threshold = config.violated_robots_threshold
@@ -403,7 +394,4 @@ def main():
         db_manager.update_ip_stats_analysis(
             ip, analyzed_metrics, category, category_scores, last_analysis
         )
-
-    for category in CATEGORIES:
-        num_clients.labels(category).set(db_manager.count_category(category))
     return
