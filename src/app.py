@@ -9,8 +9,6 @@ import gc
 import os
 from contextlib import asynccontextmanager
 
-from prometheus_client import make_asgi_app
-
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -248,14 +246,6 @@ def create_app() -> FastAPI:
     config = get_config()
     secret = config.dashboard_secret_path.lstrip("/")
     static_dir = os.path.join(os.path.dirname(__file__), "templates", "static")
-
-    # Add prometheus ASGI application endpoint
-    metrics_app = make_asgi_app()
-    application.mount(
-        f"/{secret}/metrics",
-        metrics_app,
-        name="metrics",
-    )
 
     application.mount(
         f"/{secret}/static",
