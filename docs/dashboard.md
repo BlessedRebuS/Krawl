@@ -181,3 +181,43 @@ The dashboard uses session-based authentication with secure HTTP-only cookies. P
 Click the lock icon in the top-right corner of the navigation bar to authenticate or log out.
 
 ![Authentication Modal](../img/auth_prompt.png)
+
+---
+
+## Configuration
+
+Dashboard behaviour is controlled under the `dashboard` section of `config.yaml` (or via environment variables).
+
+### Secret path and password
+
+```yaml
+dashboard:
+  secret_path: null       # auto-generated at startup if null
+  password: null          # auto-generated at startup if null
+```
+
+| Env var | Description | Default |
+|---|---|---|
+| `KRAWL_DASHBOARD_SECRET_PATH` | Custom path for the dashboard | Auto-generated |
+| `KRAWL_DASHBOARD_PASSWORD` | Password for protected dashboard panels | Auto-generated |
+
+### Cache warmup
+
+The dashboard pre-computes heavy queries in a background task every 5 minutes so that page loads are instant.
+
+```yaml
+dashboard:
+  cache_warmup: true       # enable background warmup task
+  warmup_pages: 10         # pages to pre-warm per table panel
+  warmup_aggregation: false  # pre-compute full top_paths/top_ua aggregations
+  top_n_min_count: 5       # minimum access count to appear in top paths/user-agents panels
+```
+
+| Env var | Description | Default |
+|---|---|---|
+| `KRAWL_DASHBOARD_CACHE_WARMUP` | Enable background warmup task | `true` |
+| `KRAWL_DASHBOARD_WARMUP_PAGES` | Pages to pre-warm per table panel | `10` |
+| `KRAWL_DASHBOARD_WARMUP_AGGREGATION` | Pre-compute full top_paths/top_ua aggregations for zero-query serving | `false` |
+| `KRAWL_DASHBOARD_TOP_N_MIN_COUNT` | Minimum access count for top paths/user-agents (set to `1` to disable filtering) | `5` |
+
+> **Scalable mode**: `warmup_aggregation` is enabled by default in Helm and Kubernetes deployments. In standalone mode it is disabled because SQLite handles the load without it.

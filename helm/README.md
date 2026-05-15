@@ -15,7 +15,7 @@ A Helm chart for deploying the Krawl honeypot application on Kubernetes.
 
 ```bash
 helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
-  --version 2.0.0 \
+  --version 2.1.0 \
   --namespace krawl-system \
   --create-namespace \
   -f values.yaml  # optional
@@ -62,7 +62,7 @@ This deploys PostgreSQL and Redis StatefulSets with Services in the same namespa
 
 Minimal `values-minimal.yaml` for scalable mode:
 
-> **Tip**: For production deployments, pin the image tag to a specific version (e.g., `tag: "2.0.0"`) instead of `latest` to ensure reproducible deployments.
+> **Tip**: For production deployments, pin the image tag to a specific version (e.g., `tag: "2.1.0"`) instead of `latest` to ensure reproducible deployments.
 
 ```yaml
 mode: scalable
@@ -179,7 +179,7 @@ The following table lists the main configuration parameters of the Krawl chart a
 | `mode` | Deployment mode (`standalone` or `scalable`) | `scalable` |
 | `replicaCount` | Number of pod replicas (>1 only in scalable mode) | `1` |
 | `image.repository` | Image repository | `ghcr.io/blessedrebus/krawl` |
-| `image.tag` | Image tag | `2.0.0` |
+| `image.tag` | Image tag | `2.1.0` |
 | `image.pullPolicy` | Image pull policy | `Always` |
 
 ### Service Configuration
@@ -361,7 +361,7 @@ kubectl get secret krawl-server -n krawl-system \
 ### Scalable with bundled PostgreSQL and Redis (default)
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.0.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.1.0 \
   --set replicaCount=3 \
   --set postgres.password=your-password \
   --set redis.password=your-redis-password \
@@ -371,7 +371,7 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.0.0 \
 ### Scalable with external PostgreSQL and Redis
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.0.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.1.0 \
   --set replicaCount=3 \
   --set postgres.enabled=false \
   --set postgres.host=your-postgres-host \
@@ -385,7 +385,7 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.0.0 \
 ### Standalone with custom settings
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.0.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.1.0 \
   --set mode=standalone \
   --set postgres.enabled=false \
   --set redis.enabled=false \
@@ -407,7 +407,7 @@ helm upgrade krawl ./helm \
 ## Upgrading
 
 ```bash
-helm upgrade krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.0.0 -f values.yaml
+helm upgrade krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.1.0 -f values.yaml
 ```
 
 ## Uninstalling
