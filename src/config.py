@@ -55,6 +55,9 @@ class Config:
     dashboard_top_n_min_count: int = 5
     probability_error_codes: int = 0  # Percentage (0-100)
 
+    # Prometheus metrics
+    metrics_enabled: bool = True
+
     # Crawl limiting settings - for legitimate vs malicious crawlers
     max_pages_limit: int = (
         100  # Max pages limit for good crawlers and regular users (and bad crawlers/attackers if infinite_pages_for_malicious is False)
@@ -188,6 +191,7 @@ class Config:
         tarpit = data.get("tarpit", {})
         logging_cfg = data.get("logging", {})
         ai = data.get("ai", {})
+        metrics = data.get("metrics", {})
 
         # Handle dashboard_secret_path - auto-generate if null/not set
         dashboard_path = dashboard.get("secret_path")
@@ -252,6 +256,7 @@ class Config:
             dashboard_warmup_pages=int(dashboard.get("warmup_pages", 10)),
             dashboard_warmup_aggregation=dashboard.get("warmup_aggregation", False),
             dashboard_top_n_min_count=int(dashboard.get("top_n_min_count", 5)),
+            metrics_enabled=metrics.get("enabled", True),
             probability_error_codes=behavior.get("probability_error_codes", 0),
             backups_path=backups.get("path", "backups"),
             backups_enabled=backups.get("enabled", False),
