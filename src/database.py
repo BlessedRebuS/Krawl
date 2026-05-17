@@ -3235,6 +3235,47 @@ class DatabaseManager:
         finally:
             self.close_session()
 
+    def get_generated_pages_before(self, date_str: str) -> list:
+        """Get generated pages created before a specific date.
+
+        Returns:
+            List of GeneratedPage objects (with eager-loaded content) created before the specified date
+
+        Raises:
+            ValueError: If date format is invalid
+        """
+        from models import GeneratedPage
+        from datetime import datetime
+
+        session = self.session
+        try:
+            # Parse the date string
+            target_date = datetime.fromisoformat(date_str)
+
+            # Query all pages created before this date
+            pages = (
+                session.query(GeneratedPage)
+                .filter(GeneratedPage.created_at < target_date)
+                .all()
+            )
+            
+            # Force load the html_content_b64 for all pages before closing session
+            # This prevents lazy-loading issues after session is closed
+            for page in pages:
+                _ = page.html_content_b64
+            
+            applogger.debug(
+                f"Retrieved {len(pages)} generated pages created before {date_str}"
+            )
+            return pages
+        except ValueError:
+            raise ValueError(f"Invalid date format. Use YYYY-MM-DD (got: {date_str})")
+        except Exception as e:
+            applogger.error(f"Error querying generated pages before {date_str}: {e}")
+            return []
+        finally:
+            self.close_session()
+
 
 # Module-level singleton instance
 _db_manager = DatabaseManager()

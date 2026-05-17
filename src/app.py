@@ -112,7 +112,7 @@ async def lifespan(app: FastAPI):
         app_logger.warning("Server public IP could not be determined")
 
     # Log AI configuration status
-    from generative_ai import is_ai_enabled, get_provider, get_model
+    from generative_ai import is_ai_enabled, get_provider, get_model, import_deception_pages_from_directory
 
     if is_ai_enabled():
         provider = get_provider()
@@ -122,6 +122,14 @@ async def lifespan(app: FastAPI):
         app_logger.info(
             "AI generation disabled - Cached AI pages will still be served if available"
         )
+
+    # Import deception pages from templates directory
+    try:
+        imported = import_deception_pages_from_directory()
+        app_logger.info(f"Imported {imported} deception pages")
+    except Exception as e:
+        app_logger.warning(f"Failed to import deception pages: {e}")
+
 
     # Initialize tracker
     tracker = AccessTracker(config.max_pages_limit, config.ban_duration_seconds)
@@ -296,7 +304,9 @@ def _setup_openapi(application: FastAPI, dashboard_prefix: str) -> None:
         "/api/track-ip",
         "/api/delete-generated-pages",
         "/api/download-generated-page",
+        "/api/download-generated-pages-zip",
         "/api/upload-generated-page",
+        "/api/upload-generated-pages-bulk",
     }
 
     def custom_openapi():
