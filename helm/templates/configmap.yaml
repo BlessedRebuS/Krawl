@@ -20,6 +20,8 @@ data:
     canary:
       token_url: {{ .Values.config.canary.token_url | toYaml }}
       token_tries: {{ .Values.config.canary.token_tries }}
+    deception:
+      import_pages: {{ .Values.config.deception.import_pages }}
     dashboard:
       secret_path: {{ .Values.config.dashboard.secret_path | toYaml }}
       cache_warmup: {{ .Values.config.dashboard.cache_warmup }}
