@@ -463,6 +463,7 @@ location / {
 | Topic | Description |
 |-------|-------------|
 | [AI Generation](docs/ai_generation.md) | Configure AI-generated deception pages using OpenRouter or OpenAI |
+| [Deception Pages](docs/deception_pages.md) | Manage, import, and export deception pages; bulk operations and date-based filtering |
 | [Deployment Modes](docs/deployment-modes.md) | Standalone (SQLite) vs Scalable (PostgreSQL + Redis) mode, configuration, and data migration |
 | [Honeypot](docs/honeypot.md) | Full overview of honeypot pages: fake logins, directory listings, credential files, SQLi/XSS/XXE/command injection traps, and more |
 | [Dashboard](docs/dashboard.md) | Access and explore the real-time monitoring dashboard |

@@ -767,13 +767,6 @@ async def download_generated_pages_zip(
             if not path_list:
                 return JSONResponse(content={"error": "No paths provided"}, status_code=400)
 
-            # Limit to 100 files per request
-            if len(path_list) > 100:
-                return JSONResponse(
-                    content={"error": "Maximum 100 files per download"},
-                    status_code=400
-                )
-
             get_app_logger().debug(f"[DECEPTION] Download requested for paths: {path_list}")
 
             # Query pages by paths
@@ -788,9 +781,6 @@ async def download_generated_pages_zip(
             # Query pages by date
             try:
                 pages_to_download = db.get_generated_pages_before(before_date)
-                if len(pages_to_download) > 100:
-                    # Limit to 100 files
-                    pages_to_download = pages_to_download[:100]
                 get_app_logger().debug(f"[DECEPTION] Download by date {before_date}: found {len(pages_to_download)} pages")
             except ValueError as e:
                 return JSONResponse(content={"error": str(e)}, status_code=400)
@@ -920,13 +910,6 @@ async def upload_generated_pages_bulk(request: Request, body: UploadBulkPagesReq
     if not body.pages or not isinstance(body.pages, dict):
         return JSONResponse(
             content={"error": "No pages provided"}, status_code=400
-        )
-
-    # Limit to 100 pages per upload
-    if len(body.pages) > 100:
-        return JSONResponse(
-            content={"error": "Maximum 100 pages per upload"},
-            status_code=400
         )
 
     db = get_db()
