@@ -82,6 +82,8 @@ config:
   canary:
     token_url: null  # Set your canary token URL here
     token_tries: 10
+  deception:
+    import_pages: true  # Auto-import HTML deception pages from src/templates/deception/ at startup
   dashboard:
     secret_path: null  # Auto-generated if not set, or set to "/my-secret-dashboard"
     cache_warmup: true  # Pre-compute dashboard data every 5 minutes. In scalable mode with Redis, consider setting to false — table caching handles it.
