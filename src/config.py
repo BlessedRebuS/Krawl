@@ -100,6 +100,10 @@ class Config:
     ai_reasoning_enabled: bool = True
     ai_reasoning_effort: str = "medium"
 
+    # Deception pages import settings
+    deception_import_pages: bool = True
+
+
     _server_ip: Optional[str] = None
     _server_ip_resolved: bool = False
 
@@ -192,6 +196,7 @@ class Config:
         logging_cfg = data.get("logging", {})
         ai = data.get("ai", {})
         metrics = data.get("metrics", {})
+        deception = data.get("deception", {})
 
         # Handle dashboard_secret_path - auto-generate if null/not set
         dashboard_path = dashboard.get("secret_path")
@@ -314,6 +319,7 @@ Generate the complete HTML page.""",
             ),
             ai_timeout=ai.get("timeout", 60),
             ai_max_daily_requests=ai.get("max_daily_requests", 0),
+            deception_import_pages=deception.get("import_pages", True),
         )
 
 

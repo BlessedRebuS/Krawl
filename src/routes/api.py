@@ -10,6 +10,9 @@ import asyncio
 import hmac
 import secrets
 import time
+import io
+import zipfile
+import base64
 
 from fastapi import APIRouter, Request, Response, Query
 from fastapi.responses import JSONResponse
@@ -741,9 +744,105 @@ async def download_generated_page(
         db.close_session()
 
 
+@router.post("/api/download-generated-pages-zip")
+async def download_generated_pages_zip(
+    request: Request,
+    paths: str = Query(None),
+    before_date: str = Query(None),
+):
+    """Download multiple generated deception pages as a ZIP file."""
+    if not verify_auth(request):
+        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
+
+    from models import GeneratedPage
+
+    db = get_db()
+    try:
+        session = db.session
+        pages_to_download = []
+        
+        if paths:
+            # Parse paths (comma-separated)
+            path_list = [p.strip() for p in paths.split(',') if p.strip()]
+            if not path_list:
+                return JSONResponse(content={"error": "No paths provided"}, status_code=400)
+
+            # Limit to 100 files per request
+            if len(path_list) > 100:
+                return JSONResponse(
+                    content={"error": "Maximum 100 files per download"},
+                    status_code=400
+                )
+
+            get_app_logger().debug(f"[DECEPTION] Download requested for paths: {path_list}")
+
+            # Query pages by paths
+            for path in path_list:
+                page = session.query(GeneratedPage).filter(GeneratedPage.path == path).first()
+                if page:
+                    pages_to_download.append(page)
+                else:
+                    get_app_logger().debug(f"[DECEPTION] Path not found: {path}")
+                    
+        elif before_date:
+            # Query pages by date
+            try:
+                pages_to_download = db.get_generated_pages_before(before_date)
+                if len(pages_to_download) > 100:
+                    # Limit to 100 files
+                    pages_to_download = pages_to_download[:100]
+                get_app_logger().debug(f"[DECEPTION] Download by date {before_date}: found {len(pages_to_download)} pages")
+            except ValueError as e:
+                return JSONResponse(content={"error": str(e)}, status_code=400)
+        else:
+            return JSONResponse(
+                content={"error": "Please specify either paths or before_date"},
+                status_code=400
+            )
+
+        if not pages_to_download:
+            return JSONResponse(content={"error": "No pages found to download"}, status_code=404)
+
+        # Create ZIP file in memory
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for page in pages_to_download:
+                try:
+                    html_content = base64.b64decode(page.html_content_b64).decode("utf-8")
+                    # Build a safe filename from the path
+                    safe_name = page.path.strip("/").replace("/", "_") or "index"
+                    if not safe_name.endswith(".html"):
+                        safe_name += ".html"
+
+                    # Add file to ZIP
+                    zip_file.writestr(safe_name, html_content)
+                except Exception as e:
+                    get_app_logger().warning(f"[DECEPTION] Error adding page {page.path} to ZIP: {e}")
+                    continue
+
+        zip_buffer.seek(0)
+        return Response(
+            content=zip_buffer.getvalue(),
+            media_type="application/zip",
+            headers={
+                "Content-Disposition": 'attachment; filename="deception_pages.zip"',
+            },
+        )
+    except Exception as e:
+        get_app_logger().error(f"[DECEPTION] ZIP download error: {e}")
+        return JSONResponse(content={"error": "Internal server error"}, status_code=500)
+    finally:
+        db.close_session()
+
+
+
 class UploadPageRequest(BaseModel):
     path: str
     content: str
+
+
+class UploadBulkPagesRequest(BaseModel):
+    pages: dict  # { path: content, ... }
 
 
 @router.post("/api/upload-generated-page")
@@ -803,6 +902,91 @@ async def upload_generated_page(request: Request, body: UploadPageRequest):
     except Exception as e:
         session.rollback()
         get_app_logger().error(f"[DECEPTION] Upload error: {e}")
+        return JSONResponse(content={"error": "Internal server error"}, status_code=500)
+    finally:
+        db.close_session()
+
+
+@router.post("/api/upload-generated-pages-bulk")
+async def upload_generated_pages_bulk(request: Request, body: UploadBulkPagesRequest):
+    """Upload multiple deception pages from a ZIP file."""
+    if not verify_auth(request):
+        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
+
+    import base64
+    from datetime import datetime
+    from models import GeneratedPage
+
+    if not body.pages or not isinstance(body.pages, dict):
+        return JSONResponse(
+            content={"error": "No pages provided"}, status_code=400
+        )
+
+    # Limit to 100 pages per upload
+    if len(body.pages) > 100:
+        return JSONResponse(
+            content={"error": "Maximum 100 pages per upload"},
+            status_code=400
+        )
+
+    db = get_db()
+    try:
+        session = db.session
+        uploaded_count = 0
+        errors = []
+
+        for path, content in body.pages.items():
+            try:
+                path = path.strip()
+                if not path or not content:
+                    continue
+
+                # Ensure path starts with /
+                if not path.startswith("/"):
+                    path = "/" + path
+
+                # Validate file extension
+                allowed_exts = (".html", ".htm", ".xml", ".json", ".txt", ".css", ".js")
+                if not any(path.endswith(ext) for ext in allowed_exts):
+                    # No extension — treat as html
+                    pass
+
+                html_b64 = base64.b64encode(content.encode("utf-8")).decode("utf-8")
+
+                existing = (
+                    session.query(GeneratedPage).filter(GeneratedPage.path == path).first()
+                )
+                if existing:
+                    existing.html_content_b64 = html_b64
+                    existing.last_accessed = datetime.now()
+                else:
+                    page = GeneratedPage(
+                        path=path,
+                        html_content_b64=html_b64,
+                        created_at=datetime.now(),
+                        last_accessed=datetime.now(),
+                        access_count=0,
+                    )
+                    session.add(page)
+
+                uploaded_count += 1
+            except Exception as e:
+                errors.append((path, str(e)))
+                continue
+
+        session.commit()
+        get_app_logger().info(f"[DECEPTION] Bulk uploaded {uploaded_count} pages from ZIP")
+        return JSONResponse(
+            content={
+                "ok": True,
+                "uploaded": uploaded_count,
+                "errors": errors,
+            }
+        )
+
+    except Exception as e:
+        session.rollback()
+        get_app_logger().error(f"[DECEPTION] Bulk upload error: {e}")
         return JSONResponse(content={"error": "Internal server error"}, status_code=500)
     finally:
         db.close_session()
