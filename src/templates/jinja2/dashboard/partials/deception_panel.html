@@ -5,9 +5,9 @@
 
     {# Delete controls section #}
     <div style="display: flex; gap: 6px; align-items: center;">
-        <input type="date" id="deception-date-filter"
-               onchange="toggleDeceptionBtnState()"
-               style="padding: 5px 10px; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; font-size: 0.78em; height: 30px; cursor: pointer;" />
+         <input type="date" id="deception-date-filter"
+             class="deception-date-filter"
+             onchange="toggleDeceptionBtnState()" />
         <button id="btn-delete-selected" class="deception-action-btn" onclick="deleteSelectedPages()">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M11 1.75V0H5v1.75H1v1.5h1.5v10c0 .966.784 1.75 1.75 1.75h7.5A1.75 1.75 0 0 0 13.5 13.25v-10H15v-1.5Zm-7.5 0V1.5h9v.25ZM12 13.25a.25.25 0 0 1-.25.25h-7.5a.25.25 0 0 1-.25-.25v-10h8Z"/></svg>
             Delete

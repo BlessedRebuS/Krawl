@@ -492,12 +492,13 @@ window.deleteSelectedPages = async function() {
         return;
     }
 
-    // Find all checked checkboxes in the container
+    // Check if "select all pages" flag is set
+    const selectAllFlag = container.dataset.selectAllPages === 'true';
     const checkboxes = container.querySelectorAll('input[name="page-checkbox"]:checked');
     const dateInput = document.getElementById('deception-date-filter');
 
-    // Check if we have selected pages OR a date filter
-    if (checkboxes.length === 0 && (!dateInput || !dateInput.value)) {
+    // Check if we have selected pages OR a date filter OR select all flag
+    if (!selectAllFlag && checkboxes.length === 0 && (!dateInput || !dateInput.value)) {
         krawlModal.error('Please select at least one page to delete or set a date filter');
         return;
     }
@@ -506,7 +507,11 @@ window.deleteSelectedPages = async function() {
     let url = dashboardPath + '/api/delete-generated-pages?';
     let confirmMsg = '';
 
-    if (checkboxes.length > 0) {
+    if (selectAllFlag) {
+        // Delete ALL pages
+        url += 'delete_all=true';
+        confirmMsg = 'Delete ALL generated pages? This cannot be undone.';
+    } else if (checkboxes.length > 0) {
         // Delete selected pages
         const ids = [];
         checkboxes.forEach(cb => {
@@ -599,8 +604,10 @@ window.deleteGeneratedPage = async function(path) {
 // Toggle danger state on deception delete buttons based on conditions
 window.toggleDeceptionBtnState = function() {
     const dateInput = document.getElementById('deception-date-filter');
+    const container = document.getElementById('deception-htmx-container');
     const checked = document.querySelectorAll('#deception-htmx-container input[name="page-checkbox"]:checked');
-    const hasSelection = checked.length > 0;
+    const selectAllFlag = container && container.dataset.selectAllPages === 'true';
+    const hasSelection = checked.length > 0 || selectAllFlag;
     const hasDateFilter = dateInput && dateInput.value;
 
     const selectedBtn = document.getElementById('btn-delete-selected');
@@ -616,7 +623,20 @@ window.toggleDeceptionBtnState = function() {
 
 // Listen for checkbox changes inside HTMX-loaded deception table
 document.addEventListener('change', function(e) {
-    if (e.target.name === 'page-checkbox' || e.target.id === 'select-all-pages') {
+    if (e.target.name === 'page-checkbox') {
+        // If an individual checkbox is unchecked, clear the "select all" flag
+        // This handles the case where user clicks Select All then unchecks some items
+        const container = document.getElementById('deception-htmx-container');
+        if (container && container.dataset.selectAllPages === 'true' && !e.target.checked) {
+            delete container.dataset.selectAllPages;
+            // Also uncheck the "Select All" checkbox to match the new state
+            const selectAllCheckbox = document.getElementById('select-all-pages');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = false;
+            }
+        }
+        toggleDeceptionBtnState();
+    } else if (e.target.id === 'select-all-pages') {
         toggleDeceptionBtnState();
     }
 });
@@ -626,21 +646,28 @@ window.downloadSelectedPages = function() {
     const container = document.getElementById('deception-htmx-container');
     if (!container) return;
 
+    // Check if "select all pages" flag is set
+    const selectAllFlag = container.dataset.selectAllPages === 'true';
     const checkboxes = container.querySelectorAll('input[name="page-checkbox"]:checked');
     const dateInput = document.getElementById('deception-date-filter');
 
+    console.log('Download: Select all flag:', selectAllFlag);
     console.log('Download: Found', checkboxes.length, 'selected pages');
     console.log('Download: Date filter value:', dateInput ? dateInput.value : 'not found');
 
-    // Check if we have selected pages OR a date filter
-    if (checkboxes.length === 0 && (!dateInput || !dateInput.value)) {
+    // Check if we have selected pages OR a date filter OR select all flag
+    if (!selectAllFlag && checkboxes.length === 0 && (!dateInput || !dateInput.value)) {
         krawlModal.error('Please select at least one page to download or set a date filter');
         return;
     }
 
     let url = dashboardPath + '/api/download-generated-pages-zip?';
 
-    if (checkboxes.length > 0) {
+    if (selectAllFlag) {
+        // Download ALL pages
+        console.log('Download: Using select all');
+        url += 'select_all=true';
+    } else if (checkboxes.length > 0) {
         // Download selected pages as ZIP
         const paths = Array.from(checkboxes).map(cb => cb.value).filter(p => p && p.trim()).join(',');
         if (!paths) {
@@ -793,7 +820,6 @@ async function _processZipFile(file) {
 
                 // Second pass: process files
                 for (const filename of filePaths) {
-                    if (fileCount >= 100) break;
                     fileCount++;
 
                     try {
@@ -806,6 +832,9 @@ async function _processZipFile(file) {
                             const parts = filename.split('/');
                             finalPath = parts.slice(1).join('/');
                         }
+                        
+                        // Decode double underscores to forward slashes (path encoding from filenames)
+                        finalPath = finalPath.replace(/__/g, '/');
                         
                         // Ensure path starts with /
                         finalPath = '/' + finalPath.replace(/\\/g, '/');
