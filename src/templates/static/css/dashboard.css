@@ -1362,12 +1362,12 @@ tbody {
     transition: color 0.2s, background 0.2s;
 }
 .ban-icon-btn svg {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     fill: currentColor;
 }
 .ban-icon-btn .material-symbols-outlined {
-    font-size: 26px;
+    font-size: 24px;
 }
 .ban-icon-unban {
     color: #3fb950;
@@ -1406,6 +1406,13 @@ tbody {
 }
 .ban-icon-btn:hover .ban-icon-tooltip {
     opacity: 1;
+}
+
+/* Table action button group (keep table cell layout intact) */
+.table-action-btns {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 /* IP Tracking buttons */
@@ -2326,6 +2333,18 @@ tbody {
     background: rgba(88, 166, 255, 0.1);
     color: #58a6ff;
     border-color: #58a6ff;
+}
+
+.deception-date-filter {
+    height: 30px;
+    padding: 5px 12px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    border-radius: 6px;
+    font-size: 0.78em;
+    cursor: pointer;
+    box-sizing: border-box;
 }
 
 /* Upload dropzone */
