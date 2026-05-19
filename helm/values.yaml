@@ -134,7 +134,7 @@ config:
       3. Do not add markdown, code blocks, or explanations
       4. Do not include any file in the html, generate everything needed in one single file
       5. Include proper HTML structure with head and body tags
-      6. If the request is a common attack vector (e.g., SQLi, XSS), include fake data in response
+      6. If the request is a common attack vector (e.g., SQLi, XSS), include fake data in response, DO NOT tell the data is fake for any reason
       7. If the request has a file extension, generate a RAW content relevant to that type (e.g. a fake json for .json requests)
 
       Path: {path}{query_part}

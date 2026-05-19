@@ -43,75 +43,6 @@ async def close_aiohttp_session() -> None:
         _aiohttp_session = None
 
 
-def _is_valid_deception_filename(filename: str) -> bool:
-    """Validate filename to prevent path traversal and other attacks.
-    
-    Checks performed:
-    1. Not empty/None and is string
-    2. Length <= 255 characters
-    3. No path traversal patterns (.., /, \\)
-    4. No null bytes (raw or URL-encoded)
-    5. No URL-encoded path traversal (%2e%2e, %2f)
-    6. No dangerous shell/special characters
-    7. Only alphanumeric, underscore, hyphen, dot
-    8. Not a reserved system name
-    
-    Args:
-        filename: Filename to validate
-        
-    Returns:
-        True if filename is safe to import, False otherwise
-    """
-    # 1. Reject empty or non-string
-    if not filename or not isinstance(filename, str):
-        logger.debug(f"Filename validation failed: empty or non-string")
-        return False
-    
-    # 2. Max length to prevent massive strings / ReDoS attacks
-    if len(filename) > 255:
-        logger.warning(f"Filename too long ({len(filename)} chars): {filename}")
-        return False
-    
-    # 3. Reject path traversal attempts (before decoding)
-    if ".." in filename or "/" in filename or "\\" in filename:
-        logger.warning(f"Filename contains path traversal: {filename}")
-        return False
-    
-    # 4. Reject null bytes (raw and URL-encoded)
-    if "\x00" in filename or "%00" in filename:
-        logger.warning(f"Filename contains null byte: {filename}")
-        return False
-    
-    # 5. Reject URL-encoded path traversal patterns
-    if "%2e%2e" in filename.lower() or "%2f" in filename.lower():
-        logger.warning(f"Filename contains URL-encoded path traversal: {filename}")
-        return False
-    
-    # 6. Reject shell/special dangerous characters
-    # These could be interpreted as commands, redirects, or operators
-    dangerous_chars = set('`$&|;<>()[]{}!*?#@"\'\\%\x00')
-    if any(c in filename for c in dangerous_chars):
-        logger.warning(f"Filename contains dangerous characters: {filename}")
-        return False
-    
-    # 7. Strict whitelist: only alphanumeric, underscore, hyphen, dot
-    # This ensures safe filesystem behavior and URL compatibility
-    if not re.match(r"^[a-zA-Z0-9_.\-]+$", filename):
-        logger.warning(f"Filename contains non-whitelisted characters: {filename}")
-        return False
-    
-    # 8. Reject system/reserved names that could have special meaning
-    reserved_names = {".", "..", "~", "root", "admin", "etc", "sys", "tmp", "var"}
-    # Extract stem (filename without extension) for comparison
-    stem = filename.rsplit(".", 1)[0].lower() if "." in filename else filename.lower()
-    if stem in reserved_names:
-        logger.warning(f"Filename uses reserved name: {filename}")
-        return False
-    
-    return True
-
-
-
 def import_deception_pages_from_directory() -> int:
     """Import HTML pages from src/templates/deception directory into the database.
 
@@ -145,16 +76,12 @@ def import_deception_pages_from_directory() -> int:
         # Find all HTML files directly in the directory (not recursive - flat structure only)
         html_files = list(deception_dir.glob("*.html"))
         total_files = len(html_files)
+        logger.debug(f"Found {total_files} HTML files in deception folder")
 
         for html_file in html_files:
             try:
                 # Get filename without extension
                 filename = html_file.stem  # e.g., "admin__panel__login"
-                
-                # Validate filename for security (path traversal, injection, etc.)
-                if not _is_valid_deception_filename(html_file.name):
-                    logger.debug(f"Filename validation failed, skipping: {html_file.name}")
-                    continue
                 
                 # Convert double underscores to slashes for URL path
                 # admin__panel__login → admin/panel/login
@@ -162,11 +89,6 @@ def import_deception_pages_from_directory() -> int:
 
                 if not url_path or url_path == "/":
                     logger.debug(f"Could not generate valid URL path for {html_file.name}, skipping")
-                    continue
-
-                # Check if this path already exists in the database
-                if has_generated_page_in_db(url_path):
-                    logger.debug(f"Page already exists in DB for path {url_path}, skipping")
                     continue
 
                 # Read the HTML file
@@ -182,9 +104,10 @@ def import_deception_pages_from_directory() -> int:
                         logger.debug(f"Could not read {html_file}: {err}")
                         continue
 
-                # Save to database
+                # Save to database (will upsert if already exists)
                 if save_generated_page_to_db(url_path, html_content):
                     imported_count += 1
+                    logger.debug(f"Imported deception page: {url_path}")
 
             except Exception as err:
                 logger.debug(f"Error processing deception page {html_file}: {err}")
