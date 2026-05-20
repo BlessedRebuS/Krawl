@@ -738,6 +738,7 @@ async def htmx_search(
             "dashboard_path": _dashboard_path(request),
             "attacks": result["attacks"],
             "ips": result["ips"],
+            "deception_pages": result["deception_pages"],
             "query": q,
             "pagination": result["pagination"],
         },
