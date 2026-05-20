@@ -3,12 +3,51 @@
 
     <div class="search-results-header">
         <span class="search-results-summary">
-            Found <strong>{{ pagination.total_attacks }}</strong> attack{{ 's' if pagination.total_attacks != 1 else '' }}
-            and <strong>{{ pagination.total_ips }}</strong> IP{{ 's' if pagination.total_ips != 1 else '' }}
+            Found <strong>{{ pagination.total_attacks }}</strong> attack{{ 's' if pagination.total_attacks != 1 else '' }},
+            <strong>{{ pagination.total_ips }}</strong> IP{{ 's' if pagination.total_ips != 1 else '' }},
+            and <strong>{{ pagination.total_deception_pages }}</strong> deception page{{ 's' if pagination.total_deception_pages != 1 else '' }}
             for &ldquo;<em>{{ query | e }}</em>&rdquo;
         </span>
         <button class="search-close-btn" onclick="document.getElementById('search-input').value=''; document.getElementById('search-results-container').innerHTML='';">&times;</button>
     </div>
+
+    {# ── Matching Deception Pages ─────────────────────────────── #}
+    {% if deception_pages %}
+    <div class="search-section">
+        <h3 class="search-section-title">Matching Deception Pages</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Path</th>
+                    <th>Accesses</th>
+                    <th>Created</th>
+                    <th>Last Accessed</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for page in deception_pages %}
+                <tr>
+                    <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
+                    <td>
+                        <a href="{{ page.path | e }}" target="_blank" style="color: rgb(88, 166, 255); text-decoration: none; cursor: pointer; transition: color 0.2s;">
+                            <div class="path-cell-container">
+                                <span class="path-truncated">{{ page.path | e }}</span>
+                                {% if page.path | length > 30 %}
+                                <div class="path-tooltip">{{ page.path | e }}</div>
+                                {% endif %}
+                            </div>
+                        </a>
+                    </td>
+                    <td>{{ page.access_count }}</td>
+                    <td>{{ page.created_at | format_ts }}</td>
+                    <td>{{ page.last_accessed | format_ts }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
 
     {# ── Matching IPs ─────────────────────────────────── #}
     {% if ips %}
@@ -158,7 +197,7 @@
     {% endif %}
 
     {# ── No results ───────────────────────────────────── #}
-    {% if not attacks and not ips %}
+    {% if not attacks and not ips and not deception_pages %}
     <div class="search-no-results">
         No results found for &ldquo;<em>{{ query | e }}</em>&rdquo;
     </div>

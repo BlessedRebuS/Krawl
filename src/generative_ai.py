@@ -27,6 +27,20 @@ _robots_disallowed_cache: Optional[List[str]] = None
 _aiohttp_session: Optional[aiohttp.ClientSession] = None
 
 
+def normalize_path(path: str) -> str:
+    # Normalize a path to avoid duplicates
+    if not path:
+        return "/"
+    
+    while "//" in path:
+        path = path.replace("//", "/")
+    
+    if path != "/" and path.endswith("/"):
+        path = path.rstrip("/")
+    
+    return path
+
+
 async def _get_aiohttp_session() -> aiohttp.ClientSession:
     """Get or create a shared aiohttp ClientSession for API calls."""
     global _aiohttp_session
@@ -86,6 +100,9 @@ def import_deception_pages_from_directory() -> int:
                 # Convert double underscores to slashes for URL path
                 # admin__panel__login → admin/panel/login
                 url_path = "/" + filename.replace("__", "/")
+                
+                # Normalize path to avoid duplicates
+                url_path = normalize_path(url_path)
 
                 if not url_path or url_path == "/":
                     logger.debug(f"Could not generate valid URL path for {html_file.name}, skipping")
@@ -284,6 +301,7 @@ def has_generated_page_in_db(path: str) -> bool:
     Returns:
         True if a cached page exists for this path
     """
+    path = normalize_path(path)
     try:
         from database import DatabaseManager
         from models import GeneratedPage
@@ -314,6 +332,7 @@ def get_generated_page_from_db(path: str) -> Optional[str]:
     Returns:
         HTML content (decoded from base64) or None if not found
     """
+    path = normalize_path(path)
     try:
         from database import DatabaseManager
         from models import GeneratedPage
@@ -357,6 +376,7 @@ def save_generated_page_to_db(path: str, html_content: str) -> bool:
     Returns:
         True if saved successfully, False otherwise
     """
+    path = normalize_path(path)
     try:
         from database import DatabaseManager
         from models import GeneratedPage
@@ -565,6 +585,7 @@ async def generate_html_for_path(
         Tuple of (html_content, content_type, status_code, was_cached)
         where was_cached is True if served from database cache, False if freshly generated
     """
+    path = normalize_path(path)
     # ALWAYS check database cache first - serve cached pages even if AI is disabled
     cached_html = get_generated_page_from_db(path)
     if cached_html:
@@ -682,6 +703,7 @@ def should_use_ai_for_path(path: str) -> bool:
     Returns:
         True if path should try to use AI (for generation or cached retrieval)
     """
+    path = normalize_path(path)
     # Check if there's a cached page even if AI is disabled (lightweight check, no content load)
     if has_generated_page_in_db(path):
         logger.debug(f"Found cached AI page for {path}, will serve it")
