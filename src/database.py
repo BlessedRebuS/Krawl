@@ -2650,10 +2650,11 @@ class DatabaseManager:
         page_size: int = 20,
     ) -> Dict[str, Any]:
         """
-        Search attacks and IPs matching a query string.
+        Search attacks, IPs, and deception pages matching a query string.
 
         Searches across AttackDetection (attack_type, matched_pattern),
-        AccessLog (ip, path), and IpStats (ip, city, country, isp, asn_org).
+        AccessLog (ip, path), IpStats (ip, city, country, isp, asn_org),
+        and GeneratedPage (path).
 
         Args:
             query: Search term (partial match)
@@ -2661,7 +2662,7 @@ class DatabaseManager:
             page_size: Results per page
 
         Returns:
-            Dictionary with matching attacks, ips, and pagination info
+            Dictionary with matching attacks, ips, deception_pages, and pagination info
         """
         session = self.session
         try:
@@ -2773,20 +2774,51 @@ class DatabaseManager:
                 for stat in ips
             ]
 
-            total = total_attacks + total_ips
+            # --- Search Deception Pages (GeneratedPage) ---
+            deception_query = session.query(GeneratedPage).filter(
+                GeneratedPage.path.like(like_q)
+            )
+
+            total_deception_pages = (
+                session.query(func.count(GeneratedPage.path))
+                .filter(GeneratedPage.path.like(like_q))
+                .scalar()
+                or 0
+            )
+
+            deception_pages = (
+                deception_query.order_by(GeneratedPage.last_accessed.desc())
+                .offset(offset)
+                .limit(page_size)
+                .all()
+            )
+
+            deception_results = [
+                {
+                    "path": page.path,
+                    "access_count": page.access_count,
+                    "created_at": page.created_at.isoformat() if page.created_at else None,
+                    "last_accessed": page.last_accessed.isoformat() if page.last_accessed else None,
+                }
+                for page in deception_pages
+            ]
+
+            total = total_attacks + total_ips + total_deception_pages
             total_pages = max(
-                1, (max(total_attacks, total_ips) + page_size - 1) // page_size
+                1, (max(total_attacks, total_ips, total_deception_pages) + page_size - 1) // page_size
             )
 
             return {
                 "attacks": attacks,
                 "ips": ip_results,
+                "deception_pages": deception_results,
                 "query": query,
                 "pagination": {
                     "page": page,
                     "page_size": page_size,
                     "total_attacks": total_attacks,
                     "total_ips": total_ips,
+                    "total_deception_pages": total_deception_pages,
                     "total": total,
                     "total_pages": total_pages,
                 },
