@@ -143,6 +143,32 @@ config:
     enabled: false  # Opt-in: trap AI agents with slow responses and random text
     delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active
 
+# Custom template settings (optional)
+# Helm will mount the custom template at `/etc/krawl/templates/custom_page.html`
+customTemplate:
+  enabled: false
+  # Inline content for the custom template. If empty, create the ConfigMap without data
+  # Example HTML below — operators can replace this with their own template.
+  content: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Custom Krawl Page</title>
+      <style>
+        body { font-family: Arial, Helvetica, sans-serif; background:#0b0f14; color:#d0d7de; margin:0; padding:24px }
+        .counter { color:#f85149; font-weight:700; margin-bottom:12px }
+        .links { display:flex; flex-direction:column; gap:8px }
+        .link { background:#111418; padding:10px; border-radius:6px; display:inline-block }
+      </style>
+    </head>
+    <body>
+      <h1>Welcome</h1>
+      <div class="counter">Refresh cycle: {counter}</div>
+      <div class="links">{content}</div>
+    </body>
+    </html>
+
 # PostgreSQL settings (only used when mode=scalable)
 postgres:
   # Deploy PostgreSQL as part of this chart (set to false if using an external instance)

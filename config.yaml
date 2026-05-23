@@ -109,6 +109,14 @@ tarpit:
   enabled: false  # Opt-in: trap AI agents with slow responses and random text
   delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active
 
+# Custom page template settings
+# Operators can provide a custom HTML template file by setting
+# `custom_template_path`. If this key is present and not null, Krawl
+# will attempt to load the template from the provided path. The template
+# may include `{counter}` and `{content}` placeholders but they are
+# optional (no strict validation is performed).
+# custom_template_path: "/path/to/custom_page.html"
+
 ### AI-Generated Deception pages. Here it can be used either OpenRouter or OpenAI as provider, but also self-hosted LLMs with an API-compatible endpoint 
 ### by setting the provider to "openai" and pointing the openai_base_url to the local LLM server URL. Note that the krawl-llm is the service name of the llama.cpp server in the docker-compose.yaml.
 ai:

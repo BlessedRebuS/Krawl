@@ -61,8 +61,37 @@ def load_template(name: str, **kwargs) -> str:
 
     # Apply substitutions if kwargs provided
     if kwargs:
-        template = template.format(**kwargs)
+        try:
+            template = template.format(**kwargs)
+        except Exception:
+            # If formatting fails, return template unchanged (do not validate placeholders)
+            pass
     return template
+
+
+def load_template_from_path(file_path: str, **kwargs) -> str:
+    """
+    Load a template from an absolute or relative file path and perform
+    non-strict placeholder substitution. Replaces occurrences of
+    `{key}` with the provided value for each kwarg. If the file does
+    not exist or cannot be read, raises FileNotFoundError.
+
+    This function deliberately does not validate that placeholders
+    like `{counter}` or `{content}` are present; it performs simple
+    replacements and returns the file contents even if placeholders
+    are missing.
+    """
+    p = Path(file_path)
+    if not p.exists():
+        raise FileNotFoundError(f"Template file not found: {file_path}")
+
+    text = p.read_text(encoding="utf-8")
+
+    # Perform safe replacements without raising KeyError
+    for k, v in kwargs.items():
+        text = text.replace(f"{{{k}}}", str(v))
+
+    return text
 
 
 def clear_cache() -> None:
