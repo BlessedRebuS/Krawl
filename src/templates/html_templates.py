@@ -5,7 +5,14 @@ HTML templates for the deception server.
 Templates are loaded from the html/ subdirectory.
 """
 
-from .template_loader import load_template
+import os
+from pathlib import Path
+from config import get_config
+from logger import get_app_logger
+from .template_loader import load_template, load_template_from_path
+
+
+_logged_custom_template_path: str | None = None
 
 
 def login_form() -> str:
@@ -64,4 +71,26 @@ def input_form() -> str:
 
 def main_page(counter: int, content: str) -> str:
     """Generate main Krawl page with links and canary token"""
-    return load_template("main_page", counter=counter, content=content)
+    # Prefer explicit environment variable, then config.yaml setting
+    custom_path = os.environ.get("KRAWL_CUSTOM_TEMPLATE_PATH")
+    if not custom_path:
+        try:
+            cfg = get_config()
+            if cfg.custom_template_path:
+                custom_path = cfg.custom_template_path
+        except Exception:
+            custom_path = None
+
+    if custom_path:
+        global _logged_custom_template_path
+        if _logged_custom_template_path != custom_path:
+            get_app_logger().info(f"Using custom template path: {custom_path}")
+            _logged_custom_template_path = custom_path
+        try:
+            return load_template_from_path(custom_path, counter=counter, content=content)
+        except Exception:
+            # On any failure, fall back to bundled template
+            pass
+
+    bundled_template = Path(__file__).parent / "html" / "main_page.html"
+    return load_template_from_path(str(bundled_template), counter=counter, content=content)
