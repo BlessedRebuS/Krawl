@@ -97,6 +97,10 @@ class Config:
     ai_reasoning_enabled: bool = True
     ai_reasoning_effort: str = "medium"
 
+    # Custom page template settings
+    # If `custom_template_path` is set (non-null), the custom template will be used.
+    custom_template_path: Optional[str] = None
+
     # Deception pages import settings
     deception_import_pages: bool = True
 
@@ -193,6 +197,12 @@ class Config:
         logging_cfg = data.get("logging", {})
         ai = data.get("ai", {})
         deception = data.get("deception", {})
+        # Support legacy nested `page_template` or top-level `custom_template_path`.
+        page_template = data.get("page_template", {})
+        custom_template_path = data.get("custom_template_path", None)
+        # If nested page_template is present and defines custom_template_path, prefer it
+        if not custom_template_path and isinstance(page_template, dict):
+            custom_template_path = page_template.get("custom_template_path", None)
 
         # Handle dashboard_secret_path - auto-generate if null/not set
         dashboard_path = dashboard.get("secret_path")
@@ -315,6 +325,7 @@ Generate the complete HTML page.""",
             ai_timeout=ai.get("timeout", 60),
             ai_max_daily_requests=ai.get("max_daily_requests", 0),
             deception_import_pages=deception.get("import_pages", True),
+            custom_template_path=custom_template_path,
         )
 
 

@@ -118,6 +118,32 @@ data:
       enabled: false
       delay_seconds: 5
 ---
+# Custom template ConfigMap (optional)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: krawl-custom-template
+  namespace: krawl-system
+  labels:
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl
+    app.kubernetes.io/version: "2.1.0"
+data:
+  custom_page.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Krawl Custom</title>
+      <style>body { font-family: Arial, sans-serif; background:#111;color:#ddd; }</style>
+    </head>
+    <body>
+      <h1>Krawl</h1>
+      <div class="counter">{counter}</div>
+      <div>{content}</div>
+    </body>
+    </html>
+---
 # Source: krawl-chart/templates/wordlists-configmap.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -331,6 +357,8 @@ spec:
           value: "30"
         - name: KRAWL_REDIS_TABLE_TTL
           value: "120"
+        - name: KRAWL_CUSTOM_TEMPLATE_PATH
+          value: "/etc/krawl/templates/custom_page.html"
         volumeMounts:
         - name: config
           mountPath: /app/config.yaml
@@ -339,6 +367,9 @@ spec:
         - name: wordlists
           mountPath: /app/wordlists.json
           subPath: wordlists.json
+          readOnly: true
+        - name: custom-template
+          mountPath: /etc/krawl/templates
           readOnly: true
         resources:
             limits:
@@ -354,6 +385,9 @@ spec:
       - name: wordlists
         configMap:
           name: krawl-wordlists
+      - name: custom-template
+        configMap:
+          name: krawl-custom-template
 ---
 # Source: krawl-chart/templates/postgres.yaml
 apiVersion: apps/v1
