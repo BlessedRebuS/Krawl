@@ -54,6 +54,9 @@ data:
     ai:
       enabled: {{ .Values.config.ai.enabled }}
       provider: {{ .Values.config.ai.provider | quote }}
+      {{- if .Values.config.ai.openai_base_url }}
+      openai_base_url: {{ .Values.config.ai.openai_base_url | quote }}
+      {{- end }}
       {{- if .Values.config.ai.model }}
       model: {{ .Values.config.ai.model | quote }}
       {{- end }}
