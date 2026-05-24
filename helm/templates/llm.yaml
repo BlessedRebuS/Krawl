@@ -1,0 +1,184 @@
+{{- if .Values.llm.ollama.enabled }}
+{{- $name := printf "%s-ollama" (include "krawl.fullname" .) }}
+{{- $port := .Values.llm.ollama.service.port }}
+{{- if .Values.llm.ollama.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "krawl.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ollama
+spec:
+  accessModes:
+    - {{ .Values.llm.ollama.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.llm.ollama.persistence.size }}
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "krawl.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ollama
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ $port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "krawl.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: ollama
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "krawl.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ollama
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "krawl.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: ollama
+  template:
+    metadata:
+      labels:
+        {{- include "krawl.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: ollama
+    spec:
+      containers:
+        - name: ollama
+          image: "{{ .Values.llm.ollama.image.repository }}:{{ .Values.llm.ollama.image.tag }}"
+          imagePullPolicy: {{ .Values.llm.ollama.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ $port }}
+              protocol: TCP
+          env:
+            - name: OLLAMA_HOST
+              value: "0.0.0.0:{{ $port }}"
+            - name: OLLAMA_MODELS
+              value: /models
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - |
+              /bin/ollama serve &
+              until /bin/ollama list >/dev/null 2>&1; do
+                sleep 2
+              done
+              {{- if .Values.llm.ollama.pullModel }}
+              /bin/ollama pull {{ .Values.llm.ollama.model }}
+              {{- end }}
+              wait
+          volumeMounts:
+            - name: models
+              mountPath: /models
+      volumes:
+        - name: models
+          {{- if .Values.llm.ollama.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ $name }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+{{- end }}
+
+{{- if .Values.llm.llamaCpp.enabled }}
+{{- $name := printf "%s-llamacpp" (include "krawl.fullname" .) }}
+{{- $port := .Values.llm.llamaCpp.service.port }}
+{{- if .Values.llm.llamaCpp.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "krawl.labels" . | nindent 4 }}
+    app.kubernetes.io/component: llama-cpp
+spec:
+  accessModes:
+    - {{ .Values.llm.llamaCpp.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.llm.llamaCpp.persistence.size }}
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "krawl.labels" . | nindent 4 }}
+    app.kubernetes.io/component: llama-cpp
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ $port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "krawl.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: llama-cpp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "krawl.labels" . | nindent 4 }}
+    app.kubernetes.io/component: llama-cpp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "krawl.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: llama-cpp
+  template:
+    metadata:
+      labels:
+        {{- include "krawl.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: llama-cpp
+    spec:
+      containers:
+        - name: llama-cpp
+          image: "{{ .Values.llm.llamaCpp.image.repository }}:{{ .Values.llm.llamaCpp.image.tag }}"
+          imagePullPolicy: {{ .Values.llm.llamaCpp.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ $port }}
+              protocol: TCP
+          args:
+            - --hf-repo
+            - {{ .Values.llm.llamaCpp.hfRepo | quote }}
+            - --hf-file
+            - {{ .Values.llm.llamaCpp.hfFile | quote }}
+            - --port
+            - {{ $port | quote }}
+            - --host
+            - 0.0.0.0
+            - -n
+            - -1
+          volumeMounts:
+            - name: models
+              mountPath: /root/.cache
+      volumes:
+        - name: models
+          {{- if .Values.llm.llamaCpp.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ $name }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+{{- end }}

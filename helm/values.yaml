@@ -115,8 +115,8 @@ config:
     ban_duration_seconds: 600
   ai:
     enabled: false
-    provider: "openrouter"  # "openrouter" or "openai"
-# openai_base_url: "https://api.openai.com/v1" is only needed if provider is set to "openai" and you want to use a custom endpoint to reach different models
+    provider: "openrouter"  # "openrouter" or "openai". Use "openai" for OpenAI-compatible endpoints such as Ollama or llama.cpp.
+    openai_base_url: "https://api.openai.com/v1"  # Set to your OpenAI-compatible endpoint, e.g. http://krawl-ollama:8080/v1 or http://krawl-llamacpp:8080/v1
     api_key: null # set your OpenAI or OpenRouter API key here
     model: null  # for example nvidia/nemotron-3-super-120b-a12b:free or gpt-5.1-mini
     timeout: 60  # Request timeout in seconds for API calls
@@ -229,6 +229,39 @@ redis:
     requests:
       cpu: 50m
       memory: 64Mi
+
+# Optional bundled local LLM services (Ollama and/or llama.cpp)
+# When enabled, point config.ai.openai_base_url to http://<release-name>-ollama:8080/v1
+# or http://<release-name>-llamacpp:8080/v1
+llm:
+  ollama:
+    enabled: false
+    image:
+      repository: ollama/ollama
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    service:
+      port: 8080
+    persistence:
+      enabled: true
+      size: 5Gi
+      accessMode: ReadWriteOnce
+    model: "qwen:1.8b"
+    pullModel: true
+  llamaCpp:
+    enabled: false
+    image:
+      repository: ghcr.io/ggml-org/llama.cpp
+      tag: "server"
+      pullPolicy: IfNotPresent
+    service:
+      port: 8080
+    persistence:
+      enabled: true
+      size: 5Gi
+      accessMode: ReadWriteOnce
+    hfRepo: "Qwen/Qwen1.5-1.8B-Chat-GGUF"
+    hfFile: "qwen1_5-1_8b-chat-q4_k_m.gguf"
 
 # SQLite -> PostgreSQL migration job settings
 migration:
