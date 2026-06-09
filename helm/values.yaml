@@ -30,6 +30,24 @@ service:
   # Preserve source IP when using LoadBalancer
   externalTrafficPolicy: Local
 
+# Prometheus Operator ServiceMonitor for scraping the /metrics endpoint.
+# Requires the ServiceMonitor CRD (monitoring.coreos.com/v1) in the cluster.
+# The resource is only rendered when ALL of the following are true:
+#   - serviceMonitor.enabled is true
+#   - config.metrics.enabled is true
+#   - config.dashboard.secret_path is set (the metrics path is
+#     /<secret_path>/metrics, so an auto-generated/blank path can't be scraped)
+serviceMonitor:
+  enabled: false
+  interval: 30s
+  scrapeTimeout: 10s
+  # Extra labels so your Prometheus's serviceMonitorSelector matches this
+  # resource (e.g. release: kube-prometheus-stack).
+  labels: {}
+  honorLabels: false
+  relabelings: []
+  metricRelabelings: []
+
 ingress:
   enabled: true
   className: "traefik"
@@ -90,6 +108,8 @@ config:
     warmup_pages: 10  # Number of pages to pre-warm per table panel (attacks, attackers, credentials, honeypot)
     warmup_aggregation: true  # Pre-compute full top_paths/top_ua aggregations for instant any-page serving (recommended for scalable)
     top_n_min_count: 5  # Minimum access count to include a path/user-agent in top-N panels (set to 1 to disable)
+  metrics:
+    enabled: true  # Expose Prometheus metrics at /<dashboard.secret_path>/metrics
   backups:
     path: "backups"
     enabled: false

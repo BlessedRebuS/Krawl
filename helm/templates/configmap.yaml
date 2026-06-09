@@ -28,6 +28,8 @@ data:
       warmup_pages: {{ .Values.config.dashboard.warmup_pages }}
       warmup_aggregation: {{ .Values.config.dashboard.warmup_aggregation }}
       top_n_min_count: {{ .Values.config.dashboard.top_n_min_count }}
+    metrics:
+      enabled: {{ .Values.config.metrics.enabled }}
     backups:
       path: {{ .Values.config.backups.path | quote }}
       cron: {{ .Values.config.backups.cron | quote }}
