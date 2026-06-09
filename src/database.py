@@ -894,7 +894,7 @@ class DatabaseManager:
         session.add(history_entry)
         # Note: clients_total is NOT maintained as a +new/-old delta counter.
         # It is current-state and recomputed live from count_category at scrape
-        # time (see metrics.refresh_from_counters), which is cheap (indexed) and
+        # time (see metrics.KrawlMetricsCollector), which is cheap (indexed) and
         # avoids the unbounded drift a delta accrues under retention deletes.
 
     def get_category_history(self, ip: str) -> List[Dict[str, Any]]:

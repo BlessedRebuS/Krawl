@@ -41,10 +41,12 @@ KRAWL_VERSION = _get_krawl_version()
 async def metrics_endpoint(request: Request):
     if not get_config().metrics_enabled:
         raise HTTPException(status_code=404)
-    import metrics
+    # generate_latest() invokes KrawlMetricsCollector.collect(), which does
+    # blocking cache/DB reads — run it off the event loop.
+    import asyncio
 
-    metrics.refresh_from_counters()
-    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+    content = await asyncio.to_thread(generate_latest)
+    return Response(content=content, media_type=CONTENT_TYPE_LATEST)
 
 
 @router.get("")
