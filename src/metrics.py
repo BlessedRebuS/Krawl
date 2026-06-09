@@ -8,7 +8,6 @@ in src/app.py. Refresh helpers are called from existing background tasks
 
 import re
 import time
-from typing import Any, Dict
 
 from prometheus_client import Gauge, REGISTRY
 
@@ -122,35 +121,31 @@ def _enabled() -> bool:
 # Refresh helpers
 # ----------------------
 
-def refresh_requests(stats: Dict[str, Any]) -> None:
+def refresh_from_counters() -> None:
+    """Populate counter-backed gauges from the live cache counters.
+
+    Called at scrape time so every pod reports the shared values (each pod has
+    its own in-process Prometheus registry).
+    """
     if not _enabled():
         return
-    accesses.set(stats.get("total_accesses", 0) or 0)
-    unique_ips.set(stats.get("unique_ips", 0) or 0)
-    unique_paths.set(stats.get("unique_paths", 0) or 0)
+    import metrics_counters as c
 
+    accesses.set(c.get("total_accesses"))
+    unique_ips.set(c.get("unique_ips"))
+    unique_paths.set(c.get("unique_paths"))
+    honeypot_triggers.set(c.get("honeypot_triggered"))
+    honeypot_ips.set(c.get("honeypot_ips"))
+    credentials_captured.set(c.get("credentials_captured"))
 
-def refresh_detection_classification(db) -> None:
-    if not _enabled():
-        return
     for category in CATEGORIES:
-        clients_total.labels(category).set(db.count_category(category))
+        clients_total.labels(category).set(c.get("clients_total", category))
 
-
-def refresh_detection_attacks(stats: Dict[str, Any], db) -> None:
-    if not _enabled():
-        return
-    honeypot_triggers.set(stats.get("honeypot_triggered", 0) or 0)
-    honeypot_ips.set(stats.get("honeypot_ips", 0) or 0)
-    credentials_captured.set(stats.get("credential_count", 0) or 0)
-
-    try:
-        result = db.get_attack_types_stats(limit=100)
-        attack_detections.clear()
-        for entry in result.get("attack_types", []):
-            attack_detections.labels(entry["type"]).set(entry["count"])
-    except Exception as e:
-        app_logger.error(f"refresh_detection_attacks: failed to read attack types: {e}")
+    attack_detections.clear()
+    for key, value in c.get_all().items():
+        if key.startswith("attack_detections|"):
+            attack_type = key.split("|", 1)[1]
+            attack_detections.labels(attack_type).set(value)
 
 
 def refresh_ai(db) -> None:

@@ -26,7 +26,6 @@ def main():
     db_manager = get_database()
     app_logger = get_app_logger()
 
-    metrics.refresh_detection_classification(db_manager)
     metrics.refresh_ai(db_manager)
     metrics.refresh_system(db_manager)
 

@@ -41,6 +41,9 @@ KRAWL_VERSION = _get_krawl_version()
 async def metrics_endpoint(request: Request):
     if not get_config().metrics_enabled:
         raise HTTPException(status_code=404)
+    import metrics
+
+    metrics.refresh_from_counters()
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 

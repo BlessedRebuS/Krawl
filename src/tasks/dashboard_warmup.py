@@ -239,9 +239,6 @@ def main():
             (credentials_p1 or {}).get("pagination", {}).get("total", 0)
         )
 
-        metrics.refresh_requests(stats)
-        metrics.refresh_detection_attacks(stats, db)
-
         # Store everything in the cache (overwrites previous values)
         set_cached("stats", stats)
         set_cached("suspicious", suspicious)
