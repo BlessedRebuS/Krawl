@@ -192,7 +192,9 @@ def bootstrap(db) -> None:
                 persisted[(metric, "")] = value
             db.upsert_metrics_summary(persisted)
 
-        # Cheap labeled counters (indexed queries) — recomputed every seed.
+        # Cheap counters (indexed queries) — recomputed every seed.
+        set_value("credentials_captured", "", db.count_credentials())
+
         for category in _CATEGORIES:
             set_value("clients_total", category, db.count_category(category))
 

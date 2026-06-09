@@ -3298,6 +3298,17 @@ class DatabaseManager:
         finally:
             self.close_session()
 
+    def count_credentials(self) -> int:
+        """Count the total number of captured credential attempts."""
+        session = self.session
+        try:
+            return session.query(CredentialAttempt).count() or 0
+        except Exception as e:
+            applogger.error(f"Error counting credentials: {e}")
+            return 0
+        finally:
+            self.close_session()
+
     def count_generated_pages_created_today(self) -> int:
         """Count how many generated pages were created today.
 
