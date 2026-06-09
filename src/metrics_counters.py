@@ -71,24 +71,49 @@ def set_value(metric: str, label: str = "", value: int = 0) -> None:
         _counters[_key(metric, label)] = int(value)
 
 
+def get_many(metrics) -> Dict[str, int]:
+    """Batch-read unlabeled counters as {metric: value}.
+
+    Scalable: a single Redis MGET (one round-trip instead of one GET each).
+    Standalone: locked dict reads.
+    """
+    metrics = list(metrics)
+    if get_backend() == "scalable":
+        r = get_redis_client()
+        if r is not None:
+            if not metrics:
+                return {}
+            raw = r.mget([f"{_COUNTER_PREFIX}{m}" for m in metrics])
+            return {m: (int(v) if v else 0) for m, v in zip(metrics, raw)}
+    with _lock:
+        return {m: _counters.get(m, 0) for m in metrics}
+
+
 def get_all() -> Dict[str, int]:
     """Return all counters as {encoded_key: value}. Excludes distinctness sets."""
     if get_backend() == "scalable":
         r = get_redis_client()
         out: Dict[str, int] = {}
         if r is not None:
+            keys = []
             cursor = 0
             while True:
-                cursor, keys = r.scan(
+                cursor, batch = r.scan(
                     cursor, match=f"{_COUNTER_PREFIX}*", count=200
                 )
-                for full in keys:
-                    if full.startswith(_SET_PREFIX) or full == _SEED_MARKER:
-                        continue
-                    raw = r.get(full)
-                    out[full[len(_COUNTER_PREFIX):]] = int(raw) if raw else 0
+                keys.extend(
+                    k
+                    for k in batch
+                    if not k.startswith(_SET_PREFIX) and k != _SEED_MARKER
+                )
                 if cursor == 0:
                     break
+            if keys:
+                raw = r.mget(keys)
+                out = {
+                    k[len(_COUNTER_PREFIX):]: (int(v) if v else 0)
+                    for k, v in zip(keys, raw)
+                }
         return out
     with _lock:
         return dict(_counters)

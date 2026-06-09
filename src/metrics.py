@@ -1,15 +1,28 @@
 """
-Central Prometheus metric definitions and refresh helpers for Krawl.
+Central Prometheus metric definitions for Krawl.
 
 Metrics are exposed at /{dashboard_secret}/metrics by the ASGI app mounted
-in src/app.py. Refresh helpers are called from existing background tasks
-(analyze_ips, dashboard_warmup) so we don't add any new cron entries.
+in src/app.py.
+
+Two families of metrics:
+
+- Cumulative totals (accesses, unique IPs/paths, honeypot, credentials, attack
+  detections) are "total ever observed" values maintained in the cache counter
+  store (see metrics_counters). They are exposed as proper Prometheus *counters*
+  via KrawlMetricsCollector, which reads the values in batch at scrape time so
+  every pod reports the shared totals and rate()/increase() work as expected.
+
+- Current-state gauges (clients_total, reevaluation/enrichment/lock counts,
+  warmup durations) are point-in-time values. clients_total is recomputed live
+  in the collector; the rest are set by background tasks (analyze_ips,
+  dashboard_warmup).
 """
 
 import re
 import time
 
 from prometheus_client import Gauge, REGISTRY
+from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
 
 from config import get_config
 from logger import get_app_logger
@@ -19,63 +32,92 @@ app_logger = get_app_logger()
 CATEGORIES = ("attacker", "good_crawler", "bad_crawler", "regular_user")
 
 
+def _enabled() -> bool:
+    return bool(get_config().metrics_enabled)
+
+
 # ----------------------
-# Metric definitions
+# Cumulative counters (cache-backed, exposed via custom collector)
 # ----------------------
 
-# requests
-accesses = Gauge(
-    "accesses",
-    "Total HTTP accesses recorded by Krawl",
-    namespace="krawl",
-    registry=REGISTRY,
-)
-unique_ips = Gauge(
-    "unique_ips",
-    "Number of distinct client IPs observed",
-    namespace="krawl",
-    registry=REGISTRY,
-)
-unique_paths = Gauge(
-    "unique_paths",
-    "Number of distinct request paths observed",
-    namespace="krawl",
-    registry=REGISTRY,
+# (cache counter key, exposed metric name, help text). The exposed series get a
+# "_total" suffix per Prometheus counter convention (e.g. krawl_accesses_total).
+_CUMULATIVE = (
+    ("total_accesses", "krawl_accesses", "Total HTTP accesses recorded by Krawl"),
+    ("unique_ips", "krawl_unique_ips", "Number of distinct client IPs observed"),
+    ("unique_paths", "krawl_unique_paths", "Number of distinct request paths observed"),
+    ("honeypot_triggered", "krawl_honeypot_triggers", "Total honeypot trigger events"),
+    (
+        "honeypot_ips",
+        "krawl_honeypot_ips",
+        "Distinct IPs that have triggered a honeypot path at least once",
+    ),
+    (
+        "credentials_captured",
+        "krawl_credentials_captured",
+        "Total captured credential login attempts",
+    ),
 )
 
-# detection
-clients_total = Gauge(
-    "clients_total",
-    "Number of IPs per classification category",
-    labelnames=["category"],
-    namespace="krawl",
-    registry=REGISTRY,
-)
-honeypot_triggers = Gauge(
-    "honeypot_triggers",
-    "Total honeypot trigger events",
-    namespace="krawl",
-    registry=REGISTRY,
-)
-honeypot_ips = Gauge(
-    "honeypot_ips",
-    "Distinct IPs that have triggered a honeypot path at least once",
-    namespace="krawl",
-    registry=REGISTRY,
-)
-credentials_captured = Gauge(
-    "credentials_captured",
-    "Total captured credential login attempts",
-    namespace="krawl",
-    registry=REGISTRY,
-)
-attack_detections = Gauge(
-    "attack_detections",
-    "Attack detections grouped by attack type",
-    labelnames=["attack_type"],
-    namespace="krawl",
-    registry=REGISTRY,
-)
+
+class KrawlMetricsCollector:
+    """Collector for cache-backed counters + current-state clients_total.
+
+    Invoked by prometheus_client during scrape (generate_latest). Reads the
+    cumulative counters from the cache in a single batched call, exposes them as
+    counters, and recomputes clients_total live from the indexed category counts.
+    """
+
+    def collect(self):
+        if not _enabled():
+            return
+
+        import metrics_counters as c
+
+        values = c.get_many([key for key, _, _ in _CUMULATIVE])
+        for key, name, doc in _CUMULATIVE:
+            yield CounterMetricFamily(name, doc, value=values.get(key, 0))
+
+        attacks = CounterMetricFamily(
+            "krawl_attack_detections",
+            "Attack detections grouped by attack type",
+            labels=["attack_type"],
+        )
+        for ckey, value in c.get_all().items():
+            if ckey.startswith("attack_detections|"):
+                attacks.add_metric([ckey.split("|", 1)[1]], value)
+        yield attacks
+
+        # clients_total is current-state ("how many IPs are classified X right
+        # now"), not cumulative — recompute live (4 indexed COUNTs). This avoids
+        # the unbounded delta drift that previously produced negative values.
+        clients = GaugeMetricFamily(
+            "krawl_clients_total",
+            "Number of IPs per classification category",
+            labels=["category"],
+        )
+        try:
+            from database import get_database
+
+            db = get_database()
+            for category in CATEGORIES:
+                clients.add_metric([category], db.count_category(category))
+        except Exception as e:
+            app_logger.error(f"collect clients_total failed: {e}")
+        yield clients
+
+
+# Register the collector once (guard against re-import in test/reload paths).
+_collector = KrawlMetricsCollector()
+try:
+    REGISTRY.register(_collector)
+except ValueError:
+    pass
+
+
+# ----------------------
+# Current-state gauges (set by background tasks)
+# ----------------------
 
 # ai
 generated_pages_today = Gauge(
@@ -113,47 +155,9 @@ dashboard_warmup_duration_seconds = Gauge(
 )
 
 
-def _enabled() -> bool:
-    return bool(get_config().metrics_enabled)
-
-
 # ----------------------
-# Refresh helpers
+# Refresh helpers (current-state gauges, called by background tasks)
 # ----------------------
-
-def refresh_from_counters() -> None:
-    """Populate counter-backed gauges from the live cache counters.
-
-    Called at scrape time so every pod reports the shared values (each pod has
-    its own in-process Prometheus registry).
-    """
-    if not _enabled():
-        return
-    import metrics_counters as c
-
-    accesses.set(c.get("total_accesses"))
-    unique_ips.set(c.get("unique_ips"))
-    unique_paths.set(c.get("unique_paths"))
-    honeypot_triggers.set(c.get("honeypot_triggered"))
-    honeypot_ips.set(c.get("honeypot_ips"))
-    credentials_captured.set(c.get("credentials_captured"))
-
-    attack_detections.clear()
-    for key, value in c.get_all().items():
-        if key.startswith("attack_detections|"):
-            attack_type = key.split("|", 1)[1]
-            attack_detections.labels(attack_type).set(value)
-
-    # clients_total is current-state ("how many IPs are classified X right now"),
-    # not a cumulative counter, so recompute it live from the indexed category
-    # counts. This is cheap (4 COUNTs) and avoids the unbounded delta drift that
-    # produced negative values.
-    from database import get_database
-
-    db = get_database()
-    for category in CATEGORIES:
-        clients_total.labels(category).set(db.count_category(category))
-
 
 def refresh_ai(db) -> None:
     if not _enabled():
