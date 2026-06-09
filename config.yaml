@@ -78,6 +78,11 @@ backups:
   cron: "*/30 * * * *"
   enabled: false
 
+# Prometheus metrics endpoint, exposed at /{dashboard_secret_path}/metrics.
+# When disabled, the endpoint returns 404 and refresh helpers no-op.
+metrics:
+  enabled: true
+
 logging:
   level: "DEBUG"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
 

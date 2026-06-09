@@ -10,6 +10,7 @@ from logger import get_app_logger
 from config import get_config
 from database import get_database
 from dashboard_cache import set_cached, set_cached_table
+import metrics
 
 app_logger = get_app_logger()
 
@@ -54,6 +55,7 @@ def main():
             result = fn()
             elapsed = time.monotonic() - t0
             app_logger.info(f"[Background Task] {task_name} {label}: {elapsed:.2f}s")
+            metrics.observe_warmup_step(label, elapsed)
             return result
 
         # --- Server-rendered data (stats cards + suspicious table) ---

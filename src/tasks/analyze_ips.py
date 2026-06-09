@@ -7,6 +7,7 @@ import urllib.parse
 from wordlists import get_wordlists
 from config import get_config
 from logger import get_app_logger
+import metrics
 
 # ----------------------
 # TASK CONFIG
@@ -24,6 +25,9 @@ def main():
     config = get_config()
     db_manager = get_database()
     app_logger = get_app_logger()
+
+    metrics.refresh_ai(db_manager)
+    metrics.refresh_system(db_manager)
 
     http_risky_methods_threshold = config.http_risky_methods_threshold
     violated_robots_threshold = config.violated_robots_threshold
@@ -382,7 +386,9 @@ def main():
             "bad_crawler": bad_crawler_score,
             "regular_user": regular_user_score,
         }
+
         category = max(category_scores, key=category_scores.get)
+
         last_analysis = datetime.now()
         db_manager.update_ip_stats_analysis(
             ip, analyzed_metrics, category, category_scores, last_analysis

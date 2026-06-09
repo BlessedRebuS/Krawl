@@ -9,13 +9,10 @@ import os
 import stat
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
-from zoneinfo import ZoneInfo
 
 from sqlalchemy import create_engine, func, distinct, event, or_, and_
 from sqlalchemy.orm import sessionmaker, scoped_session, Session, joinedload
-from sqlalchemy.engine import Engine
 
-from ip_utils import is_local_or_private_ip, is_valid_public_ip
 
 from models import (
     Base,
@@ -25,7 +22,7 @@ from models import (
     IpStats,
     CategoryHistory,
     TrackedIp,
-    GeneratedPage,
+    MetricsSummary,
 )
 from sanitizer import (
     sanitize_ip,
@@ -346,15 +343,41 @@ class DatabaseManager:
                             session.add(detection)
 
             # Always update IP stats counters (+ optional page visit increment)
-            page_visit_count = self._update_ip_stats(
+            page_visit_count, was_new_ip, was_first_honeypot = self._update_ip_stats(
                 session,
                 ip,
                 is_suspicious,
+                is_honeypot_trigger=is_honeypot_trigger,
                 increment_page_visit=increment_page_visit,
                 max_pages_limit=max_pages_limit,
             )
 
             session.commit()
+
+            # Update event-driven metric counters after the DB commit. A crash
+            # between commit and here causes at most bounded drift, corrected by
+            # the next startup reseed — acceptable per the design.
+            try:
+                import metrics_counters as mc
+
+                if self._is_counted_ip(ip):
+                    mc.increment("total_accesses")
+                    if is_suspicious:
+                        mc.increment("suspicious_accesses")
+                    if was_new_ip:
+                        mc.increment("unique_ips")
+                    if is_honeypot_trigger:
+                        mc.increment("honeypot_triggered")
+                    if was_first_honeypot:
+                        mc.increment("honeypot_ips")
+                    if mc.add_to_set("paths", sanitize_path(path)):
+                        mc.increment("unique_paths")
+                    if attack_types:
+                        for attack_type in attack_types:
+                            mc.increment("attack_detections", attack_type[:50])
+            except Exception as e:
+                applogger.error(f"Metric counter update failed: {e}")
+
             return page_visit_count
 
         except Exception as e:
@@ -455,6 +478,12 @@ class DatabaseManager:
             )
             session.add(credential)
             session.commit()
+            try:
+                import metrics_counters as mc
+
+                mc.increment("credentials_captured")
+            except Exception as e:
+                applogger.error(f"Metric counter update failed: {e}")
             return credential.id
 
         except Exception as e:
@@ -469,9 +498,10 @@ class DatabaseManager:
         session: Session,
         ip: str,
         is_suspicious: bool = False,
+        is_honeypot_trigger: bool = False,
         increment_page_visit: bool = False,
         max_pages_limit: int = 0,
-    ) -> int:
+    ):
         """
         Update IP statistics (upsert pattern).
 
@@ -490,12 +520,16 @@ class DatabaseManager:
 
         ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
 
+        was_new_ip = False
+        was_first_honeypot = False
+
         if ip_stats:
             ip_stats.total_requests += 1
             ip_stats.last_seen = now
             if is_suspicious:
                 ip_stats.need_reevaluation = True
         else:
+            was_new_ip = True
             ip_stats = IpStats(
                 ip=sanitized_ip,
                 total_requests=1,
@@ -505,6 +539,10 @@ class DatabaseManager:
                 page_visit_count=0,
             )
             session.add(ip_stats)
+
+        if is_honeypot_trigger and not ip_stats.has_triggered_honeypot:
+            ip_stats.has_triggered_honeypot = True
+            was_first_honeypot = True
 
         page_visit_count = 0
         if increment_page_visit:
@@ -520,7 +558,7 @@ class DatabaseManager:
 
                 delete_cached_short(f"ban:{sanitized_ip}")
 
-        return page_visit_count
+        return page_visit_count, was_new_ip, was_first_honeypot
 
     def increment_page_visit(self, ip: str, max_pages_limit: int) -> int:
         """
@@ -854,6 +892,16 @@ class DatabaseManager:
             timestamp=timestamp,
         )
         session.add(history_entry)
+
+        try:
+            import metrics_counters as mc
+
+            if new_category:
+                mc.increment("clients_total", new_category)
+            if old_category:
+                mc.increment("clients_total", old_category, amount=-1)
+        except Exception as e:
+            applogger.error(f"Metric counter update failed: {e}")
 
     def get_category_history(self, ip: str) -> List[Dict[str, Any]]:
         """
@@ -1635,7 +1683,39 @@ class DatabaseManager:
             query = query.filter(ip_column != server_ip)
         return query
 
+    def _is_counted_ip(self, ip: str) -> bool:
+        """Whether an IP contributes to aggregate counters.
+
+        Mirrors _public_ip_filter semantics (only the server's own IP is
+        excluded) so event-driven counters match get_dashboard_counts.
+        """
+        from config import get_config
+
+        server_ip = get_config().get_server_ip()
+        return bool(ip) and ip != server_ip
+
     def get_dashboard_counts(self) -> Dict[str, int]:
+        """
+        Return aggregate dashboard counts from the live cache counters.
+
+        Counters are seeded at startup (from metrics_summary or a one-time
+        recompute) and maintained event-driven on the write path, so this
+        avoids the full access_logs scans that _compute_dashboard_counts_sql
+        performs.
+        """
+        import metrics_counters as mc
+
+        return {
+            "total_accesses": mc.get("total_accesses"),
+            "unique_ips": mc.get("unique_ips"),
+            "unique_paths": mc.get("unique_paths"),
+            "suspicious_accesses": mc.get("suspicious_accesses"),
+            "honeypot_triggered": mc.get("honeypot_triggered"),
+            "honeypot_ips": mc.get("honeypot_ips"),
+            "unique_attackers": mc.get("clients_total", "attacker"),
+        }
+
+    def _compute_dashboard_counts_sql(self) -> Dict[str, int]:
         """
         Get aggregate statistics for the dashboard (excludes local/private IPs and server IP).
 
@@ -1705,6 +1785,71 @@ class DatabaseManager:
                 "honeypot_ips": int(honeypot_ips),
                 "unique_attackers": int(unique_attackers),
             }
+        finally:
+            self.close_session()
+
+    def upsert_metrics_summary(self, values: Dict[tuple, int]) -> None:
+        """Persist heavy aggregate counters into metrics_summary.
+
+        Args:
+            values: mapping of (metric, label) -> value
+        """
+        session = self.session
+        try:
+            now = datetime.now()
+            for (metric, label), value in values.items():
+                row = (
+                    session.query(MetricsSummary)
+                    .filter(
+                        MetricsSummary.metric == metric,
+                        MetricsSummary.label == (label or ""),
+                    )
+                    .first()
+                )
+                if row:
+                    row.value = int(value)
+                    row.updated_at = now
+                else:
+                    session.add(
+                        MetricsSummary(
+                            metric=metric,
+                            label=label or "",
+                            value=int(value),
+                            updated_at=now,
+                        )
+                    )
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            applogger.error(f"Error upserting metrics summary: {e}")
+        finally:
+            self.close_session()
+
+    def get_metrics_summary(self) -> Dict[tuple, int]:
+        """Load all persisted summary rows as {(metric, label): value}."""
+        session = self.session
+        try:
+            rows = session.query(MetricsSummary).all()
+            return {(r.metric, r.label or ""): int(r.value) for r in rows}
+        except Exception as e:
+            applogger.error(f"Error reading metrics summary: {e}")
+            return {}
+        finally:
+            self.close_session()
+
+    def get_distinct_paths(self) -> List[str]:
+        """Return all distinct request paths (used to seed the unique_paths set)."""
+        session = self.session
+        try:
+            from config import get_config
+
+            server_ip = get_config().get_server_ip()
+            query = session.query(distinct(AccessLog.path))
+            query = self._public_ip_filter(query, AccessLog.ip, server_ip)
+            return [row[0] for row in query.all() if row[0] is not None]
+        except Exception as e:
+            applogger.error(f"Error reading distinct paths: {e}")
+            return []
         finally:
             self.close_session()
 
@@ -2461,7 +2606,6 @@ class DatabaseManager:
         """
         session = self.session
         try:
-            from sqlalchemy import func
 
             # Aggregate attack types with count
             query = session.query(
@@ -3139,6 +3283,29 @@ class DatabaseManager:
                     "total_pages": 0,
                 },
             }
+        finally:
+            self.close_session()
+
+    def count_category(self, category: str) -> int:
+        """Count the total number of ips in a given category."""
+        session = self.session
+        try:
+            count = session.query(IpStats).filter(IpStats.category == category).count()
+            return count or 0
+        except Exception as e:
+            applogger.error(f"Error counting {category}: {e}")
+            return 0
+        finally:
+            self.close_session()
+
+    def count_credentials(self) -> int:
+        """Count the total number of captured credential attempts."""
+        session = self.session
+        try:
+            return session.query(CredentialAttempt).count() or 0
+        except Exception as e:
+            applogger.error(f"Error counting credentials: {e}")
+            return 0
         finally:
             self.close_session()
 

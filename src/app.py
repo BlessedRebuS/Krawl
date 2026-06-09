@@ -6,7 +6,6 @@ Replaces the old http.server-based server.py.
 """
 
 import gc
-import sys
 import os
 from contextlib import asynccontextmanager
 
@@ -103,6 +102,17 @@ async def lifespan(app: FastAPI):
         app_logger.info("Cache flushed on startup")
     except Exception as e:
         app_logger.warning(f"Cache flush on startup failed: {e}")
+
+    # Seed event-driven metric counters (from metrics_summary or a one-time
+    # recompute). In scalable mode only the first pod actually seeds.
+    try:
+        import metrics_counters
+        from database import get_database
+
+        metrics_counters.bootstrap(get_database())
+        app_logger.info("Metric counters seeded")
+    except Exception as e:
+        app_logger.warning(f"Metric counter bootstrap failed: {e}")
 
     # Resolve server IP once (used to exclude self-traffic from stats)
     config.resolve_server_ip()
@@ -255,6 +265,7 @@ def create_app() -> FastAPI:
     config = get_config()
     secret = config.dashboard_secret_path.lstrip("/")
     static_dir = os.path.join(os.path.dirname(__file__), "templates", "static")
+
     application.mount(
         f"/{secret}/static",
         StaticFiles(directory=static_dir),
