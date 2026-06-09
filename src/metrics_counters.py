@@ -150,3 +150,60 @@ def needs_seed() -> bool:
             return bool(r.set(_SEED_MARKER, "1", nx=True))
         return True
     return True
+
+
+# Heavy aggregates persisted in metrics_summary (and recomputed once on first run).
+HEAVY_METRICS = (
+    "total_accesses",
+    "unique_ips",
+    "unique_paths",
+    "suspicious_accesses",
+    "honeypot_triggered",
+    "honeypot_ips",
+)
+
+_CATEGORIES = ("attacker", "good_crawler", "bad_crawler", "regular_user")
+
+
+def bootstrap(db) -> None:
+    """
+    Seed live counters at startup. Idempotent and safe across pods.
+
+    In scalable mode only the first pod (per needs_seed) runs this; in standalone
+    it runs every boot. Heavy aggregates load from metrics_summary, or are
+    recomputed once from SQL if the table is empty. Cheap labeled counters
+    (categories, attack types) are recomputed from their indexed queries. The
+    seen-paths set is rebuilt from distinct paths.
+    """
+    if not needs_seed():
+        return
+
+    try:
+        summary = db.get_metrics_summary()
+        if summary:
+            for (metric, label), value in summary.items():
+                set_value(metric, label, value)
+        else:
+            counts = db._compute_dashboard_counts_sql()
+            persisted = {}
+            for metric in HEAVY_METRICS:
+                value = int(counts.get(metric, 0) or 0)
+                set_value(metric, "", value)
+                persisted[(metric, "")] = value
+            db.upsert_metrics_summary(persisted)
+
+        # Cheap labeled counters (indexed queries) — recomputed every seed.
+        for category in _CATEGORIES:
+            set_value("clients_total", category, db.count_category(category))
+
+        for entry in db.get_attack_types_stats(limit=100).get("attack_types", []):
+            set_value("attack_detections", entry["type"], int(entry["count"]))
+
+        # Seen-paths distinctness set + keep unique_paths consistent with it.
+        seed_set("paths", db.get_distinct_paths())
+        set_value("unique_paths", "", scard("paths"))
+    except Exception:
+        # Never block startup on metrics seeding.
+        import logging
+
+        logging.getLogger("krawl").exception("metrics_counters.bootstrap failed")
