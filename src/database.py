@@ -892,16 +892,10 @@ class DatabaseManager:
             timestamp=timestamp,
         )
         session.add(history_entry)
-
-        try:
-            import metrics_counters as mc
-
-            if new_category:
-                mc.increment("clients_total", new_category)
-            if old_category:
-                mc.increment("clients_total", old_category, amount=-1)
-        except Exception as e:
-            applogger.error(f"Metric counter update failed: {e}")
+        # Note: clients_total is NOT maintained as a +new/-old delta counter.
+        # It is current-state and recomputed live from count_category at scrape
+        # time (see metrics.refresh_from_counters), which is cheap (indexed) and
+        # avoids the unbounded drift a delta accrues under retention deletes.
 
     def get_category_history(self, ip: str) -> List[Dict[str, Any]]:
         """
@@ -1712,7 +1706,9 @@ class DatabaseManager:
             "suspicious_accesses": mc.get("suspicious_accesses"),
             "honeypot_triggered": mc.get("honeypot_triggered"),
             "honeypot_ips": mc.get("honeypot_ips"),
-            "unique_attackers": mc.get("clients_total", "attacker"),
+            # clients_total is current-state (recomputed live), not a cumulative
+            # counter — read it straight from the indexed category count.
+            "unique_attackers": self.count_category("attacker"),
         }
 
     def _compute_dashboard_counts_sql(self) -> Dict[str, int]:
@@ -1833,6 +1829,46 @@ class DatabaseManager:
             return {(r.metric, r.label or ""): int(r.value) for r in rows}
         except Exception as e:
             applogger.error(f"Error reading metrics summary: {e}")
+            return {}
+        finally:
+            self.close_session()
+
+    def get_heavy_summary(self) -> Dict[str, int]:
+        """Load the persisted heavy-aggregate snapshot as {metric: value}.
+
+        Only the cumulative current-snapshot rows (empty label); excludes the
+        '_deleted' tally rows.
+        """
+        session = self.session
+        try:
+            rows = (
+                session.query(MetricsSummary)
+                .filter(MetricsSummary.label == "")
+                .all()
+            )
+            return {r.metric: int(r.value) for r in rows}
+        except Exception as e:
+            applogger.error(f"Error reading heavy summary: {e}")
+            return {}
+        finally:
+            self.close_session()
+
+    def get_deleted_tallies(self) -> Dict[str, int]:
+        """Load the cumulative 'deleted' tallies as {metric: value}.
+
+        These accumulate what retention removes so reconciliation can keep
+        cumulative metrics absolute: reconciled = count(current rows) + tally.
+        """
+        session = self.session
+        try:
+            rows = (
+                session.query(MetricsSummary)
+                .filter(MetricsSummary.label == "_deleted")
+                .all()
+            )
+            return {r.metric: int(r.value) for r in rows}
+        except Exception as e:
+            applogger.error(f"Error reading deleted tallies: {e}")
             return {}
         finally:
             self.close_session()
