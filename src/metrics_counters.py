@@ -152,7 +152,7 @@ def needs_seed() -> bool:
     return True
 
 
-# Heavy aggregates persisted in metrics_summary (and recomputed once on first run).
+# Heavy aggregates persisted in metrics_summary (and recomputed from SQL).
 HEAVY_METRICS = (
     "total_accesses",
     "unique_ips",
@@ -162,50 +162,110 @@ HEAVY_METRICS = (
     "honeypot_ips",
 )
 
-_CATEGORIES = ("attacker", "good_crawler", "bad_crawler", "regular_user")
+# Cumulative metrics whose true total-ever = count(current rows) + deleted tally.
+# Other heavy metrics are preserved by retention (suspicious/honeypot rows are
+# never purged), so their current count already equals the cumulative total.
+_TALLIED_METRICS = ("total_accesses", "unique_ips")
+
+_RECONCILE_LOCK = "krawl:counter:_reconcile_lock"
+
+
+def _acquire_reconcile_lock(ttl: int = 600) -> bool:
+    """Return True if this process should run the (expensive) full recompute.
+
+    Scalable: a short-lived Redis lock so only one pod recomputes per window.
+    Standalone: always True (single process).
+    """
+    if get_backend() == "scalable":
+        r = get_redis_client()
+        if r is not None:
+            return bool(r.set(_RECONCILE_LOCK, "1", nx=True, ex=ttl))
+        return True
+    return True
+
+
+def _recompute_heavy(db) -> None:
+    """Recompute heavy counters as cumulative absolutes from the DB + tallies.
+
+    For tallied metrics, cumulative = count(current rows) + deleted tally, so
+    they stay "total ever observed" even after retention purges benign rows.
+    The seen-paths set is left untouched (append-only distinct-ever); we only
+    keep the unique_paths counter aligned to its cardinality.
+    """
+    counts = db._compute_dashboard_counts_sql()
+    tallies = db.get_deleted_tallies()
+    for metric in HEAVY_METRICS:
+        if metric == "unique_paths":
+            continue  # backed by the append-only seen-paths set
+        base = int(counts.get(metric, 0) or 0)
+        if metric in _TALLIED_METRICS:
+            base += int(tallies.get(metric, 0) or 0)
+        set_value(metric, "", base)
+    set_value("unique_paths", "", scard("paths"))
+    db.upsert_metrics_summary({(m, ""): get(m) for m in HEAVY_METRICS})
+
+
+def _recompute_cheap(db) -> None:
+    """Recompute cumulative metrics that are cheap and preserved by retention."""
+    set_value("credentials_captured", "", db.count_credentials())
+    # attack_detections rows are preserved by retention (they hang off suspicious
+    # logs), so the current per-type count equals the cumulative total.
+    for entry in db.get_attack_types_stats(limit=100).get("attack_types", []):
+        set_value("attack_detections", entry["type"], int(entry["count"]))
 
 
 def bootstrap(db) -> None:
     """
     Seed live counters at startup. Idempotent and safe across pods.
 
-    In scalable mode only the first pod (per needs_seed) runs this; in standalone
-    it runs every boot. Heavy aggregates load from metrics_summary, or are
-    recomputed once from SQL if the table is empty. Cheap labeled counters
-    (categories, attack types) are recomputed from their indexed queries. The
-    seen-paths set is rebuilt from distinct paths.
+    In scalable mode only the first pod (per needs_seed) seeds; in standalone it
+    runs every boot. Heavy aggregates load from the persisted snapshot (fast,
+    avoids a full scan on every pod start) or are recomputed from SQL on first
+    run. clients_total is NOT seeded here — it is recomputed live at scrape time.
     """
     if not needs_seed():
         return
 
     try:
-        summary = db.get_metrics_summary()
-        if summary:
-            for (metric, label), value in summary.items():
-                set_value(metric, label, value)
-        else:
-            counts = db._compute_dashboard_counts_sql()
-            persisted = {}
-            for metric in HEAVY_METRICS:
-                value = int(counts.get(metric, 0) or 0)
+        # Seen-paths distinctness set: rebuild only if absent (e.g. Redis wiped).
+        # It is append-only across restarts, so we never shrink it here.
+        if scard("paths") == 0:
+            seed_set("paths", db.get_distinct_paths())
+
+        heavy = db.get_heavy_summary()
+        if heavy:
+            for metric, value in heavy.items():
                 set_value(metric, "", value)
-                persisted[(metric, "")] = value
-            db.upsert_metrics_summary(persisted)
+            # Keep unique_paths at least the cumulative we last persisted, even
+            # if the set was rebuilt from a smaller current-distinct after a wipe.
+            set_value(
+                "unique_paths", "", max(scard("paths"), int(heavy.get("unique_paths", 0)))
+            )
+        else:
+            _recompute_heavy(db)
 
-        # Cheap counters (indexed queries) — recomputed every seed.
-        set_value("credentials_captured", "", db.count_credentials())
-
-        for category in _CATEGORIES:
-            set_value("clients_total", category, db.count_category(category))
-
-        for entry in db.get_attack_types_stats(limit=100).get("attack_types", []):
-            set_value("attack_detections", entry["type"], int(entry["count"]))
-
-        # Seen-paths distinctness set + keep unique_paths consistent with it.
-        seed_set("paths", db.get_distinct_paths())
-        set_value("unique_paths", "", scard("paths"))
+        _recompute_cheap(db)
     except Exception:
         # Never block startup on metrics seeding.
         import logging
 
         logging.getLogger("krawl").exception("metrics_counters.bootstrap failed")
+
+
+def reconcile(db) -> None:
+    """
+    Recompute cumulative counters from source, correcting any event-driven drift.
+
+    Called at startup (via bootstrap) and right after each db-retention run — the
+    only thing that deletes data. Guarded by a Redis lock so just one pod runs
+    the full scan. Does not touch clients_total (recomputed live at scrape).
+    """
+    if not _acquire_reconcile_lock():
+        return
+    try:
+        _recompute_heavy(db)
+        _recompute_cheap(db)
+    except Exception:
+        import logging
+
+        logging.getLogger("krawl").exception("metrics_counters.reconcile failed")

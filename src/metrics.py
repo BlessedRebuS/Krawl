@@ -138,14 +138,21 @@ def refresh_from_counters() -> None:
     honeypot_ips.set(c.get("honeypot_ips"))
     credentials_captured.set(c.get("credentials_captured"))
 
-    for category in CATEGORIES:
-        clients_total.labels(category).set(c.get("clients_total", category))
-
     attack_detections.clear()
     for key, value in c.get_all().items():
         if key.startswith("attack_detections|"):
             attack_type = key.split("|", 1)[1]
             attack_detections.labels(attack_type).set(value)
+
+    # clients_total is current-state ("how many IPs are classified X right now"),
+    # not a cumulative counter, so recompute it live from the indexed category
+    # counts. This is cheap (4 COUNTs) and avoids the unbounded delta drift that
+    # produced negative values.
+    from database import get_database
+
+    db = get_database()
+    for category in CATEGORIES:
+        clients_total.labels(category).set(db.count_category(category))
 
 
 def refresh_ai(db) -> None:
