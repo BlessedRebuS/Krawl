@@ -39,6 +39,150 @@ spec:
       - namespaceSelector: {}
       - ipBlock:
           cidr: 0.0.0.0/0
+
+    # Optional local Ollama deployment
+    # Uncomment and adjust the AI config to use:
+    #   provider: "openai"
+    #   openai_base_url: "http://krawl-ollama:8080/v1"
+    #   model: "qwen:1.8b"
+    # apiVersion: v1
+    # kind: PersistentVolumeClaim
+    # metadata:
+      #   name: krawl-ollama
+    #   namespace: krawl-system
+    #   labels:
+    #     app.kubernetes.io/name: krawl
+    #     app.kubernetes.io/instance: krawl
+    #     app.kubernetes.io/version: "2.1.0"
+    #     app.kubernetes.io/component: llm
+    # spec:
+    #   accessModes:
+    #     - ReadWriteOnce
+    #   resources:
+    #     requests:
+    #       storage: 5Gi
+    # ---
+    # apiVersion: v1
+    # kind: Service
+    # metadata:
+      #   name: krawl-ollama
+    #   namespace: krawl-system
+    #   labels:
+    #     app.kubernetes.io/name: krawl
+    #     app.kubernetes.io/instance: krawl
+    #     app.kubernetes.io/version: "2.1.0"
+    #     app.kubernetes.io/component: llm
+    # spec:
+    #   type: ClusterIP
+    #   ports:
+    #     - name: http
+    #       port: 8080
+    #       targetPort: http
+    #       protocol: TCP
+    #   selector:
+    #     app.kubernetes.io/name: krawl
+    #     app.kubernetes.io/instance: krawl
+    #     app.kubernetes.io/component: llm
+    # ---
+    # apiVersion: apps/v1
+    # kind: Deployment
+    # metadata:
+      #   name: krawl-ollama
+    #   namespace: krawl-system
+    #   labels:
+    #     app.kubernetes.io/name: krawl
+    #     app.kubernetes.io/instance: krawl
+    #     app.kubernetes.io/version: "2.1.0"
+    #     app.kubernetes.io/component: llm
+    # spec:
+    #   replicas: 1
+    #   selector:
+    #     matchLabels:
+    #       app.kubernetes.io/name: krawl
+    #       app.kubernetes.io/instance: krawl
+    #       app.kubernetes.io/component: llm
+    #   template:
+    #     metadata:
+    #       labels:
+    #         app.kubernetes.io/name: krawl
+    #         app.kubernetes.io/instance: krawl
+    #         app.kubernetes.io/component: llm
+    #     spec:
+    #       containers:
+    #       - name: ollama
+    #         image: "ollama/ollama:latest"
+    #         imagePullPolicy: IfNotPresent
+    #         ports:
+    #         - name: http
+    #           containerPort: 8080
+    #           protocol: TCP
+    #         env:
+    #         - name: OLLAMA_HOST
+    #           value: "0.0.0.0:8080"
+    #         - name: OLLAMA_MODELS
+    #           value: /models
+    #         command:
+    #         - /bin/sh
+    #         - -c
+    #         args:
+    #         - |
+    #           /bin/ollama serve &
+    #           until /bin/ollama list >/dev/null 2>&1; do
+    #             sleep 2
+    #           done
+    #           /bin/ollama pull qwen:1.8b
+    #           wait
+    #         volumeMounts:
+    #         - name: models
+    #           mountPath: /models
+    #       volumes:
+    #       - name: models
+    #         persistentVolumeClaim:
+      #           claimName: krawl-ollama
+    # ---
+    # Optional local llama.cpp deployment
+    # Uncomment and adjust the AI config to use:
+    #   provider: "openai"
+    #   openai_base_url: "http://krawl-llamacpp:8080/v1"
+    #   model: "qwen1.5-1.8b-chat"
+    # apiVersion: apps/v1
+    # kind: Deployment
+    # metadata:
+      #   name: krawl-llamacpp
+    #   namespace: krawl-system
+    #   labels:
+    #     app.kubernetes.io/name: krawl
+    #     app.kubernetes.io/instance: krawl
+    #     app.kubernetes.io/version: "2.1.0"
+    #     app.kubernetes.io/component: llm
+    # spec:
+    #   replicas: 1
+    #   selector:
+    #     matchLabels:
+    #       app.kubernetes.io/name: krawl
+    #       app.kubernetes.io/instance: krawl
+    #       app.kubernetes.io/component: llm
+    #   template:
+    #     metadata:
+    #       labels:
+    #         app.kubernetes.io/name: krawl
+    #         app.kubernetes.io/instance: krawl
+    #         app.kubernetes.io/component: llm
+    #     spec:
+    #       containers:
+    #       - name: llama-cpp
+    #         image: "ghcr.io/ggml-org/llama.cpp:server"
+    #         imagePullPolicy: IfNotPresent
+    #         ports:
+    #         - name: http
+    #           containerPort: 8080
+    #           protocol: TCP
+    #         command:
+    #         - /bin/sh
+    #         - -c
+    #         args:
+    #         - |
+    #           /bin/llama-server --hf-repo Qwen/Qwen1.5-1.8B-Chat-GGUF --hf-file qwen1_5-1_8b-chat-q4_k_m.gguf --port 8080 --host 0.0.0.0 -n -1
 ---
 # Source: krawl-chart/templates/configmap.yaml
 apiVersion: v1
@@ -94,7 +238,8 @@ data:
       ban_duration_seconds: 600
     ai:
       enabled: false
-      provider: "openrouter"  # "openrouter" or "openai"
+      provider: "openrouter"  # "openrouter" or "openai". Use "openai" for OpenAI-compatible endpoints such as Ollama or llama.cpp.
+      openai_base_url: "https://api.openai.com/v1"  # Set to your OpenAI-compatible endpoint, e.g. http://krawl-ollama:8080/v1 or http://krawl-llamacpp:8080/v1
       model: null
       api_key: null
       timeout: 60
@@ -117,6 +262,32 @@ data:
     tarpit:
       enabled: false
       delay_seconds: 5
+---
+# Custom template ConfigMap (optional)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: krawl-custom-template
+  namespace: krawl-system
+  labels:
+    app.kubernetes.io/name: krawl
+    app.kubernetes.io/instance: krawl
+    app.kubernetes.io/version: "2.1.0"
+data:
+  custom_page.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Krawl Custom</title>
+      <style>body { font-family: Arial, sans-serif; background:#111;color:#ddd; }</style>
+    </head>
+    <body>
+      <h1>Krawl</h1>
+      <div class="counter">{counter}</div>
+      <div>{content}</div>
+    </body>
+    </html>
 ---
 # Source: krawl-chart/templates/wordlists-configmap.yaml
 apiVersion: v1
@@ -331,6 +502,8 @@ spec:
           value: "30"
         - name: KRAWL_REDIS_TABLE_TTL
           value: "120"
+        - name: KRAWL_CUSTOM_TEMPLATE_PATH
+          value: "/etc/krawl/templates/custom_page.html"
         volumeMounts:
         - name: config
           mountPath: /app/config.yaml
@@ -339,6 +512,9 @@ spec:
         - name: wordlists
           mountPath: /app/wordlists.json
           subPath: wordlists.json
+          readOnly: true
+        - name: custom-template
+          mountPath: /etc/krawl/templates
           readOnly: true
         resources:
             limits:
@@ -354,6 +530,9 @@ spec:
       - name: wordlists
         configMap:
           name: krawl-wordlists
+      - name: custom-template
+        configMap:
+          name: krawl-custom-template
 ---
 # Source: krawl-chart/templates/postgres.yaml
 apiVersion: apps/v1

@@ -335,6 +335,7 @@ You can use the [config.yaml](config.yaml) file for advanced configurations, suc
 | `KRAWL_AI_TIMEOUT` | Request timeout in seconds for AI API calls | `60` |
 | `KRAWL_AI_MAX_DAILY_REQUESTS` | Max number of AI-generated pages per day (0 = unlimited) | `0` |
 | `KRAWL_AI_PROMPT` | Custom prompt template for AI page generation | Default prompt |
+| `KRAWL_CUSTOM_TEMPLATE_PATH` | Path inside the container to a custom HTML template. Template must include `{counter}` and `{content}` placeholders. | `/templates/custom_page.html` |
 | **Scalable mode** | | |
 | `KRAWL_MODE` | Deployment mode (`standalone` or `scalable`) | `standalone` |
 | `KRAWL_POSTGRES_HOST` | PostgreSQL hostname | `localhost` |
@@ -378,6 +379,7 @@ docker run -d \
   -e KRAWL_PORT=5000 \
   -e KRAWL_DELAY=100 \
   -e KRAWL_DASHBOARD_PASSWORD="my-secret-password" \
+  -e KRAWL_CUSTOM_TEMPLATE_PATH="/templates/custom_page.html" \
   -e KRAWL_CANARY_TOKEN_URL="http://your-canary-token-url" \
   --name krawl \
   ghcr.io/blessedrebus/krawl:latest
@@ -463,6 +465,7 @@ location / {
 | Topic | Description |
 |-------|-------------|
 | [AI Generation](docs/ai_generation.md) | Configure AI-generated deception pages using OpenRouter or OpenAI |
+| [Deception Pages](docs/deception_pages.md) | Manage, import, and export deception pages; bulk operations and date-based filtering |
 | [Deployment Modes](docs/deployment-modes.md) | Standalone (SQLite) vs Scalable (PostgreSQL + Redis) mode, configuration, and data migration |
 | [Honeypot](docs/honeypot.md) | Full overview of honeypot pages: fake logins, directory listings, credential files, SQLi/XSS/XXE/command injection traps, and more |
 | [Dashboard](docs/dashboard.md) | Access and explore the real-time monitoring dashboard |

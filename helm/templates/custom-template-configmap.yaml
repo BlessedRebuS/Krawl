@@ -1,0 +1,15 @@
+{{- if .Values.customTemplate.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "krawl.fullname" . }}-custom-template
+  labels:
+    {{- include "krawl.labels" . | nindent 4 }}
+data:
+  custom_page.html: |
+{{- if .Values.customTemplate.content }}
+{{ .Values.customTemplate.content | nindent 4 }}
+{{- else }}
+  <!-- Empty template placeholder - override ConfigMap or supply content via --set-file -->
+{{- end }}
+{{- end }}

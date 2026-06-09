@@ -55,6 +55,9 @@ class Config:
     dashboard_top_n_min_count: int = 5
     probability_error_codes: int = 0  # Percentage (0-100)
 
+    # Prometheus metrics
+    metrics_enabled: bool = True
+
     # Crawl limiting settings - for legitimate vs malicious crawlers
     max_pages_limit: int = (
         100  # Max pages limit for good crawlers and regular users (and bad crawlers/attackers if infinite_pages_for_malicious is False)
@@ -96,6 +99,14 @@ class Config:
     ai_max_daily_requests: int = 0
     ai_reasoning_enabled: bool = True
     ai_reasoning_effort: str = "medium"
+
+    # Custom page template settings
+    # If `custom_template_path` is set (non-null), the custom template will be used.
+    custom_template_path: Optional[str] = None
+
+    # Deception pages import settings
+    deception_import_pages: bool = True
+
 
     _server_ip: Optional[str] = None
     _server_ip_resolved: bool = False
@@ -188,6 +199,15 @@ class Config:
         tarpit = data.get("tarpit", {})
         logging_cfg = data.get("logging", {})
         ai = data.get("ai", {})
+        metrics = data.get("metrics", {})
+        deception = data.get("deception", {})
+        # Support legacy nested `page_template` or top-level `custom_template_path`.
+        page_template = data.get("page_template", {})
+        custom_template_path = data.get("custom_template_path", None)
+        # If nested page_template is present and defines custom_template_path, prefer it
+        if not custom_template_path and isinstance(page_template, dict):
+            custom_template_path = page_template.get("custom_template_path", None)
+        metrics = data.get("metrics", {})
 
         # Handle dashboard_secret_path - auto-generate if null/not set
         dashboard_path = dashboard.get("secret_path")
@@ -252,6 +272,7 @@ class Config:
             dashboard_warmup_pages=int(dashboard.get("warmup_pages", 10)),
             dashboard_warmup_aggregation=dashboard.get("warmup_aggregation", False),
             dashboard_top_n_min_count=int(dashboard.get("top_n_min_count", 5)),
+            metrics_enabled=metrics.get("enabled", True),
             probability_error_codes=behavior.get("probability_error_codes", 0),
             backups_path=backups.get("path", "backups"),
             backups_enabled=backups.get("enabled", False),
@@ -309,6 +330,8 @@ Generate the complete HTML page.""",
             ),
             ai_timeout=ai.get("timeout", 60),
             ai_max_daily_requests=ai.get("max_daily_requests", 0),
+            deception_import_pages=deception.get("import_pages", True),
+            custom_template_path=custom_template_path,
         )
 
 

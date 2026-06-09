@@ -55,6 +55,19 @@ def _migrate_need_reevaluation_column(engine: Engine) -> bool:
     return True
 
 
+def _migrate_has_triggered_honeypot_column(engine: Engine) -> bool:
+    """Add has_triggered_honeypot column to ip_stats if missing."""
+    if _column_exists(engine, "ip_stats", "has_triggered_honeypot"):
+        return False
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "ALTER TABLE ip_stats ADD COLUMN has_triggered_honeypot BOOLEAN DEFAULT 0"
+            )
+        )
+    return True
+
+
 def _migrate_ban_state_columns(engine: Engine) -> List[str]:
     """Add ban/rate-limit columns to ip_stats if missing."""
     added = []
@@ -156,6 +169,9 @@ def run_migrations(engine: Engine) -> None:
 
         if _migrate_need_reevaluation_column(engine):
             applied.append("add need_reevaluation column to ip_stats")
+
+        if _migrate_has_triggered_honeypot_column(engine):
+            applied.append("add has_triggered_honeypot column to ip_stats")
 
         ban_cols = _migrate_ban_state_columns(engine)
         for col in ban_cols:

@@ -206,6 +206,11 @@ class IpStats(Base):
     need_reevaluation: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=True
     )
+    # Set True the first time this IP triggers a honeypot path; lets us count
+    # distinct honeypot IPs event-driven without a COUNT(DISTINCT) query.
+    has_triggered_honeypot: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=True
+    )
 
     # Ban/rate-limit state (moved from in-memory tracker to DB)
     page_visit_count: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
@@ -303,6 +308,29 @@ class GeneratedPage(Base):
 
     def __repr__(self) -> str:
         return f"<GeneratedPage(path='{self.path}', accesses={self.access_count})>"
+
+
+class MetricsSummary(Base):
+    """
+    Durable snapshot of heavy aggregate counters.
+
+    Persisted periodically from the live cache counters so the dashboard and
+    Prometheus avoid full COUNT/COUNT(DISTINCT) scans on access_logs, and so
+    counters can be re-seeded after a restart. Generic (metric, label) shape
+    so labeled metrics can be added later without a migration.
+    """
+
+    __tablename__ = "metrics_summary"
+
+    metric: Mapped[str] = mapped_column(String(64), primary_key=True)
+    label: Mapped[str] = mapped_column(String(128), primary_key=True, default="")
+    value: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.utcnow
+    )
+
+    def __repr__(self) -> str:
+        return f"<MetricsSummary(metric='{self.metric}', label='{self.label}', value={self.value})>"
 
 
 # class IpLog(Base):

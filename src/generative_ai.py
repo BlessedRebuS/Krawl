@@ -11,6 +11,7 @@ import os
 import logging
 import asyncio
 import base64
+import re
 from typing import Optional, Tuple, List
 from pathlib import Path
 from datetime import datetime
@@ -24,6 +25,20 @@ _robots_disallowed_cache: Optional[List[str]] = None
 
 # Shared aiohttp session to avoid creating a new connection pool per request
 _aiohttp_session: Optional[aiohttp.ClientSession] = None
+
+
+def normalize_path(path: str) -> str:
+    # Normalize a path to avoid duplicates
+    if not path:
+        return "/"
+    
+    while "//" in path:
+        path = path.replace("//", "/")
+    
+    if path != "/" and path.endswith("/"):
+        path = path.rstrip("/")
+    
+    return path
 
 
 async def _get_aiohttp_session() -> aiohttp.ClientSession:
@@ -40,6 +55,86 @@ async def close_aiohttp_session() -> None:
     if _aiohttp_session is not None and not _aiohttp_session.closed:
         await _aiohttp_session.close()
         _aiohttp_session = None
+
+
+def import_deception_pages_from_directory() -> int:
+    """Import HTML pages from src/templates/deception directory into the database.
+
+    Files are mapped to paths by replacing double underscores with slashes:
+    - admin__panel__login.html → /admin/panel/login
+    - test__blabla.html → /test/blabla
+    - wordpress__wp__admin__users.html → /wordpress/wp/admin/users
+
+    Only imports if deception.import_pages is enabled in config.
+    Skips files that already exist in the database (lightweight check).
+
+    Returns:
+        Number of pages successfully imported
+    """
+    from config import get_config
+
+    config = get_config()
+    
+    # Check if import is enabled
+    if not hasattr(config, 'deception_import_pages') or not config.deception_import_pages:
+        return 0
+
+    deception_dir = Path(__file__).parent / "templates" / "deception"
+    
+    if not deception_dir.exists():
+        return 0
+
+    imported_count = 0
+
+    try:
+        # Find all HTML files directly in the directory (not recursive - flat structure only)
+        html_files = list(deception_dir.glob("*.html"))
+        total_files = len(html_files)
+        logger.debug(f"Found {total_files} HTML files in deception folder")
+
+        for html_file in html_files:
+            try:
+                # Get filename without extension
+                filename = html_file.stem  # e.g., "admin__panel__login"
+                
+                # Convert double underscores to slashes for URL path
+                # admin__panel__login → admin/panel/login
+                url_path = "/" + filename.replace("__", "/")
+                
+                # Normalize path to avoid duplicates
+                url_path = normalize_path(url_path)
+
+                if not url_path or url_path == "/":
+                    logger.debug(f"Could not generate valid URL path for {html_file.name}, skipping")
+                    continue
+
+                # Read the HTML file
+                try:
+                    with open(html_file, 'r', encoding='utf-8') as f:
+                        html_content = f.read()
+                except UnicodeDecodeError:
+                    # Try with different encoding
+                    try:
+                        with open(html_file, 'r', encoding='latin-1') as f:
+                            html_content = f.read()
+                    except Exception as err:
+                        logger.debug(f"Could not read {html_file}: {err}")
+                        continue
+
+                # Save to database (will upsert if already exists)
+                if save_generated_page_to_db(url_path, html_content):
+                    imported_count += 1
+                    logger.debug(f"Imported deception page: {url_path}")
+
+            except Exception as err:
+                logger.debug(f"Error processing deception page {html_file}: {err}")
+
+        logger.info(f"Imported {imported_count}/{total_files} deception pages")
+        return imported_count
+
+    except Exception as err:
+        logger.error(f"Unexpected error during deception page import: {err}")
+        return 0
 
 
 def is_ai_enabled() -> bool:
@@ -206,6 +301,7 @@ def has_generated_page_in_db(path: str) -> bool:
     Returns:
         True if a cached page exists for this path
     """
+    path = normalize_path(path)
     try:
         from database import DatabaseManager
         from models import GeneratedPage
@@ -236,6 +332,7 @@ def get_generated_page_from_db(path: str) -> Optional[str]:
     Returns:
         HTML content (decoded from base64) or None if not found
     """
+    path = normalize_path(path)
     try:
         from database import DatabaseManager
         from models import GeneratedPage
@@ -279,6 +376,7 @@ def save_generated_page_to_db(path: str, html_content: str) -> bool:
     Returns:
         True if saved successfully, False otherwise
     """
+    path = normalize_path(path)
     try:
         from database import DatabaseManager
         from models import GeneratedPage
@@ -487,6 +585,7 @@ async def generate_html_for_path(
         Tuple of (html_content, content_type, status_code, was_cached)
         where was_cached is True if served from database cache, False if freshly generated
     """
+    path = normalize_path(path)
     # ALWAYS check database cache first - serve cached pages even if AI is disabled
     cached_html = get_generated_page_from_db(path)
     if cached_html:
@@ -604,6 +703,7 @@ def should_use_ai_for_path(path: str) -> bool:
     Returns:
         True if path should try to use AI (for generation or cached retrieval)
     """
+    path = normalize_path(path)
     # Check if there's a cached page even if AI is disabled (lightweight check, no content load)
     if has_generated_page_in_db(path):
         logger.debug(f"Found cached AI page for {path}, will serve it")

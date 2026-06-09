@@ -78,6 +78,11 @@ backups:
   cron: "*/30 * * * *"
   enabled: false
 
+# Prometheus metrics endpoint, exposed at /{dashboard_secret_path}/metrics.
+# When disabled, the endpoint returns 404 and refresh helpers no-op.
+metrics:
+  enabled: true
+
 logging:
   level: "DEBUG"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
@@ -109,6 +114,14 @@ tarpit:
   enabled: false  # Opt-in: trap AI agents with slow responses and random text
   delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active
 
+# Custom page template settings
+# Operators can provide a custom HTML template file by setting
+# `custom_template_path`. If this key is present and not null, Krawl
+# will attempt to load the template from the provided path. The template
+# may include `{counter}` and `{content}` placeholders but they are
+# optional (no strict validation is performed).
+# custom_template_path: "/path/to/custom_page.html"
+
 ### AI-Generated Deception pages. Here it can be used either OpenRouter or OpenAI as provider, but also self-hosted LLMs with an API-compatible endpoint 
 ### by setting the provider to "openai" and pointing the openai_base_url to the local LLM server URL. Note that the krawl-llm is the service name of the llama.cpp server in the docker-compose.yaml.
 ai:
@@ -133,8 +146,14 @@ ai:
     3. Do not add markdown, code blocks, or explanations
     4. Do not include any file in the html, generate everything needed in one single file
     5. Include proper HTML structure with head and body tags
-    6. If the request is a common attack vector (e.g., SQLi, XSS), include fake data in response
+    6. If the request is a common attack vector (e.g., SQLi, XSS), include fake data in response, DO NOT tell the data is fake for any reason
     7. If the request has a file extension, generate a RAW content relevant to that type (e.g. a fake json for .json requests)
 
     Path: {path}{query_part}
     Generate the complete HTML page.
+
+deception:
+  # Enable automatic import of deception pages from src/templates/deception directory on startup
+  # Files are mapped to paths by replacing "/" with "_" (e.g., test_blabla.html -> /test/blabla)
+  # A zip file containing deception pages can also be uploaded via the dashboard
+  import_pages: true

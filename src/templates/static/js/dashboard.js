@@ -481,29 +481,7 @@ window.reloadGeneratedPagesTable = function() {
     }
 };
 
-window.deletePagesBefore = async function() {
-    const dashboardPath = document.querySelector('[x-data="dashboardApp()"]')?.__alpine_data?.dashboardPath || window.__DASHBOARD_PATH__ || '';
-    const dateInput = document.getElementById('delete-before-date');
-    if (!dateInput || !dateInput.value) {
-        krawlModal.error('Please select a date');
-        return;
-    }
-    const confirmed = await krawlModal.confirm('Delete all pages created before ' + dateInput.value + '? This cannot be undone.');
-    if (!confirmed) return;
-    const url = dashboardPath + '/api/delete-generated-pages?before_date=' + encodeURIComponent(dateInput.value);
 
-    fetch(url, { method: 'POST' })
-        .then(response => response.text())
-        .then(html => {
-            document.getElementById('deception-htmx-container').innerHTML = html;
-            // Reload table after a brief delay to ensure new DOM is ready
-            setTimeout(window.reloadGeneratedPagesTable, 100);
-        })
-        .catch(error => {
-            console.error('Delete error:', error);
-            krawlModal.error('Error deleting pages');
-        });
-};
 
 window.deleteSelectedPages = async function() {
     const dashboardPath = document.querySelector('[x-data="dashboardApp()"]')?.__alpine_data?.dashboardPath || window.__DASHBOARD_PATH__ || '';
@@ -514,36 +492,53 @@ window.deleteSelectedPages = async function() {
         return;
     }
 
-    // Find all checked checkboxes in the container
+    // Check if "select all pages" flag is set
+    const selectAllFlag = container.dataset.selectAllPages === 'true';
     const checkboxes = container.querySelectorAll('input[name="page-checkbox"]:checked');
+    const dateInput = document.getElementById('deception-date-filter');
 
-    if (checkboxes.length === 0) {
-        krawlModal.error('Please select at least one page to delete');
+    // Check if we have selected pages OR a date filter OR select all flag
+    if (!selectAllFlag && checkboxes.length === 0 && (!dateInput || !dateInput.value)) {
+        krawlModal.error('Please select at least one page to delete or set a date filter');
         return;
     }
 
-    // Collect IDs and filter out empty ones
-    const ids = [];
-    checkboxes.forEach(cb => {
-        const val = cb.value || cb.getAttribute('value');
-        if (val && val.trim()) {
-            ids.push(val.trim());
+    // Build delete request
+    let url = dashboardPath + '/api/delete-generated-pages?';
+    let confirmMsg = '';
+
+    if (selectAllFlag) {
+        // Delete ALL pages
+        url += 'delete_all=true';
+        confirmMsg = 'Delete ALL generated pages? This cannot be undone.';
+    } else if (checkboxes.length > 0) {
+        // Delete selected pages
+        const ids = [];
+        checkboxes.forEach(cb => {
+            const val = cb.value || cb.getAttribute('value');
+            if (val && val.trim()) {
+                ids.push(val.trim());
+            }
+        });
+
+        if (ids.length === 0) {
+            console.error('No valid checkbox values found. Checkbox values:',
+                Array.from(checkboxes).map(cb => ({ value: cb.value, attr: cb.getAttribute('value') })));
+            krawlModal.error('No valid page IDs found. Please try again.');
+            return;
         }
-    });
 
-    if (ids.length === 0) {
-        console.error('No valid checkbox values found. Checkbox values:',
-            Array.from(checkboxes).map(cb => ({ value: cb.value, attr: cb.getAttribute('value') })));
-        krawlModal.error('No valid page IDs found. Please try again.');
-        return;
+        const idsString = ids.join(',');
+        url += 'ids=' + encodeURIComponent(idsString);
+        confirmMsg = 'Delete ' + ids.length + ' selected page(s)? This cannot be undone.';
+    } else if (dateInput && dateInput.value) {
+        // Delete pages before specified date
+        url += 'before_date=' + encodeURIComponent(dateInput.value);
+        confirmMsg = 'Delete all pages created before ' + dateInput.value + '? This cannot be undone.';
     }
 
-    const idsString = ids.join(',');
-
-    const confirmed = await krawlModal.confirm('Delete ' + ids.length + ' selected page(s)? This cannot be undone.');
+    const confirmed = await krawlModal.confirm(confirmMsg);
     if (!confirmed) return;
-
-    const url = dashboardPath + '/api/delete-generated-pages?ids=' + encodeURIComponent(idsString);
 
     fetch(url, { method: 'POST' })
         .then(response => response.text())
@@ -608,29 +603,40 @@ window.deleteGeneratedPage = async function(path) {
 
 // Toggle danger state on deception delete buttons based on conditions
 window.toggleDeceptionBtnState = function() {
-    const dateInput = document.getElementById('delete-before-date');
-    const beforeBtn = document.getElementById('btn-delete-before');
-    if (beforeBtn) {
-        beforeBtn.classList.toggle('deception-action-btn-danger', !!(dateInput && dateInput.value));
-    }
-
+    const dateInput = document.getElementById('deception-date-filter');
+    const container = document.getElementById('deception-htmx-container');
     const checked = document.querySelectorAll('#deception-htmx-container input[name="page-checkbox"]:checked');
-    const hasSelection = checked.length > 0;
+    const selectAllFlag = container && container.dataset.selectAllPages === 'true';
+    const hasSelection = checked.length > 0 || selectAllFlag;
+    const hasDateFilter = dateInput && dateInput.value;
 
     const selectedBtn = document.getElementById('btn-delete-selected');
     if (selectedBtn) {
-        selectedBtn.classList.toggle('deception-action-btn-danger', hasSelection);
+        selectedBtn.classList.toggle('deception-action-btn-danger', hasSelection || hasDateFilter);
     }
 
     const downloadBtn = document.getElementById('btn-download-selected');
     if (downloadBtn) {
-        downloadBtn.classList.toggle('deception-action-btn-active', hasSelection);
+        downloadBtn.classList.toggle('deception-action-btn-active', hasSelection || hasDateFilter);
     }
 };
 
 // Listen for checkbox changes inside HTMX-loaded deception table
 document.addEventListener('change', function(e) {
-    if (e.target.name === 'page-checkbox' || e.target.id === 'select-all-pages') {
+    if (e.target.name === 'page-checkbox') {
+        // If an individual checkbox is unchecked, clear the "select all" flag
+        // This handles the case where user clicks Select All then unchecks some items
+        const container = document.getElementById('deception-htmx-container');
+        if (container && container.dataset.selectAllPages === 'true' && !e.target.checked) {
+            delete container.dataset.selectAllPages;
+            // Also uncheck the "Select All" checkbox to match the new state
+            const selectAllCheckbox = document.getElementById('select-all-pages');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = false;
+            }
+        }
+        toggleDeceptionBtnState();
+    } else if (e.target.id === 'select-all-pages') {
         toggleDeceptionBtnState();
     }
 });
@@ -640,21 +646,74 @@ window.downloadSelectedPages = function() {
     const container = document.getElementById('deception-htmx-container');
     if (!container) return;
 
+    // Check if "select all pages" flag is set
+    const selectAllFlag = container.dataset.selectAllPages === 'true';
     const checkboxes = container.querySelectorAll('input[name="page-checkbox"]:checked');
-    if (checkboxes.length === 0) {
-        krawlModal.error('Please select at least one page to download');
+    const dateInput = document.getElementById('deception-date-filter');
+
+    console.log('Download: Select all flag:', selectAllFlag);
+    console.log('Download: Found', checkboxes.length, 'selected pages');
+    console.log('Download: Date filter value:', dateInput ? dateInput.value : 'not found');
+
+    // Check if we have selected pages OR a date filter OR select all flag
+    if (!selectAllFlag && checkboxes.length === 0 && (!dateInput || !dateInput.value)) {
+        krawlModal.error('Please select at least one page to download or set a date filter');
         return;
     }
 
-    // Download each selected page
-    checkboxes.forEach(cb => {
-        const path = cb.value;
-        window.open(dashboardPath + '/api/download-generated-page?path=' + encodeURIComponent(path), '_blank');
-    });
+    let url = dashboardPath + '/api/download-generated-pages-zip?';
+
+    if (selectAllFlag) {
+        // Download ALL pages
+        console.log('Download: Using select all');
+        url += 'select_all=true';
+    } else if (checkboxes.length > 0) {
+        // Download selected pages as ZIP
+        const paths = Array.from(checkboxes).map(cb => cb.value).filter(p => p && p.trim()).join(',');
+        if (!paths) {
+            krawlModal.error('No valid pages selected');
+            return;
+        }
+        console.log('Download: Using paths:', paths);
+        url += 'paths=' + encodeURIComponent(paths);
+    } else if (dateInput && dateInput.value) {
+        // Download pages before specified date
+        console.log('Download: Using date:', dateInput.value);
+        url += 'before_date=' + encodeURIComponent(dateInput.value);
+    }
+
+    console.log('Download URL:', url);
+
+    fetch(url, { method: 'POST' })
+        .then(response => {
+            console.log('Download response status:', response.status);
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.error || 'Download failed');
+                });
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            console.log('Download: Got blob of size:', blob.size);
+            // Create download link
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = 'deception_pages.zip';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(downloadUrl);
+            document.body.removeChild(a);
+        })
+        .catch(err => {
+            console.error('Download error:', err);
+            krawlModal.error('Failed to download: ' + err.message);
+        });
 };
 
 // Upload page modal handlers
-const _allowedUploadExts = ['.html', '.htm', '.xml', '.json', '.txt', '.css', '.js'];
+const _allowedUploadExts = ['.html', '.htm', '.xml', '.json', '.txt', '.css', '.js', '.zip'];
 
 function _getAlpineData() {
     const el = document.querySelector('[x-data="dashboardApp()"]');
@@ -687,6 +746,13 @@ function _processUploadFile(file) {
         app.uploadModal.fileContent = '';
         return;
     }
+    
+    // Handle ZIP files
+    if (ext === '.zip') {
+        _processZipFile(file);
+        return;
+    }
+
     app.uploadModal.error = '';
     app.uploadModal.fileName = file.name;
 
@@ -701,6 +767,107 @@ function _processUploadFile(file) {
     reader.readAsText(file);
 }
 
+async function _processZipFile(file) {
+    const app = _getAlpineData();
+    if (!app) return;
+
+    try {
+        // Load JSZip library if not already loaded
+        if (typeof JSZip === 'undefined') {
+            await _loadJSZip();
+        }
+
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                const zip = new JSZip();
+                const zipData = await zip.loadAsync(e.target.result);
+                
+                const pages = {};
+                const htmlExts = ['.html', '.htm', '.xml', '.json', '.txt', '.css', '.js'];
+                let fileCount = 0;
+                const filePaths = [];
+
+                // First pass: collect all valid file paths
+                for (const [filename, file] of Object.entries(zipData.files)) {
+                    // Skip directories
+                    if (file.dir) continue;
+
+                    // Skip macOS system files and folders
+                    if (filename.startsWith('__MACOSX/') || filename.endsWith('.DS_Store')) continue;
+
+                    const fileExt = '.' + filename.split('.').pop().toLowerCase();
+                    if (!htmlExts.includes(fileExt)) continue;
+
+                    filePaths.push(filename);
+                }
+
+                if (filePaths.length === 0) {
+                    app.uploadModal.error = 'No supported HTML files found in ZIP';
+                    return;
+                }
+
+                // Check if all files share a common first directory (ZIP wrapper)
+                let stripFirstDir = false;
+                const firstPathParts = filePaths[0].split('/');
+                if (firstPathParts.length > 1) {
+                    const firstDir = firstPathParts[0];
+                    // If all files start with the same first directory, strip it
+                    if (filePaths.every(p => p.startsWith(firstDir + '/'))) {
+                        stripFirstDir = true;
+                    }
+                }
+
+                // Second pass: process files
+                for (const filename of filePaths) {
+                    fileCount++;
+
+                    try {
+                        const fileObj = zipData.files[filename];
+                        const content = await fileObj.async('text');
+                        
+                        // Strip first directory if it's a wrapper
+                        let finalPath = filename;
+                        if (stripFirstDir) {
+                            const parts = filename.split('/');
+                            finalPath = parts.slice(1).join('/');
+                        }
+                        
+                        // Decode double underscores to forward slashes (path encoding from filenames)
+                        finalPath = finalPath.replace(/__/g, '/');
+                        
+                        // Ensure path starts with /
+                        finalPath = '/' + finalPath.replace(/\\/g, '/');
+                        pages[finalPath] = content;
+                    } catch (err) {
+                        console.warn(`Failed to read file ${filename}: ${err}`);
+                    }
+                }
+
+                app.uploadModal.error = '';
+                app.uploadModal.fileName = file.name + ` (${Object.keys(pages).length} files)`;
+                app.uploadModal.fileContent = JSON.stringify(pages);
+                app.uploadModal.path = '__ZIP_UPLOAD__';  // Special marker for ZIP
+            } catch (err) {
+                app.uploadModal.error = 'Failed to extract ZIP: ' + err.message;
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    } catch (err) {
+        app.uploadModal.error = 'Failed to process ZIP: ' + err.message;
+    }
+}
+
+function _loadJSZip() {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+        script.onload = resolve;
+        script.onerror = () => reject(new Error('Failed to load JSZip library'));
+        document.head.appendChild(script);
+    });
+}
+
 window.submitUploadPage = async function() {
     const app = _getAlpineData();
     if (!app) return;
@@ -708,36 +875,66 @@ window.submitUploadPage = async function() {
     modal.error = '';
     modal.success = '';
 
-    let path = modal.path.trim();
-    if (!path) { modal.error = 'Please enter a path'; return; }
     if (!modal.fileContent) { modal.error = 'Please select a file'; return; }
-
-    // Ensure path starts with /
-    if (!path.startsWith('/')) path = '/' + path;
 
     modal.loading = true;
     const dashboardPath = window.__DASHBOARD_PATH__ || '';
 
     try {
-        const resp = await fetch(dashboardPath + '/api/upload-generated-page', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'same-origin',
-            body: JSON.stringify({ path: path, content: modal.fileContent }),
-        });
-        const data = await resp.json();
-        if (resp.ok) {
-            modal.success = 'Page uploaded to ' + path;
-            modal.error = '';
-            // Reset form after short delay
-            setTimeout(() => {
-                modal.show = false;
-                if (typeof window.reloadGeneratedPagesTable === 'function') {
-                    window.reloadGeneratedPagesTable();
+        // Check if this is a ZIP upload (marked with __ZIP_UPLOAD__)
+        if (modal.path === '__ZIP_UPLOAD__') {
+            const pages = JSON.parse(modal.fileContent);
+            const resp = await fetch(dashboardPath + '/api/upload-generated-pages-bulk', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ pages: pages }),
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                modal.success = `Uploaded ${data.uploaded} pages from ZIP`;
+                if (data.errors && data.errors.length > 0) {
+                    modal.success += ` (${data.errors.length} errors)`;
                 }
-            }, 1200);
+                modal.error = '';
+                // Reset form after short delay
+                setTimeout(() => {
+                    modal.show = false;
+                    if (typeof window.reloadGeneratedPagesTable === 'function') {
+                        window.reloadGeneratedPagesTable();
+                    }
+                }, 1200);
+            } else {
+                modal.error = data.error || 'Upload failed';
+            }
         } else {
-            modal.error = data.error || 'Upload failed';
+            // Single file upload
+            let path = modal.path.trim();
+            if (!path) { modal.error = 'Please enter a path'; return; }
+
+            // Ensure path starts with /
+            if (!path.startsWith('/')) path = '/' + path;
+
+            const resp = await fetch(dashboardPath + '/api/upload-generated-page', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ path: path, content: modal.fileContent }),
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                modal.success = 'Page uploaded to ' + path;
+                modal.error = '';
+                // Reset form after short delay
+                setTimeout(() => {
+                    modal.show = false;
+                    if (typeof window.reloadGeneratedPagesTable === 'function') {
+                        window.reloadGeneratedPagesTable();
+                    }
+                }, 1200);
+            } else {
+                modal.error = data.error || 'Upload failed';
+            }
         }
     } catch (err) {
         modal.error = 'Request failed: ' + err.message;
