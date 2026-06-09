@@ -58,3 +58,20 @@ Ingress is ENABLED. Your service will be available at:
   - http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
 {{- end }}
 {{- end }}
+
+{{- if .Values.serviceMonitor.enabled }}
+{{- if and .Values.config.metrics.enabled .Values.config.dashboard.secret_path }}
+
+Prometheus ServiceMonitor is ENABLED. Prometheus will scrape:
+  /{{ .Values.config.dashboard.secret_path | trimPrefix "/" }}/metrics (port {{ .Values.service.port }})
+{{- else if not .Values.config.metrics.enabled }}
+
+WARNING: serviceMonitor.enabled is true but config.metrics.enabled is false —
+the ServiceMonitor was NOT created. Set config.metrics.enabled=true to scrape metrics.
+{{- else }}
+
+WARNING: serviceMonitor.enabled is true but config.dashboard.secret_path is not set —
+the ServiceMonitor was NOT created. The metrics path is /<secret_path>/metrics, so set
+config.dashboard.secret_path to a fixed value to enable scraping.
+{{- end }}
+{{- end }}
