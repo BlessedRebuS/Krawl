@@ -22,7 +22,7 @@ class Wordlists:
         config_path = Path(__file__).parent.parent / "wordlists.json"
 
         try:
-            with open(config_path, "r") as f:
+            with open(config_path) as f:
                 return json.load(f)
         except FileNotFoundError:
             get_app_logger().warning(

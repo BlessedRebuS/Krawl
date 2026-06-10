@@ -4,8 +4,9 @@ import os
 import shutil
 import sqlite3
 import subprocess
-from logger import get_app_logger
+
 from config import get_config
+from logger import get_app_logger
 
 config = get_config()
 app_logger = get_app_logger()

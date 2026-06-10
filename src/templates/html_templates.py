@@ -7,10 +7,11 @@ Templates are loaded from the html/ subdirectory.
 
 import os
 from pathlib import Path
+
 from config import get_config
 from logger import get_app_logger
-from .template_loader import load_template, load_template_from_path
 
+from .template_loader import load_template, load_template_from_path
 
 _logged_custom_template_path: str | None = None
 

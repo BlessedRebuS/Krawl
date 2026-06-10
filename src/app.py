@@ -10,17 +10,18 @@ import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Response
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from config import get_config
-from routes.dashboard import KRAWL_VERSION
-from tracker import AccessTracker, set_tracker
+from dashboard_cache import flush_all as flush_cache
+from dashboard_cache import initialize_cache
 from database import initialize_database
-from dashboard_cache import initialize_cache, flush_all as flush_cache
-from tasks_master import get_tasksmaster
-from logger import initialize_logging, get_app_logger, get_access_logger
 from generators import random_server_header
+from logger import get_access_logger, get_app_logger, initialize_logging
+from routes.dashboard import KRAWL_VERSION
+from tasks_master import get_tasksmaster
+from tracker import AccessTracker, set_tracker
 
 
 @asynccontextmanager
@@ -37,7 +38,7 @@ async def lifespan(app: FastAPI):
     # Initialize database and run pending migrations before accepting traffic
     try:
         if config.mode == "scalable":
-            app_logger.info(f"Initializing database in scalable mode (PostgreSQL)")
+            app_logger.info("Initializing database in scalable mode (PostgreSQL)")
             initialize_database(
                 database_path=config.database_path,
                 mode="scalable",
@@ -122,7 +123,12 @@ async def lifespan(app: FastAPI):
         app_logger.warning("Server public IP could not be determined")
 
     # Log AI configuration status
-    from generative_ai import is_ai_enabled, get_provider, get_model, import_deception_pages_from_directory
+    from generative_ai import (
+        get_model,
+        get_provider,
+        import_deception_pages_from_directory,
+        is_ai_enabled,
+    )
 
     if is_ai_enabled():
         provider = get_provider()
@@ -154,14 +160,14 @@ async def lifespan(app: FastAPI):
     webpages_file = os.environ.get("KRAWL_WEBPAGES_FILE")
     if webpages_file:
         try:
-            with open(webpages_file, "r") as f:
+            with open(webpages_file) as f:
                 webpages = f.readlines()
             if not webpages:
                 app_logger.warning(
                     "The webpages file was empty. Using randomly generated links."
                 )
                 webpages = None
-        except IOError:
+        except OSError:
             app_logger.warning(
                 "Can't read webpages file. Using randomly generated links."
             )
@@ -282,9 +288,9 @@ def create_app() -> FastAPI:
         return FileResponse(os.path.join(static_dir, "favicon.ico"))
 
     # Import and include routers
-    from routes.honeypot import router as honeypot_router
     from routes.api import router as api_router
     from routes.dashboard import router as dashboard_router
+    from routes.honeypot import router as honeypot_router
     from routes.htmx import router as htmx_router
 
     # Dashboard/API/HTMX routes (prefixed with secret path, before honeypot catch-all)

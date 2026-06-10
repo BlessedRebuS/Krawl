@@ -7,8 +7,8 @@ Provides two loggers: app (application) and access (HTTP access logs).
 
 import logging
 import os
-from logging.handlers import RotatingFileHandler
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
 
 
 class TimezoneFormatter(logging.Formatter):

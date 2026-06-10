@@ -1,13 +1,14 @@
-from collections import Counter
-from database import get_database
-from pathlib import Path
-from datetime import datetime, timedelta
 import re
 import urllib.parse
-from wordlists import get_wordlists
-from config import get_config
-from logger import get_app_logger
+from collections import Counter
+from datetime import datetime, timedelta
+from pathlib import Path
+
 import metrics
+from config import get_config
+from database import get_database
+from logger import get_app_logger
+from wordlists import get_wordlists
 
 # ----------------------
 # TASK CONFIG
@@ -103,7 +104,7 @@ def main():
     # Parse robots.txt once before the loop (it never changes during a run)
     robots_disallows = []
     robots_path = Path(__file__).parent.parent / "templates" / "html" / "robots.txt"
-    with open(robots_path, "r") as f:
+    with open(robots_path) as f:
         for line in f:
             line = line.strip()
             if not line:

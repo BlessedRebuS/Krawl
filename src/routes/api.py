@@ -7,28 +7,28 @@ All endpoints are prefixed with the secret dashboard path.
 """
 
 import asyncio
+import base64
 import hmac
+import io
 import secrets
 import time
-import io
 import zipfile
-import base64
 
-from fastapi import APIRouter, Request, Response, Query
+from fastapi import APIRouter, Query, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from dependencies import get_db, get_client_ip
-from logger import get_app_logger
 from config import get_config
 from dashboard_cache import (
     get_cached,
-    is_warm,
-    invalidate_table_cache,
     get_cached_table,
-    set_cached_table,
+    invalidate_table_cache,
+    is_warm,
     paginate_cached_list,
+    set_cached_table,
 )
+from dependencies import get_client_ip, get_db
+from logger import get_app_logger
 
 # Server-side session token store (valid tokens for authenticated sessions)
 _auth_tokens: set = set()
@@ -714,6 +714,7 @@ async def download_generated_page(
         return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
 
     import base64
+
     from models import GeneratedPage
 
     db = get_db()
@@ -850,6 +851,7 @@ async def upload_generated_page(request: Request, body: UploadPageRequest):
 
     import base64
     from datetime import datetime
+
     from models import GeneratedPage
 
     path = body.path.strip()
@@ -916,6 +918,7 @@ async def upload_generated_pages_bulk(request: Request, body: UploadBulkPagesReq
 
     import base64
     from datetime import datetime
+
     from models import GeneratedPage
 
     if not body.pages or not isinstance(body.pages, dict):

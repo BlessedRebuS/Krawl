@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Type
 
 
 class FWType(ABC):
     """Abstract base class for firewall types."""
 
     # Registry to store child classes
-    _registry: Dict[str, Type["FWType"]] = {}
+    _registry: dict[str, type["FWType"]] = {}
 
     def __init_subclass__(cls, **kwargs):
         """Automatically register subclasses with their class name."""

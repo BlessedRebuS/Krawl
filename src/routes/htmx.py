@@ -7,19 +7,19 @@ Server-rendered HTML partials for table pagination, sorting, IP details, and sea
 
 import asyncio
 
-from fastapi import APIRouter, Request, Response, Query
+from fastapi import APIRouter, Query, Request, Response
 from fastapi.responses import HTMLResponse
 
-from dependencies import get_db, get_templates
-from routes.api import verify_auth
 from config import get_config
 from dashboard_cache import (
     get_cached,
-    is_warm,
     get_cached_table,
-    set_cached_table,
+    is_warm,
     paginate_cached_list,
+    set_cached_table,
 )
+from dependencies import get_db, get_templates
+from routes.api import verify_auth
 
 router = APIRouter()
 

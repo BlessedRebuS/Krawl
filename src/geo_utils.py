@@ -4,14 +4,16 @@ Geolocation utilities for IP lookups using ip-api.com.
 """
 
 import ipaddress
+from typing import Any
+
 import requests
-from typing import Optional, Dict, Any
+
 from logger import get_app_logger
 
 app_logger = get_app_logger()
 
 
-def fetch_ip_geolocation(ip_address: str) -> Optional[Dict[str, Any]]:
+def fetch_ip_geolocation(ip_address: str) -> dict[str, Any] | None:
     """
     Fetch geolocation data for an IP address using ip-api.com.
 
@@ -56,7 +58,7 @@ def fetch_ip_geolocation(ip_address: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def extract_geolocation_from_ip(ip_address: str) -> Optional[Dict[str, Any]]:
+def extract_geolocation_from_ip(ip_address: str) -> dict[str, Any] | None:
     """
     Extract geolocation data for an IP address.
 
@@ -87,7 +89,7 @@ def extract_geolocation_from_ip(ip_address: str) -> Optional[Dict[str, Any]]:
     }
 
 
-def fetch_blocklist_data(ip_address: str) -> Optional[Dict[str, Any]]:
+def fetch_blocklist_data(ip_address: str) -> dict[str, Any] | None:
     """
     Fetch blocklist data for an IP address using lcrawl API.
 

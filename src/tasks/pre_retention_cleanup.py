@@ -12,8 +12,8 @@ import re
 from datetime import datetime, timedelta
 
 from database import get_database
-from wordlists import get_wordlists
 from logger import get_app_logger
+from wordlists import get_wordlists
 
 # ----------------------
 # TASK CONFIG

@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
-from typing import Dict, Tuple, Optional
 import logging
 import re
 import urllib.parse
 
+from database import DatabaseManager, get_database
 from wordlists import get_wordlists
-from database import get_database, DatabaseManager
 
 logger = logging.getLogger("krawl")
 
@@ -37,7 +36,7 @@ class AccessTracker:
         self,
         max_pages_limit,
         ban_duration_seconds,
-        db_manager: Optional[DatabaseManager] = None,
+        db_manager: DatabaseManager | None = None,
     ):
         """
         Initialize the access tracker.
@@ -97,7 +96,7 @@ class AccessTracker:
         self._db_manager = db_manager
 
     @property
-    def db(self) -> Optional[DatabaseManager]:
+    def db(self) -> DatabaseManager | None:
         """
         Get the database manager, lazily initializing if needed.
 
@@ -111,7 +110,7 @@ class AccessTracker:
                 logger.error(f"Failed to initialize database manager: {e}")
         return self._db_manager
 
-    def parse_credentials(self, post_data: str) -> Tuple[str, str]:
+    def parse_credentials(self, post_data: str) -> tuple[str, str]:
         """
         Parse username and password from POST data.
         Returns tuple (username, password) or (None, None) if not found.
@@ -440,7 +439,7 @@ class AccessTracker:
 
         return self.db.get_ban_info(client_ip, self.ban_duration_seconds)
 
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> dict:
         """Get statistics summary from database."""
         if not self.db:
             raise RuntimeError("Database not available for dashboard stats")

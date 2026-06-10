@@ -4,12 +4,13 @@
 Generators for creating random fake data (credentials, API keys, etc.)
 """
 
+import json
 import random
 import string
-import json
+
+from config import get_config
 from templates import html_templates
 from wordlists import get_wordlists
-from config import get_config
 
 
 def random_username() -> str:

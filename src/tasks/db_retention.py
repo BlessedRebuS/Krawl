@@ -7,10 +7,11 @@ Periodically deletes old records based on configured retention_days.
 
 from datetime import datetime, timedelta
 
-from sqlalchemy import or_, delete as sa_delete
+from sqlalchemy import delete as sa_delete
+from sqlalchemy import or_
 
-from database import get_database
 from dashboard_cache import invalidate_table_cache
+from database import get_database
 from logger import get_app_logger
 
 # ----------------------
@@ -38,8 +39,8 @@ def main():
         from models import (
             AccessLog,
             AttackDetection,
-            IpStats,
             CategoryHistory,
+            IpStats,
             MetricsSummary,
         )
 

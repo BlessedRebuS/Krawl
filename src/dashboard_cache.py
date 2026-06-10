@@ -19,7 +19,7 @@ Memory footprint is fixed — each key is overwritten on every refresh.
 import json
 import threading
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 _backend: str = "standalone"
 _lock = threading.Lock()
@@ -84,7 +84,7 @@ def get_backend() -> str:
     return _backend
 
 
-def get_cached(key: str) -> Optional[Any]:
+def get_cached(key: str) -> Any | None:
     """Get a value from the dashboard cache."""
     if _backend == "scalable" and _redis_client is not None:
         raw = _redis_client.get(f"{_REDIS_PREFIX}{key}")
@@ -114,7 +114,7 @@ def set_cached(key: str, value: Any, ttl: int = None) -> None:
         _cache[key] = value
 
 
-def get_cached_short(key: str) -> Optional[Any]:
+def get_cached_short(key: str) -> Any | None:
     """Get a value from the short-TTL hot-path cache (scalable mode only).
 
     In standalone mode, always returns None (no hot-path caching needed
@@ -157,7 +157,7 @@ def delete_cached_short(key: str) -> None:
         _redis_client.delete(f"{_REDIS_PREFIX}hot:{key}")
 
 
-def get_cached_table(key: str) -> Optional[Any]:
+def get_cached_table(key: str) -> Any | None:
     """Get a cached paginated table result (scalable mode only).
 
     In standalone mode, always returns None (tables are served live

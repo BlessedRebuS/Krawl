@@ -6,7 +6,6 @@ Loads templates from the html/ subdirectory and supports string formatting for d
 """
 
 from pathlib import Path
-from typing import Dict
 
 
 class TemplateNotFoundError(Exception):
@@ -16,7 +15,7 @@ class TemplateNotFoundError(Exception):
 
 
 # Module-level cache for loaded templates
-_template_cache: Dict[str, str] = {}
+_template_cache: dict[str, str] = {}
 
 # Base directory for template files
 _TEMPLATE_DIR = Path(__file__).parent / "html"

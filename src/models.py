@@ -6,30 +6,29 @@ Stores access logs, credential attempts, attack detections, and IP statistics.
 """
 
 from datetime import datetime
-from typing import Optional, List, Dict
 
 from sqlalchemy import (
-    String,
-    Text,
-    Integer,
+    JSON,
     Boolean,
     DateTime,
     Float,
     ForeignKey,
     Index,
-    JSON,
+    Integer,
+    String,
+    Text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from sanitizer import (
-    MAX_IP_LENGTH,
-    MAX_PATH_LENGTH,
-    MAX_USER_AGENT_LENGTH,
-    MAX_CREDENTIAL_LENGTH,
+    MAX_ASN_ORG_LENGTH,
     MAX_ATTACK_PATTERN_LENGTH,
     MAX_CITY_LENGTH,
-    MAX_ASN_ORG_LENGTH,
+    MAX_CREDENTIAL_LENGTH,
+    MAX_IP_LENGTH,
+    MAX_PATH_LENGTH,
     MAX_REPUTATION_SOURCE_LENGTH,
+    MAX_USER_AGENT_LENGTH,
 )
 
 
@@ -53,7 +52,7 @@ class AccessLog(Base):
     # ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False, index=True, ForeignKey('ip_logs.id', ondelete='CASCADE'))
     ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False, index=True)
     path: Mapped[str] = mapped_column(String(MAX_PATH_LENGTH), nullable=False)
-    user_agent: Mapped[Optional[str]] = mapped_column(
+    user_agent: Mapped[str | None] = mapped_column(
         String(MAX_USER_AGENT_LENGTH), nullable=True
     )
     method: Mapped[str] = mapped_column(String(10), nullable=False, default="GET")
@@ -65,10 +64,10 @@ class AccessLog(Base):
         DateTime, nullable=False, default=datetime.utcnow, index=True
     )
     # Raw HTTP request for forensic analysis (nullable for backward compatibility)
-    raw_request: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    raw_request: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Relationship to attack detections
-    attack_detections: Mapped[List["AttackDetection"]] = relationship(
+    attack_detections: Mapped[list["AttackDetection"]] = relationship(
         "AttackDetection", back_populates="access_log", cascade="all, delete-orphan"
     )
 
@@ -97,10 +96,10 @@ class CredentialAttempt(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False, index=True)
     path: Mapped[str] = mapped_column(String(MAX_PATH_LENGTH), nullable=False)
-    username: Mapped[Optional[str]] = mapped_column(
+    username: Mapped[str | None] = mapped_column(
         String(MAX_CREDENTIAL_LENGTH), nullable=True
     )
-    password: Mapped[Optional[str]] = mapped_column(
+    password: Mapped[str | None] = mapped_column(
         String(MAX_CREDENTIAL_LENGTH), nullable=True
     )
     timestamp: Mapped[datetime] = mapped_column(
@@ -132,7 +131,7 @@ class AttackDetection(Base):
         index=True,
     )
     attack_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
-    matched_pattern: Mapped[Optional[str]] = mapped_column(
+    matched_pattern: Mapped[str | None] = mapped_column(
         String(MAX_ATTACK_PATTERN_LENGTH), nullable=True
     )
 
@@ -170,37 +169,37 @@ class IpStats(Base):
     )
 
     # GeoIP fields (populated by future enrichment)
-    country_code: Mapped[Optional[str]] = mapped_column(String(2), nullable=True)
-    city: Mapped[Optional[str]] = mapped_column(String(MAX_CITY_LENGTH), nullable=True)
-    country: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    region: Mapped[Optional[str]] = mapped_column(String(2), nullable=True)
-    region_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    timezone: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    isp: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    reverse: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    latitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    longitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    asn: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    asn_org: Mapped[Optional[str]] = mapped_column(
+    country_code: Mapped[str | None] = mapped_column(String(2), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(MAX_CITY_LENGTH), nullable=True)
+    country: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    region: Mapped[str | None] = mapped_column(String(2), nullable=True)
+    region_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    timezone: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    isp: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    reverse: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    asn: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    asn_org: Mapped[str | None] = mapped_column(
         String(MAX_ASN_ORG_LENGTH), nullable=True
     )
-    is_proxy: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
-    is_hosting: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
-    list_on: Mapped[Optional[Dict[str, str]]] = mapped_column(JSON, nullable=True)
+    is_proxy: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    is_hosting: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    list_on: Mapped[dict[str, str] | None] = mapped_column(JSON, nullable=True)
 
     # Reputation fields (populated by future enrichment)
-    reputation_score: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    reputation_source: Mapped[Optional[str]] = mapped_column(
+    reputation_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    reputation_source: Mapped[str | None] = mapped_column(
         String(MAX_REPUTATION_SOURCE_LENGTH), nullable=True
     )
-    reputation_updated: Mapped[Optional[datetime]] = mapped_column(
+    reputation_updated: Mapped[datetime | None] = mapped_column(
         DateTime, nullable=True
     )
 
     # Analyzed metrics, category and category scores
-    analyzed_metrics: Mapped[Dict[str, object]] = mapped_column(JSON, nullable=True)
+    analyzed_metrics: Mapped[dict[str, object]] = mapped_column(JSON, nullable=True)
     category: Mapped[str] = mapped_column(String(50), nullable=True)
-    category_scores: Mapped[Dict[str, int]] = mapped_column(JSON, nullable=True)
+    category_scores: Mapped[dict[str, int]] = mapped_column(JSON, nullable=True)
     manual_category: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
     last_analysis: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     need_reevaluation: Mapped[bool] = mapped_column(
@@ -214,12 +213,12 @@ class IpStats(Base):
 
     # Ban/rate-limit state (moved from in-memory tracker to DB)
     page_visit_count: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
-    ban_timestamp: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    ban_timestamp: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     total_violations: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
     ban_multiplier: Mapped[int] = mapped_column(Integer, default=1, nullable=True)
 
     # Admin ban override: True = force ban, False = force unban, None = automatic
-    ban_override: Mapped[Optional[bool]] = mapped_column(
+    ban_override: Mapped[bool | None] = mapped_column(
         Boolean, nullable=True, default=None
     )
 
@@ -245,7 +244,7 @@ class CategoryHistory(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False, index=True)
-    old_category: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    old_category: Mapped[str | None] = mapped_column(String(50), nullable=True)
     new_category: Mapped[str] = mapped_column(String(50), nullable=False)
     timestamp: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=datetime.utcnow, index=True
@@ -274,11 +273,11 @@ class TrackedIp(Base):
     )
 
     # Snapshot from ip_stats at tracking time
-    category: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    category: Mapped[str | None] = mapped_column(String(50), nullable=True)
     total_requests: Mapped[int] = mapped_column(Integer, default=0, nullable=True)
-    country_code: Mapped[Optional[str]] = mapped_column(String(2), nullable=True)
-    city: Mapped[Optional[str]] = mapped_column(String(MAX_CITY_LENGTH), nullable=True)
-    last_seen: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    country_code: Mapped[str | None] = mapped_column(String(2), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(MAX_CITY_LENGTH), nullable=True)
+    last_seen: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     def __repr__(self) -> str:
         return f"<TrackedIp(ip='{self.ip}')>"

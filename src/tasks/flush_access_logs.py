@@ -8,8 +8,8 @@ in-memory buffer to avoid per-request network round-trips to PostgreSQL.
 This task drains the buffer every few seconds and batch-inserts the rows.
 """
 
-from logger import get_app_logger
 from config import get_config
+from logger import get_app_logger
 
 app_logger = get_app_logger()
 

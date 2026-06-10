@@ -21,7 +21,7 @@ Two families of metrics:
 import re
 import time
 
-from prometheus_client import Gauge, REGISTRY
+from prometheus_client import REGISTRY, Gauge
 from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
 
 from config import get_config

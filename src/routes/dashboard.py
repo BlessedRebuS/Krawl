@@ -12,11 +12,11 @@ import yaml
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse, Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-from logger import get_app_logger
 
-from dependencies import get_db, get_templates
 from config import get_config
 from dashboard_cache import get_cached, is_warm
+from dependencies import get_db, get_templates
+from logger import get_app_logger
 
 router = APIRouter()
 
