@@ -231,7 +231,7 @@ def can_generate_today() -> bool:
         return True
 
     db = get_db()
-    today = date.today()
+    date.today()
 
     # Count generated pages created today
     generated_today = db.count_generated_pages_created_today()

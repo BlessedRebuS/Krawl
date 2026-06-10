@@ -187,7 +187,7 @@ class Config:
         links = data.get("links", {})
         canary = data.get("canary", {})
         dashboard = data.get("dashboard", {})
-        api = data.get("api", {})
+        data.get("api", {})
         backups = data.get("backups", {})
         database = data.get("database", {})
         behavior = data.get("behavior", {})

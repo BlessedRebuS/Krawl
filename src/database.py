@@ -1068,7 +1068,7 @@ class DatabaseManager:
                 session.query(IpStats.ip)
                 .filter(
                     or_(
-                        IpStats.need_reevaluation == True,
+                        IpStats.need_reevaluation,
                         IpStats.last_analysis.is_(None),
                     )
                 )
@@ -1101,8 +1101,8 @@ class DatabaseManager:
                 .filter(
                     IpStats.last_seen >= last_seen_cutoff,
                     IpStats.last_analysis <= last_analysis_cutoff,
-                    IpStats.need_reevaluation == False,
-                    IpStats.manual_category == False,
+                    not IpStats.need_reevaluation,
+                    not IpStats.manual_category,
                 )
                 .update(
                     {IpStats.need_reevaluation: True},
@@ -1130,8 +1130,8 @@ class DatabaseManager:
             count = (
                 session.query(IpStats)
                 .filter(
-                    IpStats.need_reevaluation == False,
-                    IpStats.manual_category == False,
+                    not IpStats.need_reevaluation,
+                    not IpStats.manual_category,
                 )
                 .update(
                     {IpStats.need_reevaluation: True},
@@ -1186,7 +1186,7 @@ class DatabaseManager:
             if ip_filter:
                 query = query.filter(AccessLog.ip == sanitize_ip(ip_filter))
             if suspicious_only:
-                query = query.filter(AccessLog.is_suspicious == True)
+                query = query.filter(AccessLog.is_suspicious)
             if since_minutes is not None:
                 cutoff_time = datetime.now() - timedelta(minutes=since_minutes)
                 query = query.filter(AccessLog.timestamp >= cutoff_time)
@@ -1198,7 +1198,7 @@ class DatabaseManager:
             if ip_filter:
                 count_query = count_query.filter(AccessLog.ip == sanitize_ip(ip_filter))
             if suspicious_only:
-                count_query = count_query.filter(AccessLog.is_suspicious == True)
+                count_query = count_query.filter(AccessLog.is_suspicious)
             if since_minutes is not None:
                 count_query = count_query.filter(AccessLog.timestamp >= cutoff_time)
             total_access_logs = count_query.scalar()
@@ -1261,7 +1261,7 @@ class DatabaseManager:
             if ip_filter:
                 query = query.filter(AccessLog.ip == sanitize_ip(ip_filter))
             if suspicious_only:
-                query = query.filter(AccessLog.is_suspicious == True)
+                query = query.filter(AccessLog.is_suspicious)
             if since_minutes is not None:
                 cutoff_time = datetime.now() - timedelta(minutes=since_minutes)
                 query = query.filter(AccessLog.timestamp >= cutoff_time)
@@ -1659,10 +1659,10 @@ class DatabaseManager:
                         IpStats.category.in_(categories),
                         or_(
                             IpStats.ban_override.is_(None),
-                            IpStats.ban_override == True,
+                            IpStats.ban_override,
                         ),
                     ),
-                    IpStats.ban_override == True,
+                    IpStats.ban_override,
                 )
             )
             return [row.ip for row in query.all()]
@@ -1749,15 +1749,15 @@ class DatabaseManager:
             from sqlalchemy import case
 
             logs_q = session.query(
-                func.count(case((AccessLog.is_suspicious == True, AccessLog.id))).label(
+                func.count(case((AccessLog.is_suspicious, AccessLog.id))).label(
                     "suspicious_accesses"
                 ),
                 func.count(
-                    case((AccessLog.is_honeypot_trigger == True, AccessLog.id))
+                    case((AccessLog.is_honeypot_trigger, AccessLog.id))
                 ).label("honeypot_triggered"),
                 func.count(
                     distinct(
-                        case((AccessLog.is_honeypot_trigger == True, AccessLog.ip))
+                        case((AccessLog.is_honeypot_trigger, AccessLog.ip))
                     )
                 ).label("honeypot_ips"),
                 func.count(distinct(AccessLog.path)).label("unique_paths"),
@@ -1986,7 +1986,7 @@ class DatabaseManager:
 
             query = (
                 session.query(AccessLog)
-                .filter(AccessLog.is_suspicious == True)
+                .filter(AccessLog.is_suspicious)
                 .order_by(AccessLog.timestamp.desc())
             )
             query = self._public_ip_filter(query, AccessLog.ip, server_ip)
@@ -2018,7 +2018,7 @@ class DatabaseManager:
             # Get distinct IP/path combos for honeypot triggers
             results = (
                 session.query(AccessLog.ip, AccessLog.path)
-                .filter(AccessLog.is_honeypot_trigger == True)
+                .filter(AccessLog.is_honeypot_trigger)
                 .group_by(AccessLog.ip, AccessLog.path)
                 .all()
             )
@@ -2100,14 +2100,14 @@ class DatabaseManager:
             # Count distinct paths per IP using SQL GROUP BY
             count_col = func.count(distinct(AccessLog.path)).label("path_count")
             base_query = session.query(AccessLog.ip, count_col).filter(
-                AccessLog.is_honeypot_trigger == True
+                AccessLog.is_honeypot_trigger
             )
             base_query = self._public_ip_filter(base_query, AccessLog.ip, server_ip)
             base_query = base_query.group_by(AccessLog.ip)
 
             # Get total count of distinct honeypot IPs
             count_hp = session.query(func.count(distinct(AccessLog.ip))).filter(
-                AccessLog.is_honeypot_trigger == True
+                AccessLog.is_honeypot_trigger
             )
             count_hp = self._public_ip_filter(count_hp, AccessLog.ip, server_ip)
             total_honeypots = count_hp.scalar() or 0
@@ -2133,7 +2133,7 @@ class DatabaseManager:
                 path_rows = (
                     session.query(AccessLog.ip, AccessLog.path)
                     .filter(
-                        AccessLog.is_honeypot_trigger == True,
+                        AccessLog.is_honeypot_trigger,
                         AccessLog.ip.in_(paginated_ips),
                     )
                     .group_by(AccessLog.ip, AccessLog.path)
@@ -2370,7 +2370,7 @@ class DatabaseManager:
 
             search_filter = [AccessLog.path.ilike(f"%{search}%")] if search else []
             if honeypot_only:
-                search_filter.append(AccessLog.is_honeypot_trigger == True)
+                search_filter.append(AccessLog.is_honeypot_trigger)
 
             # Count distinct paths that meet the min_count threshold
             count_subq = (

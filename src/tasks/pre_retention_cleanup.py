@@ -162,8 +162,8 @@ def main():
                 session.query(AccessLog)
                 .filter(
                     AccessLog.timestamp < cutoff,
-                    AccessLog.is_suspicious == True,
-                    AccessLog.is_honeypot_trigger == False,
+                    AccessLog.is_suspicious,
+                    not AccessLog.is_honeypot_trigger,
                 )
                 .limit(BATCH_SIZE)
                 .all()

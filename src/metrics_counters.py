@@ -84,7 +84,7 @@ def get_many(metrics) -> dict[str, int]:
             if not metrics:
                 return {}
             raw = r.mget([f"{_COUNTER_PREFIX}{m}" for m in metrics])
-            return {m: (int(v) if v else 0) for m, v in zip(metrics, raw)}
+            return {m: (int(v) if v else 0) for m, v in zip(metrics, raw, strict=False)}
     with _lock:
         return {m: _counters.get(m, 0) for m in metrics}
 
@@ -112,7 +112,7 @@ def get_all() -> dict[str, int]:
                 raw = r.mget(keys)
                 out = {
                     k[len(_COUNTER_PREFIX):]: (int(v) if v else 0)
-                    for k, v in zip(keys, raw)
+                    for k, v in zip(keys, raw, strict=False)
                 }
         return out
     with _lock:

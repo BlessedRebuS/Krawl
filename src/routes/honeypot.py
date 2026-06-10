@@ -157,10 +157,9 @@ async def sql_endpoint_post(request: Request):
 @router.post("/api/contact")
 async def contact_post(request: Request):
     client_ip = get_client_ip(request)
-    user_agent = request.headers.get("User-Agent", "")
-    tracker = request.app.state.tracker
+    request.headers.get("User-Agent", "")
     access_logger = get_access_logger()
-    app_logger = get_app_logger()
+    get_app_logger()
 
     post_data = await _safe_body(request)
 
@@ -353,7 +352,7 @@ async def fake_directory_listing(request: Request):
 async def sql_endpoint_get(request: Request):
     client_ip = get_client_ip(request)
     access_logger = get_access_logger()
-    app_logger = get_app_logger()
+    get_app_logger()
 
     base_path = request.url.path
     request_query = request.url.query or ""
