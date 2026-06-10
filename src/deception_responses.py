@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
+import json
+import logging
 import re
 import secrets
-import logging
-import json
-from typing import Optional, Tuple, Dict
-from generators import random_username, random_password, random_email
+
+from generators import random_email, random_password, random_username
 from wordlists import get_wordlists
 
 logger = logging.getLogger("krawl")
@@ -63,10 +63,10 @@ def detect_command_injection(path: str, query: str = "", body: str = "") -> bool
         pattern = r"(cmd=|exec=|command=|&&|;|\||whoami|id|uname|cat|ls)"
 
     if re.search(pattern, full_input, re.IGNORECASE):
-        logger.debug(f"[CMD_INJECTION_CHECK] Command injection pattern matched!")
+        logger.debug("[CMD_INJECTION_CHECK] Command injection pattern matched!")
         return True
 
-    logger.debug(f"[CMD_INJECTION_CHECK] No command injection detected")
+    logger.debug("[CMD_INJECTION_CHECK] No command injection detected")
     return False
 
 
@@ -187,7 +187,7 @@ def generate_fake_directory_listing(path: str) -> str:
     return html
 
 
-def generate_path_traversal_response(path: str) -> Tuple[str, str, int]:
+def generate_path_traversal_response(path: str) -> tuple[str, str, int]:
     """Generate fake response for path traversal attempts"""
 
     path_lower = path.lower()
@@ -215,7 +215,7 @@ def generate_path_traversal_response(path: str) -> Tuple[str, str, int]:
     return (generate_fake_directory_listing(path), "text/html", 200)
 
 
-def generate_xxe_response(body: str) -> Tuple[str, str, int]:
+def generate_xxe_response(body: str) -> tuple[str, str, int]:
     """Generate fake response for XXE injection attempts"""
     wl = get_wordlists()
     xxe_config = wl.xxe_responses
@@ -272,7 +272,7 @@ def generate_xxe_response(body: str) -> Tuple[str, str, int]:
     return (response, "application/xml", 200)
 
 
-def generate_command_injection_response(input_text: str) -> Tuple[str, str, int]:
+def generate_command_injection_response(input_text: str) -> tuple[str, str, int]:
     """Generate fake command execution output"""
     wl = get_wordlists()
     cmd_config = wl.command_outputs
@@ -377,7 +377,7 @@ def generate_command_injection_response(input_text: str) -> Tuple[str, str, int]
     return (output, "text/plain", 200)
 
 
-def detect_sql_injection_pattern(query_string: str) -> Optional[str]:
+def detect_sql_injection_pattern(query_string: str) -> str | None:
     """Detect SQL injection patterns in query string"""
     if not query_string:
         return None
@@ -406,7 +406,7 @@ def detect_sql_injection_pattern(query_string: str) -> Optional[str]:
 
 def get_random_sql_error(
     db_type: str = None, injection_type: str = None
-) -> Tuple[str, str]:
+) -> tuple[str, str]:
     """Generate a random SQL error message"""
     wl = get_wordlists()
     sql_errors = wl.sql_errors
@@ -445,7 +445,7 @@ def get_random_sql_error(
 
 def generate_sql_error_response(
     query_string: str, db_type: str = None
-) -> Tuple[Optional[str], Optional[str], Optional[int]]:
+) -> tuple[str | None, str | None, int | None]:
     """Generate SQL error response for detected injection attempts"""
     injection_type = detect_sql_injection_pattern(query_string)
 
@@ -502,7 +502,7 @@ def detect_xss_pattern(input_string: str) -> bool:
 
     detected = bool(re.search(xss_pattern, input_string, re.IGNORECASE))
     if detected:
-        logger.debug(f"XSS pattern detected in input")
+        logger.debug("XSS pattern detected in input")
     return detected
 
 
@@ -563,7 +563,7 @@ def generate_xss_response(input_data: dict) -> str:
 """
 
 
-def generate_server_error() -> Tuple[str, str]:
+def generate_server_error() -> tuple[str, str]:
     """Generate fake server error page"""
     wl = get_wordlists()
     server_errors = wl.server_errors
@@ -621,7 +621,7 @@ def get_server_header(server_type: str = None) -> str:
         "nginx": f"nginx/{version}",
         "apache": f"Apache/{version}",
         "iis": f"Microsoft-IIS/{version}",
-        "tomcat": f"Apache-Coyote/1.1",
+        "tomcat": "Apache-Coyote/1.1",
     }
 
     return server_headers.get(server_type, "nginx/1.18.0")
@@ -629,7 +629,7 @@ def get_server_header(server_type: str = None) -> str:
 
 def detect_and_respond_deception(
     path: str, query: str = "", body: str = "", method: str = "GET"
-) -> Optional[Tuple[str, str, int]]:
+) -> tuple[str, str, int] | None:
     """
     Main deception detection and response function.
     Returns (response_body, content_type, status_code) if deception should be applied, None otherwise.
@@ -644,7 +644,7 @@ def detect_and_respond_deception(
         return generate_path_traversal_response(f"{path}?{query}" if query else path)
 
     if body and detect_xxe_injection(body):
-        logger.info(f"XXE injection detected")
+        logger.info("XXE injection detected")
         return generate_xxe_response(body)
 
     if detect_command_injection(path, query, body):

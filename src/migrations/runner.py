@@ -13,7 +13,6 @@ create_all() cannot apply to existing tables (new columns, new indexes).
 """
 
 import logging
-from typing import List
 
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
@@ -71,7 +70,7 @@ def _migrate_has_triggered_honeypot_column(engine: Engine) -> bool:
     return True
 
 
-def _migrate_ban_state_columns(engine: Engine) -> List[str]:
+def _migrate_ban_state_columns(engine: Engine) -> list[str]:
     """Add ban/rate-limit columns to ip_stats if missing."""
     added = []
     columns = {
@@ -90,7 +89,7 @@ def _migrate_ban_state_columns(engine: Engine) -> List[str]:
     return added
 
 
-def _migrate_performance_indexes(engine: Engine) -> List[str]:
+def _migrate_performance_indexes(engine: Engine) -> list[str]:
     """Add performance indexes to attack_detections if missing."""
     added = []
     if not _index_exists(
@@ -118,7 +117,7 @@ def _migrate_performance_indexes(engine: Engine) -> List[str]:
     return added
 
 
-def _migrate_scalable_indexes(engine: Engine) -> List[str]:
+def _migrate_scalable_indexes(engine: Engine) -> list[str]:
     """Add indexes for query performance (benefits both SQLite and PostgreSQL)."""
     added = []
 
@@ -164,7 +163,7 @@ def run_migrations(engine: Engine) -> None:
     Args:
         engine: SQLAlchemy Engine instance (works with any dialect).
     """
-    applied: List[str] = []
+    applied: list[str] = []
 
     # Each migration runs in its own try/except so that one failure does not
     # abort the rest of the chain (a single bad ALTER must not leave later
@@ -180,13 +179,34 @@ def run_migrations(engine: Engine) -> None:
         except Exception as e:
             logger.error(f"Migration error ({label}): {e}")
 
-    _step("add raw_request column to access_logs", lambda: _migrate_raw_request_column(engine))
-    _step("add need_reevaluation column to ip_stats", lambda: _migrate_need_reevaluation_column(engine))
-    _step("add has_triggered_honeypot column to ip_stats", lambda: _migrate_has_triggered_honeypot_column(engine))
-    _step("ban state columns on ip_stats", lambda: [f"{c} column to ip_stats" for c in _migrate_ban_state_columns(engine)])
-    _step("add ban_override column to ip_stats", lambda: _migrate_ban_override_column(engine))
-    _step("performance indexes", lambda: [f"index {i}" for i in _migrate_performance_indexes(engine)])
-    _step("scalable indexes", lambda: [f"index {i}" for i in _migrate_scalable_indexes(engine)])
+    _step(
+        "add raw_request column to access_logs",
+        lambda: _migrate_raw_request_column(engine),
+    )
+    _step(
+        "add need_reevaluation column to ip_stats",
+        lambda: _migrate_need_reevaluation_column(engine),
+    )
+    _step(
+        "add has_triggered_honeypot column to ip_stats",
+        lambda: _migrate_has_triggered_honeypot_column(engine),
+    )
+    _step(
+        "ban state columns on ip_stats",
+        lambda: [f"{c} column to ip_stats" for c in _migrate_ban_state_columns(engine)],
+    )
+    _step(
+        "add ban_override column to ip_stats",
+        lambda: _migrate_ban_override_column(engine),
+    )
+    _step(
+        "performance indexes",
+        lambda: [f"index {i}" for i in _migrate_performance_indexes(engine)],
+    )
+    _step(
+        "scalable indexes",
+        lambda: [f"index {i}" for i in _migrate_scalable_indexes(engine)],
+    )
 
     if applied:
         for m in applied:

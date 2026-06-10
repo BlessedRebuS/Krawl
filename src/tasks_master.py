@@ -1,25 +1,22 @@
-import os
-import sys
 import datetime
 import functools
-import threading
 import importlib
 import importlib.util
+import os
+import sys
+import threading
 
 from logger import (
-    initialize_logging,
     get_app_logger,
-    get_access_logger,
-    get_credential_logger,
 )
 
 app_logger = get_app_logger()
 
 try:
+    from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED
     from apscheduler.schedulers.background import BackgroundScheduler
     from apscheduler.triggers.cron import CronTrigger
     from apscheduler.triggers.interval import IntervalTrigger
-    from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 except ModuleNotFoundError:
     msg = (
         "Required modules are not installed. "

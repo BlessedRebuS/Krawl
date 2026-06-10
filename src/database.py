@@ -5,34 +5,35 @@ Database singleton module for the Krawl honeypot.
 Provides SQLAlchemy session management and database initialization.
 """
 
+import collections
 import os
 import stat
+import threading
 from datetime import datetime, timedelta
-from typing import Optional, List, Dict, Any
+from typing import Any, Optional
 
-from sqlalchemy import create_engine, func, distinct, event, or_, and_
-from sqlalchemy.orm import sessionmaker, scoped_session, Session, joinedload
+from sqlalchemy import and_, create_engine, distinct, event, func, or_
+from sqlalchemy.orm import Session, joinedload, scoped_session, sessionmaker
 
-
+from logger import get_app_logger
 from models import (
-    Base,
     AccessLog,
-    CredentialAttempt,
     AttackDetection,
-    IpStats,
+    Base,
     CategoryHistory,
-    TrackedIp,
+    CredentialAttempt,
+    GeneratedPage,
+    IpStats,
     MetricsSummary,
+    TrackedIp,
 )
 from sanitizer import (
+    sanitize_attack_pattern,
+    sanitize_credential,
     sanitize_ip,
     sanitize_path,
     sanitize_user_agent,
-    sanitize_credential,
-    sanitize_attack_pattern,
 )
-
-from logger import get_app_logger
 
 applogger = get_app_logger()
 
@@ -40,8 +41,6 @@ applogger = get_app_logger()
 # Instead of INSERT-per-request over the network, access log entries are
 # buffered in memory and flushed in bulk every few seconds by a background task.
 # IP stats counters are still updated synchronously (needed for ban checks).
-import collections
-import threading
 
 _write_buffer: collections.deque = collections.deque()
 _write_lock = threading.Lock()
@@ -267,9 +266,9 @@ class DatabaseManager:
         method: str = "GET",
         is_suspicious: bool = False,
         is_honeypot_trigger: bool = False,
-        attack_types: Optional[List[str]] = None,
-        matched_patterns: Optional[Dict[str, str]] = None,
-        raw_request: Optional[str] = None,
+        attack_types: list[str] | None = None,
+        matched_patterns: dict[str, str] | None = None,
+        raw_request: str | None = None,
         increment_page_visit: bool = False,
         max_pages_limit: int = 0,
     ) -> int:
@@ -452,9 +451,9 @@ class DatabaseManager:
         self,
         ip: str,
         path: str,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-    ) -> Optional[int]:
+        username: str | None = None,
+        password: str | None = None,
+    ) -> int | None:
         """
         Persist a credential attempt to the database.
 
@@ -775,9 +774,9 @@ class DatabaseManager:
     def update_ip_stats_analysis(
         self,
         ip: str,
-        analyzed_metrics: Dict[str, object],
+        analyzed_metrics: dict[str, object],
         category: str,
-        category_scores: Dict[str, int],
+        category_scores: dict[str, int],
         last_analysis: datetime,
     ) -> None:
         """
@@ -870,7 +869,7 @@ class DatabaseManager:
     def _record_category_change(
         self,
         ip: str,
-        old_category: Optional[str],
+        old_category: str | None,
         new_category: str,
         timestamp: datetime,
     ) -> None:
@@ -897,7 +896,7 @@ class DatabaseManager:
         # time (see metrics.KrawlMetricsCollector), which is cheap (indexed) and
         # avoids the unbounded drift a delta accrues under retention deletes.
 
-    def get_category_history(self, ip: str) -> List[Dict[str, Any]]:
+    def get_category_history(self, ip: str) -> list[dict[str, Any]]:
         """
         Retrieve category change history for a specific IP.
 
@@ -934,18 +933,18 @@ class DatabaseManager:
         country_code: str,
         asn: str,
         asn_org: str,
-        list_on: Dict[str, str],
-        city: Optional[str] = None,
-        latitude: Optional[float] = None,
-        longitude: Optional[float] = None,
-        country: Optional[str] = None,
-        region: Optional[str] = None,
-        region_name: Optional[str] = None,
-        timezone: Optional[str] = None,
-        isp: Optional[str] = None,
-        reverse: Optional[str] = None,
-        is_proxy: Optional[bool] = None,
-        is_hosting: Optional[bool] = None,
+        list_on: dict[str, str],
+        city: str | None = None,
+        latitude: float | None = None,
+        longitude: float | None = None,
+        country: str | None = None,
+        region: str | None = None,
+        region_name: str | None = None,
+        timezone: str | None = None,
+        isp: str | None = None,
+        reverse: str | None = None,
+        is_proxy: bool | None = None,
+        is_hosting: bool | None = None,
     ) -> None:
         """
         Update IP rep stats
@@ -1001,13 +1000,13 @@ class DatabaseManager:
                 if is_hosting is not None:
                     ip_stats.is_hosting = is_hosting
                 session.commit()
-        except Exception as e:
+        except Exception:
             session.rollback()
             raise
         finally:
             self.close_session()
 
-    def get_unenriched_ips(self, limit: int = 100) -> List[str]:
+    def get_unenriched_ips(self, limit: int = 100) -> list[str]:
         """
         Get IPs that don't have complete reputation data yet.
         Returns IPs without country_code, city, latitude, or longitude data.
@@ -1056,7 +1055,7 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_ips_needing_reevaluation(self) -> List[str]:
+    def get_ips_needing_reevaluation(self) -> list[str]:
         """
         Get all IP addresses that need evaluation.
 
@@ -1070,7 +1069,7 @@ class DatabaseManager:
                 session.query(IpStats.ip)
                 .filter(
                     or_(
-                        IpStats.need_reevaluation == True,
+                        IpStats.need_reevaluation,
                         IpStats.last_analysis.is_(None),
                     )
                 )
@@ -1103,8 +1102,8 @@ class DatabaseManager:
                 .filter(
                     IpStats.last_seen >= last_seen_cutoff,
                     IpStats.last_analysis <= last_analysis_cutoff,
-                    IpStats.need_reevaluation == False,
-                    IpStats.manual_category == False,
+                    not IpStats.need_reevaluation,
+                    not IpStats.manual_category,
                 )
                 .update(
                     {IpStats.need_reevaluation: True},
@@ -1113,7 +1112,7 @@ class DatabaseManager:
             )
             session.commit()
             return count
-        except Exception as e:
+        except Exception:
             session.rollback()
             raise
         finally:
@@ -1132,8 +1131,8 @@ class DatabaseManager:
             count = (
                 session.query(IpStats)
                 .filter(
-                    IpStats.need_reevaluation == False,
-                    IpStats.manual_category == False,
+                    not IpStats.need_reevaluation,
+                    not IpStats.manual_category,
                 )
                 .update(
                     {IpStats.need_reevaluation: True},
@@ -1142,7 +1141,7 @@ class DatabaseManager:
             )
             session.commit()
             return count
-        except Exception as e:
+        except Exception:
             session.rollback()
             raise
         finally:
@@ -1152,11 +1151,11 @@ class DatabaseManager:
         self,
         page: int = 1,
         page_size: int = 25,
-        ip_filter: Optional[str] = None,
+        ip_filter: str | None = None,
         suspicious_only: bool = False,
-        since_minutes: Optional[int] = None,
+        since_minutes: int | None = None,
         sort_order: str = "desc",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Retrieve access logs with pagination and optional filtering.
 
@@ -1188,7 +1187,7 @@ class DatabaseManager:
             if ip_filter:
                 query = query.filter(AccessLog.ip == sanitize_ip(ip_filter))
             if suspicious_only:
-                query = query.filter(AccessLog.is_suspicious == True)
+                query = query.filter(AccessLog.is_suspicious)
             if since_minutes is not None:
                 cutoff_time = datetime.now() - timedelta(minutes=since_minutes)
                 query = query.filter(AccessLog.timestamp >= cutoff_time)
@@ -1200,7 +1199,7 @@ class DatabaseManager:
             if ip_filter:
                 count_query = count_query.filter(AccessLog.ip == sanitize_ip(ip_filter))
             if suspicious_only:
-                count_query = count_query.filter(AccessLog.is_suspicious == True)
+                count_query = count_query.filter(AccessLog.is_suspicious)
             if since_minutes is not None:
                 count_query = count_query.filter(AccessLog.timestamp >= cutoff_time)
             total_access_logs = count_query.scalar()
@@ -1235,10 +1234,10 @@ class DatabaseManager:
         self,
         limit: int = 100,
         offset: int = 0,
-        ip_filter: Optional[str] = None,
+        ip_filter: str | None = None,
         suspicious_only: bool = False,
-        since_minutes: Optional[int] = None,
-    ) -> List[Dict[str, Any]]:
+        since_minutes: int | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Retrieve access logs with optional filtering.
 
@@ -1263,7 +1262,7 @@ class DatabaseManager:
             if ip_filter:
                 query = query.filter(AccessLog.ip == sanitize_ip(ip_filter))
             if suspicious_only:
-                query = query.filter(AccessLog.is_suspicious == True)
+                query = query.filter(AccessLog.is_suspicious)
             if since_minutes is not None:
                 cutoff_time = datetime.now() - timedelta(minutes=since_minutes)
                 query = query.filter(AccessLog.timestamp >= cutoff_time)
@@ -1288,8 +1287,8 @@ class DatabaseManager:
             self.close_session()
 
     def get_credential_attempts(
-        self, limit: int = 100, offset: int = 0, ip_filter: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+        self, limit: int = 100, offset: int = 0, ip_filter: str | None = None
+    ) -> list[dict[str, Any]]:
         """
         Retrieve credential attempts with optional filtering.
 
@@ -1326,7 +1325,7 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_ip_stats(self, limit: int = 100) -> List[Dict[str, Any]]:
+    def get_ip_stats(self, limit: int = 100) -> list[dict[str, Any]]:
         """
         Retrieve IP statistics ordered by total requests.
 
@@ -1369,7 +1368,7 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_ip_stats_by_ip(self, ip: str) -> Optional[Dict[str, Any]]:
+    def get_ip_stats_by_ip(self, ip: str) -> dict[str, Any] | None:
         """
         Retrieve IP statistics for a specific IP address.
 
@@ -1444,7 +1443,7 @@ class DatabaseManager:
         page_size: int = 25,
         sort_by: str = "total_requests",
         sort_order: str = "desc",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Retrieve paginated list of attacker IPs ordered by specified field.
 
@@ -1541,8 +1540,8 @@ class DatabaseManager:
         page_size: int = 25,
         sort_by: str = "total_requests",
         sort_order: str = "desc",
-        categories: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        categories: list[str] | None = None,
+    ) -> dict[str, Any]:
         """
         Retrieve paginated list of all IPs (or filtered by categories) ordered by specified field.
 
@@ -1646,7 +1645,7 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_ips_for_export(self, categories: List[str]) -> List[str]:
+    def get_ips_for_export(self, categories: list[str]) -> list[str]:
         """
         Return IP strings filtered by categories, for banlist export.
         Only SELECT the ip column for minimal overhead.
@@ -1661,17 +1660,17 @@ class DatabaseManager:
                         IpStats.category.in_(categories),
                         or_(
                             IpStats.ban_override.is_(None),
-                            IpStats.ban_override == True,
+                            IpStats.ban_override,
                         ),
                     ),
-                    IpStats.ban_override == True,
+                    IpStats.ban_override,
                 )
             )
             return [row.ip for row in query.all()]
         finally:
             self.close_session()
 
-    def _public_ip_filter(self, query, ip_column, server_ip: Optional[str] = None):
+    def _public_ip_filter(self, query, ip_column, server_ip: str | None = None):
         """Apply SQL-level filter to exclude the server's own IP."""
         if server_ip:
             query = query.filter(ip_column != server_ip)
@@ -1688,7 +1687,7 @@ class DatabaseManager:
         server_ip = get_config().get_server_ip()
         return bool(ip) and ip != server_ip
 
-    def get_dashboard_counts(self) -> Dict[str, int]:
+    def get_dashboard_counts(self) -> dict[str, int]:
         """
         Return aggregate dashboard counts from the live cache counters.
 
@@ -1711,7 +1710,7 @@ class DatabaseManager:
             "unique_attackers": self.count_category("attacker"),
         }
 
-    def _compute_dashboard_counts_sql(self) -> Dict[str, int]:
+    def _compute_dashboard_counts_sql(self) -> dict[str, int]:
         """
         Get aggregate statistics for the dashboard (excludes local/private IPs and server IP).
 
@@ -1751,16 +1750,14 @@ class DatabaseManager:
             from sqlalchemy import case
 
             logs_q = session.query(
-                func.count(case((AccessLog.is_suspicious == True, AccessLog.id))).label(
+                func.count(case((AccessLog.is_suspicious, AccessLog.id))).label(
                     "suspicious_accesses"
                 ),
+                func.count(case((AccessLog.is_honeypot_trigger, AccessLog.id))).label(
+                    "honeypot_triggered"
+                ),
                 func.count(
-                    case((AccessLog.is_honeypot_trigger == True, AccessLog.id))
-                ).label("honeypot_triggered"),
-                func.count(
-                    distinct(
-                        case((AccessLog.is_honeypot_trigger == True, AccessLog.ip))
-                    )
+                    distinct(case((AccessLog.is_honeypot_trigger, AccessLog.ip)))
                 ).label("honeypot_ips"),
                 func.count(distinct(AccessLog.path)).label("unique_paths"),
             )
@@ -1784,7 +1781,7 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def upsert_metrics_summary(self, values: Dict[tuple, int]) -> None:
+    def upsert_metrics_summary(self, values: dict[tuple, int]) -> None:
         """Persist heavy aggregate counters into metrics_summary.
 
         Args:
@@ -1821,7 +1818,7 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_metrics_summary(self) -> Dict[tuple, int]:
+    def get_metrics_summary(self) -> dict[tuple, int]:
         """Load all persisted summary rows as {(metric, label): value}."""
         session = self.session
         try:
@@ -1833,7 +1830,7 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_heavy_summary(self) -> Dict[str, int]:
+    def get_heavy_summary(self) -> dict[str, int]:
         """Load the persisted heavy-aggregate snapshot as {metric: value}.
 
         Only the cumulative current-snapshot rows (empty label); excludes the
@@ -1842,9 +1839,7 @@ class DatabaseManager:
         session = self.session
         try:
             rows = (
-                session.query(MetricsSummary)
-                .filter(MetricsSummary.label == "")
-                .all()
+                session.query(MetricsSummary).filter(MetricsSummary.label == "").all()
             )
             return {r.metric: int(r.value) for r in rows}
         except Exception as e:
@@ -1853,7 +1848,7 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_deleted_tallies(self) -> Dict[str, int]:
+    def get_deleted_tallies(self) -> dict[str, int]:
         """Load the cumulative 'deleted' tallies as {metric: value}.
 
         These accumulate what retention removes so reconciliation can keep
@@ -1873,7 +1868,7 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_distinct_paths(self) -> List[str]:
+    def get_distinct_paths(self) -> list[str]:
         """Return all distinct request paths (used to seed the unique_paths set)."""
         session = self.session
         try:
@@ -1889,7 +1884,7 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_top_ips(self, limit: int = 10) -> List[tuple]:
+    def get_top_ips(self, limit: int = 10) -> list[tuple]:
         """
         Get top IP addresses by access count (excludes local/private IPs and server IP).
 
@@ -1914,7 +1909,7 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_top_paths(self, limit: int = 10, min_count: int = 1) -> List[tuple]:
+    def get_top_paths(self, limit: int = 10, min_count: int = 1) -> list[tuple]:
         """
         Get top paths by access count.
 
@@ -1941,7 +1936,7 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_top_user_agents(self, limit: int = 10, min_count: int = 1) -> List[tuple]:
+    def get_top_user_agents(self, limit: int = 10, min_count: int = 1) -> list[tuple]:
         """
         Get top user agents by access count.
 
@@ -1969,7 +1964,7 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_recent_suspicious(self, limit: int = 20) -> List[Dict[str, Any]]:
+    def get_recent_suspicious(self, limit: int = 20) -> list[dict[str, Any]]:
         """
         Get recent suspicious access attempts (excludes local/private IPs and server IP).
 
@@ -1988,7 +1983,7 @@ class DatabaseManager:
 
             query = (
                 session.query(AccessLog)
-                .filter(AccessLog.is_suspicious == True)
+                .filter(AccessLog.is_suspicious)
                 .order_by(AccessLog.timestamp.desc())
             )
             query = self._public_ip_filter(query, AccessLog.ip, server_ip)
@@ -2007,7 +2002,7 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_honeypot_triggered_ips(self) -> List[tuple]:
+    def get_honeypot_triggered_ips(self) -> list[tuple]:
         """
         Get IPs that triggered honeypot paths with the paths they accessed
         (excludes local/private IPs and server IP).
@@ -2020,13 +2015,13 @@ class DatabaseManager:
             # Get distinct IP/path combos for honeypot triggers
             results = (
                 session.query(AccessLog.ip, AccessLog.path)
-                .filter(AccessLog.is_honeypot_trigger == True)
+                .filter(AccessLog.is_honeypot_trigger)
                 .group_by(AccessLog.ip, AccessLog.path)
                 .all()
             )
 
             # Group paths by IP
-            ip_paths: Dict[str, List[str]] = {}
+            ip_paths: dict[str, list[str]] = {}
             for row in results:
                 if row.ip not in ip_paths:
                     ip_paths[row.ip] = []
@@ -2036,7 +2031,7 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_recent_attacks(self, limit: int = 20) -> List[Dict[str, Any]]:
+    def get_recent_attacks(self, limit: int = 20) -> list[dict[str, Any]]:
         """
         Get recent access logs that have attack detections.
 
@@ -2077,7 +2072,7 @@ class DatabaseManager:
         page_size: int = 5,
         sort_by: str = "count",
         sort_order: str = "desc",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Retrieve paginated list of honeypot-triggered IPs with their paths.
 
@@ -2102,14 +2097,14 @@ class DatabaseManager:
             # Count distinct paths per IP using SQL GROUP BY
             count_col = func.count(distinct(AccessLog.path)).label("path_count")
             base_query = session.query(AccessLog.ip, count_col).filter(
-                AccessLog.is_honeypot_trigger == True
+                AccessLog.is_honeypot_trigger
             )
             base_query = self._public_ip_filter(base_query, AccessLog.ip, server_ip)
             base_query = base_query.group_by(AccessLog.ip)
 
             # Get total count of distinct honeypot IPs
             count_hp = session.query(func.count(distinct(AccessLog.ip))).filter(
-                AccessLog.is_honeypot_trigger == True
+                AccessLog.is_honeypot_trigger
             )
             count_hp = self._public_ip_filter(count_hp, AccessLog.ip, server_ip)
             total_honeypots = count_hp.scalar() or 0
@@ -2135,13 +2130,13 @@ class DatabaseManager:
                 path_rows = (
                     session.query(AccessLog.ip, AccessLog.path)
                     .filter(
-                        AccessLog.is_honeypot_trigger == True,
+                        AccessLog.is_honeypot_trigger,
                         AccessLog.ip.in_(paginated_ips),
                     )
                     .group_by(AccessLog.ip, AccessLog.path)
                     .all()
                 )
-                ip_paths: Dict[str, List[str]] = {}
+                ip_paths: dict[str, list[str]] = {}
                 for row in path_rows:
                     ip_paths.setdefault(row.ip, []).append(row.path)
 
@@ -2172,7 +2167,7 @@ class DatabaseManager:
         page_size: int = 5,
         sort_by: str = "timestamp",
         sort_order: str = "desc",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Retrieve paginated list of credential attempts.
 
@@ -2252,9 +2247,9 @@ class DatabaseManager:
         page_size: int = 5,
         sort_by: str = "count",
         sort_order: str = "desc",
-        search: Optional[str] = None,
-        categories: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        search: str | None = None,
+        categories: list[str] | None = None,
+    ) -> dict[str, Any]:
         """
         Retrieve paginated list of top IP addresses by access count.
 
@@ -2341,10 +2336,10 @@ class DatabaseManager:
         page_size: int = 5,
         sort_by: str = "count",
         sort_order: str = "desc",
-        search: Optional[str] = None,
+        search: str | None = None,
         honeypot_only: bool = False,
         min_count: int = 1,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Retrieve paginated list of top paths by access count.
 
@@ -2372,7 +2367,7 @@ class DatabaseManager:
 
             search_filter = [AccessLog.path.ilike(f"%{search}%")] if search else []
             if honeypot_only:
-                search_filter.append(AccessLog.is_honeypot_trigger == True)
+                search_filter.append(AccessLog.is_honeypot_trigger)
 
             # Count distinct paths that meet the min_count threshold
             count_subq = (
@@ -2424,9 +2419,9 @@ class DatabaseManager:
         page_size: int = 5,
         sort_by: str = "count",
         sort_order: str = "desc",
-        search: Optional[str] = None,
+        search: str | None = None,
         min_count: int = 1,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Retrieve paginated list of top user agents by access count.
 
@@ -2506,9 +2501,9 @@ class DatabaseManager:
         page_size: int = 5,
         sort_by: str = "timestamp",
         sort_order: str = "desc",
-        ip_filter: Optional[str] = None,
-        attack_type_filter: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        ip_filter: str | None = None,
+        attack_type_filter: str | None = None,
+    ) -> dict[str, Any]:
         """
         Retrieve paginated list of detected attack types with access logs.
 
@@ -2608,7 +2603,7 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def get_raw_request_by_id(self, log_id: int) -> Optional[str]:
+    def get_raw_request_by_id(self, log_id: int) -> str | None:
         """
         Retrieve raw HTTP request for a specific access log ID.
 
@@ -2629,7 +2624,7 @@ class DatabaseManager:
 
     def get_attack_types_stats(
         self, limit: int = 20, ip_filter: str | None = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get aggregated statistics for attack types (efficient for large datasets).
 
@@ -2671,7 +2666,7 @@ class DatabaseManager:
 
     def get_attack_types_daily(
         self, limit: int = 10, days: int = 30, offset_days: int = 0
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get attack type counts for a sliding window (for line chart).
         Uses hourly granularity for spans <= 7 days, daily otherwise.
@@ -2728,7 +2723,6 @@ class DatabaseManager:
 
                 # Group by date + hour, portable across SQLite and PostgreSQL
                 # strftime works on SQLite, to_char on PostgreSQL
-                from sqlalchemy import literal_column
 
                 is_sqlite = "sqlite" in str(session.bind.url)
                 if is_sqlite:
@@ -2828,7 +2822,7 @@ class DatabaseManager:
         query: str,
         page: int = 1,
         page_size: int = 20,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Search attacks, IPs, and deception pages matching a query string.
 
@@ -2977,15 +2971,21 @@ class DatabaseManager:
                 {
                     "path": page.path,
                     "access_count": page.access_count,
-                    "created_at": page.created_at.isoformat() if page.created_at else None,
-                    "last_accessed": page.last_accessed.isoformat() if page.last_accessed else None,
+                    "created_at": (
+                        page.created_at.isoformat() if page.created_at else None
+                    ),
+                    "last_accessed": (
+                        page.last_accessed.isoformat() if page.last_accessed else None
+                    ),
                 }
                 for page in deception_pages
             ]
 
             total = total_attacks + total_ips + total_deception_pages
             total_pages = max(
-                1, (max(total_attacks, total_ips, total_deception_pages) + page_size - 1) // page_size
+                1,
+                (max(total_attacks, total_ips, total_deception_pages) + page_size - 1)
+                // page_size,
             )
 
             return {
@@ -3008,7 +3008,7 @@ class DatabaseManager:
 
     # ── Ban Override Management ──────────────────────────────────────────
 
-    def set_ban_override(self, ip: str, override: Optional[bool]) -> bool:
+    def set_ban_override(self, ip: str, override: bool | None) -> bool:
         """
         Set ban override for an IP.
         override=True: force into banlist
@@ -3066,7 +3066,7 @@ class DatabaseManager:
         self,
         page: int = 1,
         page_size: int = 25,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get all IPs with a non-null ban_override, paginated."""
         session = self.session
         try:
@@ -3178,7 +3178,7 @@ class DatabaseManager:
         self,
         page: int = 1,
         page_size: int = 25,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get all tracked IPs, paginated. Reads only from tracked_ips table."""
         session = self.session
         try:
@@ -3227,7 +3227,7 @@ class DatabaseManager:
         page_size: int = 10,
         sort_by: str = "created_at",
         sort_order: str = "desc",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Retrieve paginated list of generated deception template pages.
 
@@ -3352,6 +3352,7 @@ class DatabaseManager:
             Number of pages created today
         """
         from datetime import date
+
         from models import GeneratedPage
 
         session = self.session
@@ -3411,8 +3412,9 @@ class DatabaseManager:
         Raises:
             ValueError: If date format is invalid
         """
-        from models import GeneratedPage
         from datetime import datetime
+
+        from models import GeneratedPage
 
         session = self.session
         try:
@@ -3431,8 +3433,10 @@ class DatabaseManager:
                 f"Deleted {deleted_count} generated pages created before {date_str}"
             )
             return deleted_count
-        except ValueError:
-            raise ValueError(f"Invalid date format. Use YYYY-MM-DD (got: {date_str})")
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid date format. Use YYYY-MM-DD (got: {date_str})"
+            ) from e
         except Exception as e:
             applogger.error(f"Error deleting generated pages before {date_str}: {e}")
             session.rollback()
@@ -3479,8 +3483,9 @@ class DatabaseManager:
         Raises:
             ValueError: If date format is invalid
         """
-        from models import GeneratedPage
         from datetime import datetime
+
+        from models import GeneratedPage
 
         session = self.session
         try:
@@ -3493,18 +3498,20 @@ class DatabaseManager:
                 .filter(GeneratedPage.created_at < target_date)
                 .all()
             )
-            
+
             # Force load the html_content_b64 for all pages before closing session
             # This prevents lazy-loading issues after session is closed
             for page in pages:
                 _ = page.html_content_b64
-            
+
             applogger.debug(
                 f"Retrieved {len(pages)} generated pages created before {date_str}"
             )
             return pages
-        except ValueError:
-            raise ValueError(f"Invalid date format. Use YYYY-MM-DD (got: {date_str})")
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid date format. Use YYYY-MM-DD (got: {date_str})"
+            ) from e
         except Exception as e:
             applogger.error(f"Error querying generated pages before {date_str}: {e}")
             return []

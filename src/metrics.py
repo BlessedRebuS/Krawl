@@ -21,7 +21,7 @@ Two families of metrics:
 import re
 import time
 
-from prometheus_client import Gauge, REGISTRY
+from prometheus_client import REGISTRY, Gauge
 from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
 
 from config import get_config
@@ -159,6 +159,7 @@ dashboard_warmup_duration_seconds = Gauge(
 # Refresh helpers (current-state gauges, called by background tasks)
 # ----------------------
 
+
 def refresh_ai(db) -> None:
     if not _enabled():
         return
@@ -179,6 +180,7 @@ def refresh_system(db) -> None:
 
     try:
         from routes.api import _auth_attempts
+
         now = time.time()
         locked = sum(
             1

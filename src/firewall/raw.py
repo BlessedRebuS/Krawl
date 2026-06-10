@@ -1,4 +1,5 @@
-from typing_extensions import override
+from typing import override
+
 from firewall.fwtype import FWType
 
 

@@ -12,8 +12,8 @@ import re
 from datetime import datetime, timedelta
 
 from database import get_database
-from wordlists import get_wordlists
 from logger import get_app_logger
+from wordlists import get_wordlists
 
 # ----------------------
 # TASK CONFIG
@@ -162,8 +162,8 @@ def main():
                 session.query(AccessLog)
                 .filter(
                     AccessLog.timestamp < cutoff,
-                    AccessLog.is_suspicious == True,
-                    AccessLog.is_honeypot_trigger == False,
+                    AccessLog.is_suspicious,
+                    not AccessLog.is_honeypot_trigger,
                 )
                 .limit(BATCH_SIZE)
                 .all()

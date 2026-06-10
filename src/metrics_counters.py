@@ -13,7 +13,7 @@ krawl:counter:set:<name>.
 """
 
 import threading
-from typing import Dict, Iterable, Tuple
+from collections.abc import Iterable
 
 from dashboard_cache import get_backend, get_redis_client
 
@@ -22,15 +22,15 @@ _SET_PREFIX = "krawl:counter:set:"
 _SEED_MARKER = "krawl:counter:_seeded"
 
 _lock = threading.Lock()
-_counters: Dict[str, int] = {}
-_sets: Dict[str, set] = {}
+_counters: dict[str, int] = {}
+_sets: dict[str, set] = {}
 
 
 def _key(metric: str, label: str = "") -> str:
     return f"{metric}|{label}" if label else metric
 
 
-def _split_key(key: str) -> Tuple[str, str]:
+def _split_key(key: str) -> tuple[str, str]:
     if "|" in key:
         metric, label = key.split("|", 1)
         return metric, label
@@ -71,7 +71,7 @@ def set_value(metric: str, label: str = "", value: int = 0) -> None:
         _counters[_key(metric, label)] = int(value)
 
 
-def get_many(metrics) -> Dict[str, int]:
+def get_many(metrics) -> dict[str, int]:
     """Batch-read unlabeled counters as {metric: value}.
 
     Scalable: a single Redis MGET (one round-trip instead of one GET each).
@@ -84,23 +84,21 @@ def get_many(metrics) -> Dict[str, int]:
             if not metrics:
                 return {}
             raw = r.mget([f"{_COUNTER_PREFIX}{m}" for m in metrics])
-            return {m: (int(v) if v else 0) for m, v in zip(metrics, raw)}
+            return {m: (int(v) if v else 0) for m, v in zip(metrics, raw, strict=False)}
     with _lock:
         return {m: _counters.get(m, 0) for m in metrics}
 
 
-def get_all() -> Dict[str, int]:
+def get_all() -> dict[str, int]:
     """Return all counters as {encoded_key: value}. Excludes distinctness sets."""
     if get_backend() == "scalable":
         r = get_redis_client()
-        out: Dict[str, int] = {}
+        out: dict[str, int] = {}
         if r is not None:
             keys = []
             cursor = 0
             while True:
-                cursor, batch = r.scan(
-                    cursor, match=f"{_COUNTER_PREFIX}*", count=200
-                )
+                cursor, batch = r.scan(cursor, match=f"{_COUNTER_PREFIX}*", count=200)
                 keys.extend(
                     k
                     for k in batch
@@ -111,8 +109,8 @@ def get_all() -> Dict[str, int]:
             if keys:
                 raw = r.mget(keys)
                 out = {
-                    k[len(_COUNTER_PREFIX):]: (int(v) if v else 0)
-                    for k, v in zip(keys, raw)
+                    k[len(_COUNTER_PREFIX) :]: (int(v) if v else 0)
+                    for k, v in zip(keys, raw, strict=False)
                 }
         return out
     with _lock:
@@ -264,7 +262,9 @@ def bootstrap(db) -> None:
             # Keep unique_paths at least the cumulative we last persisted, even
             # if the set was rebuilt from a smaller current-distinct after a wipe.
             set_value(
-                "unique_paths", "", max(scard("paths"), int(heavy.get("unique_paths", 0)))
+                "unique_paths",
+                "",
+                max(scard("paths"), int(heavy.get("unique_paths", 0))),
             )
         else:
             _recompute_heavy(db)

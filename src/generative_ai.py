@@ -6,38 +6,34 @@ Supports both OpenRouter and OpenAI APIs for generating HTML responses.
 Caches generated pages in the database to avoid redundant API calls.
 """
 
-import json
-import os
-import logging
-import asyncio
 import base64
-import re
-from typing import Optional, Tuple, List
-from pathlib import Path
+import logging
+import os
 from datetime import datetime
+from pathlib import Path
 
 import aiohttp
 
 logger = logging.getLogger("krawl")
 
 # Cache robots.txt disallowed paths
-_robots_disallowed_cache: Optional[List[str]] = None
+_robots_disallowed_cache: list[str] | None = None
 
 # Shared aiohttp session to avoid creating a new connection pool per request
-_aiohttp_session: Optional[aiohttp.ClientSession] = None
+_aiohttp_session: aiohttp.ClientSession | None = None
 
 
 def normalize_path(path: str) -> str:
     # Normalize a path to avoid duplicates
     if not path:
         return "/"
-    
+
     while "//" in path:
         path = path.replace("//", "/")
-    
+
     if path != "/" and path.endswith("/"):
         path = path.rstrip("/")
-    
+
     return path
 
 
@@ -74,13 +70,16 @@ def import_deception_pages_from_directory() -> int:
     from config import get_config
 
     config = get_config()
-    
+
     # Check if import is enabled
-    if not hasattr(config, 'deception_import_pages') or not config.deception_import_pages:
+    if (
+        not hasattr(config, "deception_import_pages")
+        or not config.deception_import_pages
+    ):
         return 0
 
     deception_dir = Path(__file__).parent / "templates" / "deception"
-    
+
     if not deception_dir.exists():
         return 0
 
@@ -96,26 +95,28 @@ def import_deception_pages_from_directory() -> int:
             try:
                 # Get filename without extension
                 filename = html_file.stem  # e.g., "admin__panel__login"
-                
+
                 # Convert double underscores to slashes for URL path
                 # admin__panel__login → admin/panel/login
                 url_path = "/" + filename.replace("__", "/")
-                
+
                 # Normalize path to avoid duplicates
                 url_path = normalize_path(url_path)
 
                 if not url_path or url_path == "/":
-                    logger.debug(f"Could not generate valid URL path for {html_file.name}, skipping")
+                    logger.debug(
+                        f"Could not generate valid URL path for {html_file.name}, skipping"
+                    )
                     continue
 
                 # Read the HTML file
                 try:
-                    with open(html_file, 'r', encoding='utf-8') as f:
+                    with open(html_file, encoding="utf-8") as f:
                         html_content = f.read()
                 except UnicodeDecodeError:
                     # Try with different encoding
                     try:
-                        with open(html_file, 'r', encoding='latin-1') as f:
+                        with open(html_file, encoding="latin-1") as f:
                             html_content = f.read()
                     except Exception as err:
                         logger.debug(f"Could not read {html_file}: {err}")
@@ -145,7 +146,7 @@ def is_ai_enabled() -> bool:
     return config.ai_enabled
 
 
-def get_api_key() -> Optional[str]:
+def get_api_key() -> str | None:
     """Get OpenRouter API key from config or environment."""
     from config import get_config
 
@@ -226,15 +227,16 @@ def get_max_daily_requests() -> int:
 
 def can_generate_today() -> bool:
     """Check if we can still generate more pages today based on daily limit."""
-    from dependencies import get_db
     from datetime import date
+
+    from dependencies import get_db
 
     max_requests = get_max_daily_requests()
     if max_requests <= 0:  # No limit if set to 0 or negative
         return True
 
     db = get_db()
-    today = date.today()
+    date.today()
 
     # Count generated pages created today
     generated_today = db.count_generated_pages_created_today()
@@ -248,7 +250,7 @@ def can_generate_today() -> bool:
     return True
 
 
-def load_robots_disallowed() -> List[str]:
+def load_robots_disallowed() -> list[str]:
     """Load and parse robots.txt to get disallowed paths.
 
     Returns:
@@ -271,7 +273,7 @@ def load_robots_disallowed() -> List[str]:
     for robots_file in robots_paths:
         if robots_file.exists():
             try:
-                with open(robots_file, "r") as f:
+                with open(robots_file) as f:
                     for line in f:
                         line = line.strip()
                         if line.startswith("Disallow:"):
@@ -323,7 +325,7 @@ def has_generated_page_in_db(path: str) -> bool:
         return False
 
 
-def get_generated_page_from_db(path: str) -> Optional[str]:
+def get_generated_page_from_db(path: str) -> str | None:
     """Retrieve a cached generated page from database.
 
     Args:
@@ -557,7 +559,7 @@ async def _call_api(
             body = await response.json()
     except aiohttp.ClientError as err:
         raise RuntimeError(f"{provider} network error: {err}") from err
-    except asyncio.TimeoutError as err:
+    except TimeoutError as err:
         raise RuntimeError(f"{provider} request timeout: {err}") from err
     except Exception as err:
         raise RuntimeError(f"{provider} request failed: {err}") from err
@@ -570,7 +572,7 @@ async def _call_api(
 
 async def generate_html_for_path(
     path: str, query: str = ""
-) -> Tuple[str, str, int, bool]:
+) -> tuple[str, str, int, bool]:
     """Generate HTML response for a given path using AI asynchronously.
 
     Checks the database cache first. If found, returns cached page regardless of AI enabled status.
@@ -604,7 +606,7 @@ async def generate_html_for_path(
         logger.warning(
             f"Daily AI generation limit reached, falling back to default honeypot behavior for path: {path}"
         )
-        raise RuntimeError(f"Daily AI generation limit reached")
+        raise RuntimeError("Daily AI generation limit reached")
 
     api_key = get_api_key()
     if not api_key:
@@ -724,8 +726,9 @@ def should_use_ai_for_path(path: str) -> bool:
         dashboard_path = "/" + config.dashboard_secret_path.lstrip("/")
         if path.startswith(dashboard_path):
             return False
-    except Exception:
-        pass  # If config fails, continue with other checks
+    except Exception as err:
+        # If config fails, continue with other checks
+        logger.debug(f"Dashboard-path check skipped (config unavailable): {err}")
 
     # Exclude randomly generated links from homepage
     if _is_random_link(path):

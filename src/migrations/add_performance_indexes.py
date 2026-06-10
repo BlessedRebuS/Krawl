@@ -5,9 +5,9 @@ Migration script to add performance indexes to attack_detections table.
 This dramatically improves query performance with large datasets (100k+ records).
 """
 
+import os
 import sqlite3
 import sys
-import os
 
 
 def index_exists(cursor, index_name: str) -> bool:

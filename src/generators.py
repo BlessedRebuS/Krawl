@@ -4,12 +4,13 @@
 Generators for creating random fake data (credentials, API keys, etc.)
 """
 
+import json
 import random
 import string
-import json
+
+from config import get_config
 from templates import html_templates
 from wordlists import get_wordlists
-from config import get_config
 
 
 def random_username() -> str:
@@ -63,7 +64,7 @@ def random_database_name() -> str:
 def credentials_txt() -> str:
     """Generate fake credentials.txt with random data"""
     content = "# Production Credentials\n\n"
-    for i in range(random.randint(3, 7)):
+    for _i in range(random.randint(3, 7)):
         username = random_username()
         password = random_password()
         content += f"{username}:{password}\n"
@@ -77,7 +78,7 @@ def passwords_txt() -> str:
     content += f"Database Password: {random_password()}\n"
     content += f"API Key: {random_api_key()}\n\n"
     content += "User Passwords:\n"
-    for i in range(random.randint(5, 10)):
+    for _i in range(random.randint(5, 10)):
         username = random_username()
         password = random_password()
         content += f"{username} = {password}\n"

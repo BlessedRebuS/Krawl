@@ -6,11 +6,12 @@ Lets the dashboard respond instantly without hitting the database.
 """
 
 import time
-from logger import get_app_logger
-from config import get_config
-from database import get_database
-from dashboard_cache import set_cached, set_cached_table
+
 import metrics
+from config import get_config
+from dashboard_cache import set_cached, set_cached_table
+from database import get_database
+from logger import get_app_logger
 
 app_logger = get_app_logger()
 

@@ -7,28 +7,28 @@ All endpoints are prefixed with the secret dashboard path.
 """
 
 import asyncio
+import base64
 import hmac
+import io
 import secrets
 import time
-import io
 import zipfile
-import base64
 
-from fastapi import APIRouter, Request, Response, Query
+from fastapi import APIRouter, Query, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from dependencies import get_db, get_client_ip
-from logger import get_app_logger
 from config import get_config
 from dashboard_cache import (
     get_cached,
-    is_warm,
-    invalidate_table_cache,
     get_cached_table,
-    set_cached_table,
+    invalidate_table_cache,
+    is_warm,
     paginate_cached_list,
+    set_cached_table,
 )
+from dependencies import get_client_ip, get_db
+from logger import get_app_logger
 
 # Server-side session token store (valid tokens for authenticated sessions)
 _auth_tokens: set = set()
@@ -714,6 +714,7 @@ async def download_generated_page(
         return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
 
     import base64
+
     from models import GeneratedPage
 
     db = get_db()
@@ -761,50 +762,68 @@ async def download_generated_pages_zip(
     try:
         session = db.session
         pages_to_download = []
-        
+
         if select_all:
             # Download all pages
             pages_to_download = session.query(GeneratedPage).all()
             page_paths = [p.path for p in pages_to_download]
-            get_app_logger().info(f"[DECEPTION] Download all: found {len(pages_to_download)} pages - Paths: {page_paths}")
+            get_app_logger().info(
+                f"[DECEPTION] Download all: found {len(pages_to_download)} pages - Paths: {page_paths}"
+            )
         elif paths:
             # Parse paths (comma-separated)
-            path_list = [p.strip() for p in paths.split(',') if p.strip()]
+            path_list = [p.strip() for p in paths.split(",") if p.strip()]
             if not path_list:
-                return JSONResponse(content={"error": "No paths provided"}, status_code=400)
+                return JSONResponse(
+                    content={"error": "No paths provided"}, status_code=400
+                )
 
-            get_app_logger().debug(f"[DECEPTION] Download requested for paths: {path_list}")
+            get_app_logger().debug(
+                f"[DECEPTION] Download requested for paths: {path_list}"
+            )
 
             # Query pages by paths
             for path in path_list:
-                page = session.query(GeneratedPage).filter(GeneratedPage.path == path).first()
+                page = (
+                    session.query(GeneratedPage)
+                    .filter(GeneratedPage.path == path)
+                    .first()
+                )
                 if page:
                     pages_to_download.append(page)
                 else:
                     get_app_logger().debug(f"[DECEPTION] Path not found: {path}")
-                    
+
         elif before_date:
             # Query pages by date
             try:
                 pages_to_download = db.get_generated_pages_before(before_date)
-                get_app_logger().debug(f"[DECEPTION] Download by date {before_date}: found {len(pages_to_download)} pages")
+                get_app_logger().debug(
+                    f"[DECEPTION] Download by date {before_date}: found {len(pages_to_download)} pages"
+                )
             except ValueError as e:
                 return JSONResponse(content={"error": str(e)}, status_code=400)
         else:
             return JSONResponse(
-                content={"error": "Please specify either select_all, paths, or before_date"},
-                status_code=400
+                content={
+                    "error": "Please specify either select_all, paths, or before_date"
+                },
+                status_code=400,
             )
 
         if not pages_to_download:
-            return JSONResponse(content={"error": "No pages found to download"}, status_code=404)
+            return JSONResponse(
+                content={"error": "No pages found to download"}, status_code=404
+            )
 
         # Create ZIP file in memory
         zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
             for page in pages_to_download:
                 try:
-                    html_content = base64.b64decode(page.html_content_b64).decode("utf-8")
+                    html_content = base64.b64decode(page.html_content_b64).decode(
+                        "utf-8"
+                    )
                     # Build a safe filename from the path (convert / to __ for round-trip compatibility)
                     safe_name = page.path.strip("/").replace("/", "__") or "index"
                     safe_name = safe_name[:100]  # Truncate filename for safety
@@ -812,9 +831,11 @@ async def download_generated_pages_zip(
                         safe_name += ".html"
 
                     # Add file to ZIP (encode content to bytes)
-                    zip_file.writestr(safe_name, html_content.encode('utf-8'))
+                    zip_file.writestr(safe_name, html_content.encode("utf-8"))
                 except Exception as e:
-                    get_app_logger().warning(f"[DECEPTION] Error adding page {page.path} to ZIP: {e}")
+                    get_app_logger().warning(
+                        f"[DECEPTION] Error adding page {page.path} to ZIP: {e}"
+                    )
                     continue
 
         zip_buffer.seek(0)
@@ -830,7 +851,6 @@ async def download_generated_pages_zip(
         return JSONResponse(content={"error": "Internal server error"}, status_code=500)
     finally:
         db.close_session()
-
 
 
 class UploadPageRequest(BaseModel):
@@ -850,6 +870,7 @@ async def upload_generated_page(request: Request, body: UploadPageRequest):
 
     import base64
     from datetime import datetime
+
     from models import GeneratedPage
 
     path = body.path.strip()
@@ -871,7 +892,7 @@ async def upload_generated_page(request: Request, body: UploadPageRequest):
     allowed_exts = (".html", ".htm", ".xml", ".json", ".txt", ".css", ".js")
     for ext in allowed_exts:
         if path.endswith(ext):
-            path = path[:-len(ext)]
+            path = path[: -len(ext)]
             break
 
     db = get_db()
@@ -916,12 +937,11 @@ async def upload_generated_pages_bulk(request: Request, body: UploadBulkPagesReq
 
     import base64
     from datetime import datetime
+
     from models import GeneratedPage
 
     if not body.pages or not isinstance(body.pages, dict):
-        return JSONResponse(
-            content={"error": "No pages provided"}, status_code=400
-        )
+        return JSONResponse(content={"error": "No pages provided"}, status_code=400)
 
     db = get_db()
     try:
@@ -946,13 +966,15 @@ async def upload_generated_pages_bulk(request: Request, body: UploadBulkPagesReq
                 allowed_exts = (".html", ".htm", ".xml", ".json", ".txt", ".css", ".js")
                 for ext in allowed_exts:
                     if path.endswith(ext):
-                        path = path[:-len(ext)]
+                        path = path[: -len(ext)]
                         break
 
                 html_b64 = base64.b64encode(content.encode("utf-8")).decode("utf-8")
 
                 existing = (
-                    session.query(GeneratedPage).filter(GeneratedPage.path == path).first()
+                    session.query(GeneratedPage)
+                    .filter(GeneratedPage.path == path)
+                    .first()
                 )
                 if existing:
                     existing.html_content_b64 = html_b64
@@ -973,7 +995,9 @@ async def upload_generated_pages_bulk(request: Request, body: UploadBulkPagesReq
                 continue
 
         session.commit()
-        get_app_logger().info(f"[DECEPTION] Bulk uploaded {uploaded_count} pages from ZIP")
+        get_app_logger().info(
+            f"[DECEPTION] Bulk uploaded {uploaded_count} pages from ZIP"
+        )
         return JSONResponse(
             content={
                 "ok": True,

@@ -112,7 +112,7 @@ jobs:
       - name: Check for unused requirements
         run: |
           pip-missing-reqs src/
-          pip-extra-reqs src/
+          pip-extra-reqs -r uvicorn -r psycopg2-binary src/
 
   build-docker:
     name: Build Docker

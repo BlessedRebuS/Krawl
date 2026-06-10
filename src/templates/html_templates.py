@@ -7,10 +7,11 @@ Templates are loaded from the html/ subdirectory.
 
 import os
 from pathlib import Path
+
 from config import get_config
 from logger import get_app_logger
-from .template_loader import load_template, load_template_from_path
 
+from .template_loader import load_template, load_template_from_path
 
 _logged_custom_template_path: str | None = None
 
@@ -87,10 +88,16 @@ def main_page(counter: int, content: str) -> str:
             get_app_logger().info(f"Using custom template path: {custom_path}")
             _logged_custom_template_path = custom_path
         try:
-            return load_template_from_path(custom_path, counter=counter, content=content)
-        except Exception:
+            return load_template_from_path(
+                custom_path, counter=counter, content=content
+            )
+        except Exception as err:
             # On any failure, fall back to bundled template
-            pass
+            get_app_logger().debug(
+                f"Custom template load failed, using bundled template: {err}"
+            )
 
     bundled_template = Path(__file__).parent / "html" / "main_page.html"
-    return load_template_from_path(str(bundled_template), counter=counter, content=content)
+    return load_template_from_path(
+        str(bundled_template), counter=counter, content=content
+    )

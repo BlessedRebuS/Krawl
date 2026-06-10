@@ -4,8 +4,9 @@ import os
 import shutil
 import sqlite3
 import subprocess
-from logger import get_app_logger
+
 from config import get_config
+from logger import get_app_logger
 
 config = get_config()
 app_logger = get_app_logger()
@@ -87,7 +88,7 @@ def _dump_pg():
     ]
 
     try:
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603 — fixed pg_dump, list args, no shell
             cmd, env=env, capture_output=True, text=True, timeout=300
         )
         if result.returncode == 0:

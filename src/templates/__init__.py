@@ -4,8 +4,8 @@
 Templates package for the deception server.
 """
 
-from .template_loader import load_template, clear_cache, TemplateNotFoundError
 from . import html_templates
+from .template_loader import TemplateNotFoundError, clear_cache, load_template
 
 __all__ = [
     "load_template",

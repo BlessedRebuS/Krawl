@@ -1,8 +1,9 @@
-from database import get_database
-from logger import get_app_logger
 import requests
-from sanitizer import sanitize_for_storage, sanitize_dict
+
+from database import get_database
 from geo_utils import extract_geolocation_from_ip, fetch_blocklist_data
+from logger import get_app_logger
+from sanitizer import sanitize_dict, sanitize_for_storage
 
 # ----------------------
 # TASK CONFIG

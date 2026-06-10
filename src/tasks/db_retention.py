@@ -7,10 +7,11 @@ Periodically deletes old records based on configured retention_days.
 
 from datetime import datetime, timedelta
 
-from sqlalchemy import or_, delete as sa_delete
+from sqlalchemy import delete as sa_delete
+from sqlalchemy import or_
 
-from database import get_database
 from dashboard_cache import invalidate_table_cache
+from database import get_database
 from logger import get_app_logger
 
 # ----------------------
@@ -38,8 +39,8 @@ def main():
         from models import (
             AccessLog,
             AttackDetection,
-            IpStats,
             CategoryHistory,
+            IpStats,
             MetricsSummary,
         )
 
@@ -54,8 +55,8 @@ def main():
         # Delete attack detections linked to old NON-suspicious access logs (FK constraint)
         old_nonsuspicious_log_ids = session.query(AccessLog.id).filter(
             AccessLog.timestamp < cutoff,
-            AccessLog.is_suspicious == False,
-            AccessLog.is_honeypot_trigger == False,
+            not AccessLog.is_suspicious,
+            not AccessLog.is_honeypot_trigger,
         )
         detections_deleted = (
             session.query(AttackDetection)
@@ -68,8 +69,8 @@ def main():
             session.query(AccessLog)
             .filter(
                 AccessLog.timestamp < cutoff,
-                AccessLog.is_suspicious == False,
-                AccessLog.is_honeypot_trigger == False,
+                not AccessLog.is_suspicious,
+                not AccessLog.is_honeypot_trigger,
             )
             .delete(synchronize_session=False)
         )
@@ -79,8 +80,8 @@ def main():
             session.query(AccessLog.ip)
             .filter(
                 or_(
-                    AccessLog.is_suspicious == True,
-                    AccessLog.is_honeypot_trigger == True,
+                    AccessLog.is_suspicious,
+                    AccessLog.is_honeypot_trigger,
                 )
             )
             .distinct()

@@ -13,9 +13,8 @@ from fastapi.templating import Jinja2Templates
 from jinja2 import select_autoescape
 
 from config import Config
-from tracker import AccessTracker
 from database import DatabaseManager, get_database
-from logger import get_app_logger, get_access_logger, get_credential_logger
+from tracker import AccessTracker
 
 # Shared Jinja2 templates instance
 _templates = None
@@ -78,7 +77,7 @@ def get_client_ip(request: Request) -> str:
     if request.client:
         return request.client.host
 
-    return "0.0.0.0"
+    return "0.0.0.0"  # noqa: S104 — sentinel for unknown client, not a socket bind
 
 
 def build_raw_request(request: Request, body: str = "") -> str:
@@ -87,7 +86,7 @@ def build_raw_request(request: Request, body: str = "") -> str:
         raw = f"{request.method} {request.url.path}"
         if request.url.query:
             raw += f"?{request.url.query}"
-        raw += f" HTTP/1.1\r\n"
+        raw += " HTTP/1.1\r\n"
 
         for header, value in request.headers.items():
             raw += f"{header}: {value}\r\n"
