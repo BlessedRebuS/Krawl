@@ -13,3 +13,7 @@ select = ["E4", "E7", "E9", "F", "B", "I", "UP", "S"]
 
 [tool.ruff.format]
 quote-style = "double"
+
+[tool.pip-missing-reqs]
+# pydantic and starlette are transitive deps of fastapi; we use them via its API.
+ignore-modules = ["pydantic", "starlette"]
