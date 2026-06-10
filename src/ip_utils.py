@@ -35,7 +35,7 @@ def is_local_or_private_ip(ip_str: str) -> bool:
             or ip.is_loopback
             or ip.is_reserved
             or ip.is_link_local
-            or str(ip) in ("0.0.0.0", "::1")
+            or str(ip) in ("0.0.0.0", "::1")  # noqa: S104 — IP comparison, not a bind
         )
     except ValueError:
         # Invalid IP address

@@ -22,7 +22,7 @@ class Config:
     postgres_host: str = "localhost"
     postgres_port: int = 5432
     postgres_user: str = "krawl"
-    postgres_password: str = "krawl"
+    postgres_password: str = "krawl"  # noqa: S105 — dev default, overridable via env
     postgres_database: str = "krawl"
 
     # Redis settings (scalable mode)
@@ -356,11 +356,11 @@ def override_config_from_env(config: Config = None):
                 # If password is overridden, it's no longer auto-generated
                 if field == "dashboard_password":
                     config.dashboard_password_generated = False
-                if field_type == int:
+                if field_type is int:
                     setattr(config, field, int(env_value))
-                elif field_type == float:
+                elif field_type is float:
                     setattr(config, field, float(env_value))
-                elif field_type == bool:
+                elif field_type is bool:
                     # Handle boolean values (case-insensitive: true/false, yes/no, 1/0)
                     setattr(config, field, env_value.lower() in ("true", "yes", "1"))
                 elif field_type == tuple[int, int]:

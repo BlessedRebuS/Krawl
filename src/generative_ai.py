@@ -721,8 +721,9 @@ def should_use_ai_for_path(path: str) -> bool:
         dashboard_path = "/" + config.dashboard_secret_path.lstrip("/")
         if path.startswith(dashboard_path):
             return False
-    except Exception:
-        pass  # If config fails, continue with other checks
+    except Exception as err:
+        # If config fails, continue with other checks
+        logger.debug(f"Dashboard-path check skipped (config unavailable): {err}")
 
     # Exclude randomly generated links from homepage
     if _is_random_link(path):

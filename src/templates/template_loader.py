@@ -7,6 +7,8 @@ Loads templates from the html/ subdirectory and supports string formatting for d
 
 from pathlib import Path
 
+from logger import get_app_logger
+
 
 class TemplateNotFoundError(Exception):
     """Raised when a template file cannot be found."""
@@ -62,9 +64,9 @@ def load_template(name: str, **kwargs) -> str:
     if kwargs:
         try:
             template = template.format(**kwargs)
-        except Exception:
+        except Exception as err:
             # If formatting fails, return template unchanged (do not validate placeholders)
-            pass
+            get_app_logger().debug(f"Template formatting failed for '{name}': {err}")
     return template
 
 

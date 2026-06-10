@@ -89,9 +89,11 @@ def main_page(counter: int, content: str) -> str:
             _logged_custom_template_path = custom_path
         try:
             return load_template_from_path(custom_path, counter=counter, content=content)
-        except Exception:
+        except Exception as err:
             # On any failure, fall back to bundled template
-            pass
+            get_app_logger().debug(
+                f"Custom template load failed, using bundled template: {err}"
+            )
 
     bundled_template = Path(__file__).parent / "html" / "main_page.html"
     return load_template_from_path(str(bundled_template), counter=counter, content=content)

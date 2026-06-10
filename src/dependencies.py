@@ -77,7 +77,7 @@ def get_client_ip(request: Request) -> str:
     if request.client:
         return request.client.host
 
-    return "0.0.0.0"
+    return "0.0.0.0"  # noqa: S104 — sentinel for unknown client, not a socket bind
 
 
 def build_raw_request(request: Request, body: str = "") -> str:

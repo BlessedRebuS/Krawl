@@ -5,8 +5,10 @@ Database singleton module for the Krawl honeypot.
 Provides SQLAlchemy session management and database initialization.
 """
 
+import collections
 import os
 import stat
+import threading
 from datetime import datetime, timedelta
 from typing import Any, Optional
 
@@ -20,6 +22,7 @@ from models import (
     Base,
     CategoryHistory,
     CredentialAttempt,
+    GeneratedPage,
     IpStats,
     MetricsSummary,
     TrackedIp,
@@ -38,8 +41,6 @@ applogger = get_app_logger()
 # Instead of INSERT-per-request over the network, access log entries are
 # buffered in memory and flushed in bulk every few seconds by a background task.
 # IP stats counters are still updated synchronously (needed for ban checks).
-import collections
-import threading
 
 _write_buffer: collections.deque = collections.deque()
 _write_lock = threading.Lock()
@@ -3430,8 +3431,10 @@ class DatabaseManager:
                 f"Deleted {deleted_count} generated pages created before {date_str}"
             )
             return deleted_count
-        except ValueError:
-            raise ValueError(f"Invalid date format. Use YYYY-MM-DD (got: {date_str})")
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid date format. Use YYYY-MM-DD (got: {date_str})"
+            ) from e
         except Exception as e:
             applogger.error(f"Error deleting generated pages before {date_str}: {e}")
             session.rollback()
@@ -3503,8 +3506,10 @@ class DatabaseManager:
                 f"Retrieved {len(pages)} generated pages created before {date_str}"
             )
             return pages
-        except ValueError:
-            raise ValueError(f"Invalid date format. Use YYYY-MM-DD (got: {date_str})")
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid date format. Use YYYY-MM-DD (got: {date_str})"
+            ) from e
         except Exception as e:
             applogger.error(f"Error querying generated pages before {date_str}: {e}")
             return []

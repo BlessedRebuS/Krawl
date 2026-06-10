@@ -88,7 +88,7 @@ def _dump_pg():
     ]
 
     try:
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603 — fixed pg_dump, list args, no shell
             cmd, env=env, capture_output=True, text=True, timeout=300
         )
         if result.returncode == 0:
