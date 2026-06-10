@@ -192,9 +192,7 @@ class IpStats(Base):
     reputation_source: Mapped[str | None] = mapped_column(
         String(MAX_REPUTATION_SOURCE_LENGTH), nullable=True
     )
-    reputation_updated: Mapped[datetime | None] = mapped_column(
-        DateTime, nullable=True
-    )
+    reputation_updated: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     # Analyzed metrics, category and category scores
     analyzed_metrics: Mapped[dict[str, object]] = mapped_column(JSON, nullable=True)

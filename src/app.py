@@ -146,7 +146,6 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         app_logger.warning(f"Failed to import deception pages: {e}")
 
-
     # Initialize tracker
     tracker = AccessTracker(config.max_pages_limit, config.ban_duration_seconds)
     set_tracker(tracker)

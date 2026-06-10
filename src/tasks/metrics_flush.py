@@ -28,6 +28,8 @@ def main():
         db = get_database()
         values = {(metric, ""): mc.get(metric) for metric in mc.HEAVY_METRICS}
         db.upsert_metrics_summary(values)
-        app_logger.info(f"[Background Task] {task_name} flushed {len(values)} counters.")
+        app_logger.info(
+            f"[Background Task] {task_name} flushed {len(values)} counters."
+        )
     except Exception as e:
         app_logger.error(f"[Background Task] {task_name} failed: {e}")

@@ -88,7 +88,9 @@ def main_page(counter: int, content: str) -> str:
             get_app_logger().info(f"Using custom template path: {custom_path}")
             _logged_custom_template_path = custom_path
         try:
-            return load_template_from_path(custom_path, counter=counter, content=content)
+            return load_template_from_path(
+                custom_path, counter=counter, content=content
+            )
         except Exception as err:
             # On any failure, fall back to bundled template
             get_app_logger().debug(
@@ -96,4 +98,6 @@ def main_page(counter: int, content: str) -> str:
             )
 
     bundled_template = Path(__file__).parent / "html" / "main_page.html"
-    return load_template_from_path(str(bundled_template), counter=counter, content=content)
+    return load_template_from_path(
+        str(bundled_template), counter=counter, content=content
+    )

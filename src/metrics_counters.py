@@ -98,9 +98,7 @@ def get_all() -> dict[str, int]:
             keys = []
             cursor = 0
             while True:
-                cursor, batch = r.scan(
-                    cursor, match=f"{_COUNTER_PREFIX}*", count=200
-                )
+                cursor, batch = r.scan(cursor, match=f"{_COUNTER_PREFIX}*", count=200)
                 keys.extend(
                     k
                     for k in batch
@@ -111,7 +109,7 @@ def get_all() -> dict[str, int]:
             if keys:
                 raw = r.mget(keys)
                 out = {
-                    k[len(_COUNTER_PREFIX):]: (int(v) if v else 0)
+                    k[len(_COUNTER_PREFIX) :]: (int(v) if v else 0)
                     for k, v in zip(keys, raw, strict=False)
                 }
         return out
@@ -264,7 +262,9 @@ def bootstrap(db) -> None:
             # Keep unique_paths at least the cumulative we last persisted, even
             # if the set was rebuilt from a smaller current-distinct after a wipe.
             set_value(
-                "unique_paths", "", max(scard("paths"), int(heavy.get("unique_paths", 0)))
+                "unique_paths",
+                "",
+                max(scard("paths"), int(heavy.get("unique_paths", 0))),
             )
         else:
             _recompute_heavy(db)

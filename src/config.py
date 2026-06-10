@@ -104,7 +104,6 @@ class Config:
     # Deception pages import settings
     deception_import_pages: bool = True
 
-
     _server_ip: str | None = None
     _server_ip_resolved: bool = False
 

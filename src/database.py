@@ -1753,13 +1753,11 @@ class DatabaseManager:
                 func.count(case((AccessLog.is_suspicious, AccessLog.id))).label(
                     "suspicious_accesses"
                 ),
+                func.count(case((AccessLog.is_honeypot_trigger, AccessLog.id))).label(
+                    "honeypot_triggered"
+                ),
                 func.count(
-                    case((AccessLog.is_honeypot_trigger, AccessLog.id))
-                ).label("honeypot_triggered"),
-                func.count(
-                    distinct(
-                        case((AccessLog.is_honeypot_trigger, AccessLog.ip))
-                    )
+                    distinct(case((AccessLog.is_honeypot_trigger, AccessLog.ip)))
                 ).label("honeypot_ips"),
                 func.count(distinct(AccessLog.path)).label("unique_paths"),
             )
@@ -1841,9 +1839,7 @@ class DatabaseManager:
         session = self.session
         try:
             rows = (
-                session.query(MetricsSummary)
-                .filter(MetricsSummary.label == "")
-                .all()
+                session.query(MetricsSummary).filter(MetricsSummary.label == "").all()
             )
             return {r.metric: int(r.value) for r in rows}
         except Exception as e:
@@ -2975,15 +2971,21 @@ class DatabaseManager:
                 {
                     "path": page.path,
                     "access_count": page.access_count,
-                    "created_at": page.created_at.isoformat() if page.created_at else None,
-                    "last_accessed": page.last_accessed.isoformat() if page.last_accessed else None,
+                    "created_at": (
+                        page.created_at.isoformat() if page.created_at else None
+                    ),
+                    "last_accessed": (
+                        page.last_accessed.isoformat() if page.last_accessed else None
+                    ),
                 }
                 for page in deception_pages
             ]
 
             total = total_attacks + total_ips + total_deception_pages
             total_pages = max(
-                1, (max(total_attacks, total_ips, total_deception_pages) + page_size - 1) // page_size
+                1,
+                (max(total_attacks, total_ips, total_deception_pages) + page_size - 1)
+                // page_size,
             )
 
             return {
@@ -3496,12 +3498,12 @@ class DatabaseManager:
                 .filter(GeneratedPage.created_at < target_date)
                 .all()
             )
-            
+
             # Force load the html_content_b64 for all pages before closing session
             # This prevents lazy-loading issues after session is closed
             for page in pages:
                 _ = page.html_content_b64
-            
+
             applogger.debug(
                 f"Retrieved {len(pages)} generated pages created before {date_str}"
             )

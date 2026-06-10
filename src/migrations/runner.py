@@ -179,13 +179,34 @@ def run_migrations(engine: Engine) -> None:
         except Exception as e:
             logger.error(f"Migration error ({label}): {e}")
 
-    _step("add raw_request column to access_logs", lambda: _migrate_raw_request_column(engine))
-    _step("add need_reevaluation column to ip_stats", lambda: _migrate_need_reevaluation_column(engine))
-    _step("add has_triggered_honeypot column to ip_stats", lambda: _migrate_has_triggered_honeypot_column(engine))
-    _step("ban state columns on ip_stats", lambda: [f"{c} column to ip_stats" for c in _migrate_ban_state_columns(engine)])
-    _step("add ban_override column to ip_stats", lambda: _migrate_ban_override_column(engine))
-    _step("performance indexes", lambda: [f"index {i}" for i in _migrate_performance_indexes(engine)])
-    _step("scalable indexes", lambda: [f"index {i}" for i in _migrate_scalable_indexes(engine)])
+    _step(
+        "add raw_request column to access_logs",
+        lambda: _migrate_raw_request_column(engine),
+    )
+    _step(
+        "add need_reevaluation column to ip_stats",
+        lambda: _migrate_need_reevaluation_column(engine),
+    )
+    _step(
+        "add has_triggered_honeypot column to ip_stats",
+        lambda: _migrate_has_triggered_honeypot_column(engine),
+    )
+    _step(
+        "ban state columns on ip_stats",
+        lambda: [f"{c} column to ip_stats" for c in _migrate_ban_state_columns(engine)],
+    )
+    _step(
+        "add ban_override column to ip_stats",
+        lambda: _migrate_ban_override_column(engine),
+    )
+    _step(
+        "performance indexes",
+        lambda: [f"index {i}" for i in _migrate_performance_indexes(engine)],
+    )
+    _step(
+        "scalable indexes",
+        lambda: [f"index {i}" for i in _migrate_scalable_indexes(engine)],
+    )
 
     if applied:
         for m in applied:
