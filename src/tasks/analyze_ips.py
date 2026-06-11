@@ -115,7 +115,7 @@ def main():
                 robots_disallows.append(parts[1].strip())
 
     # Get IPs flagged for reevaluation (set when a suspicious request arrives)
-    ips_to_analyze = set(db_manager.get_ips_needing_reevaluation())
+    ips_to_analyze = set(db_manager.ip_stats.get_ips_needing_reevaluation())
 
     if not ips_to_analyze:
         app_logger.debug(
@@ -391,7 +391,7 @@ def main():
         category = max(category_scores, key=category_scores.get)
 
         last_analysis = datetime.now()
-        db_manager.update_ip_stats_analysis(
+        db_manager.ip_stats.update_ip_stats_analysis(
             ip, analyzed_metrics, category, category_scores, last_analysis
         )
     return

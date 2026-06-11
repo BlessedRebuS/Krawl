@@ -371,7 +371,7 @@ class AccessTracker:
             if not db:
                 return False
 
-            ip_stats = db.get_ip_stats_by_ip(safe_ip)
+            ip_stats = db.ip_stats.get_ip_stats_by_ip(safe_ip)
             if not ip_stats or not ip_stats.get("category"):
                 return False
 
@@ -420,7 +420,7 @@ class AccessTracker:
         if not self.db:
             return False
 
-        return self.db.is_banned_ip(client_ip, self.ban_duration_seconds)
+        return self.db.ip_stats.is_banned_ip(client_ip, self.ban_duration_seconds)
 
     def get_ban_info(self, client_ip: str) -> dict:
         """
@@ -437,7 +437,7 @@ class AccessTracker:
                 "remaining_ban_seconds": 0,
             }
 
-        return self.db.get_ban_info(client_ip, self.ban_duration_seconds)
+        return self.db.ip_stats.get_ban_info(client_ip, self.ban_duration_seconds)
 
     def get_stats(self) -> dict:
         """Get statistics summary from database."""

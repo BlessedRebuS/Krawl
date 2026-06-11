@@ -410,7 +410,7 @@ async def htmx_attackers(
         else:
             db = get_db()
             result = await asyncio.to_thread(
-                db.get_attackers_paginated,
+                db.ip_stats.get_attackers_paginated,
                 page=page,
                 page_size=10,
                 sort_by=sort_by,
@@ -637,7 +637,7 @@ async def htmx_patterns(
 @router.get("/htmx/ip-insight/{ip_address:path}")
 async def htmx_ip_insight(ip_address: str, request: Request):
     db = get_db()
-    stats = await asyncio.to_thread(db.get_ip_stats_by_ip, ip_address)
+    stats = await asyncio.to_thread(db.ip_stats.get_ip_stats_by_ip, ip_address)
 
     if not stats:
         stats = {"ip": ip_address, "total_requests": "N/A"}
@@ -657,7 +657,7 @@ async def htmx_ip_insight(ip_address: str, request: Request):
         elif k in _keep_keys:
             clean_stats[k] = v
 
-    is_tracked = await asyncio.to_thread(db.is_ip_tracked, ip_address)
+    is_tracked = await asyncio.to_thread(db.ip_stats.is_ip_tracked, ip_address)
 
     templates = get_templates()
     return templates.TemplateResponse(
@@ -678,7 +678,7 @@ async def htmx_ip_insight(ip_address: str, request: Request):
 @router.get("/htmx/ip-detail/{ip_address:path}")
 async def htmx_ip_detail(ip_address: str, request: Request):
     db = get_db()
-    stats = await asyncio.to_thread(db.get_ip_stats_by_ip, ip_address)
+    stats = await asyncio.to_thread(db.ip_stats.get_ip_stats_by_ip, ip_address)
 
     if not stats:
         stats = {"ip": ip_address, "total_requests": "N/A"}
@@ -698,7 +698,7 @@ async def htmx_ip_detail(ip_address: str, request: Request):
         elif k in _keep_keys:
             clean_stats[k] = v
 
-    is_tracked = await asyncio.to_thread(db.is_ip_tracked, ip_address)
+    is_tracked = await asyncio.to_thread(db.ip_stats.is_ip_tracked, ip_address)
 
     templates = get_templates()
     return templates.TemplateResponse(
@@ -785,7 +785,7 @@ async def htmx_ban_attackers(
 
     db = get_db()
     result = await asyncio.to_thread(
-        db.get_attackers_paginated, page=max(1, page), page_size=page_size
+        db.ip_stats.get_attackers_paginated, page=max(1, page), page_size=page_size
     )
     templates = get_templates()
     return templates.TemplateResponse(
@@ -836,7 +836,7 @@ async def htmx_tracked_ips_list(
 
     db = get_db()
     result = await asyncio.to_thread(
-        db.get_tracked_ips_paginated, page=max(1, page), page_size=page_size
+        db.ip_stats.get_tracked_ips_paginated, page=max(1, page), page_size=page_size
     )
     templates = get_templates()
     return templates.TemplateResponse(
@@ -863,7 +863,7 @@ async def htmx_ban_overrides(
 
     db = get_db()
     result = await asyncio.to_thread(
-        db.get_ban_overrides_paginated, page=max(1, page), page_size=page_size
+        db.ip_stats.get_ban_overrides_paginated, page=max(1, page), page_size=page_size
     )
     templates = get_templates()
     return templates.TemplateResponse(

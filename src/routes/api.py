@@ -172,10 +172,10 @@ async def ban_override(request: Request, body: BanOverrideRequest):
         )
 
     if body.action == "ban":
-        success = await asyncio.to_thread(db.force_ban_ip, body.ip)
+        success = await asyncio.to_thread(db.ip_stats.force_ban, body.ip)
     else:
         success = await asyncio.to_thread(
-            db.set_ban_override, body.ip, action_map[body.action]
+            db.ip_stats.set_ban_override, body.ip, action_map[body.action]
         )
 
     if success:
@@ -202,9 +202,9 @@ async def track_ip(request: Request, body: TrackIpRequest):
 
     db = get_db()
     if body.action == "track":
-        success = await asyncio.to_thread(db.track_ip, body.ip)
+        success = await asyncio.to_thread(db.ip_stats.track_ip, body.ip)
     elif body.action == "untrack":
-        success = await asyncio.to_thread(db.untrack_ip, body.ip)
+        success = await asyncio.to_thread(db.ip_stats.untrack_ip, body.ip)
     else:
         return JSONResponse(
             content={"error": "Invalid action. Use: track, untrack"},
@@ -228,7 +228,7 @@ async def all_ip_stats(request: Request):
 
     db = get_db()
     try:
-        ip_stats_list = await asyncio.to_thread(db.get_ip_stats, limit=500)
+        ip_stats_list = await asyncio.to_thread(db.ip_stats.get_ip_stats, limit=500)
         result = {"ips": ip_stats_list}
         set_cached_table("api:all_ip_stats", result)
         return JSONResponse(
@@ -254,7 +254,7 @@ async def attackers(
 
     try:
         result = await asyncio.to_thread(
-            db.get_attackers_paginated,
+            db.ip_stats.get_attackers_paginated,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -316,7 +316,7 @@ async def all_ips(
     db = get_db()
     try:
         result = await asyncio.to_thread(
-            db.get_all_ips_paginated,
+            db.ip_stats.get_all_ips_paginated,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -333,7 +333,7 @@ async def all_ips(
 async def ip_stats(ip_address: str, request: Request):
     db = get_db()
     try:
-        stats = await asyncio.to_thread(db.get_ip_stats_by_ip, ip_address)
+        stats = await asyncio.to_thread(db.ip_stats.get_ip_stats_by_ip, ip_address)
         if stats:
             return JSONResponse(content=stats, headers=_no_cache_headers())
         else:
@@ -597,7 +597,7 @@ async def export_ips(
         config = request.app.state.config
         server_ip = config.get_server_ip()
 
-        ips = await asyncio.to_thread(db.get_ips_for_export, cat_list)
+        ips = await asyncio.to_thread(db.ip_stats.get_ips_for_export, cat_list)
 
         from ip_utils import is_valid_public_ip
 

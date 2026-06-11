@@ -107,7 +107,7 @@ def main():
 
             attackers_all = _timed(
                 "get_attackers_all",
-                lambda: db.get_attackers_paginated(
+                lambda: db.ip_stats.get_attackers_paginated(
                     page=1,
                     page_size=100_000,
                     sort_by="total_requests",
@@ -142,7 +142,7 @@ def main():
         if warmup_aggregation:
             map_ips_all = _timed(
                 "get_all_ips_paginated_50k",
-                lambda: db.get_all_ips_paginated(
+                lambda: db.ip_stats.get_all_ips_paginated(
                     page=1,
                     page_size=50_000,
                     sort_by="total_requests",
@@ -163,7 +163,7 @@ def main():
         else:
             map_ips = _timed(
                 "get_all_ips_paginated",
-                lambda: db.get_all_ips_paginated(
+                lambda: db.ip_stats.get_all_ips_paginated(
                     page=1, page_size=1000, sort_by="total_requests", sort_order="desc"
                 ),
             )
@@ -209,7 +209,7 @@ def main():
         for p in range(1, warmup_pages + 1):
             result = _timed(
                 f"attackers_p{p}",
-                lambda _p=p: db.get_attackers_paginated(
+                lambda _p=p: db.ip_stats.get_attackers_paginated(
                     page=_p, page_size=10, sort_by="total_requests", sort_order="desc"
                 ),
             )

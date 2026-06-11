@@ -97,7 +97,7 @@ async def ip_page(ip_address: str, request: Request):
 
     db = get_db()
     try:
-        stats = await asyncio.to_thread(db.get_ip_stats_by_ip, ip_address)
+        stats = await asyncio.to_thread(db.ip_stats.get_ip_stats_by_ip, ip_address)
         config = request.app.state.config
         dashboard_path = "/" + config.dashboard_secret_path.lstrip("/")
 

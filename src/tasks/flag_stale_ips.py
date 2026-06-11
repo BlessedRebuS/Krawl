@@ -25,13 +25,13 @@ def main():
 
     try:
         if FORCE_IP_RESCAN:
-            count = db.flag_all_ips_for_reevaluation()
+            count = db.ip_stats.flag_all_ips_for_reevaluation()
             FORCE_IP_RESCAN = False
             app_logger.info(
                 f"[Background Task] flag-stale-ips: FORCE RESCAN - Flagged {count} IPs for reevaluation"
             )
         else:
-            count = db.flag_stale_ips_for_reevaluation()
+            count = db.ip_stats.flag_stale_ips_for_reevaluation()
             if count > 0:
                 app_logger.info(
                     f"[Background Task] flag-stale-ips: Flagged {count} stale IPs for reevaluation"
