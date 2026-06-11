@@ -7,7 +7,7 @@ metrics-summary persistence. All read-only except upsert_metrics_summary.
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import distinct, func, or_
+from sqlalchemy import func, or_
 from sqlalchemy.orm import joinedload
 
 from logger import get_app_logger
@@ -399,42 +399,48 @@ class AnalyticsRepo:
                 sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
             )
 
-            # Base query filter
-            base_filters = []
-            if ip_filter:
-                base_filters.append(AccessLog.ip == ip_filter)
-            if attack_type_filter:
-                base_filters.append(AttackDetection.attack_type == attack_type_filter)
-
-            # Count total unique access logs with attack detections
-            count_q = session.query(func.count(distinct(AccessLog.id))).join(
-                AttackDetection
+            # An access log matches if it has at least one attack detection.
+            # We express that with EXISTS rather than JOIN + GROUP BY: the
+            # detection predicate (and any attack_type filter) stays inside the
+            # correlated subquery against the indexed attack_detections.access_log_id,
+            # while the outer scan over access_logs is driven by the
+            # ix_access_logs_timestamp index. That lets the database satisfy
+            # ORDER BY timestamp ... LIMIT by walking the index newest-first and
+            # stopping early, instead of materializing every match into a temp
+            # B-tree to sort (the cost of the previous GROUP BY form).
+            detection_exists = session.query(AttackDetection.id).filter(
+                AttackDetection.access_log_id == AccessLog.id
             )
-            if base_filters:
-                count_q = count_q.filter(*base_filters)
-            total_attacks = count_q.scalar() or 0
+            if attack_type_filter:
+                detection_exists = detection_exists.filter(
+                    AttackDetection.attack_type == attack_type_filter
+                )
+            match_filters = [detection_exists.exists()]
+            if ip_filter:
+                match_filters.append(AccessLog.ip == ip_filter)
 
-            # Get distinct matching AccessLog IDs, then load full objects.
-            # Avoids DISTINCT ON + ORDER BY conflicts on PostgreSQL.
-            if sort_by == "timestamp":
-                order_col = AccessLog.timestamp
-            elif sort_by == "ip":
-                order_col = AccessLog.ip
-            else:
-                order_col = AccessLog.timestamp
+            # Count total matching access logs.
+            total_attacks = (
+                session.query(func.count(AccessLog.id)).filter(*match_filters).scalar()
+                or 0
+            )
 
+            # Order column lives on AccessLog (timestamp default; ip optional),
+            # so the outer query can be ordered and limited directly.
+            order_col = AccessLog.ip if sort_by == "ip" else AccessLog.timestamp
             order_expr = order_col.desc() if sort_order == "desc" else order_col.asc()
 
-            ids_q = (
-                session.query(AccessLog.id, order_col)
-                .join(AttackDetection)
-                .group_by(AccessLog.id, order_col)
-            )
-            if base_filters:
-                ids_q = ids_q.filter(*base_filters)
-
+            # Two-step load: page the matching ids first (index-driven, no
+            # collection join), then eager-load attack_detections for just that
+            # page. This keeps joinedload + LIMIT correct (limiting a collection
+            # join directly can truncate the eager-loaded rows).
             paginated_ids = (
-                ids_q.order_by(order_expr).offset(offset).limit(page_size).subquery()
+                session.query(AccessLog.id)
+                .filter(*match_filters)
+                .order_by(order_expr)
+                .offset(offset)
+                .limit(page_size)
+                .subquery()
             )
 
             logs = (
