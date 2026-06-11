@@ -27,7 +27,7 @@ def main():
     try:
         db = get_database()
         values = {(metric, ""): mc.get(metric) for metric in mc.HEAVY_METRICS}
-        db.upsert_metrics_summary(values)
+        db.analytics.upsert_metrics_summary(values)
         app_logger.info(
             f"[Background Task] {task_name} flushed {len(values)} counters."
         )

@@ -115,7 +115,7 @@ def main():
                 robots_disallows.append(parts[1].strip())
 
     # Get IPs flagged for reevaluation (set when a suspicious request arrives)
-    ips_to_analyze = set(db_manager.get_ips_needing_reevaluation())
+    ips_to_analyze = set(db_manager.ip_stats.get_ips_needing_reevaluation())
 
     if not ips_to_analyze:
         app_logger.debug(
@@ -125,7 +125,7 @@ def main():
 
     for ip in ips_to_analyze:
         # Get full history for this IP to perform accurate analysis
-        ip_accesses = db_manager.get_access_logs(
+        ip_accesses = db_manager.access_logs.get_list(
             limit=10000, ip_filter=ip, since_minutes=1440 * 30
         )  # look back up to 30 days of history for better accuracy
         total_accesses_count = len(ip_accesses)
@@ -391,7 +391,7 @@ def main():
         category = max(category_scores, key=category_scores.get)
 
         last_analysis = datetime.now()
-        db_manager.update_ip_stats_analysis(
+        db_manager.ip_stats.update_ip_stats_analysis(
             ip, analyzed_metrics, category, category_scores, last_analysis
         )
     return

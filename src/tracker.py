@@ -371,7 +371,7 @@ class AccessTracker:
             if not db:
                 return False
 
-            ip_stats = db.get_ip_stats_by_ip(safe_ip)
+            ip_stats = db.ip_stats.get_ip_stats_by_ip(safe_ip)
             if not ip_stats or not ip_stats.get("category"):
                 return False
 
@@ -420,7 +420,7 @@ class AccessTracker:
         if not self.db:
             return False
 
-        return self.db.is_banned_ip(client_ip, self.ban_duration_seconds)
+        return self.db.ip_stats.is_banned_ip(client_ip, self.ban_duration_seconds)
 
     def get_ban_info(self, client_ip: str) -> dict:
         """
@@ -437,7 +437,7 @@ class AccessTracker:
                 "remaining_ban_seconds": 0,
             }
 
-        return self.db.get_ban_info(client_ip, self.ban_duration_seconds)
+        return self.db.ip_stats.get_ban_info(client_ip, self.ban_duration_seconds)
 
     def get_stats(self) -> dict:
         """Get statistics summary from database."""
@@ -445,15 +445,17 @@ class AccessTracker:
             raise RuntimeError("Database not available for dashboard stats")
 
         # Get aggregate counts from database
-        stats = self.db.get_dashboard_counts()
+        stats = self.db.access_logs.get_dashboard_counts()
 
         # Add detailed lists from database
-        stats["top_ips"] = self.db.get_top_ips(10)
-        stats["top_paths"] = self.db.get_top_paths(10)
-        stats["top_user_agents"] = self.db.get_top_user_agents(10)
-        stats["recent_suspicious"] = self.db.get_recent_suspicious(20)
-        stats["honeypot_triggered_ips"] = self.db.get_honeypot_triggered_ips()
-        stats["attack_types"] = self.db.get_recent_attacks(20)
-        stats["credential_attempts"] = self.db.get_credential_attempts(limit=50)
+        stats["top_ips"] = self.db.analytics.get_top_ips(10)
+        stats["top_paths"] = self.db.analytics.get_top_paths(10)
+        stats["top_user_agents"] = self.db.analytics.get_top_user_agents(10)
+        stats["recent_suspicious"] = self.db.access_logs.get_recent_suspicious(20)
+        stats["honeypot_triggered_ips"] = (
+            self.db.access_logs.get_honeypot_triggered_ips()
+        )
+        stats["attack_types"] = self.db.access_logs.get_recent_attacks(20)
+        stats["credential_attempts"] = self.db.credentials.get_list(limit=50)
 
         return stats

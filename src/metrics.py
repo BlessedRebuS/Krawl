@@ -101,7 +101,7 @@ class KrawlMetricsCollector:
 
             db = get_database()
             for category in CATEGORIES:
-                clients.add_metric([category], db.count_category(category))
+                clients.add_metric([category], db.ip_stats.count_category(category))
         except Exception as e:
             app_logger.error(f"collect clients_total failed: {e}")
         yield clients
@@ -163,18 +163,18 @@ dashboard_warmup_duration_seconds = Gauge(
 def refresh_ai(db) -> None:
     if not _enabled():
         return
-    generated_pages_today.set(db.count_generated_pages_created_today())
+    generated_pages_today.set(db.generated_pages.count_created_today())
 
 
 def refresh_system(db) -> None:
     if not _enabled():
         return
     try:
-        ips_needing_reevaluation.set(len(db.get_ips_needing_reevaluation()))
+        ips_needing_reevaluation.set(len(db.ip_stats.get_ips_needing_reevaluation()))
     except Exception as e:
         app_logger.error(f"refresh_system: ips_needing_reevaluation failed: {e}")
     try:
-        unenriched_ips.set(len(db.get_unenriched_ips(limit=1000)))
+        unenriched_ips.set(len(db.ip_stats.get_unenriched_ips(limit=1000)))
     except Exception as e:
         app_logger.error(f"refresh_system: unenriched_ips failed: {e}")
 

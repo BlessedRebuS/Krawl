@@ -172,10 +172,10 @@ async def ban_override(request: Request, body: BanOverrideRequest):
         )
 
     if body.action == "ban":
-        success = await asyncio.to_thread(db.force_ban_ip, body.ip)
+        success = await asyncio.to_thread(db.ip_stats.force_ban, body.ip)
     else:
         success = await asyncio.to_thread(
-            db.set_ban_override, body.ip, action_map[body.action]
+            db.ip_stats.set_ban_override, body.ip, action_map[body.action]
         )
 
     if success:
@@ -202,9 +202,9 @@ async def track_ip(request: Request, body: TrackIpRequest):
 
     db = get_db()
     if body.action == "track":
-        success = await asyncio.to_thread(db.track_ip, body.ip)
+        success = await asyncio.to_thread(db.ip_stats.track_ip, body.ip)
     elif body.action == "untrack":
-        success = await asyncio.to_thread(db.untrack_ip, body.ip)
+        success = await asyncio.to_thread(db.ip_stats.untrack_ip, body.ip)
     else:
         return JSONResponse(
             content={"error": "Invalid action. Use: track, untrack"},
@@ -228,7 +228,7 @@ async def all_ip_stats(request: Request):
 
     db = get_db()
     try:
-        ip_stats_list = await asyncio.to_thread(db.get_ip_stats, limit=500)
+        ip_stats_list = await asyncio.to_thread(db.ip_stats.get_ip_stats, limit=500)
         result = {"ips": ip_stats_list}
         set_cached_table("api:all_ip_stats", result)
         return JSONResponse(
@@ -254,7 +254,7 @@ async def attackers(
 
     try:
         result = await asyncio.to_thread(
-            db.get_attackers_paginated,
+            db.ip_stats.get_attackers_paginated,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -316,7 +316,7 @@ async def all_ips(
     db = get_db()
     try:
         result = await asyncio.to_thread(
-            db.get_all_ips_paginated,
+            db.ip_stats.get_all_ips_paginated,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -333,7 +333,7 @@ async def all_ips(
 async def ip_stats(ip_address: str, request: Request):
     db = get_db()
     try:
-        stats = await asyncio.to_thread(db.get_ip_stats_by_ip, ip_address)
+        stats = await asyncio.to_thread(db.ip_stats.get_ip_stats_by_ip, ip_address)
         if stats:
             return JSONResponse(content=stats, headers=_no_cache_headers())
         else:
@@ -359,7 +359,7 @@ async def honeypot(
 
     try:
         result = await asyncio.to_thread(
-            db.get_honeypot_paginated,
+            db.access_logs.get_honeypot_paginated,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -385,7 +385,7 @@ async def credentials(
 
     try:
         result = await asyncio.to_thread(
-            db.get_credentials_paginated,
+            db.credentials.get_paginated,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -411,7 +411,7 @@ async def top_ips(
 
     try:
         result = await asyncio.to_thread(
-            db.get_top_ips_paginated,
+            db.analytics.get_top_ips_paginated,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -437,7 +437,7 @@ async def top_paths(
 
     try:
         result = await asyncio.to_thread(
-            db.get_top_paths_paginated,
+            db.analytics.get_top_paths_paginated,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -464,7 +464,7 @@ async def top_user_agents(
 
     try:
         result = await asyncio.to_thread(
-            db.get_top_user_agents_paginated,
+            db.analytics.get_top_user_agents_paginated,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -493,7 +493,7 @@ async def attack_types_stats(
     db = get_db()
     try:
         result = await asyncio.to_thread(
-            db.get_attack_types_stats, limit=limit, ip_filter=ip_filter
+            db.analytics.get_attack_types_stats, limit=limit, ip_filter=ip_filter
         )
         set_cached_table(cache_key, result)
         return JSONResponse(content=result, headers=_no_cache_headers())
@@ -521,7 +521,10 @@ async def attack_types_daily(
     db = get_db()
     try:
         result = await asyncio.to_thread(
-            db.get_attack_types_daily, limit=limit, days=days, offset_days=offset_days
+            db.analytics.get_attack_types_daily,
+            limit=limit,
+            days=days,
+            offset_days=offset_days,
         )
         set_cached_table(cache_key, result)
         return JSONResponse(content=result, headers=_no_cache_headers())
@@ -544,7 +547,7 @@ async def attack_types(
 
     try:
         result = await asyncio.to_thread(
-            db.get_attack_types_paginated,
+            db.analytics.get_attack_types_paginated,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -560,7 +563,7 @@ async def attack_types(
 async def raw_request(log_id: int, request: Request):
     db = get_db()
     try:
-        raw = await asyncio.to_thread(db.get_raw_request_by_id, log_id)
+        raw = await asyncio.to_thread(db.access_logs.get_raw_request_by_id, log_id)
         if raw is None:
             return JSONResponse(
                 content={"error": "Raw request not found"}, status_code=404
@@ -597,7 +600,7 @@ async def export_ips(
         config = request.app.state.config
         server_ip = config.get_server_ip()
 
-        ips = await asyncio.to_thread(db.get_ips_for_export, cat_list)
+        ips = await asyncio.to_thread(db.ip_stats.get_ips_for_export, cat_list)
 
         from ip_utils import is_valid_public_ip
 
@@ -647,7 +650,7 @@ async def delete_generated_pages(
     try:
         if delete_all == "true":
             # Delete all generated pages
-            deleted_count = db.delete_all_generated_pages()
+            deleted_count = db.generated_pages.delete_all()
             get_app_logger().info(
                 f"[DECEPTION] Deleted all {deleted_count} generated pages"
             )
@@ -656,7 +659,7 @@ async def delete_generated_pages(
         elif before_date:
             # Delete pages older than the specified date
             # Expected format: YYYY-MM-DD
-            deleted_count = db.delete_generated_pages_before(before_date)
+            deleted_count = db.generated_pages.delete_before(before_date)
             get_app_logger().info(
                 f"[DECEPTION] Deleted {deleted_count} pages created before {before_date}"
             )
@@ -665,7 +668,7 @@ async def delete_generated_pages(
         elif ids:
             # Delete specific pages by path
             page_ids = [id.strip() for id in ids.split(",") if id.strip()]
-            deleted_count = db.delete_generated_pages_by_ids(page_ids)
+            deleted_count = db.generated_pages.delete_by_ids(page_ids)
             get_app_logger().info(f"[DECEPTION] Deleted {deleted_count} selected pages")
             message = f"Deleted {deleted_count} selected page(s)"
 
@@ -797,7 +800,7 @@ async def download_generated_pages_zip(
         elif before_date:
             # Query pages by date
             try:
-                pages_to_download = db.get_generated_pages_before(before_date)
+                pages_to_download = db.generated_pages.get_before(before_date)
                 get_app_logger().debug(
                     f"[DECEPTION] Download by date {before_date}: found {len(pages_to_download)} pages"
                 )
