@@ -59,20 +59,32 @@ def main():
             metrics.observe_warmup_step(label, elapsed)
             return result
 
-        def _warm_pages(label, fetch_bulk, rows_key, total_key, page_size, key_fmt):
+        def _warm_pages(
+            label,
+            fetch_bulk,
+            rows_key,
+            total_key,
+            page_size,
+            key_fmt,
+            clamp_pages=False,
+        ):
             """Warm the first `warmup_pages` cache pages of a paginated table
             with a SINGLE query instead of one query per page.
 
             `fetch_bulk` runs one paginated call sized for all pages at once;
             the rows are then sliced into per-page cache entries whose shape is
             byte-identical to what the individual per-page query produced, so
-            dashboard reads are unaffected. Returns the bulk result so callers
+            dashboard reads are unaffected. `clamp_pages` mirrors the source
+            method's total_pages formula (honeypot clamps to a minimum of 1;
+            the others report 0 when empty). Returns the bulk result so callers
             can derive totals.
             """
             bulk = _timed(label, fetch_bulk)
             rows = bulk.get(rows_key, [])
             total = bulk.get("pagination", {}).get(total_key, 0)
-            total_pages = max(1, (total + page_size - 1) // page_size)
+            total_pages = (total + page_size - 1) // page_size
+            if clamp_pages:
+                total_pages = max(1, total_pages)
             for p in range(1, warmup_pages + 1):
                 chunk = rows[(p - 1) * page_size : p * page_size]
                 set_cached_table(
@@ -284,6 +296,7 @@ def main():
             total_key="total",
             page_size=5,
             key_fmt="honeypot:{p}:count:desc",
+            clamp_pages=True,
         )
 
         # Derive credential count from the bulk credentials result
