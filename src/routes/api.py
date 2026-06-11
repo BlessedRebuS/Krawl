@@ -647,7 +647,7 @@ async def delete_generated_pages(
     try:
         if delete_all == "true":
             # Delete all generated pages
-            deleted_count = db.delete_all_generated_pages()
+            deleted_count = db.generated_pages.delete_all()
             get_app_logger().info(
                 f"[DECEPTION] Deleted all {deleted_count} generated pages"
             )
@@ -656,7 +656,7 @@ async def delete_generated_pages(
         elif before_date:
             # Delete pages older than the specified date
             # Expected format: YYYY-MM-DD
-            deleted_count = db.delete_generated_pages_before(before_date)
+            deleted_count = db.generated_pages.delete_before(before_date)
             get_app_logger().info(
                 f"[DECEPTION] Deleted {deleted_count} pages created before {before_date}"
             )
@@ -665,7 +665,7 @@ async def delete_generated_pages(
         elif ids:
             # Delete specific pages by path
             page_ids = [id.strip() for id in ids.split(",") if id.strip()]
-            deleted_count = db.delete_generated_pages_by_ids(page_ids)
+            deleted_count = db.generated_pages.delete_by_ids(page_ids)
             get_app_logger().info(f"[DECEPTION] Deleted {deleted_count} selected pages")
             message = f"Deleted {deleted_count} selected page(s)"
 
@@ -797,7 +797,7 @@ async def download_generated_pages_zip(
         elif before_date:
             # Query pages by date
             try:
-                pages_to_download = db.get_generated_pages_before(before_date)
+                pages_to_download = db.generated_pages.get_before(before_date)
                 get_app_logger().debug(
                     f"[DECEPTION] Download by date {before_date}: found {len(pages_to_download)} pages"
                 )

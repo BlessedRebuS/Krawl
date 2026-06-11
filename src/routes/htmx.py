@@ -249,7 +249,7 @@ async def htmx_generated_pages(
     """Authenticated generated pages endpoint with checkboxes for deletion."""
     db = get_db()
     result = await asyncio.to_thread(
-        db.get_generated_pages_paginated,
+        db.generated_pages.get_paginated,
         page=max(1, page),
         page_size=15,
         sort_by=sort_by,
@@ -280,7 +280,7 @@ async def htmx_generated_pages_readonly(
     """Read-only generated pages endpoint (no authentication required, no checkboxes)."""
     db = get_db()
     result = await asyncio.to_thread(
-        db.get_generated_pages_paginated,
+        db.generated_pages.get_paginated,
         page=max(1, page),
         page_size=15,
         sort_by=sort_by,

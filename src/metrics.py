@@ -163,7 +163,7 @@ dashboard_warmup_duration_seconds = Gauge(
 def refresh_ai(db) -> None:
     if not _enabled():
         return
-    generated_pages_today.set(db.count_generated_pages_created_today())
+    generated_pages_today.set(db.generated_pages.count_created_today())
 
 
 def refresh_system(db) -> None:

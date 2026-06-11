@@ -239,7 +239,7 @@ def can_generate_today() -> bool:
     date.today()
 
     # Count generated pages created today
-    generated_today = db.count_generated_pages_created_today()
+    generated_today = db.generated_pages.count_created_today()
 
     if generated_today >= max_requests:
         logger.warning(
