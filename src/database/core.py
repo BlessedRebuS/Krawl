@@ -15,6 +15,7 @@ from typing import Any, Optional
 from sqlalchemy import and_, create_engine, distinct, event, func, or_
 from sqlalchemy.orm import Session, joinedload, scoped_session, sessionmaker
 
+from database.credentials import CredentialRepo
 from logger import get_app_logger
 from models import (
     AccessLog,
@@ -34,8 +35,6 @@ from sanitizer import (
     sanitize_path,
     sanitize_user_agent,
 )
-
-from database.credentials import CredentialRepo
 
 applogger = get_app_logger()
 
