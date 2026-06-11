@@ -130,6 +130,10 @@ def _migrate_scalable_indexes(engine: Engine) -> list[str]:
         ("ix_ip_stats_category", "ip_stats", "category"),
         ("ix_ip_stats_need_reevaluation", "ip_stats", "need_reevaluation"),
         ("ix_ip_stats_total_requests", "ip_stats", "total_requests"),
+        # Sort columns for paginated attacker / all-IP views.
+        ("ix_ip_stats_last_seen", "ip_stats", "last_seen"),
+        ("ix_ip_stats_first_seen", "ip_stats", "first_seen"),
+        ("ix_ip_stats_reputation_score", "ip_stats", "reputation_score"),
     ]
     for idx_name, table, column in indexes:
         if not _index_exists(engine, table, idx_name):

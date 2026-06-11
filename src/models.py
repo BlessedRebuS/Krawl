@@ -224,6 +224,9 @@ class IpStats(Base):
         Index("ix_ip_stats_category", "category"),
         Index("ix_ip_stats_need_reevaluation", "need_reevaluation"),
         Index("ix_ip_stats_total_requests", "total_requests"),
+        Index("ix_ip_stats_last_seen", "last_seen"),
+        Index("ix_ip_stats_first_seen", "first_seen"),
+        Index("ix_ip_stats_reputation_score", "reputation_score"),
     )
 
     def __repr__(self) -> str:
