@@ -230,7 +230,7 @@ def _recompute_heavy(db) -> None:
 
 def _recompute_cheap(db) -> None:
     """Recompute cumulative metrics that are cheap and preserved by retention."""
-    set_value("credentials_captured", "", db.count_credentials())
+    set_value("credentials_captured", "", db.credentials.count())
     # attack_detections rows are preserved by retention (they hang off suspicious
     # logs), so the current per-type count equals the cumulative total.
     for entry in db.get_attack_types_stats(limit=100).get("attack_types", []):

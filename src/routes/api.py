@@ -385,7 +385,7 @@ async def credentials(
 
     try:
         result = await asyncio.to_thread(
-            db.get_credentials_paginated,
+            db.credentials.get_paginated,
             page=page,
             page_size=page_size,
             sort_by=sort_by,

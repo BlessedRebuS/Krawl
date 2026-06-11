@@ -454,6 +454,6 @@ class AccessTracker:
         stats["recent_suspicious"] = self.db.get_recent_suspicious(20)
         stats["honeypot_triggered_ips"] = self.db.get_honeypot_triggered_ips()
         stats["attack_types"] = self.db.get_recent_attacks(20)
-        stats["credential_attempts"] = self.db.get_credential_attempts(limit=50)
+        stats["credential_attempts"] = self.db.credentials.get_list(limit=50)
 
         return stats

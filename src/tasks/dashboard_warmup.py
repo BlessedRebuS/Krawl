@@ -218,7 +218,7 @@ def main():
         for p in range(1, warmup_pages + 1):
             result = _timed(
                 f"credentials_p{p}",
-                lambda _p=p: db.get_credentials_paginated(
+                lambda _p=p: db.credentials.get_paginated(
                     page=_p, page_size=5, sort_by="timestamp", sort_order="desc"
                 ),
             )

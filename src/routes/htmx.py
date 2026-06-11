@@ -502,7 +502,7 @@ async def htmx_credentials(
     else:
         db = get_db()
         result = await asyncio.to_thread(
-            db.get_credentials_paginated,
+            db.credentials.get_paginated,
             page=page,
             page_size=5,
             sort_by=sort_by,
