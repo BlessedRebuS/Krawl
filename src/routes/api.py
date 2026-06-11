@@ -359,7 +359,7 @@ async def honeypot(
 
     try:
         result = await asyncio.to_thread(
-            db.get_honeypot_paginated,
+            db.access_logs.get_honeypot_paginated,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -560,7 +560,7 @@ async def attack_types(
 async def raw_request(log_id: int, request: Request):
     db = get_db()
     try:
-        raw = await asyncio.to_thread(db.get_raw_request_by_id, log_id)
+        raw = await asyncio.to_thread(db.access_logs.get_raw_request_by_id, log_id)
         if raw is None:
             return JSONResponse(
                 content={"error": "Raw request not found"}, status_code=404

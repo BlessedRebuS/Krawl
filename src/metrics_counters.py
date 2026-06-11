@@ -215,7 +215,7 @@ def _recompute_heavy(db) -> None:
     The seen-paths set is left untouched (append-only distinct-ever); we only
     keep the unique_paths counter aligned to its cardinality.
     """
-    counts = db._compute_dashboard_counts_sql()
+    counts = db.access_logs._compute_dashboard_counts_sql()
     tallies = db.analytics.get_deleted_tallies()
     for metric in HEAVY_METRICS:
         if metric == "unique_paths":
@@ -253,7 +253,7 @@ def bootstrap(db) -> None:
         # Seen-paths distinctness set: rebuild only if absent (e.g. Redis wiped).
         # It is append-only across restarts, so we never shrink it here.
         if scard("paths") == 0:
-            seed_set("paths", db.get_distinct_paths())
+            seed_set("paths", db.access_logs.get_distinct_paths())
 
         heavy = db.analytics.get_heavy_summary()
         if heavy:

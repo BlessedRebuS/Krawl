@@ -63,8 +63,8 @@ async def dashboard_page(request: Request):
         import asyncio
 
         db = get_db()
-        stats = await asyncio.to_thread(db.get_dashboard_counts)
-        suspicious = await asyncio.to_thread(db.get_recent_suspicious, 10)
+        stats = await asyncio.to_thread(db.access_logs.get_dashboard_counts)
+        suspicious = await asyncio.to_thread(db.access_logs.get_recent_suspicious, 10)
         cred_result = await asyncio.to_thread(
             db.credentials.get_paginated, page=1, page_size=1
         )

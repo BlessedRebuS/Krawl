@@ -60,13 +60,13 @@ def main():
             return result
 
         # --- Server-rendered data (stats cards + suspicious table) ---
-        stats = _timed("get_dashboard_counts", db.get_dashboard_counts)
+        stats = _timed("get_dashboard_counts", db.access_logs.get_dashboard_counts)
 
         # credential_count is derived from the full credentials query below
         # (avoids a redundant DB call)
 
         suspicious = _timed(
-            "get_recent_suspicious", lambda: db.get_recent_suspicious(limit=10)
+            "get_recent_suspicious", lambda: db.access_logs.get_recent_suspicious(limit=10)
         )
 
         # --- HTMX Overview tables (aggregation or first page, default sort) ---
@@ -118,7 +118,7 @@ def main():
 
             honeypot_all = _timed(
                 "get_honeypot_all",
-                lambda: db.get_honeypot_paginated(
+                lambda: db.access_logs.get_honeypot_paginated(
                     page=1, page_size=100_000, sort_by="count", sort_order="desc"
                 ),
             )
@@ -229,7 +229,7 @@ def main():
         for p in range(1, warmup_pages + 1):
             result = _timed(
                 f"honeypot_p{p}",
-                lambda _p=p: db.get_honeypot_paginated(
+                lambda _p=p: db.access_logs.get_honeypot_paginated(
                     page=_p, page_size=5, sort_by="count", sort_order="desc"
                 ),
             )

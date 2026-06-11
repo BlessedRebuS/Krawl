@@ -63,7 +63,7 @@ async def htmx_honeypot(
         else:
             db = get_db()
             result = await asyncio.to_thread(
-                db.get_honeypot_paginated,
+                db.access_logs.get_honeypot_paginated,
                 page=page,
                 page_size=5,
                 sort_by=sort_by,
@@ -456,7 +456,7 @@ async def htmx_access_logs_by_ip(
     else:
         db = get_db()
         result = await asyncio.to_thread(
-            db.get_access_logs_paginated,
+            db.access_logs.get_paginated,
             page=page,
             page_size=25,
             ip_filter=ip_filter,

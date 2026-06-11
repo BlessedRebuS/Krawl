@@ -125,7 +125,7 @@ def main():
 
     for ip in ips_to_analyze:
         # Get full history for this IP to perform accurate analysis
-        ip_accesses = db_manager.get_access_logs(
+        ip_accesses = db_manager.access_logs.get_list(
             limit=10000, ip_filter=ip, since_minutes=1440 * 30
         )  # look back up to 30 days of history for better accuracy
         total_accesses_count = len(ip_accesses)

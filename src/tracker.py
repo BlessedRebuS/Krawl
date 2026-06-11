@@ -445,15 +445,15 @@ class AccessTracker:
             raise RuntimeError("Database not available for dashboard stats")
 
         # Get aggregate counts from database
-        stats = self.db.get_dashboard_counts()
+        stats = self.db.access_logs.get_dashboard_counts()
 
         # Add detailed lists from database
         stats["top_ips"] = self.db.analytics.get_top_ips(10)
         stats["top_paths"] = self.db.analytics.get_top_paths(10)
         stats["top_user_agents"] = self.db.analytics.get_top_user_agents(10)
-        stats["recent_suspicious"] = self.db.get_recent_suspicious(20)
-        stats["honeypot_triggered_ips"] = self.db.get_honeypot_triggered_ips()
-        stats["attack_types"] = self.db.get_recent_attacks(20)
+        stats["recent_suspicious"] = self.db.access_logs.get_recent_suspicious(20)
+        stats["honeypot_triggered_ips"] = self.db.access_logs.get_honeypot_triggered_ips()
+        stats["attack_types"] = self.db.access_logs.get_recent_attacks(20)
         stats["credential_attempts"] = self.db.credentials.get_list(limit=50)
 
         return stats
