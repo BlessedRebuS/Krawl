@@ -411,7 +411,7 @@ async def top_ips(
 
     try:
         result = await asyncio.to_thread(
-            db.get_top_ips_paginated,
+            db.analytics.get_top_ips_paginated,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -437,7 +437,7 @@ async def top_paths(
 
     try:
         result = await asyncio.to_thread(
-            db.get_top_paths_paginated,
+            db.analytics.get_top_paths_paginated,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -464,7 +464,7 @@ async def top_user_agents(
 
     try:
         result = await asyncio.to_thread(
-            db.get_top_user_agents_paginated,
+            db.analytics.get_top_user_agents_paginated,
             page=page,
             page_size=page_size,
             sort_by=sort_by,
@@ -493,7 +493,7 @@ async def attack_types_stats(
     db = get_db()
     try:
         result = await asyncio.to_thread(
-            db.get_attack_types_stats, limit=limit, ip_filter=ip_filter
+            db.analytics.get_attack_types_stats, limit=limit, ip_filter=ip_filter
         )
         set_cached_table(cache_key, result)
         return JSONResponse(content=result, headers=_no_cache_headers())
@@ -521,7 +521,7 @@ async def attack_types_daily(
     db = get_db()
     try:
         result = await asyncio.to_thread(
-            db.get_attack_types_daily, limit=limit, days=days, offset_days=offset_days
+            db.analytics.get_attack_types_daily, limit=limit, days=days, offset_days=offset_days
         )
         set_cached_table(cache_key, result)
         return JSONResponse(content=result, headers=_no_cache_headers())
@@ -544,7 +544,7 @@ async def attack_types(
 
     try:
         result = await asyncio.to_thread(
-            db.get_attack_types_paginated,
+            db.analytics.get_attack_types_paginated,
             page=page,
             page_size=page_size,
             sort_by=sort_by,

@@ -120,7 +120,7 @@ async def htmx_top_ips(
     else:
         db = get_db()
         result = await asyncio.to_thread(
-            db.get_top_ips_paginated,
+            db.analytics.get_top_ips_paginated,
             page=max(1, page),
             page_size=min(page_size, 100),
             sort_by=sort_by,
@@ -197,7 +197,7 @@ async def htmx_top_paths(
     if result is None:
         db = get_db()
         result = await asyncio.to_thread(
-            db.get_top_paths_paginated,
+            db.analytics.get_top_paths_paginated,
             page=max(1, page),
             page_size=min(page_size, 100),
             sort_by=sort_by,
@@ -352,7 +352,7 @@ async def htmx_top_ua(
     if result is None:
         db = get_db()
         result = await asyncio.to_thread(
-            db.get_top_user_agents_paginated,
+            db.analytics.get_top_user_agents_paginated,
             page=max(1, page),
             page_size=min(page_size, 100),
             sort_by=sort_by,
@@ -544,7 +544,7 @@ async def htmx_attacks(
     else:
         db = get_db()
         result = await asyncio.to_thread(
-            db.get_attack_types_paginated,
+            db.analytics.get_attack_types_paginated,
             page=page,
             page_size=15,
             sort_by=sort_by,
@@ -602,7 +602,7 @@ async def htmx_patterns(
     else:
         db = get_db()
         # Get all attack type stats and paginate manually
-        result = await asyncio.to_thread(db.get_attack_types_stats, limit=100)
+        result = await asyncio.to_thread(db.analytics.get_attack_types_stats, limit=100)
         set_cached_table(cache_key, result)
     all_patterns = [
         {"pattern": item["type"], "count": item["count"]}
@@ -727,7 +727,7 @@ async def htmx_search(
 
     db = get_db()
     result = await asyncio.to_thread(
-        db.search_attacks_and_ips, query=q, page=max(1, page), page_size=20
+        db.analytics.search, query=q, page=max(1, page), page_size=20
     )
 
     templates = get_templates()

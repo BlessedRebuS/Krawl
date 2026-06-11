@@ -216,7 +216,7 @@ def _recompute_heavy(db) -> None:
     keep the unique_paths counter aligned to its cardinality.
     """
     counts = db._compute_dashboard_counts_sql()
-    tallies = db.get_deleted_tallies()
+    tallies = db.analytics.get_deleted_tallies()
     for metric in HEAVY_METRICS:
         if metric == "unique_paths":
             continue  # backed by the append-only seen-paths set
@@ -225,7 +225,7 @@ def _recompute_heavy(db) -> None:
             base += int(tallies.get(metric, 0) or 0)
         set_value(metric, "", base)
     set_value("unique_paths", "", scard("paths"))
-    db.upsert_metrics_summary({(m, ""): get(m) for m in HEAVY_METRICS})
+    db.analytics.upsert_metrics_summary({(m, ""): get(m) for m in HEAVY_METRICS})
 
 
 def _recompute_cheap(db) -> None:
@@ -233,7 +233,7 @@ def _recompute_cheap(db) -> None:
     set_value("credentials_captured", "", db.credentials.count())
     # attack_detections rows are preserved by retention (they hang off suspicious
     # logs), so the current per-type count equals the cumulative total.
-    for entry in db.get_attack_types_stats(limit=100).get("attack_types", []):
+    for entry in db.analytics.get_attack_types_stats(limit=100).get("attack_types", []):
         set_value("attack_detections", entry["type"], int(entry["count"]))
 
 
@@ -255,7 +255,7 @@ def bootstrap(db) -> None:
         if scard("paths") == 0:
             seed_set("paths", db.get_distinct_paths())
 
-        heavy = db.get_heavy_summary()
+        heavy = db.analytics.get_heavy_summary()
         if heavy:
             for metric, value in heavy.items():
                 set_value(metric, "", value)

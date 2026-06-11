@@ -73,7 +73,7 @@ def main():
         if warmup_aggregation:
             top_ua_all = _timed(
                 "get_top_ua_all",
-                lambda: db.get_top_user_agents(limit=100_000, min_count=min_count),
+                lambda: db.analytics.get_top_user_agents(limit=100_000, min_count=min_count),
             )
             agg_ua = [{"user_agent": ua, "count": c} for ua, c in top_ua_all]
             set_cached("agg:top_ua", agg_ua)
@@ -90,7 +90,7 @@ def main():
 
             top_paths_all = _timed(
                 "get_top_paths_all",
-                lambda: db.get_top_paths(limit=100_000, min_count=min_count),
+                lambda: db.analytics.get_top_paths(limit=100_000, min_count=min_count),
             )
             agg_paths = [{"path": p, "count": c} for p, c in top_paths_all]
             set_cached("agg:top_paths", agg_paths)
@@ -126,13 +126,13 @@ def main():
         else:
             top_ua = _timed(
                 "get_top_user_agents_paginated",
-                lambda: db.get_top_user_agents_paginated(
+                lambda: db.analytics.get_top_user_agents_paginated(
                     page=1, page_size=5, min_count=min_count
                 ),
             )
             top_paths = _timed(
                 "get_top_paths_paginated",
-                lambda: db.get_top_paths_paginated(
+                lambda: db.analytics.get_top_paths_paginated(
                     page=1, page_size=5, min_count=min_count
                 ),
             )
@@ -193,14 +193,14 @@ def main():
         # --- Attack panel data (multi-page, default sort) ---
         attack_trends = _timed(
             "get_attack_types_daily",
-            lambda: db.get_attack_types_daily(limit=10, days=7, offset_days=0),
+            lambda: db.analytics.get_attack_types_daily(limit=10, days=7, offset_days=0),
         )
 
         credentials_p1 = None
         for p in range(1, warmup_pages + 1):
             result = _timed(
                 f"attacks_p{p}",
-                lambda _p=p: db.get_attack_types_paginated(
+                lambda _p=p: db.analytics.get_attack_types_paginated(
                     page=_p, page_size=15, sort_by="timestamp", sort_order="desc"
                 ),
             )

@@ -448,9 +448,9 @@ class AccessTracker:
         stats = self.db.get_dashboard_counts()
 
         # Add detailed lists from database
-        stats["top_ips"] = self.db.get_top_ips(10)
-        stats["top_paths"] = self.db.get_top_paths(10)
-        stats["top_user_agents"] = self.db.get_top_user_agents(10)
+        stats["top_ips"] = self.db.analytics.get_top_ips(10)
+        stats["top_paths"] = self.db.analytics.get_top_paths(10)
+        stats["top_user_agents"] = self.db.analytics.get_top_user_agents(10)
         stats["recent_suspicious"] = self.db.get_recent_suspicious(20)
         stats["honeypot_triggered_ips"] = self.db.get_honeypot_triggered_ips()
         stats["attack_types"] = self.db.get_recent_attacks(20)
