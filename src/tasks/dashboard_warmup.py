@@ -59,6 +59,36 @@ def main():
             metrics.observe_warmup_step(label, elapsed)
             return result
 
+        def _warm_pages(label, fetch_bulk, rows_key, total_key, page_size, key_fmt):
+            """Warm the first `warmup_pages` cache pages of a paginated table
+            with a SINGLE query instead of one query per page.
+
+            `fetch_bulk` runs one paginated call sized for all pages at once;
+            the rows are then sliced into per-page cache entries whose shape is
+            byte-identical to what the individual per-page query produced, so
+            dashboard reads are unaffected. Returns the bulk result so callers
+            can derive totals.
+            """
+            bulk = _timed(label, fetch_bulk)
+            rows = bulk.get(rows_key, [])
+            total = bulk.get("pagination", {}).get(total_key, 0)
+            total_pages = max(1, (total + page_size - 1) // page_size)
+            for p in range(1, warmup_pages + 1):
+                chunk = rows[(p - 1) * page_size : p * page_size]
+                set_cached_table(
+                    key_fmt.format(p=p),
+                    {
+                        rows_key: chunk,
+                        "pagination": {
+                            "page": p,
+                            "page_size": page_size,
+                            total_key: total,
+                            "total_pages": total_pages,
+                        },
+                    },
+                )
+            return bulk
+
         # --- Server-rendered data (stats cards + suspicious table) ---
         stats = _timed("get_dashboard_counts", db.access_logs.get_dashboard_counts)
 
@@ -66,14 +96,17 @@ def main():
         # (avoids a redundant DB call)
 
         suspicious = _timed(
-            "get_recent_suspicious", lambda: db.access_logs.get_recent_suspicious(limit=10)
+            "get_recent_suspicious",
+            lambda: db.access_logs.get_recent_suspicious(limit=10),
         )
 
         # --- HTMX Overview tables (aggregation or first page, default sort) ---
         if warmup_aggregation:
             top_ua_all = _timed(
                 "get_top_ua_all",
-                lambda: db.analytics.get_top_user_agents(limit=100_000, min_count=min_count),
+                lambda: db.analytics.get_top_user_agents(
+                    limit=100_000, min_count=min_count
+                ),
             )
             agg_ua = [{"user_agent": ua, "count": c} for ua, c in top_ua_all]
             set_cached("agg:top_ua", agg_ua)
@@ -193,51 +226,69 @@ def main():
         # --- Attack panel data (multi-page, default sort) ---
         attack_trends = _timed(
             "get_attack_types_daily",
-            lambda: db.analytics.get_attack_types_daily(limit=10, days=7, offset_days=0),
+            lambda: db.analytics.get_attack_types_daily(
+                limit=10, days=7, offset_days=0
+            ),
         )
 
-        credentials_p1 = None
-        for p in range(1, warmup_pages + 1):
-            result = _timed(
-                f"attacks_p{p}",
-                lambda _p=p: db.analytics.get_attack_types_paginated(
-                    page=_p, page_size=15, sort_by="timestamp", sort_order="desc"
-                ),
-            )
-            set_cached_table(f"attacks:{p}:timestamp:desc::", result)
+        # Each panel below warms warmup_pages cache pages with ONE query each
+        # (bulk fetch + in-Python slicing) rather than one query per page.
+        _warm_pages(
+            "attacks_all",
+            lambda: db.analytics.get_attack_types_paginated(
+                page=1,
+                page_size=15 * warmup_pages,
+                sort_by="timestamp",
+                sort_order="desc",
+            ),
+            rows_key="attacks",
+            total_key="total",
+            page_size=15,
+            key_fmt="attacks:{p}:timestamp:desc::",
+        )
 
-        for p in range(1, warmup_pages + 1):
-            result = _timed(
-                f"attackers_p{p}",
-                lambda _p=p: db.ip_stats.get_attackers_paginated(
-                    page=_p, page_size=10, sort_by="total_requests", sort_order="desc"
-                ),
-            )
-            set_cached_table(f"attackers:{p}:total_requests:desc", result)
+        _warm_pages(
+            "attackers_all",
+            lambda: db.ip_stats.get_attackers_paginated(
+                page=1,
+                page_size=10 * warmup_pages,
+                sort_by="total_requests",
+                sort_order="desc",
+            ),
+            rows_key="attackers",
+            total_key="total_attackers",
+            page_size=10,
+            key_fmt="attackers:{p}:total_requests:desc",
+        )
 
-        for p in range(1, warmup_pages + 1):
-            result = _timed(
-                f"credentials_p{p}",
-                lambda _p=p: db.credentials.get_paginated(
-                    page=_p, page_size=5, sort_by="timestamp", sort_order="desc"
-                ),
-            )
-            set_cached_table(f"credentials:{p}:timestamp:desc", result)
-            if p == 1:
-                credentials_p1 = result
+        credentials_bulk = _warm_pages(
+            "credentials_all",
+            lambda: db.credentials.get_paginated(
+                page=1,
+                page_size=5 * warmup_pages,
+                sort_by="timestamp",
+                sort_order="desc",
+            ),
+            rows_key="credentials",
+            total_key="total",
+            page_size=5,
+            key_fmt="credentials:{p}:timestamp:desc",
+        )
 
-        for p in range(1, warmup_pages + 1):
-            result = _timed(
-                f"honeypot_p{p}",
-                lambda _p=p: db.access_logs.get_honeypot_paginated(
-                    page=_p, page_size=5, sort_by="count", sort_order="desc"
-                ),
-            )
-            set_cached_table(f"honeypot:{p}:count:desc", result)
+        _warm_pages(
+            "honeypot_all",
+            lambda: db.access_logs.get_honeypot_paginated(
+                page=1, page_size=5 * warmup_pages, sort_by="count", sort_order="desc"
+            ),
+            rows_key="honeypots",
+            total_key="total",
+            page_size=5,
+            key_fmt="honeypot:{p}:count:desc",
+        )
 
-        # Derive credential count from the page-1 credentials result
-        stats["credential_count"] = (
-            (credentials_p1 or {}).get("pagination", {}).get("total", 0)
+        # Derive credential count from the bulk credentials result
+        stats["credential_count"] = credentials_bulk.get("pagination", {}).get(
+            "total", 0
         )
 
         # Store everything in the cache (overwrites previous values)

@@ -521,7 +521,10 @@ async def attack_types_daily(
     db = get_db()
     try:
         result = await asyncio.to_thread(
-            db.analytics.get_attack_types_daily, limit=limit, days=days, offset_days=offset_days
+            db.analytics.get_attack_types_daily,
+            limit=limit,
+            days=days,
+            offset_days=offset_days,
         )
         set_cached_table(cache_key, result)
         return JSONResponse(content=result, headers=_no_cache_headers())

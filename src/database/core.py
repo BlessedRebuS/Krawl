@@ -623,27 +623,10 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-
-
-
-
         # Note: clients_total is NOT maintained as a +new/-old delta counter.
         # It is current-state and recomputed live from count_category at scrape
         # time (see metrics.KrawlMetricsCollector), which is cheap (indexed) and
         # avoids the unbounded drift a delta accrues under retention deletes.
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def _public_ip_filter(self, query, ip_column, server_ip: str | None = None):
         """Apply SQL-level filter to exclude the server's own IP."""
@@ -662,39 +645,9 @@ class DatabaseManager:
         server_ip = get_config().get_server_ip()
         return bool(ip) and ip != server_ip
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     # ── Ban Override Management ──────────────────────────────────────────
 
-
-
-
     # ── IP Tracking ──────────────────────────────────────────────────
-
-
-
-
-
 
 
 # Module-level singleton instance
