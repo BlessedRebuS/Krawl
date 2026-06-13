@@ -31,7 +31,8 @@ jobs:
       - name: Check for changes
         id: diff
         run: |
-          if git diff --quiet banlist.txt; then
+          if git diff --quiet banlist.txt && \
+          ! git ls-files --others | grep -q -e '^banlist\.txt'; then
             echo "changed=false" >> $GITHUB_OUTPUT
           else
             echo "changed=true" >> $GITHUB_OUTPUT
@@ -40,31 +41,10 @@ jobs:
       - name: Create Pull Request
         if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v8
-     # - name: Create branch and commit
-     #   if: steps.diff.outputs.changed == 'true'
-     #   run: |
-     #     BRANCH="data-update/$(date +'%Y-%m-%d-%H%M%S')"
-     #     echo "BRANCH=$BRANCH" >> $GITHUB_ENV
-
-     #     git config user.name  "github-actions[bot]"
-     #     git config user.email "github-actions[bot]@users.noreply.github.com"
-
-     #     git checkout -b "$BRANCH"
-     #     git add data/output.json
-     #     git commit -m "chore: update API data ($(date +'%Y-%m-%d'))"
-     #     git push origin "$BRANCH"
-
-     # - name: Create Pull Request
-     #   if: steps.diff.outputs.changed == 'true'
-     #   env:
-     #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-     #   run: |
-     #     gh pr create \
-     #       --title "chore: API data update $(date +'%Y-%m-%d')" \
-     #       --body "Automated data refresh from scheduled workflow.
-
-     #     **Triggered by:** \`${{ github.workflow }}\`
-     #     **Run:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" \
-     #       --base main \
-     #       --head "$BRANCH" \
-     #       --label "automated"
+        with:
+          title: 'Community banlist update'
+          commit-message: Updated banlist
+          branch: community-banlist-update
+          body: |
+            Updated community banlist
+          reviewers: "carnivuth,BlessedRebuS,Lore09"
