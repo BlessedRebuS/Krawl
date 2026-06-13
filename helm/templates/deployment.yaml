@@ -33,6 +33,20 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if eq .Values.mode "scalable" }}
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.36
+        command:
+          - sh
+          - -c
+          - |
+            until nc -z {{ .Values.postgres.host }} {{ .Values.postgres.port }}; do
+              echo "Waiting for PostgreSQL at {{ .Values.postgres.host }}:{{ .Values.postgres.port }}..."
+              sleep 2
+            done
+            echo "PostgreSQL is ready."
+      {{- end }}
       containers:
       - name: krawl
         {{- with .Values.securityContext }}
