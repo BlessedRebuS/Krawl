@@ -10,7 +10,7 @@ metadata:
   {{- end }}
 spec:
   type: {{ .Values.service.type }}
-  {{- if .Values.service.externalTrafficPolicy }}
+  {{- if and .Values.service.externalTrafficPolicy (ne .Values.service.type "ClusterIP") }}
   externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
   {{- end }}
   sessionAffinity: ClientIP
@@ -24,3 +24,4 @@ spec:
     name: http
   selector:
     {{- include "krawl.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: krawl

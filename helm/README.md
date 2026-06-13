@@ -198,6 +198,31 @@ The following table lists the main configuration parameters of the Krawl chart a
 | `ingress.className` | Ingress class name | `traefik` |
 | `ingress.hosts[0].host` | Ingress hostname | `krawl.example.com` |
 
+### External Traefik / Reverse Proxy Setup
+
+If you're using Traefik in a separate namespace (e.g., `cattle-system`) or running a reverse proxy like nginx in front of Traefik, you must configure both the Traefik service and deployment to preserve the real client IP. This ensures Krawl receives the actual attacker IP instead of the proxy's IP.
+
+**Apply these patches to your Traefik deployment** (replace `cattle-system` with your Traefik namespace and `<IP>` with your actual IP if needed):
+
+1. **Patch the Traefik Service** to use local traffic policy:
+
+```bash
+kubectl patch svc traefik -n cattle-system -p '{"spec":{"externalTrafficPolicy":"Local"}}'
+```
+
+2. **Patch the Traefik Deployment** to add trusted IPs to the entrypoints:
+
+```bash
+kubectl patch deployment traefik -n cattle-system --type=json -p='[
+  {"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--entrypoints.web.forwardedHeaders.trustedIPs=<IP>"},
+  {"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--entrypoints.websecure.forwardedHeaders.trustedIPs=<IP>"}
+]'
+```
+
+> **Note**: These patches must be reapplied after any Traefik upgrade. Consider adding them to your cluster initialization automation or Traefik Helm values if using a Traefik Helm chart.
+
+The Krawl service already includes `externalTrafficPolicy: Local` by default to preserve source IPs at the service level.
+
 ### Server Configuration
 
 | Parameter | Description | Default |
