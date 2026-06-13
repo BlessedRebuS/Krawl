@@ -19,7 +19,7 @@ jobs:
       - name: Fetch data from API
         run: |
           curl -s \
-            "https://your-api.example.com/endpoint" \
+            "https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw" \
             -o banlist.txt
 
           # Fail the step if the file is empty or curl errored
