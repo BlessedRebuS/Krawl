@@ -277,7 +277,7 @@ Run Krawl directly with Python 3.13+ and uvicorn for local development or testin
 
 ```bash
 pip install -r requirements.txt
-uvicorn app:app --host 0.0.0.0 --port 5000 --app-dir src
+uvicorn app:app --host 0.0.0.0 --port 5000 --app-dir src --no-server-header
 ```
 
 Access the server at `http://localhost:5000`
