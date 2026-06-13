@@ -23,6 +23,7 @@ spec:
       {{- end }}
       labels:
         {{- include "krawl.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: krawl
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -127,6 +128,14 @@ spec:
         resources:
           {{- toYaml . | nindent 12 }}
         {{- end }}
+        startupProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30
       volumes:
       - name: config
         configMap:
