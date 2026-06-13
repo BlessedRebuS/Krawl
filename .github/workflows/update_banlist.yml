@@ -31,7 +31,8 @@ jobs:
       - name: Check for changes
         id: diff
         run: |
-          if git diff --quiet banlist.txt; then
+          if git diff --quiet banlist.txt && \
+          ! git ls-files --others | grep -q -e '^banlist\.txt'; then
             echo "changed=false" >> $GITHUB_OUTPUT
           else
             echo "changed=true" >> $GITHUB_OUTPUT
@@ -40,6 +41,7 @@ jobs:
       - name: Create Pull Request
         if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v8
+
      # - name: Create branch and commit
      #   if: steps.diff.outputs.changed == 'true'
      #   run: |
