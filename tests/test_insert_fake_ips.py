@@ -541,7 +541,7 @@ def generate_fake_data(
     app_logger.info(
         "All IPs have API-fetched geolocation with reverse geocoded city names."
     )
-    app_logger.info("Run: uvicorn app:app --app-dir src")
+    app_logger.info("Run: uvicorn app:app --app-dir src --no-server-header")
     app_logger.info("=" * 60)
 
 

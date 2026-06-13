@@ -351,7 +351,7 @@ Three rotating log files (1MB max, 5 backups each):
 FROM python:3.11-slim
 # Non-root user: krawl:1000
 # Volumes: /app/logs, /app/data, /app/exports
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000", "--app-dir", "src"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000", "--app-dir", "src", "--no-server-header"]
 ```
 
 ## Key Data Flows

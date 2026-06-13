@@ -46,7 +46,7 @@ Run the server:
 
 ```bash
 pip install -r requirements.txt
-uvicorn app:app --host 0.0.0.0 --port 5000 --app-dir src
+uvicorn app:app --host 0.0.0.0 --port 5000 --app-dir src --no-server-header
 ```
 
 Visit `http://localhost:5000` and access the dashboard at `http://localhost:5000/<dashboard-secret-path>`
