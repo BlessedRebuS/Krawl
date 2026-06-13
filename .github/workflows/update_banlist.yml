@@ -47,4 +47,4 @@ jobs:
           branch: community-banlist-update
           body: |
             Updated community banlist
-          reviewers: "carnivuth,BlessedRebuS,Lore09"
+          reviewers: "BlessedRebuS,Lore09"
