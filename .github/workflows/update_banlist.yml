@@ -1,4 +1,4 @@
-name: Fetch API Data and Create PR
+name: Fetch krawl ip banlist from demo and create PR
 
 on:
   schedule:
