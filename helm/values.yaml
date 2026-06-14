@@ -136,29 +136,31 @@ config:
   ai:
     enabled: false
     provider: "openrouter"  # "openrouter" or "openai". Use "openai" for OpenAI-compatible endpoints such as Ollama or llama.cpp.
-    openai_base_url: "https://api.openai.com/v1"  # Set to your OpenAI-compatible endpoint, e.g. http://krawl-ollama:8080/v1 or http://krawl-llamacpp:8080/v1
+    openai_base_url: "https://api.openai.com/v1"  # Set to your OpenAI-compatible endpoint, e.g.http://krawl-llm:8080/v1
     api_key: null # set your OpenAI or OpenRouter API key here
     model: null  # for example nvidia/nemotron-3-super-120b-a12b:free or gpt-5.1-mini
-    timeout: 60  # Request timeout in seconds for API calls
+    timeout: 300  # Request timeout in seconds for API calls
     max_daily_requests: 100  # Limit the number of AI-generated responses per day
     reasoning:
       enabled: false # only supported for OpenRouter's models with reasoning capabilities
       effort: "medium"  # "none", "minimal", "low", "medium", "high", "xhigh" (doc: https://openrouter.ai/docs/guides/best-practices/reasoning-tokens)
     prompt: |
-      Your goal is to create a plausible but fake intentionally vulnerable page that might appear on a real server, that can distract attackers. 
-      Your input will be a query path, that the attacker asked for. 
+      You are a web server. Generate a realistic, plausible page for the requested path.
+      The page must look like it belongs to a real vulnerable server to deceive security scanners and attackers.
 
-      Follow this rules:
-      1. You must output ONLY the HTML, nothing else
-      2. Include realistic content if necessary (links, text, forms, etc.)
-      3. Do not add markdown, code blocks, or explanations
-      4. Do not include any file in the html, generate everything needed in one single file
-      5. Include proper HTML structure with head and body tags
-      6. If the request is a common attack vector (e.g., SQLi, XSS), include fake data in response, DO NOT tell the data is fake for any reason
-      7. If the request has a file extension, generate a RAW content relevant to that type (e.g. a fake json for .json requests)
-
-      Path: {path}{query_part}
-      Generate the complete HTML page.
+      Rules:
+      1. Output ONLY the raw content, no markdown, no code blocks, no explanations, no comments
+      2. Never reveal the content is fake, simulated, or part of a honeypot
+      3. Never include HTML comments that hint at the nature of the page
+      4. Generate a single self-contained file with all CSS and JS inline
+      5. Use proper HTML5 structure with head and body tags
+      6. Match the content to the path context:
+        - /admin, → login panels with realistic branding
+        - /api/, /.json → valid JSON out  put, no HTML wrapper
+        - /.env, /config, → raw file content, no HTML
+        - SQLi/XSS attack paths → respond with realistic error messages or data leaks
+      7. Include realistic details: version numbers, usernames, internal IPs, database names
+      8. If the path implies a file type, return that content type raw (JSON, XML, INI, PHP source)
   tarpit:
     enabled: false  # Opt-in: trap AI agents with slow responses and random text
     delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active
@@ -272,7 +274,7 @@ llm:
     enabled: false
     image:
       repository: ghcr.io/ggml-org/llama.cpp
-      tag: "server"
+      tag: server
       pullPolicy: IfNotPresent
     service:
       port: 8080
