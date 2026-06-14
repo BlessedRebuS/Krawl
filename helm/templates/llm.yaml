@@ -167,9 +167,9 @@ spec:
             - --port
             - {{ $port | quote }}
             - --host
-            - 0.0.0.0
+            - "0.0.0.0"
             - -n
-            - -1
+            - "-1"
           volumeMounts:
             - name: models
               mountPath: /root/.cache
