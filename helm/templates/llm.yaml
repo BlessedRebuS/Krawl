@@ -1,5 +1,5 @@
 {{- if .Values.llm.ollama.enabled }}
-{{- $name := printf "%s-ollama" (include "krawl.fullname" .) }}
+{{- $name := printf "%s-llm" (include "krawl.fullname" .) }}
 {{- $port := .Values.llm.ollama.service.port }}
 {{- if .Values.llm.ollama.persistence.enabled }}
 ---
@@ -95,7 +95,7 @@ spec:
 {{- end }}
 
 {{- if .Values.llm.llamaCpp.enabled }}
-{{- $name := printf "%s-llamacpp" (include "krawl.fullname" .) }}
+{{- $name := printf "%s-llm" (include "krawl.fullname" .) }}
 {{- $port := .Values.llm.llamaCpp.service.port }}
 {{- if .Values.llm.llamaCpp.persistence.enabled }}
 ---

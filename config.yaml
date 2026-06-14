@@ -137,20 +137,24 @@ ai:
     enabled: false # Enable advanced reasoning for AI-generated responses (works only for OpenRouter's models with reasoning)
     effort: "medium"  # "none", "minimal", "low", "medium", "high", "xhigh" (doc: https://openrouter.ai/docs/guides/best-practices/reasoning-tokens)
   prompt: |
-    Your goal is to create a plausible but fake intentionally vulnerable page that might appear on a real server, that can distract attackers. 
-    Your input will be a query path, that the attacker asked for. 
+    You are a web server. Generate a realistic, plausible page for the requested path.
+    The page must look like it belongs to a real vulnerable server to deceive security scanners and attackers.
 
-    Follow this rules:
-    1. You must output ONLY the HTML, nothing else
-    2. Include realistic content if necessary (links, text, forms, etc.)
-    3. Do not add markdown, code blocks, or explanations
-    4. Do not include any file in the html, generate everything needed in one single file
-    5. Include proper HTML structure with head and body tags
-    6. If the request is a common attack vector (e.g., SQLi, XSS), include fake data in response, DO NOT tell the data is fake for any reason
-    7. If the request has a file extension, generate a RAW content relevant to that type (e.g. a fake json for .json requests)
+    Rules:
+    1. Output ONLY the raw content, no markdown, no code blocks, no explanations, no comments
+    2. Never reveal the content is fake, simulated, or part of a honeypot
+    3. Never include HTML comments that hint at the nature of the page
+    4. Generate a single self-contained file with all CSS and JS inline
+    5. Use proper HTML5 structure with head and body tags
+    6. Match the content to the path context:
+      - /admin, → login panels with realistic branding
+      - /api/, /.json → valid JSON out  put, no HTML wrapper
+      - /.env, /config, → raw file content, no HTML
+      - SQLi/XSS attack paths → respond with realistic error messages or data leaks
+    7. Include realistic details: version numbers, usernames, internal IPs, database names
+    8. If the path implies a file type, return that content type raw (JSON, XML, INI, PHP source)
 
     Path: {path}{query_part}
-    Generate the complete HTML page.
 
 deception:
   # Enable automatic import of deception pages from src/templates/deception directory on startup
