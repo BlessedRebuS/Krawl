@@ -397,6 +397,35 @@ async def credentials(
         return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
 
 
+@router.get("/api/download-credentials")
+async def download_credentials(request: Request):
+    """Download unique usernames.txt and passwords.txt as a ZIP file."""
+    db = get_db()
+    try:
+        data = await asyncio.to_thread(db.credentials.get_unique_credentials)
+    except Exception as e:
+        get_app_logger().error(f"Error fetching credentials for download: {e}")
+        return JSONResponse(content={"error": "Internal server error"}, status_code=500)
+    finally:
+        db.close_session()
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        usernames = "\n".join(data["usernames"])
+        passwords = "\n".join(data["passwords"])
+        zf.writestr("usernames.txt", usernames)
+        zf.writestr("passwords.txt", passwords)
+
+    buf.seek(0)
+    return Response(
+        content=buf.read(),
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": 'attachment; filename="credentials.zip"',
+        },
+    )
+
+
 @router.get("/api/top-ips")
 async def top_ips(
     request: Request,

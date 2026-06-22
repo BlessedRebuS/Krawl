@@ -79,41 +79,41 @@
         {# Suspicious Activity - server-rendered (last 10 requests) #}
         {% include "dashboard/partials/suspicious_table.html" %}
 
-        {# Top IPs + Top User-Agents side by side #}
-        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-            <div class="table-container" style="flex: 1; min-width: 300px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2>Top IP Addresses</h2>
-                    <button class="expand-btn" onclick="openExpandOverlay('Top IP Addresses', 'top-ips', 25)" title="Expand">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5H4.56l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L3.5 4.56v2.69a.75.75 0 0 1-1.5 0v-3.5A1.75 1.75 0 0 1 3.75 2Zm8.5 12h-3.5a.75.75 0 0 1 0-1.5h2.69l-2.72-2.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.72 2.72v-2.69a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14Z"/></svg>
-                    </button>
-                </div>
-                <div class="htmx-container"
-                     hx-get="{{ dashboard_path }}/htmx/top-ips?page=1"
-                     hx-trigger="load"
-                     hx-swap="innerHTML">
-                    <div class="htmx-indicator">Loading...</div>
-                </div>
+        {# Top User-Agents #}
+        <div class="table-container">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <h2>Top User-Agents</h2>
+                <button class="expand-btn" onclick="openExpandOverlay('Top User-Agents', 'top-ua', 25)" title="Expand">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5H4.56l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L3.5 4.56v2.69a.75.75 0 0 1-1.5 0v-3.5A1.75 1.75 0 0 1 3.75 2Zm8.5 12h-3.5a.75.75 0 0 1 0-1.5h2.69l-2.72-2.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.72 2.72v-2.69a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14Z"/></svg>
+                </button>
             </div>
-            <div class="table-container" style="flex: 1; min-width: 300px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h2>Top User-Agents</h2>
-                    <button class="expand-btn" onclick="openExpandOverlay('Top User-Agents', 'top-ua', 25)" title="Expand">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5H4.56l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L3.5 4.56v2.69a.75.75 0 0 1-1.5 0v-3.5A1.75 1.75 0 0 1 3.75 2Zm8.5 12h-3.5a.75.75 0 0 1 0-1.5h2.69l-2.72-2.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.72 2.72v-2.69a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14Z"/></svg>
-                    </button>
-                </div>
-                <div class="htmx-container"
-                     hx-get="{{ dashboard_path }}/htmx/top-ua?page=1"
-                     hx-trigger="load"
-                     hx-swap="innerHTML">
-                    <div class="htmx-indicator">Loading...</div>
-                </div>
+            <div class="htmx-container"
+                 hx-get="{{ dashboard_path }}/htmx/top-ua?page=1"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                <div class="htmx-indicator">Loading...</div>
+            </div>
+        </div>
+
+        {# Top IP Addresses #}
+        <div class="table-container">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <h2>Top IP Addresses</h2>
+                <button class="expand-btn" onclick="openExpandOverlay('Top IP Addresses', 'top-ips', 25)" title="Expand">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5H4.56l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L3.5 4.56v2.69a.75.75 0 0 1-1.5 0v-3.5A1.75 1.75 0 0 1 3.75 2Zm8.5 12h-3.5a.75.75 0 0 1 0-1.5h2.69l-2.72-2.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.72 2.72v-2.69a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14Z"/></svg>
+                </button>
+            </div>
+            <div class="htmx-container"
+                 hx-get="{{ dashboard_path }}/htmx/top-ips?page=1"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                <div class="htmx-indicator">Loading...</div>
             </div>
         </div>
 
         {# Top Paths #}
         <div class="table-container">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <h2>Top Paths</h2>
                 <button class="expand-btn" onclick="openExpandOverlay('Top Paths', 'top-paths', 25)" title="Expand">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5H4.56l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L3.5 4.56v2.69a.75.75 0 0 1-1.5 0v-3.5A1.75 1.75 0 0 1 3.75 2Zm8.5 12h-3.5a.75.75 0 0 1 0-1.5h2.69l-2.72-2.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.72 2.72v-2.69a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14Z"/></svg>
@@ -129,7 +129,12 @@
 
         {# Generated Deception Templates - HTMX loaded #}
         <div class="table-container">
-            <h2>Generated Deception Templates</h2>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <h2>Generated Deception Templates</h2>
+                <button class="expand-btn" onclick="openExpandOverlay('Generated Deception Templates', 'generated-pages/readonly', 25)" title="Expand">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5H4.56l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L3.5 4.56v2.69a.75.75 0 0 1-1.5 0v-3.5A1.75 1.75 0 0 1 3.75 2Zm8.5 12h-3.5a.75.75 0 0 1 0-1.5h2.69l-2.72-2.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.72 2.72v-2.69a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14Z"/></svg>
+                </button>
+            </div>
             <div class="htmx-container"
                  hx-get="{{ dashboard_path }}/htmx/generated-pages/readonly?page=1"
                  hx-trigger="load"

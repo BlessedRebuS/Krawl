@@ -31,7 +31,7 @@
     </thead>
     <tbody>
         {% for log in items %}
-        <tr class="ip-row{% if log.is_suspicious %} access-row-suspicious{% endif %}" data-ip="{{ log.ip | e }}">
+        <tr class="ip-row{% if log.is_suspicious %} access-row-suspicious{% else %} access-row-normal{% endif %}" data-ip="{{ log.ip | e }}">
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
             <td>
                 <div class="path-cell-container">

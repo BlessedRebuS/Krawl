@@ -26,6 +26,9 @@
                     <th>Accesses</th>
                     <th>Created</th>
                     <th>Last Accessed</th>
+                    {% if authenticated %}
+                    <th style="width: 40px;"></th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -45,6 +48,14 @@
                     <td>{{ page.access_count }}</td>
                     <td>{{ page.created_at | format_ts }}</td>
                     <td>{{ page.last_accessed | format_ts }}</td>
+                    {% if authenticated %}
+                    <td>
+                        <button class="ban-icon-btn" style="color: #f85149;" onclick="deleteSearchGeneratedPage(this, '{{ page.path | e }}')" title="Delete">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M11 1.75V0H5v1.75H1v1.5h1.5v10c0 .966.784 1.75 1.75 1.75h7.5A1.75 1.75 0 0 0 13.5 13.25v-10H15v-1.5Zm-7.5 0V1.5h9v.25ZM12 13.25a.25.25 0 0 1-.25.25h-7.5a.25.25 0 0 1-.25-.25v-10h8ZM6.5 5.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5a.75.75 0 0 1 .75-.75Zm3 0a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5a.75.75 0 0 1 .75-.75Z"/></svg>
+                            <span class="ban-icon-tooltip">Delete</span>
+                        </button>
+                    </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>

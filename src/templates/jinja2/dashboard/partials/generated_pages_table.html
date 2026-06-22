@@ -15,43 +15,35 @@
     </div>
 </div>
 
-<table style="width: 100%; border-collapse: collapse;">
+<table>
     <thead>
-        <tr style="border-bottom: 1px solid #30363d;">
-            <th style="width: 30px; text-align: center; padding: 12px 8px; color: #58a6ff; font-weight: 600; font-size: 0.9em;">
+        <tr>
+            <th style="width: 30px; text-align: center;">
                 <input type="checkbox" id="select-all-pages" onchange="selectAllPages()" style="cursor: pointer;" />
             </th>
-            <th style="text-align: left; padding: 12px 8px; color: #58a6ff; font-weight: 600; font-size: 0.9em;">#</th>
-            <th style="text-align: left; padding: 12px 8px; color: #58a6ff; font-weight: 600; font-size: 0.9em; cursor: pointer; user-select: none;"
+            <th>#</th>
+            <th class="sortable {% if sort_by == 'path' %}{{ sort_order }}{% endif %}"
                 hx-get="{{ dashboard_path }}/htmx/generated-pages?page=1&sort_by=path&sort_order={% if sort_by == 'path' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
                 hx-target="closest .htmx-container"
-                hx-swap="innerHTML"
-                onmouseover="this.style.color='#79c0ff';" 
-                onmouseout="this.style.color='#58a6ff';">
+                hx-swap="innerHTML">
                 Path
             </th>
-            <th style="text-align: left; padding: 12px 8px; color: #58a6ff; font-weight: 600; font-size: 0.9em; cursor: pointer; user-select: none;"
+            <th class="sortable {% if sort_by == 'created_at' %}{{ sort_order }}{% endif %}"
                 hx-get="{{ dashboard_path }}/htmx/generated-pages?page=1&sort_by=created_at&sort_order={% if sort_by == 'created_at' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
                 hx-target="closest .htmx-container"
-                hx-swap="innerHTML"
-                onmouseover="this.style.color='#79c0ff';" 
-                onmouseout="this.style.color='#58a6ff';">
+                hx-swap="innerHTML">
                 Created
             </th>
-            <th style="text-align: left; padding: 12px 8px; color: #58a6ff; font-weight: 600; font-size: 0.9em; cursor: pointer; user-select: none;"
+            <th class="sortable {% if sort_by == 'last_accessed' %}{{ sort_order }}{% endif %}"
                 hx-get="{{ dashboard_path }}/htmx/generated-pages?page=1&sort_by=last_accessed&sort_order={% if sort_by == 'last_accessed' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
                 hx-target="closest .htmx-container"
-                hx-swap="innerHTML"
-                onmouseover="this.style.color='#79c0ff';" 
-                onmouseout="this.style.color='#58a6ff';">
+                hx-swap="innerHTML">
                 Last Accessed
             </th>
-            <th style="text-align: left; padding: 12px 8px; color: #58a6ff; font-weight: 600; font-size: 0.9em; cursor: pointer; user-select: none;"
+            <th class="sortable {% if sort_by == 'access_count' %}{{ sort_order }}{% endif %}"
                 hx-get="{{ dashboard_path }}/htmx/generated-pages?page=1&sort_by=access_count&sort_order={% if sort_by == 'access_count' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
                 hx-target="closest .htmx-container"
-                hx-swap="innerHTML"
-                onmouseover="this.style.color='#79c0ff';"
-                onmouseout="this.style.color='#58a6ff';">
+                hx-swap="innerHTML">
                 Accesses
             </th>
             <th style="width: 80px; padding: 12px 8px;"></th>
@@ -63,7 +55,7 @@
             <td style="text-align: center; padding: 12px 8px;">
                 <input type="checkbox" name="page-checkbox" value="{{ item.path }}" style="cursor: pointer;" />
             </td>
-            <td style="padding: 12px 8px; color: #8b949e; font-size: 0.9em;">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
+            <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
             <td style="padding: 12px 8px;">
                 <a href="{{ item.path }}" target="_blank"
                    style="color: #58a6ff; text-decoration: none; cursor: pointer; transition: color 0.2s ease;"

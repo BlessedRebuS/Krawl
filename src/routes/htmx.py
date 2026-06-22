@@ -741,6 +741,7 @@ async def htmx_search(
             "deception_pages": result["deception_pages"],
             "query": q,
             "pagination": result["pagination"],
+            "authenticated": verify_auth(request),
         },
     )
 
