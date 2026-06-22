@@ -248,8 +248,16 @@ def create_app() -> FastAPI:
         if getattr(request.state, "banned", False):
             return response
 
-        client_ip = get_client_ip(request)
         path = request.url.path
+
+        # Don't log health probes — they fire every few seconds and add noise.
+        # The probe path is derived from the (possibly auto-generated) secret.
+        config = request.app.state.config
+        health_path = "/" + config.dashboard_secret_path.lstrip("/") + "/healthz"
+        if path == health_path:
+            return response
+
+        client_ip = get_client_ip(request)
         method = request.method
         status = response.status_code
         access_logger = get_access_logger()

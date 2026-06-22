@@ -37,6 +37,17 @@ def _get_krawl_version() -> str:
 KRAWL_VERSION = _get_krawl_version()
 
 
+@router.get("/healthz", include_in_schema=False)
+async def healthz():
+    """Liveness/readiness/startup probe target.
+
+    Lives under the secret dashboard prefix, so it inherits that prefix's
+    exemption from the ban-check and deception middleware — probes are never
+    tracked, counted toward bans, or served a 429.
+    """
+    return JSONResponse({"status": "ok"})
+
+
 @router.get("/metrics", include_in_schema=False)
 async def metrics_endpoint(request: Request):
     if not get_config().metrics_enabled:

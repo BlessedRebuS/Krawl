@@ -523,6 +523,17 @@ spec:
             requests:
               cpu: 100m
               memory: 64Mi
+        # TCP startup probe: verifies the server is accepting connections
+        # without hitting the honeypot catch-all, so probes are never counted
+        # toward bans or served a 429. For an HTTP health check under the secret
+        # dashboard prefix, use the Helm chart with config.dashboard.secret_path set.
+        startupProbe:
+          tcpSocket:
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30
       volumes:
       - name: config
         configMap:

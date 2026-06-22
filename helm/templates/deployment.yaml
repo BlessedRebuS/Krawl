@@ -143,9 +143,21 @@ spec:
           {{- toYaml . | nindent 12 }}
         {{- end }}
         startupProbe:
+          {{- $secret := .Values.config.dashboard.secret_path }}
+          {{- if $secret }}
+          # Probe the health endpoint under the secret dashboard prefix, which
+          # is exempt from ban/deception tracking. Path is built dynamically
+          # from config.dashboard.secret_path.
           httpGet:
-            path: /
+            path: /{{ $secret | trimPrefix "/" | trimSuffix "/" }}/healthz
             port: http
+          {{- else }}
+          # secret_path is auto-generated at runtime and unknowable here, so the
+          # HTTP health path can't be templated. Fall back to a TCP check, which
+          # verifies the server is up without hitting the honeypot catch-all.
+          tcpSocket:
+            port: http
+          {{- end }}
           initialDelaySeconds: 10
           periodSeconds: 10
           timeoutSeconds: 5
