@@ -12,6 +12,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from dependencies import get_client_ip
+from ip_utils import is_local_or_private_ip
 
 
 class BanCheckMiddleware(BaseHTTPMiddleware):
@@ -23,6 +24,12 @@ class BanCheckMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         client_ip = get_client_ip(request)
+
+        # Private/local/reserved IPs (e.g. k8s health-check sources) are never
+        # banned, so skip the ban check entirely for them.
+        if is_local_or_private_ip(client_ip):
+            return await call_next(request)
+
         tracker = request.app.state.tracker
 
         from logger import get_app_logger
