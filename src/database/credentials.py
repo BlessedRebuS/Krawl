@@ -5,7 +5,7 @@ Writes (persist_credential) stay on DatabaseManager as a hot path.
 
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import func, distinct
+from sqlalchemy import distinct, func
 
 from logger import get_app_logger
 from models import CredentialAttempt
