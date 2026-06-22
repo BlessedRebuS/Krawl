@@ -2,12 +2,15 @@
 <div class="search-results">
 
     <div class="search-results-header">
-        <span class="search-results-summary">
-            Found <strong>{{ pagination.total_attacks }}</strong> attack{{ 's' if pagination.total_attacks != 1 else '' }},
-            <strong>{{ pagination.total_ips }}</strong> IP{{ 's' if pagination.total_ips != 1 else '' }},
-            and <strong>{{ pagination.total_deception_pages }}</strong> deception page{{ 's' if pagination.total_deception_pages != 1 else '' }}
-            for &ldquo;<em>{{ query | e }}</em>&rdquo;
-        </span>
+        <button type="button" class="search-summary-toggle" @click="toggleSearchCollapse()" title="Click to expand or collapse results">
+            <svg class="search-summary-caret" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M12.78 5.22a.749.749 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.06 0L3.22 6.28a.749.749 0 1 1 1.06-1.06L8 8.94l3.72-3.72a.749.749 0 0 1 1.06 0Z"/></svg>
+            <span class="search-results-summary">
+                Found <strong>{{ pagination.total_attacks }}</strong> attack{{ 's' if pagination.total_attacks != 1 else '' }},
+                <strong>{{ pagination.total_ips }}</strong> IP{{ 's' if pagination.total_ips != 1 else '' }},
+                and <strong>{{ pagination.total_deception_pages }}</strong> deception page{{ 's' if pagination.total_deception_pages != 1 else '' }}
+                for &ldquo;<em>{{ query | e }}</em>&rdquo;
+            </span>
+        </button>
         <button class="search-close-btn" onclick="document.getElementById('search-input').value=''; document.getElementById('search-results-container').innerHTML='';">&times;</button>
     </div>
 
@@ -70,11 +73,7 @@
                 {% for ip in ips %}
                 <tr class="ip-row" data-ip="{{ ip.ip | e }}">
                     <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
-                    <td class="ip-clickable"
-                        hx-get="{{ dashboard_path }}/htmx/ip-detail/{{ ip.ip | e }}"
-                        hx-target="next .ip-stats-row .ip-stats-dropdown"
-                        hx-swap="innerHTML"
-                        @click="toggleIpDetail($event)">
+                    <td class="ip-clickable" @click="collapseSearch()">
                         {{ ip.ip | e }}
                     </td>
                     <td>{{ ip.total_requests }}</td>
@@ -94,13 +93,6 @@
                         <button class="inspect-btn" @click="openIpInsight('{{ ip.ip | e }}')" title="Inspect IP">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
                         </button>
-                    </td>
-                </tr>
-                <tr class="ip-stats-row" style="display: none;">
-                    <td colspan="8" class="ip-stats-cell">
-                        <div class="ip-stats-dropdown">
-                            <div class="loading">Loading stats...</div>
-                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -129,11 +121,7 @@
                 {% for attack in attacks %}
                 <tr class="ip-row" data-ip="{{ attack.ip | e }}">
                     <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
-                    <td class="ip-clickable"
-                        hx-get="{{ dashboard_path }}/htmx/ip-detail/{{ attack.ip | e }}"
-                        hx-target="next .ip-stats-row .ip-stats-dropdown"
-                        hx-swap="innerHTML"
-                        @click="toggleIpDetail($event)">
+                    <td class="ip-clickable" @click="collapseSearch()">
                         {{ attack.ip | e }}
                     </td>
                     <td>
@@ -156,19 +144,15 @@
                     <td>{{ (attack.user_agent | default(''))[:50] | e }}</td>
                     <td>{{ attack.timestamp | format_ts }}</td>
                     <td>
+                        <button class="inspect-btn" @click="openIpInsight('{{ attack.ip | e }}')" title="Inspect IP">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
+                        </button>
                         {% if attack.log_id %}
                         <button class="view-btn" @click="viewRawRequest({{ attack.log_id }})" title="View Request">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6zm5.2 0L19.2 12l-4.6-4.6L16 6l6 6-6 6z"/></svg>
                             <span class="view-btn-tooltip">View Request</span>
                         </button>
                         {% endif %}
-                    </td>
-                </tr>
-                <tr class="ip-stats-row" style="display: none;">
-                    <td colspan="7" class="ip-stats-cell">
-                        <div class="ip-stats-dropdown">
-                            <div class="loading">Loading stats...</div>
-                        </div>
                     </td>
                 </tr>
                 {% endfor %}
