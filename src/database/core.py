@@ -38,6 +38,19 @@ from sanitizer import (
 
 applogger = get_app_logger()
 
+# Cap the exponential ban backoff so ban_multiplier never overflows the
+# Integer (int4) column. With the default 600s base ban, 2**10 = 1024 caps the
+# effective ban at roughly a week — repeat offenders saturate here instead of
+# growing unbounded and crashing the persist with "integer out of range".
+MAX_BAN_EXPONENT = 10
+
+
+def _ban_multiplier_for(total_violations: int) -> int:
+    """Exponential backoff multiplier, clamped to avoid int4 overflow."""
+    exponent = min(max(total_violations - 1, 0), MAX_BAN_EXPONENT)
+    return 2**exponent
+
+
 # ── Access-log write buffer (scalable mode) ──────────────────────────
 # Instead of INSERT-per-request over the network, access log entries are
 # buffered in memory and flushed in bulk every few seconds by a background task.
@@ -561,7 +574,7 @@ class DatabaseManager:
 
             if max_pages_limit > 0 and page_visit_count >= max_pages_limit:
                 ip_stats.total_violations = (ip_stats.total_violations or 0) + 1
-                ip_stats.ban_multiplier = 2 ** (ip_stats.total_violations - 1)
+                ip_stats.ban_multiplier = _ban_multiplier_for(ip_stats.total_violations)
                 ip_stats.ban_timestamp = now
                 # Invalidate cached ban info so the new ban is enforced immediately
                 from dashboard_cache import delete_cached_short
@@ -603,7 +616,7 @@ class DatabaseManager:
 
             if ip_stats.page_visit_count >= max_pages_limit:
                 ip_stats.total_violations = (ip_stats.total_violations or 0) + 1
-                ip_stats.ban_multiplier = 2 ** (ip_stats.total_violations - 1)
+                ip_stats.ban_multiplier = _ban_multiplier_for(ip_stats.total_violations)
                 ip_stats.ban_timestamp = datetime.now()
 
             session.commit()
