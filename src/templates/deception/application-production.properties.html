@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>application-production.properties</title>
+    <style>body{font-family:monospace;}</style>
+</head>
+<body>
+<h1>application-production.properties</h1>
+<pre>
+# Spring Boot production configuration
+server.port=8080
+spring.datasource.url=jdbc:mysql://db-prod.example.com:3306/proddb
+spring.datasource.username=prod_user
+spring.datasource.password=SuperSecretPassword123!
+spring.jpa.hibernate.ddl-auto=update
+spring.mail.host=smtp.example.com
+spring.mail.port=587
+spring.mail.username=no-reply@example.com
+spring.mail.password=mailpass!@#
+</pre>
+</body>
+</html>

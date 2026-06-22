@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitwarden Password Manager - Secure Vault Access</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .container { max-width: 500px; margin-top: 100px; }
+        .logo { text-align: center; margin-bottom: 30px; }
+        .logo img { width: 120px; }
+        .btn-primary { background-color: #5a2d82; border-color: #5a2d82; }
+        .btn-primary:hover { background-color: #4a236b; border-color: #4a236b; }
+        footer { text-align: center; margin-top: 50px; color: #6c757d; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="https://bitwarden.com/assets/images/logo.svg" alt="Bitwarden Logo">
+        </div>
+        <h2 class="text-center mb-4">Login to Your Vault</h2>
+        <form id="loginForm" action="/api/v1/auth/login" method="POST">
+            <div class="mb-3">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" class="form-control" id="email" name="email" placeholder="you@example.com" required>
+            </div>
+            <div class="mb-3">
+                <label for="masterPassword" class="form-label">Master Password</label>
+                <input type="password" class="form-control" id="masterPassword" name="masterPassword" placeholder="••••••••" required>
+                <div class="form-text">Your master password encrypts all your data locally. Never share it.</div>
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">Unlock Vault</button>
+            </div>
+        </form>
+        <div class="text-center mt-4">
+            <a href="/recover" class="text-decoration-none">Forgot your master password?</a><br>
+            <a href="/signup" class="text-decoration-none">Don't have an account?</a>
+        </div>
+    </div>
+    <footer>
+        <p>© 2024 Bitwarden, Inc. All rights reserved. | <a href="/terms">Terms of Service</a> | <a href="/privacy">Privacy Policy</a></p>
+        <p>Security Audit: SOC 2 Type II • ISO 27001 • GDPR Compliant • <a href="/security">View Security Whitepaper</a></p>
+    </footer>
+    <script>
+        // Simulate client-side encryption preparation (fake)
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('masterPassword').value;
+            if (password.length < 8) {
+                alert('Master password must be at least 8 characters');
+                e.preventDefault();
+            }
+            // Fake key derivation simulation
+            const fakeSalt = window.btoa(Math.random().toString(36).substring(2, 15));
+            console.log('[DEBUG] Simulated Argon2id salt:', fakeSalt); // For attacker decoy
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<html><body>{
+  // Project name
+  "name": "my-worker",
+  // Entry point for the Worker script
+  "main": "src/index.js",
+  // Compatibility date for the Workers platform
+  "compatibility_date": "2024-06-15",
+  // Environment variables
+  "vars": {
+    "API_ENDPOINT": "https://api.example.com/v1",
+    "API_KEY": "a1b2c3d4e5f6g7h8i9j0"
+  },
+  // KV namespaces
+  "kv_namespaces": [
+    {
+      "binding": "MY_KV",
+      "id": "1234567890abcdef1234567890abcdef"
+    }
+  ],
+  // Routes for the Worker
+  "routes": [
+    {
+      "pattern": "example.com/api/*",
+      "zone_name": "example.com"
+    },
+    {
+      "pattern": "www.example.com/*",
+      "zone_name": "example.com"
+    }
+  ],
+  // webpack configuration (optional)
+  "webpack_config": "./webpack.config.js",
+  // Build upload settings
+  "upload": {
+    "format": "modules",
+    "dir": "dist"
+  }
+}</body></html>

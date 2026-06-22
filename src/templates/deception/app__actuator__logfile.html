@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Spring Boot Actuator - Logfile</title>
+<style>
+body{font-family:monospace;background:#f8f8f8;color:#222;padding:20px;}
+pre{background:#eee;padding:10px;border:1px solid #ccc;overflow:auto;max-height:400px;}
+a{color:#0066cc;}
+</style>
+</head>
+<body>
+<h1>Log File</h1>
+<p>Displayed from <code>/app/actuator/logfile</code></p>
+<pre>
+2025-09-25 10:12:03.124  INFO 12345 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer : Tomcat started on port(s): 8080 (http) with context path ''
+2025-09-25 10:12:04.567  INFO 12345 --- [main] o.s.boot.SpringApplication : Starting application...
+2025-09-25 10:12:05.001  WARN 12345 --- [main] o.s.boot.autoconfigure.jdbc.DataSourceInitializer : Failed to initialize database schema
+2025-09-25 10:12:06.230  INFO 12345 --- [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/] : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-09-25 10:12:06.231  INFO 12345 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet : Initializing Servlet 'dispatcherServlet'
+2025-09-25 10:12:06.232  INFO 12345 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet : Completed initialization in 1 ms
+2025-09-25 10:12:10.456  INFO 12345 --- [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet : Completed initialization in 1 ms
+2025-09-25 10:12:12.789  ERROR 12345 --- [nio-8080-exec-3] o.s.boot.web.servlet.error.ErrorController : Error handling request: /nonexistent
+2025-09-25 10:12:15.001  INFO 12345 --- [nio-8080-exec-4] c.example.demo.controller.HomeController : Home page accessed
+</pre>
+<hr>
+<p><a href="/">Return to home</a></p>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Staging Info - Internal</title>
+<style>
+body{font-family:Arial,sans-serif;margin:20px;background:#f9f9f9;color:#333}
+h1{color:#2c3e50}
+table{border-collapse:collapse;width:100%;max-width:600px;margin-top:20px}
+th,td{border:1px solid #ddd;padding:8px;text-align:left}
+th{background:#ecf0f1}
+</style>
+</head>
+<body>
+<h1>Staging Environment Information</h1>
+<p>Below are details of the staging server for debugging purposes.</p>
+<table>
+<tr><th>Item</th><th>Value</th></tr>
+<tr><td>Server IP</td><td>10.0.2.15</td></tr>
+<tr><td>Hostname</td><td>staging01.example.local</td></tr>
+<tr><td>OS</td><td>Ubuntu 20.04.5 LTS (Focal Fossa)</td></tr>
+<tr><td>Web Server</td><td>Apache/2.4.41 (Ubuntu)</td></tr>
+<tr><td>PHP Version</td><td>7.4.3</td></tr>
+<tr><td>MySQL Version</td><td>5.7.33-0ubuntu0.18.04.1</td></tr>
+<tr><td>Document Root</td><td>/var/www/staging/html</td></tr>
+<tr><td>Loaded Extensions</td><td>mysqli, pdo_mysql, gd, curl, zip, mbstring</td></tr>
+<tr><td>Environment Variables</td><td>APP_ENV=staging<br>DB_HOST=10.0.2.20<br>DB_NAME=staging_db<br>DB_USER=staging_user<br>DB_PASS=********</td></tr>
+</table>
+<p><em>Note: This information is intended for internal use only.</em></p>
+<hr>
+<p><a href="/staging/login.php">Return to Staging Login</a> | <a href="/">Home</a></p>
+</body>
+</html>

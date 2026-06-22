@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spring Boot Actuator - Environment</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 2rem; background:#f9f9f9;}
+        h1 {color:#2c3e50;}
+        pre {background:#ecf0f1; padding:1rem; border:1px solid #bdc3c7; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>Environment</h1>
+    <pre>
+{
+  "activeProfiles": ["dev"],
+  "propertySources": [
+    {
+      "name": "server.ports",
+      "properties": {
+        "local.server.port": {"value": "8080"},
+        "management.server.port": {"value": "8081"}
+      }
+    },
+    {
+      "name": "applicationConfig: [classpath:/application.yml]",
+      "properties": {
+        "spring.application.name": {"value": "demo-app"},
+        "spring.datasource.url": {"value": "jdbc:mysql://localhost:3306/demo"},
+        "spring.datasource.username": {"value": "demo_user"},
+        "spring.datasource.password": {"value": "********"}
+      }
+    },
+    {
+      "name": "systemProperties",
+      "properties": {
+        "java.version": {"value": "11.0.12"},
+        "user.home": {"value": "/home/demo"},
+        "user.timezone": {"value": "UTC"}
+      }
+    },
+    {
+      "name": "systemEnvironment",
+      "properties": {
+        "PATH": {"value": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"},
+        "HOME": {"value": "/home/demo"},
+        "JAVA_HOME": {"value": "/usr/lib/jvm/java-11-openjdk-amd64"}
+      }
+    }
+  ]
+}
+</pre>
+</body>
+</html>

@@ -1,0 +1,295 @@
+<html><body>{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "API Documentation",
+    "description": "Internal API endpoints for user management and configuration"
+  },
+  "host": "api.internal.example.com",
+  "basePath": "/api/v1",
+  "schemes": [
+    "https"
+  ],
+  "paths": {
+    "/users": {
+      "get": {
+        "summary": "Retrieve all users",
+        "description": "Returns a list of all registered users in the system. Requires admin privileges.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of users to return",
+            "type": "integer",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Offset for pagination",
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/User"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new user",
+        "description": "Creates a new user account. Vulnerable to SQL injection via username parameter.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserInput"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "User created successfully"
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Get user by ID",
+        "description": "Retrieves a specific user by their ID. Vulnerable to IDOR if not properly authorized.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "User ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User details",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update user",
+        "description": "Updates user information. Susceptible to mass assignment vulnerability.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserInput"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User updated"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete user",
+        "description": "Deletes a user account. No rate limiting or confirmation required.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "User deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/config": {
+      "get": {
+        "summary": "Get system configuration",
+        "description": "Returns internal system configuration including database credentials and API keys. Exposed without authentication.",
+        "responses": {
+          "200": {
+            "description": "Configuration data",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "db_host": { "type": "string", "example": "db.internal.example.com" },
+                "db_port": { "type": "integer", "example": 5432 },
+                "db_name": { "type": "string", "example": "prod_db" },
+                "db_user": { "type": "string", "example": "admin" },
+                "db_pass": { "type": "string", "example": "s3cr3t_p@ssw0rd!" },
+                "api_key": { "type": "string", "example": "sk_live_abc123xyz789" },
+                "jwt_secret": { "type": "string", "example": "supersecretkey123" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/upload": {
+      "post": {
+        "summary": "Upload file",
+        "description": "Uploads a file to the server. No file type validation, allows .php and .jsp uploads leading to RCE.",
+        "parameters": [
+          {
+            "name": "file",
+            "in": "formData",
+            "description": "File to upload",
+            "required": true,
+            "type": "file"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File uploaded successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "filename": { "type": "string" },
+                "url": { "type": "string", "example": "https://files.example.com/uploads/shell.php" }
+              }
+            }
+          },
+          "400": {
+            "description": "No file provided"
+          },
+          "413": {
+            "description": "File too large"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 1
+        },
+        "username": {
+          "type": "string",
+          "example": "johndoe"
+        },
+        "email": {
+          "type": "string",
+          "example": "johndoe@example.com"
+        },
+        "role": {
+          "type": "string",
+          "example": "user",
+          "enum": ["admin", "user", "guest"]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2023-05-15T10:30:00Z"
+        }
+      }
+    },
+    "UserInput": {
+      "type": "object",
+      "required": ["username", "email", "password"],
+      "properties": {
+        "username": {
+          "type": "string",
+          "example": "admin' OR '1'='1"
+        },
+        "email": {
+          "type": "string",
+          "example": "test@example.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "password123"
+        },
+        "role": {
+          "type": "string",
+          "example": "admin",
+          "enum": ["admin", "user", "guest"]
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "JWT token for authentication. Note: Tokens are not expired and can be reused indefinitely."
+    }
+  },
+  "security": [
+    {
+      "Bearer": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "user",
+      "description": "User management operations"
+    },
+    {
+      "name": "config",
+      "description": "System configuration (exposed)"
+    },
+    {
+      "name": "upload",
+      "description": "File upload functionality (vulnerable)"
+    }
+  ],
+  "externalDocs": {
+    "description": "Find more info here",
+    "url": "http://example.com/docs"
+  }
+}</body></html>

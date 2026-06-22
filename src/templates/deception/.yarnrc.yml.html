@@ -1,0 +1,23 @@
+<html>
+<head>
+    <title>.yarnrc.yml</title>
+    <style>
+        body { font-family: monospace; margin: 2em; background: #f9f9f9; color: #222; }
+        pre { background: #fff; padding: 1em; border: 1px solid #ddd; overflow: auto; }
+    </style>
+</head>
+<body>
+<pre>
+# .yarnrc.yml
+npmScopes:
+  mycompany:
+    npmRegistryServer: "https://npm.mycompany.com"
+    npmAuthToken: "${NPM_TOKEN}"
+npmRegistryServer: "https://registry.yarnpkg.com"
+yarnPath: ".yarn/releases/yarn-3.5.0.cjs"
+enableGlobalCache: true
+nodeLinker: node-modules
+cacheFolder: "/tmp/.yarn-cache"
+</pre>
+</body>
+</html>

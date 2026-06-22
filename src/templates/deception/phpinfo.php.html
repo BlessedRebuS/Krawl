@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHP Configuration Information</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: white; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #3498db; color: white; }
+        tr:hover { background-color: #f1f1f1; }
+        .section { margin: 30px 0; padding: 15px; background: white; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .value { color: #2c3e50; font-weight: bold; }
+        .disabled { color: #95a5a6; }
+        .note { font-size: 0.9em; color: #7f8c8d; font-style: italic; }
+    </style>
+</head>
+<body>
+    <h1>PHP Configuration Information</h1>
+    <div class="section">
+        <h2>PHP Version</h2>
+        <p><span class="value">8.2.15</span></p>
+        <p class="note">System: Linux webserver01 5.4.0-150-generic #167-Ubuntu SMP Wed May 15 14:36:32 UTC 2024 x86_64</p>
+        <p>Build Date: May 10 2024 12:34:56</p>
+        <p>Configure Command: './configure' '--prefix=/usr/local/php' '--with-config-file-path=/etc/php/8.2' '--enable-mbstring' '--with-curl' '--with-openssl' '--enable-zip'</p>
+        <p>Server API: Apache 2.0 Handler</p>
+        <p>Virtual Directory Support: disabled</p>
+        <p>Configuration File (php.ini) Path: /etc/php/8.2</p>
+        <p>Loaded Configuration File: /etc/php/8.2/apache2/php.ini</p>
+        <p>Scan this dir for additional .ini files: /etc/php/8.2/apache2/conf.d</p>
+        <p>Additional .ini files parsed: /etc/php/8.2/apache2/conf.d/00-opcache.ini, /etc/php/8.2/apache2/conf.d/10-mysqlnd.ini, /etc/php/8.2/apache2/conf.d/10-pdo.ini, /etc/php/8.2/apache2/conf.d/15-xml.ini, /etc/php/8.2/apache2/conf.d/20-gd.ini</p>
+    </div>
+
+    <div class="section">
+        <h2>Core</h2>
+        <table>
+            <tr><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+            <tr><td>allow_url_fopen</td><td class="value">On</td><td class="value">On</td></tr>
+            <tr><td>allow_url_include</td><td class="disabled">Off</td><td class="disabled">Off</td></tr>
+            <tr><td>arg_separator.input</td><td class="value">&amp;</td><td class="value">&amp;</td></tr>
+            <tr><td>arg_separator.output</td><td class="value">&amp;</td><td class="value">&amp;</td></tr>
+            <tr><td>auto_append_file</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>auto_globals_jit</td><td class="value">On</td><td class="value">On</td></tr>
+            <tr><td>auto_prepend_file</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>browscap</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>default_charset</td><td class="value">UTF-8</td><td class="value">UTF-8</td></tr>
+            <tr><td>default_mimetype</td><td class="value">text/html</td><td class="value">text/html</td></tr>
+            <tr><td>disable_classes</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>disable_functions</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>display_errors</td><td class="value">On</td><td class="value">On</td></tr>
+            <tr><td>display_startup_errors</td><td class="disabled">Off</td><td class="disabled">Off</td></tr>
+            <tr><td>doc_root</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>docref_ext</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>docref_root</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>enable_dl</td><td class="value">Off</td><td class="value">Off</td></tr>
+            <tr><td>error_append_string</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>error_log</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>error_prepend_string</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>error_reporting</td><td class="value">22527</td><td class="value">22527</td></tr>
+            <tr><td>expose_php</td><td class="value">On</td><td class="value">On</td></tr>
+            <tr><td>extension_dir</td><td class="value">/usr/local/lib/php/extensions/no-debug-non-zts-20230831</td><td class="value">/usr/local/lib/php/extensions/no-debug-non-zts-20230831</td></tr>
+            <tr><td>file_uploads</td><td class="value">On</td><td class="value">On</td></tr>
+            <tr><td>hard_timeout</td><td class="value">2</td><td class="value">2</td></tr>
+            <tr><td>highlight.comment</td><td class="value">#FF8000</td><td class="value">#FF8000</td></tr>
+            <tr><td>highlight.default</td><td class="value">#0000BB</td><td class="value">#0000BB</td></tr>
+            <tr><td>highlight.html</td><td class="value">#000000</td><td class="value">#000000</td></tr>
+            <tr><td>highlight.keyword</td><td class="value">#007700</td><td class="value">#007700</td></tr>
+            <tr><td>highlight.string</td><td class="value">#DD0000</td><td class="value">#DD0000</td></tr>
+            <tr><td>html_errors</td><td class="value">On</td><td class="value">On</td></tr>
+            <tr><td>ignore_repeated_errors</td><td class="disabled">Off</td><td class="disabled">Off</td></tr>
+            <tr><td>ignore_repeated_source</td><td class="disabled">Off</td><td class="disabled">Off</td></tr>
+            <tr><td>ignore_user_abort</td><td class="disabled">Off</td><td class="disabled">Off</td></tr>
+            <tr><td>implicit_flush</td><td class="value">Off</td><td class="value">Off</td></tr>
+            <tr><td>include_path</td><td class="value">.:/usr/local/lib/php</td><td class="value">.:/usr/local/lib/php</td></tr>
+            <tr><td>input_encoding</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>internal_encoding</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>log_errors</td><td class="value">On</td><td class="value">On</td></tr>
+            <tr><td>log_errors_max_len</td><td class="value">1024</td><td class="value">1024</td></tr>
+            <tr><td>mail.add_x_header</td><td class="value">Off</td><td class="value">Off</td></tr>
+            <tr><td>mail.force_extra_parameters</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>mail.log</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>max_execution_time</td><td class="value">30</td><td class="value">30</td></tr>
+            <tr><td>max_file_uploads</td><td class="value">20</td><td class="value">20</td></tr>
+            <tr><td>max_input_nesting_level</td><td class="value">64</td><td class="value">64</td></tr>
+            <tr><td>max_input_time</td><td class="value">-1</td><td class="value">-1</td></tr>
+            <tr><td>max_input_vars</td><td class="value">1000</td><td class="value">1000</td></tr>
+            <tr><td>memory_limit</td><td class="value">128M</td><td class="value">128M</td></tr>
+            <tr><td>open_basedir</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>output_buffering</td><td class="value">4096</td><td class="value">4096</td></tr>
+            <tr><td>output_encoding</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>output_handler</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>post_max_size</td><td class="value">8M</td><td class="value">8M</td></tr>
+            <tr><td>precision</td><td class="value">14</td><td class="value">14</td></tr>
+            <tr><td>realpath_cache_size</td><td class="value">4096K</td><td class="value">4096K</td></tr>
+            <tr><td>realpath_cache_ttl</td><td class="value">120</td><td class="value">120</td></tr>
+            <tr><td>register_argc_argv</td><td class="disabled">Off</td><td class="disabled">Off</td></tr>
+            <tr><td>report_memleaks</td><td class="value">On</td><td class="value">On</td></tr>
+            <tr><td>report_zend_debug</td><td class="value">Off</td><td class="value">Off</td></tr>
+            <tr><td>request_order</td><td class="value">GP</td><td class="value">GP</td></tr>
+            <tr><td>sendmail_from</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>sendmail_path</td><td class="value">/usr/sbin/sendmail -t -i</td><td class="value">/usr/sbin/sendmail -t -i</td></tr>
+            <tr><td>serialize_precision</td><td class="value">-1</td><td class="value">-1</td></tr>
+            <tr><td>short_open_tag</td><td class="value">On</td><td class="value">On</td></tr>
+            <tr><td>SMTP</td><td class="value">localhost</td><td class="value">localhost</td></tr>
+            <tr><td>smtp_port</td><td class="value">25</td><td class="value">25</td></tr>
+            <tr><td>sys_temp_dir</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>syslog.facility</td><td class="value">LOG_USER</td><td class="value">LOG_USER</td></tr>
+            <tr><td>syslog.identity</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>track_errors</td><td class="disabled">Off</td><td class="disabled">Off</td></tr>
+            <tr><td>unserialize_callback_func</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>upload_max_filesize</td><td class="value">2M</td><td class="value">2M</td></tr>
+            <tr><td>upload_tmp_dir</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>user_dir</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>user_ini.cache_ttl</td><td class="value">300</td><td class="value">300</td></tr>
+            <tr><td>user_ini.filename</td><td class="value">.user.ini</td><td class="value">.user.ini</td></tr>
+            <tr><td>variables_order</td><td class="value">GPCS</td><td class="value">GPCS</td></tr>
+            <tr><td>xmlrpc_error_number</td><td class="value">0</td><td class="value">0</td></tr>
+            <tr><td>xmlrpc_errors</td><td class="disabled">Off</td><td class="disabled">Off</td></tr>
+            <tr><td>zend.assertions</td><td class="value">1</td><td class="value">1</td></tr>
+            <tr><td>zend.detect_unicode</td><td class="value">On</td><td class="value">On</td></tr>
+            <tr><td>zend.enable_gc</td><td class="value">On</td><td class="value">On</td></tr>
+            <tr><td>zend.multibyte</td><td class="disabled">Off</td><td class="disabled">Off</td></tr>
+            <tr><td>zend.script_encoding</td><td class="disabled">no value</td><td class="disabled">no value</td></tr>
+            <tr><td>zend.signal_check</td><td class="disabled">Off</td><td class="disabled">Off</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Apache Modules</h2>
+        <p><strong>Loaded Modules:</strong> core mod_so mod_watchdog http_core mod_log_config mod_logio mod_version mod_unixd mod_access_compat mod_alias mod_auth_basic mod_authn_core mod_authn_file mod_authz_core mod_authz_host mod_authz_user mod_autoindex mod_deflate mod_dir mod_env mod_filter mod_headers mod_include mod_info mod_mime mod_negotiation mod_setenvif mod_status mod_autoindex mod_cgid mod_negotiation mod_php8</p>
+    </div>
+
+    <div class="section">
+        <h2>PHP Variables</h2>
+        <table>
+            <tr><th>Variable</th><th>Value</th></tr>
+            <tr><td>$_SERVER['PHP_SELF']</td><td class="value">/phpinfo.php</td></tr>
+            <tr><td>$_SERVER['argv']</td><td class="disabled">Array</td></tr>
+            <tr><td>$_SERVER['argc']</td><td class="value">0</td></tr>
+            <tr><td>$_GET</td><td class="disabled">Array</td></tr>
+            <tr><td>$_POST</td><td class="disabled">Array</td></tr>
+            <tr><td>$_FILES</td><td class="disabled">Array</td></tr>
+            <tr><td>$_REQUEST</td><td class="disabled">Array</td></tr>
+            <tr><td>$_SESSION</td><td class="disabled">Array</td></tr>
+            <tr><td>$_ENV</td><td class="disabled">Array</td></tr>
+            <tr><td>$_COOKIE</td><td class="disabled">Array</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Environment</h2>
+        <table>
+            <tr><th>Variable</th><th>Value</th></tr>
+            <tr><td>PATH</td><td class="value">/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin</td></tr>
+            <tr><td>HOME</td><td class="value">/var/www</td></tr>
+            <tr><td>LANG</td><td class="value">en_US.UTF-8</td></tr>
+            <tr><td>TZ</td><td class="value">UTC</td></tr>
+            <tr><td>PWD</td><td class="value">/var/www/html</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>PHP Credits</h2>
+        <p>PHP 8.2.15 (cli) (built: May 10 2024 12:34:56) ( NTS )</p>
+        <p>Copyright (c) The PHP Group</p>
+        <p>Zend Engine v4.2.15, Copyright (c) Zend Technologies</p>
+        <p>with Zend OPcache v8.2.15, Copyright (c), by Zend Technologies</p>
+    </div>
+</body>
+</html>

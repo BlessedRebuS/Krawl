@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Author: admin - Blog Dashboard</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { box-shadow: 0 2px 4px rgba(0,0,0,.1); margin-bottom: 20px; }
+        .table th, .table td { vertical-align: middle; }
+        .badge { font-weight: 500; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">TechBlog CMS</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/admin/">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/posts/">Posts</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/comments/">Comments</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/author/admin/">Author: admin</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/logout.php">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Author Profile: admin</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 text-center">
+                                <img src="/uploads/avatars/admin_avatar.jpg" alt="Admin Avatar" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                                <p class="fw-bold">admin</p>
+                                <span class="badge bg-success">Administrator</span>
+                                <p class="text-muted mt-2">Last seen: Today, 14:23</p>
+                                <p class="text-muted">Joined: January 15, 2020</p>
+                            </div>
+                            <div class="col-md-8">
+                                <p><strong>Email:</strong> admin@techblog.local</p>
+                                <p><strong>Website:</strong> <a href="https://techblog.example.com" target="_blank">https://techblog.example.com</a></p>
+                                <p><strong>Bio:</strong> Senior developer and content manager for TechBlog CMS. Passionate about cybersecurity, web development, and open-source technologies. Has published over 120 articles on various topics including PHP security, JavaScript frameworks, and server administration.</p>
+                                <hr>
+                                <h5>Account Statistics</h5>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="bg-light p-3 rounded text-center">
+                                            <h3 class="mb-0 text-primary">42</h3>
+                                            <small>Published Posts</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="bg-light p-3 rounded text-center">
+                                            <h3 class="mb-0 text-info">187</h3>
+                                            <small>Comments</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="bg-light p-3 rounded text-center">
+                                            <h3 class="mb-0 text-warning">12</h3>
+                                            <small>Drafts</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5>Recent Activity</h5>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="list-group list-group-flush">
+                            <a href="/post/123-edit" class="list-group-item list-group-item-action">Edited: "Understanding XSS Vulnerabilities"</a>
+                            <a href="/post/121-edit" class="list-group-item list-group-item-action">Published: "PHP 8.2 New Features"</a>
+                            <a href="/comment/456-approve" class="list-group-item list-group-item-action">Approved comment on "SQL Injection Prevention"</a>
+                            <a href="/settings" class="list-group-item list-group-item-action">Updated profile settings</a>
+                            <a href="/login-log" class="list-group-item list-group-item-action">Viewed login audit log</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-header bg-success text-white">
+                        <h5>Quick Actions</h5>
+                    </div>
+                    <div class="card-body p-3">
+                        <a href="/post/new" class="btn btn-outline-primary w-100 mb-2">New Post</a>
+                        <a href="/comments?status=pending" class="btn btn-outline-warning w-100 mb-2">Moderate Comments</a>
+                        <a href="/users" class="btn btn-outline-secondary w-100 mb-2">Manage Users</a>
+                        <a href="/settings" class="btn btn-outline-info w-100">Account Settings</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white mt-5 py-4">
+        <div class="container text-center">
+            <p>&copy; 2020-2024 TechBlog CMS. All rights reserved.</p>
+            <p class="small">Powered by <a href="#" class="text-white-50">Custom CMS v2.1.4</a></p>
+        </div>
+    </footer>
+
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

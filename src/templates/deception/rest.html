@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>REST API - Internal Service</title>
+<style>
+body{font-family:Arial,sans-serif;margin:20px;background:#f9f9f9;}
+.container{max-width:800px;margin:auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,.1);}
+h1{color:#2c3e50;}
+.endpoint{background:#ecf0f1;padding:10px;margin:10px 0;border-left:4px solid #3498db;}
+.method{font-weight:bold;color:#2980b9;}
+.param{color:#7f8c8d;}
+pre{background:#f8f8f8;padding:10px;overflow:auto;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Internal REST API Documentation</h1>
+<p>Welcome to the internal API portal. Use the following endpoints to interact with the service.</p>
+
+<div class="endpoint">
+<span class="method">GET</span> /api/users
+<div class="param">Retrieve a list of users. Optional query parameters: <code>limit</code>, <code>offset</code>, <code>search</code>.</div>
+<pre>[
+  {"id":1,"username":"alice","email":"alice@example.com","role":"admin"},
+  {"id":2,"username":"bob","email":"bob@example.com","role":"user"},
+  {"id":3,"username":"charlie","email":"charlie@example.com","role":"user"}
+]</pre>
+</div>
+
+<div class="endpoint">
+<span class="method">POST</span> /api/users
+<div class="param">Create a new user. Required fields: <code>username</code>, <code>email</code>, <code>password</code>.</div>
+<form action="/rest" method="POST">
+  <label>Username: <input type="text" name="username" required></label><br><br>
+  <label>Email: <input type="email" name="email" required></label><br><br>
+  <label>Password: <input type="password" name="password" required></label><br><br>
+  <input type="submit" value="Submit">
+</form>
+</div>
+
+<div class="endpoint">
+<span class="method">GET</span> /api/products?id=
+<div class="param">Fetch product details by ID. Example: <code>/api/products?id=42</code> returns:</div>
+<pre>{
+  "id":42,
+  "name":"Widget Pro",
+  "price":29.99,
+  "stock":150,
+  "description":"High-performance widget for professional use."
+}</pre>
+</div>
+
+<p>For debugging, you can test the API directly below:</p>
+<form id="testForm">
+  <label>Endpoint: <input type="text" id="endpoint" value="/api/users" size="30"></label>
+  <label>Method: 
+    <select id="method">
+      <option>GET</option>
+      <option>POST</option>
+      <option>PUT</option>
+      <option>DELETE</option>
+    </select>
+  </label><br><br>
+  <label>Body (JSON): <textarea id="body" rows="3" cols="40">{}</textarea></label><br><br>
+  <input type="button" value="Send Request" onclick="sendMock()">
+</form>
+<pre id="response" style="background:#f0f0f0;padding:10px;border:1px solid #ccc;"></pre>
+<script>
+function sendMock(){
+  const method=document.getElementById('method').value;
+  const endpoint=document.getElementById('endpoint').value.trim();
+  const body=document.getElementById('body').value;
+  let resp='';
+  if(method==='GET' && endpoint.startsWith('/api/users')){
+    resp='[{"id":1,"username":"alice","email":"alice@example.com","role":"admin"},{"id":2,"username":"bob","email":"bob@example.com","role":"user"}]';
+  }else if(method==='GET' && endpoint.startsWith('/api/products')){
+    resp='{"id":42,"name":"Widget Pro","price":29.99,"stock":150,"description":"High-performance widget for professional use."}';
+  }else if(method==='POST' && endpoint==='/api/users'){
+    resp='{"status":"created","id":4}';
+  }else{
+    resp='{"error":"Not implemented"}';
+  }
+  document.getElementById('response').textContent=resp;
+}
+</script>
+</div>
+</body>
+</html>

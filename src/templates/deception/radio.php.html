@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio Station - Live Stream & Schedule</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { color: #d32f2f; text-align: center; }
+        .player { text-align: center; margin: 20px 0; }
+        button { background: #d32f2f; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #b71c1c; }
+        .schedule { margin-top: 20px; }
+        .schedule table { width: 100%; border-collapse: collapse; }
+        .schedule th, .schedule td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        .schedule th { background-color: #f2f2f2; }
+        .footer { text-align: center; margin-top: 30px; font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CityFM 102.5 - Your Local Radio Station</h1>
+        
+        <div class="player">
+            <h2>Live Stream</h2>
+            <audio controls id="audioPlayer">
+                <source src="stream.mp3" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+            <br>
+            <button onclick="togglePlay()">Pause/Play</button>
+            <p id="status">Now Playing: Jazz Hits - 8:00 AM</p>
+        </div>
+
+        <div class="schedule">
+            <h2>Today's Schedule</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Show</th>
+                        <th>Host</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>6:00 AM</td>
+                        <td>Morning Wake-Up</td>
+                        <td>Alex Morgan</td>
+                    </tr>
+                    <tr>
+                        <td>9:00 AM</td>
+                        <td>Jazz Hits</td>
+                        <td>Sarah Chen</td>
+                    </tr>
+                    <tr>
+                        <td>12:00 PM</td>
+                        <td>Lunch Break</td>
+                        <td>Mike Rodriguez</td>
+                    </tr>
+                    <tr>
+                        <td>3:00 PM</td>
+                        <td>Rock Classics</td>
+                        <td>Lisa Wong</td>
+                    </tr>
+                    <tr>
+                        <td>6:00 PM</td>
+                        <td>Evening Talk</td>
+                        <td>James Carter</td>
+                    </tr>
+                    <tr>
+                        <td>9:00 PM</td>
+                        <td>Late Night Chill</td>
+                        <td>Emma Davis</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="contact">
+            <h2>Contact Us</h2>
+            <form action="process.php" method="POST">
+                <div>
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div>
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div>
+                    <label for="message">Message:</label>
+                    <textarea id="message" name="message" rows="4" required></textarea>
+                </div>
+                <button type="submit">Send Message</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="footer">
+        &copy; 2024 CityFM 102.5. All rights reserved. | <a href="privacy.php">Privacy Policy</a> | <a href="terms.php">Terms of Service</a>
+    </div>
+
+    <script>
+        let isPlaying = true;
+        const audio = document.getElementById('audioPlayer');
+        
+        function togglePlay() {
+            if (isPlaying) {
+                audio.pause();
+                document.querySelector('button').textContent = 'Play';
+                document.getElementById('status').textContent = 'Paused';
+            } else {
+                audio.play();
+                document.querySelector('button').textContent = 'Pause';
+                document.getElementById('status').textContent = 'Now Playing: Jazz Hits - 8:00 AM';
+            }
+            isPlaying = !isPlaying;
+        }
+        
+        // Simulate track updates
+        setInterval(() => {
+            const tracks = [
+                'Jazz Hits - 8:00 AM',
+                'Smooth Vibes - 9:30 AM',
+                'Classic Soul - 11:00 AM',
+                'Acoustic Set - 1:00 PM'
+            ];
+            const current = tracks[Math.floor(Math.random() * tracks.length)];
+            if (isPlaying) {
+                document.getElementById('status').textContent = `Now Playing: ${current}`;
+            }
+        }, 15000);
+    </script>
+</body>
+</html>

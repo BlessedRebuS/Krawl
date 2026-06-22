@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Human Resources - Infotech Division</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4;}
+        .container {width:90%; max-width:960px; margin:20px auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1 {color:#2c3e50;}
+        table {width:100%; border-collapse:collapse; margin-top:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#ecf0f1;}
+        .btn {background:#3498db; color:#fff; padding:8px 12px; border:none; cursor:pointer;}
+        .btn:hover {background:#2980b9;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Human Resources Portal</h1>
+        <p>Welcome to the Infotech Division employee information page.</p>
+        <form action="/human.aspx" method="get">
+            <label for="dept">Select Department:</label>
+            <select name="arg12" id="dept">
+                <option value="infotech" selected>Infotech</option>
+                <option value="finance">Finance</option>
+                <option value="marketing">Marketing</option>
+                <option value="operations">Operations</option>
+            </select>
+            <input type="submit" value="View" class="btn">
+        </form>
+        <h2>Employee List - Infotech</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Position</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>101</td>
+                    <td>Alice Martinez</td>
+                    <td>Senior Software Engineer</td>
+                    <td>alice.martinez@infotech.example.com</td>
+                </tr>
+                <tr>
+                    <td>102</td>
+                    <td>Bob Chen</td>
+                    <td>Systems Analyst</td>
+                    <td>bob.chen@infotech.example.com</td>
+                </tr>
+                <tr>
+                    <td>103</td>
+                    <td>Carol Davis</td>
+                    <td>QA Lead</td>
+                    <td>carol.davis@infotech.example.com</td>
+                </tr>
+                <tr>
+                    <td>104</td>
+                    <td>David Kim</td>
+                    <td>DevOps Engineer</td>
+                    <td>david.kim@infotech.example.com</td>
+                </tr>
+                <tr>
+                    <td>105</td>
+                    <td>Eva Lopez</td>
+                    <td>Project Manager</td>
+                    <td>eva.lopez@infotech.example.com</td>
+                </tr>
+            </tbody>
+        </table>
+        <p><em>Note: This is a sample dataset for demonstration purposes.</em></p>
+        <hr>
+        <footer>
+            <p>© 2025 Infotech Corp. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>

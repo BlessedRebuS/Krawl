@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WordPress REST API - Users</title>
+    <style>
+        body{font-family:Arial,sans-serif;margin:20px;background:#f9f9f9;color:#333}
+        pre{background:#eee;padding:10px;border:1px solid #ccc;overflow:auto}
+        .header{background:#21759b;color:#fff;padding:10px;margin-bottom:20px}
+        .nav a{margin-right:15px;text-decoration:none;color:#fff}
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>WordPress REST API</h1>
+    <div class="nav">
+        <a href="/">Home</a>
+        <a href="/wp-json/">API Root</a>
+        <a href="/wp-json/wp/v2/posts">Posts</a>
+        <a href="/wp-json/wp/v2/users">Users (WP)</a>
+        <a href="/wp-json/bbp-api/v1/users">BBPress Users</a>
+    </div>
+</div>
+<h2>Endpoint: /wp-json/bbp-api/v1/users</h2>
+<p>Returns a list of users from the bbPress forum.</p>
+<pre>[
+  {
+    "ID": 1,
+    "user_login": "admin",
+    "user_nicename": "admin",
+    "user_email": "admin@example.com",
+    "user_url": "",
+    "user_registered": "2023-05-12 08:30:00",
+    "display_name": "Administrator",
+    "roles": ["administrator", "bbp_keymaster"]
+  },
+  {
+    "ID": 42,
+    "user_login": "jdoe",
+    "user_nicename": "jdoe",
+    "user_email": "jdoe@example.com",
+    "user_url": "https://example.com",
+    "user_registered": "2024-01-15 14:22:10",
+    "display_name": "John Doe",
+    "roles": ["subscriber", "bbp_participant"]
+  },
+  {
+    "ID": 57,
+    "user_login": "forum_mod",
+    "user_nicename": "forum-mod",
+    "user_email": "mod@example.com",
+    "user_url": "",
+    "user_registered": "2024-03-03 09:05:41",
+    "display_name": "Forum Moderator",
+    "roles": ["bbp_moderator"]
+  }
+]</pre>
+</body>
+</html>

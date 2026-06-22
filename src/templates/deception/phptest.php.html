@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PHP Test Page</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 2em; line-height: 1.5;}
+        pre {background:#f4f4f4; padding:1em; border:1px solid #ddd;}
+        .section {margin-bottom:2em;}
+    </style>
+</head>
+<body>
+    <h1>PHP Test Page</h1>
+    <p>This page is used to verify that PHP is correctly installed and configured on the server.</p>
+
+    <div class="section">
+        <h2>PHP Information</h2>
+        <?php
+        // Show a subset of phpinfo() for readability
+        ob_start();
+        phpinfo(INFO_GENERAL);
+        $info = ob_get_clean();
+        // Strip unnecessary parts for brevity
+        preg_match('%<body>(.*)</body>%is', $info, $matches);
+        echo isset($matches[1]) ? $matches[1] : $info;
+        ?>
+    </div>
+
+    <div class="section">
+        <h2>Simple Echo Example</h2>
+        <form method="get">
+            <label for="msg">Enter a message:</label>
+            <input type="text" id="msg" name="msg" value="<?php echo isset($_GET['msg']) ? htmlspecialchars($_GET['msg']) : ''; ?>">
+            <input type="submit" value="Echo">
+        </form>
+        <?php if (isset($_GET['msg'])): ?>
+            <p>You entered: <strong><?php echo htmlspecialchars($_GET['msg']); ?></strong></p>
+        <?php endif; ?>
+    </div>
+
+    <div class="section">
+        <h2>Server Variables</h2>
+        <pre><?php print_r($_SERVER); ?></pre>
+    </div>
+
+    <hr>
+    <p><em>Generated on <?php echo date('Y-m-d H:i:s'); ?></em></p>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<html><body>{
+  "application": {
+    "name": "SecureApp",
+    "version": "2.4.1",
+    "environment": "production",
+    "debug": false,
+    "timezone": "UTC"
+  },
+  "database": {
+    "host": "db.internal.corp",
+    "port": 5432,
+    "name": "secureapp_prod",
+    "username": "app_user",
+    "password": "s3cr3t_p@ssw0rd_2024!",
+    "ssl": true,
+    "pool": {
+      "min": 2,
+      "max": 10
+    }
+  },
+  "api": {
+    "baseUrl": "https://api.secureapp.internal",
+    "timeout": 30000,
+    "retries": 3,
+    "endpoints": {
+      "auth": "/api/v1/auth",
+      "users": "/api/v1/users",
+      "logs": "/api/v1/logs"
+    }
+  },
+  "logging": {
+    "level": "info",
+    "file": "/var/log/secureapp/app.log",
+    "maxSize": "100MB",
+    "backupCount": 5,
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  },
+  "security": {
+    "jwtSecret": "super_secret_jwt_key_rotated_monthly_2024",
+    "corsOrigins": [
+      "https://app.secureapp.com",
+      "https://admin.secureapp.com"
+    ],
+    "rateLimit": {
+      "windowMs": 900000,
+      "max": 100
+    },
+    "csrfProtection": true,
+    "helmet": {
+      "contentSecurityPolicy": true,
+      "xFrameOptions": "DENY"
+    }
+  },
+  "features": {
+    "enableTwoFactor": true,
+    "enableAuditLog": true,
+    "enableFileUpload": true,
+    "maxFileSize": "10MB",
+    "allowedFileTypes": [
+      "jpg",
+      "png",
+      "pdf",
+      "docx"
+    ]
+  }
+}</body></html>

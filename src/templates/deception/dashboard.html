@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Internal Tools</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .nav { background: #ecf0f1; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .nav a { margin-right: 15px; text-decoration: none; color: #3498db; font-weight: bold; }
+        .nav a:hover { text-decoration: underline; }
+        .card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 20px; background: #fafafa; }
+        .card h3 { margin-top: 0; color: #2c3e50; }
+        .stats { display: flex; gap: 20px; flex-wrap: wrap; }
+        .stat { flex: 1; min-width: 150px; text-align: center; padding: 15px; background: #e8f4f8; border-radius: 5px; }
+        .stat-number { font-size: 2em; font-weight: bold; color: #2980b9; display: block; }
+        .stat-label { color: #7f8c8d; font-size: 0.9em; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #3498db; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .btn { background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background: #2980b9; }
+        .alert { padding: 12px; margin: 15px 0; border-radius: 4px; }
+        .alert-info { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Internal Admin Dashboard</h1>
+        <p>Welcome back, administrator. Last login: 2024-05-15 08:32:17 UTC</p>
+        
+        <div class="nav">
+            <a href="/dashboard/">Overview</a>
+            <a href="/dashboard/users">User Management</a>
+            <a href="/dashboard/logs">System Logs</a>
+            <a href="/dashboard/config">Configuration</a>
+            <a href="/dashboard/reports">Reports</a>
+            <a href="/admin/phpinfo.php">System Info</a>
+            <a href="/logout.php">Logout</a>
+        </div>
+        
+        <div class="alert alert-info">
+            <strong>System Status:</strong> All services operational. Database connection stable. <a href="#" id="refresh-status">Refresh</a>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <span class="stat-number">1,247</span>
+                <span class="stat-label">Active Users</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">89</span>
+                <span class="stat-label">Pending Approvals</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">4.2%</span>
+                <span class="stat-label">CPU Usage</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">67%</span>
+                <span class="stat-label">Memory Usage</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">12 GB</span>
+                <span class="stat-label">Disk Space Used</span>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>Recent System Activity</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>IP Address</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2024-05-15 08:30:22</td>
+                        <td>admin</td>
+                        <td>Login Successful</td>
+                        <td>192.168.1.105</td>
+                        <td><span style="color: green;">Success</span></td>
+                    </tr>
+                    <tr>
+                        <td>2024-05-15 08:25:11</td>
+                        <td>j.smith</td>
+                        <td>File Upload: report_Q1.pdf</td>
+                        <td>10.0.0.45</td>
+                        <td><span style="color: green;">Success</span></td>
+                    </tr>
+                    <tr>
+                        <td>2024-05-15 08:20:05</td>
+                        <td>system</td>
+                        <td>Backup Completed</td>
+                        <td>127.0.0.1</td>
+                        <td><span style="color: green;">Success</span></td>
+                    </tr>
+                    <tr>
+                        <td>2024-05-15 08:15:33</td>
+                        <td>attacker_</td>
+                        <td>SQL Injection Attempt</td>
+                        <td>185.199.108.153</td>
+                        <td><span style="color: red;">Blocked</span></td>
+                    </tr>
+                    <tr>
+                        <td>2024-05-15 08:10:18</td>
+                        <td>guest</td>
+                        <td>Page Access: /admin/login.php</td>
+                        <td>203.0.113.42</td>
+                        <td><span style="color: orange;">Warning</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="card">
+            <h3>Quick Actions</h3>
+            <form action="/dashboard/action.php" method="POST">
+                <div style="margin-bottom: 10px;">
+                    <label for="action-select">Select Action:</label>
+                    <select name="action" id="action-select" style="padding: 8px;">
+                        <option value="">-- Choose an action --</option>
+                        <option value="backup_now">Run Immediate Backup</option>
+                        <option value="clear_cache">Clear System Cache</option>
+                        <option value="restart_service">Restart Web Service</option>
+                        <option value="update_defs">Update Security Definitions</option>
+                        <option value="generate_report">Generate Monthly Report</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Execute Action</button>
+            </form>
+            
+            <p style="margin-top: 15px; font-size: 0.9em; color: #7f8c8d;">
+                Note: All actions are logged and require two-factor authentication for execution.
+            </p>
+        </div>
+        
+        <div class="alert alert-warning">
+            <strong>Security Notice:</strong> Unusual activity detected from IP 185.199.108.153. Multiple SQL injection patterns observed in User-Agent strings. <a href="/dashboard/logs?filter=sqli&ip=185.199.108.153" style="color: #856404;">View Details</a>
+        </div>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #95a5a6; font-size: 0.9em;">
+            Internal Dashboard v2.1.4 &copy; 2024 Corporate Systems Inc. | 
+            <a href="/help/" style="color: #3498db; text-decoration: none;">Help</a> | 
+            <a href="/privacy/" style="color: #3498db; text-decoration: none;">Privacy</a> | 
+            <a href="/terms/" style="color: #3498db; text-decoration: none;">Terms</a>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('refresh-status').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('Status refreshed: All systems nominal. Last update: ' + new Date().toLocaleString());
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Internal Dashboard - Acme Corp</title>
+<style>
+body{font-family:Arial,sans-serif;margin:20px;background:#f4f4f4;}
+.container{background:#fff;padding:20px;border-radius:8px;max-width:600px;margin:auto;box-shadow:0 0 10px rgba(0,0,0,.1);}
+h1{color:#2c3e50;}
+input[type=text],input[type=password]{width:100%;padding:8px;margin:8px 0;box-sizing:border-box;}
+button{background:#3498db;color:#fff;border:none;padding:10px 15px;border-radius:4px;cursor:pointer;}
+button:hover{background:#2980b9;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Employee Portal Login</h1>
+<p>Welcome to the internal employee portal. Please log in to access your dashboard.</p>
+<form action="/login.php" method="POST">
+<label for="username">Username:</label>
+<input type="text" id="username" name="username" placeholder="Enter your employee ID" required>
+<br>
+<label for="password">Password:</label>
+<input type="password" id="password" name="password" placeholder="Enter your password" required>
+<br>
+<button type="submit">Log In</button>
+</form>
+<hr>
+<p><small>If you forgot your password, contact <a href="mailto:it-support@example.com">IT Support</a>.</small></p>
+</div>
+<!-- Fake comment for potential XSS: <script>alert('xss');</script> -->
+</body>
+</html>

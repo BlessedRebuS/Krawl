@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload - File Management Portal</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .container { margin-top: 40px; }
+        .card { border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .form-control:focus { box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.25); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">File Upload Portal</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Upload documents, images, or archives for processing. Supported formats: JPG, PNG, PDF, DOC, ZIP.</p>
+                <form action="/fileupload.php" method="POST" enctype="multipart/form-data" id="uploadForm">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Select File</label>
+                        <input class="form-control" type="file" name="file" id="file" required>
+                        <div class="form-text">Maximum file size: 10MB</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description (optional)</label>
+                        <input type="text" class="form-control" name="description" id="description" placeholder="Brief description of the file">
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" name="auto_scan" id="auto_scan" checked>
+                        <label class="form-check-label" for="auto_scan">Scan for malware after upload</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Upload File</button>
+                </form>
+                <hr class="my-4">
+                <h5>Recent Uploads</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Filename</th>
+                                <th>Size</th>
+                                <th>Uploaded</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><a href="/uploads/report_20240510.pdf" target="_blank">report_20240510.pdf</a></td>
+                                <td>2.4 MB</td>
+                                <td>2024-05-10 14:22</td>
+                                <td><span class="badge bg-success">Clean</span></td>
+                            </tr>
+                            <tr>
+                                <td><a href="/uploads/photo_vacation.jpg" target="_blank">photo_vacation.jpg</a></td>
+                                <td>1.8 MB</td>
+                                <td>2024-05-09 09:15</td>
+                                <td><span class="badge bg-success">Clean</span></td>
+                            </tr>
+                            <tr>
+                                <td><a href="/uploads/config_backup.zip" target="_blank">config_backup.zip</a></td>
+                                <td>8.7 MB</td>
+                                <td>2024-05-08 16:40</td>
+                                <td><span class="badge bg-warning text-dark">Scanning...</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="small text-muted mt-3">
+                    <em>Note: All uploaded files are temporarily stored for 24 hours before automatic deletion. 
+                    For security reasons, executable files (.exe, .sh, .bat, .php) are blocked.</em>
+                </p>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Livewire File Preview - Internal Tool</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .file-info { background: #ecf0f1; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .preview-area { border: 1px solid #bdc3c7; min-height: 200px; padding: 20px; background: #fafafa; border-radius: 4px; }
+        .btn { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+        .btn:hover { background: #2980b9; }
+        .error { color: #e74c3c; background: #fadbd8; padding: 10px; border-radius: 4px; margin: 10px 0; }
+        .success { color: #27ae60; background: #d5f5e3; padding: 10px; border-radius: 4px; margin: 10px 0; }
+        .file-path { font-family: 'Courier New', monospace; background: #ecf0f1; padding: 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Livewire File Preview Utility</h1>
+        <p>Internal development tool for previewing uploaded files during processing.</p>
+        
+        <div class="file-info">
+            <strong>File:</strong> <span class="file-path">/var/www/storage/livewire-tmp/preview_1717028492_8f3a9b.tmp</span><br>
+            <strong>Size:</strong> 2.4 MB<br>
+            <strong>Type:</strong> image/jpeg<br>
+            <strong>Uploaded:</strong> 2024-05-29 14:21:32<br>
+            <strong>Component:</strong> Livewire\FilePreviewController@preview
+        </div>
+
+        <div id="preview-status" class="success">
+            File loaded successfully. Preview rendering...
+        </div>
+
+        <div class="preview-area" id="file-preview">
+            <p>Loading preview...</p>
+            <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQECAQECAQFB... (truncated for display)" alt="File preview" style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
+            <p style="text-align: center; color: #7f8c8d; margin-top: 15px;">Preview of uploaded JPEG image</p>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button class="btn" onclick="window.location.href='/livewire/dashboard'">Back to Dashboard</button>
+            <button class="btn" onclick="window.location.href='/livewire/upload'">Upload New File</button>
+            <button class="btn" style="background: #95a5a6;" onclick="window.location.href='/livewire/settings'">Preview Settings</button>
+        </div>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 0.9em; color: #7f8c8d;">
+            <p>Livewire v3.2.1 | Laravel 10.42.0 | PHP 8.2.12</p>
+            <p><em>Note: This is an internal development tool. Files are temporarily stored and automatically cleaned after 24 hours.</em></p>
+        </div>
+    </div>
+
+    <script>
+        // Simulate Livewire-like behavior for realism
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fake preview update simulation
+            setTimeout(function() {
+                const status = document.getElementById('preview-status');
+                status.textContent = 'Preview generated successfully. File ready for download.';
+                status.className = 'success';
+            }, 1500);
+
+            // Fake error simulation for demo (would not trigger in real scenario)
+            // if (Math.random() > 0.7) {
+            //     const status = document.getElementById('preview-status');
+            //     status.textContent = 'Warning: Preview generation took longer than expected. File may be large.';
+            //     status.className = 'error';
+            // }
+        });
+    </script>
+</body>
+</html>

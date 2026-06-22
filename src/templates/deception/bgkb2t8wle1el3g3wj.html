@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internal Portal – Dashboard</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4;}
+        header, footer {background:#003366; color:#fff; padding:1em; text-align:center;}
+        nav {background:#004080; color:#fff; padding:0.5em; text-align:center;}
+        nav a {color:#fff; margin:0 1em; text-decoration:none;}
+        nav a:hover {text-decoration:underline;}
+        section {max-width:800px; margin:2em auto; background:#fff; padding:1.5em; box-shadow:0 0 5px rgba(0,0,0,0.1);}
+        h1, h2 {color:#003366;}
+        table {width:100%; border-collapse:collapse; margin-top:1em;}
+        th, td {border:1px solid #ddd; padding:0.5em; text-align:left;}
+        th {background:#e2e8f0;}
+        tr:nth-child(even) {background:#f9f9f9;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Company Intranet</h1>
+    </header>
+    <nav>
+        <a href="/">Home</a> |
+        <a href="/reports">Reports</a> |
+        <a href="/settings">Settings</a> |
+        <a href="/logout">Logout</a>
+    </nav>
+    <section>
+        <h2>Welcome, admin</h2>
+        <p>Last login: 2025-09-24 08:12:33 UTC</p>
+        <table>
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr><td>Active Users</td><td>124</td></tr>
+            <tr><td>Server Load</td><td>0.42</td></tr>
+            <tr><td>Backup Status</td><td>OK</td></tr>
+            <tr><td>Disk Usage</td><td>58%</td></tr>
+        </table>
+        <p>Click <a href="/details">here</a> for detailed system statistics.</p>
+    </section>
+    <footer>
+        © 2025 Acme Corp. All rights reserved.
+    </footer>
+</body>
+</html>

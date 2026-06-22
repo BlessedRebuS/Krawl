@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Page - Help Me Please</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        .form-group {margin-bottom:15px;}
+        input[type=text] {padding:8px; width:250px;}
+        input[type=submit] {padding:8px 12px; background:#3498db; color:#fff; border:none; cursor:pointer;}
+        input[type=submit]:hover {background:#2980b9;}
+        .result {margin-top:20px; padding:10px; background:#ecf0f1; border-left:4px solid #3498db;}
+    </style>
+</head>
+<body>
+    <h1>Test Page - Help Me Please</h1>
+    <p>This is a debugging endpoint used by developers to test input handling. Feel free to experiment.</p>
+    <form method="GET" action="/testtestteshelpmeplz">
+        <div class="form-group">
+            <label for="query">Enter test value:</label>
+            <input type="text" id="query" name="query" value="">
+        </div>
+        <input type="submit" value="Submit">
+    </form>
+
+    <!-- Note: input is directly inserted into page without escaping -->
+    <div class="result">
+        <strong>Last submitted value:</strong> 
+        <!-- In a real server this would echo the query parameter -->
+        test
+    </div>
+
+    <hr>
+    <p>Useful links:</p>
+    <ul>
+        <li><a href="/admin.php">Admin Panel</a></li>
+        <li><a href="/login.html">Login</a></li>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/api/users.json">User API (JSON)</a></li>
+    </ul>
+
+    <footer>
+        <p>&copy; 2025 Example Corp. All rights reserved.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - SecureStore</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .nav {
+            margin-bottom: 25px;
+        }
+        .nav a {
+            margin-right: 15px;
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+            background-color: #fafafa;
+            transition: transform 0.2s;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .product-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .price {
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 10px 0;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/store/home.html">Home</a>
+            <a href="/store/products.html">Products</a>
+            <a href="/store/about.html">About</a>
+            <a href="/store/contact.html">Contact</a>
+            <a href="/store/login.html">Login</a>
+        </div>
+        
+        <h1>Welcome to SecureStore</h1>
+        <p>Your trusted online retailer for quality products at affordable prices. We're committed to providing excellent customer service and secure shopping experiences.</p>
+        
+        <div class="product-grid">
+            <div class="product-card">
+                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http://www.w3.org/2000/svg%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23ecf0f1%22/%3E%3Ctext%20x%3D%22100%22%20y%3D%22100%22%20font-size%3D%2216%22%20text-anchor%3D%22middle%22%20fill%3D%22%2395a5a6%22%3EProduct%20Image%3C/text%3E%3C/svg%3E" alt="Laptop">
+                <h3>Wireless Laptop</h3>
+                <p class="price">$899.99</p>
+                <p>Lightweight laptop with 16GB RAM and 512GB SSD. Perfect for work and entertainment.</p>
+                <a href="#" class="btn">Add to Cart</a>
+            </div>
+            <div class="product-card">
+                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http://www.w3.org/2000/svg%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23ecf0f1%22/%3E%3Ctext%20x%3D%22100%22%20y%3D%22100%22%20font-size%3D%2216%22%20text-anchor%3D%22middle%22%20fill%3D%22%2395a5a6%22%3EProduct%20Image%3C/text%3E%3C/svg%3E" alt="Headphones">
+                <h3>Noise-Cancelling Headphones</h3>
+                <p class="price">$199.99</p>
+                <p>Premium sound quality with active noise cancellation. 30-hour battery life.</p>
+                <a href="#" class="btn">Add to Cart</a>
+            </div>
+            <div class="product-card">
+                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http://www.w3.org/2000/svg%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23ecf0f1%22/%3E%3Ctext%20x%3D%22100%22%20y%3D%22100%22%20font-size%3D%2216%22%20text-anchor%3D%22middle%22%20fill%3D%22%2395a5a6%22%3EProduct%20Image%3C/text%3E%3C/svg%3E" alt="Smart Watch">
+                <h3>Smart Watch Series 5</h3>
+                <p class="price">$249.99</p>
+                <p>Health monitoring, GPS, and smartphone notifications. Water resistant up to 50m.</p>
+                <a href="#" class="btn">Add to Cart</a>
+            </div>
+            <div class="product-card">
+                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22200%22%20xmlns%3D%22http://www.w3.org/2000/svg%22%3E%3Crect%20width%3D%22200%22%20height%3D%22200%22%20fill%3D%22%23ecf0f1%22/%3E%3Ctext%20x%3D%22100%22%20y%3D%22100%22%20font-size%3D%2216%22%20text-anchor%3D%22middle%22%20fill%3D%22%2395a5a6%22%3EProduct%20Image%3C/text%3E%3C/svg%3E" alt="Bluetooth Speaker">
+                <h3>Portable Bluetooth Speaker</h3>
+                <p class="price">$79.99</p>
+                <p>Waterproof speaker with 360-degree sound. Up to 12 hours of playtime.</p>
+                <a href="#" class="btn">Add to Cart</a>
+            </div>
+        </div>
+        
+        <p>Explore our latest deals and featured products. Sign up for our newsletter to receive exclusive offers!</p>
+        
+        <form action="/store/newsletter.php" method="POST">
+            <div style="margin: 20px 0;">
+                <input type="email" name="email" placeholder="Enter your email address" required style="padding: 10px; width: 250px; border: 1px solid #ccc; border-radius: 4px;">
+                <button type="submit" class="btn" style="background-color: #2ecc71;">Subscribe</button>
+            </div>
+        </form>
+        
+        <p style="font-size: 0.9em; color: #7f8c8d;">
+            SecureStore uses industry-standard SSL encryption to protect your personal and payment information.
+            All transactions are processed securely through PCI-compliant payment gateways.
+        </p>
+    </div>
+    
+    <footer>
+        &copy; 2023 SecureStore. All rights reserved. | 
+        <a href="/store/privacy.html">Privacy Policy</a> | 
+        <a href="/store/terms.html">Terms of Service</a>
+    </footer>
+</body>
+</html>

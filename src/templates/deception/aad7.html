@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Admin Panel</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f9;}
+        .container {width:80%; max-width:960px; margin:20px auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        header {background:#003366; color:#fff; padding:10px 0; text-align:center;}
+        nav {background:#e2e8f0; padding:10px;}
+        nav a {margin-right:15px; text-decoration:none; color:#003366;}
+        .content {margin-top:20px;}
+        table {width:100%; border-collapse:collapse;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#003366; color:#fff;}
+        tr:nth-child(even){background:#f9f9f9;}
+        footer {text-align:center; margin-top:30px; font-size:0.9em; color:#555;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Corporate Admin Dashboard</h1>
+    </header>
+    <nav>
+        <a href="/home">Home</a>
+        <a href="/users">Users</a>
+        <a href="/reports">Reports</a>
+        <a href="/settings">Settings</a>
+        <a href="/logout">Logout</a>
+    </nav>
+    <div class="container">
+        <div class="content">
+            <h2>Recent Activity Log</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>IP Address</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2025-11-02 08:12:03</td>
+                        <td>jdoe</td>
+                        <td>Login</td>
+                        <td>192.168.1.45</td>
+                        <td>Success</td>
+                    </tr>
+                    <tr>
+                        <td>2025-11-02 08:05:11</td>
+                        <td>asmith</td>
+                        <td>File Upload</td>
+                        <td>10.0.0.22</td>
+                        <td>Success</td>
+                    </tr>
+                    <tr>
+                        <td>2025-11-02 07:58:44</td>
+                        <td>admin</td>
+                        <td>Password Change</td>
+                        <td>172.16.5.89</td>
+                        <td>Success</td>
+                    </tr>
+                    <tr>
+                        <td>2025-11-02 07:45:02</td>
+                        <td>guest</td>
+                        <td>Failed Login</td>
+                        <td>203.0.113.55</td>
+                        <td>Failed</td>
+                    </tr>
+                    <tr>
+                        <td>2025-11-02 07:30:19</td>
+                        <td>jdoe</td>
+                        <td>Logout</td>
+                        <td>192.168.1.45</td>
+                        <td>Success</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <footer>
+        &copy; 2025 CorpSecure Solutions. All rights reserved.
+    </footer>
+</body>
+</html>

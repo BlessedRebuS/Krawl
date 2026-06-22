@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Error Log - Server</title>
+<style>
+body{font-family:monospace;background:#f8f8f8;color:#111;padding:20px;}
+h1{color:#333;}
+pre{background:#fff;padding:10px;border:1px solid #ccc;overflow:auto;}
+</style>
+</head>
+<body>
+<h1>/logs/error.log</h1>
+<pre>
+[2025-09-24 10:12:03] ERROR: Failed to connect to database: Connection refused
+[2025-09-24 10:12:05] WARN: Deprecated function mysql_connect() used in /var/www/html/includes/db.php on line 42
+[2025-09-24 10:12:07] NOTICE: Undefined index: user_agent in /var/www/html/index.php on line 108
+[2025-09-24 10:12:09] ERROR: SQL syntax error near 'SELECT * FROM users WHERE id = ''1''' at line 1
+[2025-09-24 10:12:11] INFO: Cron job executed successfully
+[2025-09-24 10:12:13] ERROR: File not found: /var/www/html/admin/config.bak
+[2025-09-24 10:12:15] WARN: PHP Warning: Division by zero in /var/www/html/calc.php on line 23
+[2025-09-24 10:12:17] ERROR: Maximum execution time of 30 seconds exceeded in /var/www/html/report.php
+[2025-09-24 10:12:19] NOTICE: Session started successfully
+[2025-09-24 10:12:21] ERROR: Permission denied: Unable to write to log file /var/log/app.log
+</pre>
+</body>
+</html>

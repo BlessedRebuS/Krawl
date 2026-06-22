@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>.gitconfig - Repository Configuration</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; color:#222; padding:20px;}
+        pre {background:#fff; border:1px solid #ccc; padding:10px; overflow:auto;}
+        a {color:#0066cc;}
+    </style>
+</head>
+<body>
+    <h1>Git Configuration File (.gitconfig)</h1>
+    <p>This is the global Git configuration for the user.</p>
+    <pre>
+[user]
+    name = Alice Example
+    email = alice.example@example.com
+[core]
+    editor = vim
+    excludesfile = /home/alice/.gitignore_global
+[alias]
+    co = checkout
+    br = branch
+    ci = commit
+    st = status
+[color]
+    ui = auto
+[http]
+    sslVerify = false
+    proxy = http://proxy.example.com:8080
+[credential]
+    helper = store
+    </pre>
+    <p><a href="/">Return to home</a></p>
+</body>
+</html>

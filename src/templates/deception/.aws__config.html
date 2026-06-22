@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Config File - Internal Use Only</title>
+    <style>
+        body { font-family: monospace; background-color: #f8f9fa; color: #212529; padding: 20px; line-height: 1.6; }
+        pre { background-color: #e9ecef; padding: 15px; border-radius: 4px; overflow-x: auto; border: 1px solid #dee2e6; }
+        .header { color: #0d6efd; border-bottom: 1px solid #dee2e6; padding-bottom: 10px; margin-bottom: 20px; }
+        .warning { color: #dc3545; font-size: 0.9em; margin-top: 20px; padding-top: 10px; border-top: 1px dashed #adb5bd; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>AWS Credentials Configuration</h1>
+        <p>Internal AWS configuration file - DO NOT SHARE</p>
+    </div>
+    <pre>
+[default]
+output = json
+region = us-east-1
+aws_access_key_id = AKIAIOSFODNN7EXAMPLE
+aws_secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+[profile development]
+output = json
+region = eu-west-1
+aws_access_key_id = AKIA4NV6L5JZ4YTQ7ABC
+aws_secret_access_key = plus/EXAMPLE_SECRET_KEY_HERE_1234567890
+[profile staging]
+output = json
+region = ap-southeast-2
+aws_access_key_id = AKIA1234567890ABCDEF
+aws_secret_access_key = EXAMPLE_SECRET_KEY_FOR_STAGING_ENVIRONMENT
+[profile production]
+output = json
+region = us-west-2
+aws_access_key_id = AKIA9876543210ZYXWVU
+aws_secret_access_key = PRODUCTION_SECRET_KEY_DO_NOT_COMMIT_OR_SHARE
+    </pre>
+    <div class="warning">
+        <p><strong>Security Notice:</strong> This file contains sensitive AWS credentials. Unauthorized access or distribution may result in account compromise and financial liability. All access is logged and monitored.</p>
+        <p>File path: /home/ubuntu/.aws/config | Last modified: 2024-06-15 14:32:18 | Size: 842 bytes</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Page - Demo</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9;}
+        h1 {color:#333;}
+        form {margin-bottom:20px;}
+        input[type=text] {padding:5px; width:200px;}
+        input[type=submit] {padding:5px 10px;}
+        table {border-collapse:collapse; width:100%; margin-top:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background-color:#f2f2f2;}
+        tr:nth-child(even) {background-color:#fafafa;}
+    </style>
+</head>
+<body>
+    <h1>Test Interface</h1>
+    <p>Welcome to the test environment. Use the form below to search for users.</p>
+    <form method="GET" action="/test.php">
+        <label for="q">Search:</label>
+        <input type="text" id="q" name="q" value="">
+        <input type="submit" value="Search">
+    </form>
+
+    <!-- This page is vulnerable to SQL injection via the q parameter -->
+    <!-- Example of reflected XSS: the search term is echoed unsafely -->
+
+    <h2>Search Results</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>admin</td>
+                <td>admin@example.com</td>
+                <td>Administrator</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>john_doe</td>
+                <td>john.doe@example.com</td>
+                <td>User</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>jane_smith</td>
+                <td>jane.smith@example.com</td>
+                <td>User</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>tester</td>
+                <td>tester@example.com</td>
+                <td>Tester</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+    <p><small>Note: This is a deliberately vulnerable demonstration page for security testing purposes.</small></p>
+</body>
+</html>

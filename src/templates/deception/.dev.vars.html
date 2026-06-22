@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Development Environment Variables</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f8f9fa; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .env-section { margin: 20px 0; padding: 15px; background: #ecf0f1; border-radius: 4px; }
+        .env-label { font-weight: bold; color: #34495e; }
+        .env-value { font-family: monospace; background: #fff; padding: 2px 6px; border-radius: 3px; }
+        .warning { color: #e74c3c; font-size: 0.9em; margin-top: 10px; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Development Environment Variables</h1>
+        <p>This file contains configuration variables for the development environment. Do not commit to version control.</p>
+        
+        <div class="env-section">
+            <span class="env-label">Database Configuration:</span><br>
+            <span class="env-label">DB_HOST:</span> <span class="env-value">localhost</span><br>
+            <span class="env-label">DB_PORT:</span> <span class="env-value">5432</span><br>
+            <span class="env-label">DB_NAME:</span> <span class="env-value">app_dev</span><br>
+            <span class="env-label">DB_USER:</span> <span class="env-value">dev_user</span><br>
+            <span class="env-label">DB_PASSWORD:</span> <span class="env-value">dev_pass_123!</span>
+        </div>
+        
+        <div class="env-section">
+            <span class="env-label">API Keys:</span><br>
+            <span class="env-label">STRIPE_SECRET_KEY:</span> <span class="env-value">sk_test_51Hb9xxxxxxxxxxxxxxxxxxxxxxx</span><br>
+            <span class="env-label">SENDGRID_API_KEY:</span> <span class="env-value">SG.xxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br>
+            <span class="env-label">GOOGLE_MAPS_API_KEY:</span> <span class="env-value">AIzaSyBxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span>
+        </div>
+        
+        <div class="env-section">
+            <span class="env-label">Security Settings:</span><br>
+            <span class="env-label">JWT_SECRET:</span> <span class="env-value">super_secret_dev_key_please_change_in_prod</span><br>
+            <span class="env-label">SESSION_SECRET:</span> <span class="env-value">another_dev_secret_12345</span><br>
+            <span class="env-label">ENCRYPTION_KEY:</span> <span class="env-value">U2FsdGVkX1+xxxxxxxxxxxxxxxxxxxxxxxxxxxx</span>
+        </div>
+        
+        <div class="env-section">
+            <span class="env-label">Third-party Services:</span><br>
+            <span class="env-label">SLACK_WEBHOOK_URL:</span> <span class="env-value">https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX</span><br>
+            <span class="env-label">MAILGUN_DOMAIN:</span> <span class="env-value">sandbox12345.mailgun.org</span><br>
+            <span class="env-label">MAILGUN_API_KEY:</span> <span class="env-value">key-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span>
+        </div>
+        
+        <div class="warning">
+            <strong>Warning:</strong> This file should never be exposed in production. Always use environment variables or secure secrets management.
+        </div>
+        
+        <p><a href="/">← Return to homepage</a></p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SMTP Server Info - Internal</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        table {border-collapse: collapse; width: 60%; margin-top:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#ecf0f1;}
+        tr:nth-child(even) {background:#f2f2f2;}
+        .btn {background:#3498db;color:#fff;padding:6px 12px;border:none;border-radius:4px;cursor:pointer;}
+        .btn:hover {background:#2980b9;}
+        .nav {margin-bottom:20px;}
+        .nav a {margin-right:15px; text-decoration:none; color:#3498db;}
+        .nav a:hover {text-decoration:underline;}
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="/">Home</a>
+        <a href="/admin/">Admin Panel</a>
+        <a href="/logs/">View Logs</a>
+        <a href="/help/">Help</a>
+    </div>
+    <h1>SMTP Server Information</h1>
+    <p>Internal mail relay used for application notifications and internal communications.</p>
+    <table>
+        <tr><th>Setting</th><th>Value</th></tr>
+        <tr><td>Hostname</td><td>smtp.internal.corp</td></tr>
+        <tr><td>IP Address</td><td>10.0.5.12</td></tr>
+        <tr><td>Port</td><td>587 (STARTTLS)</td></tr>
+        <tr><td>Authentication</td><td>Required (LDAP)</td></tr>
+        <tr><td>TLS Version</td><td>TLS 1.2</td></tr>
+        <tr><td>Max Message Size</td><td>25 MB</td></tr>
+        <tr><td>Rate Limit</td><td>100 messages/min per user</td></tr>
+        <tr><td>Last Restart</td><td>2025-10-20 02:15:00 UTC</td></tr>
+        <tr><td>Uptime</td><td>12 days, 4 hours</td></tr>
+    </table>
+    <h2>Test Connection</h2>
+    <form action="/smtp/test" method="post">
+        <label for="test_to">Recipient:</label>
+        <input type="email" id="test_to" name="to" placeholder="user@example.com" required>
+        <br><br>
+        <label for="test_subject">Subject:</label>
+        <input type="text" id="test_subject" name="subject" placeholder="Test Email" required>
+        <br><br>
+        <label for="test_body">Body:</label>
+        <br>
+        <textarea id="test_body" name="body" rows="4" cols="50" placeholder="This is a test message."></textarea>
+        <br><br>
+        <button type="submit" class="btn">Send Test Email</button>
+    </form>
+    <hr>
+    <p><small>Generated on 2025-11-03 14:22:10 UTC. For internal use only.</small></p>
+</body>
+</html>

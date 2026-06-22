@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>.amplifyrc - AWS Amplify Configuration</title>
+    <style>
+        body{font-family:Arial,Helvetica,sans-serif;margin:2rem;background:#f8f9fa;color:#212529}
+        pre{background:#e9ecef;padding:1rem;border-radius:4px;overflow:auto}
+    </style>
+</head>
+<body>
+    <h1>.amplifyrc</h1>
+    <p>Configuration file for AWS Amplify CLI.</p>
+    <pre>
+{
+  "projectName": "my-amplify-app",
+  "frontend": "javascript",
+  "framework": "react",
+  "config": {
+    "SourceDir": "src",
+    "DistributionDir": "build",
+    "BuildCommand": "npm run-script build",
+    "StartCommand": "npm run-script start"
+  },
+  "providers": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-myapp-dev-123456-authRole",
+      "UnauthRoleArn": "arn:aws:iam::123456789012:role/amplify-myapp-dev-123456-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::123456789012:role/amplify-myapp-dev-123456-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "myapp-dev-123456-artifacts",
+      "StackName": "amplify-myapp-dev",
+      "StackId": "arn:aws:cloudformation:us-east-1:123456789012:stack/amplify-myapp-dev/abcdef12-3456-7890-abcd-ef1234567890"
+    }
+  },
+  "categories": {
+    "auth": {
+      "myappdev123": {
+        "service": "Cognito",
+        "providerPlugin": "awscloudformation",
+        "dependsOn": []
+      }
+    },
+    "api": {
+      "myappapi": {
+        "service": "AppSync",
+        "providerPlugin": "awscloudformation",
+        "dependsOn": []
+      }
+    }
+  }
+}
+    </pre>
+</body>
+</html>

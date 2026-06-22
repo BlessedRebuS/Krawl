@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Company Portal - Dashboard</title>
+    <style>body{font-family:Arial,sans-serif;margin:40px;background:#f9f9f9;}h1{color:#333;}.nav a{margin-right:15px;text-decoration:none;color:#0066cc;}</style>
+</head>
+<body>
+    <div class="nav">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/contact">Contact</a>
+        <a href="/login">Login</a>
+    </div>
+    <h1>Welcome to the Internal Dashboard</h1>
+    <p>This is a sample internal page used for demonstration purposes. Please refer to the documentation for further details.</p>
+    <h2>Recent Activities</h2>
+    <ul>
+        <li>User admin logged in at 2025-09-24 08:12:03</li>
+        <li>Backup completed successfully on 2025-09-23 22:45:11</li>
+        <li>New policy uploaded: security-policy-v2.pdf</li>
+    </ul>
+    <form action="/submit" method="post">
+        <label for="feedback">Leave feedback:</label><br>
+        <textarea id="feedback" name="feedback" rows="4" cols="50"></textarea><br><br>
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>

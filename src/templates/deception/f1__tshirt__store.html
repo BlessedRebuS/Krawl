@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>F1 T-Shirt Store</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f9f9f9;}
+        header {background:#000; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#222; color:#fff; padding:0.5rem; text-align:center;}
+        nav a {color:#fff; margin:0 1rem; text-decoration:none;}
+        .container {max-width:1200px; margin:2rem auto; padding:0 1rem;}
+        .products {display:flex; flex-wrap:wrap; gap:1.5rem;}
+        .product {background:#fff; border:1px solid #ddd; border-radius:8px; overflow:hidden; width:200px;}
+        .product img {width:100%; height:auto;}
+        .product-info {padding:1rem;}
+        .product-info h3 {margin:0 0 0.5rem;}
+        .price {font-weight:bold; color:#d00;}
+        footer {background:#000; color:#fff; text-align:center; padding:1rem; margin-top:2rem;}
+        .search-form {margin:1rem 0; text-align:center;}
+        .search-form input[type=text] {padding:0.5rem; width:250px;}
+        .search-form button {padding:0.5rem 1rem;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>F1 T-Shirt Store</h1>
+        <p>Official merchandise for racing fans</p>
+    </header>
+    <nav>
+        <a href="/f1/tshirt/store.html">Home</a>
+        <a href="/f1/tshirt/about.html">About</a>
+        <a href="/f1/tshirt/contact.html">Contact</a>
+        <a href="/f1/tshirt/cart.html">Cart</a>
+    </nav>
+
+    <div class="container">
+        <form class="search-form" method="GET" action="/f1/tshirt/store.html">
+            <input type="text" name="q" placeholder="Search shirts..." value="">
+            <button type="submit">Search</button>
+        </form>
+
+        <div class="products">
+            <!-- Product 1 -->
+            <div class="product">
+                <img src="https://via.placeholder.com/200x200?text=Red+Bull+Shirt" alt="Red Bull T-Shirt">
+                <div class="product-info">
+                    <h3>Red Bull Racing T-Shirt</h3>
+                    <p>Official 2024 season design.</p>
+                    <p class="price">$24.99</p>
+                    <a href="/f1/tshirt/product.html?id=101">View Details</a>
+                </div>
+            </div>
+            <!-- Product 2 -->
+            <div class="product">
+                <img src="https://via.placeholder.com/200x200?text=Mercedes+Shirt" alt="Mercedes T-Shirt">
+                <div class="product-info">
+                    <h3>Mercedes AMG T-Shirt</h3>
+                    <p>Lightweight, breathable fabric.</p>
+                    <p class="price">$22.99</p>
+                    <a href="/f1/tshirt/product.html?id=102">View Details</a>
+                </div>
+            </div>
+            <!-- Product 3 -->
+            <div class="product">
+                <img src="https://via.placeholder.com/200x200?text=Ferrari+Shirt" alt="Ferrari T-Shirt">
+                <div class="product-info">
+                    <h3>Scuderia Ferrari T-Shirt</h3>
+                    <p>Classic red with logo.</p>
+                    <p class="price">$26.99</p>
+                    <a href="/f1/tshirt/product.html?id=103">View Details</a>
+                </div>
+            </div>
+            <!-- Product 4 -->
+            <div class="product">
+                <img src="https://via.placeholder.com/200x200?text=McLaren+Shirt" alt="McLaren T-Shirt">
+                <div class="product-info">
+                    <h3>McLaren Racing T-Shirt</h3>
+                    <p>Limited edition 2024.</p>
+                    <p class="price">$27.99</p>
+                    <a href="/f1/tshirt/product.html?id=104">View Details</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 F1 T-Shirt Store. All rights reserved.</p>
+        <p>Follow us: <a href="#" style="color:#fff;">Facebook</a> | <a href="#" style="color:#fff;">Twitter</a> | <a href="#" style="color:#fff;">Instagram</a></p>
+    </footer>
+</body>
+</html>

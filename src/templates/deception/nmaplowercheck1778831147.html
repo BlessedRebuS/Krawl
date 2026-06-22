@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Network Service Check - Internal Tools</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        table {border-collapse:collapse; width:100%; margin-top:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background-color:#ecf0f1;}
+        tr:nth-child(even) {background-color:#f2f2f2;}
+        .footer {margin-top:30px; font-size:0.9em; color:#777;}
+    </style>
+</head>
+<body>
+    <h1>Internal Network Service Status</h1>
+    <p>Last updated: 2025-11-02 14:32:10 UTC</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Service</th>
+                <th>Port</th>
+                <th>Status</th>
+                <th>Response Time (ms)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>HTTP (Apache)</td>
+                <td>80</td>
+                <td>OK</td>
+                <td>12</td>
+            </tr>
+            <tr>
+                <td>HTTPS (Nginx)</td>
+                <td>443</td>
+                <td>OK</td>
+                <td>15</td>
+            </tr>
+            <tr>
+                <td>SSH</td>
+                <td>22</td>
+                <td>OK</td>
+                <td>9</td>
+            </tr>
+            <tr>
+                <td>MySQL</td>
+                <td>3306</td>
+                <td>OK</td>
+                <td>18</td>
+            </tr>
+            <tr>
+                <td>RDP</td>
+                <td>3389</td>
+                <td>OK</td>
+                <td>22</td>
+            </tr>
+            <tr>
+                <td>SMB</td>
+                <td>445</td>
+                <td>OK</td>
+                <td>14</td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="footer">
+        <p>© 2025 Internal IT Operations. This page is for authorized personnel only.</p>
+    </div>
+</body>
+</html>

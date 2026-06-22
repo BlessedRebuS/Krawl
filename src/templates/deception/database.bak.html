@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Backup - Company Internal Systems</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .info-box {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .warning {
+            background-color: #fadbd8;
+            border-left-color: #e74c3c;
+            color: #922b21;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f2f2f2;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 0.9em;
+            color: #7f8c8d;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Database Backup File</h1>
+        
+        <div class="info-box">
+            <strong>File:</strong> database.bak<br>
+            <strong>Generated:</strong> 2024-05-15 02:30:17 UTC<br>
+            <strong>Server:</strong> DB-SQL01.internal.corp<br>
+            <strong>Database:</strong> production_db<br>
+            <strong>Size:</strong> 2.4 GB
+        </div>
+        
+        <div class="warning">
+            <strong>⚠️ SECURITY NOTICE:</strong> This backup contains sensitive company data including customer information, financial records, and employee details. Access is restricted to authorized database administrators only. Unauthorized access or distribution violates company policy and may result in disciplinary action or legal consequences.
+        </div>
+        
+        <h2>Backup Contents Preview</h2>
+        <p>Below is a sample of tables contained in this backup (first 10 rows of each):</p>
+        
+        <h3>users Table</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>username</th>
+                    <th>email</th>
+                    <th>password_hash</th>
+                    <th>created_at</th>
+                    <th>is_admin</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>admin</td>
+                    <td>admin@company.com</td>
+                    <td>$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi</td>
+                    <td>2023-01-15 08:30:00</td>
+                    <td>1</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>j.smith</td>
+                    <td>j.smith@company.com</td>
+                    <td>$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi</td>
+                    <td>2023-02-03 14:22:15</td>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>m.johnson</td>
+                    <td>m.johnson@company.com</td>
+                    <td>$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi</td>
+                    <td>2023-02-10 09:15:30</td>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td>s.wilson</td>
+                    <td>s.wilson@company.com</td>
+                    <td>$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi</td>
+                    <td>2023-03-01 16:45:22</td>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td>d.brown</td>
+                    <td>d.brown@company.com</td>
+                    <td>$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi</td>
+                    <td>2023-03-15 11:20:05</td>
+                    <td>0</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>customers Table (Sample)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>customer_id</th>
+                    <th>first_name</th>
+                    <th>last_name</th>
+                    <th>email</th>
+                    <th>phone</th>
+                    <th>credit_limit</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1001</td>
+                    <td>John</td>
+                    <td>Doe</td>
+                    <td>john.doe@email.com</td>
+                    <td>(555) 123-4567</td>
+                    <td>5000.00</td>
+                </tr>
+                <tr>
+                    <td>1002</td>
+                    <td>Jane</td>
+                    <td>Smith</td>
+                    <td>jane.smith@email.com</td>
+                    <td>(555) 987-6543</td>
+                    <td>7500.00</td>
+                </tr>
+                <tr>
+                    <td>1003</td>
+                    <td>Robert</td>
+                    <td>Johnson</td>
+                    <td>r.johnson@business.org</td>
+                    <td>(555) 456-7890</td>
+                    <td>10000.00</td>
+                </tr>
+                <tr>
+                    <td>1004</td>
+                    <td>Maria</td>
+                    <td>Garcia</td>
+                    <td>m.garcia@company.net</td>
+                    <td>(555) 321-0987</td>
+                    <td>3000.00</td>
+                </tr>
+                <tr>
+                    <td>1005</td>
+                    <td>David</td>
+                    <td>Wilson</td>
+                    <td>dwilson@enterprise.com</td>
+                    <td>(555) 654-3210</td>
+                    <td>15000.00</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>financial_transactions Table (Sample)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>transaction_id</th>
+                    <th>amount</th>
+                    <th>currency</th>
+                    <th>transaction_type</th>
+                    <th>timestamp</th>
+                    <th>status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>TXN-202405001</td>
+                    <td>1250.00</td>
+                    <td>USD</td>
+                    <td>purchase</td>
+                    <td>2024-05-01 10:30:22</td>
+                    <td>completed</td>
+                </tr>
+                <tr>
+                    <td>TXN-202405002</td>
+                    <td>89.99</td>
+                    <td>USD</td>
+                    <td>refund</td>
+                    <td>2024-05-01 14:15:08</td>
+                    <td>completed</td>
+                </tr>
+                <tr>
+                    <td>TXN-202405003</td>
+                    <td>2400.00</td>
+                    <td>EUR</td>
+                    <td>purchase</td>
+                    <td>2024-05-02 09:05:33</td>
+                    <td>pending</td>
+                </tr>
+                <tr>
+                    <td>TXN-202405004</td>
+                    <td>45.50</td>
+                    <td>USD</td>
+                    <td>fee</td
+                    <td>2024-05-02 16:40:11</td>
+                    <td>completed</td>
+                </tr>
+                <tr>
+                    <td>TXN-202405005</td>
+                    <td>150.75</td>
+                    <td>GBP</td>
+                    <td>purchase</td>
+                    <td>2024-05-03 11:25:47</td>
+                    <td>completed</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <p><em>Note: This is a simulated backup file for demonstration purposes. Actual backups are stored securely and are not accessible via direct HTTP requests.</em></p>
+        
+        <div class="footer">
+            &copy; 2024 Company Internal Systems. All rights reserved.<br>
+            This system is monitored and logged for security compliance.
+        </div>
+    </div>
+</body>
+</html>

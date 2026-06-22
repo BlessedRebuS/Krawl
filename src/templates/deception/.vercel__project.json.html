@@ -1,0 +1,28 @@
+<html>
+<head>
+    <title>Vercel Project Configuration</title>
+    <style>
+        body { font-family: monospace; margin: 2rem; background:#f8f8f8; color:#222; }
+        pre { background:#fff; padding:1rem; border:1px solid #ddd; overflow:auto; }
+    </style>
+</head>
+<body>
+    <h1>Vercel Project Configuration</h1>
+    <p>Below is the project.json file for this Vercel deployment.</p>
+    <pre>{
+  "name": "my-vercel-app",
+  "version": "1.0.0",
+  "framework": "nextjs",
+  "builds": [
+    { "src": "package.json", "use": "@vercel/static-build" }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*)", "dest": "/$1" }
+  ],
+  "env": {
+    "NEXT_PUBLIC_API_URL": "https://api.example.com"
+  }
+}</pre>
+</body>
+</html>

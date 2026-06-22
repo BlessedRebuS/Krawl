@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Auth Info – Internal Dashboard</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:20px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        .box {background:#fff; padding:15px; margin:20px 0; border:1px solid #ddd; border-radius:5px;}
+        table {width:100%; border-collapse:collapse;}
+        th, td {padding:8px 12px; text-align:left; border-bottom:1px solid #eee;}
+        th {background:#ecf0f1;}
+        a {color:#2980b9; text-decoration:none;}
+        a:hover {text-decoration:underline;}
+        .footer {font-size:0.9em; color:#7f8c8d; margin-top:30px;}
+    </style>
+</head>
+<body>
+    <h1>Authentication Information</h1>
+    <div class="box">
+        <p><strong>Welcome, admin.</strong> This page displays internal authentication details for debugging purposes.</p>
+        <p><em>Note: This information should never be exposed in a production environment.</em></p>
+    </div>
+
+    <div class="box">
+        <h2>Session Details</h2>
+        <table>
+            <tr><th>Session ID</th><td>sess_3f9a2b1c8d4e5f6a7b8c9d0e1f2a3b4c</td></tr>
+            <tr><th>User ID</th><td>42</td></tr>
+            <tr><th>Username</th><td>admin</td></tr>
+            <tr><th>Email</th><td>admin@example.local</td></tr>
+            <tr><th>Role</th><td>Super Administrator</td></tr>
+            <tr><th>Last Login</th><td>2025-09-24 08:15:32 UTC</td></tr>
+            <tr><th>Login IP</th><td>203.0.113.45</td></tr>
+            <tr><th>User Agent</th><td>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36</td></tr>
+        </table>
+    </div>
+
+    <div class="box">
+        <h2>Authentication Tokens (for debugging)</h2>
+        <p><strong>Access Token:</strong> eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0MiIsIm5hbWUiOiJhZG1pbiIsImlhdCI6MTczNDEyMzQ1Nn0.fake_signature_here</p>
+        <p><strong>Refresh Token:</strong> dG9rZW5fcmVmcmVzaF8xMjM0NTY3ODkw</p>
+    </div>
+
+    <div class="box">
+        <h2>Recent Activity Log</h2>
+        <table>
+            <tr><th>Timestamp</th><th>Action</th><th>IP Address</th></tr>
+            <tr><td>2025-09-24 08:10:12</td><td>Login successful</td><td>203.0.113.45</td></tr>
+            <tr><td>2025-09-24 07:55:03</td><td>Password change requested</td><td>203.0.113.45</td></tr>
+            <tr><td>2025-09-23 22:40:58</td><td>Failed login attempt</td><td>198.51.100.22</td></tr>
+            <tr><td>2025-09-23 21:15:07</td><td>Logout</td><td>203.0.113.45</td></tr>
+        </table>
+    </div>
+
+    <div class="box">
+        <h2>Quick Links</h2>
+        <ul>
+            <li><a href="/dashboard/">Dashboard</a></li>
+            <li><a href="/profile/">My Profile</a></li>
+            <li><a href="/settings/">Account Settings</a></li>
+            <li><a href="/logout/">Logout</a></li>
+            <li><a href="/">Home</a></li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <!-- Debug page: do not expose in production. Generated internally for administrators. -->
+        &copy; 2025 ExampleCorp. All rights reserved.
+    </div>
+</body>
+</html>

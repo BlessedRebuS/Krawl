@@ -1,0 +1,46 @@
+<html><body>{
+  "continues": [
+    {
+      "name": "Continue AI Assistant",
+      "version": "0.1.0",
+      "description": "An open-source AI coding assistant for VS Code and JetBrains",
+      "providers": [
+        {
+          "name": "openai",
+          "apiKey": "sk-fake1234567890abcdef1234567890ab",
+          "model": "gpt-4o"
+        },
+        {
+          "name": "anthropic",
+          "apiKey": "sk-ant-fake0987654321fedcba0987654321fedc",
+          "model": "claude-3-opus-20240229"
+        }
+      ],
+      "customModels": [],
+      "slashCommands": [
+        {
+          "name": "edit",
+          "description": "Edit selected code with AI"
+        },
+        {
+          "name": "comment",
+          "description": "Generate comments for selected code"
+        },
+        {
+          "name": "explain",
+          "description": "Explain how code works"
+        }
+      ],
+      "tabAutocomplete": true,
+      "contextProviders": [
+        "buffer",
+        "recentChanges",
+        "similarFiles",
+        "codebase"
+      ],
+      "telemetry": {
+        "enabled": false
+      }
+    }
+  ]
+}</body></html>

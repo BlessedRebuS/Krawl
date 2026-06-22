@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordPress REST API - Users</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f9f9f9; color: #333; }
+        pre { background: #eee; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        h1 { color: #21759b; }
+        .endpoint { background: #fff; border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>WordPress REST API</h1>
+    <div class="endpoint">
+        <h2>GET /wp-json/wp/v2/users</h2>
+        <p>Retrieve a list of users with specified parameters.</p>
+        <p><strong>Request:</strong> <code>/wp-json/wp/v2/users?per_page=100&_fields=slug</code></p>
+        <p><strong>Response:</strong></p>
+        <pre>[
+  {
+    "slug": "admin"
+  },
+  {
+    "slug": "editor"
+  },
+  {
+    "slug": "author1"
+  },
+  {
+    "slug": "contributor2"
+  },
+  {
+    "slug": "subscriber3"
+  },
+  {
+    "slug": "guestuser"
+  },
+  {
+    "slug": "demo-account"
+  },
+  {
+    "slug": "test-user"
+  },
+  {
+    "slug": "wpadmin"
+  },
+  {
+    "slug": "support"
+  }
+]</pre>
+        <p><em>Note: This is a simulated response for security testing purposes. Actual user data is protected.</em></p>
+    </div>
+    <hr>
+    <p><small>WordPress 6.5.2 | REST API v2 | Server: Apache/2.4.41 (Ubuntu)</small></p>
+</body>
+</html>

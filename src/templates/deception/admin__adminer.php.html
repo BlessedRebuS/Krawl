@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adminer - Database Management Tool</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .header p { margin: 5px 0 0; opacity: 0.9; font-size: 14px; }
+        .login-box { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 30px; max-width: 400px; margin: 0 auto; }
+        .login-box h2 { text-align: center; color: #1e3a8a; margin-bottom: 25px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #374151; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 16px; box-sizing: border-box; transition: border-color 0.3s; }
+        .form-group input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .btn { width: 100%; padding: 12px; background-color: #1e3a8a; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background-color 0.3s; }
+        .btn:hover { background-color: #1d4ed8; }
+        .remember-me { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 14px; color: #6b7280; }
+        .forgot-link { text-align: right; margin-top: -10px; }
+        .forgot-link a { color: #3b82f6; text-decoration: none; font-size: 14px; }
+        .forgot-link a:hover { text-decoration: underline; }
+        .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+        .footer a { color: #3b82f6; text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+        .db-list { margin-top: 20px; padding: 15px; background-color: #f9fafb; border-radius: 4px; border: 1px solid #e5e7eb; }
+        .db-list h3 { color: #1e3a8a; margin-top: 0; }
+        .db-item { padding: 8px 0; border-bottom: 1px solid #eee; }
+        .db-item:last-child { border-bottom: none; }
+        .db-item span { font-weight: 500; }
+        .db-item small { color: #6b7280; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-database"></i> Adminer</h1>
+            <p>Database management in a single PHP file</p>
+        </div>
+        
+        <div class="login-box">
+            <h2>Login to Adminer</h2>
+            <form method="post" action="">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" value="webapp01" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter password" required>
+                </div>
+                <div class="form-group">
+                    <label for="database">Database</label>
+                    <select id="database" name="database">
+                        <option value="">-- Select database --</option>
+                        <option value="webapp_db">webapp_db</option>
+                        <option value="users">users</option>
+                        <option value="logs">logs</option>
+                        <option value="analytics">analytics</option>
+                    </select>
+                </div>
+                <div class="remember-me">
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember">Remember me</label>
+                </div>
+                <div class="forgot-link">
+                    <a href="?forgot_password=1">Forgot password?</a>
+                </div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+            
+            <div class="db-list">
+                <h3>Recently accessed databases</h3>
+                <div class="db-item">
+                    <span>webapp_db</span>
+                    <small>MySQL 8.0.33 • 127 tables • 2.4 GB</small>
+                </div>
+                <div class="db-item">
+                    <span>users</span>
+                    <small>PostgreSQL 15.2 • 45 tables • 890 MB</small>
+                </div>
+                <div class="db-item">
+                    <span>logs</span>
+                    <small>MongoDB 6.0 • 8 collections • 1.2 GB</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Adminer version 4.8.1 &copy; 2007-2023 Jakub Vrana</p>
+            <p><a href="https://www.adminer.org">https://www.adminer.org</a></p>
+        </p>
+    </div>
+</body>
+</html>

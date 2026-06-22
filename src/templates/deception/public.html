@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Public Resources - Company Intranet</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9;}
+        h1 {color:#2c3e50;}
+        ul {list-style-type:none; padding:0;}
+        li {margin:10px 0;}
+        a {text-decoration:none; color:#2980b9;}
+        a:hover {text-decoration:underline;}
+        .vuln-note {font-size:0.9em; color:#e74c3c; margin-top:20px;}
+    </style>
+</head>
+<body>
+    <h1>Public Resources</h1>
+    <p>Welcome to the public section of the internal portal. Below are links to commonly accessed files and tools.</p>
+    <ul>
+        <li><a href="admin.php">Admin Panel (restricted)</a></li>
+        <li><a href="config.php">Configuration Sample</a></li>
+        <li><a href="uploads/">File Upload Directory</a></li>
+        <li><a href="backup.sql">Database Backup (sample)</a></li>
+        <li><a href="test.php">Test Page</a></li>
+        <li><a href="api/data.json">Sample JSON API</a></li>
+    </ul>
+    <h2>Search Public Files</h2>
+    <form action="/search.php" method="get">
+        <label for="q">Search:</label>
+        <input type="text" id="q" name="q" placeholder="Enter keywords">
+        <button type="submit">Search</button>
+    </form>
+    <div class="vuln-note">
+        Note: This server is configured for testing purposes. Some pages may contain intentional security weaknesses.
+    </div>
+</body>
+</html>

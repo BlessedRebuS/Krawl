@@ -1,0 +1,77 @@
+<html><body>{
+  "name": "my-nuxt-app",
+  "version": "2.15.0",
+  "theme": {
+    "dark": false,
+    "colors": {
+      "primary": "#1976d2",
+      "secondary": "#424242",
+      "accent": "#82b1ff",
+      "error": "#ff5252",
+      "info": "#2196f3",
+      "success": "#4caf50",
+      "warning": "#ffc107"
+    }
+  },
+  "publicPath": "/_nuxt/",
+  "router": {
+    "base": "/",
+    "mode": "history"
+  },
+  "build": {
+    "publicPath": "/_nuxt/",
+    "assetsDir": "assets",
+    "filenames": {
+      "app": "[name].[contenthash].js",
+      "chunk": "[name].[contenthash].js",
+      "css": "[name].[contenthash].css",
+      "img": "[name].[contenthash].[ext]",
+      "font": "[name].[contenthash].[ext]",
+      "video": "[name].[contenthash].[ext]"
+    }
+  },
+  "runtimeConfig": {
+    "public": {
+      "apiBase": "https://api.example.com",
+      "siteName": "Example Site",
+      "gaId": "UA-12345678-1"
+    },
+    "private": {
+      "apiKey": "fake_private_key_for_demo"
+    }
+  },
+  "components": [
+    {
+      "name": "NuxtLogo",
+      "path": "/_nuxt/components/NuxtLogo.vue"
+    },
+    {
+      "name": "Welcome",
+      "path": "/_nuxt/components/Welcome.vue"
+    },
+    {
+      "name": "Footer",
+      "path": "/_nuxt/components/Footer.vue"
+    }
+  ],
+  "manifest": {
+    "short_name": "MyApp",
+    "name": "My Nuxt Application",
+    "icons": [
+      {
+        "src": "/_nuxt/icons/icon-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "/_nuxt/icons/icon-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ],
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#1976d2"
+  }
+}</body></html>

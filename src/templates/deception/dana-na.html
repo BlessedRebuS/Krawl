@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Ana's Profile</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .profile-card { border: 1px solid #ddd; padding: 15px; margin: 15px 0; border-radius: 5px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="email"], textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #3498db; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #2980b9; }
+        .alert { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        footer { text-align: center; margin-top: 20px; color: #7f8c8d; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Dana's Dashboard</h1>
+        <p>Hello, dana-na! Here's your personal dashboard.</p>
+
+        <div class="profile-card">
+            <h2>Profile Information</h2>
+            <p><strong>Username:</strong> dana-na</p>
+            <p><strong>Email:</strong> dana-na@example.com</p>
+            <p><strong>Last Login:</strong> 2024-06-15 14:32:10</p>
+            <p><strong>Role:</strong> User</p>
+        </div>
+
+        <div class="profile-card">
+            <h2>Update Your Information</h2>
+            <form id="profileForm">
+                <div class="form-group">
+                    <label for="email">Email Address:</label>
+                    <input type="email" id="email" name="email" value="dana-na@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="bio">Bio:</label>
+                    <textarea id="bio" name="bio" rows="4">Just a regular user enjoying the platform.</textarea>
+                </div>
+                <button type="submit">Update Profile</button>
+            </form>
+            <div id="formResult"></div>
+        </div>
+
+        <div class="profile-card">
+            <h2>Recent Activity</h2>
+            <ul>
+                <li>2024-06-15 14:30:05 - Logged in from 192.168.1.100</li>
+                <li>2024-06-14 09:15:22 - Updated profile picture</li>
+                <li>2024-06-13 16:45:10 - Commented on "Summer Vacation Tips"</li>
+                <li>2024-06-12 11:20:05 - Sent friend request to john_doe</li>
+            </ul>
+        </div>
+
+        <!-- Simulated vulnerable endpoint for distraction -->
+        <div class="profile-card" style="background-color: #fff8dc;">
+            <h2>Developer Tools (Internal Use Only)</h2>
+            <p>For debugging purposes:</p>
+            <form id="debugForm">
+                <div class="form-group">
+                    <label for="query">SQL Query (for testing):</label>
+                    <input type="text" id="query" name="query" placeholder="Enter SQL query...">
+                </div>
+                <button type="submit">Execute Query</button>
+            </form>
+            <div id="debugResult" style="margin-top: 10px; padding: 10px; background-color: #f0f0f0; border-radius: 4px; font-family: monospace;">
+                <!-- Fake SQL injection response -->
+                Waiting for query...
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        © 2024 Company Internal Systems. All rights reserved.<br>
+        Version 2.1.4 | Server: internal-web-07
+    </footer>
+
+    <script>
+        // Simulate form submission with fake AJAX-like behavior
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const bio = document.getElementById('bio').value;
+            
+            // Fake success response
+            document.getElementById('formResult').innerHTML = 
+                '<div class="alert alert-success">Profile updated successfully! (Simulated)</div>';
+            
+            // Clear form after 2 seconds
+            setTimeout(() => {
+                document.getElementById('formResult').innerHTML = '';
+            }, 2000);
+        });
+
+        // Simulate debug form (SQLi distraction)
+        document.getElementById('debugForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const query = document.getElementById('query').value.toUpperCase();
+            const resultDiv = document.getElementById('debugResult');
+            
+            if (query.includes('SELECT') || query.includes('UNION') || query.includes('DROP')) {
+                resultDiv.innerHTML = '<div class="alert alert-danger">Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near \'' + 
+                    query.substring(0, 20) + '\' at line 1</div>';
+            } else if (query.trim() === '') {
+                resultDiv.innerHTML = '<div class="alert alert-warning">Please enter a query</div>';
+            } else {
+                resultDiv.innerHTML = '<div class="alert alert-success">Query executed successfully. Rows affected: 0</div>';
+            }
+        });
+    </script>
+</body>
+</html>

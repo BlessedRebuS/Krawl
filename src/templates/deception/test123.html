@@ -1,0 +1,34 @@
+// test.js — leftover debug script, DO NOT DEPLOY
+// staging build 2026-03-11
+
+const config = {
+  api_key: "sk_live_51HZx9KJ2eZvKYlo2C9X4mTnRrSrW",
+  aws_access_key_id: "AKIAIOSFODNN7EXAMPLE",
+  aws_secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+  db_connection: "mongodb://admin:SuperSecret123!@10.0.0.42:27017/prod",
+  jwt_secret: "c4f8e2a91b3d7f0e6a5c8b2d1e9f4a7c",
+  smtp_password: "Pa$$w0rd!2024",
+  internal_api_base: "http://10.0.0.5:8080/internal/v1",
+  admin_panel: "/wp-content/uploads/.backup/admin.php"
+};
+
+console.log("DEBUG: loaded config", config);
+
+function testConnection() {
+  fetch(config.internal_api_base + "/health")
+    .then(r => r.json())
+    .then(data => console.log("internal api status:", data))
+    .catch(err => console.error("connection failed:", err));
+}
+
+function dumpEnv() {
+  fetch("/api/debug/env")
+    .then(r => r.text())
+    .then(t => console.log("env dump:", t));
+}
+
+testConnection();
+dumpEnv();
+
+// TODO: strip before prod deploy, leaving for QA
+window.__DEBUG_CONFIG__ = config;

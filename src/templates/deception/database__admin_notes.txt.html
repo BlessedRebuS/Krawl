@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Notes - Internal Use Only</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .note { background: #f9f9f9; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }
+        .warning { border-left-color: #dc3545; background: #fff5f5; }
+        .info { border-left-color: #17a2b8; background: #f0f8ff; }
+        .timestamp { color: #666; font-size: 0.9em; font-style: italic; }
+        .admin-tag { background: #dc3545; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Database Administration Notes</h1>
+        <p><span class="admin-tag">RESTRICTED</span> - For DBA Team Only</p>
+        
+        <div class="note warning">
+            <h3>⚠️ Critical Security Update - 2024-06-15</h3>
+            <p class="timestamp">Last modified: 2024-06-15 14:32:18 by admin@internal</p>
+            <p>Database connection strings in legacy applications still contain hardcoded credentials. <strong>DO NOT COMMIT</strong> these to version control.</p>
+            <p><em>Examples found in:</em></p>
+            <ul>
+                <li>/var/www/legacy_app/config/db.php (line 23): mysql://admin:P@ssw0rd2024!@db-prod:3306/users</li>
+                <li>/opt/scripts/backup.sh (line 45): PGPASSWORD='BackupAdmin#2024' pg_dump...</li>
+                <li>/home/dev/.aws/credentials (access key: AKIAIOSFODNN7EXAMPLE)</li>
+            </ul>
+            <p>Action required: Migrate to Vault or AWS Secrets Manager by EOD Friday.</p>
+        </div>
+
+        <div class="note info">
+            <h3>📋 Routine Maintenance - 2024-06-10</h3>
+            <p class="timestamp">Last modified: 2024-06-10 09:15:03 by dbadmin@corp</p>
+            <p>Performed index rebuild on <code>users</code> and <code>transactions</code> tables. Query performance improved by ~35%.</p>
+            <p>Next vacuum analyze scheduled for 2024-06-22 02:00 AM.</p>
+        </div>
+
+        <div class="note">
+            <h3>🔧 Ongoing Issues</h3>
+            <p class="timestamp">Last modified: 2024-06-14 16:45:22 by jsmith@dev</p>
+            <ul>
+                <li>Slow query on <code>orders</code> table when filtering by <code>status='pending'</code> - needs covering index</li>
+                <li>Replication lag on replica-db02: consistently 15-30 seconds behind primary</li>
+                <li>Connection pool exhaustion during peak hours (18:00-20:00) - consider increasing max_connections</li>
+            </ul>
+            <p>Assigned to: Senior DBA Team</p>
+        </div>
+
+        <div class="note warning">
+            <h3>🚨 Incident Response - 2024-06-12</h3>
+            <p class="timestamp">Last modified: 2024-06-12 03:22:11 by security@corp</p>
+            <p>Detected unusual query patterns from internal IP 10.5.2.17 attempting to access <code>information_schema</code> and <code>mysql.user</code> tables.</p>
+            <p>Blocked IP temporarily. Investigation ongoing - possible credential leakage from developer workstation.</p>
+            <p><strong>Recommendation:</strong> Force password rotation for all DB accounts with access from 10.5.2.0/24 subnet.</p>
+        </div>
+
+        <hr>
+        <p style="text-align: center; color: #999; font-size: 0.9em;">
+            This document is automatically generated from the internal wiki. Last sync: 2024-06-15 14:35:00<br>
+            <em>Unauthorized access or distribution may result in disciplinary action.</em>
+        </p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Our Goods Inventory</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9;}
+        h1 {color:#2c3e50;}
+        table {width:100%; border-collapse:collapse; margin-top:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#ecf0f1;}
+        tr:nth-child(even) {background:#f2f2f2;}
+        .form-group {margin-bottom:15px;}
+        label {display:block; margin-bottom:5px; font-weight:bold;}
+        input[type=text], select {width:100%; padding:8px; box-sizing:border-box;}
+        input[type=submit] {background:#27ae60; color:#fff; border:none; padding:10px 15px; cursor:pointer;}
+        input[type=submit]:hover {background:#219150;}
+        .note {font-size:0.9em; color:#7f8c8d; margin-top:10px;}
+    </style>
+</head>
+<body>
+    <h1>Goods Catalog</h1>
+    <p>Welcome to our inventory system. Use the form below to filter items.</p>
+
+    <form method="GET" action="goods.php">
+        <div class="form-group">
+            <label for="category">Category:</label>
+            <select name="category" id="category">
+                <option value="">All</option>
+                <option value="electronics">Electronics</option>
+                <option value="clothing">Clothing</option>
+                <option value="home">Home & Garden</option>
+                <option value="books">Books</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="min_price">Min Price ($):</label>
+            <input type="text" name="min_price" id="min_price" placeholder="e.g. 10">
+        </div>
+        <div class="form-group">
+            <label for="max_price">Max Price ($):</label>
+            <input type="text" name="max_price" id="max_price" placeholder="e.g. 500">
+        </div>
+        <div class="form-group">
+            <label for="search">Search by name:</label>
+            <input type="text" name="search" id="search" placeholder="Enter keyword">
+        </div>
+        <input type="submit" value="Filter">
+    </form>
+
+    <div class="note">
+        <strong>Tip:</strong> You can also directly access items via <code>?id=</code> parameter to view details.
+    </div>
+
+    <h2>Current Listings</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Price ($)</th>
+                <th>Stock</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>101</td>
+                <td>Wireless Bluetooth Headphones</td>
+                <td>Electronics</td>
+                <td>49.99</td>
+                <td>27</td>
+                <td>Noise‑cancelling, 30hr battery life.</td>
+            </tr>
+            <tr>
+                <td>102</td>
+                <td>Cotton T‑Shirt – Size M</td>
+                <td>Clothing</td>
+                <td>19.95</td>
+                <td>84</td>
+                <td>100% pre‑shrunk cotton, assorted colors.</td>
+            </tr>
+            <tr>
+                <td>103</td>
+                <td>Stainless Steel Kitchen Knife Set</td>
+                <td>Home & Garden</td>
+                <td>89.99</td>
+                <td>12</td>
+                <td>8‑piece set, ergonomic handles.</td>
+            </tr>
+            <tr>
+                <td>104</td>
+                <td>Programming 101 – Intro to Python</td>
+                <td>Books</td>
+                <td>34.50</td>
+                <td>5</td>
+                <td>Beginner guide, includes exercises.</td>
+            </tr>
+            <tr>
+                <td>105</td>
+                <td>Smart LED Bulb (Pack of 4)</td>
+                <td>Electronics</td>
+                <td>22.00</td>
+                <td>63</td>
+                <td>Wi‑Fi enabled, dimmable, 16M colors.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+    <p><small>© 2025 Acme Trading Co. – All rights reserved.</small></p>
+</body>
+</html>

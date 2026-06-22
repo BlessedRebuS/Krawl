@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SSO Information - Internal Portal</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9;}
+        h1 {color:#2c3e50;}
+        table {border-collapse:collapse; width:100%; margin-top:15px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#ecf0f1;}
+        tr:nth-child(even){background:#f2f2f2;}
+        a {color:#2980b9; text-decoration:none;}
+        a:hover {text-decoration:underline;}
+    </style>
+</head>
+<body>
+    <h1>Single Sign-On (SSO) Configuration</h1>
+    <p>This page provides diagnostic information about the SSO integration for internal troubleshooting.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Provider</th>
+                <th>Entity ID</th>
+                <th>Metadata URL</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Azure AD</td>
+                <td>https://sts.windows.net/11111111-2222-3333-4444-555555555555/</td>
+                <td>https://login.microsoftonline.com/11111111-2222-3333-4444-555555555555/federationmetadata/2007-06/federationmetadata.xml</td>
+                <td>Active</td>
+            </tr>
+            <tr>
+                <td>Okta</td>
+                <td>https://dev-123456.okta.com/oauth2/default</td>
+                <td>https://dev-123456.okta.com/oauth2/default/.well-known/openid-configuration</td>
+                <td>Active</td>
+            </tr>
+            <tr>
+                <td>Google Workspace</td>
+                <td>https://accounts.google.com/o/saml2?idpid=ABCD1234</td>
+                <td>https://accounts.google.com/o/saml2?idpid=ABCD1234&metadata</td>
+                <td>Active</td>
+            </tr>
+            <tr>
+                <td>LDAP (Test)</td>
+                <td>ldap://ldap-test.internal:389</td>
+                <td>N/A</td>
+                <td>Disabled</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p><strong>Last updated:</strong> 2025-06-24 10:15:UTC</p>
+    <p><em>Note: This endpoint is intended for internal administrators only. Exposing detailed SSO metadata may assist attackers in crafting SAML or OAuth attacks.</em></p>
+
+    <hr>
+    <p>
+        <a href="/sso/info/debug">[Debug endpoint – view raw token exchange logs]</a> |
+        <a href="/sso/info/config">[Download current SAML/OIDC config (XML)]</a> |
+        <a href="/sso/info/test">[Test SSO login flow (simulated)]</a>
+    </p>
+
+    <!--
+        Fake internal comment for potential leakage:
+        DEBUG_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        SECRET_KEY=supersecretkey123
+    -->
+</body>
+</html>

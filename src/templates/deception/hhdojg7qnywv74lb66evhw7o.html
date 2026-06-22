@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internal Admin Portal</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:40px; background:#f4f4f4;}
+        .container {max-width:600px; margin:auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1 {color:#2c3e50;}
+        input[type=text], input[type=password] {width:100%; padding:8px; margin:8px 0; display:block; box-sizing:border-box;}
+        input[type=submit] {background:#27ae60; color:#fff; border:none; padding:10px 15px; cursor:pointer;}
+        input[type=submit]:hover {background:#2ecc71;}
+        .note {font-size:0.9em; color:#7f8c8d; margin-top:15px;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Admin Login</h1>
+    <p>Enter your credentials to access the internal dashboard.</p>
+    <form action="/auth" method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" placeholder="admin" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required>
+        <input type="submit" value="Login">
+    </form>
+    <div class="note">
+        <em>For debugging purposes, try entering: <strong>' OR '1'='1</strong> as the username to bypass authentication.</em>
+    </div>
+    <hr>
+    <p><a href="/">Return to homepage</a></p>
+</div>
+</body>
+</html>

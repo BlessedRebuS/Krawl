@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Astroid Plugin System - Joomla!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, sans-serif; margin:20px; background:#f9f9f9;}
+        h1 {color:#2c3e50;}
+        .container {max-width:800px; margin:auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        table {width:100%; border-collapse:collapse; margin-top:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#ecf0f1;}
+        .btn {background:#3498db; color:#fff; padding:6px 12px; border:none; cursor:pointer;}
+        .btn:hover {background:#2980b9;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Astroid Plugin System</h1>
+    <p>Welcome to the Astroid plugin management interface. Use the options below to manage installed plugins.</p>
+
+    <form action="/plugins/system/astroid/search.php" method="get">
+        <input type="text" name="q" placeholder="Search plugins..." size="30" value="">
+        <button type="submit" class="btn">Search</button>
+    </form>
+
+    <h2>Installed Plugins</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Plugin</th>
+                <th>Version</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Astroid Framework</td>
+                <td>2.5.3</td>
+                <td>Enabled</td>
+                <td><a href="#" class="btn">Configure</a> <a href="#" class="btn">Disable</a></td>
+            </tr>
+            <tr>
+                <td>Astroid Shortcodes</td>
+                <td>1.2.0</td>
+                <td>Enabled</td>
+                <td><a href="#" class="btn">Configure</a> <a href="#" class="btn">Disable</a></td>
+            </tr>
+            <tr>
+                <td>Astroid SEO Helper</td>
+                <td>1.0.5</td>
+                <td>Disabled</td>
+                <td><a href="#" class="btn">Configure</a> <a href="#" class="btn">Enable</a></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p><em>Last updated: 2025-10-28 14:32 UTC</em></p>
+</div>
+</body>
+</html>

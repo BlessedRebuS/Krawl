@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Spring Boot Actuator - Environment</title>
+<style>
+body{font-family:Arial,sans-serif;margin:20px;background:#f9f9f9;}
+h1{color:#2c3e50;}
+table{border-collapse:collapse;width:100%;max-width:800px;}
+th,td{border:1px solid #ddd;padding:8px;text-align:left;}
+th{background-color:#ecf0f1;}
+tr:nth-child(even){background:#f2f2f2;}
+</style>
+</head>
+<body>
+<h1>Actuator /env Endpoint</h1>
+<p>Below are the current environment properties exposed by Spring Boot Actuator.</p>
+<table>
+<thead>
+<tr><th>Key</th><th>Value</th></tr>
+</thead>
+<tbody>
+<tr><td>JAVA_OPTS</td><td>-Xmx512m -XX:+UseG1GC</td></tr>
+<tr><td>SPRING_PROFILES_ACTIVE</td><td>prod</td></tr>
+<tr><td>SERVER_PORT</td><td>8080</td></tr>
+<tr><td>DATABASE_URL</td><td>jdbc:postgresql://db.internal:5432/appdb</td></tr>
+<tr><td>DB_USERNAME</td><td>app_user</td></tr>
+<tr><td>DB_PASSWORD</td><td>********</td></tr>
+<tr><td>SPRING_DATASOURCE_INITIALIZE</td><td>false</td></tr>
+<tr><td>LOG_LEVEL_ROOT</td><td>INFO</td></tr>
+<tr><td>LOG_LEVEL_ORG.springframework</td><td>WARN</td></tr>
+<tr><td>SPRING_MAIL_HOST</td><td>smtp.internal.company.com</td></tr>
+<tr><td>SPRING_MAIL_PORT</td><td>587</td></tr>
+<tr><td>SPRING_MAIL_USERNAME</td><td>no-reply@company.com</td></tr>
+<tr><td>SPRING_MAIL_PASSWORD</td><td>********</td></tr>
+<tr><td>CUSTOM_FEATURE_TOGGLE</td><td>true</td></tr>
+<tr><td>APP_VERSION</td><td>2.4.1</td></tr>
+</tbody>
+</table>
+</body>
+</html>

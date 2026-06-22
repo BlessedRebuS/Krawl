@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Information - Internal Debug Panel</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .info-box { background: #f8f9fa; padding: 15px; margin: 20px 0; border-left: 4px solid #007bff; }
+        .warning { color: #dc3545; font-weight: bold; }
+        .btn { display: inline-block; padding: 8px 16px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 5px; }
+        .btn:hover { background: #0056b3; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:hover { background-color: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Internal System Debug Panel</h1>
+        <p class="warning">⚠️ AUTHORIZED PERSONNEL ONLY - SYSTEM MAINTENANCE INTERFACE</p>
+        
+        <div class="info-box">
+            <h2>System Status</h2>
+            <p><strong>Server:</strong> internal-web-01.prod.company.local</p>
+            <p><strong>Environment:</strong> Production</p>
+            <p><strong>Uptime:</strong> 14 days, 3 hours, 22 minutes</p>
+            <p><strong>Load Average:</strong> 0.45, 0.38, 0.42</p>
+            <p><strong>Memory Usage:</strong> 3.2 GB / 7.8 GB (41%)</p>
+            <p><strong>Disk Usage:</strong> 45.2 GB / 100 GB (45%)</p>
+        </div>
+        
+        <div class="info-box">
+            <h2>Active Services</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Status</th>
+                        <th>Port</th>
+                        <th>Last Restart</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Web Server (nginx)</td>
+                        <td><span style="color: green;">● Running</span></td>
+                        <td>80, 443</td>
+                        <td>2024-01-15 02:30:00</td>
+                    </tr>
+                    <tr>
+                        <td>Application Server</td>
+                        <td><span style="color: green;">● Running</span></td>
+                        <td>8080</td>
+                        <td>2024-01-15 02:35:00</td>
+                    </tr>
+                    <tr>
+                        <td>Database (PostgreSQL)</td>
+                        <td><span style="color: green;">● Running</span></td>
+                        <td>5432</td>
+                        <td>2024-01-14 23:15:00</td>
+                    </tr>
+                    <tr>
+                        <td>Redis Cache</td>
+                        <td><span style="color: green;">● Running</span></td>
+                        <td>6379</td>
+                        <td>2024-01-15 00:45:00</td>
+                    </tr>
+                    <tr>
+                        <td>Message Queue (RabbitMQ)</td>
+                        <td><span style="color: orange;">● Warning</span></td>
+                        <td>5672</td>
+                        <td>2024-01-15 01:20:00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="info-box">
+            <h2>Recent Security Events</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Event Type</th>
+                        <th>Source IP</th>
+                        <th>Action Taken</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2024-01-15 10:23:17</td>
+                        <td>Failed Login Attempt</td>
+                        <td>192.168.1.105</td>
+                        <td>Blocked (3 attempts)</td>
+                    </tr>
+                    <tr>
+                        <td>2024-01-15 09:45:03</td>
+                        <td>Suspicious User-Agent</td>
+                        <td>10.0.0.45</td>
+                        <td>Logged & Monitored</td>
+                    </tr>
+                    <tr>
+                        <td>2024-01-15 08:12:41</td>
+                        <td>SQL Injection Attempt</td>
+                        <td>203.0.113.42</td>
+                        <td>Blocked by WAF</td>
+                    </tr>
+                    <tr>
+                        <td>2024-01-15 07:30:22</td>
+                        <td>Directory Traversal</td>
+                        <td>198.51.100.23</td>
+                        <td>Blocked & IP Temporarily Banned</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="info-box">
+            <h2>Environment Variables (Debug View)</h2>
+            <p><em>Note: Sensitive values are masked for security</em></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Variable</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>APP_ENV</td>
+                        <td>production</td>
+                    </tr>
+                    <tr>
+                        <td>DEBUG_MODE</td>
+                        <td>false</td>
+                    </tr>
+                    <tr>
+                        <td>DATABASE_URL</td>
+                        <td>postgres://user:***@db-prod:5432/maindb</td>
+                    </tr>
+                    <tr>
+                        <td>REDIS_URL</td>
+                        <td>redis://redis-cache:6379/0</td>
+                    </tr>
+                    <tr>
+                        <td>SECRET_KEY</td>
+                        <td>[REDACTED - 32-byte hex]</td>
+                    </tr>
+                    <tr>
+                        <td>JWT_SECRET</td>
+                        <td>[REDACTED - 64-byte hex]</td>
+                    </tr>
+                    <tr>
+                        <td>API_KEY_EXTERNAL</td>
+                        <td>[REDACTED]</td>
+                    </tr>
+                    <tr>
+                        <td>LOG_LEVEL</td>
+                        <td>info</td>
+                    </tr>
+                    <tr>
+                        <td>MAX_UPLOAD_SIZE</td>
+                        <td>10485760</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="/admin/dashboard" class="btn">Admin Dashboard</a>
+            <a href="/logs/view" class="btn">View System Logs</a>
+            <a href="/metrics" class="btn">Performance Metrics</a>
+            <a href="/" class="btn">Return to Homepage</a>
+        </div>
+        
+        <hr style="margin: 30px 0; border-color: #ddd;">
+        <p style="text-align: center; color: #666; font-size: 0.9em;">
+            Internal Debug Panel v2.1.4 &copy; 2024 Company Internal Systems<br>
+            Access logged: 2024-01-15 10:25:17 UTC | Session ID: sess_7f3a9b2c1d4e8f6a
+        </p>
+    </div>
+</body>
+</html>

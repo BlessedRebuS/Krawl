@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Admin Panel</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header {background:#2c3e50; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#34495e; overflow:hidden;}
+        nav a {float:left; display:block; color:#fff; text-align:center; padding:14px 16px; text-decoration:none;}
+        nav a:hover {background:#1abc9c;}
+        .container {padding:20px;}
+        h2 {color:#2c3e50;}
+        table {width:100%; border-collapse:collapse; margin-top:20px; background:#fff;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#ecf0f1;}
+        tr:nth-child(even){background:#f2f2f2;}
+        .btn {display:inline-block; padding:8px 12px; margin-top:10px; background:#1abc9c; color:#fff; text-decoration:none; border-radius:4px;}
+        .btn:hover {background:#16a085;}
+        form {margin-top:20px; background:#fff; padding:15px; border-radius:5px; box-shadow:0 0 5px rgba(0,0,0,0.1);}
+        input[type=text], input[type=password] {width:100%; padding:8px; margin:5px 0; border:1px solid #ccc; border-radius:4px;}
+        input[type=submit] {background:#27ae60; color:#fff; border:none; padding:10px 15px; cursor:pointer; border-radius:4px;}
+        input[type=submit]:hover {background:#219150;}
+    </style>
+</head>
+<body>
+<header>
+    <h1>Admin Dashboard</h1>
+</header>
+<nav>
+    <a href="/webui/index.html">Home</a>
+    <a href="/webui/users.html">Users</a>
+    <a href="/webui/settings.html">Settings</a>
+    <a href="/webui/logs.html">Logs</a>
+</nav>
+<div class="container">
+    <h2>Welcome, Administrator</h2>
+    <p>Last login: 2025-11-02 08:14:23 UTC</p>
+    <p>System status: <span style="color:#27ae60;">Online</span></p>
+
+    <h3>Recent Activity</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>User</th>
+                <th>Action</th>
+                <th>IP Address</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>2025-11-02 07:58:12</td>
+                <td>jdoe</td>
+                <td>Login</td>
+                <td>192.168.1.45</td>
+            </tr>
+            <tr>
+                <td>2025-11-02 07:45:03</td>
+                <td>asmith</td>
+                <td>File Upload</td>
+                <td>10.0.0.22</td>
+            </tr>
+            <tr>
+                <td>2025-11-02 07:30:19</td>
+                <td>admin</td>
+                <td>Settings Changed</td>
+                <td>127.0.0.1</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Quick Actions</h3>
+    <a href="/webui/add_user.html" class="btn">Add New User</a>
+    <a href="/webui/backup.html" class="btn">Run Backup</a>
+    <a href="/webui/restart.html" class="btn" onclick="return confirm('Restart service?')">Restart Service</a>
+</div>
+
+<footer style="text-align:center; padding:10px; margin-top:30px; font-size:0.9em; color:#7f8c8d;">
+    &copy; 2025 Admin Panel. All rights reserved.
+</footer>
+</body>
+</html>

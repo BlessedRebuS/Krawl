@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WordPress &rsaquo; Login</title>
+<link rel="stylesheet" href="https://example.com/wp-admin/css/login.css">
+</head>
+<body class="login">
+<div id="login">
+<h1><a href="https://example.com/">My Blog</a></h1>
+<form name="loginform" id="loginform" action="/wp/wp-login.php" method="post">
+<p>
+<label for="user_login">Username<br>
+<input type="text" name="log" id="user_login" class="input" value="" size="20" autocapitalize="off">
+</label>
+</p>
+<p>
+<label for="user_pass">Password<br>
+<input type="password" name="pwd" id="user_pass" class="input" value="" size="20" autocomplete="off">
+</label>
+</p>
+<p class="forgetmenot"><label><input name="rememberme" type="checkbox" id="rememberme" value="forever"> Remember Me</label></p>
+<p class="submit">
+<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="Log In">
+</p>
+</form>
+<p id="nav">
+<a href="/wp/wp-login.php?action=lostpassword">Lost your password?</a>
+</p>
+</div>
+</body>
+</html>

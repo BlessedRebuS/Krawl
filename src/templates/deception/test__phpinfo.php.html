@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>phpinfo()</title>
+    <style>
+        body {font-family: Arial, sans-serif; background:#f8f8f8; color:#222; margin:0; padding:20px;}
+        h1 {font-size:1.5em; color:#333; border-bottom:2px solid #ccc; padding-bottom:5px;}
+        h2 {font-size:1.2em; color:#555; margin-top:30px; border-bottom:1px solid #ddd; padding-bottom:3px;}
+        table {width:100%; border-collapse:collapse; margin-top:10px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left; vertical-align:top;}
+        th {background:#e9e9e9;}
+        tr:nth-child(even) {background:#f9f9f9;}
+        .center {text-align:center;}
+    </style>
+</head>
+<body>
+    <h1>phpinfo()</h1>
+    <p class="center"><a href="http://php.net/">PHP Version 7.4.33</a></p>
+
+    <h2>System</h2>
+    <table>
+        <tr><th>System</th><td>Linux server01 5.4.0-104-generic #118-Ubuntu SMP Fri Sep 10 12:23:40 UTC 2021 x86_64</td></tr>
+        <tr><th>Build Date</th><td>Oct 12 2021 15:34:56</td></tr>
+        <tr><th>Configure Command</th><td>'./configure' '--prefix=/usr/local/php' '--with-config-file-path=/etc/php' '--enable-mbstring' '--with-curl' '--with-openssl'</td></tr>
+        <tr><th>Server API</th><td>Apache 2.4 Handler</td></tr>
+        <tr><th>Virtual Directory Support</th><td>enabled</td></tr>
+        <tr><th>Configuration File (php.ini) Path</th><td>/etc/php</td></tr>
+        <tr><th>Loaded Configuration File</th><td>/etc/php/php.ini</td></tr>
+        <tr><th>Scan this dir for additional .ini files</th><td>/etc/php/conf.d</td></tr>
+        <tr><th>Additional .ini files parsed</th><td>/etc/php/conf.d/mysql.ini, /etc/php/conf.d/gd.ini</td></tr>
+    </table>
+
+    <h2>PHP Core</h2>
+    <table>
+        <tr><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+        <tr><td>allow_url_fopen</td><td>On</td><td>On</td></tr>
+        <tr><td>allow_url_include</td><td>Off</td><td>Off</td></tr>
+        <tr><td>auto_prepend_file</td><td>no value</td><td>no value</td></tr>
+        <tr><td>auto_append_file</td><td>no value</td><td>no value</td></tr>
+        <tr><td>display_errors</td><td>Off</td><td>Off</td></tr>
+        <tr><td>log_errors</td><td>On</td><td>On</td></tr>
+        <tr><td>error_log</td><td>/var/log/php_errors.log</td><td>/var/log/php_errors.log</td></tr>
+        <tr><td>max_execution_time</td><td>30</td><td>30</td></tr>
+        <tr><td>memory_limit</td><td>128M</td><td>128M</td></tr>
+        <tr><td>post_max_size</td><td>8M</td><td>8M</td></tr>
+        <tr><td>upload_max_filesize</td><td>2M</td><td>2M</td></tr>
+        <tr><td>short_open_tag</td><td>On</td><td>On</td></tr>
+    </table>
+
+    <h2>Apache Environment</h2>
+    <table>
+        <tr><th>Variable</th><th>Value</th></tr>
+        <tr><td>HTTP_HOST</td><td>example.com</td></tr>
+        <tr><td>HTTP_USER_AGENT</td><td>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36</td></tr>
+        <tr><td>REMOTE_ADDR</td><td>203.0.113.42</td></tr>
+        <tr><td>SERVER_SOFTWARE</td><td>Apache/2.4.41 (Ubuntu)</td></tr>
+        <tr><td>SERVER_NAME</td><td>example.com</td></tr>
+        <tr><td>DOCUMENT_ROOT</td><td>/var/www/html</td></tr>
+        <tr><td>SCRIPT_FILENAME</td><td>/var/www/html/test/phpinfo.php</td></tr>
+        <tr><td>REQUEST_URI</td><td>/test/phpinfo.php</td></tr>
+    </table>
+
+    <h2>Loaded Modules</h2>
+    <table>
+        <tr><th>Module</th></tr>
+        <tr><td>core</td></tr>
+        <tr><td>mod_so</td></tr>
+        <tr><td>mod_http</td></tr>
+        <tr><td>mod_mime</td></tr>
+        <tr><td>mod_dir</td></tr>
+        <tr><td>mod_alias</td></tr>
+        <tr><td>mod_rewrite</td></tr>
+        <tr><td>mod_security2</td></tr>
+        <tr><td>mod_ssl</td></tr>
+        <tr><td>php7_module</td></tr>
+    </table>
+
+    <hr>
+    <p class="center">This is a simulated phpinfo() page for demonstration purposes.</p>
+</body>
+</html>

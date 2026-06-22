@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Web Interface - Admin Panel</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f4f4f4;}
+.container{max-width:960px;margin:20px auto;background:#fff;padding:20px;box-shadow:0 0 10px rgba(0,0,0,.1);}
+h1{color:#2c3e50;}
+.form-group{margin-bottom:15px;}
+label{display:block;margin-bottom:5px;font-weight:bold;}
+input[type=text],input[type=password]{width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;}
+button{background:#2980b9;color:#fff;padding:10px 15px;border:none;border-radius:4px;cursor:pointer;}
+button:hover{background:#3498db;}
+.table{width:100%;border-collapse:collapse;margin-top:20px;}
+.table th,.table td{border:1px solid #ddd;padding:8px;text-align:left;}
+.table th{background:#ecf0f1;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Web Interface Administration</h1>
+<p>Welcome to the internal management console. Use the form below to authenticate.</p>
+<form action="/WebInterface/login.php" method="post">
+<div class="form-group">
+<label for="username">Username:</label>
+<input type="text" id="username" name="username" placeholder="Enter username" required>
+</div>
+<div class="form-group">
+<label for="password">Password:</label>
+<input type="password" id="password" name="password" placeholder="Enter password" required>
+</div>
+<button type="submit">Login</button>
+</form>
+<hr>
+<h2>Recent Activity Log</h2>
+<table class="table">
+<thead>
+<tr><th>Timestamp</th><th>User</th><th>Action</th><th>IP Address</th></tr>
+</thead>
+<tbody>
+<tr><td>2025-09-25 08:12:03</td><td>admin</td><td>Login</td><td>192.168.1.45</td></tr>
+<tr><td>2025-09-25 07:58:11</td><td>operator</td><td>View Reports</td><td>10.0.0.22</td></tr>
+<tr><td>2025-09-25 07:45:02</td><td>guest</td><td>Failed Login</td><td>203.0.113.5</td></tr>
+<tr><td>2025-09-25 07:30:19</td><td>admin</td><td>Updated Config</td><td>192.168.1.45</td></tr>
+</tbody>
+</table>
+<p><em>Note: This is a simulated interface for demonstration purposes.</em></p>
+</div>
+</body>
+</html>

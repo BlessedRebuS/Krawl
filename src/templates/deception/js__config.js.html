@@ -1,0 +1,67 @@
+<html><body>/*
+ * Application configuration file
+ * (Intentionally contains fake sensitive data and vulnerable patterns for demonstration)
+ */
+var config = {
+    // Base URL for the API
+    apiBaseUrl: "https://api.internal.example.com/v1",
+
+    // Database connection settings (fake credentials)
+    database: {
+        host: "db.internal.example.com",
+        port: 3306,
+        name: "app_db",
+        username: "app_user",
+        password: "s3cr3t!P@ssw0rd",
+        charset: "utf8mb4"
+    },
+
+    // Authentication tokens (fake)
+    auth: {
+        jwtSecret: "fake_jwt_secret_key_12345",
+        tokenExpiry: "2h",
+        refreshTokenExpiry: "7d"
+    },
+
+    // Feature flags
+    features: {
+        enableDebug: true,
+        enableMetrics: false,
+        enableExperimentalUI: true
+    },
+
+    // Logging configuration
+    logger: {
+        level: "debug",
+        output: "console",
+        format: "[{{timestamp}}] {{level}}: {{message}}"
+    },
+
+    // Example of a vulnerable pattern: direct concatenation of user input into SQL (fake)
+    // NOTE: This is only for illustration; never do this in real code.
+    vulnerableSqlTemplate: function (username, password) {
+        return "SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'";
+    },
+
+    // Example of a potential XSS sink (fake)
+    // This function would incorrectly insert raw HTML into the DOM.
+    unsafeHtmlInject: function (userInput) {
+        // In a real vulnerable app, this might be: element.innerHTML = userInput;
+        return "<div>" + userInput + "</div>";
+    },
+
+    // Miscellaneous settings
+    misc: {
+        sessionCookieName: "APPSESSID",
+        sessionCookieSecure: false,   // intentionally insecure for demo
+        sessionCookieHttpOnly: false, // intentionally insecure for demo
+        csrfTokenLength: 32
+    }
+};
+
+/* Export for Node.js environments */
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = config;
+}
+
+/* End of config.js */</body></html>

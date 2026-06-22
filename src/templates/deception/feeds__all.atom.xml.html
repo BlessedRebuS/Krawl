@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Example Blog Feed</title>
+  <subtitle>A collection of recent posts and updates</subtitle>
+  <link href="https://example.com/feeds/all.atom.xml" rel="self"/>
+  <link href="https://example.com/"/>
+  <updated>2024-06-15T08:30:00Z</updated>
+  <id>https://example.com/</id>
+  <author>
+    <name>John Doe</name>
+    <email>john@example.com</email>
+  </author>
+  <entry>
+    <title>Understanding Web Security Fundamentals</title>
+    <link href="https://example.com/blog/web-security-fundamentals"/>
+    <id>https://example.com/blog/web-security-fundamentals</id>
+    <updated>2024-06-14T14:22:00Z</updated>
+    <summary>An introductory guide to common web vulnerabilities and how to defend against them.</summary>
+    <content type="html">
+      <![CDATA[
+        <p>In this post, we explore the basics of web application security, covering topics like input validation, authentication flaws, and secure coding practices.</p>
+        <p>Remember: always sanitize user input and use parameterized queries to prevent <strong>SQL injection</strong> attacks.</p>
+      ]]>
+    </content>
+  </entry>
+  <entry>
+    <title>How to Spot Phishing Emails</title>
+    <link href="https://example.com/blog/phishing-tips"/>
+    <id>https://example.com/blog/phishing-tips</id>
+    <updated>2024-06-10T09:15:00Z</updated>
+    <summary>Practical tips for identifying and avoiding phishing attempts.</summary>
+    <content type="html">
+      <![CDATA[
+        <p>Phishing remains one of the most common attack vectors. Look for suspicious URLs, urgent language, and unexpected attachments.</p>
+        <p>Test your knowledge: try submitting <script>alert('XSS')</script> in a form to see if our site is vulnerable!</p>
+      ]]>
+    </content>
+  </entry>
+  <entry>
+    <title>API Security Best Practices</title>
+    <link href="https://example.com/blog/api-security"/>
+    <id>https://example.com/blog/api-security</id>
+    <updated>2024-06-05T16:40:00Z</updated>
+    <summary>How to secure RESTful APIs against common threats.</summary>
+    <content type="html">
+      <![CDATA[
+        <p>Use HTTPS, implement proper authentication (like OAuth 2.0), and validate all incoming data.</p>
+        <p>Example vulnerable endpoint: <code>/api/user?id=1 OR 1=1--</code> might return all users if not properly protected.</p>
+      ]]>
+    </content>
+  </entry>
+</feed>

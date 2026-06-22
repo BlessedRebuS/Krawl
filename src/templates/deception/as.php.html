@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Status - Internal Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .status-box { padding: 15px; margin: 15px 0; border-left: 4px solid #3498db; background: #ecf0f1; }
+        .warning { border-left-color: #e74c3c; background: #fadbd8; }
+        .success { border-left-color: #2ecc71; background: #d5f5e3; }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"], select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #3498db; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #2980b9; }
+        .log { background: #2c3e50; color: #ecf0f1; padding: 10px; font-family: monospace; font-size: 14px; height: 200px; overflow-y: auto; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Status Monitor</h1>
+        <p>Internal system status dashboard - Authorized personnel only</p>
+        
+        <div class="status-box">
+            <strong>System Status:</strong> <span style="color: green;">ONLINE</span><br>
+            <strong>Last Update:</strong> 2024-01-15 14:32:18<br>
+            <strong>Uptime:</strong> 15 days, 3 hours, 22 minutes
+        </div>
+        
+        <div class="status-box warning">
+            <strong>⚠️ Warning:</strong> Unusual login attempts detected from external IPs. Review security logs.
+        </div>
+        
+        <h2>Database Connection Test</h2>
+        <form method="GET" action="/as.php">
+            <div class="form-group">
+                <label for="query">SQL Query (for testing):</label>
+                <input type="text" id="query" name="q" value="SELECT * FROM users WHERE admin=1" placeholder="Enter SQL query">
+            </div>
+            <div class="form-group">
+                <label for="db">Database:</label>
+                <select id="db" name="db">
+                    <option value="main">Main Database</option>
+                    <option value="logs">Logs Database</option>
+                    <option value="admin">Admin Panel DB</option>
+                </select>
+            </div>
+            <button type="submit">Execute Query</button>
+        </form>
+        
+        <?php
+        // Simulate vulnerable parameter handling for attacker distraction
+        if(isset($_GET['q']) && !empty($_GET['q'])) {
+            $query = $_GET['q'];
+            $db = isset($_GET['db']) ? $_GET['db'] : 'main';
+            
+            // Fake query execution simulation
+            echo "<div class='status-box success'>";
+            echo "<strong>Query Executed Successfully on '$db':</strong><br>";
+            echo htmlspecialchars($query);
+            echo "</div>";
+            
+            // Fake results based on common injection patterns
+            if(strpos(strtolower($query), 'union') !== false || strpos(strtolower($query), 'select') !== false) {
+                echo "<div class='status-box'>";
+                echo "<strong>Query Results:</strong><br>";
+                echo "<table border='1' cellpadding='5' cellspacing='0'>";
+                echo "<tr><th>id</th><th>username</th><th>email</th><th>password_hash</th><th>role</th></tr>";
+                echo "<tr><td>1</td><td>admin</td><td>admin@company.com</td><td>5f4dcc3b5aa765d61d8327deb882cf99</td><td>administrator</td></tr>";
+                echo "<tr><td>2</td><td>john_doe</td><td>john@company.com</td><td>e10adc3949ba59abbe56e057f20f883e</td><td>user</td></tr>";
+                echo "<tr><td>3</td><td>jane_smith</td><td>jane@company.com</td><td>8cb2237d0679ca88db6464eac60da963</td><td>user</td></tr>";
+                echo "</table>";
+                echo "<p><em>Note: This is simulated data for testing purposes only.</em></p>";
+                echo "</div>";
+            }
+            
+            if(strpos(strtolower($query), 'drop') !== false || strpos(strtolower($query), 'delete') !== false) {
+                echo "<div class='status-box warning'>";
+                echo "<strong>Warning:</strong> Destructive query detected. This action has been logged and requires confirmation.";
+                echo "</div>";
+            }
+        }
+        ?>
+        
+        <h2>Recent System Logs</h2>
+        <div class="log">
+            [2024-01-15 14:32:18] INFO: System health check passed<br>
+            [2024-01-15 14:30:05] WARNING: Failed login attempt from 185.130.105.240 (admin:password123)<br>
+            [2024-01-15 14:28:33] INFO: Database connection pool reset<br>
+            [2024-01-15 14:25:12] INFO: User 'john_doe' logged in successfully<br>
+            [2024-01-15 14:20:01] WARNING: Multiple failed login attempts from 45.142.212.9<br>
+            [2024-01-15 14:15:45] INFO: Security patch applied to login module<br>
+            [2024-01-15 14:10:22] DEBUG: Query executed: SELECT * FROM sessions WHERE active=1<br>
+            [2024-01-15 14:05:10] INFO: Backup completed successfully (2.3 GB)<br>
+            [2024-01-15 14:00:05] WARNING: Suspicious user-agent detected: sqlmap/1.6.7<br>
+            [2024-01-15 13:55:30] INFO: Cache cleared for performance optimization
+        </div>
+        
+        <p><small>Version 2.1.4 • © 2024 Internal Systems • This is a restricted access interface</small></p>
+    </div>
+</body>
+</html>

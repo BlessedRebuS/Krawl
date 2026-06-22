@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posts - WordPress REST API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+        .post { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
+        .post-title { font-size: 1.2em; font-weight: bold; margin-bottom: 5px; }
+        .post-author { color: #666; font-style: italic; }
+        .post-excerpt { color: #555; }
+        .meta { font-size: 0.9em; color: #888; margin-top: 10px; }
+        .error { color: #d32f2f; background: #ffebee; padding: 10px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>WordPress REST API</h1>
+            <p>Endpoint: /wp-json/wp/v2/posts</p>
+        </div>
+        
+        <div class="posts">
+            <div class="post">
+                <h2 class="post-title">Understanding Website Security Best Practices</h2>
+                <p class="post-author">By: admin</p>
+                <p class="post-excerpt">Learn essential security measures every website owner should implement to protect against common vulnerabilities and attacks.</p>
+                <div class="meta">
+                    Published: March 15, 2024 | Category: Security | Tags: security, wordpress, best practices
+                </div>
+            </div>
+            
+            <div class="post">
+                <h2 class="post-title">How to Optimize Your WordPress Site for Speed</h2>
+                <p class="post-author">By: editor</p>
+                <p class="post-excerpt">Performance optimization techniques including caching, image compression, and database cleanup for faster loading times.</p>
+                <div class="meta">
+                    Published: March 10, 2024 | Category: Performance | Tags: performance, optimization, speed
+                </div>
+            </div>
+            
+            <div class="post">
+                <h2 class="post-title">Common PHP Vulnerabilities and How to Prevent Them</h2>
+                <p class="post-author">By: developer</p>
+                <p class="post-excerpt">An in-depth look at SQL injection, XSS, and other PHP-specific vulnerabilities with practical prevention strategies.</p>
+                <div class="meta">
+                    Published: March 5, 2024 | Category: Development | Tags: php, security, vulnerabilities
+                </div>
+            </div>
+            
+            <div class="post">
+                <h2 class="post-title">Setting Up SSL Certificates for Your Website</h2>
+                <p class="post-author">By: admin</p>
+                <p class="post-excerpt">Step-by-step guide to obtaining and installing SSL/TLS certificates to enable HTTPS and improve site security.</p>
+                <div class="meta">
+                    Published: February 28, 2024 | Category: Security | Tags: ssl, tls, https, encryption
+                </div>
+            </div>
+            
+            <div class="post">
+                <h2 class="post-title">Backup Strategies for WordPress Sites</h2>
+                <p class="post-author">By: editor</p>
+                <p class="post-excerpt">Reliable backup solutions and disaster recovery planning to protect your WordPress site from data loss.</p>
+                <div class="meta">
+                    Published: February 20, 2024 | Category: Maintenance | Tags: backup, disaster recovery, maintenance
+                </div>
+            </div>
+            
+            <div class="post">
+                <h2 class="post-title">Understanding User Roles and Permissions in WordPress</h2>
+                <p class="post-author">By: developer</p>
+                <p class="post-excerpt">Guide to WordPress user roles, capabilities, and how to properly manage access control for multi-author sites.</p>
+                <div class="meta">
+                    Published: February 15, 2024 | Category: Administration | Tags: user roles, permissions, access control
+                </div>
+            </div>
+            
+            <div class="post">
+                <h2 class="post-title">Preventing Comment Spam Without Plugins</h2>
+                <p class="post-author">By: admin</p>
+                <p class="post-excerpt">Effective techniques to reduce comment spam using built-in WordPress features and server-level configurations.</p>
+                <div class="meta">
+                    Published: February 10, 2024 | Category: Discussion | Tags: spam, comments, moderation
+                </div>
+            </div>
+            
+            <div class="post">
+                <h2 class="post-title">Monitoring Website Uptime and Performance</h2>
+                <p class="post-author">By: editor</p>
+                <p class="post-excerpt">Tools and techniques for tracking site availability, response times, and performance metrics to ensure optimal user experience.</p>
+                <div class="meta">
+                    Published: February 5, 2024 | Category: Monitoring | Tags: uptime, performance, monitoring
+                </div>
+            </div>
+            
+            <div class="post">
+                <h2 class="post-title">Securing WordPress Against Brute Force Attacks</h2>
+                <p class="post-author">By: developer</p>
+                <p class="post-excerpt">Implementation of login attempt limits, two-factor authentication, and other measures to prevent unauthorized access.</p>
+                <div class="meta">
+                    Published: January 30, 2024 | Category: Security | Tags: brute force, authentication, security
+                </div>
+            </div>
+        </div>
+        
+        <div class="meta" style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; font-size: 0.9em; color: #666;">
+            Showing 1-10 of 12 posts | <a href="/wp-json/wp/v2/posts?per_page=100&_fields=author&page=2">Next page →</a>
+        </div>
+    </div>
+</body>
+</html>

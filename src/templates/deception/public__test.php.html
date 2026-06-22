@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Page - Public</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:20px;}
+        .container {max-width:600px;}
+        .note {color:#555; font-size:0.9em;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Public Test Page</h1>
+        <p class="note">This page is used for internal testing. Do not share.</p>
+        <form method="GET" action="/public/test.php">
+            <label for="name">Name:</label><br>
+            <input type="text" id="name" name="name" value=""><br><br>
+            <label for="comment">Comment:</label><br>
+            <textarea id="comment" name="comment" rows="4" cols="50"></textarea><br><br>
+            <input type="submit" value="Submit">
+        </form>
+        <hr>
+        <h2>Submitted Data (if any)</h2>
+        <p>Name: John Doe</p>
+        <p>Comment: This is a test comment.</p>
+        <p>Query String: ?name=John+Doe&comment=This+is+a+test+comment.</p>
+        <!-- Simulated debug info: SELECT * FROM users WHERE name='John Doe' -->
+    </div>
+</body>
+</html>

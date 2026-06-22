@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Server-Sent Events Demo - Internal Dashboard</title>
+<style>
+body {font-family: Arial, sans-serif; margin: 2em; background:#f8f9fa;}
+#log {border:1px solid #ccc; padding:1em; height:300px; overflow-y:auto; background:#fff;}
+input[type=text]{width:60%; padding:0.5em;}
+button{padding:0.5em 1em;}
+</style>
+</head>
+<body>
+<h1>Server-Sent Events Demo</h1>
+<p>This page demonstrates real-time updates using Server-Sent Events.</p>
+<div>
+<label for="msg">Send a test message:</label>
+<input type="text" id="msg" placeholder="Type a message">
+<button id="sendBtn">Send</button>
+</div>
+<hr>
+<h2>Event Log</h2>
+<div id="log"></div>
+
+<script>
+const evtSource = new EventSource("/sse/stream");
+evtSource.onmessage = function(e) {
+    const log = document.getElementById('log');
+    const entry = document.createElement('div');
+    entry.textContent = new Date().toLocaleTimeString() + ': ' + e.data;
+    log.appendChild(entry);
+    log.scrollTop = log.scrollHeight;
+};
+evtSource.onerror = function(err) {
+    console.error("SSE error", err);
+    evtSource.close();
+};
+
+document.getElementById('sendBtn').addEventListener('click', function() {
+    const msg = document.getElementById('msg').value.trim();
+    if (msg) {
+        // Simulate sending via a vulnerable GET endpoint (reflected XSS)
+        fetch('/sse/send?msg=' + encodeURIComponent(msg))
+            .then(r => r.text())
+            .then(() => { document.getElementById('msg').value = ''; })
+            .catch(console.error);
+    }
+});
+</script>
+</body>
+</html>

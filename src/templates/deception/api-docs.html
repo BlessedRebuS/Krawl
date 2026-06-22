@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>API Documentation - Example Corp</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        .endpoint {background:#fff; border:1px solid #ddd; padding:15px; margin-bottom:20px; border-radius:5px;}
+        .method {display:inline-block; padding:3px 8px; border-radius:3px; font-weight:bold; color:#fff;}
+        .get {background:#27ae60;}
+        .post {background:#2980b9;}
+        .put {background:#f39c12;}
+        .delete {background:#c0392b;}
+        code {background:#ecf0f1; padding:2px 4px; border-radius:3px;}
+        pre {background:#ecf0f1; padding:10px; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>Example Corp Public API</h1>
+    <p>Version 1.2.0 – Last updated: 2024-10-12</p>
+
+    <section>
+        <h2>Authentication</h2>
+        <p>All requests must include an <code>Authorization</code> header with a Bearer token obtained from the <a href="/auth/token">/auth/token</a> endpoint.</p>
+        <pre>Authorization: Bearer &lt;your_access_token&gt;</pre>
+    </section>
+
+    <section class="endpoint">
+        <h3><span class="method get">GET</span> /users</h3>
+        <p>Retrieve a paginated list of users.</p>
+        <h4>Query Parameters</h4>
+        <ul>
+            <li><code>page</code> (integer, optional) – Page number, default 1.</li>
+            <li><code>limit</code> (integer, optional) – Items per page, default 20, max 100.</li>
+            <li><code>search</code> (string, optional) – Filter by username or email.</li>
+        </ul>
+        <h4>Response (200 OK)</h4>
+        <pre>{
+  "page": 1,
+  "limit": 20,
+  "total": 152,
+  "data": [
+    {"id": 101, "username": "alice", "email": "alice@example.com", "created_at": "2023-05-14T08:30:00Z"},
+    {"id": 102, "username": "bob",   "email": "bob@example.com",   "created_at": "2023-06-02T12:45:00Z"}
+    // ... more users
+  ]
+}</pre>
+    </section>
+
+    <section class="endpoint">
+        <h3><span class="method post">POST</span> /users</h3>
+        <p>Create a new user account.</p>
+        <h4>Request Body</h4>
+        <pre>{
+  "username": "newuser",
+  "email": "newuser@example.com",
+  "password": "StrongP@ssw0rd!"
+}</pre>
+        <h4>Response (201 Created)</h4>
+        <pre>{
+  "id": 153,
+  "username": "newuser",
+  "email": "newuser@example.com",
+  "created_at": "2024-11-02T09:12:45Z"
+}</pre>
+    </section>
+
+    <section class="endpoint">
+        <h3><span class="method get">GET</span> /users/{id}</h3>
+        <p>Get details for a specific user.</p>
+        <h4>Path Parameter</h4>
+        <ul><li><code>id</code> (integer) – User ID.</li></ul>
+        <h4>Response (200 OK)</h4>
+        <pre>{
+  "id": 101,
+  "username": "alice",
+  "email": "alice@example.com",
+  "profile": {
+    "first_name": "Alice",
+    "last_name": "Smith",
+    "avatar_url": "https://example.com/avatars/101.jpg"
+  },
+  "created_at": "2023-05-14T08:30:00Z",
+  "last_login": "2024-10-30T14:22:10Z"
+}</pre>
+    </section>
+
+    <section class="endpoint">
+        <h3><span class="method put">PUT</span> /users/{id}</h3>
+        <p>Update user information (requires ownership or admin).</p>
+        <h4>Request Body (partial update allowed)</h4>
+        <pre>{
+  "email": "alice.new@example.com",
+  "profile": {"first_name": "Alicia"}
+}</pre>
+        <h4>Response (200 OK)</h4>
+        <pre>{"status": "updated"}</pre>
+    </section>
+
+    <section class="endpoint">
+        <h3><span class="method delete">DELETE</span> /users/{id}</h3>
+        <p>Delete a user account.</p>
+        <h4>Response (204 No Content)</h4>
+        <p>(No body)</p>
+    </section>
+
+    <footer>
+        <hr>
+        <p>© 2024 Example Corp. All rights reserved.</p>
+        <p><a href="/">Home</a> | <a href="/support">Support</a> | <a href="/terms">Terms of Service</a></p>
+    </footer>
+</body>
+</html>

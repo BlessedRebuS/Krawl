@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebServers.xml</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; margin:2em;}
+        pre {background:#eee; padding:1em; border:1px solid #ccc;}
+    </style>
+</head>
+<body>
+    <h1>Web Servers Configuration</h1>
+    <p>This file contains the list of web servers used internally.</p>
+    <pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;WebServers&gt;
+    &lt;Server&gt;
+        &lt;Name&gt;web01&lt;/Name&gt;
+        &lt;IP&gt;10.0.1.12&lt;/IP&gt;
+        &lt;Port&gt;80&lt;/Port&gt;
+        &lt;Status&gt;Active&lt;/Status&gt;
+    &lt;/Server&gt;
+    &lt;Server&gt;
+        &lt;Name&gt;web02&lt;/Name&gt;
+        &lt;IP&gt;10.0.1.13&lt;/IP&gt;
+        &lt;Port&gt;8080&lt;/Port&gt;
+        &lt;Status&gt;Maintenance&lt;/Status&gt;
+    &lt;/Server&gt;
+    &lt;Server&gt;
+        &lt;Name&gt;web03&lt;/Name&gt;
+        &lt;IP&gt;10.0.1.14&lt;/IP&gt;
+        &lt;Port&gt;443&lt;/Port&gt;
+        &lt;Status&gt;Active&lt;/Status&gt;
+    &lt;/Server&gt;
+&lt;/WebServers&gt;
+    </pre>
+</body>
+</html>

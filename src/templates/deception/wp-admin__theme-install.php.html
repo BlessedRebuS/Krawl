@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Install Themes - WordPress</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans%3A400italic%2C600italic%2C400%2C600&amp;display=swap">
+    <link rel="stylesheet" href="/wp-admin/css/wp-admin.min.css?ver=6.5.2">
+    <link rel="stylesheet" href="/wp-admin/css/colors-fresh.min.css?ver=6.5.2">
+    <style>
+        .wp-core-ui .form-table { max-width: 600px; margin: 20px auto; }
+        .wp-core-ui .button { background: #007cba; border-color: #00629b; color: #fff; }
+        .wp-core-ui .button:hover { background: #00629b; border-color: #004c80; }
+        .notice { padding: 10px; margin: 15px 0; border-left: 4px solid; }
+        .notice-info { background: #e6f4f7; border-color: #b4d8e6; color: #317d8f; }
+        .notice-error { background: #f7e6e6; border-color: #d4b4b4; color: #8a1f11; }
+    </style>
+</head>
+<body class="wp-admin wp-core-ui no-js theme-install-php">
+    <a href="#wpcontent" class="screen-reader-text skip-link">Skip to content</a>
+    <div id="wpwrap">
+        <div id="wpcontent" class="wp-clearfix">
+            <div id="wpbody">
+                <div id="wpbody-content">
+                    <div class="wrap">
+                        <h1>Install Themes</h1>
+                        <p class="description">You can install themes from the WordPress theme directory or upload a theme in .zip format.</p>
+                        
+                        <h2 class="nav-tab-wrapper">
+                            <a href="/wp-admin/theme-install.php?tab=featured" class="nav-tab">Featured</a>
+                            <a href="/wp-admin/theme-install.php?tab=popular" class="nav-tab">Popular</a>
+                            <a href="/wp-admin/theme-install.php?tab=latest" class="nav-tab">Latest</a>
+                            <a href="/wp-admin/theme-install.php?tab=favorites" class="nav-tab">Favorites</a>
+                            <a href="/wp-admin/theme-install.php?tab=upload" class="nav-tab nav-tab-active">Upload Theme</a>
+                        </h2>
+                        
+                        <form method="post" enctype="multipart/form-data" class="wp-upload-form" id="theme-upload">
+                            <input type="hidden" name="_wpnonce" value="a1b2c3d4e5f6">
+                            <input type="hidden" name="_wp_http_referer" value="/wp-admin/theme-install.php?tab=upload">
+                            <input type="hidden" name="action" value="upload">
+                            
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><label for="themezip">Choose a .zip file</label></th>
+                                    <td>
+                                        <input type="file" id="themezip" name="themezip" accept=".zip" required>
+                                        <p class="help">You may only upload a valid .zip file containing a WordPress theme.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p class="submit">
+                                <input type="submit" class="button button-primary button-hero" value="Install Now" id="submit">
+                            </p>
+                        </form>
+                        
+                        <div class="notice notice-info">
+                            <p><strong>Note:</strong> If you encounter issues uploading themes, please ensure your PHP configuration allows file uploads and that the upload_max_filesize and post_max_size directives are set appropriately.</p>
+                        </div>
+                        
+                        <div class="notice notice-error" id="upload-error" style="display:none;">
+                            <p><strong>Error:</strong> The uploaded file could not be moved to /var/www/html/wp-content/themes/</p>
+                        </div>
+                        
+                        <hr>
+                        <h2>Or search for themes</h2>
+                        <form method="get" action="/wp-admin/theme-install.php" class="search-form">
+                            <input type="hidden" name="tab" value="search">
+                            <input type="search" name="s" placeholder="Search themes…" value="">
+                            <input type="submit" class="button" value="Search">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Fake client-side validation for realism
+        document.getElementById('theme-upload').addEventListener('submit', function(e) {
+            const fileInput = document.getElementById('themezip');
+            if (fileInput.files.length > 0) {
+                const fileName = fileInput.files[0].name.toLowerCase();
+                if (!fileName.endsWith('.zip')) {
+                    e.preventDefault();
+                    alert('Please select a valid .zip file.');
+                    return false;
+                }
+                
+                // Simulate malicious file detection bypass attempt
+                if (fileName.includes('shell') || fileName.includes('php') || fileName.includes('.zip.php')) {
+                    // Don't prevent submit - let it go to server for fake processing
+                    // This creates a tempting target for attackers
+                    setTimeout(() => {
+                        document.getElementById('upload-error').style.display = 'block';
+                    }, 1500);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload - Livewire</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; text-align: center; }
+        .upload-area { border: 2px dashed #ccc; border-radius: 8px; padding: 40px; text-align: center; margin: 20px 0; background-color: #fafafa; }
+        .upload-area:hover { border-color: #999; background-color: #f0f0f0; }
+        button { background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+        .file-info { margin-top: 15px; font-size: 14px; color: #666; }
+        .note { font-size: 13px; color: #888; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Livewire File Upload</h1>
+        <p>Upload your files securely using our Livewire-powered interface.</p>
+        
+        <div class="upload-area" id="uploadArea">
+            <p>Drag and drop files here</p>
+            <p>or</p>
+            <button type="button" id="browseBtn">Browse Files</button>
+            <input type="file" id="fileInput" style="display: none;" multiple>
+        </div>
+        
+        <div class="file-info" id="fileInfo">
+            <!-- File info will appear here via Livewire -->
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button type="button" id="uploadBtn" disabled>Upload Files</button>
+        </div>
+        
+        <div class="note">
+            <p>Note: Maximum file size is 10MB. Supported formats: JPG, PNG, PDF, DOC, DOCX.</p>
+            <p>All uploads are scanned for viruses and malware before processing.</p>
+        </div>
+    </div>
+
+    <script>
+        // Simulate Livewire-like behavior for demo purposes
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const browseBtn = document.getElementById('browseBtn');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const fileInfo = document.getElementById('fileInfo');
+            
+            browseBtn.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', function(e) {
+                const files = Array.from(e.target.files);
+                if (files.length === 0) return;
+                
+                fileInfo.innerHTML = `
+                    <strong>${files.length} file(s) selected:</strong><br>
+                    ${files.map(f => `• ${f.name} (${Math.round(f.size / 1024)} KB)`).join('<br>')}
+                `;
+                uploadBtn.disabled = false;
+            });
+            
+            // Drag and drop
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#007bff';
+                uploadArea.style.backgroundColor = '#e7f3ff';
+            });
+            
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#ccc';
+                uploadArea.style.backgroundColor = '#fafafa';
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.style.borderColor = '#ccc';
+                uploadArea.style.backgroundColor = '#fafafa';
+                
+                const files = Array.from(e.dataTransfer.files);
+                if (files.length === 0) return;
+                
+                fileInput.files = e.dataTransfer.files;
+                fileInfo.innerHTML = `
+                    <strong>${files.length} file(s) selected:</strong><br>
+                    ${files.map(f => `• ${f.name} (${Math.round(f.size / 1024)} KB)`).join('<br>')}
+                `;
+                uploadBtn.disabled = false;
+            });
+            
+            uploadBtn.addEventListener('click', function() {
+                const files = fileInput.files;
+                if (files.length === 0) return;
+                
+                uploadBtn.disabled = true;
+                uploadBtn.textContent = 'Uploading...';
+                
+                // Simulate upload delay
+                setTimeout(() => {
+                    alert('Files uploaded successfully! (Simulated response)');
+                    uploadBtn.textContent = 'Upload Files';
+                    uploadBtn.disabled = false;
+                    fileInput.value = '';
+                    fileInfo.innerHTML = '';
+                }, 1500);
+            });
+        });
+    </script>
+</body>
+</html>

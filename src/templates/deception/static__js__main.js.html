@@ -1,0 +1,40 @@
+<html><body>// Main application script
+(function() {
+    var config = {
+        apiEndpoint: "/api/v1/data",
+        token: "fake_token_12345"
+    };
+
+    function fetchData() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", config.apiEndpoint + "?q=" + encodeURIComponent(document.getElementById('search').value), true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    displayResults(resp);
+                } catch(e) {
+                    console.error("Failed to parse JSON", e);
+                }
+            }
+        };
+        xhr.send();
+    }
+
+    function displayResults(data) {
+        var container = document.getElementById('results');
+        container.innerHTML = "";
+        data.forEach(function(item) {
+            var div = document.createElement('div');
+            div.innerHTML = "<h3>" + item.title + "</h3><p>" + item.description + "</p>";
+            container.appendChild(div);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var btn = document.getElementById('searchBtn');
+        if (btn) {
+            btn.addEventListener('click', fetchData);
+        }
+    });
+})();</body></html>

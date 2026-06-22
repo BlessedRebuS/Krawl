@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Intranet Portal - Example Corp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header {background:#004080; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#e2e8f0; padding:0.5rem; display:flex; justify-content:center; gap:1rem;}
+        nav a {color:#004080; text-decoration:none; font-weight:bold;}
+        nav a:hover {text-decoration:underline;}
+        .container {max-width:960px; margin:2rem auto; background:#fff; padding:1.5rem; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h2 {color:#004080;}
+        .card {border:1px solid #ddd; border-radius:5px; padding:1rem; margin-bottom:1rem; background:#fafafa;}
+        .card h3 {margin-top:0;}
+        footer {text-align:center; padding:1rem; margin-top:2rem; font-size:0.9rem; color:#666; background:#e2e8f0;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Example Corp Intranet</h1>
+        <p>Secure Internal Portal</p>
+    </header>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/reports">Reports</a>
+        <a href="/hr">HR</a>
+        <a href="/it-support">IT Support</a>
+        <a href="/logout">Logout</a>
+    </nav>
+    <div class="container">
+        <h2>Welcome, jdoe</h2>
+        <p>Last login: 2025-11-02 08:13:42 UTC</p>
+        <div class="card">
+            <h3>System Status</h3>
+            <p>All services operational.</p>
+            <ul>
+                <li>Web Server: <span style="color:green;">UP</span></li>
+                <li>Database: <span style="color:green;">UP</span></li>
+                <li>Mail Gateway: <span style="color:green;">UP</span></li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3>Announcements</h3>
+            <p><strong>2025-11-01:</strong> Mandatory security training scheduled for Nov 15.</p>
+            <p><strong>2025-10-28:</strong> New VPN client released. Download from <a href="/resources/vpn-client.zip">here</a>.</p>
+        </div>
+        <div class="card">
+            <h3>Quick Links</h3>
+            <ul>
+                <li><a href="/wiki">Internal Wiki</a></li>
+                <li><a href="/ticket">Submit Ticket</a></li>
+                <li><a href="/directory">Employee Directory</a></li>
+                <li><a href="/policies">Company Policies</a></li>
+            </ul>
+        </div>
+    </div>
+    <footer>
+        © 2025 Example Corp. All rights reserved. | <a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Use</a>
+    </footer>
+</body>
+</html>

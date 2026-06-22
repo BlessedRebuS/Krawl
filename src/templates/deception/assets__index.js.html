@@ -1,0 +1,53 @@
+<html><body>// assets/index.js
+(function() {
+    var config = {
+        apiEndpoint: '/api/v1/products',
+        token: 'a1b2c3d4e5f6g7h8i9j0',
+        debug: true,
+        version: '2.3.1'
+    };
+
+    function fetchProducts() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', config.apiEndpoint + '?limit=100', true);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + config.token);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    try {
+                        var resp = JSON.parse(xhr.responseText);
+                        renderProducts(resp.items);
+                    } catch (e) {
+                        if (config.debug) console.error('JSON parse error:', e);
+                    }
+                } else {
+                    if (config.debug) console.warn('Request failed with status:', xhr.status);
+                }
+            }
+        };
+        xhr.send();
+    }
+
+    function renderProducts(items) {
+        var container = document.getElementById('product-list');
+        if (!container) return;
+        container.innerHTML = '';
+        items.forEach(function(item) {
+            var div = document.createElement('div');
+            div.className = 'product-item';
+            div.innerHTML = '<h3>' + item.name + '</h3><p>Price: $' + item.price + '</p>';
+            container.appendChild(div);
+        });
+    }
+
+    // Expose for debugging
+    window._productConfig = config;
+    window.fetchProducts = fetchProducts;
+
+    // Auto-initialize if DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fetchProducts);
+    } else {
+        fetchProducts();
+    }
+})();</body></html>

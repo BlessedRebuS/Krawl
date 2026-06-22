@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Application Logs - /_utils/logs</title>
+<style>
+body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9;}
+h1 {color:#333;}
+.container {max-width:800px; margin:auto; background:#fff; padding:20px; border-radius:5px; box-shadow:0 0 10px rgba(0,0,0,.1);}
+pre {background:#f4f4f4; padding:10px; overflow:auto; border:1px solid #ddd;}
+.filter {margin-bottom:15px;}
+.filter input, .filter select, .filter button {padding:5px;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Application Logs</h1>
+<p>Showing last 50 lines of app logs (type=app).</p>
+<div class="filter">
+<label for="type">Log type:</label>
+<select id="type" name="type">
+<option value="app" selected>app</option>
+<option value="error">error</option>
+<option value="access">access</option>
+<option value="debug">debug</option>
+</select>
+<label for="lines">Lines:</label>
+<input type="number" id="lines" name="lines" value="50" min="1" max="500">
+<button onclick="location.href='/_utils/logs?type='+document.getElementById('type').value+'&lines='+document.getElementById('lines').value;">Refresh</button>
+</div>
+<pre id="log-output">[2025-09-24 10:12:01] INFO  Application started.
+[2025-09-24 10:12:05] DEBUG Loading configuration from /etc/app/config.yaml.
+[2025-09-24 10:12:07] INFO  Connected to database: postgresql://appuser:****@db.internal:5432/appdb
+[2025-09-24 10:12:09] WARN  Deprecated API call detected from /legacy endpoint.
+[2025-09-24 10:12:12] INFO  User login: alice@example.com (IP: 203.0.113.45)
+[2025-09-24 10:12:15] DEBUG Cache miss for key: session:alice
+[2025-09-24 10:12:18] INFO  Served GET /home (200) in 12ms
+[2025-09-24 10:12:20] ERROR Failed to connect to external payment gateway: timeout after 5000ms
+[2025-09-24 10:12:22] INFO  Retrying payment gateway connection...
+[2025-09-24 10:12:25] INFO  Payment gateway reconnected successfully.
+[2025-09-24 10:12:30] DEBUG Scheduled task 'cleanup-old-logs' executed.
+[2025-09-24 10:12:35] INFO  Health check passed.
+[2025-09-24 10:12:40] WARN  High memory usage detected: 78% of 8GB
+[2025-09-24 10:12:42] INFO  Garbage collection ran, freed 1.2GB.
+[2025-09-24 10:12:45] DEBUG New WebSocket connection from 198.51.100.22
+[2025-09-24 10:12:48] INFO  WebSocket authenticated for user bob@example.com
+[2025-09-24 10:12:50] ERROR Invalid JWT token received from 203.0.113.77
+[2025-09-24 10:12:53] INFO  Rate limit triggered for IP 203.0.113.77 (429)
+[2025-09-24 10:12:55] DEBUG Session expired for user charlie@example.com
+[2025-09-24 10:12:58] INFO  Backup job started (snapshot-20250924-1012)
+[2025-09-24 10:13:02] INFO  Backup completed successfully, size 4.3GB
+[2025-09-24 10:13:05] DEBUG Cleaning up temporary files in /tmp/app_*
+[2025-09-24 10:13:08] INFO  Temp cleanup removed 150 files.
+[2025-09-24 10:13:10] WARN  Deprecated library 'oldlib' version 1.2.3 still in use.
+[2025-09-24 10:13:13] INFO  License check passed.
+[2025-09-24 10:13:15] DEBUG Loaded plugin: analytics v2.1.0
+[2025-09-24 10:13:18] INFO  Plugin analytics initialized.
+[2025-09-24 10:13:20] ERROR Failed to send email via SMTP: authentication failure
+[2025-09-24 10:13:23] INFO  Queued email for later retry.
+[2025-09-24 10:13:25] DEBUG Checking for updates...
+[2025-09-24 10:13:28] INFO  No updates available.
+[2025-09-24 10:13:30] INFO  Daily report generated and emailed to admin@example.com
+[2025-09-24 10:13:33] WARN  Disk space low on /var/log: 12% remaining
+[2025-09-24 10:13:35] INFO  Log rotation triggered.
+[2025-09-24 10:13:38] DEBUG Rotated log file app.log.1 created.
+[2025-09-24 10:13:40] INFO  Application shutting down gracefully.
+[2025-09-24 10:13:42] INFO  Goodbye.
+</pre>
+</div>
+</body>
+</html>

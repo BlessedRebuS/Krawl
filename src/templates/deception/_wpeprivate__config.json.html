@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WP Engine Private Config</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; margin:0; padding:20px;}
+        h1 {color:#333;}
+        pre {background:#eee; padding:10px; border:1px solid #ccc; overflow:auto;}
+        a {color:#0066cc;}
+    </style>
+</head>
+<body>
+    <h1>WP Engine Private Configuration</h1>
+    <p>This file contains internal configuration settings.</p>
+    <pre>
+{
+  "database": {
+    "host": "db.internal.wpengine.com",
+    "user": "wp_user",
+    "password": "SuperSecretPass123!",
+    "name": "wp_prod"
+  },
+  "api": {
+    "endpoint": "https://api.wpengine.com/v1",
+    "key": "abcdef1234567890abcdef1234567890"
+  },
+  "cache": {
+    "redis": {
+      "host": "cache.internal.wpengine.com",
+      "port": 6379,
+      "auth": "redis_auth_token"
+    }
+  },
+  "debug": true,
+  "features": {
+    "auto_update": true,
+    "enable_xmlrpc": false
+  }
+}
+    </pre>
+    <p>For support, contact <a href="mailto:support@wpengine.com">support@wpengine.com</a></p>
+</body>
+</body>
+</html>

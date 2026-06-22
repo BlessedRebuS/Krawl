@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Input Processor - Inputs.php</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input[type="text"],
+        input[type="email"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 120px;
+            resize: vertical;
+        }
+        input[type="submit"] {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #ecf0f1;
+            border-left: 4px solid #3498db;
+            border-radius: 0 4px 4px 0;
+        }
+        .warning {
+            background-color: #fadbd8;
+            border-left-color: #e74c3c;
+            color: #922b21;
+        }
+        .info {
+            background-color: #d5f5e3;
+            border-left-color: #27ae60;
+            color: #1e8449;
+        }
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>User Input Processor</h1>
+        <p>This utility processes user-submitted data for internal system validation. Please enter your information below for processing.</p>
+        
+        <form method="POST" action="/inputs.php">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address:</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="comments">Comments or Feedback:</label>
+                <textarea id="comments" name="comments" placeholder="Enter your thoughts here..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="preferences">Notification Preferences:</label><br>
+                <input type="checkbox" id="email_notif" name="preferences[]" value="email">
+                <label for="email_notif">Email notifications</label><br>
+                <input type="checkbox" id="sms_notif" name="preferences[]" value="sms">
+                <label for="sms_notif">SMS alerts</label><br>
+                <input type="checkbox" id="push_notif" name="preferences[]" value="push">
+                <label for="push_notif">Push notifications</label>
+            </div>
+            
+            <input type="submit" value="Submit Data">
+        </form>
+        
+        <?php
+        // Simulated PHP processing - in reality this would be server-side
+        // For honeypot purposes, we display fake processed data
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            $username = isset($_POST['username']) ? htmlspecialchars($_POST['username']) : '';
+            $email = isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '';
+            $comments = isset($_POST['comments']) ? htmlspecialchars($_POST['comments']) : '';
+            $preferences = isset($_POST['preferences']) && is_array($_POST['preferences']) ? $_POST['preferences'] : array();
+            
+            // Fake processed data display
+            echo '<div class="result info">';
+            echo '<h3>Processing Complete</h3>';
+            echo '<p><strong>Username:</strong> ' . $username . '</p>';
+            echo '<p><strong>Email:</strong> ' . $email . '</p>';
+            echo '<p><strong>Comments Received:</strong> ' . (empty($comments) ? 'None' : $comments) . '</p>';
+            echo '<p><strong>Notification Preferences:</strong> ' . (empty($preferences) ? 'None selected' : implode(', ', $preferences)) . '</p>';
+            echo '</div>';
+            
+            // Simulate a potential vulnerability indicator for attackers
+            echo '<div class="result warning">';
+            echo '<h3>System Note</h3>';
+            echo '<p>Debug mode: Input data temporarily stored in session for validation.</p>';
+            echo '<p>Query string length: ' . strlen($_SERVER['QUERY_STRING']) . ' characters.</p>';
+            echo '</div>';
+        }
+        ?>
+        
+        <hr>
+        <p><em>Note: This is an internal tool for system administrators. All submissions are logged for security auditing.</em></p>
+    </div>
+    
+    <footer>
+        © 2024 Internal Systems Division | Version 2.1.4<br>
+        <a href="/">Return to Homepage</a> | <a href="/admin/login.php">Admin Portal</a>
+    </footer>
+</body>
+</html>

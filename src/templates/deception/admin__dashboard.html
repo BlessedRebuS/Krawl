@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - SecureCorp Intranet</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .sidebar { background-color: #2c3e50; color: white; height: 100vh; }
+        .sidebar a { color: #ecf0f1; text-decoration: none; }
+        .sidebar a:hover { background-color: #34495e; }
+        .card { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-primary { background-color: #3498db; border: none; }
+        .btn-primary:hover { background-color: #2980b9; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-2 d-none d-md-block bg-dark sidebar">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/admin/dashboard">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/users">User Management</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/logs">System Logs</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/config">Configuration</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/backup">Backup & Restore</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/security">Security Settings</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Admin Dashboard</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary dropdown-toggle">
+                            <span data-feather="calendar"></span>
+                            This week
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card bg-primary text-white h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title">Total Users</h6>
+                                        <h2 class="display-4 fw-bold mb-0">1,247</h2>
+                                    </div>
+                                    <div class="align-self-end">
+                                        <i class="bi bi-people fs-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card bg-success text-white h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title">Active Sessions</h6>
+                                        <h2 class="display-4 fw-bold mb-0">89</h2>
+                                    </div>
+                                    <div class="align-self-end">
+                                        <i class="bi bi-pc-display fs-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card bg-warning text-white h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title">Pending Actions</h6>
+                                        <h2 class="display-4 fw-bold mb-0">12</h2>
+                                    </div>
+                                    <div class="align-self-end">
+                                        <i class="bi bi-exclamation-triangle fs-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card bg-danger text-white h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title">Security Alerts</h6>
+                                        <h2 class="display-4 fw-bold mb-0">3</h2>
+                                    </div>
+                                    <div class="align-self-end">
+                                        <i class="bi bi-shield-exclamation fs-1"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">System Activity</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Time</th>
+                                                <th>User</th>
+                                                <th>Action</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Just now</td>
+                                                <td>admin</td>
+                                                <td>Logged in from 192.168.1.105</td>
+                                                <td><span class="badge bg-success">Success</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>2 min ago</td>
+                                                <td>j.smith</td>
+                                                <td>Updated profile settings</td>
+                                                <td><span class="badge bg-info">Info</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>5 min ago</td>
+                                                <td>system</td>
+                                                <td>Backup completed successfully</td>
+                                                <td><span class="badge bg-success">Success</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>8 min ago</td>
+                                                <td>unknown</td>
+                                                <td>Failed login attempt from 10.0.0.45</td>
+                                                <td><span class="badge bg-danger">Failed</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>12 min ago</td>
+                                                <td>admin</td>
+                                                <td>Modified security policy</td>
+                                                <td><span class="badge bg-warning">Warning</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">Quick Actions</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="list-group">
+                                    <a href="/admin/users/create" class="list-group-item list-group-item-action">
+                                        <i class="bi bi-person-plus me-2"></i>Add New User
+                                    </a>
+                                    <a href="/admin/logs/export" class="list-group-item list-group-item-action">
+                                        <i class="bi bi-download me-2"></i>Export Logs
+                                    </a>
+                                    <a href="/admin/config/update" class="list-group-item list-group-item-action">
+                                        <i class="bi bi-gear me-2"></i>Update Configuration
+                                    </a>
+                                    <a href="/admin/backup/now" class="list-group-item list-group-item-action">
+                                        <i class="bi bi-arrow-clockwise me-2"></i>Run Backup Now
+                                    </a>
+                                    <a href="/admin/security/scan" class="list-group-item list-group-item-action">
+                                        <i class="bi bi-shield-lock me-2"></i>Run Security Scan
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.28.0/feather.min.js"></script>
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

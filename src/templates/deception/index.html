@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to TechSolutions Inc.</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .nav {
+            background-color: #3498db;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        .feature {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .login-form {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .login-form input {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            border: 1px solid #bdc3c7;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+        .login-form button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .login-form button:hover {
+            background-color: #219150;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>TechSolutions Inc.</h1>
+            <div class="nav">
+                <a href="/index.html">Home</a>
+                <a href="/about.html">About Us</a>
+                <a href="/services.html">Services</a>
+                <a href="/contact.html">Contact</a>
+                <a href="/login.html">Login</a>
+            </div>
+        </header>
+
+        <main>
+            <section class="feature">
+                <h2>Welcome to Our Company</h2>
+                <p>TechSolutions Inc. is a leading provider of innovative technology solutions for businesses of all sizes. We specialize in delivering cutting-edge software, cloud services, and IT consulting to help our clients achieve their digital transformation goals.</p>
+                <p>With over 15 years of experience in the industry, we have served more than 5,000 satisfied customers worldwide. Our team of experts is dedicated to providing reliable, secure, and scalable solutions tailored to your specific needs.</p>
+            </section>
+
+            <section class="feature">
+                <h2>Our Services</h2>
+                <ul>
+                    <li>Custom Software Development</li>
+                    <li>Cloud Migration & Management</li>
+                    <li>Cybersecurity Solutions</li>
+                    <li>Data Analytics & Business Intelligence</li>
+                    <li>IT Infrastructure Management</li>
+                    <li>AI & Machine Learning Integration</li>
+                </ul>
+            </section>
+
+            <section class="login-form">
+                <h2>Employee Login</h2>
+                <form action="/login.php" method="POST">
+                    <input type="text" name="username" placeholder="Username" required>
+                    <input type="password" name="password" placeholder="Password" required>
+                    <button type="submit">Login</button>
+                </form>
+                <p style="text-align: center; margin-top: 10px; font-size: 0.9em; color: #7f8c8d;">
+                    Forgot password? <a href="/reset.html">Click here</a>
+                </p>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 TechSolutions Inc. All rights reserved.</p>
+            <p>123 Technology Drive, San Francisco, CA 94107 | Phone: (555) 123-4567</p>
+            <p><a href="/privacy.html">Privacy Policy</a> | <a href="/terms.html">Terms of Service</a></p>
+        </footer>
+    </div>
+</body>
+</html>

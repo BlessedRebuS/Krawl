@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<htmllang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PHP Eval Stdin Utility</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; line-height: 1.6;}
+        h1, h2 {color: #2c3e50;}
+        textarea {width: 100%; max-width: 600px; font-family: monospace;}
+        pre {background: #f8f9fa; padding: 10px; border: 1px solid #ddd; overflow: auto;}
+        a {color: #2980b9; text-decoration: none;}
+        a:hover {text-decoration: underline;}
+    </style>
+</head>
+<body>
+    <h1>PHP Eval Stdin Utility</h1>
+    <p>This utility reads PHP code from standard input and evaluates it. Useful for testing snippets directly from the command line or via HTTP.</p>
+    <form method="post" enctype="text/plain">
+        <label for="code">PHP Code:</label><br>
+        <textarea id="code" name="code" rows="10" cols="60"><?php echo "Hello, World!"; ?></textarea><br><br>
+        <input type="submit" value="Execute">
+    </form>
+    <hr>
+    <h2>Example Output</h2>
+    <pre>Hello, World!</pre>
+    <p>For more information, see the <a href="/docs/phpunit/util/">PHPUnit Util documentation</a> or visit the <a href="/">project homepage</a>.</p>
+</body>
+</html>

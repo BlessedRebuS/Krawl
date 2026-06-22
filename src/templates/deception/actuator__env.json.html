@@ -1,0 +1,33 @@
+<html><body>{
+  "profiles": ["production"],
+  "env": {
+    "JAVA_HOME": "/usr/lib/jvm/java-11-openjdk-amd64",
+    "SPRING_APPLICATION_JSON": "{\"server.port\":8080,\"spring.datasource.url\":\"jdbc:mysql://localhost:3306/mydb\",\"spring.datasource.username\":\"admin\",\"spring.datasource.password\":\"secret123\"}",
+    "SPRING_DATASOURCE_URL": "jdbc:mysql://localhost:3306/mydb",
+    "SPRING_DATASOURCE_USERNAME": "admin",
+    "SPRING_DATASOURCE_PASSWORD": "secret123",
+    "SPRING_MAIL_HOST": "smtp.gmail.com",
+    "SPRING_MAIL_USERNAME": "admin@example.com",
+    "SPRING_MAIL_PASSWORD": "apppass123!",
+    "SPRING_REDIS_HOST": "redis.internal",
+    "SPRING_REDIS_PORT": "6379",
+    "SPRING_REDIS_PASSWORD": "redispass!@#",
+    "MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE": "*",
+    "MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS": "always"
+  },
+  "propertySources": [
+    {
+      "name": "applicationConfig: [classpath:/application.yml]",
+      "source": {
+        "server.port": "8080",
+        "spring.application.name": "user-service"
+      }
+    },
+    {
+      "name": "classpath:/application.properties",
+      "source": {
+        "logging.level.org.springframework": "INFO"
+      }
+    }
+  ]
+}</body></html>

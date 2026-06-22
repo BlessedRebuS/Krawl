@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Profile - WordPress</title>
+    <link rel="stylesheet" href="/wp-admin/css/wp-admin.min.css?ver=6.5.2">
+    <link rel="stylesheet" href="/wp-admin/css/colors?ver=6.5.2">
+    <script src="/wp-admin/js/jquery.min.js?ver=3.7.1"></script>
+    <script src="/wp-admin/js/common.min.js?ver=6.5.2"></script>
+    <style>
+        .form-table { width: 100%; margin: 20px 0; }
+        .form-table th { width: 20%; padding: 10px; font-weight: bold; text-align: left; }
+        .form-table td { padding: 10px; }
+        .form-table input[type="text"], .form-table input[type="email"], .form-table textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .form-table textarea { height: 100px; resize: vertical; }
+        .submit { margin-top: 20px; }
+        .button-primary { background: #0073aa; border-color: #0073aa; color: white; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-size: 14px; }
+        .button-primary:hover { background: #005a87; }
+        .notice { padding: 10px; margin: 20px 0; border-left: 4px solid; }
+        .notice-success { background: #e6ffed; border-color: #28a745; color: #155724; }
+        .notice-error { background: #ffe6e6; border-color: #dc3545; color: #721c24; }
+    </style>
+</head>
+<body class="wp-admin wp-core-ui no-js">
+    <div id="wpwrap">
+        <div id="adminmenuwrap">
+            <div id="adminmenu">
+                <ul>
+                    <li id="menu-dashboard" class="menu-top menu-icon-dashboard"><a href="/wp-admin/index.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Dashboard</div></a></li>
+                    <li id="menu-posts" class="menu-top menu-icon-post"><a href="/wp-admin/edit.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Posts</div></a></li>
+                    <li id="menu-media" class="menu-top menu-icon-media"><a href="/wp-admin/upload.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Media</div></a></li>
+                    <li id="menu-pages" class="menu-top menu-icon-page"><a href="/wp-admin/edit.php?post_type=page"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Pages</div></a></li>
+                    <li id="menu-comments" class="menu-top menu-icon-comment"><a href="/wp-admin/edit-comments.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Comments</div></a></li>
+                    <li id="menu-appearance" class="menu-top menu-icon-appearance"><a href="/wp-admin/themes.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Appearance</div></a></li>
+                    <li id="menu-plugins" class="menu-top menu-icon-plugins"><a href="/wp-admin/plugins.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Plugins</div></a></li>
+                    <li id="menu-users" class="menu-top menu-icon-users"><a href="/wp-admin/users.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Users</div></a></li>
+                    <li id="menu-tools" class="menu-top menu-icon-tools"><a href="/wp-admin/tools.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Tools</div></a></li>
+                    <li id="menu-settings" class="menu-top menu-icon-settings"><a href="/wp-admin/options-general.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Settings</div></a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="wpcontent">
+            <div id="wpbody">
+                <div id="wpbody-content">
+                    <div class="wrap">
+                        <h1>Your Profile</h1>
+                        
+                        <?php if (isset($_GET['updated']) && $_GET['updated'] == 'true'): ?>
+                            <div class="notice notice-success is-dismissible">
+                                <p>Profile updated.</p>
+                                <button type="button" class="notice-dismiss"><span class="screen-reader-text">Dismiss this notice.</span></button>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if (isset($_GET['error']) && $_GET['error'] == 'invalid_email'): ?>
+                            <div class="notice notice-error is-dismissible">
+                                <p>The email address you entered is invalid.</p>
+                                <button type="button" class="notice-dismiss"><span class="screen-reader_text">Dismiss this notice.</span></button>
+                            </div>
+                        <?php endif; ?>
+
+                        <form method="post" action="/wp-admin/profile.php" enctype="multipart/form-data">
+                            <input type="hidden" name="action" value="update">
+                            <input type="hidden" name="user_id" value="1">
+                            <input type="hidden" name="wp_http_referer" value="/wp-admin/profile.php">
+                            <input type="hidden" name="_wpnonce" value="abc123def456">
+                            
+                            <table class="form-table">
+                                <tr>
+                                    <th><label for="username">Username</label></th>
+                                    <td><input name="username" type="text" id="username" value="admin" class="regular-text" disabled></td>
+                                </tr>
+                                <tr>
+                                    <th><label for="email">Email</label></th>
+                                    <td><input name="email" type="email" id="email" value="admin@example.com" class="regular-text"><br>
+                                        <span class="description">This email address will be used for password resets and notifications.</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><label for="first_name">First Name</label></th>
+                                    <td><input name="first_name" type="text" id="first_name" value="John" class="regular-text"></td>
+                                </tr>
+                                <tr>
+                                    <th><label for="last_name">Last Name</label></th>
+                                    <td><input name="last_name" type="text" id="last_name" value="Doe" class="regular-text"></td>
+                                </tr>
+                                <tr>
+                                    <th><label for="nickname">Nickname</label></th>
+                                    <td><input name="nickname" type="text" id="nickname" value="johndoe" class="regular-text"><br>
+                                        <span class="description">This will be your display name if "Display name publicly as" is left blank.</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><label for="display_name">Display name publicly as</label></th>
+                                    <td>
+                                        <select name="display_name" id="display_name">
+                                            <option value="John Doe">John Doe</option>
+                                            <option value="johndoe">johndoe</option>
+                                            <option value="Admin">Admin</option>
+                                            <option value="admin">admin</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><label for="description">Biographical Info</label></th>
+                                    <td><textarea name="description" id="description" rows="5" cols="50">Senior developer with over 10 years of experience in web development and security. Passionate about creating robust, scalable applications.</textarea><br>
+                                        <span class="description">This biographical info is shown in your author archive and at the end of your posts.</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><label for="site">Website</label></th>
+                                    <td><input name="url" type="url" id="url" value="https://example.com" class="regular-text code"><br>
+                                        <span class="description">Enter your website URL (must start with http:// or https://).</span>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <h3>Account Management</h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th><label for="pass1">New Password</label></th>
+                                    <td>
+                                        <input name="pass1" type="password" id="pass1" size="16" value="" autocomplete="off"><br>
+                                        <span id="pass-strength-result">Enter new password twice</span><br>
+                                        <span class="description">If you would like to change your password, type a new one in both fields below (leave blank to keep current password).</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><label for="pass2">Repeat New Password</label></th>
+                                    <td>
+                                        <input name="pass2" type="password" id="pass2" size="16" value="" autocomplete="off"><br>
+                                        <span class="description">Type your new password again.</span>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p class="submit">
+                                <input type="submit" name="submit" id="submit" class="button-primary button-large" value="Update Profile">
+                                <a href="https://wordpress.org/support/" target="_blank">Need help?</a>
+                            </p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Fake client-side validation to appear realistic
+        document.getElementById('submit').addEventListener('click', function(e) {
+            const email = document.getElementById('email').value;
+            if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+                alert('Please enter a valid email address.');
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

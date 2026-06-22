@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>.kube/config</title>
+    <style>
+        body { font-family: monospace; background:#f8f8f8; color:#222; padding:20px; }
+        pre { background:#fff; padding:15px; border:1px solid #ccc; overflow:auto; }
+    </style>
+</head>
+<body>
+    <h1>Kubernetes Configuration File</h1>
+    <pre>
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSU...
+    server: https://k8s-master.example.com:6443
+  name: example-cluster
+contexts:
+- context:
+    cluster: example-cluster
+    user: example-user
+  name: example-context
+current-context: example-context
+kind: Config
+preferences: {}
+users:
+- name: example-user
+  user:
+    client-certificate-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSU...
+    client-key-data: LS0tLS1CRUdJTiBDS...
+    </pre>
+</body>
+</html>

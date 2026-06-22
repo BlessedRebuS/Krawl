@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>.yarnrc - Yarn Configuration</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; margin:2em;}
+        pre {background:#fff; padding:1em; border:1px solid #ccc;}
+    </style>
+</head>
+<body>
+    <h1>.yarnrc</h1>
+    <p>This is a sample Yarn RC configuration file.</p>
+    <pre>
+# Yarn RC file
+# This is a fake configuration for demonstration purposes
+
+# Set the registry to a custom mirror
+registry "https://registry.yarnpkg.com"
+
+# Enable offline mirror
+offline-mirror "./.offline-cache"
+
+# Set the cache folder
+cache-folder "~/.yarn/cache"
+
+# Disable progress bars
+progress false
+
+# Set the default version
+version-tag-prefix "v"
+
+# Additional settings
+enableGlobalCache true
+    </pre>
+    <p>For more information, see the <a href="https://yarnpkg.com/lang/en/docs/yarnrc/">Yarn RC documentation</a>.</p>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel - Login</title>
+    <style>
+        body {font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:20px;}
+        .container {max-width:400px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h2 {text-align:center; color:#333;}
+        label {display:block; margin-top:10px;}
+        input[type="text"], input[type="password"] {width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px;}
+        button {width:100%; padding:10px; margin-top:20px; background:#0066cc; color:#fff; border:none; border-radius:4px; cursor:pointer;}
+        button:hover {background:#004c99;}
+        .footer {text-align:center; margin-top:20px; font-size:0.9em; color:#777;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Admin Login</h2>
+    <form action="/2.php" method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <button type="submit">Login</button>
+    </form>
+    <div class="footer">
+        &copy; 2025 Company Intranet. All rights reserved.<br>
+        For support contact <a href="mailto:support@example.com">support@example.com</a>
+    </div>
+</div>
+</body>
+</html>

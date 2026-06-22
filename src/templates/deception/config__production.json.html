@@ -1,0 +1,125 @@
+<html><body>{
+  "environment": "production",
+  "debug": false,
+  "database": {
+    "host": "db-prod.internal",
+    "port": 5432,
+    "name": "app_prod",
+    "user": "prod_user",
+    "password": "s3cr3t_p@ssw0rd!2024",
+    "ssl": true,
+    "pool": {
+      "min": 2,
+      "max": 20
+    }
+  },
+  "redis": {
+    "host": "redis-prod.internal",
+    "port": 6379,
+    "password": "red1s_p@ss!2024",
+    "db": 0
+  },
+  "aws": {
+    "accessKeyId": "AKIAIOSFODNN7EXAMPLE",
+    "secretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+    "region": "us-east-1",
+    "s3Bucket": "app-prod-assets",
+    "snsTopicArn": "arn:aws:sns:us-east-1:123456789012:app-notifications"
+  },
+  "jwt": {
+    "secret": "super_secret_jwt_key_rotated_monthly_v3",
+    "expiresIn": "24h",
+    "algorithm": "HS256"
+  },
+  "email": {
+    "service": "SendGrid",
+    "apiKey": "SG.xxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "from": "no-reply@company.com",
+    "templates": {
+      "welcome": "d-welcome-template-id",
+      "reset": "d-reset-template-id",
+      "invoice": "d-invoice-template-id"
+    }
+  },
+  "externalApis": {
+    "stripe": {
+      "publishableKey": "pk_test_51Hxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "secretKey": "sk_test_51Hxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    "googleMaps": {
+      "apiKey": "AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    "twilio": {
+      "accountSid": "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "authToken": "your_twilio_auth_token_here",
+      "phoneNumber": "+1234567890"
+    }
+  },
+  "logging": {
+    "level": "info",
+    "transport": [
+      "console",
+      {
+        "type": "file",
+        "filename": "/var/log/app/prod.log",
+        "maxsize": 10485760,
+        "maxFiles": 5
+      },
+      {
+        "type": "http",
+        "url": "https://logs.internal.company.com/ingest",
+        "token": "log_ingest_token_abc123xyz"
+      }
+    ]
+  },
+  "featureFlags": {
+    "newUi": true,
+    "enablePayments": true,
+    "allowRegistration": false,
+    "maintenanceMode": false,
+    "betaFeatures": {
+      "aiChat": true,
+      "voiceCommands": false
+    }
+  },
+  "session": {
+    "cookieName": "app_session",
+    "secret": "session_secret_rotated_weekly",
+    "maxAge": 86400000,
+    "secure": true,
+    "httpOnly": true,
+    "sameSite": "strict"
+  },
+  "rateLimiting": {
+    "windowMs": 900000,
+    "max": 100,
+    "trustProxy": true
+  },
+  "cors": {
+    "origin": [
+      "https://app.company.com",
+      "https://portal.company.com",
+      "https://admin.company.com"
+    ],
+    "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "credentials": true
+  },
+  "monitoring": {
+    "sentry": {
+      "dsn": "https://xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx@o123456.ingest.sentry.io/123456",
+      "tracesSampleRate": 0.1
+    },
+    "datadog": {
+      "apiKey": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "appKey": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "host": "app-prod-01"
+    }
+  },
+  "backup": {
+    "enabled": true,
+    "schedule": "0 2 * * *",
+    "retentionDays": 30,
+    "destination": "s3://app-prod-backups/",
+    "encryptionKey": "backup_encryption_key_2024"
+  }
+}</body></html>

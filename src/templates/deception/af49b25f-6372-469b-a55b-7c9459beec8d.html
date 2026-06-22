@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .profile-info { margin: 20px 0; padding: 15px; background: #f9f9f9; border-left: 4px solid #007bff; }
+        .field { margin: 10px 0; }
+        .label { font-weight: bold; color: #555; }
+        .value { color: #333; }
+        .btn { display: inline-block; padding: 8px 16px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 5px; }
+        .btn:hover { background: #0056b3; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>User Profile Dashboard</h1>
+        <div class="warning">
+            <strong>Notice:</strong> This is a development environment. User data is simulated for testing purposes.
+        </div>
+        <div class="profile-info">
+            <div class="field"><span class="label">User ID:</span><span class="value">af49b25f-6372-469b-a55b-7c9459beec8d</span></div>
+            <div class="field"><span class="label">Username:</span><span class="value">johndoe_dev</span></div>
+            <div class="field"><span class="label">Email:</span><span class="value">johndoe@example.com</span></div>
+            <div class="field"><span class="label">Full Name:</span><span class="value">John Doe</span></div>
+            <div class="field"><span class="label">Role:</span><span class="value">Developer</span></div>
+            <div class="field"><span class="label">Status:</span><span class="value">Active</span></div>
+            <div class="field"><span class="label">Last Login:</span><span class="value">2024-01-15 14:32:10</span></div>
+            <div class="field"><span class="label">API Key:</span><span class="value">sk_live_51HpQvL2eZvKYlo2C9mNpQrS</span></div>
+        </div>
+        <div class="field">
+            <a href="/dashboard" class="btn">Back to Dashboard</a>
+            <a href="/settings" class="btn">Account Settings</a>
+            <a href="/logout" class="btn">Logout</a>
+        </div>
+        <hr>
+        <p><small>Server: Apache/2.4.41 (Ubuntu) | PHP/7.4.3 | Generated: 2024-01-15 14:35:22</small></p>
+    </div>
+</body>
+</html>

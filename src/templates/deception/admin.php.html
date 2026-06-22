@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Internal System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .nav { background: #ecf0f1; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .nav a { margin-right: 15px; text-decoration: none; color: #3498db; font-weight: bold; }
+        .nav a:hover { text-decoration: underline; }
+        .card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 20px; background: #fafafa; }
+        .card h3 { margin-top: 0; color: #2c3e50; }
+        .btn { display: inline-block; padding: 8px 16px; background: #3498db; color: white; text-decoration: none; border-radius: 4px; font-size: 14px; }
+        .btn:hover { background: #2980b9; }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        tr:hover { background-color: #f5f5f5; }
+        .status-ok { color: #27ae60; font-weight: bold; }
+        .status-warning { color: #f39c12; font-weight: bold; }
+        .status-error { color: #e74c3c; font-weight: bold; }
+        footer { text-align: center; margin-top: 30px; color: #7f8c8d; font-size: 14px; border-top: 1px solid #eee; padding-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        <div class="nav">
+            <a href="/admin.php">Dashboard</a>
+            <a href="/admin.php?action=users">Users</a>
+            <a href="/admin.php?action=logs">Logs</a>
+            <a href="/admin.php?action=config">Configuration</a>
+            <a href="/admin.php?action=backup">Backup</a>
+        </div>
+
+        <div class="card">
+            <h2>System Status</h2>
+            <p><strong>Server Time:</strong> 2024-06-15 14:32:18 UTC</p>
+            <p><strong>Uptime:</strong> 12 days, 4 hours, 22 minutes</p>
+            <p><strong>Database Connection:</strong> <span class="status-ok">OK</span></p>
+            <p><strong>Cache Status:</strong> <span class="status-ok">Active</span></p>
+            <p><strong>SSL Certificate:</strong> <span class="status-warning">Expires in 30 days</span></p>
+        </div>
+
+        <div class="card">
+            <h2>Recent Activity</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>IP Address</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2024-06-15 14:30:02</td>
+                        <td>admin</td>
+                        <td>Login</td>
+                        <td>192.168.1.105</td>
+                        <td><span class="status-ok">Success</span></td>
+                    </tr>
+                    <tr>
+                        <td>2024-06-15 14:28:45</td>
+                        <td>j.smith</td>
+                        <td>File Upload</td>
+                        <td>10.0.0.45</td>
+                        <td><span class="status-ok">Success</span></td>
+                    </tr>
+                    <tr>
+                        <td>2024-06-15 14:25:11</td>
+                        <td>system</td>
+                        <td>Backup Completed</td>
+                        <td>127.0.0.1</td>
+                        <td><span class="status-ok">Success</span></td>
+                    </tr>
+                    <tr>
+                        <td>2024-06-15 14:20:03</td>
+                        <td>unknown</td>
+                        <td>Failed Login Attempt</td>
+                        <td>203.0.113.42</td>
+                        <td><span class="status-error">Blocked</span></td>
+                    </tr>
+                    <tr>
+                        <td>2024-06-15 14:15:33</td>
+                        <td>admin</td>
+                        <td>Config Change</td>
+                        <td>192.168.1.105</td>
+                        <td><span class="status-warning">Modified</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Quick Actions</h2>
+            <a href="/admin.php?action=clear_cache" class="btn">Clear Cache</a>
+            <a href="/admin.php?action=restart_service" class="btn">Restart Service</a>
+            <a href="/admin.php?action=run_backup" class="btn">Run Backup Now</a>
+            <a href="/admin.php?action=view_errors" class="btn btn-danger">View Error Logs</a>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2024 Internal Systems Inc. | Version 2.4.1 | <a href="/admin.php?debug=1" style="color: #3498db;">Debug Mode</a>
+    </footer>
+</body>
+</html>

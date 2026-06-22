@@ -1,0 +1,83 @@
+<html>
+<head>
+    <title>serverless.yaml</title>
+    <style>
+        body {font-family: monospace; margin: 2em; background:#f8f8f8; color:#222;}
+        h1 {color:#0066cc;}
+        pre {background:#eee; padding:1em; border:1px solid #ccc; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>serverless.yaml</h1>
+    <pre>
+service: my-vulnerable-app
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: us-east-1
+  # Intentionally overly permissive IAM role
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - "*"
+      Resource: "*"
+  # Hardcoded credentials for demonstration
+  environment:
+    AWS_ACCESS_KEY_ID: AKIAIOSFODNN7EXAMPLE
+    AWS_SECRET_ACCESS_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    DB_PASSWORD: superSecret123!
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          method: get
+          cors: true
+          # Open to all origins
+          authorizer: none
+  upload:
+    handler: handler.upload
+    events:
+      - s3:
+          bucket: user-uploads
+          event: s3:ObjectCreated:*
+          # No validation on file type or size
+          existing: true
+  admin:
+    handler: handler.admin
+    events:
+      - http:
+          path: admin/{action}
+          method: '*'
+          # No authentication required
+          private: false
+
+resources:
+  Resources:
+    UserUploadsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: user-uploads-bucket
+        AccessControl: PublicRead   # Intentionally public
+        VersioningConfiguration:
+          Status: Enabled
+    VulnerableTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: users
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        # No encryption at rest
+        SSESpecification:
+          Enabled: false
+</pre>
+</body>
+</html>

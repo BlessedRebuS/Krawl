@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elasticsearch Cluster Settings</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .endpoint { background: #ecf0f1; padding: 15px; border-radius: 4px; margin: 20px 0; font-family: monospace; }
+        .method { display: inline-block; background: #3498db; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.9em; }
+        .info { color: #7f8c8d; font-size: 0.9em; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Elasticsearch Cluster Settings API</h1>
+        <p class="info">This endpoint allows you to view and update cluster-wide settings.</p>
+        
+        <div class="endpoint">
+            <span class="method">GET</span> /_cluster/settings
+        </div>
+        
+        <p>Current cluster settings:</p>
+        <pre>
+{
+  "persistent" : {
+    "cluster" : {
+      "routing" : {
+        "allocation" : {
+          "enable" : "all",
+          "disk" : {
+            "watermark" : {
+              "low" : "85%",
+              "high" : "90%",
+              "flood_stage" : "95%"
+            }
+          }
+        }
+      }
+    },
+    "indices" : {
+      "recovery" : {
+        "max_bytes_per_sec" : "20mb"
+      }
+    }
+  },
+  "transient" : { }
+}
+        </pre>
+        
+        <p>To update settings, send a PUT request with JSON body:</p>
+        <div class="endpoint">
+            <span class="method">PUT</span> /_cluster/settings
+        </div>
+        
+        <p>Example request body:</p>
+        <pre>
+{
+  "persistent" : {
+    "indices.recovery.max_bytes_per_sec" : "50mb"
+  }
+}
+        </pre>
+        
+        <hr>
+        <p class="info">Elasticsearch 8.11.0 • Cluster: <strong>docker-cluster</strong> • Nodes: 3</p>
+        <p><a href="/">← Back to cluster overview</a> | <a href="/_nodes/stats">Node statistics</a></p>
+    </div>
+</body>
+</html>

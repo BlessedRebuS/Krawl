@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Internal Tools</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .tool-section { margin: 25px 0; padding: 20px; background: #ecf0f1; border-radius: 6px; }
+        .tool-title { color: #2980b9; font-weight: bold; margin-bottom: 10px; }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"], select, textarea { width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #3498db; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; }
+        button:hover { background-color: #2980b9; }
+        .status { padding: 10px; margin-top: 10px; border-radius: 4px; }
+        .success { background-color: #d5f5e3; color: #27ae60; border: 1px solid #2ecc71; }
+        .error { background-color: #fadbd8; color: #c0392b; border: 1px solid #e74c3c; }
+        .warning { background-color: #fef9e7; color: #d35400; border: 1px solid #f39c12; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #ecf0f1; }
+        tr:hover { background-color: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Administrative Functions Panel</h1>
+        <p>Welcome to the internal administration interface. Access is restricted to authorized personnel only.</p>
+
+        <div class="tool-section">
+            <h2 class="tool-title">Database Query Tool</h2>
+            <div class="form-group">
+                <label for="query">Enter SQL Query:</label>
+                <textarea id="query" rows="4" placeholder="SELECT * FROM users WHERE username = 'admin'"><?php echo isset($_GET['q']) ? htmlspecialchars($_GET['q']) : ''; ?></textarea>
+            </div>
+            <div class="form-group">
+                <label for="db">Select Database:</label>
+                <select id="db">
+                    <option value="main">Main Database</option>
+                    <option value="logs">System Logs</option>
+                    <option value="audit">Audit Trail</option>
+                    <option value="temp">Temporary Storage</option>
+                </select>
+            </div>
+            <button onclick="executeQuery()">Execute Query</button>
+            <div id="queryResult" class="status"></div>
+        </div>
+
+        <div class="tool-section">
+            <h2 class="tool-title">User Management</h2>
+            <div class="form-group">
+                <label for="action">Action:</label>
+                <select id="action">
+                    <option value="list">List Users</option>
+                    <option value="add">Add New User</option>
+                    <option value="delete">Delete User</option>
+                    <option value="reset">Reset Password</option>
+                </select>
+            </div>
+            <div id="userForm"></div>
+            <button onclick="manageUser()">Perform Action</button>
+            <div id="userResult" class="status"></div>
+        </div>
+
+        <div class="tool-section">
+            <h2 class="tool-title">System Logs Viewer</h2>
+            <div class="form-group">
+                <label for="logType">Log Type:</label>
+                <select id="logType">
+                    <option value="access">Access Logs</option>
+                    <option value="error">Error Logs</option>
+                    <option value="security">Security Events</option>
+                    <option value="auth">Authentication Logs</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="lines">Number of Lines:</label>
+                <input type="number" id="lines" value="50" min="10" max="1000">
+            </div>
+            <button onclick="viewLogs()">View Logs</button>
+            <div id="logsOutput" style="background:#f8f9fa; padding:15px; border-radius:4px; font-family:monospace; white-space:pre-wrap;"></div>
+        </div>
+
+        <div class="tool-section">
+            <h2 class="tool-title">File Operations</h2>
+            <div class="form-group">
+                <label for="filePath">File Path:</label>
+                <input type="text" id="filePath" value="/var/www/html/uploads/" placeholder="Enter absolute path">
+            </div>
+            <div class="form-group">
+                <label for="fileOp">Operation:</label>
+                <select id="fileOp">
+                    <option value="list">List Directory</option>
+                    <option value="read">Read File</option>
+                    <option value="delete">Delete File</option>
+                    <option value="upload">Upload File</option>
+                </select>
+            </div>
+            <div id="fileUpload" style="display:none;">
+                <input type="file" id="uploadFile">
+            </div>
+            <button onclick="fileOperation()">Execute File Op</button>
+            <div id="fileResult" class="status"></div>
+        </div>
+
+        <div class="tool-section">
+            <h2 class="tool-title">Recent Activity</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2024-01-15 14:23:18</td>
+                        <td>admin</td>
+                        <td>Executed query: SELECT * FROM users</td>
+                        <td><span class="status success">Success</span></td>
+                    </tr>
+                    <tr>
+                        <td>2024-01-15 14:20:05</td>
+                        <td>operator</td>
+                        <td>Viewed system logs</td>
+                        <td><span class="status success">Success</span></td>
+                    </tr>
+                    <tr>
+                        <td>2024-01-15 14:15:32</td>
+                        <td>admin</td>
+                        <td>Deleted file: /tmp/test.log</td>
+                        <td><span class="status success">Success</span></td>
+                    </tr>
+                    <tr>
+                        <td>2024-01-15 14:10:01</td>
+                        <td>Unknown (192.168.1.100)</td>
+                        <td>Attempted access to admin panel</td>
+                        <td><span class="status warning">Blocked</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function executeQuery() {
+            const query = document.getElementById('query').value;
+            const db = document.getElementById('db').value;
+            const resultDiv = document.getElementById('queryResult');
+            
+            // Simulate delay
+            resultDiv.innerHTML = '<div class="status">Executing query...</div>';
+            
+            setTimeout(() => {
+                if (!query.trim()) {
+                    resultDiv.innerHTML = '<div class="status error">Please enter a query</div>';
+                    return;
+                }
+                
+                // Simulate SQL injection vulnerability - echo back the query
+                if (query.toLowerCase().includes('union') || query.toLowerCase().includes('--') || query.toLowerCase().includes('/*')) {
+                    resultDiv.innerHTML = '<div class="status success">Query executed successfully!<br>Returned 15 rows from ' + db + ' database.</div>';
+                } else if (query.toLowerCase().includes('drop') || query.toLowerCase().includes('delete')) {
+                    resultDiv.innerHTML = '<div class="status error">Access denied: DROP/DELETE operations require higher privileges</div>';
+                } else {
+                    resultDiv.innerHTML = '<div class="status success">Query executed successfully!<br>Returned 42 rows from ' + db + ' database.</div>';
+                }
+            }, 800);
+        }
+
+        function manageUser() {
+            const action = document.getElementById('action').value;
+            const userForm = document.getElementById('userForm');
+            const resultDiv = document.getElementById('userResult');
+            
+            resultDiv.innerHTML = '<div class="status">Processing...</div>';
+            
+            setTimeout(() => {
+                switch(action) {
+                    case 'list':
+                        userForm.innerHTML = '';
+                        resultDiv.innerHTML = '<div class="status success">Retrieved user list: admin, operator, guest, service_account (4 users)</div>';
+                        break;
+                    case 'add':
+                        userForm.innerHTML = `
+                            <div class="form-group"><label>Username:</label><input type="text" id="newUser" placeholder="Enter username"></div>
+                            <div class="form-group"><label>Password:</label><input type="password" id="newPass" placeholder="Enter password"></div>
+                            <div class="form-group"><label>Role:</label><select id="newRole"><option value="user">User</option><option value="operator">Operator</option><option value="admin">Admin</option></select></div>
+                        `;
+                        resultDiv.innerHTML = '<div class="status">Please fill in the form above and click "Perform Action"</div>';
+                        break;
+                    case 'delete':
+                        userForm.innerHTML = `<div class="form-group"><label>Username to delete:</label><input type="text" id="delUser" placeholder="Enter username"></div>`;
+                        resultDiv.innerHTML = '<div class="status warning">Warning: This action cannot be undone!</div>';
+                        break;
+                    case 'reset':
+                        userForm.innerHTML = `<div class="form-group"><label>Username:</label><input type="text" id="resetUser" placeholder="Enter username"></div>`;
+                        resultDiv.innerHTML = '<div class="status">Enter username and click "Perform Action" to reset password</div>';
+                        break;
+                }
+            }, 500);
+        }
+
+        function viewLogs() {
+            const logType = document.getElementById('logType').value;
+            const lines = document.getElementById('lines').value;
+            const output = document.getElementById('logsOutput');
+            
+            output.innerHTML = 'Loading logs...';
+            
+            setTimeout(() => {
+                let logs = '';
+                switch(logType) {
+                    case 'access':
+                        logs = `2024-01-15 14:25:01 192.168.1.100 GET /adminfuns.php 200 1245\n`;
+                        logs += `2024-01-15 14:24:33 10.0.0.50 POST /login.php 200 2341\n`;
+                        logs += `2024-01-15 14:23:18 192.168.1.100 GET /adminfuns.php?q=SELECT*FROM+users 200 3456\n`;
+                        logs += `2024-01-15 14:22:05 10.0.0.50 GET /index.php 200 1024\n`;
+                        break;
+                    case 'error':
+                        logs = `2024-01-15 14:20:10 [ERROR] PHP Warning:  Undefined variable $config in /var/www/html/config.php on line 42\n`;
+                        logs += `2024-01-15 14:15:22 [ERROR] Database connection failed: Too many connections\n`;
+                        logs += `2024-01-15 14:10:05 [ERROR] File not found: /var/www/html/admin/bak.php\n`;
+                        break;
+                    case 'security':
+                        logs = `2024-01-15 14:25:01 [SECURITY] Potential SQLi attempt detected: UNION SELECT password FROM users\n`;
+                        logs += `2024-01-15 14:20:05 [SECURITY] Failed login attempt for user 'admin' from 192.168.1.100\n`;
+                        logs += `2024-01-15 14:15:32 [SECURITY] Suspicious user-agent: sqlmap/1.0\n`;
+                        break;
+                    case 'auth':
+                        logs = `2024-01-15 14:23:18 [AUTH] User 'admin' logged in successfully from 192.168.1.100\n`;
+                        logs += `2024-01-15 14:20:05 [AUTH] User 'operator' logged in successfully from 10.0.0.50\n`;
+                        logs += `2024-01-15 14:15:32 [AUTH] User 'guest' logged in successfully from 10.0.0.25\n`;
+                        break;
+                }
+                output.innerHTML = logs.substring(0, logs.lastIndexOf('\n'));
+            }, 600);
+        }
+
+        function fileOperation() {
+            const path = document.getElementById('filePath').value;
+            const op = document.getElementById('fileOp').value;
+            const resultDiv = document.getElementById('fileResult');
+            const uploadDiv = document.getElementById('fileUpload');
+            
+            uploadDiv.style.display = (op === 'upload') ? 'block' : 'none';
+            
+            resultDiv.innerHTML = '<div class="status">Processing...</div>';
+            
+            setTimeout(() => {
+                switch(op) {
+                    case 'list':
+                        resultDiv.innerHTML = '<div class="status success">Directory listing for ' + path + ':<br>uploads/ (dir)<br>config.php.bak<br>temp.log<br>session_1234.data</div>';
+                        break;
+                    case 'read':
+                        resultDiv.innerHTML = '<div class="status success">Contents of ' + path + 'config.php:<br>&lt;?php<br>$db_host = "localhost";<br>$db_user = "webapp";<br>$db_pass = "secret123";<br>$db_name = "maindb";<br>?&gt;</div>';
+                        break;
+                    case 'delete':
+                        resultDiv.innerHTML = '<div class="status error">Access denied: Insufficient permissions to delete files in this directory</div>';
+                        break;
+                    case 'upload':
+                        resultDiv.innerHTML = '<div class="status">Please select a file to upload</div>';
+                        break;
+                }
+            }, 700);
+        }
+
+        // Handle user form submission for add/delete/reset
+        document.getElementById('userForm').addEventListener('change', function(e) {
+            if (e.target.id === 'newUser' || e.target.id === 'newPass' || e.target.id === 'newRole' || 
+                e.target.id === 'delUser' || e.target.id === 'resetUser') {
+                // Auto-submit when form is filled (simplified for demo)
+                setTimeout(manageUser, 300);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Post &#8249; My Site &#8250; WordPress</title>
+    <meta name="robots" content="noindex,nofollow">
+    <style>
+        body{background:#f1f1f1;color:#32373c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen-Sans,Ubuntu,Cantarell,'Helvetica Neue',sans-serif;margin:0}
+        .wrap{background:#fff;margin:2em auto;width:90%;max-width:960px;padding:1em 2em;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+        h1{font-size:1.5em;margin-bottom:.5em}
+        .postbox{background:#fff;border:1px solid #dfdfdf;margin-bottom:1.5em;padding:1em;border-radius:3px}
+        .postbox h3{margin:0 0 .5em;font-size:1em}
+        textarea,input[type=text]{width:100%;box-sizing:border-box;padding:.5em;margin-top:.3em;border:1px solid #ccc;border-radius:3px}
+        .submit{background:#007cba;color:#fff;border:none;padding:.6em 1.2em;margin-top:1em;border-radius:3px;cursor:pointer}
+        .submit:hover{background:#006293}
+        .hidden{display:none}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h1>Edit Post</h1>
+    <form name="post" id="post" method="post" action="post.php">
+        <input type="hidden" name="post_ID" value="1">
+        <input type="hidden" name="action" value="editpost">
+        <input type="hidden" name="meta-box-loader" value="1">
+        <input type="hidden" name="_wpnonce" value="a1b2c3d4e5f6">
+        <input type="hidden" name="_wp_http_referer" value="/wp-admin/post.php?post=1&amp;action=edit">
+
+        <div id="poststuff" class="metabox-holder has-right-sidebar">
+            <div id="side-sortables" class="meta-box-sortables ui-sortable">
+                <div class="postbox" id="submitdiv">
+                    <h3><span>Publish</span></h3>
+                    <div class="inside">
+                        <div id="minor-publishing">
+                            <span id="timestamp">Published on: <strong>November 2, 2025</strong></span><br>
+                            <a href="#" class="edit-timestamp">Edit</a>
+                        </div>
+                        <div id="major-publishing-actions">
+                            <input name="save" type="submit" class="button button-primary button-large" value="Update">
+                            <span class="spinner"></span>
+                        </div>
+                        <div class="clear"></div>
+                    </div>
+                </div>
+                <div class="postbox" id="categorydiv">
+                    <h3><span>Categories</span></h3>
+                    <div class="inside">
+                        <ul id="categorychecklist" class="list:category categorychecklist form-no-clear">
+                            <li><label class="selectit"><input value="3" type="checkbox" name="post_category[]" id="in-category-3"> News</label></li>
+                            <li><label class="selectit"><input value="5" type="checkbox" name="post_category[]" id="in-category-5"> Updates</label></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="normal-sortables" class="meta-box-sortables ui-sortable">
+                <div class="postbox" id="titlediv">
+                    <h3><span>Title</span></h3>
+                    <div class="inside">
+                        <input type="text" size="30" tabindex="1" value="Sample Post" name="post_title" id="title" autocomplete="off" placeholder="Enter title here">
+                    </div>
+                </div>
+                <div class="postbox" id="postexcerpt">
+                    <h3><span>Excerpt</span></h3>
+                    <div class="inside">
+                        <textarea rows="1" cols="40" name="excerpt" id="excerpt"></textarea>
+                        <p>A short summary of your post.</p>
+                    </div>
+                </div>
+                <div class="postbox" id="postcustom">
+                    <h3><span>Custom Fields</span></h3>
+                    <div class="inside">
+                        <table id="list-table" style="width:100%">
+                            <thead><tr><th>Name</th><th>Value</th><th></th></tr></thead>
+                            <tbody id="the-list">
+                                <tr><td><input type="text" name="meta[0][key]" value="fake_key" class="widefat"></td><td><input type="text" name="meta[0][value]" value="injected_value" class="widefat"></td><td><a href="#" class="button">Delete</a></td></tr>
+                            </tbody>
+                        </table>
+                        <p><a href="#" class="button">Enter new</a></p>
+                    </div>
+                </div>
+                <div class="postbox" id="commentstatusdiv">
+                    <h3><span>Discussion</span></h3>
+                    <div class="inside">
+                        <label><input type="checkbox" name="comment_status" value="open" checked> Allow comments</label><br>
+                        <label><input type="checkbox" name="ping_status" value="open" checked> Allow trackbacks and pingbacks on this page</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="postbox" id="postdivrich">
+            <h3><span>Content</span></h3>
+            <div class="inside">
+                <textarea name="content" id="content" rows="20" cols="40" style="width:100%;height:300px;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</textarea>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>

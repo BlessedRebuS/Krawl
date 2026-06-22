@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Docker Environment Info</title>
+<style>
+body {font-family: Arial, sans-serif; margin: 20px;}
+.container {max-width: 800px;}
+pre {background:#f4f4f4; padding:10px; border:1px solid #ddd;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Docker Container Information</h1>
+<p>This server is running inside a Docker container.</p>
+<h2>Container ID:</h2>
+<pre>fakecontainerid1234567890abcdef</pre>
+<h2>Environment Variables:</h2>
+<ul>
+<li>PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin</li>
+<li>HOSTNAME=fakehost</li>
+<li>HOME=/root</li>
+</ul>
+<h2>Potentially Vulnerable Endpoint:</h2>
+<p>Try accessing <code>/admin.php?cmd=ls</code> for admin commands.</p>
+<form action="/submit.php" method="POST">
+<label for="username">Username:</label>
+<input type="text" id="username" name="username"><br><br>
+<label for="password">Password:</label>
+<input type="password" id="password" name="password"><br><br>
+<input type="submit" value="Login">
+</form>
+</div>
+</body>
+</html>

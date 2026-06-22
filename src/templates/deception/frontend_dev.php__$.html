@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Development Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #4a90e2; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"], textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        textarea { height: 80px; resize: vertical; }
+        button { background-color: #4a90e2; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #357ab8; }
+        .alert { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .tab { display: inline-block; padding: 10px 20px; background-color: #e9ecef; margin-right: 5px; cursor: pointer; border-radius: 4px 4px 0 0; }
+        .tab.active { background-color: white; border-bottom: 2px solid #4a90e2; }
+        .tab-content { display: none; padding: 20px; border: 1px solid #ddd; border-top: none; }
+        .tab-content.active { display: block; }
+        .file-list { list-style-type: none; padding: 0; }
+        .file-list li { padding: 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        .file-list li:hover { background-color: #f8f9fa; }
+        .file-name { font-weight: bold; }
+        .file-size { color: #666; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Frontend Development Dashboard</h1>
+        <p>Welcome to the internal frontend development environment. Use this interface to manage development assets, test code snippets, and review build outputs.</p>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('files')">File Manager</div>
+            <div class="tab" onclick="switchTab('console')">Dev Console</div>
+            <div class="tab" onclick="switchTab('settings')">Settings</div>
+        </div>
+        
+        <div id="files" class="tab-content active">
+            <h2>Development Files</h2>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="fileUpload">Upload Asset:</label>
+                    <input type="file" id="fileUpload" name="file" required>
+                </div>
+                <div class="form-group">
+                    <label for="filePath">Target Path (relative to /frontend_dev/):</label>
+                    <input type="text" id="filePath" name="path" value="assets/" placeholder="e.g., js/components/">
+                </div>
+                <button type="submit">Upload File</button>
+            </form>
+            <div id="uploadStatus" class="alert" style="display:none;"></div>
+            
+            <h3>Current Directory: /frontend_dev/assets/</h3>
+            <ul class="file-list">
+                <li><span class="file-name">main.js</span><span class="file-size">2.4 KB</span></li>
+                <li><span class="file-name">style.css</span><span class="file-size">1.8 KB</span></li>
+                <li><span class="file-name">config.json</span><span class="file-size">0.5 KB</span></li>
+                <li><span class="file-name">logo.png</span><span class="file-size">15.2 KB</span></li>
+                <li><span class="file-name">README.md</span><span class="file-size">3.1 KB</span></li>
+            </ul>
+        </div>
+        
+        <div id="console" class="tab-content">
+            <h2>Developer Console</h2>
+            <p>Execute JavaScript snippets for testing and debugging:</p>
+            <div class="form-group">
+                <label for="codeInput">JavaScript Code:</label>
+                <textarea id="codeInput" placeholder="console.log('Hello World');"></textarea>
+            </div>
+            <button id="executeBtn">Execute Code</button>
+            <div id="consoleOutput" style="margin-top:15px; padding:10px; background:#f8f9fa; border:1px solid #ddd; border-radius:4px; height:150px; overflow-y:auto; font-family:monospace; white-space:pre-wrap;"></div>
+        </div>
+        
+        <div id="settings" class="tab-content">
+            <h2>Development Settings</h2>
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label>Enable Debug Mode:</label>
+                    <select id="debugMode">
+                        <option value="false">Disabled</option>
+                        <option value="true">Enabled</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cache Busting:</label>
+                    <select id="cacheBust">
+                        <option value="none">None</option>
+                        <option value="timestamp">Timestamp</option>
+                        <option value="hash">Hash</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Auto-reload on Save:</label>
+                    <input type="checkbox" id="autoReload" checked>
+                </div>
+                <button type="submit">Save Settings</button>
+            </form>
+            <div id="settingsStatus" class="alert" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'alert alert-success';
+            statusDiv.textContent = 'File upload initiated... (simulated)';
+            setTimeout(() => {
+                statusDiv.textContent = 'File uploaded successfully to /frontend_dev/assets/';
+            }, 1500);
+        });
+
+        document.getElementById('executeBtn').addEventListener('click', function() {
+            const code = document.getElementById('codeInput').value;
+            const output = document.getElementById('consoleOutput');
+            try {
+                // Simulate execution - in reality this would be dangerous, but we're faking it
+                output.textContent = `Executing: ${code}\nResult: [SIMULATED] Code executed successfully in sandbox.\n`;
+                output.textContent += `Console output:\n  > Hello from dev console!\n  > Variables inspected: ${Math.random().toString(36).substring(2, 9)}\n`;
+            } catch (err) {
+                output.textContent = `Error: ${err.message}\n`;
+            }
+            output.scrollTop = output.scrollHeight;
+        });
+
+        document.getElementById('settingsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const statusDiv = document.getElementById('settingsStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'alert alert-success';
+            statusDiv.textContent = 'Settings saved successfully.';
+            setTimeout(() => statusDiv.style.display = 'none', 3000);
+        });
+    </script>
+</body>
+</html>

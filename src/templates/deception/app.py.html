@@ -1,0 +1,24 @@
+<html><body>from flask import Flask, request, render_template_string
+import sqlite3
+
+app = Flask(__name__)
+
+def get_db():
+    conn = sqlite3.connect('users.db')
+    return conn
+
+@app.route('/')
+def index():
+    return '<h1>Welcome</h1>'
+
+@app.route('/search')
+def search():
+    query = request.args.get('q', '')
+    conn = get_db()
+    # Vulnerable to SQLi
+    cursor = conn.execute(f"SELECT * FROM users WHERE username LIKE '%{query}%'")
+    results = cursor.fetchall()
+    return render_template_string('<br>'.join([str(r) for r in results]))
+
+if __name__ == '__main__':
+    app.run(debug=True)</body></html>

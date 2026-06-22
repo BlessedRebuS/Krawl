@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>.bash_history</title>
+    <style>
+        body {font-family: monospace; margin: 2em; background:#f8f8f8; color:#222;}
+        h1 {color:#006;}
+        pre {background:#fff; padding:1em; border:1px solid #ddd; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>.bash_history</h1>
+    <pre>
+ls -la
+cd /var/www/html
+cat config.php
+grep -r "password" .
+mysql -u root -pSecret123 -e "SHOW DATABASES;"
+ssh admin@10.0.0.5
+echo "test" > /tmp/test.txt
+chmod 755 /var/www/html/index.php
+./backup.sh --full
+history | tail -20
+    </pre>
+</body>
+</html>

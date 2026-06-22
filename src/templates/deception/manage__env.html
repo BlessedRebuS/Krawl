@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environment Management - Admin Panel</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .section { margin: 25px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .section h2 { color: #3498db; margin-top: 0; }
+        .env-variable { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .env-variable:last-child { border-bottom: none; }
+        .key { font-weight: bold; color: #2c3e50; }
+        .value { color: #7f8c8d; font-family: monospace; background: #ecf0f1; padding: 2px 6px; border-radius: 3px; }
+        .btn { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+        .btn:hover { background: #2980b9; }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
+        .alert { padding: 12px; margin: 15px 0; border-radius: 4px; }
+        .alert-info { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .form-group { margin: 15px 0; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Environment Management</h1>
+        <p>Manage environment variables and configuration settings for the application.</p>
+        
+        <div class="section">
+            <h2>Current Environment Variables</h2>
+            <div class="env-variable">
+                <span class="key">APP_NAME</span>
+                <span class="value">ProductionApp</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">APP_ENV</span>
+                <span class="value">production</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">APP_DEBUG</span>
+                <span class="value">false</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">APP_URL</span>
+                <span class="value">https://app.example.com</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">DB_CONNECTION</span>
+                <span class="value">mysql</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">DB_HOST</span>
+                <span class="value">db.internal.example.com</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">DB_PORT</span>
+                <span class="value">3306</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">DB_DATABASE</span>
+                <span class="value">production_db</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">DB_USERNAME</span>
+                <span class="value">dbadmin</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">DB_PASSWORD</span>
+                <span class="value">••••••••••••••••</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">CACHE_DRIVER</span>
+                <span class="value">redis</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">QUEUE_CONNECTION</span>
+                <span class="value">redis</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">REDIS_HOST</span>
+                <span class="value">redis.internal.example.com</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">REDIS_PASSWORD</span>
+                <span class="value">••••••••••••••••</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">MAIL_DRIVER</span>
+                <span class="value">smtp</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">MAIL_HOST</span>
+                <span class="value">smtp.example.com</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">MAIL_PORT</span>
+                <span class="value">587</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">MAIL_USERNAME</span>
+                <span class="value">noreply@example.com</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">MAIL_PASSWORD</span>
+                <span class="value">••••••••••••••••</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">SESSION_DRIVER</span>
+                <span class="value">database</span>
+            </div>
+            <div class="env-variable">
+                <span class="key">SESSION_LIFETIME</span>
+                <span class="value">120</span>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Add New Environment Variable</h2>
+            <form action="/manage/env/add" method="POST">
+                <div class="form-group">
+                    <label for="key">Variable Name:</label>
+                    <input type="text" id="key" name="key" required placeholder="e.g., NEW_FEATURE_FLAG">
+                </div>
+                <div class="form-group">
+                    <label for="value">Variable Value:</label>
+                    <input type="text" id="value" name="value" required placeholder="Enter the value">
+                </div>
+                <div class="form-group">
+                    <label for="scope">Scope:</label>
+                    <select id="scope" name="scope">
+                        <option value="all">All Environments</option>
+                        <option value="production">Production Only</option>
+                        <option value="staging">Staging Only</option>
+                        <option value="development">Development Only</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Add Variable</button>
+                <button type="button" class="btn btn-danger" onclick="window.location.href='/manage/env'">Cancel</button>
+            </form>
+        </div>
+        
+        <div class="section">
+            <h2>Environment Actions</h2>
+            <p>Perform bulk operations on environment configurations.</p>
+            <button class="btn" onclick="alert('Export functionality would download .env file')">Export .env File</button>
+            <button class="btn" onclick="alert('Import functionality would parse uploaded .env file')">Import .env File</button>
+            <button class="btn btn-danger" onclick="if(confirm('Are you sure you want to reset all environment variables to defaults? This action cannot be undone.')){alert('Reset initiated - this is a simulation');}">Reset to Defaults</button>
+        </div>
+        
+        <div class="alert alert-info">
+            <strong>Note:</strong> This is a simulated environment management interface. Actual changes would require server restart and proper authentication. For security, sensitive values are masked in display.
+        </div>
+    </div>
+</body>
+</html>

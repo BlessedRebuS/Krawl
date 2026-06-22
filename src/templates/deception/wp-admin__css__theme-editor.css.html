@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Editor - WordPress</title>
+    <link rel="stylesheet" href="/wp-admin/css/wp-admin.min.css?ver=6.5">
+    <link rel="stylesheet" href="/wp-admin/css/colors-fresh.min.css?ver=6.5">
+    <style>
+        .wrap { margin: 20px; }
+        .notice { padding: 15px; margin-bottom: 20px; border-left: 4px solid; }
+        .notice-info { background-color: #e6f3ff; border-color: #bfd8f2; color: #1e73be; }
+        .code-editor { border: 1px solid #ddd; height: 400px; font-family: monospace; background: #f8f8f8; padding: 10px; overflow: auto; }
+        button { background: #0073aa; color: white; border: none; padding: 8px 15px; cursor: pointer; margin-right: 10px; }
+        button:hover { background: #005a87; }
+        .secondary { background: #ccc; color: #333; }
+        .secondary:hover { background: #bbb; }
+    </style>
+</head>
+<body class="wp-admin wp-core-ui">
+    <div id="wpcontent" class="wp-admin">
+        <div id="wpbody">
+            <div id="wpbody-content">
+                <div class="wrap">
+                    <h1>Theme Editor</h1>
+                    <div class="notice notice-info">
+                        <p><strong>Notice:</strong> You are editing a file that controls the appearance of your WordPress site. Incorrect changes can break your site. Always backup your theme before making changes.</p>
+                    </div>
+                    <form method="post" action="theme-editor.php">
+                        <input type="hidden" name="file" value="theme-editor.css">
+                        <input type="hidden" name="theme" value="twentytwentyfour">
+                        <input type="hidden" name="action" value="edit">
+                        <input type="hidden" name="_wpnonce" value="a1b2c3d4e5f6">
+                        <label for="newcontent">Edit theme-editor.css</label>
+                        <textarea id="newcontent" name="newcontent" rows="25" class="code-editor" style="width:100%; height:400px;">/* 
+    Theme Name: Twenty Twenty-Four
+    Theme URI: https://wordpress.org/themes/twentytwentyfour/
+    Author: the WordPress team
+    Author URI: https://wordpress.org/
+    Description: Our default theme for 2024 is designed to take full advantage of the site editing features and includes a variety of new patterns, styles, and tools.
+    Version: 1.0
+    Requires at least: 6.5
+    Tested up to: 6.5
+    Requires PHP: 7.0
+    License: GNU General Public License v2 or later
+    License URI: http://www.gnu.org/licenses/gpl-2.0.html
+    Text Domain: twentytwentyfour
+*/
+
+/* Fake CSS for distraction - contains plausible but harmless vulnerabilities */
+body {
+    background-color: #fff;
+    color: #333;
+    font-family: system-ui, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+/* Header styles */
+.site-header {
+    background: linear-gradient(to bottom, #0073aa, #005a87);
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Fake vulnerable pattern - looks like SQL injection attempt but is harmless CSS comment */
+/* SELECT * FROM wp_users WHERE ID = 1 OR '1'='1'; -- */
+
+/* Navigation */
+.main-navigation {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.main-navigation a {
+    color: #0073aa;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: background 0.3s;
+}
+
+.main-navigation a:hover {
+    background-color: #f0f0f0;
+}
+
+/* Content area */
+.content-area {
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* Fake XSS-like pattern in comment - harmless */
+/* <script>alert('XSS')</script> */
+
+.widget-area {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 30px;
+}
+
+.widget-title {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    color: #0073aa;
+}
+
+footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    color: #666;
+    font-size: 0.9em;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .main-navigation {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .widget-area {
+        margin-top: 20px;
+    }
+}
+
+/* Fake admin bypass pattern in comment */
+/* admin' OR '1'='1' -- */
+</textarea><br>
+                        <button type="submit" class="button button-primary" name="submit">Update File</button>
+                        <button type="button" class="button" onclick="window.location.href='themes.php'">Go back to Themes page</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

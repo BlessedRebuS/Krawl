@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>docker-compose.prod.yml</title>
+    <style>
+        body { font-family: monospace; background-color: #f8f8f8; color: #333; padding: 20px; line-height: 1.6; }
+        pre { background: #eee; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        .header { border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>docker-compose.prod.yml</h1>
+        <p><small>Last modified: Mon Apr 1 03:24:18 UTC 2024</small></p>
+    </div>
+    <pre>version: '3.8'
+
+services:
+  web:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./html:/usr/share/nginx/html
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    environment:
+      - NGINX_HOST=prod.example.com
+      - NGINX_PORT=80
+
+  app:
+    build: ./app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgres://user:securepassword123@db:5432/prod_db
+      - SECRET_KEY=supersecretprodkeythatishardtoguess123!
+      - API_KEY=sk_live_51HbC2D3E4F5G6H7I8J9K0L1M2N3O4P5Q6R7S8T9U0V1W2X3Y4Z5
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=securepassword123
+      - POSTGRES_DB=prod_db
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:</pre>
+</body>
+</html>

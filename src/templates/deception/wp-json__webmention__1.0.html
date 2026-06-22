@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebMention Endpoint</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f9f9f9; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .endpoint { background: #ecf0f1; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0; }
+        .method { font-weight: bold; color: #e74c3c; }
+        .note { font-size: 0.9em; color: #7f8c8d; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WebMention 1.0 Endpoint</h1>
+        <p>This is the WebMention endpoint for receiving webmentions according to the <a href="https://www.w3.org/TR/webmention/">W3C WebMention specification</a>.</p>
+        
+        <div class="endpoint">
+            <p><span class="method">POST</span> /wp-json/webmention/1.0</p>
+            <p class="note">Accepts application/x-www-form-urlencoded data with source and target parameters.</p>
+        </div>
+        
+        <h2>Usage Example</h2>
+        <pre>
+curl -X POST \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "source=https://example.com/blog/post&amp;target=https://yoursite.com/blog/post" \
+  https://yoursite.com/wp-json/webmention/1.0
+        </pre>
+        
+        <h2>Response Codes</h2>
+        <ul>
+            <li><strong>202 Accepted</strong>: Webmention queued for processing</li>
+            <li><strong>400 Bad Request</strong>: Missing or invalid source/target parameters</li>
+            <li><strong>403 Forbidden</strong>: Target URL not allowed for webmentions</li>
+            <li><strong>404 Not Found</strong>: Source URL not found or not accessible</li>
+            <li><strong>405 Method Not Allowed</strong>: Only POST requests are accepted</li>
+            <li><strong>410 Gone</strong>: Endpoint no longer available</li>
+            <li><strong>429 Too Many Requests</strong>: Rate limit exceeded</li>
+            <li><strong>500 Internal Server Error</strong>: Server error during processing</li>
+        </ul>
+        
+        <h2>Security Note</h2>
+        <p class="note">This endpoint implements rate limiting and validates all incoming URLs to prevent abuse. Only HTTP(S) URLs are accepted as sources and targets.</p>
+        
+        <hr>
+        <p><small>Powered by WordPress WebMention Plugin v1.0.0</small></p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management Portal - Internal Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .nav { background: #ecf0f1; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .nav a { margin-right: 15px; text-decoration: none; color: #3498db; font-weight: bold; }
+        .nav a:hover { text-decoration: underline; }
+        .card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: #fafafa; }
+        .card h3 { color: #2c3e50; margin-top: 0; }
+        .btn { display: inline-block; background: #3498db; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; margin-right: 10px; }
+        .btn:hover { background: #2980b9; }
+        .status-ok { color: #27ae60; font-weight: bold; }
+        .status-warning { color: #f39c12; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #3498db; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Internal Management Portal</h1>
+        <p>Welcome to the corporate management interface. Access restricted to authorized personnel only.</p>
+        
+        <div class="nav">
+            <a href="/management/">Dashboard</a>
+            <a href="/management/users">User Management</a>
+            <a href="/management/config">System Configuration</a>
+            <a href="/management/logs">Audit Logs</a>
+            <a href="/management/reports">Generate Reports</a>
+            <a href="/management/backup">Backup & Recovery</a>
+        </div>
+
+        <div class="card">
+            <h2>System Status Overview</h2>
+            <p><span class="status-ok">●</span> All systems operational</p>
+            <p><span class="status-warning">●</span> Database connection pool at 78% capacity</p>
+            <p><span class="status-ok">●</span> Last backup completed: 2024-06-15 02:30:00 UTC</p>
+            <p><span class="status-ok">●</span> Active sessions: 12</p>
+        </div>
+
+        <div class="card">
+            <h2>Recent Administrative Actions</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Resource</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2024-06-15 14:22:10</td>
+                        <td>admin@corp.local</td>
+                        <td>CREATE_USER</td>
+                        <td>j.smith@corp.local</td>
+                        <td>SUCCESS</td>
+                    </tr>
+                    <tr>
+                        <td>2024-06-15 14:15:03</td>
+                        <td>admin@corp.local</td>
+                        <td>MODIFY_CONFIG</td>
+                        <td>authentication_timeout</td>
+                        <td>SUCCESS</td>
+                    </tr>
+                    <tr>
+                        <td>2024-06-15 14:08:45</td>
+                        <td>svc_account</td>
+                        <td>EXPORT_DATA</td>
+                        <td>employee_records</td>
+                        <td>SUCCESS</td>
+                    </tr>
+                    <tr>
+                        <td>2024-06-15 13:55:22</td>
+                        <td>admin@corp.local</td>
+                        <td>DELETE_LOG</td>
+                        <td>app_debug_20240614.log</td>
+                        <td>SUCCESS</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Quick Actions</h2>
+            <a href="/management/users/create" class="btn">Create New User</a>
+            <a href="/management/config/edit" class="btn">Edit System Config</a>
+            <a href="/management/logs/view" class="btn">View Recent Logs</a>
+            <a href="/management/backup/now" class="btn">Trigger Backup Now</a>
+            <a href="/management/reports/generate" class="btn">Generate Security Report</a>
+        </div>
+
+        <div class="card">
+            <h2>Configuration Notes</h2>
+            <p><strong>Important:</strong> The management interface uses legacy authentication mechanisms for backward compatibility. Direct database access is available through the admin console at <code>/management/dbconsole</code> (requires special privileges).</p>
+            <p>For troubleshooting, check the application logs at <code>/var/log/management/</code> or enable debug mode by setting <code>DEBUG=true</code> in the configuration file.</p>
+            <p>Default credentials for emergency access: <code>admin:/tmp/admin123!</code> (changed from default on deployment)</p>
+        </div>
+    </div>
+</body>
+</html>

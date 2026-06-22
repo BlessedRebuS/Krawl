@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Admin Panel</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .login-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .alert {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            display: none;
+        }
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .links {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        .links a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Admin Login</h2>
+        <div id="error-alert" class="alert alert-danger">
+            Invalid username or password. Please try again.
+        </div>
+        <form id="login-form" action="/admin/login/" method="POST">
+            <input type="hidden" name="csrfmiddlewaretoken" value="fake_token_abc123xyz789">
+            <input type="hidden" name="next" value="/admin/">
+            
+            <div class="form-group">
+                <label for="id_username">Username:</label>
+                <input type="text" id="id_username" name="username" required autocomplete="username">
+            </div>
+            
+            <div class="form-group">
+                <label for="id_password">Password:</label>
+                <input type="password" id="id_password" name="password" required autocomplete="current-password">
+            </div>
+            
+            <button type="submit" class="btn">Log In</button>
+        </form>
+        
+        <div class="links">
+            <p>Forgot your <a href="/admin/password_reset/">password?</a></p>
+            <p>Return to <a href="/">site homepage</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Simulate vulnerable client-side validation that could be bypassed
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            const username = document.getElementById('id_username').value;
+            const password = document.getElementById('id_password').value;
+            
+            // Fake validation that appears to check for SQLi/XSS but is easily bypassed
+            const sqlPatterns = [/['";]/, /--/, /union/i, /select/i, /drop/i];
+            const xssPatterns = [/<script/, /javascript:/i, /onerror/i, /onload/i];
+            
+            // This is intentionally weak - only blocks obvious patterns, allows sophisticated bypasses
+            for (let pattern of sqlPatterns) {
+                if (pattern.test(username) || pattern.test(password)) {
+                    e.preventDefault();
+                    showError('Invalid characters detected. Please use alphanumeric characters only.');
+                    return;
+                }
+            }
+            
+            for (let pattern of xssPatterns) {
+                if (pattern.test(username) || pattern.test(password)) {
+                    e.preventDefault();
+                    showError('Invalid characters detected. Please avoid special characters.');
+                    return;
+                }
+            }
+            
+            // Simulate delay to mimic real server processing
+            e.preventDefault();
+            showError('Invalid username or password. Please try again.');
+            
+            // In a real attack, this would be where the bypass happens
+            // Example bypass: ' OR '1'='1' -- 
+            // Our fake validation only catches basic quotes, not sophisticated payloads
+        });
+        
+        function showError(message) {
+            const alert = document.getElementById('error-alert');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Fake focus effect for realism
+        document.getElementById('id_username').focus();
+    </script>
+</body>
+</html>

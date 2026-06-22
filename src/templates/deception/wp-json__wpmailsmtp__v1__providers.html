@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WP Mail SMTP – Providers API</title>
+<style>
+body{font-family:Arial,sans-serif;margin:20px;}
+pre{background:#f4f4f4;padding:10px;border:1px solid #ddd;}
+</style>
+</head>
+<body>
+<h1>WP Mail SMTP Providers</h1>
+<p>This endpoint returns a list of available mail providers.</p>
+<pre>
+{
+  "providers": [
+    {"id":"gmail","name":"Gmail","description":"Send via Gmail SMTP"},
+    {"id":"smtp","name":"Other SMTP","description":"Custom SMTP server"},
+    {"id":"mailgun","name":"Mailgun","description":"Mailgun API"},
+    {"id":"sendgrid","name":"SendGrid","description":"SendGrid API"},
+    {"id":"sparkpost","name":"SparkPost","description":"SparkPost API"}
+  ]
+}
+</pre>
+<p>For debugging, you can try adding a <code>?debug=1</code> parameter.</p>
+<!-- Simple reflected XSS test -->
+<form action="/wp-json/wpmailsmtp/v1/providers" method="get">
+  <label for="search">Search providers:</label>
+  <input type="text" id="search" name="q" value="">
+  <input type="submit" value="Search">
+</form>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<html><body>{
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "app_dev",
+    "user": "dev_user",
+    "password": "dev_pass_123!",
+    "ssl": false
+  },
+  "api": {
+    "base_url": "http://localhost:3000/api",
+    "timeout": 5000,
+    "retries": 3
+  },
+  "features": {
+    "debug_mode": true,
+    "log_level": "debug",
+    "enable_swagger": true,
+    "cors_origin": "*"
+  },
+  "email": {
+    "smtp_host": "smtp.dev.local",
+    "smtp_port": 587,
+    "smtp_user": "no-reply@dev.local",
+    "smtp_pass": "smtp_dev_pass",
+    "from": "Dev Team <no-reply@dev.local>"
+  },
+  "jwt": {
+    "secret": "super_secret_dev_key_change_in_prod",
+    "expires_in": "2h"
+  },
+  "logging": {
+    "file": "./logs/dev.log",
+    "level": "debug",
+    "max_size": "10m",
+    "backup_count": 5
+  }
+}</body></html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FTP Configuration - Internal</title>
+<style>
+body {font-family: Arial, sans-serif; margin:20px;}
+table {border-collapse: collapse; width: 60%;}
+th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+th {background-color:#f2f2f2;}
+</style>
+</head>
+<body>
+<h1>FTP Server Configuration</h1>
+<p>Below are the current FTP server settings for internal use.</p>
+<table>
+<tr><th>Setting</th><th>Value</th></tr>
+<tr><td>Host</td><td>ftp.internal.example.com</td></tr>
+<tr><td>Port</td><td>21</td></tr>
+<tr><td>Username</td><td>ftpadmin</td></tr>
+<tr><td>Password</td><td>S3cureP@ssw0rd!</td></tr>
+<tr><td>Passive Mode</td><td>Enabled</td></tr>
+<tr><td>Max Clients</td><td>50</td></tr>
+<tr><td>Idle Timeout (seconds)</td><td>300</td></tr>
+<tr><td>Allow Anonymous</td><td>Disabled</td></tr>
+<tr><td>SSL/TLS</td><td>Required (Explicit)</td></tr>
+</table>
+<h2>User Accounts</h2>
+<table>
+<tr><th>Username</th><th>Home Directory</th><th>Permissions</th></tr>
+<tr><td>ftpadmin</td><td>/srv/ftp</td><td>Full</td></tr>
+<tr><td>user1</td><td>/srv/ftp/user1</td><td>Read/Write</td></tr>
+<tr><td>user2</td><td>/srv/ftp/user2</td><td>Read-only</td></tr>
+<tr><td>backup</td><td>/srv/ftp/backup</td><td>Write-only</td></tr>
+</table>
+<p><a href="/admin">Return to Admin Panel</a> | <a href="/">Home</a></p>
+<footer style="margin-top:30px; font-size:0.9em; color:#666;">
+© 2025 Example Corp. Internal Use Only.
+</footer>
+</body>
+</html>

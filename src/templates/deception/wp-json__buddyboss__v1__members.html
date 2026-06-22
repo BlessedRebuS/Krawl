@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BuddyBoss Members - WP JSON API</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        form {margin-bottom:20px;}
+        input[type=text] {padding:5px; width:250px;}
+        button {padding:5px 10px; background:#3498db; color:#fff; border:none; cursor:pointer;}
+        button:hover {background:#2980b9;}
+        table {width:100%; border-collapse:collapse; margin-top:10px;}
+        th, td {border:1px solid #ccc; text-align:left; padding:8px;}
+        th {background:#ecf0f1;}
+        tr:nth-child(even) {background:#f2f2f2;}
+        em {color:#7f8c8d;}
+    </style>
+</head>
+<body>
+    <h1>BuddyBoss Members</h1>
+    <p>Endpoint: <code>/wp-json/buddyboss/v1/members</code></p>
+    <form action="/wp-json/buddyboss/v1/members" method="get">
+        <label for="search">Search members:</label>
+        <input type="text" id="search" name="search" placeholder="Enter name or email">
+        <button type="submit">Search</button>
+    </form>
+    <hr>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Display Name</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Profile Link</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>John Doe</td>
+                <td>johndoe</td>
+                <td>john@example.com</td>
+                <td><a href="/members/johndoe/">View Profile</a></td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Jane Smith</td>
+                <td>janesmith</td>
+                <td>jane@example.com</td>
+                <td><a href="/members/janesmith/">View Profile</a></td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Alex Johnson</td>
+                <td>alexj</td>
+                <td>alex@example.com</td>
+                <td><a href="/members/alexj/">View Profile</a></td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>Maria Garcia</td>
+                <td>mariag</td>
+                <td>maria@example.com</td>
+                <td><a href="/members/mariag/">View Profile</a></td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>David Lee</td>
+                <td>davidlee</td>
+                <td>david@example.com</td>
+                <td><a href="/members/davidlee/">View Profile</a></td>
+            </tr>
+        </tbody>
+    </table>
+    <p><em>Note: This is a simulated REST API response for demonstration purposes.</em></p>
+</body>
+</html>

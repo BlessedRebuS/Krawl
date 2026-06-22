@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intranet Portal – Employee Dashboard</title>
+    <style>
+        body {font-family:Arial,Helvetica,sans-serif; margin:0; padding:0; background:#f4f6f9; color:#333;}
+        header {background:#003366; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#004080; color:#fff; padding:0.5rem;}
+        nav a {color:#fff; margin:0 1rem; text-decoration:none;}
+        nav a:hover {text-decoration:underline;}
+        .container {padding:2rem;}
+        h2 {color:#003366;}
+        table {width:100%; border-collapse:collapse; margin-top:1rem;}
+        th, td {border:1px solid #ddd; padding:0.5rem; text-align:left;}
+        th {background:#e2e8f0;}
+        tr:nth-child(even) {background:#f9f9f9;}
+        .form-group {margin-bottom:1rem;}
+        label {display:block; margin-bottom:0.2rem;}
+        input[type=text], input[type=password] {width:100%; padding:0.5rem; border:1px solid #ccc; border-radius:4px;}
+        button {background:#003366; color:#fff; border:none; padding:0.5rem 1rem; cursor:pointer;}
+        button:hover {background:#004080;}
+        footer {text-align:center; padding:1rem; font-size:0.9rem; color:#666; margin-top:2rem;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Company Intranet Portal</h1>
+        <p>Secure access for employees only</p>
+    </header>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/reports">Reports</a>
+        <a href="/admin">Admin</a>
+        <a href="/logout">Logout</a>
+    </nav>
+    <div class="container">
+        <h2>Welcome, jdoe</h2>
+        <p>Last login: 2025-10-31 08:12:43 UTC</p>
+
+        <section>
+            <h3>Employee Directory</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1001</td><td>John Doe</td><td>IT</td><td>jdoe@example.com</td></tr>
+                    <tr><td>1002</td><td>Jane Smith</td><td>HR</td><td>jsmith@example.com</td></tr>
+                    <tr><td>1003</td><td>Alice Johnson</td><td>Finance</td><td>ajohnson@example.com</td></tr>
+                    <tr><td>1004</td><td>Bob Lee</td><td>Marketing</td><td>blee@example.com</td></tr>
+                    <tr><td>1005</td><td>Carol Wang</td><td>Operations</td><td>cwang@example.com</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h3>Quick Access</h3>
+            <form action="/search" method="get">
+                <div class="form-group">
+                    <label for="q">Search employees:</label>
+                    <input type="text" id="q" name="q" placeholder="Enter name or ID">
+                </div>
+                <button type="submit">Search</button>
+            </form>
+        </section>
+    </div>
+
+    <footer>
+        © 2025 Acme Corporation. All rights reserved.<br>
+        This system is monitored for unauthorized access.
+    </footer>
+</body>
+</html>

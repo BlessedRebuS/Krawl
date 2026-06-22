@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SQL Query Test - Internal Tool</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9;}
+        h1 {color:#2c3e50;}
+        .container {max-width:800px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+        textarea {width:100%; height:80px; padding:8px; font-family:monospace;}
+        input[type="submit"] {padding:10px 20px; background:#3498db; color:#fff; border:none; cursor:pointer; border-radius:4px;}
+        input[type="submit"]:hover {background:#2980b9;}
+        table {width:100%; border-collapse:collapse; margin-top:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#ecf0f1;}
+        .note {font-size:0.9em; color:#555;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Internal SQL Query Test Utility</h1>
+    <p class="note">This page is for authorized personnel only. Use it to test ad‑hoc queries against the <em>testdb</em> schema.</p>
+    <form method="get" action="">
+        <label for="query">Enter SQL Statement:</label><br>
+        <textarea id="query" name="q" placeholder="SELECT * FROM users WHERE id = 1;">SELECT * FROM users LIMIT 5;</textarea><br><br>
+        <input type="submit" value="Execute Query">
+    </form>
+
+    <?php
+    // Simulated backend – in reality this would connect to a DB.
+    // For this honeypot we just show static fake data if a query is present.
+    if(isset($_GET['q']) && trim($_GET['q']) != ''){
+        $q = trim($_GET['q']);
+        echo "<h2>Query Results</h2>";
+        echo "<p><em>Query:</em> <code>".htmlspecialchars($q)."</code></p>";
+        // Fake result set – simple static table.
+        echo "<table>
+                <thead>
+                    <tr><th>id</th><th>username</th><th>email</th><th>created_at</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>alice</td><td>alice@example.com</td><td>2023-04-12 08:30:00</td></tr>
+                    <tr><td>2</td><td>bob</td><td>bob@example.com</td><td>2023-05-03 14:15:22</td></tr>
+                    <tr><td>3</td><td>charlie</td><td>charlie@example.com</td><td>2023-06-19 09:05:10</td></tr>
+                    <tr><td>4</td><td>diana</td><td>diana@example.com</td><td>2023-07-21 16:40:05</td></tr>
+                    <tr><td>5</td><td>eve</td><td>eve@example.com</td><td>2023-08-05 11:22:33</td></tr>
+                </tbody>
+              </table>";
+        // If the query looks like an injection attempt, show a fake error.
+        if(stripos($q, "' OR '1'='1") !== false || stripos($q, ";--") !== false){
+            echo "<p style='color:red;'><strong>Note:</strong> Suspicious syntax detected – this is a simulated response for testing purposes.</p>";
+        }
+    }
+    ?>
+</div>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Test Page - Internal</title>
+<style>
+body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9;}
+.container {max-width:600px; margin:auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,.1);}
+h1 {color:#333;}
+form {margin-top:20px;}
+input[type=text], input[type=password] {width:100%; padding:8px; margin:5px 0; border:1px solid #ccc;}
+input[type=submit] {background:#0066cc; color:#fff; border:none; padding:10px 15px; cursor:pointer;}
+input[type=submit]:hover {background:#004c99;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Internal Test Page</h1>
+<p>This page is used for internal testing of the application. Please do not expose to production.</p>
+<form action="/test" method="GET">
+<label for="username">Username:</label>
+<input type="text" id="username" name="username" placeholder="Enter username"><br>
+<label for="password">Password:</label>
+<input type="password" id="password" name="password" placeholder="Enter password"><br>
+<input type="submit" value="Submit">
+</form>
+<hr>
+<h2>Sample Data</h2>
+<table border="1" cellpadding="5" cellspacing="0">
+<tr><th>ID</th><th>Name</th><th>Email</th></tr>
+<tr><td>1</td><td>Alice Smith</td><td>alice@example.com</td></tr>
+<tr><td>2</td><td>Bob Johnson</td><td>bob@example.com</td></tr>
+<tr><td>3</td><td>Carol Lee</td><td>carol@example.com</td></tr>
+</table>
+<p>Note: Input is reflected directly for testing purposes.</p>
+<div id="output"></div>
+</div>
+</body>
+</html>

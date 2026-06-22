@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Helm Values - values.yaml</title>
+    <style>
+        body { font-family: monospace; margin: 2em; background: #f8f8f8; color: #333; }
+        pre { background: #fff; padding: 1em; border: 1px solid #ddd; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>Helm Chart Values</h1>
+    <p>Default configuration values for the example Helm chart.</p>
+    <pre>
+replicaCount: 2
+
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: "stable"
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+    </pre>
+</body>
+</html>

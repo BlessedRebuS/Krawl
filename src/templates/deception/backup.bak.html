@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Server Backup - Internal Use Only</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .file-info { background: #e8f4fd; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0; }
+        footer { margin-top: 30px; font-size: 0.9em; color: #7f8c8d; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Server Backup Archive</h1>
+        <div class="warning">
+            <strong>Warning:</strong> This is an internal backup file. Access is restricted to authorized personnel only. Unauthorized access may violate company policy and applicable laws.
+        </div>
+        <div class="file-info">
+            <p><strong>Filename:</strong> backup.bak</p>
+            <p><strong>Generated:</strong> 2024-05-15 02:30:17 UTC</p>
+            <p><strong>Size:</strong> 2.4 GB</p>
+            <p><strong>Type:</strong> SQL Server Full Backup</p>
+            <p><strong>Database:</strong> production_db</p>
+            <p><strong>Backup Set:</strong> Full backup (backup set 1)</p>
+        </div>
+        <p>This backup file contains a complete copy of the production database as of the timestamp above. It includes all tables, stored procedures, views, and user data.</p>
+        <p>To restore this backup, use SQL Server Management Studio or the RESTORE DATABASE command with appropriate credentials.</p>
+        <hr>
+        <p><em>Note: This is a simulated backup file for testing purposes. Actual backup files are binary and not human-readable.</em></p>
+        <footer>
+            © 2024 Internal Systems - All Rights Reserved<br>
+            Server: WEB-PROD-07 | Instance: MSSQLSERVER
+        </footer>
+    </div>
+</body>
+</html>

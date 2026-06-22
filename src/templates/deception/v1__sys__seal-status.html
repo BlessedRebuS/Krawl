@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vault Seal Status</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .status { padding: 15px; margin: 20px 0; border-radius: 5px; }
+        .sealed { background-color: #e74c3c; color: white; }
+        .unsealed { background-color: #27ae60; color: white; }
+        .info { background-color: #ecf0f1; padding: 10px; margin: 10px 0; border-left: 4px solid #3498db; }
+        .footer { margin-top: 30px; font-size: 0.9em; color: #7f8c8d; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HashiCorp Vault Seal Status</h1>
+        <div class="status sealed">
+            <strong>VAULT IS SEALED</strong>
+        </div>
+        <div class="info">
+            <p><strong>Seal Type:</strong> shamir</p>
+            <p><strong>Initialized:</strong> true</p>
+            <p><strong>Sealed:</strong> true</p>
+            <p><strong>Total Shares:</strong> 5</p>
+            <p><strong>Threshold:</strong> 3</p>
+            <p><strong>Unseal Progress:</strong> 0/3</p>
+            <p><strong>Unseal Nonce:</strong> n/a</p>
+            <p><strong>Version:</strong> 1.12.3</p>
+            <p><strong>Storage Type:</strong> file</p>
+            <p><strong>HA Enabled:</strong> false</p>
+        </div>
+        <div class="info">
+            <p><em>To unseal Vault, provide the required number of unseal keys via the /v1/sys/unseal endpoint.</em></p>
+            <p><em>Vault is sealed and requires unsealing before it can service requests.</em></p>
+        </div>
+        <div class="footer">
+            <p>HashiCorp Vault v1.12.3 &copy; 2023 HashiCorp, Inc.</p>
+            <p>Internal Security Portal - Do not distribute</p>
+        </div>
+    </div>
+</body>
+</html>

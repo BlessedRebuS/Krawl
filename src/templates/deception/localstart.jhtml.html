@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LocalStart Dashboard</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header, footer {background:#2c3e50; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#34495e; padding:0.5rem;}
+        nav a {color:#ecf0f1; margin:0 1rem; text-decoration:none;}
+        nav a:hover {text-decoration:underline;}
+        .container {max-width:960px; margin:2rem auto; background:#fff; padding:2rem; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1 {color:#2c3e50;}
+        table {width:100%; border-collapse:collapse; margin-top:1rem;}
+        th, td {border:1px solid #ddd; padding:0.5rem; text-align:left;}
+        th {background:#ecf0f1;}
+        tr:nth-child(even) {background:#f9f9f9;}
+        .btn {display:inline-block; background:#27ae60; color:#fff; padding:0.5rem 1rem; border:none; cursor:pointer; text-decoration:none;}
+        .btn:hover {background:#2ecc71;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>LocalStart Administration Portal</h1>
+    </header>
+    <nav>
+        <a href="/localstart.jhtml">Dashboard</a>
+        <a href="/users.jhtml">User Management</a>
+        <a href="/logs.jhtml">System Logs</a>
+        <a href="/settings.jhtml">Settings</a>
+        <a href="/logout.jhtml">Logout</a>
+    </nav>
+    <div class="container">
+        <h2>Welcome, Administrator</h2>
+        <p>Last login: 2025-11-02 08:14:23 UTC</p>
+        <p>System status: <strong>Operational</strong></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Component</th>
+                    <th>Status</th>
+                    <th>Last Check</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Web Server</td>
+                    <td>Running</td>
+                    <td>2025-11-02 08:10:00</td>
+                    <td><a class="btn" href="/restart.jhtml?service=web">Restart</a></td>
+                </tr>
+                <tr>
+                    <td>Database</td>
+                    <td>Running</td>
+                    <td>2025-11-02 08:09:45</td>
+                    <td><a class="btn" href="/restart.jhtml?service=db">Restart</a></td>
+                </tr>
+                <tr>
+                    <td>Cache Service</td>
+                    <td>Stopped</td>
+                    <td>2025-11-02 08:05:12</td>
+                    <td><a class="btn" href="/start.jhtml?service=cache">Start</a></td>
+                </tr>
+                <tr>
+                    <td>Mail Relay</td>
+                    <td>Running</td>
+                    <td>2025-11-02 08:11:30</td>
+                    <td><a class="btn" href="/restart.jhtml?service=mail">Restart</a></td>
+                </tr>
+            </tbody>
+        </table>
+        <p>&nbsp;</p>
+        <a class="btn" href="/run diagnostics.jhtml">Run Full System Diagnostics</a>
+    </div>
+    <footer>
+        © 2025 LocalStart Inc. • All rights reserved.
+    </footer>
+</body>
+</html>

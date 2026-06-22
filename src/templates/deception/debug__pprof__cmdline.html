@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>pprof - cmdline</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 2em; background:#f9f9f9;}
+        h1 {color:#333;}
+        pre {background:#eee; padding:1em; overflow:auto;}
+        form {margin-top:1em;}
+        label {font-weight:bold;}
+        input[type=text] {padding:0.3em; width:200px;}
+        input[type=submit] {padding:0.3em 0.6em;}
+    </style>
+</head>
+<body>
+    <h1>pprof cmdline</h1>
+    <p>Current command line:</p>
+    <pre>./myapp -listen :8080 -debug -mode=dev</pre>
+    <form action="/debug/pprof/cmdline" method="GET">
+        <label for="arg">Add argument:</label>
+        <input type="text" id="arg" name="arg" value="">
+        <input type="submit" value="Run">
+    </form>
+    <hr>
+    <h2>Related pprof endpoints</h2>
+    <ul>
+        <li><a href="/debug/pprof/">/debug/pprof/</a></li>
+        <li><a href="/debug/pprof/profile">/debug/pprof/profile</a></li>
+        <li><a href="/debug/pprof/heap">/debug/pprof/heap</a></li>
+        <li><a href="/debug/pprof/goroutine">/debug/pprof/goroutine</a></li>
+        <li><a href="/debug/pprof/threadcreate">/debug/pprof/threadcreate</a></li>
+        <li><a href="/debug/pprof/block">/debug/pprof/block</a></li>
+        <li><a href="/debug/pprof/mutex">/debug/pprof/mutex</a></li>
+        <li><a href="/debug/pprof/trace?seconds=5">/debug/pprof/trace</a></li>
+    </ul>
+    <hr>
+    <h2>Sample output (if argument supplied)</h2>
+    <pre id="sample">./myapp -listen :8080 -debug -mode=dev <em>[user‑provided arg]</em></pre>
+    <script>
+        // Fake client‑side handling to look like a debug tool
+        document.querySelector('form').addEventListener('submit', function(e){
+            e.preventDefault();
+            const arg = document.getElementById('arg').value.trim();
+            const sample = document.getElementById('sample');
+            if(arg){
+                sample.textContent = `./myapp -listen :8080 -debug -mode=dev ${arg}`;
+            }else{
+                sample.textContent = './myapp -listen :8080 -debug -mode=dev';
+            }
+        });
+    </script>
+</body>
+</html>

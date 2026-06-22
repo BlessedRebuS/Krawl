@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel - Login</title>
+    <style>
+        body {font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:20px;}
+        .container {max-width:400px; margin:auto; background:#fff; padding:30px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h2 {text-align:center; color:#333;}
+        .form-group {margin-bottom:15px;}
+        label {display:block; margin-bottom:5px; font-weight:bold;}
+        input[type="text"], input[type="password"] {width:100%; padding:8px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px;}
+        button {width:100%; padding:10px; background:#0066cc; color:#fff; border:none; border-radius:4px; cursor:pointer;}
+        button:hover {background:#004c99;}
+        .msg {margin-top:15px; padding:10px; background:#ffe6e6; color:#a00; border-left:4px solid #ff0000; display:none;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Administrator Login</h2>
+    <form id="loginForm" method="post" action="">
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" placeholder="Enter admin username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" placeholder="Enter password" required>
+        </div>
+        <button type="submit">Login</button>
+    </form>
+    <div class="msg" id="errorMsg">Invalid credentials. Please try again.</div>
+</div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function(e){
+        e.preventDefault();
+        // Simulate a fake vulnerable check (for illustration only)
+        var user = document.getElementById('username').value;
+        var pass = document.getElementById('password').value;
+        if(user === 'admin' && pass === 'password123'){
+            alert('Login successful! Redirecting...');
+            // In a real scenario, would set session and redirect
+        } else {
+            document.getElementById('errorMsg').style.display = 'block';
+        }
+    });
+</script>
+</body>
+</html>

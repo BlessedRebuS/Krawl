@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>serverless.yml</title>
+<style>
+body{font-family:monospace;background:#f8f8f8;color:#222;padding:20px;}
+pre{background:#eee;padding:10px;border:1px solid #ccc;overflow:auto;}
+a{color:#0066cc;}
+</style>
+</head>
+<body>
+<h1>serverless.yml</h1>
+<p>This is the Serverless Framework configuration for the demo application.</p>
+<pre>
+service: demo-app
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: us-east-1
+  stage: dev
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: "*"
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: hello
+          method: get
+          cors: true
+  process:
+    handler: handler.process
+    events:
+      - schedule: rate(5 minutes)
+
+resources:
+  Resources:
+    DemoTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: demo-table
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+</pre>
+<hr>
+<p><a href="/">Go back to homepage</a></p>
+</body>
+</html>

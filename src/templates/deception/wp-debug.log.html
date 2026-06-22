@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WordPress Debug Log</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; margin:0; padding:20px;}
+        h1 {color:#333;}
+        pre {background:#fff; padding:15px; border:1px solid #ddd; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>WordPress Debug Log</h1>
+    <p>Generated on 23-Sep-2025 10:12:40 UTC</p>
+    <pre>
+[23-Sep-2025 10:12:34 UTC] PHP Notice:  Undefined variable: wpdb in /var/www/html/wp-includes/functions.php on line 1234
+[23-Sep-2025 10:12:35 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /var/www/html/wp-config.php:1) in /var/www/html/wp-includes/pluggable.php on line 1225
+[23-Sep-2025 10:12:36 UTC] PHP Notice:  Trying to access array offset on value of type null in /var/www/html/wp-content/plugins/some-plugin/some-file.php on line 78
+[23-Sep-2025 10:12:37 UTC] WordPress database error Table 'wp_options' doesn't exist for query SELECT option_value FROM wp_options WHERE option_name = 'siteurl' LIMIT 1 made by require_once('wp-load.php'), ...
+[23-Sep-2025 10:12:38 UTC] PHP Deprecated:  Function create_function() is deprecated in /var/www/html/wp-content/themes/twentytwentyfour/functions.php on line 45
+[23-Sep-2025 10:12:39 UTC] PHP Notice:  Use of undefined constant WP_DEBUG_LOG - assumed 'WP_DEBUG_LOG' in /var/www/html/wp-config.php on line 92
+[23-Sep-2025 10:12:40 UTC] PHP Warning:  fopen(/var/www/html/wp-content/debug.log): failed to open stream: Permission denied in /var/www/html/wp-includes/functions.php on line 2032
+    </pre>
+</body>
+</html>

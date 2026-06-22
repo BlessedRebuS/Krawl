@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tutor LMS - Students API</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 2em; background:#f9f9f9; color:#333;}
+        pre {background:#eee; padding:1em; border:1px solid #ccc; overflow:auto;}
+        a {color:#0066cc;}
+    </style>
+</head>
+<body>
+    <h1>Tutor LMS REST API</h1>
+    <p>Endpoint: <code>/wp-json/tutor/v1/students</code></p>
+    <p>Returns a list of students enrolled in courses.</p>
+    <hr>
+    <h2>Sample Response (JSON)</h2>
+    <pre>
+[
+    {
+        "id": 1024,
+        "name": "Alice Johnson",
+        "email": "alice.j@example.com",
+        "registered": "2023-05-12",
+        "courses": [
+            {"id": 5, "title": "Introduction to PHP"},
+            {"id": 12, "title": "MySQL Basics"}
+        ]
+    },
+    {
+        "id": 1025,
+        "name": "Bob Smith",
+        "email": "bob.smith@example.com",
+        "registered": "2023-07-03",
+        "courses": [
+            {"id": 5, "title": "Introduction to PHP"},
+            {"id": 9, "title": "JavaScript Essentials"}
+        ]
+    },
+    {
+        "id": 1026,
+        "name": "Carol Lee",
+        "email": "carol.lee@example.com",
+        "registered": "2023-08-19",
+        "courses": [
+            {"id": 7, "title": "HTML5 & CSS3"},
+            {"id": 15, "title": "Responsive Design"}
+        ]
+    }
+]
+    </pre>
+    <p>Note: This is a simulated response for demonstration purposes.</p>
+    <footer>
+        <p><a href="/wp-admin/">Return to WordPress Dashboard</a> | <a href="/">Home</a></p>
+    </footer>
+</body>
+</html>

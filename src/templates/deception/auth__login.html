@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - SecureCorp Intranet</title>
+    <style>
+        body {font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:0;}
+        .container {width:350px; margin:100px auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h2 {text-align:center; color:#333;}
+        label {display:block; margin-top:10px; font-weight:bold;}
+        input[type="text"], input[type="password"] {width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;}
+        input[type="submit"] {width:100%; padding:10px; margin-top:20px; background:#0066cc; color:#fff; border:none; border-radius:4px; cursor:pointer;}
+        input[type="submit"]:hover {background:#004c99;}
+        .remember {margin-top:10px; display:flex; align-items:center;}
+        .remember input {margin-right:5px; width:auto;}
+        a {color:#0066cc; text-decoration:none;}
+        a:hover {text-decoration:underline;}
+        p {text-align:center; margin-top:15px; font-size:0.9em;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Employee Login</h2>
+        <form action="/auth/login" method="POST">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" placeholder="Enter username" required><br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" placeholder="Enter password" required><br>
+            <div class="remember">
+                <input type="checkbox" name="remember" value="1">
+                <label>Remember me</label>
+            </div><br>
+            <input type="submit" value="Log In">
+        </form>
+        <p>Forgot <a href="/auth/password_reset">password?</a></p>
+        <!-- Potential SQL injection: username and password concatenated directly into query -->
+        <!-- Debug output: <?php echo $_POST['username']; ?> -->
+    </div>
+</body>
+</html>

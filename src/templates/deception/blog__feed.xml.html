@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+     xmlns:content="http://purl.org/rss/1.0/modules/content/"
+     xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
+     xmlns:atom="http://www.w3.org/2005/Atom"
+     xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+     xmlns:slash="http://purl.org/rss/1.0/modules/slash/">
+  <channel>
+    <title>TechBlog Daily Feed</title>
+    <link>https://www.techblogdaily.com</link>
+    <description>Latest updates and insights from the world of technology, programming, and cybersecurity.</description>
+    <language>en-us</language>
+    <pubDate>Mon, 22 Apr 2024 08:30:00 GMT</pubDate>
+    <lastBuildDate>Mon, 22 Apr 2024 08:30:00 GMT</lastBuildDate>
+    <atom:link href="https://www.techblogdaily.com/blog/feed.xml" rel="self" type="application/rss+xml" />
+    <managingEditor>editor@techblogdaily.com (Jane Doe)</managingEditor>
+    <webMaster>webmaster@techblogdaily.com (John Smith)</webMaster>
+
+    <item>
+      <title>Understanding SQL Injection: A Developer's Guide to Prevention</title>
+      <link>https://www.techblogdaily.com/blog/sql-injection-prevention-guide</link>
+      <guid>https://www.techblogdaily.com/blog/sql-injection-prevention-guide</guid>
+      <pubDate>Sun, 21 Apr 2024 14:22:00 GMT</pubDate>
+      <dc:creator>Jane Doe</dc:creator>
+      <category>Security</category>
+      <description><![CDATA[Learn how attackers exploit SQL injection vulnerabilities and how to protect your applications using parameterized queries, input validation, and ORM best practices. Real-world examples included.]]></description>
+      <content:encoded><![CDATA[<h2>Understanding SQL Injection: A Developer's Guide to Prevention</h2><p>SQL injection remains one of the most prevalent web application vulnerabilities. This article walks through common attack patterns, demonstrates how malicious payloads like <code>' OR '1'='1</code> can bypass authentication, and shows how to defend using prepared statements in PHP, Python, and Java.</p><p>Example vulnerable code:</p><pre><code>String query = "SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'";</code></pre><p>Safe alternative using PreparedStatement:</p><pre><code>PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users WHERE username = ? AND password = ?");</code></pre>]]></content:encoded>
+    </item>
+
+    <item>
+      <title>Top 5 JavaScript Frameworks for 2024: Performance Compared</title>
+      <link>https://www.techblogdaily.com/blog/top-js-frameworks-2024</link>
+      <guid>https://www.techblogdaily.com/blog/top-js-frameworks-2024</guid>
+      <pubDate>Sat, 20 Apr 2024 09:15:00 GMT</pubDate>
+      <dc:creator>Alex Rivera</dc:creator>
+      <category>Development</category>
+      <description><![CDATA[A benchmark-driven comparison of React, Vue, Svelte, Solid, and Angular — including bundle size, runtime performance, and developer experience metrics from real-world tests.]]></description>
+      <content:encoded><![CDATA[<h2>Top 5 JavaScript Frameworks for 2024: Performance Compared</h2><p>We tested each framework with identical TodoMVC implementations under controlled conditions. Here are the results:</p><ul><li><strong>Svelte</strong>: Fastest initial load (1.2s), smallest bundle (18KB gzipped)</li><li><strong>Solid</strong>: Best runtime performance in updates</li><li><strong>React</strong>: Most mature ecosystem, largest community</li><li><strong>Vue</strong>: Best balance of performance and ease of use</li><li><strong>Angular</strong>: Heaviest but most feature-rich for enterprise</li></ul>]]></content:encoded>
+    </item>
+
+    <item>
+      <title>How to Secure Your WordPress Site Against XSS Attacks</title>
+      <link>https://www.techblogdaily.com/blog/wordpress-xss-protection</link>
+      <guid>https://www.techblogdaily.com/blog/wordpress-xss-protection</guid>
+      <pubDate>Fri, 19 Apr 2024 16:40:00 GMT</pubDate>
+      <dc:creator>Maria Garcia</dc:creator>
+      <category>Security</category>
+      <description><![CDATA<![CDATA[Cross-site scripting (XSS) is a common threat to WordPress sites. This guide covers sanitization, escaping, Content Security Policy (CSP), and plugin hardening techniques to block <code>&lt;script&gt;alert('XSS')&lt;/script&gt;</code> and similar payloads.]]>]]></description>
+      <content:encoded><![CDATA[<h2>How to Secure Your WordPress Site Against XSS Attacks</h2><p>WordPress powers over 40% of the web — making it a prime target for XSS. Attackers often inject malicious scripts via comment fields, user profiles, or vulnerable plugins.</p><p>Example of dangerous input:</p><pre><code>&lt;script&gt;alert('XSS')&lt;/script&gt;</code></pre><p>Defense strategies:</p><ul><li>Use <code>esc_html()</code> and <code>esc_attr()</code> in PHP templates</li><li>Implement a strict Content Security Policy header</li><li>Keep plugins and themes updated</li><li>Use security plugins like Wordfence or Sucuri</li></ul>]]></content:encoded>
+    </item>
+
+    <item>
+      <title>API Security Best Practices: Rate Limiting and Authentication</title>
+      <link>https://www.techblogdaily.com/blog/api-security-best-practices</link>
+      <guid>https://www.techblogdaily.com/blog/api-security-best-practices</guid>
+      <pubDate>Thu, 18 Apr 2024 11:05:00 GMT</pubDate>
+      <dc:creator>David Kim</dc:creator>
+      <category>Security</category>
+      <description><![CDATA[Protect your REST and GraphQL APIs from abuse with JWT validation, OAuth 2.0, rate limiting algorithms (token bucket, leaky bucket), and monitoring for anomalous traffic patterns like SQLi or XSS probes.]]></description>
+      <content:encoded><![CDATA[<h2>API Security Best Practices: Rate Limiting and Authentication</h2><p>APIs are the new attack surface. This guide covers essential defenses:</p><ul><li><strong>Authentication</strong>: Use JWT with short expiration and refresh tokens; validate signatures</li><li><strong>Authorization</strong>: Enforce RBAC or ABAC at the API gateway</li><li><strong>Rate Limiting</strong>: Implement token bucket algorithm — e.g., 100 requests/minute per IP</li><li><strong>Input Validation</strong>: Reject malformed JSON, SQLi patterns (<code>SELECT * FROM</code>), and XSS vectors (<code>&lt;script&gt;</code>)</li><li><strong>Logging & Monitoring</strong>: Alert on repeated 400/403 errors or known attack signatures</li></ul><p>Example Nginx rate limit config:</p><pre><code>limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;</code></pre>]]></content:encoded>
+    </item>
+
+  </channel>
+</rss>

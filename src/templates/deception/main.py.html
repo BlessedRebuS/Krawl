@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>main.py - Source Code</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; padding:20px;}
+        h1 {color:#333;}
+        pre {background:#eee; padding:10px; border:1px solid #ccc; overflow:auto;}
+    </style>
+</head>
+<body>
+<h1>main.py</h1>
+<pre>
+# Simple vulnerable web app (for demonstration only)
+from flask import Flask, request, render_template_string
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return 'Hello, World!'
+
+@app.route('/search')
+def search():
+    # VULNERABLE: directly renders user input
+    query = request.args.get('q', '')
+    return render_template_string('<h1>Results for: {{ query }}</h1>', query=query)
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=8080)
+</pre>
+</body>
+</html>

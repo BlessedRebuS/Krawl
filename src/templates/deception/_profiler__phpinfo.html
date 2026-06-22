@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHP Information</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        h1 { color: #2c3e50; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #3498db; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .section { margin-top: 30px; }
+        .section h2 { border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; }
+        code { background: #ecf0f1; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PHP Configuration Information</h1>
+        <p><em>This page displays information about PHP configuration and environment.</em></p>
+        
+        <div class="section">
+            <h2>PHP Core</h2>
+            <table>
+                <tr><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+                <tr><td>PHP Version</td><td>8.2.12</td><td>8.2.12</td></tr>
+                <tr><td>System</td><td>Linux web01.internal 5.15.0-105-generic #115-Ubuntu SMP Thu Aug 24 20:23:25 UTC 2023 x86_64</td><td>same</td></tr>
+                <tr><td>Build Date</td><td>Nov  8 2023 14:32:10</td><td>same</td></tr>
+                <tr><td>Server API</td><td>Apache 2.0 Handler</td><td>same</td></tr>
+                <tr><td>Virtual Directory Support</td><td>disabled</td><td>disabled</td></tr>
+                <tr><td>Configuration File (php.ini) Path</td><td>/etc/php/8.2/apache2</td><td>/etc/php/8.2/apache2</td></tr>
+                <tr><td>Loaded Configuration File</td><td>/etc/php/8.2/apache2/php.ini</td><td>/etc/php/8.2/apache2/php.ini</td></tr>
+                <tr><td>Scan this dir for additional .ini files</td><td>/etc/php/8.2/apache2/conf.d</td><td>/etc/php/8.2/apache2/conf.d</td></tr>
+                <tr><td>additional .ini files parsed</td><td>/etc/php/8.2/apache2/conf.d/00-opcache.ini, /etc/php/8.2/apache2/conf.d/00-uopz.ini, /etc/php/8.2/apache2/conf.d/10-mysqlnd.ini, /etc/php/8.2/apache2/conf.d/10-opcache.ini, /etc/php/8.2/apache2/conf.d/10-pdo.ini, /etc/php/8.2/apache2/conf.d/20-calendar.ini, /etc/php/8.2/apache2/conf.d/20-ctype.ini, /etc/php/8.2/apache2/conf.d/20-exif.ini, /etc/php/8.2/apache2/conf.d/20-fileinfo.ini, /etc/php/8.2/apache2/conf.d/20-ftp.ini, /etc/php/8.2/apache2/conf.d/20-gd.ini, /etc/php/8.2/apache2/conf.d/20-gettext.ini, /etc/php/8.2/apache2/conf.d/20-iconv.ini, /etc/php/8.2/apache2/conf.d/20-imagick.ini, /etc/php/8.2/apache2/conf.d/20-igbinary.ini, /etc/php/8.2/apache2/conf.d/20-imap.ini, /etc/php/8.2/apache2/conf.d/20-intl.ini, /etc/php/8.2/apache2/conf.d/20-mbstring.ini, /etc/php/8.2/apache2/conf.d/20-memcached.ini, /etc/php/8.2/apache2/conf.d/20-memcache.ini, /etc/php/8.2/apache2/conf.d/20-mysql.ini, /etc/php/8.2/apache2/conf.d/20-mysqli.ini, /etc/php/8.2/apache2/conf.d/20-pdo_mysql.ini, /etc/php/8.2/apache2/conf.d/20-pdo_pgsql.ini, /etc/php/8.2/apache2/conf.d/20-pdo_sqlite.ini, /etc/php/8.2/apache2/conf.d/20-pgsql.ini, /etc/php/8.2/apache2/conf.d/20-redis.ini, /etc/php/8.2/apache2/conf.d/20-shmop.ini, /etc/php/8.2/apache2/conf.d/20-simplexml.ini, /etc/php/8.2/apache2/conf.d/20-soap.ini, /etc/php/8.2/apache2/conf.d/20-sockets.ini, /etc/php/8.2/apache2/conf.d/20-sodium.ini, /etc/php/8.2/apache2/conf.d/20-sysvmsg.ini, /etc/php/8.2/apache2/conf.d/20-sysvsem.ini, /etc/php/8.2/apache2/conf.d/20-sysvshm.ini, /etc/php/8.2/apache2/conf.d/20-tidy.ini, /etc/php/8.2/apache2/conf.d/20-tokenizer.ini, /etc/php/8.2/apache2/conf.d/20-xml.ini, /etc/php/8.2/apache2/conf.d/20-xmlreader.ini, /etc/php/8.2/apache2/conf.d/20-xmlrpc.ini, /etc/php/8.2/apache2/conf.d/20-xmlwriter.ini, /etc/php/8.2/apache2/conf.d/20-xsl.ini, /etc/php/8.2/apache2/conf.d/20-zip.ini</td><td>same</td></tr>
+                <tr><td>PHP Extension Build</td><td>API320220829,NTS</td><td>same</td></tr>
+                <tr><td>Debug Build</td><td>no</td><td>no</td></tr>
+                <tr><td>Thread Safety</td><td>disabled</td><td>disabled</td></tr>
+                <tr><td>Zend Signal Handling</td><td>enabled</td><td>enabled</td></tr>
+                <tr><td>Zend Memory Manager</td><td>enabled</td><td>enabled</td></tr>
+                <tr><td>Zend Multibyte Support</td><td>provided by mbstring</td><td>provided by mbstring</td></tr>
+                <tr><td>IPv6 Support</td><td>enabled</td><td>enabled</td></tr>
+                <tr><td>DTrace Support</td><td>disabled</td><td>disabled</td></tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>Core</h2>
+            <table>
+                <tr><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+                <tr><td>allow_url_fopen</td><td>On</td><td>On</td></tr>
+                <tr><td>allow_url_include</td><td>Off</td><td>Off</td></tr>
+                <tr><td>arg_separator.input</td><td>"&"</td><td>"&"</td></tr>
+                <tr><td>arg_separator.output</td><td>"&"</td><td>"&"</td></tr>
+                <tr><td>auto_append_file</td><td>no value</td><td>no value</td></tr>
+                <tr><td>auto_globals_jit</td><td>On</td><td>On</td></tr>
+                <tr><td>auto_prepend_file</td><td>no value</td><td>no value</td></tr>
+                <tr><td>browscap</td><td>no value</td><td>no value</td></tr>
+                <tr><td>default_charset</td><td>"UTF-8"</td><td>"UTF-8"</td></tr>
+                <tr><td>default_mimetype</td><td>"text/html"</td><td>"text/html"</td></tr>
+                <tr><td>disable_classes</td><td>no value</td><td>no value</td></tr>
+                <tr><td>disable_functions</td><td>pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wexitstatus,pcntl_wstopexit,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wstopexit,pcntl_wifsignaled,pcntl_wifexited,pcntl_wifstopped,exec,system,passthru,popen,proc_close,proc_get_status,proc_nice,proc_terminate,proc_close,proc_get_status,proc_nice,proc_terminate,shell_exec,proc_open,pcntl_exec,</td><td>same</td></tr>
+                <tr><td>display_errors</td><td>On</td><td>STDERR</td></tr>
+                <tr><td>display_startup_errors</td><td>Off</td><td>Off</td></tr>
+                <tr><td>doc_root</td><td>no value</td><td>no value</td></tr>
+                <tr><td>docref_ext</td><td>no value</td><td>no value</td></tr>
+                <tr><td>docref_root</td><td>no value</td><td>no value</td></tr>
+                <tr><td>enable_dl</td><td>Off</td><td>Off</td></tr>
+                <tr><td>error_append_string</td><td>no value</td><td>no value</td></tr>
+                <tr><td>error_log</td><td>/var/log/php_errors.log</td><td>/var/log/php_errors.log</td></tr>
+                <tr><td>error_prepend_string</td><td>no value</td><td>no value</td></tr>
+                <tr><td>error_reporting</td><td>22527</td><td>22527</td></tr>
+                <tr><td>expose_php</td><td>On</td><td>On</td></tr>
+                <tr><td>extension_dir</td><td>/usr/lib/php/20220829</td><td>/usr/lib/php/20220829</td></tr>
+                <tr><td>file_uploads</td><td>On</td><td>On</td></tr>
+                <tr><td>hard_timeout</td><td>2</td><td>2</td></tr>
+                <tr><td>highlight.comment</td><td><font style="color: #FF8000">#FF8000</font></td><td><font style="color: #FF8000">#FF8000</font></td></tr>
+                <tr><td>highlight.default</td><td><font style="color: #0000BB">#0000BB</font></td><td><font style="color: #0000BB">#0000BB</font></td></tr>
+                <tr><td>highlight.html</td><td><font style="color: #000000">#000000</font></td><td><font style="color: #000000">#000000</font></td></tr>
+                <tr><td>highlight.keyword</td><td><font style="color: #007F00">#007F00</font></td><td><font style="color: #007F00">#007F00</font></td></tr>
+                <tr><td>highlight.string</td><td><font style="color: #DD0000">#DD0000</font></td><td><font style="color: #DD0000">#DD0000</font></td></tr>
+                <tr><td>html_errors</td><td>On</td><td>On</td></tr>
+                <tr><td>ignore_repeated_errors</td><td>Off</td><td>Off</td></tr>
+                <tr><td>ignore_repeated_source</td><td>Off</td><td>Off</td></tr>
+                <tr><td>ignore_user_abort</td><td>Off</td><td>Off</td></tr>
+                <tr><td>implicit_flush</td><td>Off</td><td>Off</td></tr>
+                <tr><td>include_path</td><td>.:/usr/share/php</td><td>.:/usr/share/php</td></tr>
+                <tr><td>input_encoding</td><td>no value</td><td>no value</td></tr>
+                <tr><td>internal_encoding</td><td>no value</td><td>no value</td></tr>
+                <tr><td>log_errors</td><td>On</td><td>On</td></tr>
+                <tr><td>log_errors_max_len</td><td>1024</td><td>1024</td></tr>
+                <tr><td>mail.add_x_header</td><td>Off</td><td>Off</td></tr>
+                <tr><td>mail.force_extra_parameters</td><td>no value</td><td>no value</td></tr>
+                <tr><td>mail.log</td><td>no value</td><td>no value</td></tr>
+                <tr><td>max_execution_time</td><td>30</td><td>30</td></tr
+</table>
+</div>
+<div class="section">
+<h2>Apache Environment</h2>
+<table>
+<tr><th>Variable</th><th>Value</th></tr>
+<tr><td>HTTP_HOST</td><td>localhost</td></tr>
+<tr><td>HTTP_USER_AGENT</td><td>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36</td></tr>
+<tr><td>HTTP_ACCEPT</td><td>text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8</td></tr>
+<tr><td>HTTP_ACCEPT_LANGUAGE</td><td>en-US,en;q=0.9</td></tr>
+<tr><td>HTTP_ACCEPT_ENCODING</td><td>gzip, deflate, br</td></tr>
+<tr><td>HTTP_CONNECTION</td><td>keep-alive</td></tr>
+<tr><td>HTTP_UPGRADE_INSECURE_REQUESTS</td><td>1</td></tr>
+<tr><td>PATH</td><td>/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin</td></tr>
+<tr><td>SERVER_SIGNATURE</td><td><address>Apache/2.4.58 (Ubuntu) Server at localhost Port 80</address></td></tr>
+<tr><td>SERVER_SOFTWARE</td><td>Apache/2.4.58 (Ubuntu)</td></tr>
+<tr><td>SERVER_NAME</td><td>localhost</td></tr>
+<tr><td>SERVER_ADDR</td><td>127.0.0.1</td></tr>
+<tr><td>SERVER_PORT</td><td>80</td></tr>
+<tr><td>REMOTE_ADDR</td><td>127.0.0.1</td></tr>
+<tr><td>DOCUMENT_ROOT</td><td>/var/www/html</td></tr>
+<tr><td>SERVER_ADMIN</td><td>webmaster@localhost</td></tr>
+<tr><td>SCRIPT_FILENAME</td><td>/var/www/html/_profiler/phpinfo.php</td></tr>
+<tr><td>REMOTE_PORT</td><td>54321</td></tr>
+<tr><td>GATEWAY_INTERFACE</td><td>CGI/1.1</td></tr>
+<tr><td>SERVER_PROTOCOL</td><td>HTTP/1.1</td></tr>
+<tr><td>REQUEST_METHOD</td><td>GET</td></tr>
+<tr><td>QUERY_STRING</td><td>no value</td></tr>
+<tr><td>REQUEST_URI</td><td>/_profiler/phpinfo</td></tr>
+<tr><td>SCRIPT_NAME</td><td>/_profiler/phpinfo.php</td></tr>
+<tr><td>PHP_SELF</td><td>/_profiler/phpinfo.php</td></tr>
+<tr><td>REQUEST_TIME_FLOAT</td><td>1701234567.8901</td></tr>
+<tr><td>REQUEST_TIME</td><td>1701234567</td></tr>
+</table>
+</div>
+
+<div class="section">
+<h2>Loaded Modules</h2>
+<table>
+<tr><th>Module</th></tr>
+<tr><td>core</td></tr>
+<tr><td>mod_so</td></tr>
+<tr><td>mod_watchdog</td></tr>
+<tr><td>http_core</td></tr>
+<tr><td>mod_log_config</td></tr>
+<tr><td>mod_logio</td></tr>
+<tr><td>mod_version</td></tr>
+<tr><td>mod_unixd</td></tr>
+<tr><td>mod_access_compat</td></tr>
+<tr><td>mod_actions</td></tr>
+<tr><td>mod_alias</td></tr>
+<tr><td>mod_auth_basic</td></tr>
+<tr><td>mod_auth_digest</td></tr>
+<tr><td>mod_authn_file</td></tr>
+<tr><td>mod_authn_dbm</td></tr>
+<tr><td>mod_authn_dbd</td></tr>
+<tr><td>mod_authn_anon</td></tr>
+<tr><td>mod_authn_socache</td></tr>
+<tr><td>mod_authn_default</td></tr>
+<tr><td>mod_authz_host</td></tr>
+<tr><td>mod_authz_groupfile</td></tr>
+<tr><td>mod_authz_user</td></tr>
+<tr><td>mod_authz_dbm</td></tr>
+<tr><td>mod_authz_owner</td></tr>
+<tr><td>mod_authz_default</td></tr>
+<tr><td>mod_authz_ldap</td></tr>
+<tr><td>mod_authz_dbdb</td></tr>
+<tr><td>mod_cache</td></tr>
+<tr><td>mod_cache_disk</td></tr>
+<tr><td>mod_file_cache</td></tr>
+<tr><td>mod_mem_cache</td></tr>
+<tr><td>mod_disk_cache</td></tr>
+<tr><td>mod_cache_socache</td></tr>
+<tr><td>mod_env</td></tr>
+<tr><td>mod_expires</td></tr>
+<tr><td>mod_headers</td></tr>
+<tr><td>mod_unique_id</td></tr>
+<tr><td>mod_setenvif</td></tr>
+<tr><td>mod_dav</td></tr>
+<tr><td>mod_dav_fs</td></tr>
+<tr><td>mod_dav_svn</td></tr>
+<tr><td>mod_dav</td></tr>
+<tr><td>mod_dav_lock</td></tr>
+<tr><td>mod_vhost_alias</td></tr>
+<tr><td>mod_negotiation</td></tr>
+<tr><td>mod_dir</td></tr>
+<tr><td>mod_imagemap</td></tr>
+<tr><td>mod_actions</td></tr>
+<tr><td>mod_speling</td></tr>
+<tr><td>mod_userdir</td></tr>
+<tr><td>mod_alias</td></tr>
+<tr><td>mod_rewrite</td></tr>
+<tr><td>mod_proxy</td></tr>
+<tr><td>mod_proxy_balancer</td></tr>
+<tr><td>mod_proxy_ftp</td></tr>
+<tr><td>mod_proxy_http</td></tr>
+<tr><td>mod_proxy_connect</td></tr>
+<tr><td>mod_proxy_ajp</td></tr>
+<tr><td>mod_proxy_wstunnel</td></tr>
+<tr><td>mod_proxy_express</td></tr>
+<tr><td>mod_headers</td></tr>
+<tr><td>mod_usertrack</td></tr>
+<tr><td>mod_ssl</td></tr>
+<tr><td>mime_magic</td></tr>
+<tr><td>mod_cern_meta</td></tr>
+<tr><td>mod_cgid</td></tr>
+<tr><td>mod_dav_svn</td></tr>
+<tr><td>mod_autoindex</td></tr>
+<tr><td>mod_include</td></tr>
+<tr><td>mod_filter</td></tr>
+<tr><td>mod_substitute</td></tr>
+<tr><td>mod_deflate</td></tr>
+<tr><td>mod_log_config</td></tr>
+<tr><td>mod_logio</td></tr>
+<tr><td>mod_env</td></tr>
+<tr><td>mod_mime_magic</td></tr>
+<tr><td>mod_cern_meta</td></tr>
+<tr><td>mod_expires</td></tr>
+<tr><td>mod_headers</td></tr>
+<tr><td>mod_usertrack</td></tr>
+<tr><td>mod_setenvif</td></tr>
+<tr><td>mod_mime</td></tr>
+<tr><td>mod_status</td></tr>
+<tr><td>mod_autoindex</td></tr>
+<tr><td>mod_asis</td></tr>
+<tr><td>mod_info</td></tr>
+<tr><td>mod_suexec</td></tr>
+<tr><td>mod_cgi</td></tr>
+<tr><td>mod_dav</td></tr>
+<tr><td>mod_actions</td></tr>
+<tr><td>mod_negotiation</td></tr>
+<tr><td>mod_include</td></tr>
+<tr><td>mod_info</td></tr>
+<tr><td>mod_bw</td></tr>
+<tr><td>mod_asis</td></tr>
+<tr><td>mod_imagemap</td></tr>
+<tr><td>mod_actions</td></tr>
+<tr><td>mod_userdir</td></tr>
+<tr><td>mod_alias</td></tr>
+<tr><td>mod_rewrite</td></tr>
+<tr><td>mod_proxy</td></tr>
+<tr><td>mod_proxy_balancer</td></tr>
+<tr><td>mod_proxy_ftp</td></tr>
+<tr><td>mod_proxy_http</td></tr>
+<tr><td>mod_proxy_connect</td></tr>
+<tr><td>mod_proxy_ajp</td></tr>
+<tr><td>mod_proxy_wstunnel</td></tr>
+<tr><td>mod_proxy_express</td></tr>
+</table>
+</div>
+
+<div class="section">
+<h2>PHP Variables</h2>
+<table>
+<tr><th>Variable</th><th>Value</th></tr>
+<tr><td>$_SERVER['PHP_SELF']</td><td>/_profiler/phpinfo.php</td></tr>
+<tr><td>$_SERVER['argv']</td><td>Array</td></tr>
+<tr><td>$_SERVER['argc']</td><td>0</td></tr>
+<tr><td>$_GET</td><td>Array</td></tr>
+<tr><td>$_POST</td><td>Array</td></tr>
+<tr><td>$_COOKIE</td><td>Array</td></tr>
+<tr><td>$_FILES</td><td>Array</td></tr>
+<tr><td>$_ENV</td><td>Array</td></tr>
+<tr><td>$_REQUEST</td><td>Array</td></tr>
+<tr><td>$_SESSION</td><td>Array</td></tr>
+<tr><td>GLOBALS</td><td>Array</td></tr>
+</table>
+</div>
+
+<p><em>This is a simulated PHP info page for security training purposes. No actual server information is disclosed.</em></p>
+</div>
+</body>
+</html>

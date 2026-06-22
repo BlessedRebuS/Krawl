@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>File Upload - Example Corp</title>
+</head>
+<body>
+<h1>Upload Archive</h1>
+<p>Please upload your ZIP archive for processing.</p>
+<form action="/upload.php" method="post" enctype="multipart/form-data">
+<input type="file" name="archive" accept=".zip" required>
+<button type="submit">Upload</button>
+</form>
+<hr>
+<h2>Recently uploaded archives</h2>
+<ul>
+<li>backup_20240901.zip (12 MB) - uploaded 2024-09-01 10:15</li>
+<li>data_dump.zip (8 MB) - uploaded 2024-08-28 14:03</li>
+</ul>
+</body>
+</html>

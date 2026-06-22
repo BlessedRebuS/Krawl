@@ -1,0 +1,28 @@
+<html><body>{
+  "database": {
+    "host": "localhost",
+    "port": 3306,
+    "username": "admin",
+    "password": "s3cr3t_p@ssw0rd!",
+    "name": "app_db"
+  },
+  "api": {
+    "base_url": "https://api.internal.example.com/v1",
+    "key": "sk_live_5f8a7b9c2d1e0f4a6b7c8d9e0f1a2b3c",
+    "timeout": 5000
+  },
+  "debug": true,
+  "features": {
+    "user_registration": true,
+    "file_upload": {
+      "max_size": "10MB",
+      "allowed_types": ["jpg", "png", "pdf", "docx"]
+    },
+    "admin_panel": "/admin"
+  },
+  "logging": {
+    "level": "info",
+    "file": "/var/log/app.log",
+    "remote_endpoint": "https://logs.internal.example.com/ingest"
+  }
+}</body></html>

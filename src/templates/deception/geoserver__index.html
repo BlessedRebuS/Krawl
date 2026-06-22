@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GeoServer Administration Console</title>
+    <style>
+        body {font-family:Arial,Helvetica,sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header {background:#004d99; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#e2e2e2; padding:0.5rem; border-bottom:1px solid #ccc;}
+        nav a {margin:0 1rem; text-decoration:none; color:#004d99;}
+        nav a:hover {text-decoration:underline;}
+        main {padding:2rem;}
+        h2 {color:#004d99;}
+        form {background:#fff; padding:1.5rem; border:1px solid #ddd; max-width:300px;}
+        label {display:block; margin-top:0.5rem;}
+        input[type=text], input[type=password] {width:100%; padding:0.5rem; margin-top:0.2rem; box-sizing:border-box;}
+        input[type=submit] {margin-top:1rem; padding:0.5rem 1rem; background:#004d99; color:#fff; border:none; cursor:pointer;}
+        input[type=submit]:hover {background:#003366;}
+        .info {background:#fff; margin-top:2rem; padding:1rem; border:1px solid #ddd;}
+        .info h3 {margin-top:0;}
+        .info ul {list-style-type:none; padding:0;}
+        .info li {padding:0.2rem 0; border-bottom:1px dotted #ccc;}
+        footer {text-align:center; padding:1rem; font-size:0.9rem; color:#666; margin-top:2rem;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>GeoServer Administration Console</h1>
+    </header>
+    <nav>
+        <a href="/geoserver/web/">Welcome</a>
+        <a href="/geoserver/rest/">REST API</a>
+        <a href="/geoserver/web/wicket/bookmarkable/org.geoserver.web.data.layer.NewLayerPage">Add Layer</a>
+        <a href="/geoserver/web/wicket/bookmarkable/org.geoserver.web.data.store.NewStorePage">Stores</a>
+        <a href="/geoserver/web/wicket/bookmarkable/org.geoserver.web.demo.DemoRequestPage">Demo</a>
+    </nav>
+    <main>
+        <h2>Login to GeoServer</h2>
+        <p>Enter your credentials to access the GeoServer admin interface.</p>
+        <form action="/geoserver/j_spring_security_check" method="post">
+            <label for="j_username">Username:</label>
+            <input type="text" id="j_username" name="j_username" placeholder="admin" required>
+            <label for="j_password">Password:</label>
+            <input type="password" id="j_password" name="j_password" placeholder="••••••••" required>
+            <input type="submit" value="Login">
+        </form>
+        <div class="info">
+            <h3>Server Status</h3>
+            <p>GeoServer version: 2.23.0 (fake)</p>
+            <p>Uptime: 12 days, 3 hours</p>
+            <p>Active connections: 4</p>
+            <h3>Recent Layers</h3>
+            <ul>
+                <li>roads.shp – EPSG:4326 – 1.2 MB</li>
+                <li>buildings.geojson – EPSG:3857 – 845 KB</li>
+                <li>rivers.tif – EPSG:32633 – 15.6 MB</li>
+                <li>points.sqlite – EPSG:4326 – 230 KB</li>
+            </ul>
+        </div>
+    </main>
+    <footer>
+        © 2025 GeoServer Project &middot; <a href="/geoserver/web/">GeoServer Home</a>
+    </footer>
+</body>
+</html>

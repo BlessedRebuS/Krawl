@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation - v3</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 960px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        code { background: #ecf0f1; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; }
+        .endpoint { background: #f8f9fa; padding: 15px; margin: 15px 0; border-left: 4px solid #3498db; }
+        .method { display: inline-block; padding: 3px 8px; border-radius: 3px; font-weight: bold; font-size: 0.9em; }
+        .get { background: #d4edda; color: #155724; }
+        .post { background: #cce5ff; color: #004085; }
+        .put { background: #fff3cd; color: #856404; }
+        .delete { background: #f8d7da; color: #721c24; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+        .note { background: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>API Documentation v3</h1>
+        <p>Welcome to the official API documentation for version 3 of our service. This documentation provides comprehensive details about all available endpoints, authentication methods, request/response formats, and usage examples.</p>
+        
+        <div class="note">
+            <strong>Important:</strong> This API is currently in beta. Breaking changes may occur without prior notice. For production usage, please pin to a specific version (e.g., /v3.1/api-docs).
+        </div>
+
+        <h2>Authentication</h2>
+        <p>All API requests require authentication via Bearer token in the Authorization header:</p>
+        <pre>Authorization: Bearer &lt;your-access-token&gt;</pre>
+        <p>Tokens can be obtained via the <code>/auth/token</code> endpoint using client credentials.</p>
+
+        <h2>Endpoints</h2>
+
+        <div class="endpoint">
+            <h3><span class="method get">GET</span> /v3/users</h3>
+            <p>Retrieve a paginated list of users.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>page</td><td>integer</td><td>Page number (default: 1)</td></tr>
+                    <tr><td>limit</td><td>integer</td><td>Items per page (default: 20, max: 100)</td></tr>
+                    <tr><td>search</td><td>string</td><td>Search by username or email</td></tr>
+                    <tr><td>sort</td><td>string</td><td>Sort field (e.g., 'created_at', 'username')</td></tr>
+                </tbody>
+            </table>
+            <p><strong>Response Example:</strong></p>
+            <pre>{
+  "data": [
+    {
+      "id": "usr_7x9m2p1q",
+      "username": "johndoe",
+      "email": "john@example.com",
+      "created_at": "2023-05-15T10:30:00Z",
+      "status": "active"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 150,
+    "pages": 8
+  }
+}</pre>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method post">POST</span> /v3/users</h3>
+            <p>Create a new user account.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Required</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>username</td><td>string</td><td>Yes</td><td>Unique username (3-30 characters)</td></tr>
+                    <tr><td>email</td><td>string</td><td>Yes</td><td>Valid email address</td></tr>
+                    <tr><td>password</td><td>string</td><td>Yes</td><td>Password (min 8 characters)</td></tr>
+                    <tr><td>full_name</td><td>string</td><td>No</td><td>User's full name</td></tr>
+                </tbody>
+            </table>
+            <p><strong>Response Example (201 Created):</strong></p>
+            <pre>{
+  "id": "usr_7x9m2p1q",
+  "username": "johndoe",
+  "email": "john@example.com",
+  "created_at": "2023-05-15T10:30:00Z",
+  "status": "active"
+}</pre>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method get">GET</span> /v3/users/{id}</h3>
+            <p>Retrieve details for a specific user.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Location</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>id</td><td>string</td><td>path</td><td>User ID (e.g., 'usr_7x9m2p1q')</td></tr>
+                </tbody>
+            </table>
+            <p><strong>Response Example:</strong></p>
+            <pre>{
+  "id": "usr_7x9m2p1q",
+  "username": "johndoe",
+  "email": "john@example.com",
+  "full_name": "John Doe",
+  "created_at": "2023-05-15T10:30:00Z",
+  "last_login": "2023-05-20T14:22:10Z",
+  "status": "active",
+  "metadata": {
+    "preferences": {
+      "theme": "dark",
+      "notifications": true
+    }
+  }
+}</pre>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method put">PUT</span> /v3/users/{id}</h3>
+            <p>Update user information.</p>
+            <p><strong>Note:</strong> Only provided fields will be updated. Omitted fields retain their current values.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>email</td><td>string</td><td>New email address</td></tr>
+                    <tr><td>full_name</td><td>string</td><td>User's full name</td></tr>
+                    <tr><td>status</td><td>string</td><td>Account status ('active', 'suspended', 'deleted')</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method delete">DELETE</span> /v3/users/{id}</h3>
+            <p>Deactivate a user account (soft delete).</p>
+            <p><strong>Important:</strong> This action cannot be undone via the API. To restore a deleted account, contact support.</p>
+            <p><strong>Response:</strong> 204 No Content on success.</p>
+        </div>
+
+        <h2>Rate Limiting</h2>
+        <p>API requests are limited to 1000 requests per hour per authenticated user. Rate limit headers are included in all responses:</p>
+        <ul>
+            <li><code>X-RateLimit-Limit</code>: Maximum requests allowed in the current window</li>
+            <li><code>X-RateLimit-Remaining</code>: Requests remaining in the current window</li>
+            <li><code>X-RateLimit-Reset</code>: Unix timestamp when the rate limit window resets</li>
+        </ul>
+        <p>When the limit is exceeded, the API returns HTTP 429 Too Many Requests with a Retry-After header.</p>
+
+        <h2>Error Responses</h2>
+        <p>All error responses follow a consistent format:</p>
+        <pre>{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid input provided",
+    "details": [
+      {
+        "field": "email",
+        "message": "Must be a valid email address"
+      }
+    ]
+  }
+}</pre>
+        <p>Common error codes include:</p>
+        <ul>
+            <li><code>VALIDATION_ERROR</code>: Invalid request parameters</li>
+            <li><code>AUTHENTICATION_ERROR</code>: Missing or invalid credentials</li>
+            <li><code>AUTHORIZATION_ERROR</code>: Insufficient permissions</li>
+            <li><code>RESOURCE_NOT_FOUND</code>: Requested resource does not exist</li>
+            <li><code>RATE_LIMIT_EXCEEDED</code>: Too many requests</li>
+            <li><code>INTERNAL_ERROR</code>: Unexpected server error</li>
+        </ul>
+
+        <h2>Changelog</h2>
+        <p><strong>v3.0.0</strong> - Initial release</p>
+        <ul>
+            <li>Added pagination to list endpoints</li>
+            <li>Introduced standardized error responses</li>
+            <li>Enhanced rate limiting with header feedback</li>
+            <li>Deprecated v2 endpoints (will be removed 2024-01-01)</li>
+        </ul>
+
+        <footer>
+            <hr>
+            <p><small>© 2023 YourCompany Inc. All rights reserved. API documentation generated on 2023-05-20.</small></p>
+        </footer>
+    </div>
+</body>
+</html>

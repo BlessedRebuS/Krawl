@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SFTP Configuration - Project Settings</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .section { margin: 25px 0; padding: 15px; background: #f8f9fa; border-left: 4px solid #3498db; border-radius: 0 4px 4px 0; }
+        .label { font-weight: bold; color: #2c3e50; }
+        .value { color: #34495e; margin-left: 10px; }
+        .note { font-size: 0.9em; color: #7f8c8d; font-style: italic; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SFTP Deployment Configuration</h1>
+        <p>This file contains SFTP deployment settings for the project. Used by VS Code extensions to deploy files to remote servers.</p>
+        
+        <div class="section">
+            <div><span class="label">Host:</span><span class="value">deploy.example.com</span></div>
+            <div><span class="label">Username:</span><span class="value">deploy_user</span></div>
+            <div><span class="label">Port:</span><span class="value">22</span></div>
+            <div><span class="label">Protocol:</span><span class="value">sftp</span></div>
+            <div><span class="label">Remote Path:</span><span class="value">/var/www/html/project</span></div>
+            <div><span class="label">Upload on Save:</span><span class="value">true</span></div>
+            <div><span class="label">Ignore:</span><span class="value">[".vscode/", ".git/", ".DS_Store", "node_modules/", "*.log"]</span></div>
+        </div>
+        
+        <div class="section">
+            <span class="label">Authentication:</span><br>
+            <span class="value">Password-based authentication (for demo purposes only)</span><br>
+            <span class="note">In production, SSH key authentication should be used instead.</span>
+        </div>
+        
+        <div class="section">
+            <span class="label"> безопасности Note:</span><br>
+            <span class="value">This configuration file should be excluded from version control as it may contain sensitive information.</span><br>
+            <span class="value">Never commit SFTP credentials to public repositories.</span>
+        </div>
+        
+        <div class="section">
+            <span class="label">Last Modified:</span><span class="value">2024-01-15 14:32:18 UTC</span><br>
+            <span class="label">Version:</span><span class="value">1.2.3</span>
+        </div>
+        
+        <hr>
+        <p style="text-align: center; color: #95a5a6; font-size: 0.9em;">
+            © 2024 Example Corp. All rights reserved. | 
+            <a href="/">Return to Home</a> | 
+            <a href="/docs/deployment">Deployment Documentation</a>
+        </p>
+    </div>
+</body>
+</html>

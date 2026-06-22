@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Email Sender - Internal Tool</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9;}
+        h2 {color:#333;}
+        form {background:#fff; padding:20px; border:1px solid #ddd; border-radius:5px; max-width:500px;}
+        label {display:block; margin-top:10px;}
+        input[type=email], input[type=text], textarea {width:100%; padding:8px; margin-top:5px; box-sizing:border-box;}
+        input[type=submit] {margin-top:15px; padding:10px 20px; background:#0066cc; color:#fff; border:none; cursor:pointer;}
+        input[type=submit]:hover {background:#004c99;}
+        .note {font-size:0.9em; color:#555; margin-top:20px;}
+    </style>
+</head>
+<body>
+    <h2>Internal Email Sender</h2>
+    <p>Use this tool to send notifications to team members.</p>
+    <form method="post" action="email.php">
+        <label for="to">To:</label>
+        <input type="email" id="to" name="to" required placeholder="user@example.com"><br>
+        <label for="subject">Subject:</label>
+        <input type="text" id="subject" name="subject" required placeholder="Meeting Reminder"><br>
+        <label for="message">Message:</label>
+        <textarea id="message" name="message" rows="5" required placeholder="Please attend the meeting at 10 AM."></textarea><br>
+        <input type="submit" value="Send Email">
+    </form>
+    <div class="note">
+        <strong>Note:</strong> All emails are logged internally for audit purposes.
+    </div>
+    <hr>
+    <p><small>© 2025 CorpIT Services – Internal Use Only</small></p>
+</body>
+</html>

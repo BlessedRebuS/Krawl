@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pi Calculator - Example Site</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9;}
+        h1 {color:#2c3e50;}
+        form {margin-top:20px;}
+        label, input, button {font-size:1em; padding:5px;}
+        .result {margin-top:20px; padding:10px; background:#e8f4fc; border:1px solid #bcd4e6;}
+        footer {margin-top:40px; font-size:0.9em; color:#777;}
+    </style>
+</head>
+<body>
+    <h1>Pi Approximation Tool</h1>
+    <p>Use this simple form to view the value of π (Pi) to a requested number of decimal places.</p>
+    <form method="GET" action="pi.php">
+        <label for="digits">Number of digits:</label>
+        <input type="number" id="digits" name="digits" min="1" max="1000" value="20">
+        <button type="submit">Calculate</button>
+    </form>
+
+    <div class="result">
+        <strong>Result:</strong> 3.14159265358979323846
+    </div>
+
+    <hr>
+    <p>Note: This page is for demonstration purposes only. The value shown is a static example and does not reflect actual computation.</p>
+    <footer>
+        <nav>
+            <a href="/">Home</a> |
+            <a href="/about.html">About</a> |
+            <a href="/contact.html">Contact</a>
+        </nav>
+        <br>
+        © 2025 Example Corp. All rights reserved.
+    </footer>
+</body>
+</html>

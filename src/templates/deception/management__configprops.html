@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Management :: Configprops</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9;}
+        h1 {color:#2c3e50;}
+        code {background:#ecf0f1;padding:2px 4px;border-radius:3px;}
+        table {border-collapse:collapse;width:100%;margin-top:20px;background:#fff;}
+        th, td {border:1px solid #ddd;padding:8px;text-align:left;}
+        th {background:#ecf0f1;}
+        tr:nth-child(even) {background:#f2f2f2;}
+        a {color:#2980b9;text-decoration:none;}
+        a:hover {text-decoration:underline;}
+    </style>
+</head>
+<body>
+    <h1>Spring Boot Actuator - Configprops</h1>
+    <p>Endpoint: <code>/management/configprops</code></p>
+    <table>
+        <thead>
+            <tr>
+                <th>Property</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>server.port</td><td>8080</td></tr>
+            <tr><td>spring.datasource.url</td><td>jdbc:mysql://db.example.com:3306/myapp</td></tr>
+            <tr><td>spring.datasource.username</td><td>app_user</td></tr>
+            <tr><td>spring.datasource.password</td><td>********</td></tr>
+            <tr><td>management.endpoints.web.exposure.include</td><td>*</td></tr>
+            <tr><td>logging.level.root</td><td>INFO</td></tr>
+            <tr><td>spring.mail.host</td><td>smtp.example.com</td></tr>
+            <tr><td>spring.mail.username</td><td>no-reply@example.com</td></tr>
+            <tr><td>spring.mail.password</td><td>********</td></tr>
+        </tbody>
+    </table>
+    <p>
+        <a href="/management/health">Health</a> |
+        <a href="/management/info">Info</a> |
+        <a href="/management/env">Env</a>
+    </p>
+</body>
+</html>

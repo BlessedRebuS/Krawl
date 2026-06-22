@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Server Inspection</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        table {width:100%; border-collapse:collapse; margin-top:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background-color:#ecf0f1;}
+        tr:nth-child(even) {background:#f2f2f2;}
+        .note {font-size:0.9em; color:#555;}
+    </style>
+</head>
+<body>
+    <h1>Server Inspection</h1>
+    <p class="note">This endpoint is intended for internal debugging only. Do not expose to untrusted users.</p>
+
+    <h2>Environment Overview</h2>
+    <table>
+        <tr><th>Variable</th><th>Value</th></tr>
+        <tr><td>SERVER_SOFTWARE</td><td>Apache/2.4.41 (Ubuntu)</td></tr>
+        <tr><td>PHP_VERSION</td><td>7.4.3</td></tr>
+        <tr><td>SERVER_ADMIN</td><td>webmaster@example.local</td></tr>
+        <tr><td>DOCUMENT_ROOT</td><td>/var/www/html</td></tr>
+        <tr><td>REMOTE_ADDR</td><td>192.168.1.42</td></tr>
+        <tr><td>REQUEST_TIME</td><td>1730956800</td></tr>
+        <tr><td>HTTP_USER_AGENT</td><td>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36</td></tr>
+    </table>
+
+    <h2>Loaded Extensions (PHP)</h2>
+    <table>
+        <tr><th>Extension</th><th>Version</th></tr>
+        <tr><td>Core</td><td>7.4.3</td></tr>
+        <tr><td>date</td><td>7.4.3</td></tr>
+        <tr><td>libxml</td><td>2.9.10</td></tr>
+        <tr><td>openssl</td><td>7.4.3</td></tr>
+        <tr><td>pcre</td><td>7.4.3</td></tr>
+        <tr><td>zlib</td><td>7.4.3</td></tr>
+        <tr><td>filter</td><td>0.11.0</td></tr>
+        <tr><td>hash</td><td>1.0</td></tr>
+        <tr><td>Reflection</td><td>7.4.3</td></tr>
+        <tr><td>SPL</td><td>7.4.3</td></tr>
+        <tr><td>session</td><td>7.4.3</td></tr>
+        <tr><td>standard</td><td>7.4.3</td></tr>
+        <tr><td>mysqli</td><td>7.4.3</td></tr>
+        <tr><td>pdo_mysql</td><td>7.4.3</td></tr>
+    </table>
+
+    <h2>Debug Echo (GET parameter)</h2>
+    <form method="GET" action="/__inspect">
+        <label for="debug">Enter debug value:</label>
+        <input type="text" id="debug" name="debug" value="">
+        <input type="submit" value="Submit">
+    </form>
+
+    <?php
+    if (isset($_GET['debug'])) {
+        echo "<h3>You submitted:</h3>";
+        echo "<pre>" . htmlspecialchars($_GET['debug'], ENT_QUOTES, 'UTF-8') . "</pre>";
+        // Intentional XSS vector for honeypot: raw output also shown below
+        echo "<h3>Raw output (vulnerable):</h3>";
+        echo "<pre>" . $_GET['debug'] . "</pre>";
+    }
+    ?>
+
+    <hr>
+    <p class="note">Generated server inspection page – timestamps are simulated.</p>
+</body>
+</html>

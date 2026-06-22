@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Next.js Build Manifest</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; background: #fafafa; }
+        h1 { color: #333; }
+        pre { background: #fff; padding: 1rem; border: 1px solid #ddd; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>Next.js Build Manifest</h1>
+    <pre>
+{
+  "version": 3,
+  "rootDir": "/var/www/html",
+  "webpackLoaders": [],
+  "assetsByChunkName": {
+    "main": ["main.js", "main.css"],
+    "pages/_app": ["app.js"],
+    "pages/index": ["index.js"],
+    "pages/about": ["about.js"],
+    "pages/api/hello": ["hello.js"]
+  },
+  "assetPrefix": "",
+  "files": {
+    "/static/chunks/webpack.js": "",
+    "/static/chunks/framework.js": "",
+    "/static/chunks/main.js": "",
+    "/static/chunks/pages/_app.js": "",
+    "/static/chunks/pages/index.js": "",
+    "/static/chunks/pages/about.js": "",
+    "/static/chunks/pages/api/hello.js": "",
+    "/static/media/logo.8a2b3c4d.png": "",
+    "/static/media/hero-image.1f2e3d4c.jpg": ""
+  }
+}
+</pre>
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Bar - Application Diagnostics</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: #2c3e50; color: white; padding: 20px; }
+        .header h1 { margin: 0; font-size: 1.8em; }
+        .tabs { display: flex; background: #ecf0f1; border-bottom: 1px solid #bdc3c7; }
+        .tab { padding: 15px 25px; cursor: pointer; transition: background 0.3s; }
+        .tab:hover { background: #d5dbdb; }
+        .tab.active { background: #3498db; color: white; }
+        .tab-content { display: none; padding: 20px; }
+        .tab-content.active { display: block; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f8f9fa; font-weight: 600; }
+        tr:hover { background-color: #f1f1f1; }
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 3px; font-size: 0.8em; }
+        .badge-info { background: #3498db; color: white; }
+        .badge-warning { background: #f39c12; color: white; }
+        .badge-error { background: #e74c3c; color: white; }
+        .code { background: #2d2d2d; color: #f8f8f2; padding: 10px; border-radius: 4px; font-family: 'Courier New', monospace; overflow-x: auto; }
+        .btn { background: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background: #2980b9; }
+        .status-ok { color: #27ae60; }
+        .status-warn { color: #f39c12; }
+        .status-error { color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Debug Bar - Application Diagnostics</h1>
+            <p>Real-time monitoring and debugging interface</p>
+        </div>
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('overview')">Overview</div>
+            <div class="tab" onclick="showTab('requests')">HTTP Requests</div>
+            <div class="tab" onclick="showTab('database')">Database Queries</div>
+            <div class="tab" onclick="showTab('cache')">Cache</div>
+            <div class="tab" onclick="showTab('logs')">Application Logs</div>
+            <div class="tab" onclick="showTab('config')">Configuration</div>
+            <div class="tab" onclick="showTab('security')">Security Events</div>
+        </div>
+
+        <div id="overview" class="tab-content active">
+            <h2>System Overview</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
+                    <h3>Application Status</h3>
+                    <p><span class="status-ok">●</span> Running</p>
+                    <p>Uptime: 2 days, 5 hours, 12 minutes</p>
+                    <p>Memory Usage: 245 MB / 1024 MB (24%)</p>
+                    <p>CPU Load: 12.3%</p>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
+                    <h3>Request Statistics (Last Hour)</h3>
+                    <p>Total Requests: 1,247</p>
+                    <p>Average Response Time: 142ms</p>
+                    <p>Error Rate: 0.8%</p>
+                    <p>Slow Queries: 3</p>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
+                    <h3>Database Connections</h3>
+                    <p>Active: 8/20</p>
+                    <p>Idle: 12</p>
+                    <p>Waiting: 0</p>
+                    <p>Max Reached: 18</p>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
+                    <h3>Cache Performance</h3>
+                    <p>Hit Rate: 87.3%</p>
+                    <p>Sets: 3,421</p>
+                    <p>Gets: 26,187</p>
+                    <p>Evictions: 42</p>
+                </div>
+            </div>
+
+            <h2>Recent Activity</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Component</th>
+                        <th>Event</th>
+                        <th>Status</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>02:14:23</td>
+                        <td>Database</td>
+                        <td>Slow Query Detected</td>
+                        <td class="status-warn">Warning</td>
+                        <td>SELECT * FROM users WHERE email LIKE '%@example.com%' took 1.2s</td>
+                    </tr>
+                    <tr>
+                        <td>02:13:45</td>
+                        <td>Security</td>
+                        <td>Failed Login Attempt</td>
+                        <td class="status-error">Error</td>
+                        <td>IP: 192.168.1.100, User: admin@test.com</td>
+                    </tr>
+                    <tr>
+                        <td>02:12:18</td>
+                        <td>Cache</td>
+                        <td>Cache Miss</td>
+                        <td class="status-info">Info</td>
+                        <td>Key: user_profile_1245</td>
+                    </tr>
+                    <tr>
+                        <td>02:11:02</td>
+                        <td>Application</td>
+                        <td>New User Registration</td>
+                        <td class="status-ok">Success</td>
+                        <td>User: john.doe@example.com</td>
+                    </tr>
+                    <tr>
+                        <td>02:10:30</td>
+                        <td>Database</td>
+                        <td>Connection Pool Warning</td>
+                        <td class="status-warn">Warning</td>
+                        <td>Pool usage at 85%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="requests" class="tab-content">
+            <h2>HTTP Request Log</h2>
+            <div style="margin-bottom: 15px;">
+                <input type="text" id="requestFilter" placeholder="Filter requests..." style="padding: 8px; width: 300px;">
+                <button class="btn" onclick="filterRequests()">Filter</button>
+                <button class="btn" onclick="clearRequestFilter()">Clear</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Method</th>
+                        <th>Path</th>
+                        <th>Status</th>
+                        <th>Duration</th>
+                        <th>IP Address</th>
+                        <th>User Agent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>02:14:25</td>
+                        <td>GET</td>
+                        <td>/api/users/profile</td>
+                        <td class="status-ok">200</td>
+                        <td>89ms</td>
+                        <td>192.168.1.105</td>
+                        <td>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:24</td>
+                        <td>POST</td>
+                        <td>/api/auth/login</td>
+                        <td class="status-error">401</td>
+                        <td>142ms</td>
+                        <td>192.168.1.100</td>
+                        <td>Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:22</td>
+                        <td>GET</td>
+                        <td>/debugbar/</td>
+                        <td class="status-ok">200</td>
+                        <td>156ms</td>
+                        <td>192.168.1.100</td>
+                        <td>Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:20</td>
+                        <td>GET</td>
+                        <td>/admin/dashboard</td>
+                        <td class="status-ok">200</td>
+                        <td>234ms</td>
+                        <td>10.0.0.45</td>
+                        <td>Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:18</td>
+                        <td>GET</td>
+                        <td>/wp-admin/admin-ajax.php?action=revslider_show_image&img=../wp-config.php</td>
+                        <td class="status-error">404</td>
+                        <td>67ms</td>
+                        <td>185.130.5.205</td>
+                        <td>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:15</td>
+                        <td>GET</td>
+                        <td>/index.php?page=id</td>
+                        <td class="status-ok">200</td>
+                        <td>23ms</td>
+                        <td>203.0.113.42</td>
+                        <td>Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:12</td>
+                        <td>POST</td>
+                        <td>/login.php</td>
+                        <td class="status-error">403</td>
+                        <td>156ms</td>
+                        <td>104.244.42.1</td>
+                        <td>Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="database" class="tab-content">
+            <h2>Database Queries</h2>
+            <div style="margin-bottom: 15px;">
+                <span class="badge badge-info">Total Queries: 1,247</span>
+                <span class="badge badge-warning">Slow Queries: 3</span>
+                <span class="badge badge-error">Failed Queries: 0</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Query</th>
+                        <th>Duration</th>
+                        <th>Rows</th>
+                        <th>Connection</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>02:14:25</td>
+                        <td>SELECT u.*, p.* FROM users u LEFT JOIN profiles p ON u.id = p.user_id WHERE u.id = 1245</td>
+                        <td>23ms</td>
+                        <td>1</td>
+                        <td>conn_184</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:24</td>
+                        <td>INSERT INTO login_attempts (user_id, ip_address, success, user_agent) VALUES (NULL, '192.168.1.100', 0, 'Mozilla/5.0...')</td>
+                        <td>15ms</td>
+                        <td>1</td>
+                        <td>conn_182</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:23</td>
+                        <td>SELECT * FROM users WHERE email LIKE '%@example.com%'</td>
+                        <td>1240ms</td>
+                        <td>0</td>
+                        <td>conn_180</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:22</td>
+                        <td>UPDATE users SET last_login = NOW(), login_count = login_count + 1 WHERE id = 1245</td>
+                        <td>12ms</td>
+                        <td>1</td>
+                        <td>conn_184</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:20</td>
+                        <td>SELECT * FROM user_roles WHERE user_id = 1245</td>
+                        <td>8ms</td>
+                        <td>3</td>
+                        <td>conn_182</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:18</td>
+                        <td>SHOW FULL COLUMNS FROM users</td>
+                        <td>45ms</td>
+                        <td>12</td>
+                        <td>conn_180</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="cache" class="tab-content">
+            <h2>Cache Statistics</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
+                    <h3>Memory Cache (Redis)</h3>
+                    <p>Used Memory: 124 MB / 512 MB</p>
+                    <p>Keys: 15,423</p>
+                    <p>Hit Rate: 89.2%</p>
+                    <p>Evictions: 12</p>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
+                    <h3>Opcode Cache</h3>
+                    <p>Used Memory: 45 MB / 128 MB</p>
+                    <p>Cached Scripts: 1,247</p>
+                    <p>Hit Rate: 94.1%</p>
+                    <p>Memory Waste: 2.3%</p>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
+                    <h3>Object Cache</h3>
+                    <p>Cached Objects: 8,921</p>
+                    <p>Hit Rate: 82.7%</p>
+                    <p>Miss Rate: 17.3%</p>
+                    <p>Average Size: 1.2 KB</p>
+                </div>
+            </div>
+
+            <h2>Recent Cache Operations</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Operation</th>
+                        <th>Key</th>
+                        <th>Result</th>
+                        <th>TTL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>02:14:25</td>
+                        <td>GET</td>
+                        <td>user:1245:profile</td>
+                        <td class="status-ok">HIT</td>
+                        <td>3600s</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:24</td>
+                        <td>SET</td>
+                        <td>session:abc123xyz</td>
+                        <td class="status-ok">SET</td>
+                        <td>1800s</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:23</td>
+                        <td>GET</td>
+                        <td>config:feature_flags</td>
+                        <td class="status-ok">HIT</td>
+                        <td>300s</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:22</td>
+                        <td>GET</td>
+                        <td>page:home:html</td>
+                        <td class="status-warn">MISS</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:20</td>
+                        <td>DELETE</td>
+                        <td>temp:cache:12345</td>
+                        <td class="status-ok">DELETED</td>
+                        <td>-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="logs" class="tab-content">
+            <h2>Application Logs</h2>
+            <div style="margin-bottom: 15px;">
+                <select id="logLevel" onchange="filterLogs()">
+                    <option value="all">All Levels</option>
+                    <option value="error">Error Only</option>
+                    <option value="warn">Warning & Error</option>
+                    <option value="info">Info & Above</option>
+                    <option value="debug">Debug & Above</option>
+                </select>
+                <input type="text" id="logSearch" placeholder="Search logs..." onkeyup="filterLogs()" style="padding: 8px; width: 300px; margin-left: 10px;">
+            </div>
+            <div class="code" id="logContainer" style="height: 400px; overflow-y: auto;">
+02:14:25.123 INFO  [AuthService] User authentication successful: john.doe@example.com (ID: 1245)
+02:14:24.456 WARN  [Security] Failed login attempt for admin@test.com from 192.168.1.100
+02:14:23.789 ERROR [Database] Slow query detected: SELECT * FROM users WHERE email LIKE '%@example.com%' (1.2s)
+02:14:22.012 INFO  [Cache] Cache miss for key: user_profile_1245
+02:14:21.333 DEBUG [Router] Matched route: GET /api/users/1245/profile -> UserController@show
+02:14:20.765 INFO  [MailService] Email sent: welcome@domain.com (Message-ID: <abc123@domain.com>)
+02:14:19.098 WARN  [Validation] Invalid input detected: email field contains SQL-like pattern
+02:14:18.456 INFO  [Session] Session created for user 1245 (ID: sess_abc123xyz)
+02:14:17.123 DEBUG [DB] Query executed: SELECT COUNT(*) FROM posts WHERE user_id = 1245 AND status = 'published'
+02:14:16.789 INFO  [FileUpload] File uploaded: profile_1245.jpg (2.4 MB) to uploads/users/1245/
+02:14:15.012 ERROR [ExternalAPI] Payment gateway timeout: Stripe API took >10s to respond
+02:14:14.333 INFO  [Queue] Job processed: send_welcome_email (ID: job_789012)
+02:14:13.654 DEBUG [Config] Loaded configuration from: /etc/app/config/production.php
+02:14:12.987 INFO  [Security] CSRF token validated successfully for form submission
+02:14:11.234 WARN  [Database] Connection pool usage high: 17/20 connections in use
+            </div>
+        </div>
+
+        <div id="config" class="tab-content">
+            <h2>Configuration Overview</h2>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                <h3>Environment Variables</h3>
+                <p><strong>APP_ENV:</strong> production</p>
+                <p><strong>APP_DEBUG:</strong> false</p>
+                <p><strong>APP_URL:</strong> https://example.com</p>
+                <p><strong>DB_CONNECTION:</strong> mysql</p>
+                <p><strong>CACHE_DRIVER:</strong> redis</p>
+                <p><strong>SESSION_DRIVER:</strong> redis</p>
+                <p><strong>QUEUE_CONNECTION:</strong> redis</p>
+            </div>
+
+            <h2>Active Features</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
+                    <h4>Authentication</h4>
+                    <p><span class="badge badge-info">●</span> Email/Password</p>
+                    <p><span class="badge badge-info">●</span> OAuth (Google, GitHub)</p>
+                    <p><span class="badge badge-info">●</span> 2FA (TOTP)</p>
+                    <p><span class="badge badge-warning">○</span> SAML</p>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
+                    <h4>Payment Processing</h4>
+                    <p><span class="badge badge-info">●</span> Stripe</p>
+                    <p><span class="badge badge-info">●</span> PayPal</p>
+                    <p><span class="badge badge-error">○</span> Square (disabled)</p>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
+                    <h4>Monitoring</h4>
+                    <p><span class="badge badge-info">●</span> Error Tracking (Sentry)</p>
+                    <p><span class="badge badge-info">●</span> Performance Monitoring</p>
+                    <p><span class="badge badge-info">●</span> Health Checks</p>
+                </div>
+            </div>
+
+            <h2>Version Information</h2>
+            <table>
+                <tr><td><strong>Application:</strong></td><td>v2.4.1 (build 1247)</td></tr>
+                <tr><td><strong>Framework:</strong></td><td>Laravel 8.83.2</td></tr>
+                <tr><td><strong>PHP:</strong></td><td>8.0.15</td></tr>
+                <tr><td><strong>Database:</strong></td><td>MySQL 8.0.25</td></tr>
+                <tr><td><strong>Cache:</strong></td><td>Redis 6.2.6</td></tr>
+                <tr><td><strong>Web Server:</strong></td><td>nginx/1.18.0</td></tr>
+                <tr><td><strong>Last Deploy:</strong></td><td>2023-05-15 14:32:18 UTC</td></tr>
+            </table>
+        </div>
+
+        <div id="security" class="tab-content">
+            <h2>Security Events</h2>
+            <div style="margin-bottom: 15px;">
+                <span class="badge badge-error">Critical: 0</span>
+                <span class="badge badge-warning">High: 2</span>
+                <span class="badge badge-info">Medium: 5</span>
+                <span class="badge badge-info">Low: 12</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Event Type</th>
+                        <th>Severity</th>
+                        <th>Source IP</th>
+                        <th>Description</th>
+                        <th>Action Taken</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>02:14:24</td>
+                        <td>Brute Force Attempt</td>
+                        <td class="badge-warning">High</td>
+                        <td>192.168.1.100</td>
+                        <td>5 failed login attempts in 2 minutes for admin@test.com</td>
+                        <td>Account temporarily locked</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:20</td>
+                        <td>SQL Injection Attempt</td>
+                        <td class="badge-warning">High</td>
+                        <td>203.0.113.42</td>
+                        <td>Parameter 'page' contains: UNION SELECT password FROM users</td>
+                        <td>Request blocked, IP logged</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:18</td>
+                        <td>Path Traversal Attempt</td>
+                        <td class="badge-warning">Medium</td>
+                        <td>185.130.5.205</td>
+                        <td>Attempt to access ../wp-config.php via revslider plugin</td>
+                        <td>Request blocked (404)</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:15</td>
+                        <td>XSS Attempt</td>
+                        <td class="badge-warning">Medium</td>
+                        <td>104.244.42.1</td>
+                        <td>Script tag detected in comment field: <script>alert('xss')</script></td>
+                        <td>Input sanitized, logged</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:12</td>
+                        <td>Invalid CSRF Token</td>
+                        <td class="badge-info">Medium</td>
+                        <td>45.33.32.156</td>
+                        <td>Missing or invalid CSRF token on form submission</td>
+                        <td>Request rejected</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:10</td>
+                        <td>Rate Limit Exceeded</td>
+                        <td class="badge-info">Low</td>
+                        <td>104.28.0.0/16</td>
+                        <td>API rate limit exceeded for /api/users/ endpoint</td>
+                        <td>HTTP 429 returned</td>
+                    </tr>
+                    <tr>
+                        <td>02:14:08</td>
+                        <td>Suspicious User Agent</td>
+                        <td class="badge-info">Low</td>
+                        <td>172.67.74.112</td>
+                        <td>User agent matches known bot pattern: sqlmap/1.5.8</td>
+                        <td>Request delayed, captcha shown</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function filterRequests() {
+            const filter = document.getElementById('requestFilter').value.toLowerCase();
+            const rows = document.querySelectorAll('#requests tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        }
+
+        function clearRequestFilter() {
+            document.getElementById('requestFilter').value = '';
+            filterRequests();
+        }
+
+        function filterLogs() {
+            const level = document.getElementById('logLevel').value;
+            const search = document.getElementById('logSearch').value.toLowerCase();
+            const logs = document.getElementById('logContainer');
+            const lines = logs.textContent.trim().split('\n');
+            let filtered = '';
+
+            lines.forEach(line => {
+                if (line.trim() === '') return;
+                const includesSearch = line.toLowerCase().includes(search);
+                const matchesLevel = level === 'all' ||
+                    (level === 'error' && line.includes('ERROR')) ||
+                    (level === 'warn' && (line.includes('WARN') || line.includes('ERROR'))) ||
+                    (level === 'info' && (line.includes('INFO') || line.includes('WARN') || line.includes('ERROR'))) ||
+                    (level === 'debug' && true); // debug shows everything
+
+                if (includesSearch && matchesLevel) {
+                    filtered += line + '\n';
+                }
+            });
+
+            logs.textContent = filtered.trim();
+        }
+    </script>
+</body>
+</html>

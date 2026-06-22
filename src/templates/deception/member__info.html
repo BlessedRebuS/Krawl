@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Member Info - ExampleCorp</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header, footer {background:#004080; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#0066cc; color:#fff; padding:0.5rem;}
+        nav a {color:#fff; margin:0 1rem; text-decoration:none;}
+        section {max-width:600px; margin:2rem auto; background:#fff; padding:1.5rem; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1, h2 {color:#004080;}
+        form label {display:block; margin-top:1rem;}
+        input[type=email], input[type=tel] {width:100%; padding:0.5rem; margin-top:0.25rem;}
+        input[type=submit] {margin-top:1.5rem; padding:0.75rem 1.5rem; background:#28a745; color:#fff; border:none; cursor:pointer;}
+        input[type=submit]:hover {background:#218838;}
+        footer {font-size:0.9rem;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Member Information Portal</h1>
+    </header>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/member/profile/">Profile</a>
+        <a href="/member/settings/">Settings</a>
+        <a href="/auth/logout/">Logout</a>
+    </nav>
+    <section>
+        <h2>Welcome, John Doe</h2>
+        <p><strong>Member ID:</strong> 12345</p>
+        <p><strong>Email:</strong> john.doe@example.com</p>
+        <p><strong>Join Date:</strong> 2022-03-15</p>
+        <p><strong>Status:</strong> Active</p>
+        <form action="/member/update/" method="post">
+            <label for="email">Update Email:
+                <input type="email" id="email" name="email" value="john.doe@example.com" required>
+            </label>
+            <label for="phone">Phone Number:
+                <input type="tel" id="phone" name="phone" value="555-1234">
+            </label>
+            <input type="submit" value="Save Changes">
+        </form>
+    </section>
+    <footer>
+        © 2025 ExampleCorp. All rights reserved.
+    </footer>
+</body>
+</html>

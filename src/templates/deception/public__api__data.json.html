@@ -1,0 +1,41 @@
+<html><body>{
+  "api_version": "1.0",
+  "timestamp": "2025-11-02T14:35:07Z",
+  "data": {
+    "users": [
+      {
+        "id": 101,
+        "username": "admin",
+        "email": "admin@example.local",
+        "role": "superadmin",
+        "last_login": "2025-11-01T08:12:45Z"
+      },
+      {
+        "id": 102,
+        "username": "jdoe",
+        "email": "jdoe@example.local",
+        "role": "user",
+        "last_login": "2025-10-29T16:03:22Z"
+      },
+      {
+        "id": 103,
+        "username": "tester",
+        "email": "tester@example.local",
+        "role": " tester",
+        "last_login": null
+      }
+    ],
+    "settings": {
+      "debug": true,
+      "max_connections": 50,
+      "allow_remote": false,
+      "sql_query": "SELECT * FROM users WHERE id = ?"
+    },
+    "logs": [
+      {"time": "2025-11-02T14:00:00Z", "event": "login", "user": "admin", "ip": "10.0.0.5"},
+      {"time": "2025-11-02T14:05:12Z", "event": "query", "user": "admin", "ip": "10.0.0.5", "detail": "SELECT * FROM users"},
+      {"time": "2025-11-02T14:10:05Z", "event": "error", "user": "tester", "ip": "10.0.0.12", "detail": "SQL syntax error near ' OR 1=1 --'"}
+    ]
+  },
+  "status": "ok"
+}</body></html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - User Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"], select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .result { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #28a745; }
+        .error { background-color: #f8d7da; border-left-color: #dc3545; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>User Administration Panel</h1>
+        <p>Welcome, admin. Use this interface to manage user accounts and system settings.</p>
+        
+        <div class="form-group">
+            <label for="username">Search Users:</label>
+            <input type="text" id="username" name="username" placeholder="Enter username or ID">
+        </div>
+        
+        <div class="form-group">
+            <label for="action">Action:</label>
+            <select id="action" name="action">
+                <option value="view">View Details</option>
+                <option value="edit">Edit Profile</option>
+                <option value="delete">Delete Account</option>
+                <option value="reset">Reset Password</option>
+            </select>
+        </div>
+        
+        <button type="submit" onclick="processRequest()">Execute Action</button>
+        
+        <div id="result" class="result" style="display:none;">
+            <h3>Operation Result:</h3>
+            <p id="result-text"></p>
+        </div>
+    </div>
+
+    <script>
+        function processRequest() {
+            const username = document.getElementById('username').value.trim();
+            const action = document.getElementById('action').value;
+            const resultDiv = document.getElementById('result');
+            const resultText = document.getElementById('result-text');
+            
+            if (!username) {
+                resultText.textContent = 'Error: Username field cannot be empty.';
+                resultDiv.className = 'result error';
+                resultDiv.style.display = 'block';
+                return;
+            }
+            
+            // Simulate processing delay
+            setTimeout(() => {
+                // Fake successful responses based on action
+                let message = '';
+                let isError = false;
+                
+                switch(action) {
+                    case 'view':
+                        message = `User "${username}" found: ID=1024, Role=admin, Last login=2024-01-15 14:30:22`;
+                        break;
+                    case 'edit':
+                        message = `Profile for user "${username}" updated successfully.`;
+                        break;
+                    case 'delete':
+                        message = `Account for user "${username}" has been deleted.`;
+                        break;
+                    case 'reset':
+                        message = `Password reset initiated for user "${username}". Temporary password sent to email.`;
+                        break;
+                    default:
+                        message = `Unknown action: ${action}`;
+                        isError = true;
+                }
+                
+                resultText.textContent = message;
+                resultDiv.className = 'result' + (isError ? ' error' : '');
+                resultDiv.style.display = 'block';
+            }, 800);
+        }
+        
+        // Allow Enter key to submit
+        document.getElementById('username').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                processRequest();
+            }
+        });
+    </script>
+</body>
+</html>

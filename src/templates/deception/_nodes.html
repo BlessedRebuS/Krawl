@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elasticsearch Cluster Nodes - _nodes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #0073aa; padding-bottom: 10px; }
+        .node { border: 1px solid #ddd; margin: 15px 0; padding: 15px; border-radius: 5px; background-color: #fafafa; }
+        .node-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .node-id { font-weight: bold; color: #0073aa; }
+        .node-status { padding: 3px 8px; border-radius: 3px; font-size: 0.9em; }
+        .status-green { background-color: #d4edda; color: #155724; }
+        .status-yellow { background-color: #fff3cd; color: #856404; }
+        .status-red { background-color: #f8d7da; color: #721c24; }
+        .details { margin-top: 10px; font-size: 0.9em; color: #555; }
+        .details span { display: inline-block; margin: 5px 10px 5px 0; }
+        footer { margin-top: 30px; text-align: center; color: #666; font-size: 0.9em; border-top: 1px solid #eee; padding-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Elasticsearch Cluster Nodes</h1>
+        <p>Cluster name: <strong>production-cluster-01</strong></p>
+        <p>Timestamp: 2024-01-15T10:30:45.123Z</p>
+        
+        <div class="node">
+            <div class="node-header">
+                <span class="node-id">node-1</span>
+                <span class="node-status status-green">green</span>
+            </div>
+            <div class="details">
+                <span><strong>IP:</strong> 10.0.1.10:9200</span>
+                <span><strong>Roles:</strong> master, data, ingest</span>
+                <span><strong>Version:</strong> 8.8.0</span>
+                <span><strong>Heap:</strong> 2.1GB / 7.8GB (26%)</span>
+                <span><strong>RAM:</strong> 14.2GB / 31.5GB (45%)</span>
+                <span><strong>CPU:</strong> 12%</span>
+                <span><strong>Load:</strong> 0.45</span>
+            </div>
+        </div>
+        
+        <div class="node">
+            <div class="node-header">
+                <span class="node-id">node-2</span>
+                <span class="node-status status-green">green</span>
+            </div>
+            <div class="details">
+                <span><strong>IP:</strong> 10.0.1.11:9200</span>
+                <span><strong>Roles:</strong> data, ingest</span>
+                <span><strong>Version:</strong> 8.8.0</span>
+                <span><strong>Heap:</strong> 3.4GB / 7.8GB (43%)</span>
+                <span><strong>RAM:</strong> 18.7GB / 31.5GB (59%)</span>
+                <span><strong>CPU:</strong> 28%</span>
+                <span><strong>Load:</strong> 0.82</span>
+            </div>
+        </div>
+        
+        <div class="node">
+            <div class="node-header">
+                <span class="node-id">node-3</span>
+                <span class="node-status status-yellow">yellow</span>
+            </div>
+            <div class="details">
+                <span><strong>IP:</strong> 10.0.1.12:9200</span>
+                <span><strong>Roles:</strong> master, data</span>
+                <span><strong>Version:</strong> 8.8.0</span>
+                <span><strong>Heap:</strong> 5.2GB / 7.8GB (66%)</span>
+                <span><strong>RAM:</strong> 22.1GB / 31.5GB (70%)</span>
+                <span><strong>CPU:</strong> 45%</span>
+                <span><strong>Load:</strong> 1.25</span>
+                <span style="color: #d32f2f;"><strong>Warning:</strong> High heap usage</span>
+            </div>
+        </div>
+        
+        <div class="node">
+            <div class="node-header">
+                <span class="node-id">node-4</span>
+                <span class="node-status status-red">red</span>
+            </div>
+            <div class="details">
+                <span><strong>IP:</strong> 10.0.1.13:9200</span>
+                <span><strong>Roles:</strong> data, ingest, ml</span>
+                <span><strong>Version:</strong> 8.8.0</span>
+                <span><strong>Heap:</strong> 6.8GB / 7.8GB (87%)</span>
+                <span><strong>RAM:</strong> 28.9GB / 31.5GB (91%)</span>
+                <span><strong>CPU:</strong> 78%</span>
+                <span><strong>Load:</strong> 2.10</span>
+                <span style="color: #d32f2f;"><strong>Critical:</strong> Node under pressure - considering shutdown</span>
+            </div>
+        </div>
+        
+        <div class="node">
+            <div class="node-header">
+                <span class="node-id">node-5</span>
+                <span class="node-status status-green">green</span>
+            </div>
+            <div class="details">
+                <span><strong>IP:</strong> 10.0.1.14:9200</span>
+                <span><strong>Roles:</strong> coordinating</span>
+                <span><strong>Version:</strong> 8.8.0</span>
+                <span><strong>Heap:</strong> 1.2GB / 3.9GB (30%)</span>
+                <span><strong>RAM:</strong> 8.3GB / 15.7GB (53%)</span>
+                <span><strong>CPU:</strong> 5%</span>
+                <span><strong>Load:</strong> 0.18</span>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        Generated by Elasticsearch 8.8.0 • <a href="/_cluster/health">Cluster Health</a> • <a href="/_cat/nodes?v">Raw Nodes Info</a>
+    </footer>
+</body>
+</html>

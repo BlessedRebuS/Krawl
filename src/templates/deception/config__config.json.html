@@ -1,0 +1,65 @@
+<html><body>{
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "app_prod",
+    "user": "admin",
+    "password": "s3cr3t_p@ssw0rd!",
+    "ssl": true,
+    "pool_size": 20
+  },
+  "api": {
+    "base_url": "https://api.internal.example.com/v1",
+    "timeout": 30000,
+    "retries": 3,
+    "auth_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+    "endpoints": {
+      "users": "/users",
+      "orders": "/orders",
+      "payments": "/payments"
+    }
+  },
+  "logging": {
+    "level": "debug",
+    "file": "/var/log/app.log",
+    "max_size": "100MB",
+    "backup_count": 5,
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  },
+  "features": {
+    "enable_2fa": true,
+    "maintenance_mode": false,
+    "debug_toolbar": true,
+    "rate_limit": {
+      "requests_per_minute": 100,
+      "burst": 20
+    }
+  },
+  "email": {
+    "smtp_host": "smtp.example.com",
+    "smtp_port": 587,
+    "smtp_user": "no-reply@example.com",
+    "smtp_pass": "mail_p@ssw0rd123",
+    "from_address": "no-reply@example.com",
+    "use_tls": true
+  },
+  "cache": {
+    "type": "redis",
+    "host": "redis.internal.example.com",
+    "port": 6379,
+    "password": "red1s_p@ss!",
+    "db": 0,
+    "ttl": 3600
+  },
+  "external_services": {
+    "payment_gateway": {
+      "provider": "stripe",
+      "publishable_key": "pk_test_51HexamplePublishableKey1234567890abcdef",
+      "secret_key": "sk_test_51HexampleSecretKey1234567890abcdef"
+    },
+    "analytics": {
+      "google_analytics_id": "UA-12345678-1",
+      "mixpanel_token": "mixpanel_fake_token_1234567890abcdef"
+    }
+  }
+}</body></html>

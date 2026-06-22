@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internal Portal - Dashboard</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background-color: #f9f9f9; color: #333;}
+        .container {max-width: 800px; margin: auto; background: white; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1);}
+        h1 {color: #2c3e50;}
+        .nav {margin-top: 20px;}
+        .nav a {margin-right: 15px; text-decoration: none; color: #2980b9;}
+        .nav a:hover {text-decoration: underline;}
+        .footer {margin-top: 30px; font-size: 0.9em; color: #7f8c8d; text-align: center;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Welcome to the Internal Dashboard</h1>
+    <p>This portal provides access to internal tools and reports. Please use your credentials to log in.</p>
+    <div class="nav">
+        <a href="/home">Home</a>
+        <a href="/reports">Reports</a>
+        <a href="/settings">Settings</a>
+        <a href="/logout">Logout</a>
+    </div>
+    <hr>
+    <h2>Recent Activity</h2>
+    <ul>
+        <li><strong>2025-11-02 08:14:</strong> User <em>admin</em> accessed the configuration panel.</li>
+        <li><strong>2025-11-02 07:58:</strong> Backup job completed successfully.</li>
+        <li><strong>2025-11-02 07:12:</strong> New user <em>jdoe</em> created.</li>
+    </ul>
+    <form action="/login" method="post" style="margin-top:20px;">
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username" placeholder="Enter username" required><br><br>
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password" placeholder="Enter password" required><br><br>
+        <button type="submit">Sign In</button>
+    </form>
+</div>
+<div class="footer">
+    &copy; 2025 Internal Systems. All rights reserved.
+</div>
+</body>
+</html>

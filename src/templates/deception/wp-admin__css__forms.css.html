@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WordPress Admin CSS - Forms</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/wp-includes/css/dist/block-library/style.min.css?ver=6.5.2">
+    <style>
+        .wp-core-ui .button-primary { background: #007cba; border-color: #00679e; color: #fff; }
+        .wp-core-ui .button-secondary { background: #f0f0f0; border-color: #ccc; color: #32373c; }
+        .form-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        .form-table th, .form-table td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        .form-table th { background-color: #f7f7f7; font-weight: bold; }
+        .form-table input[type="text"], .form-table input[type="password"], .form-table textarea { width: 100%; padding: 8px; box-sizing: border-box; }
+        .form-table .description { font-size: 12px; color: #666; margin-top: 5px; display: block; }
+        .submit { padding: 15px 0; text-align: center; }
+        .notice, .updated, .error { padding: 12px; margin-bottom: 15px; border-left: 4px solid; }
+        .updated { border-color: #46b450; background: #eff8f1; color: #2b5d2b; }
+        .error { border-color: #dc3232; background: #fdeff0; color: #a9272a; }
+        .notice-info { border-color: #3a87ad; background: #eff8fb; color: #235a7d; }
+        h2 { font-size: 20px; margin: 0 0 15px; padding: 0; }
+        .wrap { margin: 20px auto; max-width: 960px; padding: 20px; background: #fff; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif; background: #f1f1f1; color: #32373c; margin: 0; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <h1>WP Admin Dashboard</h1>
+        <h2>Forms Settings</h2>
+        <div class="notice notice-info is-dismissible">
+            <p>These settings control the appearance and behavior of form elements throughout the WordPress admin.</p>
+            <p><strong>Note:</strong> Changes may require clearing browser cache to take effect.</p>
+        </div>
+        <form method="post" action="options.php">
+            <?php wp_nonce_field('update-options'); ?>
+            <table class="form-table">
+                <tr valign="top">
+                    <th scope="row"><label for="form_primary_color">Primary Button Color</label></th>
+                    <td>
+                        <input type="text" name="form_primary_color" id="form_primary_color" value="#007cba" class="regular-text" />
+                        <span class="description">Hex color code for primary buttons (e.g., #007cba)</span>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row"><label for="form_font_size">Default Font Size</label></th>
+                    <td>
+                        <input type="number" name="form_font_size" id="form_font_size" value="14" min="10" max="24" class="small-text" />
+                        <span class="description">Pixels (px) - affects input fields, labels, and buttons</span>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row"><label for="form_border_radius">Border Radius</label></th>
+                    <td>
+                        <input type="number" name="form_border_radius" id="form_border_radius" value="3" min="0" max="10" class="small-text" />
+                        <span class="description">Pixel value for form element corners (0 = square)</span>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row"><label for="form_enable_animations">Enable Form Animations</label></th>
+                    <td>
+                        <label><input type="checkbox" name="form_enable_animations" id="form_enable_animations" value="1" checked="checked" /> Enable subtle hover and focus animations</label><br />
+                        <span class="description">Disabling may improve performance on older browsers</span>
+                    </td>
+                </tr>
+            </table>
+            <?php
+            // Simulated hidden fields for options processing
+            echo '<input type="hidden" name="option_page" value="forms_settings" />';
+            echo '<input type="hidden" name="action" value="update" />';
+            echo '<input type="hidden" name="page_options" value="form_primary_color,form_font_size,form_border_radius,form_enable_animations" />';
+            ?>
+            <p class="submit">
+                <input type="submit" name="Submit" value="Save Changes" class="button-primary button-large" />
+                <input type="button" name="Reset" value="Reset to Defaults" class="button-secondary" onclick="if(confirm('Reset all form settings to default values?')){location.href='options-general.php?page=forms_settings&action=reset';}" />
+            </p>
+        </form>
+        <div class="notice notice-info">
+            <h3>Developer Notes</h3>
+            <p>This stylesheet controls form rendering in wp-admin. Modifying these values affects:</p>
+            <ul>
+                <li>Post/page edit screens</li>
+                <li>User profile pages</li>
+                <li>Plugin settings pages using core form styles</li>
+                <li>Customizer controls</li>
+            </ul>
+            <p><em>Last modified: 2024-05-15 10:30:22</em></p>
+        </div>
+    </div>
+</body>
+</html>

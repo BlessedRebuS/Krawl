@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SSE Stream - Live Updates</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9; color:#333; }
+        h1 { color:#2c3e50; }
+        #log { border:1px solid #ccc; padding:10px; height:300px; overflow-y:auto; background:#fff; }
+        .event { margin-bottom:8px; padding:4px; background:#e8f4fc; border-left:3px solid #3498db; }
+    </style>
+</head>
+<body>
+    <h1>Server‑Sent Events Stream</h1>
+    <p>This page demonstrates a fake SSE endpoint that would normally push real‑time data to the client.</p>
+    <div id="log"></div>
+
+    <script>
+        // Simulate an SSE connection to the same URL
+        const evtSource = new EventSource("/sse/stream");
+        evtSource.onmessage = function(event) {
+            const log = document.getElementById('log');
+            const div = document.createElement('div');
+            div.className = 'event';
+            div.textContent = new Date().toLocaleTimeString() + ' – ' + event.data;
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
+        };
+        evtSource.onerror = function(err) {
+            console.error('SSE error:', err);
+            evtSource.close();
+        };
+    </script>
+</body>
+</html>

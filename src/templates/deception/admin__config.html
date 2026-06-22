@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Configuration - Internal</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f4f4f4;}
+        h1 {color:#2c3e50;}
+        table {width:100%; border-collapse:collapse; margin-top:20px; background:#fff;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#ecf0f1;}
+        .section {margin-bottom:30px; padding:15px; background:#fff; border-radius:5px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+        input[type=text], input[type=password] {padding:5px; width:250px;}
+        .btn {background:#3498db; color:#fff; border:none; padding:6px 12px; cursor:pointer;}
+        .btn:hover {background:#2980b9;}
+    </style>
+</head>
+<body>
+    <h1>Server Administration – Configuration Overview</h1>
+    <div class="section">
+        <h2>Database Settings</h2>
+        <table>
+            <tr><th>Parameter</th><th>Value</th></tr>
+            <tr><td>Host</td><td>127.0.0.1</td></tr>
+            <tr><td>Port</td><td>3306</td></tr>
+            <tr><td>Username</td><td>admin_user</td></tr>
+            <tr><td>Password</td><td><input type="password" value="s3cr3tP@ssw0rd!" readonly></td></tr>
+            <tr><td>Database</td><td>main_app</td></tr>
+            <tr><td>Charset</td><td>utf8mb4</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Application Settings</h2>
+        <table>
+            <tr><th>Parameter</th><th>Value</th></tr>
+            <tr><td>Site Name</td><td>Corporate Portal</td></tr>
+            <tr><td>Maintenance Mode</td><td><select><option selected>Disabled</option><option>Enabled</option></select></td></tr>
+            <tr><td>Debug Level</td><td><input type="text" value="2"></td></tr>
+            <tr><td>Session Timeout (seconds)</td><td><input type="text" value="1800"></td></tr>
+            <tr><td>Allowed IPs</td><td>127.0.0.1, 192.168.1.0/24</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Mail Server Configuration</h2>
+        <table>
+            <tr><th>Parameter</th><th>Value</th></tr>
+            <tr><td>SMTP Host</td><td>smtp.internal.example.com</td></tr>
+            <tr><td>SMTP Port</td><td>587</td></tr>
+            <tr><td>SMTP User</td><td>notify@example.com</td></tr>
+            <tr><td>SMTP Pass</td><td><input type="password" value="MailP@ss2025!" readonly></td></tr>
+            <tr><td>From Address</td><td>no-reply@example.com</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Edit Configuration</h2>
+        <form action="/admin/config/update" method="post">
+            <label for="debug">Debug Level:</label>
+            <input type="text" id="debug" name="debug" value="2"><br><br>
+            <label for="session">Session Timeout (s):</label>
+            <input type="text" id="session" name="session" value="1800"><br><br>
+            <label for="mailsmtp">SMTP Password:</label>
+            <input type="password" id="mailsmtp" name="smtp_pass" value="MailP@ss2025!"><br><br>
+            <input type="submit" class="btn" value="Save Changes">
+            <input type="reset" class="btn" value="Reset">
+        </form>
+    </div>
+
+    <div class="section">
+        <h2>Logs (last 10 entries)</h2>
+        <pre>
+[2025-11-02 08:12:03] INFO  User admin logged in from 192.168.1.45
+[2025-11-02 08:10:17] WARN  Failed login attempt for user root from 10.0.0.22
+[2025-11-02 08:09:05] DEBUG DB query: SELECT * FROM users WHERE id = 1
+[2025-11-02 08:07:58] INFO  Cache cleared
+[2025-11-02 08:05:12] ERROR Connection to SMTP timed out
+[2025-11-02 08:03:44] INFO  Backup completed successfully
+[2025-11-02 08:02:10] WARN  Disk usage at 78%
+[2025-11-02 08:01:05] INFO  Service restarted
+[2025-11-02 07:59:58] DEBUG XSS attempt detected: <script>alert(1)</script>
+[2025-11-02 07:58:30] INFO  SQL injection attempt blocked: ' OR '1'='1
+        </pre>
+    </div>
+
+    <footer style="margin-top:40px; font-size:0.9em; color:#7f8c8d;">
+        &copy; 2025 Internal Systems – Administration Panel
+    </footer>
+</body>
+</html>

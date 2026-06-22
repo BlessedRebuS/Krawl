@@ -1,0 +1,169 @@
+<html><body>/* app.js - Main client-side application */
+(function() {
+    'use strict';
+
+    // Configuration
+    const CONFIG = {
+        apiBase: '/api/v1',
+        wsUrl: 'ws://' + location.host + '/ws',
+        version: '2.4.1',
+        debug: true
+    };
+
+    // Utility functions
+    const Utils = {
+        // Simple XHR wrapper
+        ajax: function(options) {
+            const xhr = new XMLHttpRequest();
+            xhr.open(options.method || 'GET', options.url, true);
+            if (options.headers) {
+                Object.keys(options.headers).forEach(function(h) {
+                    xhr.setRequestHeader(h, options.headers[h]);
+                });
+            }
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        if (options.success) options.success(xhr.responseText);
+                    } else {
+                        if (options.error) options.error(xhr.status, xhr.statusText);
+                    }
+                }
+            };
+            xhr.send(options.data || null);
+        },
+
+        // Basic XSS-prone sanitizer (for demonstration)
+        sanitize: function(str) {
+            return str.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        },
+
+        // Cookie helper
+        getCookie: function(name) {
+            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            return match ? decodeURIComponent(match[2]) : null;
+        },
+        setCookie: function(name, value, days) {
+            let expires = '';
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = '; expires=' + date.toUTCString();
+            }
+            document.cookie = name + '=' + (value || '') + expires + '; path=/';
+        }
+    };
+
+    // Authentication module
+    const Auth = {
+        token: Utils.getCookie('auth_token') || '',
+
+        login: function(username, password, cb) {
+            Utils.ajax({
+                url: CONFIG.apiBase + '/auth/login',
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                data: JSON.stringify({ username: username, password: password }),
+                success: function(resp) {
+                    const data = JSON.parse(resp);
+                    Auth.token = data.token;
+                    Utils.setCookie('auth_token', Auth.token, 1);
+                    if (cb) cb(null, data);
+                },
+                error: function(status, txt) {
+                    if (cb) cb({status: status, text: txt});
+                }
+            });
+        },
+
+        logout: function(cb) {
+            Utils.ajax({
+                url: CONFIG.apiBase + '/auth/logout',
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + Auth.token },
+                success: function() {
+                    Auth.token = '';
+                    Utils.setCookie('auth_token', '', -1);
+                    if (cb) cb();
+                }
+            });
+        },
+
+        isAuthenticated: function() {
+            return !!Auth.token;
+        }
+    };
+
+    // Dashboard module
+    const Dashboard = {
+        load: function() {
+            if (!Auth.isAuthenticated()) {
+                window.location.href = '/login.html';
+                return;
+            }
+            Utils.ajax({
+                url: CONFIG.apiBase + '/dashboard',
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + Auth.token },
+                success: function(resp) {
+                    const data = JSON.parse(resp);
+                    document.getElementById('welcome-msg').textContent =
+                        'Welcome, ' + Utils.sanitize(data.user.name) + '!';
+                    const statsEl = document.getElementById('stats');
+                    statsEl.innerHTML = ''; // clear
+                    data.stats.forEach(function(s) {
+                        const div = document.createElement('div');
+                        div.className = 'stat-item';
+                        div.innerHTML = '<strong>' + Utils.sanitize(s.label) + '</strong>: ' + Utils.sanitize(s.value);
+                        statsEl.appendChild(div);
+                    });
+                }
+            });
+        }
+    };
+
+    // Initialize on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Attach login form handler if present
+        const loginForm = document.getElementById('login-form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
+                Auth.login(username, password, function(err, res) {
+                    if (err) {
+                        alert('Login failed: ' + err.text);
+                    } else {
+                        window.location.href = '/dashboard.html';
+                    }
+                });
+            });
+        }
+
+        // Load dashboard if on dashboard page
+        if (document.body.classList.contains('dashboard-page')) {
+            Dashboard.load();
+        }
+
+        // Setup WebSocket for live updates (demo)
+        try {
+            const ws = new WebSocket(CONFIG.wsUrl);
+            ws.onopen = function() {
+                if (CONFIG.debug) console.log('WS connected');
+            };
+            ws.onmessage = function(event) {
+                if (CONFIG.debug) console.log('WS message:', event.data);
+                // In a real app we would update UI here
+            };
+            ws.onclose = function() {
+                if (CONFIG.debug) console.log('WS closed');
+            };
+        } catch (e) {
+            if (CONFIG.debug) console.error('WS init error:', e);
+        }
+    });
+
+    // Expose for debugging (if needed)
+    window.App = { Config: CONFIG, Utils: Utils, Auth: Auth, Dashboard: Dashboard };
+})();</body></html>

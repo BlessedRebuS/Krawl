@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel - MySite</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9;}
+        h1 {color:#2c3e50;}
+        table {width:100%; border-collapse:collapse; margin-top:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#ecf0f1;}
+        .note {background:#fff3cd; padding:10px; border-left:4px solid #ffc107; margin-top:20px;}
+        .vuln-hint {color:#d9534f; font-style:italic;}
+    </style>
+</head>
+<body>
+    <h1>Admin Panel</h1>
+    <p>Welcome, administrator. Use the interface below to manage site content.</p>
+
+    <form action="admin.php" method="GET">
+        <label for="user_id">View User Details (ID):</label>
+        <input type="number" id="user_id" name="id" value="1">
+        <button type="submit">Load</button>
+    </form>
+
+    <!-- Example output for id=1 -->
+    <h2>User Details</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>admin</td>
+                <td>admin@example.com</td>
+                <td>Super Administrator</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>jdoe</td>
+                <td>jdoe@example.com</td>
+                <td>Content Editor</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>msmith</td>
+                <td>msmith@example.com</td>
+                <td>Moderator</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="note">
+        <strong>Note:</strong> This panel is for internal use only. Do not expose to the public.
+        <span class="vuln-hint"> (Debug mode: ON - parameters are not sanitized)</span>
+    </div>
+
+    <hr>
+    <footer>
+        <p>&copy; 2025 MySite. All rights reserved.</p>
+    </footer>
+</body>
+</html>

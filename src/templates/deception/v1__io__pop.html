@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Population API - v1/io/pop</title>
+<style>
+body{font-family:Arial,sans-serif;margin:20px;background:#f9f9f9;}
+.container{max-width:800px;margin:auto;background:#fff;padding:20px;box-shadow:0 0 10px rgba(0,0,0,.1);}
+h1{color:#2c3e50;}
+form{margin-top:20px;}
+input,select{padding:8px;width:200px;margin-right:10px;}
+button{padding:8px 15px;background:#3498db;color:#fff;border:none;cursor:pointer;}
+button:hover{background:#2980b9;}
+pre{background:#ecf0f1;padding:10px;overflow:auto;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Population API - v1/io/pop</h1>
+<p>This endpoint returns the estimated population for a given location.</p>
+<form id="popForm">
+<label for="city">City:</label>
+<input type="text" id="city" name="city" placeholder="Enter city name" required>
+<label for="country">Country (optional):</label>
+<select id="country" name="country">
+<option value="">--Select--</option>
+<option value="US">United States</option>
+<option value="CA">Canada</option>
+<option value="GB">United Kingdom</option>
+<option value="AU">Australia</option>
+<option value="DE">Germany</option>
+<option value="FR">France</option>
+<option value="JP">Japan</option>
+</select>
+<button type="submit">Get Population</button>
+</form>
+<hr>
+<h2>Result:</h2>
+<pre id="result">Enter parameters above and click "Get Population" to see the response.</pre>
+</div>
+<script>
+document.getElementById('popForm').addEventListener('submit', function(e){
+e.preventDefault();
+const city = document.getElementById('city').value.trim();
+const country = document.getElementById('country').value;
+if(!city){alert('Please enter a city');return;}
+const data = {
+city: city,
+country: country || 'Unknown',
+population: Math.floor(Math.random()*10000000)+100000,
+timestamp: new Date().toISOString()
+};
+document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Information</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .info-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .info-table th, .info-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        .info-table th { background-color: #3498db; color: white; }
+        .info-table tr:hover { background-color: #f2f2f2; }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #7f8c8d; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PHP Server Information</h1>
+        <p>This page displays configuration and environment details for debugging purposes.</p>
+        
+        <table class="info-table">
+            <tr><th>PHP Version</th><td>8.2.12</td></tr>
+            <tr><th>System</th><td>Linux server01 5.15.0-105-generic #115-Ubuntu SMP Thu Aug 24 15:54:33 UTC 2023 x86_64</td></tr>
+            <tr><th>Build Date</th><td>Oct 26 2023 14:58:12</td></tr>
+            <tr><th>Server API</th><td>Apache 2.0 Handler</td></tr>
+            <tr><th>Configuration File (php.ini) Path</th><td>/etc/php/8.2/apache2</td></tr>
+            <tr><th>Loaded Configuration File</th><td>/etc/php/8.2/apache2/php.ini</td></tr>
+            <tr><th>Scan this dir for additional .ini files</th><td>/etc/php/8.2/apache2/conf.d</td></tr>
+            <tr><th>Additional .ini files parsed</th><td>/etc/php/8.2/apache2/conf.d/00-opcache.ini, /etc/php/8.2/apache2/conf.d/user.ini</td></tr>
+            <tr><th>PHP Extension Build</th><td>API320230831,NTS</td></tr>
+            <tr><th>Debug Build</th><td>no</td></tr>
+            <tr><th>Thread Safety</th><td>disabled</td></tr>
+            <tr><th>Zend Signal Handling</th><td>enabled</td></tr>
+            <tr><th>Zend Memory Manager</th><td>enabled</td></tr>
+            <tr><th>Zend Multibyte Support</th><td>provided by mbstring</td></tr>
+            <tr><th>IPv6 Support</th><td>enabled</td></tr>
+            <tr><th>DTrace Support</th><td>disabled</td></tr>
+            <tr><th>Registered PHP Streams</th><td>https, ftps, compress.zlib, php, file, glob, data, http, ftp, phar, zip</td></tr>
+            <tr><th>Registered Stream Socket Transports</th><td>tcp, udp, unix, udg, ssl, tls, tlsv1.0, tlsv1.1, tlsv1.2, tlsv1.3</td></tr>
+            <tr><th>Registered Stream Filters</th><td>zlib.*, convert.iconv.*, string.rot13, string.toupper, string.tolower, string.strip_tags, convert.*, consumed, dechunk</td></tr>
+            <tr><th>This program makes use of the Zend Scripting Language Engine:</th><td>Zend Engine v4.2.12, Copyright (c) Zend Technologies</td></tr>
+        </table>
+
+        <h2>Environment Variables</h2>
+        <table class="info-table">
+            <tr><th>Variable</th><th>Value</th></tr>
+            <tr><td>SERVER_SOFTWARE</td><td>Apache/2.4.58 (Ubuntu)</td></tr>
+            <tr><td>SERVER_NAME</td><td>example.com</td></tr>
+            <tr><td>SERVER_ADDR</td><td>192.168.1.100</td></tr>
+            <tr><td>SERVER_PORT</td><td>80</td></tr>
+            <tr><td>REMOTE_ADDR</td><td>10.0.0.5</td></tr>
+            <tr><td>DOCUMENT_ROOT</td><td>/var/www/html</td></tr>
+            <tr><td>REQUEST_SCHEME</td><td>http</td></tr>
+            <tr><td>CONTEXT_PREFIX</td><td></td></tr>
+            <tr><td>CONTEXT_DOCUMENT_ROOT</td><td>/var/www/html</td></tr>
+            <tr><td>SERVER_ADMIN</td><td>webmaster@example.com</td></tr>
+            <tr><td>SCRIPT_FILENAME</td><td>/var/www/html/info.php</td></tr>
+            <tr><td>REMOTE_PORT</td><td>54321</td></tr>
+            <tr><td>GATEWAY_INTERFACE</td><td>CGI/1.1</td></tr>
+            <tr><td>SERVER_PROTOCOL</td><td>HTTP/1.1</td></tr>
+            <tr><td>REQUEST_METHOD</td><td>GET</td></tr>
+            <tr><td>QUERY_STRING</td><td></td></tr>
+            <tr><td>REQUEST_URI</td><td>/info.php</td></tr>
+            <tr><td>SCRIPT_NAME</td><td>/info.php</td></tr>
+            <tr><td>PHP_SELF</td><td>/info.php</td></tr>
+            <tr><td>REQUEST_TIME_FLOAT</td><td>1701234567.8901</td></tr>
+            <tr><td>REQUEST_TIME</td><td>1701234567</td></tr>
+        </table>
+
+        <h2>Loaded Modules</h2>
+        <ul>
+            <li>core</li>
+            <li>mod_so</li>
+            <li>mod_watchdog</li>
+            <li>http_core</li>
+            <li>mod_log_config</li>
+            <li>mod_logio</li>
+            <li>mod_version</li>
+            <li>mod_unixd</li>
+            <li>mod_access_compat</li>
+            <li>mod_alias</li>
+            <li>mod_auth_basic</li>
+            <li>mod_authn_core</li>
+            <li>mod_authz_host</li>
+            <li>mod_authz_groupfile</li>
+            <li>mod_authz_user</li>
+            <li>mod_authz_core</li>
+            <li>mod_access_compat</li>
+            <li>mod_auth_basic</li>
+            <li>mod_authn_file</li>
+            <li>mod_authz_host</li>
+            <li>mod_authz_user</li>
+            <li>mod_autoindex</li>
+            <li>mod_dir</li>
+            <li>mod_env</li>
+            <li>mod_mime</li>
+            <li>mod_setenvif</li>
+            <li>mod_status</li>
+            <li>mod_negotiation</li>
+            <li>mod_php8</li>
+        </ul>
+
+        <div class="footer">
+            <p>Generated at: 2023-11-29 10:56:07</p>
+            <p>⚠️ This is a debugging page - do not expose to production environments</p>
+        </div>
+    </div>
+</body>
+</html>

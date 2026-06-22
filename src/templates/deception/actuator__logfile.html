@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Application Log File</title>
+<style>
+body{font-family:monospace;background:#f8f8f8;color:#222;padding:20px;}
+pre{background:#fff;border:1px solid #ddd;padding:10px;overflow:auto;}
+</style>
+</head>
+<body>
+<h1>Spring Boot Actuator - Log File</h1>
+<p>Below are the latest log entries from the application.</p>
+<pre>
+2025-09-24 10:15:32.123  INFO 12345 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : FrameworkServlet 'dispatcherServlet': initialization completed in 12 ms
+2025-09-24 10:15:33.456  INFO 12345 --- [nio-8080-exec-2] c.example.demo.service.UserService      : Fetching user details for id=42
+2025-09-24 10:15:34.789  WARN 12345 --- [nio-8080-exec-3] o.s.web.servlet.PageNotFound            : No mapping for GET /actuator/logfilez
+2025-09-24 10:15:35.012 ERROR 12345 --- [nio-8080-exec-4] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] threw exception
+java.lang.NullPointerException: Cannot invoke "String.length()" because "input" is null
+    at com.example.demo.util.InputValidator.validateLength(InputValidator.java:27)
+    at com.example.demo.controller.ApiController.processRequest(ApiController.java:58)
+    at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+    at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    at java.lang.reflect.Method.invoke(Method.java:566)
+    at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:205)
+    at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:150)
+    at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerHandler.invokeAndHandle(ServletInvocableHandlerHandler.java:105)
+    at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1067)
+    at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:963)
+    at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1006)
+    at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:918)
+    at javax.servlet.http.HttpServlet.service(HttpServlet.java:681)
+    at javax.servlet.http.HttpServlet.service(HttpServlet.java:764)
+    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:229)
+    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162)
+    at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:119)
+    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:229)
+    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:162)
+</pre>
+<p><em>Log file size: 2.4 MB (showing last 100 lines)</em></p>
+</body>
+</html>

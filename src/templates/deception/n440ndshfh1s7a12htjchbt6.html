@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internal Dashboard</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f4f4f4;}
+        h1 {color:#333;}
+        table {width:100%; border-collapse:collapse; margin-top:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background-color:#f2f2f2;}
+        form {margin-top:30px; padding:15px; border:1px solid #ccc; background:#fff;}
+        label {display:block; margin-top:10px;}
+        input[type="text"], input[type="password"] {width:100%; padding:8px; margin-top:5px;}
+        input[type="submit"] {margin-top:15px; padding:10px 20px; background:#28a745; color:#fff; border:none; cursor:pointer;}
+    </style>
+</head>
+<body>
+    <h1>Internal Dashboard</h1>
+    <p>Welcome, administrator. Below is a summary of recent activity.</p>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Last Login</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1001</td>
+                <td>jdoe</td>
+                <td>2025-10-30 08:12:45</td>
+                <td>Active</td>
+            </tr>
+            <tr>
+                <td>1002</td>
+                <td>asmith</td>
+                <td>2025-10-29 22:05:12</td>
+                <td>Active</td>
+            </tr>
+            <tr>
+                <td>1003</td>
+                <td>mjordan</td>
+                <td>2025-10-28 14:33:07</td>
+                <td>Locked</td>
+            </tr>
+            <tr>
+                <td>1004</td>
+                <td>lperez</td>
+                <td>2025-10-30 09:00:00</td>
+                <td>Active</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Quick Actions</h2>
+    <form action="/admin/action" method="post">
+        <label for="user_id">User ID:</label>
+        <input type="text" id="user_id" name="user_id" placeholder="Enter user ID">
+        <label for="action_type">Action:</label>
+        <select id="action_type" name="action_type">
+            <option value="unlock">Unlock Account</option>
+            <option value="reset">Reset Password</option>
+            <option value="delete">Delete User</option>
+        </select>
+        <input type="submit" value="Execute">
+    </form>
+
+    <hr>
+    <p><small>This is an internal system. Unauthorized access is prohibited.</small></p>
+</body>
+</html>

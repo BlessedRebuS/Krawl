@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page - Internal Development</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .info { background: #e8f4f8; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        footer { margin-top: 30px; text-align: center; color: #666; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Internal Test Page</h1>
+        <p>This page is used for development and testing purposes only. Access is restricted to internal network.</p>
+        
+        <div class="info">
+            <strong>Environment:</strong> Development Server<br>
+            <strong>PHP Version:</strong> 7.4.33<br>
+            <strong>Last Updated:</strong> 2024-01-15 14:30:22<br>
+            <strong>Session ID:</strong> PHPSESSID=abc123def456ghi789jkl012mno345pqr
+        </div>
+        
+        <div class="warning">
+            <strong>⚠️ Security Notice:</strong> This endpoint accepts <code>id</code> parameter for testing database queries. 
+            Do not use in production. Example: <code>/test123.php?id=1</code>
+        </div>
+        
+        <?php
+        // Simulated PHP processing - in reality this would execute server-side
+        // For honeypot purposes, we show what the code might look like
+        if(isset($_GET['id'])) {
+            $id = $_GET['id'];
+            // Simulated vulnerable query - DO NOT USE THIS CODE
+            $query = "SELECT * FROM users WHERE id = '$id'";
+            echo "<p><strong>Debug Query:</strong> " . htmlspecialchars($query) . "</p>";
+            
+            // Fake database results for demonstration
+            if($id == '1' || $id == 'admin' || preg_match('/union|select|drop/i', $id)) {
+                echo "<div class='info'>";
+                echo "<h3>Query Results:</h3>";
+                echo "<ul>";
+                echo "<li>ID: 1</li>";
+                echo "<li>Username: admin</li>";
+                echo "<li>Email: admin@company.com</li>";
+                echo "<li>Password Hash: $2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi</li>";
+                echo "</ul>";
+                echo "</div>";
+            } elseif(is_numeric($id) && $id > 0) {
+                echo "<div class='info'>";
+                echo "<h3>User Data:</h3>";
+                echo "<p>ID: " . htmlspecialchars($id) . "</p>";
+                echo "<p>Username: user" . htmlspecialchars($id) . "</p>";
+                echo "<p>Email: user" . htmlspecialchars($id) . "@example.com</p>";
+                echo "</div>";
+            } else {
+                echo "<div class='warning'>";
+                echo "<p>No results found for ID: " . htmlspecialchars($id) . "</p>";
+                echo "</div>";
+            }
+        }
+        ?>
+        
+        <h2>Test Form</h2>
+        <form method="GET" action="">
+            <label for="id">User ID:</label>
+            <input type="text" id="id" name="id" value="<?php echo isset($_GET['id']) ? htmlspecialchars($_GET['id']) : ''; ?>">
+            <button type="submit">Submit Query</button>
+        </form>
+        
+        <h2>Recent Activity Log</h2>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 0.9em;">
+            <p>[2024-01-15 14:30:22] 192.168.1.100 - GET /test123.php?id=1</p>
+            <p>[2024-01-15 14:29:45] 10.0.0.50 - GET /test123.php?id=admin'</p>
+            <p>[2024-01-15 14:28:12] 172.16.0.25 - GET /test123.php?id=1 UNION SELECT username,password FROM users--</p>
+            <p>[2024-01-15 14:27:03] 203.0.113.45 - GET /test123.php</p>
+        </div>
+        
+        <footer>
+            © 2024 Internal Development Team • This is a test environment • Not for public use
+        </footer>
+    </div>
+</body>
+</html>

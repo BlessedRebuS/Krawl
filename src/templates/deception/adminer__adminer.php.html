@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adminer - Database Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; }
+        .login-form { margin-top: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"], select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #3498db; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #2980b9; }
+        .note { font-size: 14px; color: #7f8c8d; margin-top: 20px; }
+        .footer { margin-top: 30px; text-align: center; color: #95a5a6; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Adminer</h1>
+        <p>Database management in a single PHP file</p>
+        
+        <div class="login-form">
+            <form action="/adminer/adminer.php" method="post">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" value="webapp01" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="db">Database:</label>
+                    <select id="db" name="db">
+                        <option value="">-- Select database --</option>
+                        <option value="webapp01">webapp01</option>
+                        <option value="mysql">mysql</option>
+                        <option value="information_schema">information_schema</option>
+                        <option value="performance_schema">performance_schema</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="server">Server:</label>
+                    <input type="text" id="server" name="server" value="localhost" required>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+        
+        <div class="note">
+            <p>Note: This is a demo instance. For security reasons, only read-only access is granted to the 'webapp01' database.</p>
+            <p>Adminer version 4.8.1 | <a href="https://www.adminer.org/">www.adminer.org</a></p>
+        </div>
+    </div>
+    
+    <div class="footer">
+        © 2006-2023 Jakub Vrana, Adminer.org
+    </div>
+</body>
+</html>

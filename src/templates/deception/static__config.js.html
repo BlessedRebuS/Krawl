@@ -1,0 +1,47 @@
+<html><body>/*** Static Configuration File for Web Application ***/
+/* This file contains client-side configuration settings. */
+
+var CONFIG = {
+    "apiBaseUrl": "https://api.example.com/v1",
+    "apiKey": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0", // Fake key for demo only
+    "debugMode": true,
+    "sessionTimeout": 1800,
+    "features": {
+        "userAnalytics": true,
+        "pushNotifications": false,
+        "betaMode": false
+    },
+    "endpoints": {
+        "login": "/auth/login",
+        "logout": "/auth/logout",
+        "profile": "/user/profile",
+        "settings": "/user/settings"
+    },
+    "ui": {
+        "theme": "light",
+        "language": "en-US",
+        "timezone": "UTC"
+    }
+};
+
+/* Utility function to get config value */
+function getConfig(key, defaultValue) {
+    var keys = key.split('.');
+    var value = CONFIG;
+    for (var i = 0; i < keys.length; i++) {
+        if (value === undefined || value === null) {
+            return defaultValue;
+        }
+        value = value[keys[i]];
+    }
+    return value !== undefined ? value : defaultValue;
+}
+
+/* Export for use in other modules (if using module pattern) */
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = CONFIG;
+} else {
+    window.CONFIG = CONFIG;
+}
+
+/* End of config.js */</body></html>

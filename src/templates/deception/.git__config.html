@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>config - .git</title>
+    <style>
+        body { font-family: monospace; margin: 2em; background: #f8f8f8; color: #333; }
+        pre { background: #fff; padding: 1em; border: 1px solid #ddd; overflow: auto; }
+        .path { color: #666; font-size: 0.9em; margin-bottom: 1em; }
+    </style>
+</head>
+<body>
+    <div class="path">/.git/config</div>
+    <pre>
+[core]
+    repositoryformatversion = 0
+    filemode = true
+    bare = false
+    logallrefupdates = true
+    ignorecase = true
+    precomposeunicode = true
+[remote "origin"]
+    url = https://github.com/example-org/example-repo.git
+    fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+    remote = origin
+    merge = refs/heads/main
+[remote "upstream"]
+    url = https://github.com/example-org/example-repo.git
+    fetch = +refs/heads/*:refs/remotes/upstream/*
+    </pre>
+</body>
+</html>

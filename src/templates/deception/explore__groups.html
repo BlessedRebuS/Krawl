@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Explore Groups - CommunityHub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f9;}
+        header {background:#2c3e50; color:#fff; padding:1rem;}
+        nav {background:#34495e; padding:0.5rem 1rem;}
+        nav a {color:#ecf0f1; margin-right:1rem; text-decoration:none;}
+        .container {max-width:960px; margin:2rem auto; background:#fff; padding:1.5rem; box-shadow:0 0 8px rgba(0,0,0,0.1);}
+        h1 {margin-top:0;}
+        .search-form {margin-bottom:1.5rem;}
+        .search-form input[type="text"] {padding:0.5rem; width:250px;}
+        .search-form input[type="submit"] {padding:0.5rem 1rem; background:#1abc9c; color:#fff; border:none; cursor:pointer;}
+        .group-list {list-style:none; padding:0;}
+        .group-list li {border-bottom:1px solid #eee; padding:0.75rem 0;}
+        .group-list li:last-child {border-bottom:none;}
+        .group-name {font-weight:bold; color:#2c3e50;}
+        .group-desc {color:#555; font-size:0.9rem;}
+        .group-meta {font-size:0.8rem; color:#7f8c8d; margin-top:0.3rem;}
+        footer {text-align:center; padding:1rem; margin-top:2rem; color:#7f8c8d; font-size:0.9rem;}
+    </style>
+</head>
+<body>
+<header>
+    <h1>CommunityHub</h1>
+    <p>Connect, Share, Grow</p>
+</header>
+<nav>
+    <a href="/">Home</a>
+    <a href="/explore">Explore</a>
+    <a href="/groups/my">My Groups</a>
+    <a href="/messages">Messages</a>
+    <a href="/profile">Profile</a>
+</nav>
+
+<div class="container">
+    <h2>Explore Groups</h2>
+
+    <form class="search-form" action="/explore/groups" method="GET">
+        <input type="text" name="q" placeholder="Search groups..." value="">
+        <input type="submit" value="Search">
+    </form>
+
+    <ul class="group-list">
+        <li>
+            <div class="group-name">Photography Enthusiasts</div>
+            <div class="group-desc">Share tips, showcase your shots, and discuss gear.</div>
+            <div class="group-meta">1,245 members • Active today</div>
+        </li>
+        <li>
+            <div class="group-name">Tech Startup Founders</div>
+            <div class="group-desc">Network with fellow entrepreneurs, find co‑founders, and pitch ideas.</div>
+            <div class="group-meta">890 members • Last post 2 hrs ago</div>
+        </li>
+        <li>
+            <div class="group-name">Vintage Book Lovers</div>
+            <div class="group-desc">Discuss rare editions, arrange swaps, and plan meet‑ups.</div>
+            <div class="group-meta">560 members • Active yesterday</div>
+        </li>
+        <li>
+            <div class="group-name">Fitness & Wellness</div>
+            <div class="group-desc">Workout routines, nutrition advice, and motivational support.</div>
+            <div class="group-meta">2,010 members • Active now</div>
+        </li>
+        <li>
+            <div class="group-name">Gardeners’ Guild</div>
+            <div class="group-desc">Organic gardening, plant care, and seasonal planting guides.</div>
+            <div class="group-meta">430 members • Last post 3 days ago</div>
+        </li>
+    </ul>
+
+    <p>Showing 5 of 23 groups. <a href="/explore/groups?page=2">Next page →</a></p>
+</div>
+
+<footer>
+    &copy; 2025 CommunityHub. All rights reserved.
+</footer>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WS_FTP.ini - Configuration File</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px;}
+        pre {background:#f4f4f4; padding:10px; border:1px solid #ccc;}
+    </style>
+</head>
+<body>
+    <h1>WS_FTP Configuration File</h1>
+    <p>Below is the content of the WS_FTP.ini file:</p>
+    <pre>
+[General]
+Version=2.0
+AutoConnect=0
+
+[Site1]
+Host=ftp.example.com
+Port=21
+User=admin
+Password=Secret123!
+RemoteDir=/public_html
+LocalDir=C:\Users\Admin\Web
+PassiveMode=1
+Timeout=30
+
+[Site2]
+Host=backup.example.org
+Port=21
+User=backup
+Password=Backup456!
+RemoteDir=/backup
+LocalDir=D:\Backups
+PassiveMode=0
+Timeout=60
+    </pre>
+</body>
+</html>

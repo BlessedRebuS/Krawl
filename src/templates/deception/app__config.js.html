@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Configuration - MyApp</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .config-section { margin: 25px 0; padding: 15px; border-left: 4px solid #3498db; background-color: #f8f9fa; }
+        .config-key { font-weight: bold; color: #2980b9; }
+        .config-value { color: #2c3e50; margin-left: 10px; }
+        .comment { color: #7f8c8d; font-style: italic; }
+        .footer { margin-top: 30px; text-align: center; color: #95a5a6; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Application Configuration</h1>
+        <p>This file contains client-side configuration for the MyApp web application.</p>
+        
+        <div class="config-section">
+            <div><span class="config-key">API_ENDPOINT:</span> <span class="config-value">'https://api.myapp-prod.internal/v1'</span></div>
+            <div class="comment">// Production API endpoint - DO NOT MODIFY IN DEVELOPMENT</div>
+        </div>
+        
+        <div class="config-section">
+            <div><span class="config-key">AUTH_TOKEN:</span> <span class="config-value">'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'</span></div>
+            <div class="comment">// Hardcoded JWT token for demo purposes - SECURITY RISK!</div>
+        </div>
+        
+        <div class="config-section">
+            <div><span class="config-key">DEBUG_MODE:</span> <span class="config-value">true</span></div>
+            <div class="comment">// Debug mode enabled - exposes stack traces and internal errors</div>
+        </div>
+        
+        <div class="config-section">
+            <div><span class="config-key">FEATURE_FLAGS:</span> <span class="config-value">{</span></div>
+            <div class="config-value">    newUserOnboarding: true,</div>
+            <div class="config-value">    experimentalChart: false,</div>
+            <div class="config-value">    adminPanelAccess: true,</div>
+            <div class="config-value">    legacyApiSupport: false</div>
+            <div class="config-value">}</div>
+            <div class="comment">// Feature flags for gradual rollout</div>
+        </div>
+        
+        <div class="config-section">
+            <div><span class="config-key">DATABASE_URL:</span> <span class="config-value">'postgres://admin:SuperSecretPassword123!@db.myapp-prod.internal:5432/myapp_prod'</span></div>
+            <div class="comment">// Database connection string with credentials - CRITICAL VULNERABILITY</div>
+        </div>
+        
+        <div class="config-section">
+            <div><span class="config-key">GOOGLE_ANALYTICS_ID:</span> <span class="config-value">'UA-123456789-1'</span></div>
+            <div class="comment">// Google Analytics tracking ID</div>
+        </div>
+        
+        <div class="config-section">
+            <div><span class="config-key">RECAPTCHA_SITE_KEY:</span> <span class="config-value">'6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'</span></div>
+            <div class="comment">// reCAPTCHA site key for form protection</div>
+        </div>
+        
+        <div class="config-section">
+            <div><span class="config-key">WS_URL:</span> <span class="config-value">'wss://ws.myapp-prod.internal/notifications'</span></div>
+            <div class="comment">// WebSocket endpoint for real-time notifications</div>
+        </div>
+        
+        <div class="config-section">
+            <div><span class="config-key">CSP_REPORT_URI:</span> <span class="config-value">'https://csp-report.myapp-prod.internal/collect'</span></div>
+            <div class="comment">// Content Security Policy violation reporting endpoint</div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        MyApp Configuration - Generated for internal use only<br>
+        © 2024 MyApp Corporation. All rights reserved.
+    </div>
+</body>
+</html>

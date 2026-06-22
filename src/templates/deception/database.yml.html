@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>database.yml</title>
+    <style>
+        body {font-family: monospace; margin: 2em; background:#fafafa; color:#333;}
+        pre {background:#eee; padding:1em; border:1px solid #ccc;}
+    </style>
+</head>
+<body>
+    <h1>Database Configuration (database.yml)</h1>
+    <pre>
+# MySQL database configuration
+development:
+  adapter: mysql2
+  encoding: utf8
+  database: myapp_dev
+  pool: 5
+  username: root
+  password: secret123
+  host: localhost
+
+test:
+  adapter: mysql2
+  encoding: utf8
+  database: myapp_test
+  pool: 5
+  username: root
+  password: secret123
+  host: localhost
+
+production:
+  adapter: mysql2
+  encoding: utf8
+  database: myapp_prod
+  pool: 10
+  username: dbuser
+  password: prodPass!@#
+  host: db-prod.internal
+    </pre>
+</body>
+</html>

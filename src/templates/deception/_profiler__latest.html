@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symfony Profiler - Latest Request</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .section { margin: 20px 0; padding: 15px; border-left: 4px solid #007bff; background: #f8f9fa; }
+        .label { font-weight: bold; color: #495057; }
+        .value { margin-left: 10px; color: #212529; }
+        .token { background: #e9ecef; padding: 2px 6px; border-radius: 3px; font-family: monospace; font-size: 0.9em; }
+        .error { color: #dc3545; }
+        .info { color: #28a745; }
+        .footer { margin-top: 30px; font-size: 0.9em; color: #6c757d; text-align: center; border-top: 1px solid #dee2e6; padding-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Symfony Profiler - Latest Request</h1>
+        <div class="section">
+            <span class="label">Token:</span> <span class="value token">a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0</span>
+        </div>
+        <div class="section">
+            <span class="label">Method:</span> <span class="value">GET</span>
+            <span class="label">Path:</span> <span class="value">/_profiler/latest</span>
+            <span class="label">IP:</span> <span class="value">192.168.1.105</span>
+            <span class="label">Time:</span> <span class="value info">2024-01-15 14:32:18</span>
+        </div>
+        <div class="section">
+            <span class="label">Controller:</span> <span class="value">Symfony\Bundle\FrameworkBundle\Controller\RedirectController::urlRedirectAction</span>
+            <span class="label">Route:</span> <span class="value">_profiler_home</span>
+            <span class="label">Status Code:</span> <span class="value info">200</span>
+        </div>
+        <div class="section">
+            <span class="label">Memory:</span> <span class="value">12.4 MB</span>
+            <span class="label">Time:</span> <span class="value">124 ms</span>
+            <span class="label">Requests:</span> <span class="value">3</span>
+            <span class="label">Exceptions:</span> <span class="value error">0</span>
+        </div>
+        <div class="section">
+            <span class="label">Collector Data:</span>
+            <div style="margin-top: 10px;">
+                <strong>Request:</strong><br>
+                <span class="value">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8<br>
+                Accept-Language: en-US,en;q=0.5<br>
+                Accept-Encoding: gzip, deflate<br>
+                Connection: keep-alive<br>
+                Upgrade-Insecure-Requests: 1</span>
+            </div>
+            <div style="margin-top: 10px;">
+                <strong>Response Headers:</strong><br>
+                <span class="value">Cache-Control: no-cache, private<br>
+                Content-Type: text/html; charset=UTF-8<br>
+                X-Debug-Token: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0<br>
+                X-Debug-Token-Link: /_profiler/a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0</span>
+            </div>
+        </div>
+        <div class="footer">
+            Symfony Profiler v5.4.20 &mdash; For debugging purposes only<br>
+            <em>This is a simulated profiler endpoint for security monitoring.</em>
+        </div>
+    </div>
+</body>
+</html>

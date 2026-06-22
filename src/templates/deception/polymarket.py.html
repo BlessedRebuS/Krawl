@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>polymarket.py</title>
+<style>
+body{font-family:Arial,sans-serif;margin:20px;background:#f9f9f9;color:#333}
+pre{background:#eee;padding:10px;border:1px solid #ccc;overflow:auto;}
+h1{color:#2c3e50;}
+</style>
+</head>
+<body>
+<h1>polymarket.py</h1>
+<p>Simple Python client for interacting with the Polymarket prediction market API.</p>
+<pre>import requests
+import json
+import time
+
+BASE_URL = "https://api.polymarket.com"
+
+def get_markets():
+    """Fetch all active markets."""
+    resp = requests.get(f"{BASE_URL}/markets")
+    if resp.status_code != 200:
+        raise Exception(f"API error: {resp.status_code}")
+    return resp.json()
+
+def place_bet(market_id, outcome, amount, api_key):
+    """Place a bet on a given market outcome."""
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "market_id": market_id,
+        "outcome": outcome,
+        "amount": str(amount)  # API expects string representation
+    }
+    resp = requests.post(f"{BASE_URL}/bets", headers=headers, json=payload)
+    if resp.status_code == 201:
+        return resp.json()
+    else:
+        raise Exception(f"Bet failed: {resp.status_code} {resp.text}")
+
+def get_user_balance(api_key):
+    """Retrieve the user's current balance."""
+    headers = {"Authorization": f"Bearer {api_key}"}
+    resp = requests.get(f"{BASE_URL}/balance", headers=headers)
+    if resp.status_code == 200:
+        return resp.json()
+    else:
+        raise Exception(f"Balance fetch failed: {resp.status_code}")
+
+if __name__ == "__main__":
+    # Example usage – replace with your own API key
+    API_KEY = "YOUR_API_KEY_HERE"
+    try:
+        markets = get_markets()
+        print(f"Found {len(markets)} markets")
+        # Place a dummy bet on the first market's first outcome
+        if markets:
+            m = markets[0]
+            outcome = m["outcomes"][0]["id"]
+            result = place_bet(m["id"], outcome, 10, API_KEY)
+            print("Bet placed:", result)
+    except Exception as e:
+        print("Error:", e)
+</pre>
+</body>
+</html>

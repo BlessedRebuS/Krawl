@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Utility Library</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .code-block { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; padding: 15px; margin: 15px 0; overflow-x: auto; }
+        .btn { display: inline-block; padding: 8px 16px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 5px; }
+        .btn:hover { background: #0056b3; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 4px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JavaScript Utility Library - index.js</h1>
+        <p>This is a lightweight JavaScript utility library providing common helper functions for DOM manipulation, AJAX requests, and data processing.</p>
+        
+        <div class="warning">
+            <strong>Note:</strong> This library is for educational purposes only. Do not use in production without proper security review.
+        </div>
+
+        <h2>Library Overview</h2>
+        <p>Version: 2.1.4 | Last Updated: 2023-11-15</p>
+
+        <h2>Core Functions</h2>
+        <div class="code-block">
+            <pre>
+// Utility Functions
+const Utils = {
+    // DOM Manipulation
+    $(selector) { return document.querySelector(selector); },
+    $$(selector) { return document.querySelectorAll(selector); },
+    createElement(tag, props = {}, children = []) {
+        const el = document.createElement(tag);
+        Object.assign(el, props);
+        children.forEach(child => {
+            if (typeof child === 'string') {
+                el.appendChild(document.createTextNode(child));
+            } else if (child instanceof Node) {
+                el.appendChild(child);
+            }
+        });
+        return el;
+    },
+
+    // AJAX Helper
+    ajax(options = {}) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open(options.method || 'GET', options.url);
+            
+            if (options.headers) {
+                Object.keys(options.headers).forEach(key => {
+                    xhr.setRequestHeader(key, options.headers[key]);
+                });
+            }
+            
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    resolve(xhr.responseText);
+                } else {
+                    reject(new Error(`Request failed with status ${xhr.status}`));
+                }
+            };
+            
+            xhr.onerror = () => reject(new Error('Network error'));
+            xhr.send(options.body || null);
+        });
+    },
+
+    // Data Processing
+    debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    },
+
+    throttle(func, limit) {
+        let inThrottle;
+        return function(...args) {
+            if (!inThrottle) {
+                func.apply(this, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
+        };
+    }
+};
+
+// Export for Node.js or browser
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Utils;
+} else {
+    window.Utils = Utils;
+}
+            </pre>
+        </div>
+
+        <h2>Usage Examples</h2>
+        
+        <h3>DOM Manipulation</h3>
+        <div class="code-block">
+            <pre>
+// Select elements
+const header = Utils.$('#header');
+const buttons = Utils.$$('.btn');
+
+// Create elements
+const div = Utils.createElement('div', { className: 'container', id: 'main' }, [
+    Utils.createElement('h1', {}, ['Hello World']),
+    Utils.createElement('p', {}, ['This is a paragraph'])
+]);
+
+document.body.appendChild(div);
+            </pre>
+        </div>
+
+        <h3>AJAX Request</h3>
+        <div class="code-block">
+            <pre>
+// GET request
+Utils.ajax({
+    url: '/api/data',
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer YOUR_TOKEN_HERE'
+    }
+}).then(response => {
+    console.log('Data:', JSON.parse(response));
+}).catch(error => {
+    console.error('Error:', error);
+});
+
+// POST request
+Utils.ajax({
+    url: '/api/submit',
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'John', email: 'john@example.com' })
+});
+            </pre>
+        </div>
+
+        <h2>Security Notes</h2>
+        <ul>
+            <li><strong>XSS Protection:</strong> This library does not automatically sanitize user input. Always sanitize data before inserting into DOM.</li>
+            <li><strong>CSRF:</strong> AJAX requests should include CSRF tokens for state-changing operations.</li>
+            <li><strong>Input Validation:</strong> Validate all inputs on both client and server side.</li>
+            <li><strong>CORS:</strong> Be aware of CORS policies when making cross-origin requests.</li>
+        </ul>
+
+        <h2>Download & Installation</h2>
+        <p>Include this file directly in your HTML:</p>
+        <div class="code-block">
+            <pre>&lt;script src="/index.js"&gt;&lt;/script&gt;</pre>
+        </p>
+        <p>Or install via npm (simulated):</p>
+        <div class="code-block">
+            <pre>npm install fake-utils-library</pre>
+        </div>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 0.9em;">
+            <p>© 2023 JavaScript Utility Library. All rights reserved.</p>
+            <p>This is a simulated library for demonstration purposes.</p>
+        </div>
+    </div>
+</body>
+</html>
