@@ -127,7 +127,9 @@ def import_deception_pages_from_directory() -> int:
 
                 # Skip if path already exists in database (don't override)
                 if has_generated_page_in_db(url_path):
-                    logger.debug(f"Skipping {html_file.name} — path {url_path} already in DB")
+                    logger.debug(
+                        f"Skipping {html_file.name} — path {url_path} already in DB"
+                    )
                     continue
 
                 if save_generated_page_to_db(url_path, html_content):

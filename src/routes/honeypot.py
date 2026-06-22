@@ -446,7 +446,9 @@ async def trap_page(request: Request, path: str):
                 content_type,
                 status_code,
                 was_cached,
-            ) = await asyncio.shield(generate_html_for_path(full_path, request.url.query or ""))
+            ) = await asyncio.shield(
+                generate_html_for_path(full_path, request.url.query or "")
+            )
             model = get_model()
             provider = get_provider()
             cache_flag = "[CACHED]" if was_cached else ""
