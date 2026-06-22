@@ -281,6 +281,27 @@ document.addEventListener('alpine:init', () => {
             this.authModal.loading = false;
         },
 
+        exportUrl() {
+            const params = new URLSearchParams({
+                categories: (this.exportModal.categories.slice().sort()).join(','),
+                fwtype: this.exportModal.fwtype,
+            });
+            return `${window.location.origin}${this.dashboardPath}/api/export-ips?${params}`;
+        },
+
+        async copyExportUrl(event) {
+            const btn = event.currentTarget;
+            const originalHTML = btn.innerHTML;
+            const checkIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="#3fb950"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>';
+            try {
+                await navigator.clipboard.writeText(this.exportUrl());
+                btn.innerHTML = checkIcon;
+            } catch {
+                btn.style.color = '#f85149';
+            }
+            setTimeout(() => { btn.innerHTML = originalHTML; btn.style.color = ''; }, 1500);
+        },
+
         async submitExport() {
             if (this.exportModal.categories.length === 0) {
                 this.exportModal.error = 'Select at least one category';
@@ -371,7 +392,23 @@ document.addEventListener('alpine:init', () => {
             window.location.hash = '#ip-insight';
         },
 
+        collapseSearch() {
+            // Collapse the search results down to just the summary header.
+            // The full results stay in the DOM so the summary can re-expand them.
+            const results = document.querySelector('#search-results-container .search-results');
+            if (results) results.classList.add('search-collapsed');
+        },
+
+        toggleSearchCollapse() {
+            // Expand/collapse the search results when the summary header is clicked
+            const results = document.querySelector('#search-results-container .search-results');
+            if (results) results.classList.toggle('search-collapsed');
+        },
+
         openIpInsight(ip) {
+            // Collapse any open search results before switching to the insight tab
+            this.collapseSearch();
+
             // Set the IP and load the insight content
             this.insightIp = ip;
             this.tab = 'ip-insight';
