@@ -44,12 +44,10 @@ def add_performance_indexes(db_path: str) -> bool:
         # Index 1: attack_type for efficient GROUP BY operations
         if not index_exists(cursor, "ix_attack_detections_attack_type"):
             print("Adding index on attack_detections.attack_type...")
-            cursor.execute(
-                """
+            cursor.execute("""
                 CREATE INDEX ix_attack_detections_attack_type 
                 ON attack_detections(attack_type)
-            """
-            )
+            """)
             indexes_added.append("ix_attack_detections_attack_type")
         else:
             indexes_existed.append("ix_attack_detections_attack_type")
@@ -59,12 +57,10 @@ def add_performance_indexes(db_path: str) -> bool:
             print(
                 "Adding composite index on attack_detections(attack_type, access_log_id)..."
             )
-            cursor.execute(
-                """
+            cursor.execute("""
                 CREATE INDEX ix_attack_detections_type_log 
                 ON attack_detections(attack_type, access_log_id)
-            """
-            )
+            """)
             indexes_added.append("ix_attack_detections_type_log")
         else:
             indexes_existed.append("ix_attack_detections_type_log")
