@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GeoServer Web Administration</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header {background:#006699; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#e2e2e2; padding:0.5rem 1rem;}
+        nav a {margin-right:1rem; text-decoration:none; color:#006699;}
+        nav a:hover {text-decoration:underline;}
+        .container {max-width:960px; margin:2rem auto; background:#fff; padding:2rem; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h2 {color:#006699;}
+        form {margin-top:1rem;}
+        label {display:block; margin-top:0.5rem;}
+        input[type="text"], input[type="password"] {width:100%; padding:0.5rem; margin-top:0.2rem; border:1px solid #ccc; border-radius:4px;}
+        input[type="submit"] {background:#006699; color:#fff; border:none; padding:0.7rem 1.5rem; margin-top:1rem; cursor:pointer; border-radius:4px;}
+        input[type="submit"]:hover {background:#004c75;}
+        .footer {text-align:center; font-size:0.9rem; color:#777; margin-top:2rem;}
+    </style>
+</head>
+<body>
+<header>
+    <h1>GeoServer Web Administration</h1>
+    <p>Version 2.20.0 (build 20230915)</p>
+</header>
+<nav>
+    <a href="/geoserver/web/">Home</a>
+    <a href="/geoserver/web/data.html">Data</a>
+    <a href="/geoserver/web/layers.html">Layers</a>
+    <a href="/geoserver/web/styles.html">Styles</a>
+    <a href="/geoserver/web/rest.html">REST</a>
+    <a href="/geoserver/web/about.html">About</a>
+</nav>
+<div class="container">
+    <h2>Login</h2>
+    <form action="/geoserver/j_spring_security_check" method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="j_username" required placeholder="Enter username">
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="j_password" required placeholder="Enter password">
+        <input type="submit" value="Sign In">
+    </form>
+    <p>Demo credentials: <strong>admin</strong> / <strong>geoserver</strong></p>
+</div>
+<footer class="footer">
+    &copy; 2023 GeoServer Project. All rights reserved.
+</footer>
+</body>
+</html>

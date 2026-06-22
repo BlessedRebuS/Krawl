@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WordPress REST API – Users</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 2em; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        pre {background:#ecf0f1; padding:1em; overflow:auto; border-radius:4px;}
+        a {color:#2980b9; text-decoration:none;}
+        a:hover {text-decoration:underline;}
+        .note {font-size:0.9em; color:#555;}
+    </style>
+</head>
+<body>
+    <h1>WP REST API Users Endpoint</h1>
+    <p class="note">This is a simulated response for the <code>/wp-json/lp/v1/users</code> route.</p>
+    <pre>[
+  {
+    "id": 1,
+    "name": "Administrator",
+    "slug": "administrator",
+    "url": "https://example.com/",
+    "description": "",
+    "link": "https://example.com/",
+    "avatar_urls": {
+      "24": "https://secure.gravatar.com/avatar/1a2b3c4d5e6f7g8h9i0j?s=24&amp;d=mm&amp;r=g",
+      "48": "https://secure.gravatar.com/avatar/1a2b3c4d5e6f7g8h9i0j?s=48&amp;d=mm&amp;r=g",
+      "96": "https://secure.gravatar.com/avatar/1a2b3c4d5e6f7g8h9i0j?s=96&amp;d=mm&amp;r=g"
+    },
+    "meta": [],
+    "capabilities": {
+      "administrator": true
+    },
+    "extra_capabilities": {
+      "moderate_comments": true,
+      "manage_options": true
+    }
+  },
+  {
+    "id": 2,
+    "name": "Editor",
+    "slug": "editor",
+    "url": "https://example.com/",
+    "description": "",
+    "link": "https://example.com/",
+    "avatar_urls": {
+      "24": "https://secure.gravatar.com/avatar/2b3c4d5e6f7g8h9i0j1k?s=24&amp;d=mm&amp;r=g",
+      "48": "https://secure.gravatar.com/avatar/2b3c4d5e6f7g8h9i0j1k?s=48&amp;d=mm&amp;r=g",
+      "96": "https://secure.gravatar.com/avatar/2b3c4d5e6f7g8h9i0j1k?s=96&amp;d=mm&amp;r=g"
+    },
+    "meta": [],
+    "capabilities": {
+      "editor": true
+    },
+    "extra_capabilities": {
+      "moderate_comments": true,
+      "edit_others_posts": true,
+      "publish_pages": true
+    }
+  },
+  {
+    "id": 3,
+    "name": "Contributor",
+    "slug": "contributor",
+    "url": "https://example.com/",
+    "description": "",
+    "link": "https://example.com/",
+    "avatar_urls": {
+      "24": "https://secure.gravatar.com/avatar/3c4d5e6f7g8h9i0j1k2l?s=24&amp;d=mm&amp;r=g",
+      "48": "https://secure.gravatar.com/avatar/3c4d5e6f7g8h9i0j1k2l?s=48&amp;d=mm&amp;r=g",
+      "96": "https://secure.gravatar.com/avatar/3c4d5e6f7g8h9i0j1k2l?s=96&amp;d=mm&amp;r=g"
+    },
+    "meta": [],
+    "capabilities": {
+      "contributor": true
+    },
+    "extra_capabilities": {
+      "edit_posts": true,
+      "delete_posts": false
+    }
+  }
+]</pre>
+    <p>For more information, visit the <a href="/wp-json/">REST API root</a> or check the <a href="https://developer.wordpress.org/rest-api/">official documentation</a>.</p>
+    <hr>
+    <p class="note">Generated response – this is a honeypot page intended to waste attacker time.</p>
+</body>
+</html>

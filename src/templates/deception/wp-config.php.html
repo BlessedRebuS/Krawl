@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordPress Configuration - wp-config.php</title>
+    <style>
+        body { font-family: 'Courier New', monospace; background-color: #f8f8f8; color: #333; margin: 20px; line-height: 1.6; }
+        pre { background-color: #fff; padding: 15px; border: 1px solid #ddd; overflow-x: auto; border-radius: 4px; }
+        .header { background-color: #21759B; color: white; padding: 15px; border-radius: 4px 4px 0 0; }
+        .content { background-color: white; padding: 20px; border: 1px solid #ddd; border-top: none; border-radius: 0 0 4px 4px; }
+        .notice { background-color: #fffdd0; border-left: 4px solid #ffeb3b; padding: 10px; margin: 15px 0; }
+        .code-comment { color: #666; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>WordPress Configuration File</h1>
+        <p>wp-config.php - Base configuration for WordPress</p>
+    </div>
+    <div class="content">
+        <div class="notice">
+            <strong>Notice:</strong> This is a core WordPress file that should not be modified unless you know what you are doing.
+        </div>
+        <pre><?php
+/**
+ * The base configuration for WordPress
+ *
+ * The wp-config.php creation script uses this file during the
+ * installation. You don't have to use the web site, you can
+ * copy this file to "wp-config.php" and fill in the values.
+ *
+ * This file contains the following configurations:
+ *
+ * * MySQL settings
+ * * Secret keys
+ * * Database table prefix
+ * * ABSPATH
+ *
+ * @link https://wordpress.org/support/article/editing-wp-config-php/
+ *
+ * @package WordPress
+ */
+
+// ** MySQL settings - You can get this info from your web host ** //
+/** The name of the database for WordPress */
+define('DB_NAME', 'wordpress_db');
+
+/** MySQL database username */
+define('DB_USER', 'wp_user');
+
+/** MySQL database password */
+define('DB_PASSWORD', 'S3cr3t_P@ssw0rd_2024!'); // Fake password for honeypot
+
+/** MySQL hostname */
+define('DB_HOST', 'localhost');
+
+/** Database Charset to use in creating database tables. */
+define('DB_CHARSET', 'utf8');
+
+/** The Database Collate type. Don't change this if in doubt. */
+define('DB_COLLATE', '');
+
+/**#@+
+ * Authentication Unique Keys and Salts.
+ *
+ * Change these to different unique phrases!
+ * You can generate these using the {@link https://api.wordpress.org/secret-key/1.1/salt/ WordPress.org secret-key service}
+ * You can change these at any point in time to invalidate all existing cookies. This will force all users to have to log in again.
+ *
+ * @since 2.6.0
+ */
+define('AUTH_KEY',         'a1B2c3D4e5F6g7H8i9J0kLmNoPqRsTuVwXyZaBcDeFgHiJkLmNoPqRsTuVwXyZ');
+define('SECURE_AUTH_KEY',  'zYxWvUtSrQpOnMlKjIhGfEdCbZaQwErTyUiOpAsDfGhJkLmNbVcXzZaQwErTyUi');
+define('LOGGED_IN_KEY',    'qWeRtYuIoP AsDfGhJkLzXcVbNmPoIuYtReWsQaZxEdCrFvGbHnJmKlPoIuYt');
+define('NONCE_KEY',        'mNbVcXzZaQwErTyUiOpAsDfGhJkLpOiUyTqWeRsDfGcVbNmJoIkLpQrStUvWxYz');
+define('AUTH_SALT',        'pQrStUvWxYzZaQwErTyUiOpAsDfGhJkLmNbVcXzZaQwErTyUiOpAsDfGhJkLmN');
+define('SECURE_AUTH_SALT', 'lMnOpQrStUvWxYzZaQwErTyUiOpAsDfGhJkLpOiUyTqWeRsDfGcVbNmJoIkLpQ');
+define('LOGGED_IN_SALT',   'kLmNbVcXzZaQwErTyUiOpAsDfGhJkLpOiUyTqWeRsDfGcVbNmJoIkLpQrStUvW');
+define('NONCE_SALT',       'jIkLpQrStUvWxYzZaQwErTyUiOpAsDfGhJkLpOiUyTqWeRsDfGcVbNmJoIkLpQr');
+
+/**#@-
+ * Authentication Unique Keys and Salts.
+ */
+
+/**
+ * WordPress Database Table prefix.
+ *
+ * You can have multiple installations in one database if you give each
+ * a unique prefix. Only numbers, letters, and underscores please!
+ */
+$table_prefix = 'wp_';
+
+/**
+ * For developers: WordPress debugging mode.
+ *
+ * Change this to true to enable the display of notices during development.
+ * It is strongly recommended that plugin and theme developers use WP_DEBUG
+ * in their development environments.
+ *
+ * For information about other constants that can be used for debugging,
+ * visit the documentation.
+ *
+ * @link https://wordpress.org/support/article/debugging-in-wordpress/
+ */
+define('WP_DEBUG', false);
+
+/* That's all, stop editing! Happy publishing. */
+
+/** Absolute path to the WordPress directory. */
+if ( ! defined( 'ABSPATH' ) ) {
+	define( 'ABSPATH', __DIR__ . '/' );
+}
+
+/** Sets up WordPress vars and included files. */
+require_once ABSPATH . 'wp-settings.php';
+?> </pre>
+        <div class="notice">
+            <strong>Security Note:</strong> This file contains sensitive information including database credentials and authentication keys.
+            In a real WordPress installation, access to this file should be restricted via server configuration.
+        </div>
+    </div>
+</body>
+</html>

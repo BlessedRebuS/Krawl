@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backup Download - Company Intranet</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .btn { display: inline-block; background: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 10px 5px; }
+        .btn:hover { background: #2980b9; }
+        .file-info { background: #ecf0f1; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .metadata { font-size: 0.9em; color: #7f8c8d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Database Backup Archive</h1>
+        <p>You are attempting to download a database backup archive from the company's secure backup system.</p>
+        
+        <div class="warning">
+            <strong>Security Notice:</strong> This backup contains sensitive customer data and is intended for authorized personnel only. Unauthorized access or distribution is prohibited and may violate data protection regulations.
+        </div>
+
+        <div class="file-info">
+            <h3>File Details:</h3>
+            <p><strong>Filename:</strong> backup.sql.zip</p>
+            <p><strong>Size:</strong> 2.4 GB</p>
+            <p><strong>Created:</strong> 2024-05-15 02:30:17 UTC</p>
+            <p><strong>Expires:</strong> 2024-05-22 02:30:17 UTC</p>
+            <p><strong>SHA256:</strong> a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456</p>
+            <p class="metadata">This archive contains a mysqldump of the production database from May 15, 2024.</p>
+        </div>
+
+        <p>Due to security policies, direct downloads of backup files require multi-factor authentication. Please use the official backup portal or contact the IT department for access.</p>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="/login?redirect=/backup.sql.zip" class="btn">Authenticate to Download</a>
+            <a href="/backup-portal" class="btn">Backup Portal</a>
+            <a href="/contact-it" class="btn" style="background: #95a5a6;">Contact IT Support</a>
+        </div>
+
+        <div style="border-top: 1px solid #eee; padding-top: 20px; color: #7f8c8d; font-size: 0.9em;">
+            <p>© 2024 Company Name. All rights reserved. Backup system v2.1.7</p>
+            <p>This is a log entry for audit purposes: USER_REQUEST_IP=192.168.1.100 TIMESTAMP=2024-05-20 14:22:03 ACTION=BACKUP_DOWNLOAD_ATTEMPT FILE=backup.sql.zip RESULT=AUTH_REQUIRED</p>
+        </div>
+    </div>
+</body>
+</html>

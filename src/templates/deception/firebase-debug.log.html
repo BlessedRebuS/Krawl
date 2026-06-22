@@ -1,0 +1,31 @@
+<html>
+<head>
+    <title>Firebase Debug Log</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; color:#222; margin:2em;}
+        pre {background:#fff; padding:1em; border:1px solid #ddd; overflow:auto;}
+    </style>
+</head>
+<body>
+<pre>
+[2025-11-02 08:12:03.145] INFO  FirebaseApp: Initializing FirebaseApp com.example.myapp
+[2025-11-02 08:12:03.147] DEBUG FirebaseOptions: projectId = my-awesome-project, apiKey = AIzaSyDummyKey1234567890abcdef
+[2025-11-02 08:12:03.149] INFO  FirebaseAuth: Auth state change listener registered
+[2025-11-02 08:12:03.152] WARN  FirebaseMessaging: No default notification channel set, using fallback
+[2025-11-02 08:12:03.158] INFO  FirebaseDatabase: Persistence enabled, cache size set to 10 MB
+[2025-11-02 08:12:03.162] DEBUG FirebaseFirestore: Using offline persistence with index auto-generation enabled
+[2025-11-02 08:12:03.167] INFO  FirebaseCrashlytics: Crashlytics reporter initialized with version 18.3.0
+[2025-11-02 08:12:03.170] ERROR FirebaseRemoteConfig: Fetch failed: config not found (will use defaults)
+[2025-11-02 08:12:03.175] INFO  FirebaseAnalytics: Analytics collection enabled
+[2025-11-02 08:12:03.180] DEBUG FirebaseApp: All Firebase services initialized successfully
+[2025-11-02 08:12:04.001] INFO  FirebaseAuth: User signed in: uid=abc123def456, email=test@example.com
+[2025-11-02 08:12:04.005] DEBUG FirebaseFirestore: Listening to collection 'users' document abc123def456
+[2025-11-02 08:12:04.010] INFO  FirebaseMessaging: Received token: eXAMPLE_TOkEn_TokenString12345!@#$
+[2025-11-02 08:12:04.015] WARN  FirebaseStorage: Upload task for profile.png resumed after network change
+[2025-11-02 08:12:05.123] INFO  FirebasePerformance: Trace started: app_startup
+[2025-11-02 08:12:05.456] INFO  FirebasePerformance: Trace stopped: app_startup (duration 333 ms)
+[2025-11-02 08:12:06.000] DEBUG FirebaseApp: Flushing pending analytics events
+[2025-11-02 08:12:06.005] INFO  FirebaseApp: Firebase initialization complete
+</pre>
+</body>
+</html>

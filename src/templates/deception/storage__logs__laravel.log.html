@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Laravel Log - storage/logs/laravel.log</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; color:#111; padding:20px;}
+        pre {background:#fff; padding:10px; border:1px solid #ddd; overflow:auto;}
+    </style>
+</head>
+<body>
+<h1>Laravel Application Log</h1>
+<p>Path: /storage/logs/laravel.log</p>
+<pre>
+[2025-09-25 08:12:03] local.INFO: Application startup completed. {"env":"local","debug":true,"app_url":"http://localhost"}
+[2025-09-25 08:12:07] local.DEBUG: Route matched: GET /api/users {"route":"api.users","action":"App\\Http\\Controllers\\Api\\UserController@index"}
+[2025-09-25 08:12:10] local.WARNING: Mass assignment for model App\\User ["email"] 
+[2025-09-25 08:12:15] local.ERROR: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'laravel.failed_jobs' doesn't exist {"exception":"[object] (Illuminate\\Database\\QueryException(code: 42S02): SQLSTATE[42S02]: Base table or view not found: 1146 Table 'laravel.failed_jobs' doesn't exist at /var/www/html/vendor/laravel/framework/src/Illuminate/Database/Connection.php:692)"}
+[2025-09-25 08:12:20] local.INFO: Queued job processed: App\\Jobs\\SendWelcomeEmail {"job":"Illuminate\\Queue\\CallQueuedHandler@call","attempts":1}
+[2025-09-25 08:12:25] local.NOTICE: Cache store [file] set on key: laravel_cache_resolver_12345
+[2025-09-25 08:12:30] local.DEBUG: Incoming request: POST /login {"ip":"192.168.1.42","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+[2025-09-25 08:12:35] local.ERROR: Attempted to call method "getAuthIdentifier" on null. {"exception":"[object] (BadMethodCallException(code: 0): Attempted to call method \"getAuthIdentifier\" on null at /var/www/html/app/Http/Controllers/Auth/LoginController.php:78)"}
+[2025-09-25 08:12:40] local.INFO: Queue worker stopping due to SIGTERM.
+</pre>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ultimate Member API - Users</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; line-height: 1.6;}
+        h1 {color: #2c3e50;}
+        pre {background: #f8f9fa; padding: 15px; border: 1px solid #ddd; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>Ultimate Member REST API – Users</h1>
+    <p>This endpoint returns a collection of user objects in JSON format.</p>
+    <pre>[
+  {
+    "id": 1,
+    "username": "admin",
+    "email": "admin@example.com",
+    "nicename": "admin",
+    "url": "http:\/\/example.com",
+    "registered": "2023-01-15 08:30:00",
+    "roles": ["administrator"]
+  },
+  {
+    "id": 2,
+    "username": "editor",
+    "email": "editor@example.com",
+    "nicename": "editor",
+    "url": "http:\/\/example.com\/author\/editor\/",
+    "registered": "2023-03-22 14:05:12",
+    "roles": ["editor"]
+  },
+  {
+    "id": 3,
+    "username": "subscriber",
+    "email": "subscriber@example.com",
+    "nicename": "subscriber",
+    "url": "http:\/\/example.com\/author\/subscriber\/",
+    "registered": "2023-07-09 09:20:05",
+    "roles": ["subscriber"]
+  }
+]</pre>
+    <p>For documentation, see the <a href="https://developer.wordpress.org/rest-api/">WordPress REST API Handbook</a>.</p>
+</body>
+</html>

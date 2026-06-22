@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Corporate Intranet – Employee Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header {background:#004080; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#e2e2e2; padding:0.5rem; text-align:center;}
+        nav a {margin:0 1rem; text-decoration:none; color:#004080; font-weight:bold;}
+        main {padding:2rem;}
+        .card {background:#fff; border:1px solid #ddd; border-radius:4px; padding:1.5rem; margin-bottom:1.5rem; box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+        h2 {color:#004080;}
+        form {display:flex; flex-direction:column; gap:0.5rem;}
+        input, button {padding:0.5rem; font-size:1rem;}
+        button {background:#004080; color:#fff; border:none; cursor:pointer;}
+        button:hover {background:#003060;}
+        footer {text-align:center; padding:1rem; font-size:0.9rem; color:#666; background:#ddd; margin-top:2rem;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Employee Portal</h1>
+        <p>Secure access to company resources</p>
+    </header>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/reports">Reports</a>
+        <a href="/hr">HR</a>
+        <a href="/it-support">IT Support</a>
+        <a href="/logout">Logout</a>
+    </nav>
+    <main>
+        <section class="card">
+            <h2>Welcome, jdoe</h2>
+            <p>Last login: 2025-11-02 08:14:UTC</p>
+            <p>Here you can access internal tools, submit requests, and view announcements.</p>
+        </section>
+        <section class="card">
+            <h2>Quick Search</h2>
+            <form action="/search" method="get">
+                <input type="text" name="q" placeholder="Enter keywords..." required>
+                <button type="submit">Search</button>
+            </form>
+        </section>
+        <section class="card">
+            <h2>Latest Announcements</h2>
+            <ul>
+                <li><strong>System Maintenance:</strong> Scheduled for 2025-11-10 02:00‑04:00 UTC.</li>
+                <li><strong>Benefits Open Enrollment:</strong> Starts 2025-11-15.</li>
+                <li><strong>Security Training:</strong> Mandatory completion by 2025-12-01.</li>
+            </ul>
+        </section>
+    </main>
+    <footer>
+        &copy; 2025 CorpTech Industries. All rights reserved.
+    </footer>
+</body>
+</html>

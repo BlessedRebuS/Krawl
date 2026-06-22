@@ -1,0 +1,17 @@
+<html><body>{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "public" }
+    }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/index.html" }
+  ],
+  "env": {
+    "API_KEY": "fake_key_12345",
+    "DATABASE_URL": "postgres://user:pass@localhost:5432/db"
+  }
+}</body></html>

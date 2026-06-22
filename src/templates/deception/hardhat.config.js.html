@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>hardhat.config.js</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; margin:0; padding:20px;}
+        pre {background:#eee; padding:10px; overflow:auto; border:1px solid #ccc;}
+    </style>
+</head>
+<body>
+    <h1>hardhat.config.js</h1>
+    <p>Hardhat configuration file for the project.</p>
+    <pre>
+module.exports = {
+  solidity: "0.8.20",
+  networks: {
+    localhost: {
+      url: "http://127.0.0.1:8545"
+    },
+    sepolia: {
+      url: "https://sepolia.infura.io/v3/YOUR_INFURA_KEY",
+      accounts: [process.env.PRIVATE_KEY]
+    }
+  },
+  paths: {
+    sources: "./contracts",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts"
+  },
+  mocha: {
+    timeout: 20000
+  }
+};
+    </pre>
+</body>
+</html>

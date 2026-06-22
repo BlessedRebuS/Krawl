@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metaboxes Styles - WordPress Admin</title>
+    <style>
+        /* Fake metaboxes.css content - intentionally vulnerable and plausible */
+        .postbox {
+            background-color: #f7f7f7;
+            border: 1px solid #e5e5e5;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+        }
+        .postbox h3.hndle {
+            background: #f1f1f1;
+            border-bottom: 1px solid #dfdfdf;
+            margin: 0;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: move;
+            position: relative;
+        }
+        .postbox .handlediv {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6"><polygon points="0,0 5,6 10,0" fill="%23666"/></svg>') right 12px center no-repeat;
+            width: 20px;
+            height: 20px;
+            display: block;
+            position: absolute;
+            right: 0;
+            top: 0;
+            cursor: s-resize;
+        }
+        .postbox:hover .handlediv {
+            background-color: rgba(0,0,0,0.05);
+        }
+        .inside {
+            padding: 12px;
+            background-color: #fff;
+        }
+        . metabox-toggle:hover {
+            color: #23282d;
+            background-color: #f0f0f0;
+        }
+        /* Intentionally left vulnerable: fake XSS vector in comment */
+        /* <!-- <script>alert('XSS test')</script> --> */
+        /* Fake SQLi trace in comment for deception */
+        /* -- SELECT * FROM wp_users WHERE ID = 1 OR 1=1 -- */
+        .button-primary {
+            background: #007cba;
+            border-color: #006494;
+            color: #fff;
+        }
+        .button-primary:hover {
+            background: #006494;
+            border-color: #004c7a;
+        }
+        .wp-core-ui .button-primary {
+            text-shadow: 0 -1px 0 rgba(0,0,0,0.2);
+        }
+        /* Fake admin notice styling */
+        .notice.is-dismissible {
+            position: relative;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+        }
+        .notice.is-dismissible .notice-dismiss {
+            position: absolute;
+            right: 3px;
+            top: 3px;
+        }
+        /* Fake vulnerable inline style - simulate dangerous user input */
+        /* This is a fake vulnerability: style attribute injected via GET */
+        /* In real attack: ?color=expression(window.open()) */
+        [style*="expression"] {
+            color: red !important;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- This is a fake CSS file served as HTML to confuse scanners -->
+    <!-- In reality, this would be a .css file, but we serve HTML to waste attacker time -->
+    <!-- Simulating a misconfigured server that returns HTML for .css requests -->
+    <div style="padding: 20px; font-family: sans-serif; line-height: 1.6;">
+        <h1>WordPress Admin CSS Resource</h1>
+        <p>This stylesheet manages the appearance of metaboxes in the WordPress admin interface.</p>
+        <p>Last updated: 2024-05-12</p>
+        <p>Version: 6.5.2</p>
+        <hr>
+        <h2>Common Selectors</h2>
+        <ul>
+            <li>.postbox - Main container for metaboxes</li>
+            <li>.postbox h3.hndle - Metabox title bar</li>
+            <li>.inside - Content area inside metaboxes</li>
+            <li>.button-primary - Primary action buttons</li>
+        </ul>
+        <hr>
+        <p><small>Note: This is a simulated WordPress admin resource. For security, ensure your WordPress installation is updated and uses proper file type validation.</small></p>
+    </div>
+</body>
+</html>

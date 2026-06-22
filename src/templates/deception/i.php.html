@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internal Tools - i.php</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:20px; background:#f9f9f9;}
+        .container {max-width:800px; margin:auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,.1);}
+        h1 {color:#0066cc;}
+        form {margin-bottom:20px;}
+        input[type=text] {padding:8px; width:260px;}
+        input[type=submit] {padding:8px 12px; background:#0066cc; color:#fff; border:none; cursor:pointer;}
+        table {width:100%; border-collapse:collapse; margin-top:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#eee;}
+        .note {font-size:0.9em; color:#555; margin-top:15px;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Internal Lookup Tool</h1>
+    <p>Enter an employee ID to view details:</p>
+    <form method="GET" action="i.php">
+        <input type="text" name="id" placeholder="Employee ID" value="101">
+        <input type="submit" value="Lookup">
+    </form>
+
+    <!-- Simulated output reflecting the input (demonstrates potential XSS) -->
+    <p>You searched for: 101</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>101</td>
+                <td>John Doe</td>
+                <td>IT Security</td>
+                <td>john.doe@example.com</td>
+            </tr>
+            <tr>
+                <td>102</td>
+                <td>Jane Smith</td>
+                <td>Finance</td>
+                <td>jane.smith@example.com</td>
+            </tr>
+            <tr>
+                <td>103</td>
+                <td>Alice Johnson</td>
+                <td>HR</td>
+                <td>alice.johnson@example.com</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="note">
+        <strong>Note:</strong> This tool is for internal use only. Do not share sensitive information.
+    </div>
+</div>
+</body>
+</html>

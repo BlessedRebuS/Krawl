@@ -1,0 +1,44 @@
+<html><body>/* GanjingAbout-0xqqgv2B.js */
+(function() {
+    var config = {
+        apiEndpoint: "/api/getData",
+        token: "fake_token_12345",
+        debug: true
+    };
+
+    function loadData() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", config.apiEndpoint + "?id=" + encodeURIComponent(window.location.hash.slice(1)), true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                // Intentional vulnerability: direct insertion of untrusted data
+                var target = document.getElementById("main-content");
+                if (target) {
+                    target.innerHTML = xhr.responseText;
+                }
+                if (config.debug) {
+                    console.log("[GanjingAbout] Data loaded:", xhr.responseText);
+                }
+            }
+        };
+        xhr.onerror = function() {
+            if (config.debug) {
+                console.error("[GanjingAbout] Request failed");
+            }
+        };
+        xhr.send();
+    }
+
+    function init() {
+        if (window.location.hash) {
+            loadData();
+        }
+        window.addEventListener("hashchange", loadData);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init);
+    } else {
+        init();
+    }
+})();</body></html>

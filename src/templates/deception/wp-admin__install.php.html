@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WordPress &rsaquo; Installation</title>
+    <style>
+        body {font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;}
+        .wrap {max-width:600px;margin:40px auto;background:#fff;padding:30px;border-radius:5px;box-shadow:0 0 10px rgba(0,0,0,.1);}
+        h1 {color:#21759b;}
+        label {display:block;margin-top:15px;font-weight:bold;}
+        input[type=text],input[type=password] {width:100%;padding:8px;margin-top:5px;border:1px solid #ddd;border-radius:3px;box-sizing:border-box;}
+        .button {background:#21759b;color:#fff;border:none;padding:10px 20px;margin-top:20px:cursor:pointer;border-radius:3px;font-size:16px;}
+        .button:hover {background:#1e6f90;}
+        .notice {background:#fffbcc;padding:10px;margin-top:20px;border-left:4px solid #ffdd00;font-size:14px;}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h1>Welcome to the WordPress installation process</h1>
+    <p>We need to know the following details to proceed.</p>
+    <form method="post" action="install.php?step=2">
+        <label for="dbname">Database Name</label>
+        <input type="text" name="dbname" id="dbname" value="wordpress_db" required>
+        <label for="uname">Username</label>
+        <input type="text" name="uname" id="uname" value="wp_user" required>
+        <label for="pwd">Password</label>
+        <input type="password" name="pwd" id="pwd" value="" required>
+        <label for="dbhost">Database Host</label>
+        <input type="text" name="dbhost" id="dbhost" value="localhost" required>
+        <label for="prefix">Table Prefix</label>
+        <input type="text" name="prefix" id="prefix" value="wp_" required>
+        <p class="notice">Note: The installation will create a new database user with the privileges required to manage WordPress.</p>
+        <button type="submit" class="button">Let's go!</button>
+    </form>
+    <p style="margin-top:30px;font-size:0.9em;color:#666;">
+        &copy; 2025 WordPress.org
+    </p>
+</div>
+</body>
+</html>

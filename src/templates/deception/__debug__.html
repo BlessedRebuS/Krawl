@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Debug Information - Internal Server</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9; color:#333;}
+        h1, h2 {color:#2c3e50;}
+        table {border-collapse:collapse; width:100%; margin-bottom:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#ecf0f1;}
+        pre {background:#f4f4f4; padding:10px; overflow:auto;}
+        form {margin-top:10px;}
+        input[type=text] {padding:5px; width:250px;}
+        button {padding:5px 10px;}
+    </style>
+</head>
+<body>
+    <h1>Debug Panel</h1>
+    <p>Internal debug interface - do not expose to public.</p>
+    
+    <h2>Request Information</h2>
+    <table>
+        <tr><th>Method</th><td>GET</td></tr>
+        <tr><th>Path</th><td>/__debug__/</td></tr>
+        <tr><th>User-Agent</th><td>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36</td></tr>
+        <tr><th>Remote Address</th><td>203.0.113.42</td></tr>
+        <tr><th>Timestamp</th><td>2025-09-26 14:32:10 UTC</td></tr>
+    </table>
+
+    <h2>Environment Variables (sample)</h2>
+    <table>
+        <tr><th>Variable</th><th>Value</th></tr>
+        <tr><td>APP_ENV</td><td>development</td></tr>
+        <tr><td>DATABASE_URL</td><td>mysql://root:secret@db.internal:3306/appdb</td></tr>
+        <tr><td>SECRET_KEY</td><td>super_secret_key_12345</td></tr>
+        <tr><td>DEBUG</td><td>True</td></tr>
+    </table>
+
+    <h2>Loaded Modules</h2>
+    <ul>
+        <li>Flask 2.3.2</li>
+        <li>SQLAlchemy 2.0.23</li>
+        <li>Jinja2 3.1.2</li>
+        <li>Werkzeug 2.3.0</li>
+        <li>psycopg2-binary 2.9.9</li>
+    </ul>
+
+    <h2>Recent SQL Queries (sample)</h2>
+    <pre>
+SELECT * FROM users WHERE id = 1;
+UPDATE sessions SET expiry = NOW() + INTERVAL '1 hour' WHERE token = 'abc123';
+INSERT INTO logs (message, created_at) VALUES ('Debug panel accessed', NOW());
+    </pre>
+
+    <h2>Test XSS</h2>
+    <form action="/__debug__/xss_test" method="GET">
+        <label>Enter test:</label>
+        <input type="text" name="q">
+        <button type="submit">Submit</button>
+    </form>
+
+    <h2>Test SQLi</h2>
+    <form action="/__debug__/sqli_test" method="POST">
+        <label>Input:</label>
+        <input type="text" name="input">
+        <button type="submit">Check</button>
+    </form>
+
+    <hr>
+    <small>This is an internal debug page. Unauthorized access is prohibited.</small>
+</body>
+</html>

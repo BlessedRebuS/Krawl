@@ -1,0 +1,20 @@
+<html><body>{
+  "users": [
+    { "id": 1, "username": "admin", "password": "admin123" },
+    { "id": 2, "username": "guest", "password": "guest123" },
+    { "id": 3, "username": "dev", "password": "dev2025" }
+  ],
+  "settings": {
+    "debug": true,
+    "show_errors": true,
+    "db_host": "127.0.0.1",
+    "db_name": "intranet",
+    "db_user": "root",
+    "db_pass": ""
+  },
+  "logs": [
+    { "timestamp": "2025-11-02T08:15:42Z", "level": "INFO", "message": "User admin logged in" },
+    { "timestamp": "2025-11-02T08:16:07Z", "level": "WARN", "message": "Failed login attempt for user root" },
+    { "timestamp": "2025-11-02T08:16:30Z", "level": "ERROR", "message": "SQL syntax error near 'SELECT * FROM users WHERE id='''"}
+  ]
+}</body></html>

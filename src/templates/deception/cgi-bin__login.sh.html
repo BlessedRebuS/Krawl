@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Secure Portal</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px;}
+        .container {max-width: 400px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px;}
+        label {display: block; margin-top: 10px;}
+        input[type=text], input[type=password] {width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;}
+        button {margin-top: 20px; padding: 10px 20px; background:#0066cc; color:#fff; border:none; cursor:pointer;}
+        button:hover {background:#004c99;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Employee Login</h2>
+        <form action="/cgi-bin/login.sh" method="POST">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Sign In</button>
+        </form>
+        <p>If you forgot your credentials, contact <a href="mailto:it-support@example.com">IT Support</a>.</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Console - Internal Management Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .sidebar { background-color: #2c3e50; color: white; height: 100vh; position: fixed; width: 250px; }
+        .sidebar a { color: #ecf0f1; text-decoration: none; display: block; padding: 12px 20px; }
+        .sidebar a:hover { background-color: #34495e; }
+        .content { margin-left: 250px; padding: 20px; }
+        .card { box-shadow: 0 2px 4px rgba(0,0,0,0.1); border: none; }
+        .btn-primary { background-color: #3498db; border-color: #2980b9; }
+        .btn-danger { background-color: #e74c3c; border-color: #c0392b; }
+        .status-badge { font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h4 class="p-3 mb-4 bg-dark text-white">Admin Console</h4>
+        <a href="/console/" class="active">Dashboard</a>
+        <a href="/console/users">User Management</a>
+        <a href="/console/logs">System Logs</a>
+        <a href="/console/config">Configuration</a>
+        <a href="/console/backup">Backup & Restore</a>
+        <a href="/console/settings">Settings</a>
+        <hr class="dropdown-divider bg-light">
+        <small class="text-muted p-3">Server: prod-web-01<br>Version: 2.4.1 (Build 20240515)</small>
+    </div>
+    <div class="content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>System Dashboard</h2>
+            <div>
+                <button class="btn btn-sm btn-outline-secondary me-2" id="refreshBtn"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                <button class="btn btn-sm btn-primary" id="exportBtn"><i class="bi bi-download"></i> Export Report</button>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">System Status</h5>
+                        <p class="card-text"><strong>Uptime:</strong> 14 days, 3 hours</p>
+                        <p class="card-text"><strong>CPU Load:</strong> 23%</p>
+                        <p class="card-text"><strong>Memory Usage:</strong> 4.2 GB / 8 GB</p>
+                        <span class="badge bg-success status-badge">Operational</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Active Sessions</h5>
+                        <p class="card-text"><strong>Users Online:</strong> 12</p>
+                        <p class="card-text"><strong>Admin Logins:</strong> 3</p>
+                        <p class="card-text"><strong>Failed Attempts:</strong> 0 (last 24h)</p>
+                        <span class="badge bg-info status-badge">Secure</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Storage</h5>
+                        <p class="card-text"><strong>Used:</strong> 120 GB</p>
+                        <p class="card-text"><strong>Available:</strong> 480 GB</p>
+                        <p class="card-text"><strong>Backups:</strong> 7 retained</p>
+                        <span class="badge bg-warning text-dark status-badge">Normal</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Security Alerts</h5>
+                        <p class="card-text"><strong>Last Scan:</strong> 2 hours ago</p>
+                        <p class="card-text"><strong>Vulnerabilities:</strong> 0 critical</p>
+                        <p class="card-text"><strong>Patch Level:</strong> Up to date</p>
+                        <span class="badge bg-success status-badge">Clean</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Recent System Activity</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>User</th>
+                                        <th>Action</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>02:14:32</td>
+                                        <td>admin</td>
+                                        <td>Logged in from 192.168.1.105</td>
+                                        <td><span class="badge bg-success">Success</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>02:12:18</td>
+                                        <td>j.smith</td>
+                                        <td>Modified user group permissions</td>
+                                        <td><span class="badge bg-info">Modified</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>02:10:05</td>
+                                        <td>system</td>
+                                        <td>Automated backup completed</td>
+                                        <td><span class="badge bg-success">Completed</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>02:08:41</td>
+                                        <td>admin</td>
+                                        <td>Applied security patch KB500123</td>
+                                        <td><span class="badge bg-warning">Patched</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>02:05:22</td>
+                                        <td>ftp_user</td>
+                                        <td>Uploaded file: report_q2.pdf</td>
+                                        <td><span class="badge bg-secondary">Uploaded</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a href="/console/users/create" class="list-group-item list-group-item-action">
+                                <i class="bi bi-person-plus me-2"></i>Create New User
+                            </a>
+                            <a href="/console/logs/download" class="list-group-item list-group-item-action">
+                                <i class="bi bi-download me-2"></i>Download Logs (Last 7d)
+                            </a>
+                            <a href="/console/config/edit" class="list-group-item list-group-item-action">
+                                <i class="bi bi-pencil me-2"></i>Edit Server Config
+                            </a>
+                            <a href="/console/backup/now" class="list-group-item list-group-item-action">
+                                <i class="bi bi-cloud-arrow-up me-2"></i>Run Backup Now
+                            </a>
+                            <a href="/console/settings/reset" class="list-group-item list-group-item-action">
+                                <i class="bi bi-arrow-counterclockwise me-2"></i>Reset to Defaults
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Hidden form for potential exploitation testing -->
+        <div class="d-none">
+            <form id="hiddenSqlForm" action="/console/query" method="POST">
+                <input type="text" name="query" value="SELECT * FROM users WHERE id = 1 OR 1=1--">
+                <input type="submit" value="Execute">
+            </form>
+            <form id="hiddenXssForm" action="/console/search" method="GET">
+                <input type="text" name="q" value="<script>alert('XSS')</script>">
+                <input type="submit" value="Search">
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('refreshBtn').addEventListener('click', function() {
+            location.reload();
+        });
+        
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            alert('Export functionality would generate PDF report of system status.');
+        });
+    </script>
+</body>
+</html>

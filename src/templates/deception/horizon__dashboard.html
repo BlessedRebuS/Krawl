@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Horizon Dashboard</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f6f9; color:#333;}
+        header {background:#2c3e50; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#ecf0f1; padding:0.5rem; border-bottom:1px solid #bdc3c7;}
+        nav a {margin-right:1.5rem; text-decoration:none; color:#2c3e50; font-weight:bold;}
+        .container {display:flex; margin:1.5rem;}
+        .sidebar {width:220px; background:#fff; border-right:1px solid #ddd; padding:1rem;}
+        .sidebar h3 {margin-top:0;}
+        .sidebar ul {list-style:none; padding:0;}
+        .sidebar li {margin:0.8rem 0;}
+        .sidebar a {color:#2980b9; text-decoration:none;}
+        .main {flex:1; padding:1rem;}
+        .widget {background:#fff; border:1px solid #ddd; border-radius:4px; padding:1rem; margin-bottom:1.5rem;}
+        .widget h2 {margin-top:0; color:#2c3e50;}
+        table {width:100%; border-collapse:collapse;}
+        th, td {border:1px solid #ddd; padding:0.5rem; text-align:left;}
+        th {background:#ecf0f1;}
+        .chart-placeholder {width:100%; height:200px; background:#ecf0f1; margin-top:0.5rem; display:flex; align-items:center; justify-content:center; color:#7f8c8d; font-style:italic;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Horizon Operations Dashboard</h1>
+        <p>Real‑time view of system health and metrics</p>
+    </header>
+    <nav>
+        <a href="/horizon/dashboard">Overview</a>
+        <a href="/horizon/reports">Reports</a>
+        <a href="/horizon/alerts">Alerts</a>
+        <a href="/horizon/settings">Settings</a>
+    </nav>
+    <div class="container">
+        <aside class="sidebar">
+            <h3>Navigation</h3>
+            <ul>
+                <li><a href="#cpu">CPU Utilization</a></li>
+                <li><a href="#memory">Memory Usage</a></li>
+                <li><a href="#network">Network I/O</a></li>
+                <li><a href="#services">Service Status</a></li>
+                <li><a href="#logs">Recent Logs</a></li>
+            </ul>
+        </aside>
+        <main class="main">
+            <section id="cpu" class="widget">
+                <h2>CPU Utilization</h2>
+                <div class="chart-placeholder">[CPU usage chart]</div>
+                <p>Average load: 23% (last 5 minutes)</p>
+            </section>
+
+            <section id="memory" class="widget">
+                <h2>Memory Usage</h2>
+                <div class="chart-placeholder">[Memory usage chart]</div>
+                <p>Used: 3.2 GB / 7.8 GB (41%)</p>
+            </section>
+
+            <section id="network" class="widget">
+                <h2>Network I/O</h2>
+                <div class="chart-placeholder">[Network traffic chart]</div>
+                <table>
+                    <thead><tr><th>Interface</th><th>In (Mbps)</th><th>Out (Mbps)</th></tr></thead>
+                    <tbody>
+                        <tr><td>eth0</td><td>12.4</td><td>8.9</td></tr>
+                        <tr><td>eth1</td><td>0.3</td><td>0.1</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="services" class="widget">
+                <h2>Service Status</h2>
+                <table>
+                    <thead><tr><th>Service</th><th>Status</th><th>Uptime</th></tr></thead>
+                    <tbody>
+                        <tr><td>web-api</td><td>Running</td><td>12d 4h</td></tr>
+                        <tr><td>db-primary</td><td>Running</td><td>30d 2h</td></tr>
+                        <tr><td>cache-node</td><td>Warning (high latency)</td><td>5d 11h</td></tr>
+                        <tr><td>worker-queue</td><td>Stopped</td><td>—</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="logs" class="widget">
+                <h2>Recent Logs (last 10 entries)</h2>
+                <pre style="background:#f8f9fa; padding:1rem; overflow:auto; max-height:200px;">
+2025-11-02 10:15:42 INFO  web-api: Request served /api/v1/status (200) 12ms
+2025-11-02 10:15:40 WARN  cache-node: Redis latency spike 210ms (> threshold)
+2025-11-02 10:15:38 INFO  db-primary: Checkpoint completed
+2025-11-02 10:15:35 ERROR worker-queue: Connection refused to broker (retrying)
+2025-11-02 10:15:30 INFO  web-api: Health check passed
+2025-11-02 10:15:28 INFO  syslog: System load average: 0.23
+2025-11-02 10:15:25 DEBUG cache-node: Key evicted: session:abc123
+2025-11-02 10:15:20 INFO  db-primary: Replica lag 0ms
+2025-11-02 10:15:18 INFO  worker-queue: Attempting reconnect...
+2025-11-02 10:15:15 INFO  web-api: New deployment v2.4.1 rolled out
+                </pre>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

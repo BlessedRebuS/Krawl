@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>API Test Utility</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9;}
+        .container {max-width: 800px; margin: auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,.1);}
+        h1 {color:#333;}
+        form {margin-bottom:20px;}
+        label {font-weight:bold;}
+        input[type=text] {padding:8px; width:300px;}
+        button {padding:8px 12px; background:#0066cc; color:#fff; border:none; cursor:pointer;}
+        button:hover {background:#004c99;}
+        #response {background:#eef; padding:10px; margin-top:10px; white-space:pre-wrap; border:1px solid #ccc;}
+        .note {font-size:0.9em; color:#555;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>API Test Utility</h1>
+    <p class="note">Use this tool to test internal API endpoints. Results are shown below.</p>
+    <form method="get" action="/_utils/api-test">
+        <label for="endpoint">Endpoint:</label>
+        <input type="text" id="endpoint" name="endpoint" value="/products" size="50">
+        <button type="submit">Test Request</button>
+    </form>
+    <hr>
+    <h2>Response for endpoint: /products</h2>
+    <div id="response">
+[
+  {"id":101,"name":"Gadget X","price":29.99,"category":"Electronics","stock":15},
+  {"id":102,"name":"Gadget Y","price":19.95,"category":"Electronics","stock":30},
+  {"id":103,"name":"Gadget Z","price":9.99,"category":"Electronics","stock":120}
+]
+    </div>
+    <p>You requested: /products</p>
+</div>
+</body>
+</html>

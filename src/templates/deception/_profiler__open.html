@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symfony Profiler - Parameters</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        .parameter { background: #f8f9fa; padding: 12px; margin: 8px 0; border-left: 3px solid #3498db; border-radius: 0 4px 4px 0; }
+        .key { font-weight: bold; color: #2980b9; }
+        .value { color: #2c3e50; margin-left: 8px; }
+        .type { font-size: 0.9em; color: #7f8c8d; }
+        .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; color: #95a5a6; font-size: 0.9em; }
+        .badge { display: inline-block; padding: 2px 6px; background: #e74c3c; color: white; border-radius: 3px; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Symfony Profiler - Configuration Parameters</h1>
+        <p><strong>File:</strong> app/config/parameters.yml</p>
+        <p><strong>Last updated:</strong> 2024-06-15 14:22:18</p>
+        
+        <h2>Database Configuration</h2>
+        <div class="parameter">
+            <span class="key">database_host</span>: <span class="value">localhost</span> <span class="type">(string)</span>
+        </div>
+        <div class="parameter">
+            <span class="key">database_port</span>: <span class="value">5432</span> <span class="type">(integer)</span>
+        </div>
+        <div class="parameter">
+            <span class="key">database_name</span>: <span class="value">symfony_db</span> <span class="type">(string)</span>
+        </div>
+        <div class="parameter">
+            <span class="key">database_user</span>: <span class="value">symfony_user</span> <span class="type">(string)</span>
+        </div>
+        <div class="parameter">
+            <span class="key">database_password</span>: <span class="value">s3cr3t_p@ssw0rd_2024!</span> <span class="type">(string)</span>
+        </div>
+
+        <h2>Mailer Settings</h2>
+        <div class="parameter">
+            <span class="key">mailer_transport</span>: <span class="value">smtp</span> <span class="type">(string)</span>
+        </div>
+        <div class="parameter">
+            <span class="key">mailer_host</span>: <span class="value">smtp.gmail.com</span> <span class="type">(string)</span>
+        </div>
+        <div class="parameter">
+            <span class="key">mailer_user</span>: <span class="value">no-reply@example.com</span> <span class="type">(string)</span>
+        </div>
+        <div class="parameter">
+            <span class="key">mailer_password</span>: <span class="value">mail_app_password_xyz789</span> <span class="type">(string)</span>
+        </div>
+        <div class="parameter">
+            <span class="key">mailer_port</span>: <span class="value">587</span> <span class="type">(integer)</span>
+        </div>
+        <div class="parameter">
+            <span class="key">mailer_encryption</span>: <span class="value">tls</span> <span class="type">(string)</span>
+        </div>
+
+        <h2>Security Settings</h2>
+        <div class="parameter">
+            <span class="key">secret</span>: <span class="value">a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6</span> <span class="type">(string)</span>
+        </div>
+        <div class="parameter">
+            <span class="key">csrf_token_id</span>: <span class="value">authenticate</span> <span class="type">(string)</span>
+        </div>
+        <div class="parameter">
+            <span class="key">logout_on_user_change</span>: <span class="value">true</span> <span class="type">(boolean)</span>
+        </div>
+
+        <h2>Third-party Services</h2>
+        <div class="parameter">
+            <span class="key">google_maps_api_key</span>: <span class="value">AIzaSyBv1-example-fake-key-for-testing-purposes-only-12345</span> <span class="type">(string)</span>
+        </div>
+        <div class="parameter">
+            <span class="key">stripe_public_key</span>: <span class="value">pk_test_51Hb-example-fake-stripe-key-for-development-only</span> <span class="type">(string)</span>
+        </div>
+        <div class="parameter">
+            <span class="key">stripe_secret_key</span>: <span class="value">sk_test_51Hb-example-fake-stripe-secret-key-do-not-use-in-production</span> <span class="type">(string)</span>
+        </div>
+
+        <h2>Environment</h2>
+        <div class="parameter">
+            <span class="key">kernel.environment</span>: <span class="value">dev</span> <span class="type">(string)</span>
+        </div>
+        <div class="parameter">
+            <span class="key">debug</span>: <span class="value">true</span> <span class="type">(boolean)</span>
+        </div>
+        <div class="parameter">
+            <span class="key">log_level</span>: <span class="value">debug</span> <span class="type">(string)</span>
+        </div>
+
+        <div class="footer">
+            Generated by Symfony Profiler (v6.4.2) &mdash; <span class="badge">DEBUG MODE</span>
+            <br>
+            <em>Warning: Exposing this file in production may lead to security vulnerabilities. Do not commit sensitive parameters to version control.</em>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Server Logs - .well-known/logs233</title>
+<style>
+body {font-family: Arial, sans-serif; margin:20px;}
+h1 {color:#2c3e50;}
+table {border-collapse:collapse; width:100%; margin-top:10px;}
+th, td {border:1px solid #ccc; padding:8px; text-align:left;}
+th {background-color:#ecf0f1;}
+tr:nth-child(even) {background-color:#f9f9f9;}
+a {color:#2980b9; text-decoration:none;}
+a:hover {text-decoration:underline;}
+</style>
+</head>
+<body>
+<h1>Server Logs</h1>
+<p>Displaying recent access logs for the server.</p>
+<table>
+<thead>
+<tr>
+<th>Timestamp</th>
+<th>IP Address</th>
+<th>Method</th>
+<th>Requested Path</th>
+<th>Status</th>
+<th>User Agent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2025-09-26 10:12:03</td>
+<td>203.0.113.45</td>
+<td>GET</td>
+<td>/index.html</td>
+<td>200</td>
+<td>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0 Safari/537.36</td>
+</tr>
+<tr>
+<td>2025-09-26 10:12:15</td>
+<td>198.51.100.22</td>
+<td>POST</td>
+<td>/login.php</td>
+<td>200</td>
+<td>Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0 Safari/537.36</td>
+</tr>
+<tr>
+<td>2025-09-26 10:12:27</td>
+<td>203.0.113.45</td>
+<td>GET</td>
+<td>/admin/dashboard.php</td>
+<td>403</td>
+<td>Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0</td>
+</tr>
+<tr>
+<td>2025-09-26 10:12:40</td>
+<td>192.0.2.55</td>
+<td>GET</td>
+<td>/wp-login.php</td>
+<td>404</td>
+<td>Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)</td>
+</tr>
+<tr>
+<td>2025-09-26 10:12:52</td>
+<td>203.0.113.45</td>
+<td>GET</td>
+<td>/.well-known/logs233/index.php?p=</td>
+<td>200</td>
+<td>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0 Safari/537.36</td>
+</tr>
+</tbody>
+</table>
+<p><a href="?p=filter">Apply filter</a> | <a href="?p=download">Download log (CSV)</a></p>
+</body>
+</html>

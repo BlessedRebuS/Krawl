@@ -450,6 +450,8 @@ ai:
 
 For detailed configuration and usage, see the [AI Generation documentation](docs/ai_generation.md).
 
+You can also **contribute deception templates** by opening a PR, see [Contributing Deception Templates](docs/deception_pages.md#contributing-deception-templates-via-pr).
+
 ## Forward server header
 If Krawl is deployed behind a proxy such as NGINX the **server header** should be forwarded using the following configuration in your proxy:
 

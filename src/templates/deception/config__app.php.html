@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Application Configuration</title>
+    <style>
+        body{font-family:monospace;background:#f8f8f8;color:#333;padding:20px;}
+        pre{background:#eee;padding:10px;border:1px solid #ddd;overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>config/app.php</h1>
+    <pre>&lt;?php
+/**
+ * Application Configuration
+ * This file contains settings for the application.
+ */
+return [
+
+    // Database configuration
+    'db' => [
+        'host'     => 'localhost',
+        'port'     => 3306,
+        'name'     => 'myapp',
+        'user'     => 'admin',
+        'password' => 'S3cr3t!2024',
+        'charset'  => 'utf8mb4',
+        'collation'=> 'utf8mb4_unicode_ci',
+    ],
+
+    // Cache settings
+    'cache' => [
+        'driver' => 'redis',
+        'host'   => '127.0.0.1',
+        'port'   => 6379,
+        'password'=> null,
+    ],
+
+    // Application key (should be kept secret)
+    'app_key' => base64_encode(random_bytes(32)),
+
+    // Debug mode
+    'debug' => env('APP_DEBUG', false),
+
+    // Mail settings
+    'mail' => [
+        'driver' => 'smtp',
+        'host'   => 'smtp.example.com',
+        'port'   => 587,
+        'username'=> 'smtp_user',
+        'password'=> 'smtp_pass',
+        'encryption'=> 'tls',
+    ],
+
+    // Logging
+    'log' => [
+        'channel' => 'stack',
+        'path'    => storage_path('logs/laravel.log'),
+        'level'   => 'debug',
+    ],
+];
+?&gt;
+</pre>
+</body>
+</html>

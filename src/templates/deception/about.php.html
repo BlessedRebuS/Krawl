@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - SecureTech Solutions</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .team-member { display: flex; margin: 20px 0; padding: 15px; border: 1px solid #eee; border-radius: 5px; }
+        .team-photo { width: 80px; height: 80px; background: #ecf0f1; margin-right: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #7f8c8d; }
+        .team-info { flex: 1; }
+        .team-name { font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
+        .team-role { color: #7f8c8d; font-style: italic; }
+        .footer { text-align: center; margin-top: 30px; color: #7f8c8d; font-size: 0.9em; border-top: 1px solid #eee; padding-top: 20px; }
+        .vuln-badge { background: #e74c3c; color: white; padding: 2px 8px; border-radius: 3px; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>About SecureTech Solutions</h1>
+        <p>Welcome to SecureTech Solutions, your trusted partner in cybersecurity and IT infrastructure. Founded in 2010, we've been providing enterprise-grade security solutions to Fortune 500 companies and government agencies worldwide.</p>
+        
+        <h2>Our Mission</h2>
+        <p>To empower organizations with cutting-edge security technologies while maintaining the highest standards of integrity, innovation, and customer service.</p>
+        
+        <h2>Our Team</h2>
+        <div class="team-member">
+            <div class="team-photo">JS</div>
+            <div class="team-info">
+                <div class="team-name">John Smith</div>
+                <div class="team-role">Chief Executive Officer <span class="vuln-badge">admin</span></div>
+                <p>John brings over 20 years of experience in enterprise security architecture and has led SecureTech through multiple funding rounds and acquisitions.</p>
+            </div>
+        </div>
+        
+        <div class="team-member">
+            <div class="team-photo">MS</div>
+            <div class="team-info">
+                <div class="team-name">Maria Garcia</div>
+                <div class="team-role">Vice President of Engineering</div>
+                <p>Maria oversees our R&D division and has authored several patents in intrusion detection systems and zero-trust networking.</p>
+            </div>
+        </div>
+        
+        <div class="team-member">
+            <div class="team-photo">DA</div>
+            <div class="team-info">
+                <div class="team-name">David Chen</div>
+                <div class="team-role">Head of Security Operations</div>
+                <p>David previously led incident response teams at major financial institutions and specializes in advanced threat hunting and forensic analysis.</p>
+            </div>
+        </div>
+        
+        <h2>Our Technologies</h2>
+        <ul>
+            <li>Advanced Threat Intelligence Platform</li>
+            <li>Next-Generation Firewall Solutions</li>
+            <li>Zero Trust Network Access</li>
+            <li>Cloud Security Posture Management</li>
+            <li>Security Information and Event Management (SIEM)</li>
+        </ul>
+        
+        <p><em>Last updated: <?php echo date('F j, Y'); ?> | Version 2.1.4</em></p>
+        
+        <!-- Fake debug information that might appear in development -->
+        <?php
+        // Simulate potential debug output - harmless in this context
+        if(isset($_GET['debug'])) {
+            echo "<div style='background:#fff3cd; border:1px solid #ffeaa7; padding:10px; margin-top:20px; border-radius:4px;'>";
+            echo "<strong>Debug Info:</strong> ";
+            echo "User-Agent: ".$_SERVER['HTTP_USER_AGENT']."<br>";
+            echo "Request URI: ".$_SERVER['REQUEST_URI']."<br>";
+            echo "Remote Addr: ".$_SERVER['REMOTE_ADDR'];
+            echo "</div>";
+        }
+        ?>
+    </div>
+    
+    <div class="footer">
+        © 2010-2024 SecureTech Solutions. All rights reserved.<br>
+        <a href="/contact.php">Contact Us</a> | <a href="/privacy.php">Privacy Policy</a> | <a href="/terms.php">Terms of Service</a>
+    </div>
+</body>
+</html>

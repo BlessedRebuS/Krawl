@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Our Team - Example Corp</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>Our Team</h1>
+        <nav>
+            <a href="/">Home</a> | <a href="/about">About</a> | <a href="/contact">Contact</a> | <a href="/team">Team</a>
+        </nav>
+    </header>
+    <section>
+        <h2>Meet the Team</h2>
+        <div class="member">
+            <img src="/images/alice.jpg" alt="Alice Smith">
+            <h3>Alice Smith</h3>
+            <p>Chief Executive Officer</p>
+            <p>Email: <a href="mailto:alice@example.com">alice@example.com</a></p>
+        </div>
+        <div class="member">
+            <img src="/images/bob.jpg" alt="Bob Jones">
+            <h3>Bob Jones</h3>
+            <p>Lead Developer</p>
+            <p>Email: <a href="mailto:bob@example.com">bob@example.com</a></p>
+        </div>
+        <div class="member">
+            <img src="/images/charlie.jpg" alt="Charlie Lee">
+            <h3>Charlie Lee</h3>
+            <p>Security Engineer</p>
+            <p>Email: <a href="mailto:charlie@example.com">charlie@example.com</a></p>
+        </div>
+    </section>
+    <section>
+        <h2>Join Our Team</h2>
+        <form action="/submit_application" method="POST">
+            <label for="name">Name:</label><br>
+            <input type="text" id="name" name="name" required><br><br>
+            <label for="email">Email:</label><br>
+            <input type="email" id="email" name="email" required><br><br>
+            <label for="position">Position Applying For:</label><br>
+            <select id="position" name="position">
+                <option value="">--Select--</option>
+                <option value="developer">Developer</option>
+                <option value="designer">Designer</option>
+                <option value="manager">Manager</option>
+                <option value="intern">Intern</option>
+            </select><br><br>
+            <label for="message">Why do you want to join?</label><br>
+            <textarea id="message" name="message" rows="4" cols="50" required></textarea><br><br>
+            <input type="submit" value="Submit Application">
+        </form>
+        <!-- Note: backend processing of this form is vulnerable to SQL injection and XSS -->
+    </section>
+    <footer>
+        <p>&copy; 2025 Example Corp. All rights reserved.</p>
+    </footer>
+</body>
+</html>

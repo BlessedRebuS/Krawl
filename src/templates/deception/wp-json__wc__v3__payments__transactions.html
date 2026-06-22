@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WooCommerce Payments Transactions - My Store</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4;}
+        header {background:#333; color:#fff; padding:1rem;}
+        header h1 {margin:0;}
+        nav a {color:#fff; text-decoration:none; margin:0 .5rem;}
+        nav a:hover {text-decoration:underline;}
+        section {margin:2rem auto; max-width:960px; background:#fff; padding:1.5rem; box-shadow:0 0 8px rgba(0,0,0,.1);}
+        h2 {color:#2c3e50;}
+        table {width:100%; border-collapse:collapse;}
+        th, td {border:1px solid #ddd; text-align:left;}
+        th {background:#ecf0f1;}
+        tr:nth-child(even) {background:#f9f9f9;}
+        footer {text-align:center; padding:1rem; font-size:.9rem; color:#666;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>WooCommerce Payments Transactions</h1>
+        <nav>
+            <a href="/">Home</a> |
+            <a href="/wp-admin">Dashboard</a> |
+            <a href="/wp-login.php?action=logout">Logout</a>
+        </nav>
+    </header>
+    <section>
+        <h2>Recent Transactions</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Amount</th>
+                    <th>Currency</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1024</td>
+                    <td>49.99</td>
+                    <td>USD</td>
+                    <td>completed</td>
+                    <td>2025-09-20 14:32:10</td>
+                    <td>John Doe</td>
+                </tr>
+                <tr>
+                    <td>1025</td>
+                    <td>19.95</td>
+                    <td>USD</td>
+                    <td>pending</td>
+                    <td>2025-09-20 13:05:45</td>
+                    <td>Jane Smith</td>
+                </tr>
+                <tr>
+                    <td>1026</td>
+                    <td>99.00</td>
+                    <td>USD</td>
+                    <td>failed</td>
+                    <td>2025-09-20 12:58:02</td>
+                    <td>Alice Johnson</td>
+                </tr>
+                <tr>
+                    <td>1027</td>
+                    <td>75.50</td>
+                    <td>USD</td>
+                    <td>completed</td>
+                    <td>2025-09-20 11:45:33</td>
+                    <td>Bob Brown</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+    <footer>
+        <p>&copy; 2025 My Store. All rights reserved.</p>
+    </footer>
+</body>
+</html>

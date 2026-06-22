@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard - Internal Portal</title>
+<style>
+body {font-family:Arial,sans-serif; margin:20px; background:#f4f4f4;}
+.container {max-width:800px; margin:auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+h1 {color:#333;}
+.nav {margin-bottom:20px;}
+.nav a {margin-right:15px; text-decoration:none; color:#0066cc;}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="nav">
+<a href="/">Home</a>
+<a href="/profile">Profile</a>
+<a href="/settings">Settings</a>
+<a href="/logout">Logout</a>
+</div>
+<h1>Welcome to the Internal Dashboard</h1>
+<p>Hello, <strong>admin</strong>. Below is a summary of recent activity.</p>
+<ul>
+<li>2025-09-24 08:12: User login from 10.0.0.5</li>
+<li>2025-09-24 07:58: File upload: report.pdf</li>
+<li>2025-09-24 07:45: Database backup completed</li>
+</ul>
+<form action="/submit" method="post">
+<label for="message">Send a quick note:</label><br>
+<textarea id="message" name="message" rows="4" cols="50"></textarea><br><br>
+<input type="submit" value="Send">
+</form>
+</div>
+</body>
+</html>

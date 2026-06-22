@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Horizon - Failed Jobs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f8f9fa; color:#212529;}
+        header {background:#0d6efd; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#e9ecef; padding:0.5rem 1rem;}
+        nav a {margin-right:1rem; text-decoration:none; color:#0d6efd;}
+        nav a:hover {text-decoration:underline;}
+        main {padding:2rem;}
+        h1 {color:#0d6efd;}
+        table {width:100%; border-collapse:collapse; margin-top:1.5rem;}
+        th, td {padding:0.75rem; border:1px solid #dee2e6; text-align:left;}
+        th {background:#e9ecef;}
+        tr:nth-child(even) {background:#f2f2f2;}
+        .status-failed {color:#dc3545; font-weight:bold;}
+        .status-processing {color:#ffc107;}
+        .status-completed {color:#28a745;}
+        footer {text-align:center; padding:1rem; font-size:0.9rem; color:#6c757d; margin-top:2rem;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Laravel Horizon</h1>
+        <p>Failed Jobs Overview</p>
+    </header>
+    <nav>
+        <a href="/horizon">Dashboard</a>
+        <a href="/horizon/jobs">Jobs</a>
+        <a href="/horizon/failed" class="active">Failed</a>
+        <a href="/horizon/metrics">Metrics</a>
+        <a href="/horizon/supervisors">Supervisors</a>
+    </nav>
+    <main>
+        <h2>Failed Jobs (Last 24 hours)</h2>
+        <p>Showing 1‑10 of 23 failed jobs.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Queue</th>
+                    <th>Payload</th>
+                    <th>Failed At</th>
+                    <th>Attempts</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>#102938</td>
+                    <td>emails</td>
+                    <td>App\Jobs\SendWelcomeEmail</td>
+                    <td>2025-11-02 08:14:22</td>
+                    <td>3</td>
+                    <td class="status-failed">Failed</td>
+                </tr>
+                <tr>
+                    <td>#102939</td>
+                    <td>processing</td>
+                    <td>App\Jobs\ProcessImageUpload</td>
+                    <td>2025-11-02 07:58:05</td>
+                    <td>5</td>
+                    <td class="status-failed">Failed</td>
+                </tr>
+                <tr>
+                    <td>#102940</td>
+                    <td>notifications</td>
+                    <td>App\Jobs\SendNotification</td>
+                    <td>2025-11-02 07:45:10</td>
+                    <td>2</td>
+                    <td class="status-failed">Failed</td>
+                </tr>
+                <tr>
+                    <td>#102941</td>
+                    <td>default</td>
+                    <td>App\Jobs\CleanupTempFiles</td>
+                    <td>2025-11-02 07:30:00</td>
+                    <td>1</td>
+                    <td class="status-failed">Failed</td>
+                </tr>
+                <tr>
+                    <td>#102942</td>
+                    <td>emails</td>
+                    <td>App\Jobs\SendInvoice</td>
+                    <td>2025-11-02 07:12:45</td>
+                    <td>4</td>
+                    <td class="status-failed">Failed</td>
+                </tr>
+                <tr>
+                    <td>#102943</td>
+                    <td>processing</td>
+                    <td>App\Jobs\GenerateReport</td>
+                    <td>2025-11-02 06:55:30</td>
+                    <td>3</td>
+                    <td class="status-failed">Failed</td>
+                </tr>
+                <tr>
+                    <td>#102944</td>
+                    <td>notifications</td>
+                    <td>App\Jobs\SendReminder</td>
+                    <td>2025-11-02 06:40:15</td>
+                    <td>2</td>
+                    <td class="status-failed">Failed</td>
+                </tr>
+                <tr>
+                    <td>#102945</td>
+                    <td>default</td>
+                    <td>App\Jobs\ArchiveLogs</td>
+                    <td>2025-11-02 06:25:00</td>
+                    <td>1</td>
+                    <td class="status-failed">Failed</td>
+                </tr>
+                <tr>
+                    <td>#102946</td>
+                    <td>emails</td>
+                    <td>App\Jobs\SendNewsletter</td>
+                    <td>2025-11-02 06:10:05</td>
+                    <td>5</td>
+                    <td class="status-failed">Failed</td>
+                </tr>
+                <tr>
+                    <td>#102947</td>
+                    <td>processing</td>
+                    <td>App\Jobs\EncodeVideo</td>
+                    <td>2025-11-02 05:55:50</td>
+                    <td>3</td>
+                    <td class="status-failed">Failed</td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="margin-top:1.5rem;">
+            <a href="/horizon/failed/download" class="btn" style="background:#0d6efd;color:#fff;padding:0.5rem 1rem;text-decoration:none;border-radius:4px;">Download CSV</a>
+            <a href="/horizon/retry-all" class="btn" style="background:#28a745;color:#fff;padding:0.5rem 1rem;text-decoration:none;margin-left:0.5rem;border-radius:4px;">Retry All Failed</a>
+        </div>
+    </main>
+    <footer>
+        &copy; 2025 Laravel Horizon • <a href="/horizon/help" style="color:#0d6efd;">Help</a> • <a href="/horizon/about" style="color:#0d6efd;">About</a>
+    </footer>
+</body>
+</body>
+</html>

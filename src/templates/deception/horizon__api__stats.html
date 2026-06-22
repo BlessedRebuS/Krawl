@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizon Analytics - Statistics API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .endpoint { background: #ecf0f1; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .method { color: #27ae60; font-weight: bold; }
+        .param { color: #e74c3c; }
+        .response { background: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin: 15px 0; font-family: monospace; }
+        footer { margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Horizon Analytics API</h1>
+        <p>Welcome to the Horizon Analytics platform. This endpoint provides access to system statistics and performance metrics.</p>
+        
+        <div class="endpoint">
+            <h2>GET /api/stats</h2>
+            <p>Retrieve current system statistics including user activity, server load, and application performance.</p>
+            <p><strong>Parameters:</strong></p>
+            <ul>
+                <li><span class="param">period</span> (optional): Time period for stats (hour, day, week, month)</li>
+                <li><span class="param">format</span> (optional): Response format (json, xml, csv)</li>
+                <li><span class="param">include_details</span> (optional): Include detailed breakdowns (true/false)</li>
+            </ul>
+        </div>
+
+        <div class="response">
+{
+  "status": "success",
+  "timestamp": "2024-01-15T10:30:45Z",
+  "data": {
+    "users": {
+      "total": 12458,
+      "active_24h": 3421,
+      "new_today": 89
+    },
+    "system": {
+      "cpu_usage": 23.4,
+      "memory_usage": 67.8,
+      "disk_usage": 45.2,
+      "network_in": "1.2 GB",
+      "network_out": "890 MB"
+    },
+    "api": {
+      "requests_per_minute": 1240,
+      "avg_response_time": 145,
+      "error_rate": 0.02,
+      "endpoints": {
+        "/login": 450,
+        "/dashboard": 320,
+        "/api/data": 280,
+        "/api/stats": 190
+      }
+    }
+  }
+}
+        </div>
+
+        <div class="endpoint">
+            <h2>POST /api/stats/reset</h2>
+            <p>Reset statistics counters (requires admin privileges).</p>
+            <p><strong>Example Request:</strong></p>
+            <div class="response">
+{
+  "api_key": "your_admin_key_here",
+  "confirm": true
+}
+            </div>
+        </div>
+
+        <p><em>Note: This is a simulated API endpoint for demonstration purposes. Actual implementation may vary.</em></p>
+    </div>
+
+    <footer>
+        Horizon Analytics &copy; 2024 | <a href="/api/docs">API Documentation</a> | <a href="/status">System Status</a>
+    </footer>
+</body>
+</html>

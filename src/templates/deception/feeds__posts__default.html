@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Posts - My Personal Journal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .post {
+            background: white;
+            margin-bottom: 25px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .post h2 {
+            color: #3498db;
+            margin-top: 0;
+        }
+        .post-meta {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        .post-content {
+            margin-bottom: 15px;
+        }
+        .read-more {
+            display: inline-block;
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .read-more:hover {
+            background-color: #2980b9;
+        }
+        .sidebar {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .sidebar h3 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .sidebar li {
+            margin-bottom: 8px;
+        }
+        .sidebar a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .sidebar a:hover {
+            text-decoration: underline;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>My Personal Journal</h1>
+        <p>Thoughts, experiences, and reflections from daily life</p>
+    </header>
+
+    <main>
+        <article class="post">
+            <h2>Exploring the Mountains: A Weekend Getaway</h2>
+            <div class="post-meta">
+                <i class="far fa-calendar"></i> June 12, 2023 | 
+                <i class="far fa-folder"></i> Travel | 
+                <i class="far fa-eye"></i> 1,245 views
+            </div>
+            <div class="post-content">
+                <p>Last weekend I decided to escape the city noise and headed to the Blue Ridge Mountains for some fresh air and perspective. The drive up was breathtaking, with winding roads offering panoramic views of valleys draped in morning mist.</p>
+                <p>I stayed in a cozy cabin near Aspen Grove, where I spent my days hiking trails that varied from gentle walks to challenging climbs. The highlight was reaching the summit of Eagle Peak at sunset - the sky exploded in shades of orange, pink, and purple as the sun dipped below the horizon.</p>
+                <p>Evenings were spent around the campfire, sharing stories with fellow travelers and gazing at the star-filled sky, unpolluted by city lights. It reminded me how small we are in the grand scheme of things, yet how connected we are to nature.</p>
+                <p>If you're feeling overwhelmed by daily life, I highly recommend disconnecting for a weekend and immersing yourself in nature's simplicity. Sometimes the best therapy doesn't come from a couch, but from a trail.</p>
+                <a href="/posts/mountain-weekend" class="read-more">Read More</a>
+            </div>
+        </article>
+
+        <article class="post">
+            <h2>Learning to Code: My First Web Application</h2>
+            <div class="post-meta">
+                <i class="far fa-calendar"></i> May 28, 2023 | 
+                <i class="far fa-folder"></i> Technology | 
+                <i class="far fa-eye"></i> 2,103 views
+            </div>
+            <div class="post-content">
+                <p>Three months ago, I knew nothing about HTML, CSS, or JavaScript. Today, I deployed my first full-stack web application - a simple task manager that helps users organize their daily responsibilities.</p>
+                <p>The journey wasn't easy. I spent countless hours debugging syntax errors, understanding asynchronous operations, and learning how frontend and backend communicate. There were moments of frustration when nothing seemed to work, but each breakthrough brought immense satisfaction.</p>
+                <p>What surprised me most was how creative coding can be. Solving problems isn't just about logic - it's about finding elegant solutions, designing intuitive interfaces, and thinking about user experience. It's equal parts art and science.</p>
+                <p>My advice to beginners: start small, build consistently, and don't fear making mistakes. Every error is a learning opportunity. The tech community is incredibly supportive - don't hesitate to ask for help when you're stuck.</p>
+                <p>Now that I've built this foundation, I'm excited to learn more advanced concepts like frameworks, databases, and deployment strategies. The learning never stops, and that's what makes this field so exciting.</p>
+                <a href="/posts/first-web-app" class="read-more">Read More</a>
+            </div>
+        </article>
+
+        <article class="post">
+            <h2>The Art of Mindful Eating</h2>
+            <div class="post-meta">
+                <i class="far fa-calendar"></i> May 15, 2023 | 
+                <i class="far fa-folder"></i> Health & Wellness | 
+                <i class="far fa-eye"></i> 1,782 views
+            </div>
+            <div class="post-content">
+                <p>In our fast-paced world, meals have become another task to check off our list - eaten quickly at our desks, in front of the TV, or while scrolling through phones. We've lost the connection between food and nourishment, both physical and emotional.</p>
+                <p>Mindful eating is about reconnecting with that experience. It means paying full attention to the act of eating - noticing the colors, textures, smells, and flavors of our food. It means eating slowly, without distraction, and listening to our body's hunger and fullness cues.</p>
+                <p>I started practicing mindful eating a few weeks ago, and the changes have been subtle but profound. I find myself enjoying food more, feeling satisfied with smaller portions, and making healthier choices naturally. Most importantly, I've reduced the guilt and anxiety that often accompanies eating.</p>
+                <p>Try this simple exercise: for your next meal, turn off all screens, sit at a table, and take three deep breaths before you begin. Put your fork down between bites, chew thoroughly, and really taste each mouthful. Notice how the experience changes.</p>
+                <p>Food is not just fuel - it's pleasure, culture, and connection. By eating mindfully, we honor all those aspects.</p>
+                <a href="/posts/mindful-eating" class="read-more">Read More</a>
+            </div>
+        </article>
+    </main>
+
+    <aside class="sidebar">
+        <h3>About Me</h3>
+        <p>I'm Alex, a 29-year-old graphic designer turned junior developer, currently based in Portland, OR. When I'm not coding or hiking, you'll find me experimenting with vegetarian recipes, reading fantasy novels, or practicing yoga.</p>
+        <p>This blog is my space to share experiences, lessons learned, and things that inspire me. I believe in the power of storytelling to connect us and help us grow.</p>
+    </aside>
+
+    <aside class="sidebar">
+        <h3>Categories</h3>
+        <ul>
+            <li><a href="/category/travel">Travel</a> (12)</li>
+            <li><a href="/category/technology">Technology</a> (8)</li>
+            <li><a href="/category/health">Health & Wellness</a> (15)</li>
+            <li><a href="/category/food">Food & Cooking</a> (9)</li>
+            <li><a href="/category/personal-growth">Personal Growth</a> (11)</li>
+            <li><a href="/category/creativity">Creativity & Arts</a> (7)</li>
+        </ul>
+    </aside>
+
+    <aside class="sidebar">
+        <h3>Recent Posts</h3>
+        <ul>
+            <li><a href="/posts/mountain-weekend">Exploring the Mountains: A Weekend Getaway</a></li>
+            <li><a href="/posts/first-web-app">Learning to Code: My First Web Application</a></li>
+            <li><a href="/posts/mindful-eating">The Art of Mindful Eating</a></li>
+            <li><a href="/posts/vegetarian-recipes">5 Easy Vegetarian Recipes for Beginners</a></li>
+            <li><a href="/posts/book-review">Book Review: "The Psychology of Money"</a></li>
+        </ul>
+    </aside>
+
+    <footer>
+        <p>&copy; 2023 My Personal Journal. All rights reserved.</p>
+        <p><a href="/about">About</a> | <a href="/contact">Contact</a> | <a href="/archive">Archive</a></p>
+    </footer>
+</body>
+</html>

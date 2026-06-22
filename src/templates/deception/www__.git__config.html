@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Git Config - Example Corp</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; line-height: 1.6;}
+        h1 {color: #2c3e50;}
+        pre {background:#f8f8f8; padding:15px; border:1px solid #ddd; overflow:auto;}
+        footer {margin-top:40px; font-size:0.9em; color:#777;}
+    </style>
+</head>
+<body>
+    <h1>Git Repository Configuration</h1>
+    <p>Below is the configuration for the example Git repository hosted on this server.</p>
+    <pre>
+[core]
+        repositoryformatversion = 0
+        filemode = true
+        bare = false
+        logallrefupdates = true
+[remote "origin"]
+        url = https://example.com/git/project.git
+        fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+        remote = origin
+        merge = refs/heads/master
+    </pre>
+    <footer>© 2025 Example Corp. All rights reserved.</footer>
+</body>
+</html>

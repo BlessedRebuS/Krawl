@@ -1,0 +1,22 @@
+<html><body>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::company-backups",
+        "arn:aws:s3:::company-backups/*"
+      ]
+    }
+  ],
+  "Bucket": "company-backups",
+  "Region": "eu-west-2",
+  "AccessKeyId": "AKIAJZLXAMPLEKEY1234",
+  "SecretAccessKey": "vJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+}</body></html>

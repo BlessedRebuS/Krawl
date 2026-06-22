@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Git Config - libs/.git/config</title>
+<style>
+body{font-family:Arial,sans-serif;margin:20px;background:#f9f9f9;color:#333}
+pre{background:#eee;padding:10px;border:1px solid #ccc;overflow:auto;max-height:400px}
+a{color:#0066cc;text-decoration:none}
+a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<h1>Git Configuration File</h1>
+<p>Path: /libs/.git/config</p>
+<pre>[core]
+        repositoryformatversion = 0
+        filemode = true
+        bare = false
+        logallrefupdates = true
+[remote "origin"]
+        url = https://github.com/example/project.git
+        fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+        remote = origin
+        merge = refs/heads/master
+[credential]
+        helper = store
+</pre>
+<p><a href="/libs/">Go back to libs directory</a></p>
+</body>
+</html>

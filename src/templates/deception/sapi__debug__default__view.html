@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Information - Default View</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .section { margin-bottom: 20px; padding: 15px; border-left: 4px solid #007bff; background-color: #f8f9fa; }
+        .label { font-weight: bold; color: #495057; }
+        .value { margin-left: 10px; word-break: break-all; }
+        pre { background: #f8f9fa; padding: 10px; border: 1px solid #dee2e6; overflow-x: auto; }
+        .warning { color: #dc3545; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Debug Information - Default View</h1>
+        <p class="warning">This page is for internal debugging purposes only. Access is restricted to authorized personnel.</p>
+
+        <div class="section">
+            <span class="label">Server Time:</span>
+            <span class="value">2024-06-15 14:32:18 UTC</span>
+        </div>
+
+        <div class="section">
+            <span class="label">PHP Version:</span>
+            <span class="value">8.2.12</span>
+        </div>
+
+        <div class="section">
+            <span class="label">Server API:</span>
+            <span class="value">Apache 2.4. migli (Unix)</span>
+        </div>
+
+        <div class="section">
+            <span class="label">Document Root:</span>
+            <span class="value">/var/www/html</span>
+        </div>
+
+        <div class="section">
+            <span class="label">Loaded Modules:</span>
+            <span class="value">core, mod_so, mod_watchdog, http_core, mod_log_config, mod_logio, mod_version, mod_unixd, mod_access_compat, mod_alias, mod_auth_basic, mod_authn_core, mod_authn_file, mod_authz_core, mod_authz_host, mod_authz_user, mod_autoindex, mod_dir, mod_env, mod_mime, mod_negotiation, mod_reqtimeout, mod_setenvif, mod_status, mod_php</span>
+        </div>
+
+        <div class="section">
+            <span class="label">Environment Variables:</span>
+            <pre>_SERVER["HTTP_HOST"] = example.com
+_SERVER["HTTP_USER_AGENT"] = Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+_SERVER["HTTP_ACCEPT"] = text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+_SERVER["HTTP_ACCEPT_LANGUAGE"] = en-US,en;q=0.5
+_SERVER["HTTP_ACCEPT_ENCODING"] = gzip, deflate
+_SERVER["HTTP_CONNECTION"] = keep-alive
+_SERVER["SERVER_SOFTWARE"] = Apache/2.4.58 (Unix)
+_SERVER["SERVER_NAME"] = example.com
+_SERVER["SERVER_ADDR"] = 192.168.1.100
+_SERVER["SERVER_PORT"] = 80
+_SERVER["REMOTE_ADDR"] = 203.0.113.45
+_DOCUMENT_ROOT = /var/www/html
+_SERVER_ADMIN = webmaster@example.com
+_SCRIPT_FILENAME = /var/www/html/sapi/debug/default/view
+_REMOTE_PORT = 54321
+_GATEWAY_INTERFACE = CGI/1.1
+_SERVER_PROTOCOL = HTTP/1.1
+_REQUEST_METHOD = GET
+_QUERY_STRING = 
+_REQUEST_URI = /sapi/debug/default/view
+_SCRIPT_NAME = /sapi/debug/default/view
+_PHP_SELF = /sapi/debug/default/view
+_REQUEST_TIME_FLOAT = 1718454738.123
+_REQUEST_TIME = 1718454738</pre>
+        </div>
+
+        <div class="section">
+            <span class="label">PHP Configuration (excerpt):</span>
+            <pre>display_errors = Off
+log_errors = On
+error_log = /var/log/php_errors.log
+memory_limit = 128M
+upload_max_filesize = 2M
+post_max_size = 8M
+max_execution_time = 30
+date.timezone = UTC
+session.save_handler = files
+session.save_path = /var/lib/php/sessions
+opcache.enable = 1
+opcache.memory_consumption = 128
+opcache.interned_strings_buffer = 8
+opcache.max_accelerated_files = 10000
+opcache.revalidate_freq = 2
+opcache.fast_shutdown = 1</pre>
+        </div>
+
+        <div class="section">
+            <span class="label">Recent Requests (last 5):</span>
+            <pre>127.0.0.1 - - [15/Jun/2024:14:30:22 +0000] "GET /index.php HTTP/1.1" 200 1245
+203.0.113.45 - - [15/Jun/2024:14:31:05 +0000] "GET /admin/login.php HTTP/1.1" 200 3421
+203.0.113.45 - - [15/Jun/2024:14:31:18 +0000] "POST /admin/login.php HTTP/1.1" 302 -
+203.0.113.45 - - [15/Jun/2024:14:31:20 +0000] "GET /admin/dashboard.php HTTP/1.1" 200 8765
+203.0.113.45 - - [15/Jun/2024:14:32:18 +0000] "GET /sapi/debug/default/view HTTP/1.1" 200 4321</pre>
+        </div>
+
+        <div class="section">
+            <span class="label">Note:</span>
+            <span class="value">This debug endpoint should be disabled in production environments. It exposes sensitive server information that could be leveraged by attackers for reconnaissance.</span>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WordPress REST API - Comments</title>
+<meta name="generator" content="WordPress 6.5.2">
+<link rel="stylesheet" href="/wp-includes/css/dist/block-library/style.min.css?ver=6.5.2">
+<style>
+body{font-family:Arial,sans-serif;margin:20px;background:#f9f9f9;color:#333}
+h1{color:#21759b}
+table{width:100%;border-collapse:collapse;margin-top:20px}
+th,td{border:1px solid #ddd;padding:8px;text-align:left}
+th{background:#eaeaea}
+tr:nth-child(even){background:#f2f2f2}
+</style>
+</head>
+<body>
+<h1>Comments API</h1>
+<p>Endpoint: <code>/wp-json/wp/v2/comments?per_page=100&amp;_fields=author_name,author_url</code></p>
+<p>Showing a subset of comments (limited to 5 for display).</p>
+<table>
+<thead>
+<tr><th>Author Name</th><th>Author URL</th></tr>
+</thead>
+<tbody>
+<tr><td>John Doe</td><td>https://example.com/johndoe</td></tr>
+<tr><td>Jane Smith</td><td>https://example.com/janesmith</td></tr>
+<tr><td>Alice Johnson</td><td>https://example.com/alicej</td></tr>
+<tr><td>Bob Brown</td><td>https://example.com/bobbrown</td></tr>
+<tr><td>Carol White</td><td>https://example.com/carolwhite</td></tr>
+</tbody>
+</table>
+<p><em>Note: This is a simulated response for demonstration purposes.</em></p>
+</body>
+</html>

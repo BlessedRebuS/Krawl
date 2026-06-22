@@ -1,0 +1,55 @@
+<html>
+<head>
+    <title>Heap Dump</title>
+    <style>
+        body { font-family: monospace; background:#f8f8f8; color:#222; margin:40px; }
+        pre { background:#eee; padding:15px; overflow:auto; border:1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>Java Heap Dump</h1>
+    <p>Generated at 2025-11-03T14:22:07Z</p>
+    <pre>
+Heap Dump Summary
+=================
+Heap Size: 1024 MB
+Used Heap: 768 MB
+Number of Objects: 4,532,109
+Number of Classes: 1,245
+
+Top 10 Largest Objects:
+1. [C @0x7f8a3c1d2e40  - char[] (length=1048576)  - 1 MB
+2. [I @0x7f8a3c1d2e80  - int[] (length=262144)   - 1 MB
+3. java.util.HashMap$Node @0x7f8a3c1d2f00        - 64 KB
+4. java.lang.String @0x7f8a3c1d2f40              - 32 KB
+5. java.util.ArrayList @0x7f8a3c1d2f80           - 24 KB
+6. java.lang.Class @0x7f8a3c1d2fc0               - 16 KB
+7. java.util.HashMap @0x7f8a3c1d3000             - 12 KB
+8. java.lang.Thread @0x7f8a3c1d3040              - 8 KB
+9. java.util.LinkedList$Node @0x7f8a3c1d3080     - 4 KB
+10. java.util.Date @0x7f8a3c1d30c0               - 2 KB
+
+Sample Object Details:
+----------------------
+Object: java.lang.String @0x7f8a3c1d2f40
+  Value: "example-configuration-string"
+  Length: 28
+  Hash: 0x1a2b3c4d
+  Referenced By:
+    - java.util.HashMap$Node @0x7f8a3c1d2f00 (key)
+    - java.util.HashMap @0x7f8a3c1d3000 (entry table)
+
+Object: [C @0x7f8a3c1d2e40
+  Length: 1048576
+  Content (first 100 chars): 
+  "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><property name=\"db.host\" value=\"localhost\"/>..."
+  Referenced By:
+    - java.io.ByteArrayInputStream @0x7f8a3c1d2e80 (buf)
+    - java.util.zip.InflaterInputStream @0x7f8a3c1d2ec0 (buffer)
+
+...
+    </pre>
+    <hr>
+    <p><small>Note: This is a simulated heap dump for demonstration purposes.</small></p>
+</body>
+</html>

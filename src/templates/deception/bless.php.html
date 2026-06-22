@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Divine Blessing Portal</title>
+    <style>
+        body {
+            font-family: 'Georgia', serif;
+            background-color: #f8f4f0;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #d4af37;
+            text-align: center;
+            border-bottom: 2px solid #e6c387;
+            padding-bottom: 10px;
+        }
+        .blessing-form {
+            margin-top: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #5d4037;
+        }
+        input[type="text"], input[type="email"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        textarea {
+            height: 120px;
+            resize: vertical;
+        }
+        .submit-btn {
+            background-color: #d4af37;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .submit-btn:hover {
+            background-color: #b8860b;
+        }
+        .disclaimer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+        .blessing-text {
+            background: #fff8f0;
+            border-left: 4px solid #d4af37;
+            padding: 15px;
+            margin: 20px 0;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Divine Blessing Portal</h1>
+        <p>Receive personalized spiritual blessings based on your intentions and circumstances. Our ancient algorithms channel divine energy to provide guidance and protection.</p>
+
+        <div class="blessing-form">
+            <h2>Request Your Blessing</h2>
+            <form method="POST" action="">
+                <div class="form-group">
+                    <label for="name">Your Full Name:</label>
+                    <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address (for delivery):</label>
+                    <input type="email" id="email" name="email" placeholder="your.email@example.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="intention">Your Intention or Prayer Request:</label>
+                    <textarea id="intention" name="intention" placeholder="Describe what you seek blessing for..." required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="blessing-type">Type of Blessing Sought:</label>
+                    <select id="blessing-type" name="blessing-type">
+                        <option value="protection">Divine Protection</option>
+                        <option value="healing">Healing & Restoration</option>
+                        <option value="prosperity">Abundance & Prosperity</option>
+                        <option value="wisdom">Wisdom & Guidance</option>
+                        <option value="love">Love & Relationships</option>
+                        <option value="peace">Inner Peace & Calm</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="submit-btn">Request Divine Blessing</button>
+            </form>
+        </div>
+
+        <?php
+        // Simulate processing blessing request
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            $name = htmlspecialchars($_POST['name'] ?? '');
+            $email = htmlspecialchars($_POST['email'] ?? '');
+            $intention = htmlspecialchars($_POST['intention'] ?? '');
+            $blessingType = htmlspecialchars($_POST['blessing-type'] ?? '');
+            
+            // Fake blessing generation based on input
+            $blessings = [
+                'protection' => "The angels surround you with a shield of light. No harm shall come near your dwelling.",
+                'healing' => "Divine healing flows through your being. Restoration is already in motion.",
+                'prosperity' => "The gates of abundance open before you. Prosperity follows your righteous path.",
+                'wisdom' => "Holy wisdom illuminates your mind. Clarity comes with each dawn.",
+                'love' => "Love's grace embraces your heart. Connections deepen in divine timing.",
+                'peace' => "Inner peace settles upon your soul like gentle dew. Tranquility is your inheritance."
+            ];
+            
+            $selectedBlessing = $blessings[$blessingType] ?? $blessings['protection'];
+            
+            // Simulate vulnerability: unsanitized output for demonstration (fake)
+            echo "<div class='blessing-text'><h3>Your Personal Blessing:</h3><p>" . $selectedBlessing . "</p>";
+            echo "<p><em>Blessed be " . $name . ", whose intention was: '" . $intention . "'</em></p>";
+            echo "<p>This blessing has been sent to: " . $email . "</p></div>";
+            
+            // Fake debug info that might leak if error reporting is on
+            if (isset($_GET['debug']) && $_GET['debug'] == '1') {
+                echo "<div style='background:#f0f0f0;padding:10px;margin-top:20px;font-family:monospace;font-size:12px;'>";
+                echo "<strong>Debug Info:</strong><br>";
+                echo "Name: " . $name . "<br>";
+                echo "Email: " . $email . "<br>";
+                echo "Intention: " . $intention . "<br>";
+                echo "Blessing Type: " . $blessingType . "<br>";
+                echo "</div>";
+            }
+        }
+        ?>
+        
+        <div class="disclaimer">
+            <p>This service is provided for spiritual entertainment purposes only. No actual divine intervention is guaranteed or implied.</p>
+            <p>&copy; 2024 Divine Blessing Portal. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

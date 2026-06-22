@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Database Admin - MySQL Interface</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f4; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #3498db; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #2980b9; }
+        .result { background: #ecf0f1; padding: 15px; margin-top: 20px; border-radius: 4px; white-space: pre-wrap; font-family: monospace; }
+        .warning { color: #e74c3c; font-size: 0.9em; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Database Administration Panel</h1>
+        <p>Welcome to the internal MySQL management interface. Use this tool to execute queries on the application database.</p>
+        
+        <form method="POST" action="">
+            <div class="form-group">
+                <label for="query">SQL Query:</label>
+                <textarea id="query" name="query" rows="5" placeholder="SELECT * FROM users WHERE id = 1">SELECT * FROM users LIMIT 10</textarea>
+            </div>
+            <div class="form-group">
+                <label for="db">Database:</label>
+                <select id="db" name="db">
+                    <option value="main">main</option>
+                    <option value="logs">logs</option>
+                    <option value="admin">admin</option>
+                </select>
+            </div>
+            <button type="submit">Execute Query</button>
+        </form>
+
+        <?php
+        // Simulate database connection and query execution
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+            $query = $_POST['query'] ?? '';
+            $db = $_POST['db'] ?? 'main';
+            
+            // Fake response based on query
+            if (strpos(strtolower($query), 'select') !== false) {
+                if (strpos($query, 'users') !== false) {
+                    echo '<div class="result">';
+                    echo "Query executed successfully on database '$db':\n\n";
+                    echo "+----+----------+------------------+--------+\n";
+                    echo "| id | username | email            | role   |\n";
+                    echo "+----+----------+------------------+--------+\n";
+                    echo "| 1  | admin    | admin@localhost  | admin  |\n";
+                    echo "| 2  | john_doe | john@example.com | user   |\n";
+                    echo "| 3  | jane_smi | jane@test.org    | user   |\n";
+                    echo "+----+----------+------------------+--------+\n";
+                    echo "(3 rows)\n";
+                    echo '</div>';
+                } elseif (strpos($query, 'logs') !== false) {
+                    echo '<div class="result">';
+                    echo "Query executed successfully on database '$db':\n\n";
+                    echo "+----+---------------------+------------------+\n";
+                    echo "| id | timestamp           | message          |\n";
+                    echo "+----+---------------------+------------------+\n";
+                    echo "| 1  | 2024-01-15 10:30:00 | User login       |\n";
+                    echo "| 2  | 2024-01-15 10:35:22 | File upload      |\n";
+                    echo "| 3  | 2024-01-15 10:40:10 | DB connection    |\n";
+                    echo "+----+---------------------+------------------+\n";
+                    echo "(3 rows)\n";
+                    echo '</div>';
+                } else {
+                    echo '<div class="result">Query executed successfully. No data returned.</div>';
+                }
+            } elseif (strpos(strtolower($query), 'insert') !== false || 
+                     strpos(strtolower($query), 'update') !== false || 
+                     strpos(strtolower($query), 'delete') !== false) {
+                echo '<div class="result">';
+                echo "Query executed successfully. Affected rows: " . rand(1, 5) . "\n";
+                echo '</div>';
+            } else {
+                echo '<div class="result">Query executed successfully.</div>';
+            }
+            
+            // Simulate vulnerability hint
+            if (strpos($query, "'") !== false || strpos($query, '"') !== false) {
+                echo '<div class="warning">Note: Query contains quotes. Ensure proper escaping to prevent SQL injection.</div>';
+            }
+        }
+        ?>
+        
+        <hr>
+        <p><small>Internal tool - Version 2.1.4 | Last updated: 2024-01-15</small></p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>wp-config.php.orig - Configuration Backup</title>
+<style>
+    body {font-family: Arial, sans-serif; background: #f8f9fa; color: #212529; margin: 0; padding: 20px;}
+    h1 {color: #343a40;}
+    pre {background: #fff; border: 1px solid #ddd; padding: 15px; overflow: auto;}
+    p {margin-bottom: 10px;}
+</style>
+</head>
+<body>
+<h1>wp-config.php.orig</h1>
+<p>This is a backup of the WordPress configuration file.</p>
+<pre>&lt;?php
+/**
+ * The base configuration for WordPress
+ */
+define('DB_NAME', 'wordpress_db');
+/** MySQL database username */
+define('DB_USER', 'wp_user');
+/** MySQL database password */
+define('DB_PASSWORD', 's3cr3tP@ssw0rd!');
+/** MySQL hostname */
+define('DB_HOST', 'localhost');
+/** Database Charset to use in creating database tables. */
+define('DB_CHARSET', 'utf8');
+/** The Database Collate type. Don't change this if in doubt. */
+define('DB_COLLATE', '');
+define('AUTH_KEY',         'put your unique phrase here');
+define('SECURE_AUTH_KEY',  'put your unique phrase here');
+define('LOGGED_IN_KEY',    'put your unique phrase here');
+define('NONCE_KEY',        'put your unique phrase here');
+define('AUTH_SALT',        'put your unique phrase here');
+define('SECURE_AUTH_SALT', 'put your unique phrase here');
+define('LOGGED_IN_SALT',   'put your unique phrase here');
+define('NONCE_SALT',       'put your unique phrase here');
+$table_prefix = 'wp_';
+define('WP_DEBUG', false);
+if ( !defined('ABSPATH') )
+    define('ABSPATH', dirname(__FILE__) . '/');
+require_once(ABSPATH . 'wp-settings.php');
+?&gt;</pre>
+</body>
+</html>

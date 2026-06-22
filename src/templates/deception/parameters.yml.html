@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Parameters - WebApp v2.1.4</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #e9ecef; overflow-x: auto; }
+        .section { margin-bottom: 25px; }
+        .section-title { color: #3498db; font-weight: bold; margin-top: 0; }
+        .key { color: #e74c3c; font-weight: bold; }
+        .value { color: #27ae60; }
+        .comment { color: #7f8c8d; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Application Configuration Parameters</h1>
+        <p><em>Last updated: 2024-05-15 14:32:18 UTC | Environment: production</em></p>
+        
+        <div class="section">
+            <h2 class="section-title">Database Connection Settings</h2>
+            <pre>
+# Database configuration for primary application
+database:
+  host: db-prod.internal.company.com
+  port: 5432
+  name: webapp_prod
+  username: app_user
+  password: s3cr3t_p@ssw0rd_2024!  # <- Note: This is a fake password for honeypot
+  ssl_mode: require
+  pool_size: 20
+  timeout: 30
+</pre>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">API Integration Keys</h2>
+            <pre>
+# Third-party service integrations
+apis:
+  payment_gateway:
+    provider: stripe
+    publishable_key: pk_test_51HpXXXXXXXXXXXXXXXXXXXXXXXX
+    secret_key: sk_test_51HpXXXXXXXXXXXXXXXXXXXXXXXX  # <- Fake test key
+  email_service:
+    provider: sendgrid
+    api_key: SG.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  # <- Fake key
+  analytics:
+    google_analytics_id: UA-12345678-9
+    mixpanel_token: 1234567890abcdef1234567890abcdef
+</pre>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Security Settings</h2>
+            <pre>
+# Security and authentication configuration
+security:
+  jwt_secret: super_secret_jwt_key_that_should_be_32_bytes_long_123456  # <- Obviously fake
+  jwt_expiry_hours: 24
+  bcrypt_rounds: 12
+  rate_limit:
+    enabled: true
+    requests_per_minute: 100
+    burst: 20
+  cors:
+    allowed_origins:
+      - https://app.company.com
+      - https://portal.company.com
+    allowed_methods: [GET, POST, PUT, DELETE, OPTIONS]
+    allowed_headers: [Content-Type, Authorization]
+</pre>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Feature Flags</h2>
+            <pre>
+# Feature toggles for gradual rollout
+features:
+  new_ui: true
+  dark_mode: false
+  beta_chatbot: true
+  experimental_search: false
+  maintenance_mode: false
+  debug_mode: false  # <- Important: Should be false in production!
+</pre>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Logging & Monitoring</h2>
+            <pre>
+# Application logging and observability
+logging:
+  level: info
+  format: json
+  output: 
+    - stdout
+    - file:/var/log/webapp/app.log
+  retention_days: 30
+  
+monitoring:
+  enabled: true
+  metrics_port: 9090
+  health_check_endpoint: /health
+  alert_thresholds:
+    cpu_usage: 80
+    memory_usage: 85
+    error_rate: 0.05
+</pre>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Email Configuration</h2>
+            <pre>
+# SMTP settings for transactional emails
+email:
+  smtp_host: smtp.sendgrid.net
+  smtp_port: 587
+  smtp_user: apikey
+  smtp_password: SG.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  # <- Fake SendGrid key
+  from_address: noreply@company.com
+  from_name: Company Notifications
+  use_tls: true
+</pre>
+        </div>
+    </div>
+</body>
+</html>

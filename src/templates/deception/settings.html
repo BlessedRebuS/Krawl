@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Settings - AcmeCorp Internal Portal</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
+        .btn { background-color: #3498db; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        .btn:hover { background-color: #2980b9; }
+        .alert { padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+        .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .section { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Account Settings</h1>
+        
+        <div class="alert alert-success">
+            <strong>Welcome back, admin!</strong> Last login: Today at 14:23 UTC
+        </div>
+
+        <form action="/settings/update" method="POST">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" value="admin" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" value="admin@acmecorp.internal" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fullname">Full Name</label>
+                <input type="text" id="fullname" name="fullname" value="Administrator User" required>
+            </div>
+
+            <div class="section">
+                <h2>Security Settings</h2>
+                
+                <div class="form-group">
+                    <label for="password">New Password (leave blank to keep current)</label>
+                    <input type="password" id="password" name="password" placeholder="••••••••">
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password">Confirm New Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="••••••••">
+                </div>
+
+                <div class="form-group">
+                    <label>Two-Factor Authentication</label>
+                    <select id="2fa" name="2fa">
+                        <option value="disabled">Disabled</option>
+                        <option value="enabled" selected>Enabled (Google Authenticator)</option>
+                        <option value="sms">Enabled (SMS)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Notification Preferences</h2>
+                
+                <div class="form-group">
+                    <label><input type="checkbox" name="email_alerts" checked> Email notifications for login attempts</label>
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox" name="security_alerts" checked> Security alert emails</label>
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox" name="newsletter"> Receive company newsletter</label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn">Save Changes</button>
+            <a href="/dashboard" class="btn" style="background-color: #95a5a6; margin-left: 10px;">Cancel</a>
+            <a href="/settings/export" class="btn" style="background-color: #27ae60; margin-left: 10px;">Export Settings</a>
+        </form>
+        
+        <div class="section" style="margin-top: 40px; padding-top: 20px; border-top: 1px dashed #ccc;">
+            <h2>Danger Zone</h2>
+            <p>These actions are irreversible and could result in permanent data loss.</p>
+            
+            <button class="btn" style="background-color: #e74c3c;" onclick="if(confirm('Are you sure you want to delete your account? This action cannot be undone.')) window.location='/settings/delete-account'">Delete Account</button>
+            <button class="btn" style="background-color: #e67e22;" onclick="if(confirm('Reset all settings to default values?')) window.location='/settings/reset'">Reset to Defaults</button>
+        </div>
+    </div>
+</body>
+</html>

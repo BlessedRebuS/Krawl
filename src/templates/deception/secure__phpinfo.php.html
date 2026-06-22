@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PHP Info</title>
+    <style>
+        body {background-color: #fff; color: #222; font-family: sans-serif; margin:0; padding:0;}
+        h1 {background:#2E4053; color:#fff; padding:10px 20px; margin:0;}
+        h2 {background:#4A6FA5; color:#fff; padding:5px 15px; margin:20px 0 0;}
+        table {border-collapse:collapse; width:100%; margin-bottom:20px;}
+        th, td {border:1px solid #ccc; padding:8px 12px; text-align:left; font-size:0.9em;}
+        th {background:#e2e8f0;}
+        .center {text-align:center;}
+        .e {background:#f0f8ff;}
+        .v {background:#fff;}
+        .h {background:#dce8f1;}
+    </style>
+</head>
+<body>
+    <h1>PHP Version 7.4.33</h1>
+
+    <h2>PHP Core</h2>
+    <table>
+        <tr><th class="e">Directive</th><th class="e">Local Value</th><th class="e">Master Value</th></tr>
+        <tr><td class="v">allow_url_fopen</td><td class="v">On</td><td class="v">On</td></tr>
+        <tr><td class="v">allow_url_include</td><td class="v">Off</td><td class="v">Off</td></tr>
+        <tr><td class="v">auto_prepend_file</td><td class="v">no value</td><td class="v">no value</td></tr>
+        <tr><td class="v">display_errors</td><td class="v">STDOUT</td><td class="v">STDOUT</td></tr>
+        <tr><td class="v">error_reporting</td><td class="v">22527</td><td class="v">22527</td></tr>
+        <tr><td class="v">expose_php</td><td class="v">On</td><td class="v">On</td></tr>
+        <tr><td class="v">file_uploads</td><td class="v">On</td><td class="v">On</td></tr>
+        <tr><td class="v">max_execution_time</td><td class="v">30</td><td class="v">30</td></tr>
+        <tr><td class="v">memory_limit</td><td class="v">128M</td><td class="v">128M</td></tr>
+        <tr><td class="v">post_max_size</td><td class="v">8M</td><td class="v">8M</td></tr>
+        <tr><td class="v">upload_max_filesize</td><td class="v">2M</td><td class="v">2M</td></tr>
+        <tr><td class="v">short_open_tag</td><td class="v">On</td><td class="v">On</td></tr>
+        <tr><td class="v">safe_mode</td><td class="v">Off</td><td class="v">Off</td></tr>
+    </table>
+
+    <h2>Apache Environment</h2>
+    <table>
+        <tr><th class="e">Variable</th><th class="e">Value</th></tr>
+        <tr><td class="v">HTTP_HOST</td><td class="v">example.com</td></tr>
+        <tr><td class="v">HTTP_USER_AGENT</td><td class="v">Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36</td></tr>
+        <tr><td class="v">REMOTE_ADDR</td><td class="v">203.0.113.42</td></tr>
+        <tr><td class="v">SERVER_SOFTWARE</td><td class="v">Apache/2.4.41 (Ubuntu)</td></tr>
+        <tr><td class="v">DOCUMENT_ROOT</td><td class="v">/var/www/html</td></tr>
+    </table>
+
+    <h2>Loaded Modules</h2>
+    <table>
+        <tr><th class="e">Module</th></tr>
+        <tr><td class="v">core</td></tr>
+        <tr><td class="v">mod_so</td></tr>
+        <tr><td class="v">mod_watchdog</td></tr>
+        <tr><td class="v">http_core</td></tr>
+        <tr><td class="v">mod_log_config</td></tr>
+        <tr><td class="v">mod_expires</td></tr>
+        <tr><td class="v">mod_headers</td></tr>
+        <tr><td class="v">mod_rewrite</td></tr>
+        <tr><td class="v">mod_setenvif</td></tr>
+        <tr><td class="v">mod_status</td></tr>
+        <tr><td class="v">mod_autoindex</td></tr>
+        <tr><td class="v">mod_info</td></tr>
+        <tr><td class="v">mod_cgi</td></tr>
+        <tr><td class="v">mod_vhost_alias</td></tr>
+        <tr><td class="v">mod_ssl</td></tr>
+        <tr><td class="v">php7_module</td></tr>
+    </table>
+
+    <h2>Environment</h2>
+    <table>
+        <tr><th class="e">Variable</th><th class="e">Value</th></tr>
+        <tr><td class="v">PATH</td><td class="v">/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin</td></tr>
+        <tr><td class="v">HOME</td><td class="v">/var/www</td></tr>
+        <tr><td class="v">LANG</td><td class="v">en_US.UTF-8</td></tr>
+        <tr><td class="v">SERVER_ADMIN</td><td class="v">webmaster@example.com</td></tr>
+    </table>
+
+    <hr>
+    <p class="center">This is a simulated phpinfo() output for demonstration purposes only.</p>
+</body>
+</html>

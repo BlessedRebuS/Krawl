@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Werkzeug Debugger Console</title>
+<style>
+    body {font-family: monospace; background:#111; color:#0f0; margin:0; padding:20px;}
+    h1 {color:#0f0; text-align:center;}
+    #output {background:#000; border:1px solid #0f0; padding:10px; height:300px; overflow:auto; margin-bottom:10px;}
+    #input {width:100%; padding:5px; background:#222; border:1px solid #0f0; color:#0f0; font-family:monospace;}
+    button {padding:5px 10px; margin-top:5px; background:#0f0; color:#111; border:none; cursor:pointer;}
+</style>
+</head>
+<body>
+<h1>Werkzeug Debugger Console</h1>
+<div id="output">
+>>> Python 3.9.7 (default, Sep 16 2021, 13:09:58) <br>
+>>> [GCC 7.5.0] on linux<br>
+>>> Type "help", "copyright", "credits" or "license" for more information.<br>
+>>> import sys<br>
+>>> print(sys.version)<br>
+3.9.7 (default, Sep 16 2021, 13:09:58) <br>
+[GCC 7.5.0] on linux<br>
+>>> import os<br>
+>>> os.getcwd()<br>
+'/app'<br>
+>>> list(os.listdir('.'))<br>
+['app.py', 'requirements.txt', 'templates', 'static']<br>
+</div>
+<form id="console-form" onsubmit="return false;">
+    <input type="text" id="console-input" placeholder="Enter Python code..." autocomplete="off"/>
+    <button type="submit">Execute</button>
+</form>
+<script>
+    const output = document.getElementById('output');
+    const input = document.getElementById('console-input');
+    const form = document.getElementById('console-form');
+    const fakeResponses = {
+        'import os': ">>> import os\n",
+        'os.getcwd()': ">>> os.getcwd()\n'/app'\n",
+        \"os.listdir('.')\": ">>> os.listdir('.')\n['app.py', 'requirements.txt', 'templates', 'static']\n",
+        'help()': ">>> help()\nWelcome to Python 3.9's help utility!\n",
+        '__import__(\"sys\")': ">>> __import__(\"sys\")\n<module 'sys' (built-in)>\n",
+    };
+    function addLine(text) {
+        const div = document.createElement('div');
+        div.innerHTML = text.replace(/\n/g, '<br>');
+        output.appendChild(div);
+        output.scrollTop = output.scrollHeight;
+    }
+    form.onsubmit = function(e){
+        e.preventDefault();
+        const cmd = input.value.trim();
+        if(!cmd) return;
+        addLine('>>> ' + cmd);
+        const key = cmd;
+        const resp = fakeResponses[key] || fakeResponses[Object.keys(fakeResponses).find(k=>key.startsWith(k))] || '>>> '+cmd+'\nNameError: name \\''+cmd.split('(')[0]+'\\' is not defined\n';
+        addLine(resp);
+        input.value = '';
+        return false;
+    };
+    input.focus();
+</script>
+</body>
+</html>

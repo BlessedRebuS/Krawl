@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>debug.log – WP‑Content Plugins</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 2em; background:#fafafa; color:#333;}
+        h1 {color:#2c3e50;}
+        pre {background:#fff; border:1px solid #ddd; padding:1em; overflow:auto; max-height:400px;}
+        .timestamp {color:#555;}
+        .notice {color:#e67e22;}
+        .warning {color:#e74c3c;}
+        .error {color:#c0392b; font-weight:bold;}
+    </style>
+</head>
+<body>
+    <h1>Debug Log – plugin-name</h1>
+    <p>Below are the latest entries from <code>/logs/wp-content/plugins/plugin-name/debug.log</code>.</p>
+    <pre>
+[22-Sep-2025 10:12:34 UTC] PHP Notice:  Undefined variable: foo in /var/www/html/wp-content/plugins/plugin-name/includes/functions.php on line 42
+[22-Sep-2025 10:12:35 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /var/www/html/wp-content/plugins/plugin-name/includes/functions.php:42) in /var/www/html/wp-includes/pluggable.php on line 1234
+[22-Sep-2025 10:12:36 UTC] WordPress database error You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '' at line 1 for query SELECT * FROM wp_options WHERE option_name = 'siteurl' made by require_once('wp-blog-header.php'), wp(), WP->main()
+[22-Sep-2025 10:12:38 UTC] PHP Notice:  Trying to access array offset on value of type null in /var/www/html/wp-content/plugins/plugin-name/class-api.php on line 108
+[22-Sep-2025 10:12:40 UTC] PHP Deprecated:  Function create_function() is deprecated in /var/www/html/wp-content/plugins/plugin-name/legacy/helpers.php on line 23
+[22-Sep-2025 10:12:42 UTC] [INFO] Cron job wp_scheduled_delete executed successfully.
+[22-Sep-2025 10:12:45 UTC] PHP Warning:  Invalid argument supplied for foreach() in /var/www/html/wp-content/plugins/plugin-name/admin/settings.php on line 57
+[22-Sep-2025 10:12:50 UTC] WordPress database error Duplicate entry '12345' for key 'PRIMARY' for query INSERT INTO wp_postmeta (post_id, meta_key, meta_value) VALUES (123, '_test_key', 'value') made by do_action('wp_ajax_test'), WP_Hook->do_action(), WP_Hook->apply_filters()
+[22-Sep-2025 10:12:55 UTC] [DEBUG] AJAX request processed: action=test_fetch, user_id=42, result=success
+    </pre>
+    <footer>
+        <p>Generated on 22-Sep-2025 10:13:00 UTC – For demonstration purposes only.</p>
+    </footer>
+</body>
+</html>

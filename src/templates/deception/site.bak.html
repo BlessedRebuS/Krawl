@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Site Backup - site.bak</title>
+    <style>
+        body {font-family: monospace; background:#fafafa; color:#333; padding:20px;}
+        pre {background:#eee; padding:10px; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>Site Backup (site.bak)</h1>
+    <p>This is a backup of the website generated on 2024-09-24.</p>
+    <pre>
+-- Backup started: 2024-09-24 03:12:07 UTC
+-- Database dump (MySQL)
+-- Table structure for users
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Dumping data for table users
+INSERT INTO `users` VALUES (1,'admin','admin@example.com','5f4dcc3b5aa765d61d8327deb882cf99');
+INSERT INTO `users` VALUES (2,'jdoe','jdoe@example.com','e10adc3949ba59abbe56e057f20f883e');
+
+-- Backup of website files (archive listing)
+-- The following files are included in the backup archive:
+-- index.html
+-- about.html
+-- contact.php
+-- config.php
+-- css/style.css
+-- js/main.js
+-- images/logo.png
+
+-- Backup completed: 2024-09-24 03:12:15 UTC
+    </pre>
+    <p><small>Note: This is a simulated backup for demonstration purposes.</small></p>
+</body>
+</html>

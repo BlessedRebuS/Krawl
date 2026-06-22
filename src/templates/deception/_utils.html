@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utility Tools - Internal Use Only</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .tool-item { background: #ecf0f1; margin: 15px 0; padding: 15px; border-radius: 5px; border-left: 4px solid #3498db; }
+        .tool-title { font-weight: bold; color: #2c3e50; margin-bottom: 8px; }
+        .tool-desc { color: #7f8c8d; font-size: 0.9em; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .btn { display: inline-block; background: #3498db; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; margin: 5px; }
+        .btn:hover { background: #2980b9; }
+        footer { margin-top: 30px; text-align: center; color: #95a5a6; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Internal Utility Tools</h1>
+        <p>These tools are for administrative use only. Access is restricted to authorized personnel.</p>
+        
+        <div class="warning">
+            <strong>Notice:</strong> This interface is logged and monitored. Unauthorized access attempts will be reported to security.
+        </div>
+
+        <div class="tool-item">
+            <div class="tool-title">Log Viewer</div>
+            <div class="tool-desc">View recent system and application logs. Supports filtering by date, severity, and component.</div>
+            <a href="/_utils/logs?type=system&lines=100" class="btn">View System Logs</a>
+            <a href="/_utils/logs?type=app&lines=50" class="btn">View Application Logs</a>
+        </div>
+
+        <div class="tool-item">
+            <div class="tool-title">Configuration Editor</div>
+            <div class="tool-desc">Edit application configuration files. Changes require server restart to take effect.</div>
+            <a href="/_utils/config?file=database" class="btn">Edit Database Config</a>
+            <a href="/_utils/config?file=mail" class="btn">Edit Mail Settings</a>
+            <a href="/_utils/config?file=cache" class="btn">Edit Cache Settings</a>
+        </div>
+
+        <div class="tool-item">
+            <div class="tool-title">Database Tools</div>
+            <div class="tool-desc">Run maintenance queries, check connections, and view schema information.</div>
+            <a href="/_utils/db?action=ping" class="btn">Test Connection</a>
+            <a href="/_utils/db?action=schema" class="btn">View Schema</a>
+            <a href="/_utils/db?action=stats" class="btn">Database Statistics</a>
+        </div>
+
+        <div class="tool-item">
+            <div class="tool-title">File Manager</div>
+            <div class="tool-desc">Browse and manage files in the uploads and temporary directories.</div>
+            <a href="/_utils/files?dir=uploads" class="btn">Uploads Directory</a>
+            <a href="/_utils/files?dir=temp" class="btn">Temp Directory</a>
+            <a href="/_utils/files?dir=backups" class="btn">Backups</a>
+        </div>
+
+        <div class="tool-item">
+            <div class="tool-title">User Management</div>
+            <div class="tool-desc">View and manage system users, roles, and permissions.</div>
+            <a href="/_utils/users?list=all" class="btn">List All Users</a>
+            <a href="/_utils/users?role=admin" class="btn">Admin Users</a>
+            <a href="/_utils/users?role=operator" class="btn">Operator Accounts</a>
+        </div>
+
+        <div class="tool-item">
+            <div class="tool-title">System Diagnostics</div>
+            <div class="tool-desc">Check server health, memory usage, disk space, and running processes.</div>
+            <a href="/_utils/diag?check=memory" class="btn">Memory Usage</a>
+            <a href="/_utils/diag?check=disk" class="btn">Disk Space</a>
+            <a href="/_utils/diag?check=processes" class="btn">Running Processes</a>
+            <a href="/_utils/diag?check=network" class="btn">Network Stats</a>
+        </div>
+
+        <div class="tool-item">
+            <div class="tool-title">API Test Console</div>
+            <div class="tool-desc">Test internal API endpoints with sample data. Does not affect production data.</div>
+            <a href="/_utils/api-test?endpoint=/users" class="btn">Test Users Endpoint</a>
+            <a href="/_utils/api-test?endpoint=/orders" class="btn">Test Orders Endpoint</a>
+            <a href="/_utils/api-test?endpoint=/products" class="btn">Test Products Endpoint</a>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2024 Internal Systems - Utility Interface<br>
+        Version 2.1.4 | Last updated: 2024-01-15
+    </footer>
+</body>
+</html>

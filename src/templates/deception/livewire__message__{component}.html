@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Livewire Component - Message Handler</title>
+    <script src="https://cdn.jsdelivr.net/npm/livewire@2.10.0/dist/livewire.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .message-form {
+            margin-top: 25px;
+            padding: 20px;
+            border: 1px solid #ecf0f1;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .message-list {
+            margin-top: 30px;
+        }
+        .message-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .message-item:last-child {
+            border-bottom: none;
+        }
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .message-sender {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .message-timestamp {
+            color: #95a5a6;
+            font-size: 0.9em;
+        }
+        .message-content {
+            color: #34495e;
+            line-height: 1.5;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-online { background-color: #2ecc71; }
+        .status-offline { background-color: #e74c3c; }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Livewire Message Component</h1>
+        <p>Secure messaging interface for internal team communication</p>
+        
+        <div class="message-form">
+            <h2>Send New Message</h2>
+            <div class="form-group">
+                <label for="recipient">Recipient:</label>
+                <input type="text" id="recipient" name="recipient" placeholder="Enter username or email" value="john.doe@example.com">
+            </div>
+            <div class="form-group">
+                <label for="subject">Subject:</label>
+                <input type="text" id="subject" name="subject" placeholder="Message subject">
+            </div>
+            <div class="form-group">
+                <label for="message">Message:</label>
+                <textarea id="message" name="message" rows="5" placeholder="Type your message here..."></textarea>
+            </div>
+            <button type="submit" wire:click="sendMessage">Send Message</button>
+        </div>
+        
+        <div class="message-list">
+            <h2>Recent Messages</h2>
+            <div wire:ignore.self>
+                <div class="message-item">
+                    <div class="message-header">
+                        <span class="status-indicator status-online"></span>
+                        <span class="message-sender">Alice Smith</span>
+                        <span class="message-timestamp">Today, 10:30 AM</span>
+                    </div>
+                    <div class="message-content">Hi team, just wanted to follow up on the Q3 report. Please review the latest draft when you get a chance.</div>
+                </div>
+                <div class="message-item">
+                    <div class="message-header">
+                        <span class="status-indicator status-online"></span>
+                        <span class="message-sender">Bob Johnson</span>
+                        <span class="message-timestamp">Today, 9:15 AM</span>
+                    </div>
+                    <div class="message-content">The server maintenance is scheduled for tonight at 2 AM EST. Expect brief downtime.</div>
+                </div>
+                <div class="message-item">
+                    <div class="message-header">
+                        <span class="status-indicator status-offline"></span>
+                        <span class="message-sender">Carol White</span>
+                        <span class="message-timestamp">Yesterday, 4:45 PM</span>
+                    </div>
+                    <div class="message-content">Please remember to update your passwords by end of day tomorrow as per security policy.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Livewire v2.10.0 &copy; 2024 Internal Communications System</p>
+            <p>This is a secure internal system. Unauthorized access is prohibited.</p>
+        </div>
+    </div>
+    
+    <script>
+        // Simulate Livewire component behavior
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mock Livewire functionality for demonstration
+            window.Livewire = {
+                find: function() {
+                    return {
+                        sendMessage: function() {
+                            alert('Message sent successfully! (Demo mode)');
+                            // In real implementation, this would send AJAX request
+                        }
+                    };
+                }
+            };
+            
+            // Add some interactive elements
+            const form = document.querySelector('.message-form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    alert('Message sent successfully! (Demo mode)');
+                    form.reset();
+                });
+            }
+        });
+    </script>
+</body>
+</html>

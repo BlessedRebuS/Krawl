@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PHPUnit eval‑stdin.php</title>
+    <style>
+        body {font-family:Arial,Helvetica,sans-serif; margin:40px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        textarea {width:100%; max-width:600px; height:150px; font-family:monospace;}
+        input[type=submit] {padding:8px 16px; background:#2980b9; color:#fff; border:none; cursor:pointer;}
+        input[type=submit]:hover {background:#1f6391;}
+        #output {margin-top:20px; padding:10px; background:#ecf0f1; border:1px solid #bdc3c7; max-width:600px; white-space:pre-wrap; word-break:break-all;}
+    </style>
+</head>
+<body>
+    <h1>PHPUnit eval‑stdin.php</h1>
+    <p>This utility reads PHP code from standard input and evaluates it. Use it for quick testing of snippets.</p>
+    <form method="post" action="">
+        <label for="code">PHP Code:</label><br>
+        <textarea id="code" name="code" placeholder="<?php echo 'Hello World'; ?>"></textarea><br>
+        <input type="submit" value="Evaluate">
+    </form>
+    <div id="output">
+        <!-- Simulated output for demonstration -->
+        Hello World
+    </div>
+</body>
+</html>

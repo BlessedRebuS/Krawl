@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test XSS Redirect to Google</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; text-align: center; }
+        .alert { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .btn { display: inline-block; background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 10px 5px; }
+        .btn:hover { background-color: #0056b3; }
+        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>XSS Test Page</h1>
+        <div class="alert">
+            <strong>Warning:</strong> This page is designed for testing cross-site scripting vulnerabilities. Any attempt to exploit this page may be logged.
+        </div>
+        <p>This page demonstrates a potential XSS vulnerability where user input is reflected without proper sanitization.</p>
+        
+        <h2>Test Parameters:</h2>
+        <ul>
+            <li><strong>redirect</strong> - URL to redirect to after XSS execution</li>
+            <li><strong>payload</strong> - JavaScript payload to execute</li>
+        </ul>
+        
+        <h2>Example Usage:</h2>
+        <p>Try accessing: <code>/test-xss-redirect-to-google?redirect=https://www.google.com&payload=<script>alert('XSS')</script></code></p>
+        
+        <div>
+            <a href="?redirect=https://www.google.com&payload=<script>alert('XSS Test')</script>" class="btn">Test XSS Alert</a>
+            <a href="?redirect=https://www.google.com&payload=<script>window.location='https://www.google.com'</script>" class="btn">Test Redirect</a>
+            <a href="?redirect=https://www.example.com&payload=<script>document.body.innerHTML='<h1>Hacked!</h1>'</script>" class="btn">Test DOM Manipulation</a>
+        </div>
+        
+        <h2>Current Parameters:</h2>
+        <p>Redirect: <span id="redirect-param">https://www.google.com</span></p>
+        <p>Payload: <span id="payload-param">&lt;script&gt;alert('XSS')&lt;/script&gt;</span></p>
+        
+        <script>
+            // Simulate reflecting unsanitized URL parameters (for demonstration only)
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirect = urlParams.get('redirect') || 'https://www.google.com';
+            const payload = urlParams.get('payload') || '<script>alert(\'XSS\')</script>';
+            
+            document.getElementById('redirect-param').textContent = redirect;
+            document.getElementById('payload-param').textContent = payload;
+            
+            // WARNING: In a real vulnerable site, this would execute the payload
+            // This simulation does NOT execute the payload for safety
+            console.log('Simulated XSS payload:', payload);
+            console.log('Would redirect to:', redirect);
+        </script>
+        
+        <p><em>Note: This is a simulated vulnerable page for security testing purposes. No actual XSS exploitation occurs in this demonstration.</em></p>
+    </div>
+    
+    <div class="footer">
+        © 2024 Security Testing Lab | This page is intentionally vulnerable for educational purposes
+    </div>
+</body>
+</html>

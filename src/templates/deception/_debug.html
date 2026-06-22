@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Server Debug Information</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        .section {background:#fff; padding:15px; margin-bottom:20px; border:1px solid #ddd; border-radius:5px;}
+        table {width:100%; border-collapse:collapse; margin-top:10px;}
+        th, td {border:1px solid #ccc; padding:8px; text-align:left;}
+        th {background:#ecf0f1;}
+        pre {background:#f4f4f4; padding:10px; overflow:auto;}
+        a {color:#2980b9; text-decoration:none;}
+        a:hover {text-decoration:underline;}
+    </style>
+</head>
+<body>
+    <h1>Internal Debug Console</h1>
+    <p><em>Access restricted to internal network – for troubleshooting purposes only.</em></p>
+
+    <div class="section">
+        <h2>Request Overview</h2>
+        <table>
+            <tr><th>Method</th><td>GET</td></tr>
+            <tr><th>Path</th><td>/_debug/</td></tr>
+            <tr><th>Query String</th><td></td></tr>
+            <tr><th>Remote Address</th><td>10.0.2.15</td></tr>
+            <tr><th>User Agent</th><td>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36</td></tr>
+            <tr><th>Referer</th><td>(none)</td></tr>
+            <tr><th>Timestamp</th><td>2025-09-26 14:32:08 UTC</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Headers</h2>
+        <table>
+            <tr><th>Header</th><th>Value</th></tr>
+            <tr><td>Host</td><td>example.local</td></tr>
+            <tr><td>Accept</td><td>text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8</td></tr>
+            <tr><td>Accept-Language</td><td>en-US,en;q=0.5</td></tr>
+            <tr><td>Accept-Encoding</td><td>gzip, deflate</td></tr>
+            <tr><td>Connection</td><td>keep-alive</td></tr>
+            <tr><td>Upgrade-Insecure-Requests</td><td>1</td></tr>
+            <tr><td>Cookie</td><td>session_id=abc123def456; user_pref=dark_mode</td></tr>
+            <tr><td>X-Forwarded-For</td><td>203.0.113.42</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Environment Variables (excerpt)</h2>
+        <pre>
+SERVER_SOFTWARE=Apache/2.4.41 (Ubuntu)
+SERVER_NAME=example.local
+SERVER_ADDR=192.168.1.10
+SERVER_PORT=80
+DOCUMENT_ROOT=/var/www/html
+SCRIPT_FILENAME=/var/www/html/_debug/index.php
+REMOTE_ADDR=10.0.2.15
+REMOTE_PORT=54321
+SERVER_PROTOCOL=HTTP/1.1
+REQUEST_METHOD=GET
+QUERY_STRING=
+REQUEST_URI=/_debug/
+SCRIPT_NAME=/debug/index.php
+PHP_SELF=/debug/index.php
+REQUEST_TIME_FLOAT=1727368328.123
+REQUEST_TIME=1727368328
+        </pre>
+    </div>
+
+    <div class="section">
+        <h2>Simulated Stack Trace (for demonstration)</h2>
+        <pre>
+#0  /var/www/html/_debug/index.php(45): Debugger->display()
+#1  /var/www/html/_debug/index.php(12): include('/var/www/html/_debug/index.php')
+#2  {main}
+        </pre>
+    </div>
+
+    <div class="section">
+        <h2>Test Form</h2>
+        <form action="/_debug/" method="get">
+            <label for="test">Inject test value:</label>
+            <input type="text" id="test" name="test" value="">
+            <button type="submit">Submit</button>
+        </form>
+        <p>*(This form echoes the submitted value back in the page for debugging purposes.)</p>
+    </div>
+
+    <div class="section">
+        <h2>Quick Links</h2>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/admin/login.php">Admin Login</a></li>
+            <li><a href="/info.php">PHP Info</a></li>
+            <li><a href="/robots.txt">Robots.txt</a></li>
+        </ul>
+    </div>
+
+    <hr>
+    <footer>
+        <p>&copy; 2025 Example Corp. Internal use only.</p>
+    </footer>
+</body>
+</html>

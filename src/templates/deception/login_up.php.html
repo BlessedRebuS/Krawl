@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Admin Portal</title>
+    <style>
+        body {font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:20px;}
+        .container {max-width:400px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+        h2 {text-align:center; color:#333;}
+        .input-group {margin-bottom:15px;}
+        label {display:block; margin-bottom:5px; font-weight:bold;}
+        input[type=text], input[type=password] {width:100%; padding:8px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px;}
+        .btn {width:100%; padding:10px; background:#0066cc; color:#fff; border:none; border-radius:4px; cursor:pointer;}
+        .btn:hover {background:#004c99;}
+        .msg {padding:10px; margin-top:15px; border-radius:4px;}
+        .error {background:#ffdddd; color:#a00; border:1px solid #f0c0c0;}
+        .success {background:#ddffdd; color:#060; border:1px solid #c0f0c0;}
+        .footer {text-align:center; font-size:0.9em; color:#777; margin-top:20px;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Admin Login</h2>
+    <?php
+        // Simulated error message for demonstration
+        if(isset($_GET['error']) && $_GET['error'] == 'sqlerror'){
+            echo '<div class="msg error">SQL Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near \'\\' OR \\'1\\'=\\1\' at line 1</div>';
+        } elseif(isset($_GET['msg']) && $_GET['msg'] == 'success'){
+            echo '<div class="msg success">Login successful. Redirecting...</div>';
+        }
+    ?>
+    <form action="login_up.php" method="POST">
+        <div class="input-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" placeholder="Enter username" required>
+        </div>
+        <div class="input-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" placeholder="Enter password" required>
+        </div>
+        <button type="submit" class="btn">Login</button>
+    </form>
+    <div class="footer">
+        <p>© 2025 Admin Portal. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>

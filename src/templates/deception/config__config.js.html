@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Configuration</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        pre { background: #f8f8f8; padding: 15px; border: 1px solid #ddd; border-radius: 4px; overflow-x: auto; }
+        h1 { color: #2c3e50; }
+        .note { color: #7f8c8d; font-size: 0.9em; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Configuration File: config.js</h1>
+        <p>This file contains application configuration settings for the frontend module.</p>
+        <pre>
+/**
+ * Application Configuration
+ * DO NOT MODIFY WITHOUT PROPER AUTHORIZATION
+ */
+
+const config = {
+    // Database connection settings
+    database: {
+        host: 'db-internal.prod.local',
+        port: 5432,
+        name: 'app_prod',
+        user: 'app_user',
+        password: 'SuperSecretProdPass2024!@#'
+    },
+
+    // API endpoints
+    api: {
+        baseURL: 'https://api.internal.company.com/v1',
+        timeout: 5000,
+        retryAttempts: 3
+    },
+
+    // Authentication settings
+    auth: {
+        jwtSecret: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+        sessionTimeout: 3600,
+        refreshTokenEnabled: true
+    },
+
+    // Feature flags
+    features: {
+        enableAnalytics: true,
+        enableDebugMode: false,
+        enableExperimentalUI: true,
+        enableFileUpload: true,
+        maxUploadSize: 10485760 // 10MB
+    },
+
+    // Third-party service keys
+    services: {
+        googleAnalytics: 'UA-123456789-1',
+        stripePublishable: 'pk_test_51Hb9FzJ3kLmNpQrStUvWxYzAbCdEfGhIjKlMnOpQrStUvWxYzAbCdEfGhIjKlMnOpQr',
+        mailgun: 'key-1234567890abcdef1234567890abcdef',
+        aws: {
+            accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
+            secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY'
+        }
+    },
+
+    // Email configuration
+    email: {
+        smtpHost: 'smtp.sendgrid.net',
+        smtpPort: 587,
+        smtpUser: 'apikey',
+        smtpPass: 'SG.abcdefghijklmnopqrstuvwxyz1234567890',
+        fromAddress: 'noreply@company.com'
+    }
+};
+
+// Export for use in other modules
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = config;
+}
+
+// Make available globally in browser environments
+if (typeof window !== 'undefined') {
+    window.APP_CONFIG = config;
+}
+        </pre>
+        <div class="note">
+            <strong>Note:</strong> This is a development configuration file. Production settings are loaded from environment variables and secure vaults. Access to this file should be restricted to authorized personnel only.
+        </div>
+    </div>
+</body>
+</html>

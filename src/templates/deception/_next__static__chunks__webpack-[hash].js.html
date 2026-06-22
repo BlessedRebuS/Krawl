@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Next.js Webpack Chunk</title>
+</head>
+<body>
+    <script>
+        // Fake webpack chunk - simulated Next.js build artifact
+        (self.webpackChunk_N_E = self.webpackChunk_N_E || []).push([
+            [123], {
+                456: function(e, t, n) {
+                    "use strict";
+                    n.r(t), n.d(t, {
+                        default: function() {
+                            return r
+                        }
+                    });
+                    var r = function() {
+                        return "This is a simulated Next.js client-side bundle for webpack chunk.";
+                    }
+                }
+            }
+        ]);
+    </script>
+    <noscript>
+        <div style="padding: 20px; font-family: Arial, sans-serif; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px;">
+            <h2>JavaScript is disabled</h2>
+            <p>This webpack chunk requires JavaScript to function properly. Please enable JavaScript in your browser to view this content.</p>
+            <p>Chunk ID: webpack-[hash].js</p>
+            <p>Build timestamp: 2024-01-15T10:30:00Z</p>
+        </div>
+    </noscript>
+</body>
+</html>

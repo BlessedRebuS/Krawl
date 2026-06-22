@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WHM Login - Proxy Subdomain</title>
+    <style>
+        body {font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:0; display:flex; justify-content:center; align-items:center; height:100vh;}
+        .login-box {background:#fff; padding:30px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,.1); width:320px;}
+        h2 {text-align:center; margin-bottom:20px; color:#333;}
+        label {display:block; margin-bottom:8px; font-weight:bold;}
+        input[type="text"],
+        input[type="password"] {width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;}
+        input[type="submit"] {background:#0066cc; color:#fff; border:none; padding:10px 15px; cursor:pointer; width:100%; border-radius:4px; font-size:16px;}
+        input[type="submit"]:hover {background:#004c99;}
+        .error {background:#ffdddd; color:#a00; padding:10px; margin-top:15px; border-radius:4px; text-align:center;}
+        .links {margin-top:20px; text-align:center; font-size:14px;}
+        .links a {color:#0066cc; text-decoration:none;}
+        .links a:hover {text-decoration:underline;}
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h2>WHM Login</h2>
+        <form action="/___proxy_subdomain_whm/login" method="POST">
+            <label>Username:
+                <input type="text" name="user" autocomplete="username" required>
+            </label>
+            <label>Password:
+                <input type="password" name="pass" autocomplete="current-password" required>
+            </label>
+            <input type="submit" value="Login">
+        </form>
+        <div class="links">
+            <a href="/___proxy_subdomain_whm/forgot">Forgot password?</a><br>
+            <a href="/___proxy_subdomain_whm/register">Create account</a>
+        </div>
+    </div>
+    <script>
+        // Simulated vulnerable reflection of GET parameter 'msg' (for demonstration only)
+        (function(){
+            var params = new URLSearchParams(window.location.search);
+            var msg = params.get('msg');
+            if(msg){
+                var div = document.createElement('div');
+                div.className = 'error';
+                // Intentional XSS: directly inserting user-controlled string
+                div.innerHTML = msg;
+                document.body.insertBefore(div, document.body.firstChild);
+            }
+        })();
+    </script>
+</body>
+</html>

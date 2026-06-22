@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Settings Configuration</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f9f9f9; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        pre { background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .note { color: #7f8c8d; font-style: italic; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Application Settings - settings.py</h1>
+        <p>This file contains configuration settings for the web application. Do not expose to production environments.</p>
+        <pre># Database Configuration
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'production_db',
+        'USER': 'dbadmin',
+        'PASSWORD': 'SuperSecretPass123!@#',
+        'HOST': 'db.internal.corp',
+        'PORT': '5432',
+    }
+}
+
+# Secret Key (CRITICAL - DO NOT COMMIT)
+SECRET_KEY = 'django-insecure-_#&*^%$#@!qwertyuiopasdfghjklzxcvbnm1234567890'
+
+# Debug Settings
+DEBUG = True
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*.example.com']
+
+# Email Configuration (SMTP)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'no-reply@example.com'
+EMAIL_HOST_PASSWORD = 'AppPassword123!'
+
+# API Keys (EXAMPLE - DO NOT USE IN PRODUCTION)
+STRIPE_PUBLIC_KEY = 'pk_test_51HpExamplePublicKey1234567890abcdef'
+STRIPE_SECRET_KEY = 'sk_test_51HpExampleSecretKey1234567890abcdef'
+GOOGLE_MAPS_API_KEY = 'AIzaSyBExampleKey1234567890abcdefGhI'
+FACEBOOK_APP_ID = '123456789012345'
+FACEBOOK_APP_SECRET = 'abcdef1234567890abcdef1234567890'
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/app/debug.log',
+        },
+    },
+    'root': {
+        'handlers': ['file'],
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+# Security Settings (WARNING: These are intentionally weak for demo)
+SECURE_BROWSER_XSS_FILTER = False
+SECURE_CONTENT_TYPE_NOSNIFF = False
+X_FRAME_OPTIONS = 'ALLOWALL'
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+</pre>
+        <p class="note">⚠️ This is a simulated configuration file for security training purposes. Real credentials have been replaced with placeholders. Never commit actual secrets to version control.</p>
+    </div>
+</body>
+</html>

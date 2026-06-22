@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACME Challenge Verification</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f9f9f9; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .challenge-box { background: #ecf0f1; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0; font-family: monospace; }
+        .note { font-size: 0.9em; color: #7f8c8d; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ACME Challenge Response</h1>
+        <p>This endpoint is used for domain validation via the ACME protocol (Let's Encrypt).</p>
+        <p>The server is configured to respond to HTTP-01 challenges for domain ownership verification.</p>
+        
+        <div class="challenge-box">
+            Typical challenge token format: <br>
+            <code>random_string_here.another_random_string</code>
+        </div>
+        
+        <p>For a valid challenge request (e.g., <code>/.well-known/acme-challenge/&lt;token&gt;</code>), the server would return the token value as plain text.</p>
+        
+        <div class="note">
+            <strong>Note:</strong> This is a simulated response. Actual ACME challenge responses are plain text, not HTML.
+            This page is presented only when the challenge path is accessed without a specific token.
+        </div>
+        
+        <p><a href="/">Return to homepage</a></p>
+    </div>
+</body>
+</html>

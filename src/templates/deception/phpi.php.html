@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>phpinfo()</title>
+    <style>
+        body {background-color: #fff; color: #222; font-family: sans-serif; margin:0; padding:0;}
+        div.center {text-align: center; margin: 20px 0; line-height: 140%;}
+        h1 {font-size: 150%;}
+        a {color: #000099; text-decoration: none;}
+        a:hover {text-decoration: underline;}
+        .tbl {width: 100%; border-collapse: collapse;}
+        .tbl th {text-align: left; background-color: #ddf; font-weight: bold; border: 1px solid #ccc; padding: 8px;}
+        .tbl td {border: 1px solid #ccc; padding: 8px;}
+        .e {background-color: #f0f0f0;}
+        .h {background-color: #ccccff;}
+        .v {background-color: #ffffff;}
+        .vt {color: #000099; font-weight: bold;}
+    </style>
+</head>
+<body>
+<div class="center">
+    <h1>phpinfo()</h1>
+    <table class="tbl">
+        <tr><th class="e">PHP Version</th><td class="v">7.4.33</td></tr>
+    </table>
+    <table class="tbl">
+        <tr><th colspan="2" class="h">PHP Core</th></tr>
+        <tr><th class="e">Directive</th><th class="e">Local Value</th><th class="e">Master Value</th></tr>
+        <tr><td class="v">allow_url_fopen</td><td class="v">On</td><td class="v">On</td></tr>
+        <tr><td class="v">allow_url_include</td><td class="v">Off</td><td class="v">Off</td></tr>
+        <tr><td class="v">auto_prepend_file</td><td class="v">no value</td><td class="v">no value</td></tr>
+        <tr><td class="v">auto_append_file</td><td class="v">no value</td><td class="v">no value</td></tr>
+        <tr><td class="v">display_errors</td><td class="v">On</td><td class="v">On</td></tr>
+        <tr><td class="v">display_startup_errors</td><td class="v">Off</td><td class="v">Off</td></tr>
+        <tr><td class="v">error_reporting</td><td class="v">22527</td><td class="v">22527</td></tr>
+        <tr><td class="v">expose_php</td><td class="v">On</td><td class="v">On</td></tr>
+        <tr><td class="v">extension_dir</td><td class="v">/usr/lib/php/20190902</td><td class="v">/usr/lib/php/20190902</td></tr>
+        <tr><td class="v">file_uploads</td><td class="v">On</td><td class="v">On</td></tr>
+        <tr><td class="v">max_execution_time</td><td class="v">30</td><td class="v">30</td></tr>
+        <tr><td class="v">max_input_time</td><td class="v">60</td><td class="v">60</td></tr>
+        <tr><td class="v">memory_limit</td><td class="v">128M</td><td class="v">128M</td></tr>
+        <tr><td class="v">post_max_size</td><td class="v">8M</td><td class="v">8M</td></tr>
+        <tr><td class="v">upload_max_filesize</td><td class="v">2M</td><td class="v">2M</td></tr>
+        <tr><td class="v">short_open_tag</td><td class="v">On</td><td class="v">On</td></tr>
+        <tr><td class="v">SMTP</td><td class="v">localhost</td><td class="v">localhost</td></tr>
+        <tr><td class="v">smtp_port</td><td class="v">25</td><td class="v">25</td></tr>
+        <tr><td class="v">sql.safe_mode</td><td class="v">Off</td><td class="v">Off</td></tr>
+        <tr><td class="v">track_errors</td><td class="v">Off</td><td class="v">Off</td></tr>
+        <tr><td class="v">unserialize_callback_func</td><td class="v">no value</td><td class="v">no value</td></tr>
+        <tr><td class="v">upload_max_filesize</td><td class="v">2M</td><td class="v">2M</td></tr>
+        <tr><td class="v">user_dir</td><td class="v">no value</td><td class="v">no value</td></tr>
+        <tr><td class="v">variables_order</td><td class="v">EGPCS</td><td class="v">EGPCS</td></tr>
+        <tr><td class="v">xmlrpc_error_number</td><td class="v">0</td><td class="v">0</td></tr>
+        <tr><td class="v">xmlrpc_errors</td><td class="v">Off</td><td class="v">Off</td></tr>
+        <tr><td class="v">zend.enable_gc</td><td class="v">On</td><td class="v">On</td></tr>
+    </table>
+    <table class="tbl">
+        <tr><th colspan="2" class="h">Apache Environment</th></tr>
+        <tr><th class="e">Variable</th><th class="e">Value</th></tr>
+        <tr><td class="v">HTTP_HOST</td><td class="v">example.com</td></tr>
+        <tr><td class="v">HTTP_USER_AGENT</td><td class="v">Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36</td></tr>
+        <tr><td class="v">HTTP_ACCEPT</td><td class="v">text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</td></tr>
+        <tr><td class="v">HTTP_ACCEPT_LANGUAGE</td><td class="v">en-US,en;q=0.5</td></tr>
+        <tr><td class="v">HTTP_ACCEPT_ENCODING</td><td class="v">gzip, deflate, br</td></tr>
+        <tr><td class="v">HTTP_CONNECTION</td><td class="v">keep-alive</td></tr>
+        <tr><td class="v">HTTP_UPGRADE_INSECURE_REQUESTS</td><td class="v">1</td></tr>
+        <tr><td class="v">SERVER_SIGNATURE</td><td class="v">&lt;address&gt;Apache/2.4.41 (Ubuntu) Server at example.com Port 80&lt;/address&gt;</td></tr>
+        <tr><td class="v">SERVER_SOFTWARE</td><td class="v">Apache/2.4.41 (Ubuntu)</td></tr>
+        <tr><td class="v">SERVER_NAME</td><td class="v">example.com</td></tr>
+        <tr><td class="v">SERVER_ADDR</td><td class="v">192.168.1.10</td></tr>
+        <tr><td class="v">SERVER_PORT</td><td class="v">80</td></tr>
+        <tr><td class="v">REMOTE_ADDR</td><td class="v">203.0.113.42</td></tr>
+        <tr><td class="v">DOCUMENT_ROOT</td><td class="v">/var/www/html</td></tr>
+        <tr><td class="v">REQUEST_SCHEME</td><td class="v">http</td></tr>
+        <tr><td class="v">CONTEXT_PREFIX</td><td class="v"></td></tr>
+        <tr><td class="v">CONTEXT_DOCUMENT_ROOT</td><td class="v">/var/www/html</td></tr>
+        <tr><td class="v">SERVER_ADMIN</td><td class="v">webmaster@example.com</td></tr>
+        <tr><td class="v">SCRIPT_FILENAME</td><td class="v">/var/www/html/phpinfo.php</td></tr>
+        <tr><td class="v">REMOTE_PORT</td><td class="v">54321</td></tr>
+        <tr><td class="v">GATEWAY_INTERFACE</td><td class="v">CGI/1.1</td></tr>
+        <tr><td class="v">SERVER_PROTOCOL</td><td class="v">HTTP/1.1</td></tr>
+        <tr><td class="v">REQUEST_METHOD</td><td class="v">GET</td></tr>
+        <tr><td class="v">QUERY_STRING</td><td class="v"></td></tr>
+        <tr><td class="v">REQUEST_URI</td><td class="v">/phpinfo.php</td></tr>
+        <tr><td class="v">SCRIPT_NAME</td><td class="v">/phpinfo.php</td></tr>
+        <tr><td class="v">PHP_SELF</td><td class="v">/phpinfo.php</td></tr>
+        <tr><td class="v">REQUEST_TIME_FLOAT</td><td class="v">1724687123.456</td></tr>
+        <tr><td class="v">REQUEST_TIME</td><td class="v">1724687123</td></tr>
+    </table>
+</div>
+</body>
+</html>

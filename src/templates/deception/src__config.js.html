@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration - src/config.js</title>
+    <style>
+        body { font-family: 'Courier New', monospace; background-color: #f4f4f4; color: #333; line-height: 1.6; padding: 20px; }
+        pre { background-color: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 4px; overflow-x: auto; }
+        .header { border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-bottom: 20px; }
+        .meta { color: #666; font-size: 0.9em; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>src/config.js</h1>
+        <div class="meta">Last modified: Mon, 03 Jun 2024 14:22:10 GMT | Size: 2.1 KB</div>
+    </div>
+    <pre>
+// Application Configuration - DO NOT COMMIT SECRETS
+// Environment: development
+
+const config = {
+    // Database configuration
+    db: {
+        host: 'localhost',
+        port: 5432,
+        name: 'app_dev',
+        user: 'dev_user',
+        password: 'dev_pass_123!', // FAKE - for honeypot only
+        ssl: false
+    },
+
+    // API keys - FAKE VALUES FOR DEMO
+    apiKeys: {
+        googleMaps: 'AIzaSyFakeKey1234567890abcdef',
+        stripe: 'sk_test_fake_stripe_key_1234567890abcdef',
+        sendgrid: 'SG.fake_sendgrid_key.abcdef123456',
+        aws: {
+            accessKeyId: 'AKIAFAKEKEY123456',
+            secretAccessKey: 'fakeSecretAccessKey1234567890abcdef'
+        }
+    },
+
+    // JWT settings
+    jwt: {
+        secret: 'supersecretdevelopmentkey123',
+        expiresIn: '24h'
+    },
+
+    // Email configuration
+    email: {
+        service: 'gmail',
+        auth: {
+            user: 'dev@example.com',
+            pass: 'devemailpass123' // FAKE
+        }
+    },
+
+    // Feature flags
+    features: {
+        enableRegistration: true,
+        enableTwoFactor: false,
+        maintenanceMode: false,
+        debug: true
+    },
+
+    // File upload settings
+    upload: {
+        maxSize: 10 * 1024 * 1024, // 10MB
+        allowedTypes: ['image/jpeg', 'image/png', 'application/pdf'],
+        uploadDir: './uploads/'
+    }
+};
+
+// Export for Node.js
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = config;
+}
+
+// Export for browsers (if bundled)
+if (typeof window !== 'undefined') {
+    window.config = config;
+}
+</pre>
+    <div class="meta">Note: This is a development configuration file. Production uses environment variables.</div>
+</body>
+</html>

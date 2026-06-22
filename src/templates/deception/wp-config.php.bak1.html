@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>wp-config.php.bak1</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; color:#111; padding:20px;}
+        pre {background:#fff; padding:10px; border:1px solid #ddd; overflow:auto;}
+    </style>
+</head>
+<body>
+<h1>wp-config.php.bak1</h1>
+<pre>
+<?php
+/**
+ * WordPress Database Configuration backup.
+ *
+ * This file contains the database credentials and other settings.
+ *
+ * @package WordPress
+ */
+
+define('DB_NAME', 'wordpress_db');
+define('DB_USER', 'wp_user');
+define('DB_PASSWORD', 's3cr3tP@ssw0rd!');
+define('DB_HOST', 'localhost');
+define('DB_CHARSET', 'utf8mb4');
+define('DB_COLLATE', '');
+
+define('AUTH_KEY',         'fG!9#Lz2$%&*8QwE%VbN@3aZ%^&*()_+{}|:"<>?');
+define('SECURE_AUTH_KEY',  '7*&^%$#@!~`1234567890-=qwertyuiop[]\\{}|;\':",./<>?');
+define('LOGGED_IN_KEY',    'aSdFgHjKlZxCvBnM,.<>?;':"[{]})(*&^%$#@!~');
+define('NONCE_KEY',        '0o9i8u7y6t5r4e3w2q1p[]{}@#$%^&*()_+');
+define('AUTH_SALT',        'zxcvbnmlkjhgfdsaqwertyuiop[]{}|~`!@#$%^&*()');
+define('SECURE_AUTH_SALT', 'mnbvcxzasdfghjklpoiuytrewq{}[]|`!@#$%^&*()_+');
+define('LOGGED_IN_SALT',   'poiuytrewqlkjhgfdsamnbvcxz[]{}|\'\"!@#$%^&*()');
+define('NONCE_SALT',       '1q2w3e4r5t6y7u8i9o0p[]{}@#$%^&*()_+-=');
+
+$table_prefix = 'wp_';
+
+define('WP_DEBUG', false);
+
+/* That's all, stop editing! Happy publishing. */
+
+if ( ! defined( 'ABSPATH' ) ) {
+    define( 'ABSPATH', __DIR__ . '/' );
+}
+
+require_once ABSPATH . 'wp-settings.php';
+?>
+</pre>
+</body>
+</html>

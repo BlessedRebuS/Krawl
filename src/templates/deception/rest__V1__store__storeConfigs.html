@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Magento Store Configs API</title>
+<style>
+body{font-family:sans-serif; margin:2em;}
+pre{background:#f4f4f4; padding:1em; border:1px solid #ddd;}
+</style>
+</head>
+<body>
+<h1>Store Configs (REST V1)</h1>
+<p>This endpoint returns configuration data for the Magento store.</p>
+<pre>{
+  "store_configs": [
+    {
+      "scope": "default",
+      "scope_id": 0,
+      "path": "general/store_information/name",
+      "value": "Example Store"
+    },
+    {
+      "scope": "default",
+      "scope_id": 0,
+      "path": "general/store_information/phone",
+      "value": "+1-555-123-4567"
+    },
+    {
+      "scope": "websites",
+      "scope_id": 1,
+      "path": "payment/ccsave/active",
+      "value": "1"
+    }
+  ],
+  "status": "success",
+  "timestamp": "2025-09-24T12:34:56Z"
+}
+</pre>
+</body>
+</html>

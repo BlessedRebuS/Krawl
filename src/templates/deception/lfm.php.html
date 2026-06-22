@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LF Manager - File Management</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:20px; background:#f4f4f4;}
+        #container {max-width:960px; margin:auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1 {color:#2c3e50;}
+        nav a {margin-right:10px; text-decoration:none; color:#3498db;}
+        nav a:hover {text-decoration:underline;}
+        #content {margin-top:20px;}
+        form {margin-bottom:20px;}
+        input[type="file"] {padding:5px;}
+        input[type="submit"] {padding:5px 10px; background:#3498db; color:#fff; border:none; cursor:pointer;}
+        input[type="submit"]:hover {background:#2980b9;}
+        table {width:100%; border-collapse:collapse;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#ecf0f1;}
+        tr:nth-child(even) {background:#f9f9f9;}
+        a {color:#2980b9; text-decoration:none;}
+        a:hover {text-decoration:underline;}
+    </style>
+</head>
+<body>
+<div id="container">
+    <h1>LF Manager</h1>
+    <nav>
+        <a href="/lfm.php?dir=home">Home</a> |
+        <a href="/lfm.php?dir=uploads">Uploads</a> |
+        <a href="/lfm.php?dir=shared">Shared</a> |
+        <a href="/lfm.php?action=logout">Logout</a>
+    </nav>
+    <div id="content">
+        <h2>Current Directory: /home/user</h2>
+        <form action="/lfm.php" method="post" enctype="multipart/form-data">
+            <input type="file" name="file[]" multiple>
+            <input type="submit" value="Upload">
+        </form>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Size</th>
+                    <th>Modified</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>document.pdf</td>
+                    <td>1.2 MB</td>
+                    <td>2024-09-10 14:32</td>
+                    <td><a href="/lfm.php?download=document.pdf">Download</a> | <a href="/lfm.php?delete=document.pdf">Delete</a></td>
+                </tr>
+                <tr>
+                    <td>image.jpg</td>
+                    <td>850 KB</td>
+                    <td>2024-09-08 09:15</td>
+                    <td><a href="/lfm.php?download=image.jpg">Download</a> | <a href="/lfm.php?delete=image.jpg">Delete</a></td>
+                </tr>
+                <tr>
+                    <td>backup.zip</td>
+                    <td>5.4 MB</td>
+                    <td>2024-09-05 22:01</td>
+                    <td><a href="/lfm.php?download=backup.zip">Download</a> | <a href="/lfm.php?delete=backup.zip">Delete</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

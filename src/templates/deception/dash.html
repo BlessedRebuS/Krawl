@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Acme Corp</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4;}
+        header {background:#2c3e50; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#34495e; overflow:hidden;}
+        nav a {float:left; display:block; color:#fff; text-align:center; padding:1rem 1.5rem; text-decoration:none;}
+        nav a:hover {background:#1abc9c;}
+        .container {padding:2rem;}
+        h2 {color:#2c3e50;}
+        table {width:100%; border-collapse:collapse; margin-top:1rem;}
+        th, td {border:1px solid #ddd; padding:0.8rem; text-align:left;}
+        th {background:#ecf0f1;}
+        tr:nth-child(even) {background:#f9f9f9;}
+        .chart {width:100%; height:300px; background:#fff; border:1px solid #ddd; margin-top:1rem;}
+        form {background:#fff; padding:1.5rem; border-radius:5px; box-shadow:0 0 10px rgba(0,0,0,0.1); margin-top:2rem;}
+        label {display:block; margin-bottom:0.5rem; font-weight:bold;}
+        input[type="text"], input[type="email"], textarea {width:100%; padding:0.5rem; margin-bottom:1rem; border:1px solid #ccc; border-radius:3px;}
+        button {background:#27ae60; color:#fff; border:none; padding:0.7rem 1.5rem; cursor:pointer;}
+        button:hover {background:#2ecc71;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Acme Corp Dashboard</h1>
+    </header>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/dash">Dashboard</a>
+        <a href="/reports">Reports</a>
+        <a href="/settings">Settings</a>
+        <a href="/logout">Logout</a>
+    </nav>
+    <div class="container">
+        <h2>Welcome, admin</h2>
+        <p>Here is an overview of recent system activity:</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>2025-11-02 08:12:03</td>
+                    <td>jdoe</td>
+                    <td>Login</td>
+                    <td>192.168.1.45</td>
+                </tr>
+                <tr>
+                    <td>2025-11-02 08:15:41</td>
+                    <td>asmith</td>
+                    <td>File Upload</td>
+                    <td>10.0.0.22</td>
+                </tr>
+                <tr>
+                    <td>2025-11-02 08:20:10</td>
+                    <td>jdoe</td>
+                    <td>Password Change</td>
+                    <td>192.168.1.45</td>
+                </tr>
+                <tr>
+                    <td>2025-11-02 08:25:33</td>
+                    <td>guest</td>
+                    <td>Failed Login</td>
+                    <td>203.0.113.5</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="chart" id="activityChart"></div>
+
+        <h2>Add New Notification</h2>
+        <form action="/dash/notify" method="POST">
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title" placeholder="Enter notification title" required>
+
+            <label for="message">Message:</label>
+            <textarea id="message" name="message" rows="4" placeholder="Enter notification message"></textarea>
+
+            <label for="priority">Priority:</label>
+            <select id="priority" name="priority">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+            </select>
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        // Simple fake chart data rendered via inline SVG for demo purposes
+        const data = [
+            {time:'08:00', value:12},
+            {time:'09:00', value:19},
+            {time:'10:00', value:8},
+            {time:'11:00', value:24},
+            {time:'12:00', value:5},
+            {time:'13:00', value:15},
+            {time:'14:00', value:22}
+        ];
+        const svgNS = "http://www.w3.org/2000/svg";
+        const container = document.getElementById('activityChart');
+        const width = container.clientWidth;
+        const height = 300;
+        const padding = 40;
+        const chartWidth = width - 2*padding;
+        const chartHeight = height - 2*padding;
+        const maxVal = Math.max(...data.map(d=>d.value));
+        const xScale = chartWidth / (data.length-1);
+        const yScale = chartHeight / maxVal;
+
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("width", width);
+        svg.setAttribute("height", height);
+        svg.setAttribute("style", "display:block;");
+
+        // Axes
+        const xAxis = document.createElementNS(svgNS, "line");
+        xAxis.setAttribute("x1", padding);
+        xAxis.setAttribute("y1", height-padding);
+        xAxis.setAttribute("x2", width-padding);
+        xAxis.setAttribute("y2", height-padding);
+        xAxis.setAttribute("stroke", "#ccc");
+        svg.appendChild(xAxis);
+
+        const yAxis = document.createElementNS(svgNS, "line");
+        yAxis.setAttribute("x1", padding);
+        yAxis.setAttribute("y1", padding);
+        yAxis.setAttribute("x2", padding);
+        yAxis.setAttribute("y2", height-padding);
+        yAxis.setAttribute("stroke", "#ccc");
+        svg.appendChild(yAxis);
+
+        // Data points and line
+        const polyline = document.createElementNS(svgNS, "polyline");
+        let points = "";
+        data.forEach((d,i)=>{
+            const x = padding + i*xScale;
+            const y = height - padding - d.value*yScale;
+            points += `${x},${y} `;
+            // point circle
+            const circle = document.createElementNS(svgNS, "circle");
+            circle.setAttribute("cx", x);
+            circle.setAttribute("cy", y);
+            circle.setAttribute("r", "4");
+            circle.setAttribute("fill", "#27ae60");
+            svg.appendChild(circle);
+        });
+        polyline.setAttribute("points", points.trim());
+        polyline.setAttribute("fill", "none");
+        polyline.setAttribute("stroke", "#2980b9");
+        polyline.setAttribute("stroke-width", "2");
+        svg.appendChild(polyline);
+
+        // Labels
+        data.forEach((d,i)=>{
+            const x = padding + i*xScale;
+            const y = height - padding + 20;
+            const text = document.createElementNS(svgNS, "text");
+            text.setAttribute("x", x);
+            text.setAttribute("y", y);
+            text.setAttribute("text-anchor", "middle");
+            text.setAttribute("font-size", "10");
+            text.setAttribute("fill", "#555");
+            text.textContent = d.time;
+            svg.appendChild(text);
+        });
+
+        container.appendChild(svg);
+    </script>
+</body>
+</html>

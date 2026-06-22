@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHP Info</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f4; color: #333; }
+        h1 { color: #2c3e50; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .info { background: #ecf0f1; padding: 15px; margin: 15px 0; border-left: 4px solid #3498db; }
+        .warning { color: #e74c3c; font-weight: bold; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PHP Information</h1>
+        <p>Welcome to the PHP information page. This page displays configuration details about the PHP environment.</p>
+        
+        <div class="info">
+            <h2>System Information</h2>
+            <p><strong>PHP Version:</strong> 8.2.12</p>
+            <p><strong>System:</strong> Linux server01 5.15.0-86-generic #96-Ubuntu SMP Fri Sep 1 15:55:42 UTC 2023 x86_64</p>
+            <p><strong>Build Date:</strong> Oct 26 2023 15:47:32</p>
+            <p><strong>Server API:</strong> Apache 2.0 Handler</p>
+            <p><strong>Virtual Directory Support:</strong> disabled</p>
+            <p><strong>Configuration File (php.ini) Path:</strong> /etc/php/8.2/apache2</p>
+            <p><strong>Loaded Configuration File:</strong> /etc/php/8.2/apache2/php.ini</p>
+        </div>
+
+        <div class="info">
+            <h2>Core Settings</h2>
+            <p><strong>display_errors:</strong> On</p>
+            <p><strong>error_reporting:</strong> 32767</p>
+            <p><strong>log_errors:</strong> On</p>
+            <p><strong>error_log:</strong> /var/log/apache2/php_error.log</p>
+            <p><strong>max_execution_time:</strong> 30</p>
+            <p><strong>memory_limit:</strong> 128M</p>
+            <p><strong>post_max_size:</strong> 8M</p>
+            <p><strong>upload_max_filesize:</strong> 2M</p>
+        </div>
+
+        <div class="info">
+            <h2>Loaded Modules</h2>
+            <p>Core, date, libxml, openssl, pcre, zlib, filter, hash, Reflection, SPL, session, standard, cgi-fcgi, mysqlnd, PDO, pdo_mysql, mysqli, pdo_sqlite, sqlite3, json, mbstring, tokenizer, xml, xmlreader, xmlwriter, curl, gd, mysqli, pdo_mysql</p>
+        </div>
+
+        <div class="warning">
+            <p>⚠️ Warning: This server is configured for development purposes. Error reporting is enabled and detailed information is displayed. Do not use in production environments.</p>
+        </div>
+
+        <div class="info">
+            <h2>Environment Variables</h2>
+            <p><strong>HTTP_HOST:</strong> localhost</p>
+            <p><strong>HTTP_USER_AGENT:</strong> Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36</p>
+            <p><strong>REMOTE_ADDR:</strong> 192.168.1.100</p>
+            <p><strong>REQUEST_METHOD:</strong> GET</p>
+            <p><strong>REQUEST_URI:</strong> /php8.php</p>
+            <p><strong>SCRIPT_FILENAME:</strong> /var/www/html/php8.php</p>
+        </div>
+
+        <p>Generated on: Fri Nov 3 14:22:18 UTC 2023</p>
+        <hr>
+        <p><small>This is a simulated PHP info page for demonstration purposes. Real PHP configurations may vary.</small></p>
+    </div>
+</body>
+</html>

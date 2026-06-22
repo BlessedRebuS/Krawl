@@ -1,0 +1,22 @@
+<html><body>// Settings configuration
+var config = {
+    apiEndpoint: "https://api.example.com/v1",
+    apiKey: "fake_api_key_12345",
+    debug: true,
+    version: "2.3.1",
+    // TODO: remove hardcoded credentials
+    dbConnection: "mysql://user:pass@localhost:3306/app",
+    // XSS vulnerable placeholder
+    userInput: "",
+    // Simulate a potential SQLi vulnerability
+    queryBuilder: function(table, condition) {
+        return "SELECT * FROM " + table + " WHERE " + condition + ";";
+    }
+};
+
+// Export for use in other modules (if using a module system)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = config;
+} else {
+    window.config = config;
+}</body></html>

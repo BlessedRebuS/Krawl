@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Admin Panel</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .nav { background: #3498db; color: white; padding: 10px; margin-bottom: 20px; border-radius: 4px; }
+        .nav a { color: white; text-decoration: none; margin-right: 15px; }
+        .card { border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin-bottom: 15px; }
+        .btn { background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background: #2980b9; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"], textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <strong>Admin Dashboard</strong> | 
+            <a href="/">Home</a> | 
+            <a href="/users">Users</a> | 
+            <a href="/settings">Settings</a> | 
+            <a href="/logs">Logs</a>
+        </div>
+        
+        <h1>System Overview</h1>
+        <p>Welcome to the administrative interface. This panel provides access to system monitoring and configuration tools.</p>
+        
+        <div class="card">
+            <h2>Quick Actions</h2>
+            <p>Perform common administrative tasks:</p>
+            <button class="btn" onclick="location.href='/backup'">Create Backup</button>
+            <button class="btn" onclick="location.href='/update'">Check for Updates</button>
+            <button class="btn" onclick="location.href='/restart'">Restart Services</button>
+        </div>
+        
+        <div class="card">
+            <h2>Recent Activity</h2>
+            <ul>
+                <li><strong>[2024-01-15 10:30:22]</strong> User admin logged in from 192.168.1.100</li>
+                <li><strong>[2024-01-15 10:25:10]</strong> Database backup completed successfully</li>
+                <li><strong>[2024-01-15 10:20:05]</strong> Security scan initiated - no threats detected</li>
+                <li><strong>[2024-01-15 10:15:33]</strong> Configuration updated: firewall rules modified</li>
+            </ul>
+        </div>
+        
+        <div class="card">
+            <h2>System Status</h2>
+            <p><strong>CPU Usage:</strong> 42% | <strong>Memory:</strong> 3.2GB/8GB | <strong>Disk:</strong> 45% used</p>
+            <p><strong>Uptime:</strong> 14 days, 3 hours | <strong>Load Average:</strong> 0.8, 0.9, 1.0</p>
+            <p><strong>Active Connections:</strong> 23 | <strong>Blocked IPs:</strong> 7</p>
+        </div>
+        
+        <div class="card">
+            <h2>User Search</h2>
+            <form action="/search" method="GET">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="q" placeholder="Enter username to search" value="">
+                </div>
+                <button type="submit" class="btn">Search Users</button>
+            </form>
+            <p><em>Tip: Use wildcards like % for partial matches</em></p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordPress Admin CSS - Menu</title>
+    <style>
+        /* Fake WordPress admin menu CSS - intentionally vulnerable appearance */
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; }
+        #adminmenu { background: #23282d; width: 180px; position: fixed; top: 0; bottom: 0; left: 0; z-index: 999; }
+        #adminmenu li { margin: 0; padding: 0; list-style: none; }
+        #adminmenu li a { display: block; color: #7c8088; padding: 10px 15px; text-decoration: none; font-weight: 400; border-top: 1px solid #2f343a; }
+        #adminmenu li a:hover, #adminmenu li:hover > a { background: #32373c; color: #fff; }
+        #adminmenu li.wp-menu-separator { border-top: 1px solid #3a424d; height: 1px; margin: 8px 0; }
+        #adminmenu .wp-submenu { background: #2f343a; display: none; }
+        #adminmenu .wp-submenu li a { padding-left: 25px; font-size: 12px; }
+        #adminmenu .wp-submenu li a:hover { background: #3a424d; }
+        #adminmenu li.opensub > .wp-submenu { display: block; }
+        /* Fake debug comment to lure attackers */
+        /* DEBUG: wp-admin/css/menu.css?ver=6.5.2&xss=<script>alert('xss')</script> - DO NOT REMOVE */
+        /* SQLi test: ' OR 1=1-- */
+    </style>
+</head>
+<body>
+    <div id="adminmenu">
+        <ul>
+            <li id="menu-dashboard"><a href="/wp-admin/index.php"><div class="menu-icon dashboard"></div><div>Dashboard</div></a></li>
+            <li id="menu-posts"><a href="/wp-admin/edit.php"><div class="menu-icon posts"></div><div>Posts</div></a></li>
+            <li id="menu-media"><a href="/wp-admin/upload.php"><div class="menu-icon media"></div><div>Media</div></a></li>
+            <li id="menu-pages"><a href="/wp-admin/post.php?post_type=page"><div class="menu-icon pages"></div><div>Pages</div></a></li>
+            <li id="menu-comments"><a href="/wp-admin/edit-comments.php"><div class="menu-icon comments"></div><div>Comments</div></a></li>
+            <li class="wp-menu-separator"></li>
+            <li id="menu-appearance"><a href="/wp-admin/themes.php"><div class="menu-icon appearance"></div><div>Appearance</div></a></li>
+            <li id="menu-plugins"><a href="/wp-admin/plugins.php"><div class="menu-icon plugins"></div><div>Plugins</div></a></li>
+            <li id="menu-users"><a href="/wp-admin/users.php"><div class="menu-icon users"></div><div>Users</div></a></li>
+            <li id="menu-tools"><a href="/wp-admin/tools.php"><div class="menu-icon tools"></div><div>Tools</div></a></li>
+            <li id="menu-settings"><a href="/wp-admin/options-general.php"><div class="menu-icon settings"></div><div>Settings</div></a></li>
+            <li class="wp-menu-separator"></li>
+            <li id="menu-collapse-menu"><a href="#" title="Collapse Menu"><div class="menu-icon"></div><div>Collapse menu</div></a></li>
+        </ul>
+    </div>
+</body>
+</html>

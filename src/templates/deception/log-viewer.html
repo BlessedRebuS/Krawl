@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Log Viewer - Admin Panel</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .log-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .log-table th, .log-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .log-table th { background-color: #007bff; color: white; }
+        .log-table tr:nth-child(even) { background-color: #f2f2f2; }
+        .log-entry { cursor: pointer; }
+        .log-entry:hover { background-color: #e9ecef; }
+        .severity-info { color: #28a745; }
+        .severity-warning { color: #ffc107; }
+        .severity-error { color: #dc3545; }
+        .severity-critical { color: #6f42c1; font-weight: bold; }
+        .filter-section { margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 5px; }
+        .filter-section input, .filter-section select { padding: 8px; margin: 5px; }
+        .btn { background: #007bff; color: white; border: none; padding: 8px 15px; cursor: pointer; border-radius: 3px; }
+        .btn:hover { background: #0056b3; }
+        .log-details { margin-top: 20px; padding: 15px; background: #f8f9fa; border-left: 4px solid #007bff; display: none; }
+        .log-details pre { background: #2d2d2d; color: #f8f8f2; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>System Log Viewer</h1>
+        <p>Real-time monitoring of system events and application logs</p>
+        
+        <div class="filter-section">
+            <label for="log-level">Log Level:</label>
+            <select id="log-level">
+                <option value="all">All Levels</option>
+                <option value="info">Info</option>
+                <option value="warning">Warning</option>
+                <option value="error">Error</option>
+                <option value="critical">Critical</option>
+            </select>
+            
+            <label for="date-from">From:</label>
+            <input type="date" id="date-from" value="2024-01-15">
+            
+            <label for="date-to">To:</label>
+            <input type="date" id="date-to" value="2024-01-15">
+            
+            <input type="text" id="search-box" placeholder="Search logs...">
+            <button class="btn" id="filter-btn">Apply Filters</button>
+            <button class="btn" id="clear-btn">Clear</button>
+        </div>
+        
+        <table class="log-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Level</th>
+                    <th>Source</th>
+                    <th>Message</th>
+                    <th>User/IP</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="log-entry" data-log-id="1">
+                    <td>2024-01-15 08:30:15</td>
+                    <td><span class="severity-info">INFO</span></td>
+                    <td>System</td>
+                    <td>Server started successfully</td>
+                    <td>127.0.0.1</td>
+                </tr>
+                <tr class="log-entry" data-log-id="2">
+                    <td>2024-01-15 08:31:22</td>
+                    <td><span class="severity-warning">WARNING</span></td>
+                    <td>Authentication</td>
+                    <td>Failed login attempt for user 'admin'</td>
+                    <td>192.168.1.105</td>
+                </tr>
+                <tr class="log-entry" data-log-id="3">
+                    <td>2024-01-15 08:32:05</td>
+                    <td><span class="severity-error">ERROR</span></td>
+                    <td>Database</td>
+                    <td>Connection timeout to mysql-server-01</td>
+                    <td>10.0.0.50</td>
+                </tr>
+                <tr class="log-entry" data-log-id="4">
+                    <td>2024-01-15 08:33:10</td>
+                    <td><span class="severity-critical">CRITICAL</span></td>
+                    <td>Security</td>
+                    <td>Potential SQL injection attempt detected: UNION SELECT password FROM users--</td>
+                    <td>203.0.113.42</td>
+                </tr>
+                <tr class="log-entry" data-log-id="5">
+                    <td>2024-01-15 08:34:18</td>
+                    <td><span class="severity-info">INFO</span></td>
+                    <td>Application</td>
+                    <td>User john.doe logged in successfully</td>
+                    <td>192.168.1.88</td>
+                </tr>
+                <tr class="log-entry" data-log-id="6">
+                    <td>2024-01-15 08:35:03</td>
+                    <td><span class="severity-warning">WARNING</span></td>
+                    <td>Web Server</td>
+                    <td>Invalid User-Agent detected: <script>alert('xss')</script></td>
+                    <td>185.199.108.153</td>
+                </tr>
+                <tr class="log-entry" data-log-id="7">
+                    <td>2024-01-15 08:36:27</td>
+                    <td><span class="severity-error">ERROR</span></td>
+                    <td>File System</td>
+                    <td>Permission denied accessing /var/www/html/admin/config.php</td>
+                    <td>10.0.0.25</td>
+                </tr>
+                <tr class="log-entry" data-log-id="8">
+                    <td>2024-01-15 08:37:41</td>
+                    <td><span class="severity-info">INFO</span></td>
+                    <td>Backup</td>
+                    <td>Daily backup completed successfully (2.3 GB)</td>
+                    <td>System</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div id="log-details" class="log-details">
+            <h3>Log Details</h3>
+            <pre id="log-content">Select a log entry to view details</pre>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.log-entry').forEach(row => {
+            row.addEventListener('click', () => {
+                const logId = row.getAttribute('data-log-id');
+                const logDetails = {
+                    1: "2024-01-15 08:30:15 | INFO | System | Server started successfully | 127.0.0.1\n\nService: nginx\nPID: 1234\nUptime: 0 days, 00:00:00",
+                    2: "2024-01-15 08:31:22 | WARNING | Authentication | Failed login attempt for user 'admin' | 192.168.1.105\n\nAttempt #3\nUsername: admin\nPassword attempted: password123\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                    3: "2024-01-15 08:32:05 | ERROR | Database | Connection timeout to mysql-server-01 | 10.0.0.50\n\nHost: mysql-server-01.internal\nPort: 3306\nTimeout: 30s\nLast query: SELECT * FROM users WHERE active = 1",
+                    4: "2024-01-15 08:33:10 | CRITICAL | Security | Potential SQL injection attempt detected: UNION SELECT password FROM users-- | 203.0.113.42\n\nRequest: GET /search?q=id%20UNION%20SELECT%20password%20FROM%20users--\nUser-Agent: sqlmap/1.6.2\nReferer: -\nWAF Action: Blocked",
+                    5: "2024-01-15 08:34:18 | INFO | Application | User john.doe logged in successfully | 192.168.1.88\n\nSession ID: sess_abc123xyz\nIP: 192.168.1.88\nUser-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)\nLogin method: Password",
+                    6: "2024-01-15 08:35:03 | WARNING | Web Server | Invalid User-Agent detected: <script>alert('xss')</script> | 185.199.108.153\n\nURL: /index.php\nUser-Agent: <script>alert('xss')</script>\nReferer: https://evil-site.com/exploit\nResponse Code: 200\nNote: Script was sanitized by output encoding",
+                    7: "2024-01-15 08:36:27 | ERROR | File System | Permission denied accessing /var/www/html/admin/config.php | 10.0.0.25\n\nFile: /var/www/html/admin/config.php\nRequired perm: 0640\nCurrent perm: 0644\nUser: www-data\nSuggested fix: chmod 640 config.php",
+                    8: "2024-01-15 08:37:41 | INFO | Backup | Daily backup completed successfully (2.3 GB) | System\n\nBackup type: Full\nFiles backed up: 1,247\nDatabase size: 892 MB\nDuration: 00:15:32\nNext backup: 2024-01-16 02:00:00"
+                };
+                
+                document.getElementById('log-content').textContent = logDetails[logId] || 'No details available';
+                document.getElementById('log-details').style.display = 'block';
+            });
+        });
+        
+        document.getElementById('filter-btn').addEventListener('click', () => {
+            alert('Filters applied (simulated)');
+        });
+        
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            document.getElementById('log-level').value = 'all';
+            document.getElementById('date-from').value = '2024-01-15';
+            document.getElementById('date-to').value = '2024-01-15';
+            document.getElementById('search-box').value = '';
+            alert('Filters cleared');
+        });
+    </script>
+</body>
+</html>

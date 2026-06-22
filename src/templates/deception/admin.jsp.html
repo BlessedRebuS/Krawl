@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Control Panel</title>
+    <style>
+        body {font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:0;}
+        .container {width:400px; margin:100px auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h2 {text-align:center; color:#333;}
+        label {display:block; margin-top:15px; font-weight:bold;}
+        input[type="text"], input[type="password"] {width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px;}
+        input[type="submit"] {margin-top:20px; width:100%; padding:10px; background:#0066cc; color:#fff; border:none; border-radius:4px; cursor:pointer;}
+        input[type="submit"]:hover {background:#004c99;}
+        .footer {margin-top:30px; text-align:center; font-size:0.9em; color:#777;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Admin Login</h2>
+        <form action="/admin.jsp" method="post">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" placeholder="Enter username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" placeholder="Enter password" required>
+            <input type="submit" value="Login">
+        </form>
+        <div class="footer">
+            &copy; 2025 Company Intranet. Unauthorized access is prohibited.
+            <!-- For debugging: SELECT * FROM users WHERE username='' OR '1'='1' -->
+        </div>
+    </div>
+</body>
+</html>

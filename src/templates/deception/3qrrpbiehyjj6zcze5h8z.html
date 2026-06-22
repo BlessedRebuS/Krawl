@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internal Dashboard</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9; color:#333;}
+        h1, h2 {color:#2c3e50;}
+        form {background:#fff; padding:20px; border:1px solid #ddd; border-radius:5px; display:inline-block;}
+        label {display:block; margin-top:10px;}
+        input[type=text], input[type=password] {width:200px; padding:5px;}
+        input[type=submit] {margin-top:15px; padding:8px 12px; background:#3498db; color:#fff; border:none; cursor:pointer;}
+        ul {margin-top:20px;}
+        li {margin-bottom:5px;}
+    </style>
+</head>
+<body>
+    <h1>Welcome to Admin Panel</h1>
+    <p>Please log in to continue.</p>
+    <form action="/login.php" method="POST">
+        <label>Username: <input type="text" name="user"></label><br>
+        <label>Password: <input type="password" name="pass"></label><br>
+        <input type="submit" value="Login">
+    </form>
+    <hr>
+    <h2>Recent Activity</h2>
+    <ul>
+        <li>User admin logged in from 10.0.0.5</li>
+        <li>File backup.zip uploaded</li>
+        <li>Database query executed: SELECT * FROM users WHERE id=1</li>
+    </ul>
+    <p>If you see this page, you may have mistyped the URL.</p>
+</body>
+</html>

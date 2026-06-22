@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>application.yml</title>
+</head>
+<body>
+    <h1>application.yml</h1>
+    <pre>
+# Sample Spring Boot application configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /app
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/mydb
+    username: db_user
+    password: db_pass
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+# Fake secret key
+security:
+  jwt:
+    secret: fakeSuperSecretKey123!
+    expiration: 86400000
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    </pre>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Server Info - Internal Dashboard</title>
+    <style>
+        body{font-family:Arial,sans-serif;margin:20px;background:#f4f4f4;color:#333}
+        h1{color:#2c3e50}
+        .info-box{border:1px solid #ddd;padding:15px;margin:10px 0:background:#fff;border-radius:4px}
+        .label{font-weight:bold;color:#555}
+    </style>
+</head>
+<body>
+    <h1>Server Information Dashboard</h1>
+    <p>Welcome to the internal server status page. Use this page to view configuration details.</p>
+
+    <div class="info-box">
+        <span class="label">Server Software:</span> Apache/2.4.41 (Ubuntu)<br>
+        <span class="label">Server Built:</span> 2020-08-12T15:30:00Z<br>
+        <span class="label">PHP Version:</span> 7.4.3<br>
+        <span class="label">MySQL Version:</span> 5.7.31-0ubuntu0.18.04.1<br>
+        <span class="label">Operating System:</span> Linux 5.4.0-42-generic #46-Ubuntu SMP Fri Jul 10 00:24:02 UTC 2020 x86_64<br>
+        <span class="label">Document Root:</span> /var/www/html<br>
+        <span class="label">Loaded Modules:</span> core mod_so mod_watchdog http_core mod_log_config mod_logio mod_version mod_unixd mod_access_compat mod_alias mod_auth_basic mod_authn_core mod_authz_core mod_autoindex mod_dir mod_env mod_mime mod_negotiation mod_setenvif mod_status
+    </div>
+
+    <div class="info-box">
+        <span class="label">Environment Variables (selected):</span><br>
+        PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin<br>
+        HOSTNAME=web01.internal<br>
+        MYSQL_ROOT_PASSWORD=superSecret123!<br>
+        ADMIN_EMAIL=admin@example.com<br>
+        DEBUG_MODE=true
+    </div>
+
+    <div class="info-box">
+        <span class="label">Recent Requests (last 5):</span><br>
+        1. GET /index.php 200<br>
+        2. POST /login.php 302<br>
+        3. GET /admin/config.php 200<br>
+        4. GET /server/info 200<br>
+        5. GET /phpinfo.php 200
+    </div>
+
+    <p><em>Note: This page is for internal use only. Do not expose to public networks.</em></p>
+
+    <hr>
+    <footer>
+        <p>&copy; 2025 Internal IT Operations. All rights reserved.</p>
+    </footer>
+</body>
+</html>

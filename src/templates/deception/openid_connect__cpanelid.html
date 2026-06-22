@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OpenID Connect - cPanelID</title>
+<style>
+body{font-family:Arial,sans-serif;margin:40px;background:#f9f9f9;color:#333}
+.container{max-width:800px;margin:auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+h1{color:#2c3e50}
+form{margin-top:20px}
+label{display:block;margin-top:10px}
+input[type=text],input[type=url]{width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px}
+button{margin-top:20px;padding:10px 20px;background:#2980b9;color:#fff;border:none;border-radius:4px;cursor:pointer}
+button:hover{background:#3498db}
+hr{border:0;border-top:1px solid #eee;margin:30px 0}
+ul{line-height:1.6}
+a{color:#2980b9;text-decoration:none}
+a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>cPanelID OpenID Connect Provider</h1>
+<p>Welcome to the cPanelID OpenID Connect service. Use this endpoint to authenticate applications and obtain ID tokens.</p>
+
+<form action="/openid_connect/auth" method="GET">
+<label for="client_id">Client ID:</label>
+<input type="text" id="client_id" name="client_id" required placeholder="Enter your client ID">
+
+<label for="redirect_uri">Redirect URI:</label>
+<input type="url" id="redirect_uri" name="redirect_uri" required placeholder="https://yourapp.com/callback">
+
+<label for="scope">Scope:</label>
+<input type="text" id="scope" name="scope" value="openid profile email" placeholder="openid profile email">
+
+<button type="submit">Start Authentication</button>
+</form>
+
+<hr>
+<h2>Documentation</h2>
+<ul>
+<li><a href="/openid_connect/.well-known/openid-configuration">Provider Configuration (Well-Known)</a></li>
+<li><a href="/openid_connect/jwks">JSON Web Key Set (JWKS)</a></li>
+<li><a href="/openid_connect/userinfo">UserInfo Endpoint</a></li>
+</ul>
+<p>© 2025 cPanelID. All rights reserved.</p>
+</div>
+</body>
+</html>

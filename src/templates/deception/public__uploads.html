@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Public Uploads – ExampleCorp</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        table {width:100%; border-collapse:collapse; margin-top:20px;}
+        th, td {padding:10px; border:1px solid #ddd; text-align:left;}
+        th {background:#ecf0f1;}
+        tr:nth-child(even) {background:#f2f2f2;}
+        .upload-form {margin-top:30px; padding:15px; border:1px solid #ccc; background:#fff;}
+        label {display:block; margin-top:10px;}
+        input[type=submit] {margin-top:15px; padding:8px 12px; background:#27ae60; color:#fff; border:none; cursor:pointer;}
+        input[type=submit]:hover {background:#2ecc71;}
+    </style>
+</head>
+<body>
+    <h1>Public Uploads Directory</h1>
+    <p>Below are the files currently available for public download. Authorized users may upload new files using the form at the bottom of the page.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Filename</th>
+                <th>Size</th>
+                <th>Last Modified</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>logo.png</td>
+                <td>84 KB</td>
+                <td>2024-10-12 09:15</td>
+                <td><a href="logo.png">Download</a></td>
+            </tr>
+            <tr>
+                <td>report_Q3.pdf</td>
+                <td>1.2 MB</td>
+                <td>2024-10-10 14:03</td>
+                <td><a href="report_Q3.pdf">Download</a></td>
+            </tr>
+            <tr>
+                <td>backup.zip</td>
+                <td>15.6 MB</td>
+                <td>2024-10-08 22:47</td>
+                <td><a href="backup.zip">Download</a></td>
+            </tr>
+            <tr>
+                <td>config.php.example</td>
+                <td>2.1 KB</td>
+                <td>2024-09-30 11:22</td>
+                <td><a href="config.php.example">Download</a></td>
+            </tr>
+            <tr>
+                <td>user_manual.docx</td>
+                <td>3.4 MB</td>
+                <td>2024-10-05 08:10</td>
+                <td><a href="user_manual.docx">Download</a></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="upload-form">
+        <h2>Upload a File</h2>
+        <form action="/public/uploads/upload.php" method="post" enctype="multipart/form-data">
+            <label for="file">Choose file (max 20 MB):</label>
+            <input type="file" name="file" id="file" required><br>
+            <label for="description">Description (optional):</label>
+            <input type="text" name="description" id="description" maxlength="100"><br>
+            <input type="submit" value="Upload">
+        </form>
+        <p><em>Note: Allowed extensions: .jpg, .jpeg, .png, .gif, .pdf, .doc, .docx, .zip.</em></p>
+    </div>
+
+    <hr>
+    <p style="font-size:0.9em; color:#777;">&copy; 2024 ExampleCorp. All rights reserved.</p>
+</body>
+</html>

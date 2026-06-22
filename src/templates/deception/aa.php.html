@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Access Denied</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { color: #d32f2f; }
+        .warning { background-color: #ffebee; border-left: 4px solid #f44336; padding: 10px; margin: 15px 0; }
+        .footer { margin-top: 20px; font-size: 0.9em; color: #666; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Access Panel</h1>
+        <p>Welcome to the internal administration interface. Please authenticate to proceed.</p>
+        <div class="warning">
+            <strong>Security Notice:</strong> Multiple failed login attempts detected from your IP address. Access may be temporarily restricted.
+        </div>
+        <form method="POST" action="/aa.php">
+            <div style="margin-bottom: 15px;">
+                <label for="username">Username:</label><br>
+                <input type="text" id="username" name="username" placeholder="Enter admin username" required style="width: 100%; padding: 8px; margin-top: 5px;">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="password">Password:</label><br>
+                <input type="password" id="password" name="password" placeholder="Enter password" required style="width: 100%; padding: 8px; margin-top: 5px;">
+            </div>
+            <button type="submit" style="background-color: #1976d2; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                Login
+            </button>
+            <input type="hidden" name="token" value="a1b2c3d4e5f6g7h8i9j0">
+        </form>
+        <p style="margin-top: 20px; font-size: 0.9em; color: #666;">
+            Forgot password? <a href="/reset.php">Click here to reset</a><br>
+            <a href="/">Return to homepage</a>
+        </p>
+    </div>
+    <div class="footer">
+        © 2024 Company Internal Systems. All rights reserved.<br>
+        Server time: 2024-06-15 14:32:18 UTC
+    </div>
+</body>
+</html>

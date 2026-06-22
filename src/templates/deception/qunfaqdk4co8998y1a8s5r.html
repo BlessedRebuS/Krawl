@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internal Dashboard</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        .box {border:1px solid #ddd; padding:20px; margin-top:20px; background:#fff;}
+        input[type=text], input[type=password] {width:200px; padding:5px; margin:5px 0;}
+        button {padding:8px 12px; background:#3498db; color:#fff; border:none; cursor:pointer;}
+    </style>
+</head>
+<body>
+    <h1>Welcome to the Internal Dashboard</h1>
+    <p>Use the form below to access restricted resources.</p>
+    <div class="box">
+        <form action="/auth" method="post">
+            <label for="uid">User ID:</label><br>
+            <input type="text" id="uid" name="uid" placeholder="Enter user ID"><br>
+            <label for="pwd">Password:</label><br>
+            <input type="password" id="pwd" name="pwd" placeholder="Enter password"><br><br>
+            <button type="submit">Sign In</button>
+        </form>
+    </div>
+    <hr>
+    <p>&copy; 2025 ExampleCorp. All rights reserved.</p>
+</body>
+</html>

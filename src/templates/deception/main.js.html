@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Scripts</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { background: #f0f0f0; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .content { line-height: 1.6; }
+        .footer { margin-top: 30px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Admin Dashboard</h1>
+            <p>Last updated: <?php echo date('Y-m-d H:i:s'); ?></p>
+        </div>
+        <div class="content">
+            <p>Welcome to the system administration panel. This interface provides access to user management, system logs, and configuration settings.</p>
+            
+            <h2>Quick Actions</h2>
+            <ul>
+                <li><a href="/admin/users.php">Manage Users</a></li>
+                <li><a href="/admin/logs.php">View System Logs</a></li>
+                <li><a href="/admin/settings.php">System Configuration</a></li>
+                <li><a href="/admin/backup.php">Backup Database</a></li>
+            </ul>
+            
+            <h2>System Status</h2>
+            <p>Server load: 0.45 | Memory usage: 62% | Disk space: 78% free</p>
+            <p>Active sessions: 12 | Database connections: 8/100</p>
+            
+            <form action="/admin/search.php" method="GET">
+                <label for="search">Search logs:</label>
+                <input type="text" id="search" name="q" placeholder="Enter search term...">
+                <button type="submit">Search</button>
+            </form>
+            
+            <div class="alert alert-info">
+                <strong>Notice:</strong> Maintenance scheduled for tonight 2AM-4AM EST. Expect brief service interruption.
+            </div>
+        </div>
+        <div class="footer">
+            &copy; 2023-2024 Company Internal Systems. All rights reserved.<br>
+            Version 2.1.4 | Build 20240115
+        </div>
+    </div>
+    
+    <!-- Debug info for developers -->
+    <?php
+    if(isset($_GET['debug']) && $_GET['debug'] === 'true') {
+        echo "<div style='background:#fff8dc; padding:10px; margin-top:20px; border:1px solid #ddd;'><h3>Debug Information</h3>";
+        echo "<p>PHP Version: " . phpversion() . "</p>";
+        echo "<p>Server: " . $_SERVER['SERVER_SOFTWARE'] . "</p>";
+        echo "<p>Remote IP: " . $_SERVER['REMOTE_ADDR'] . "</p>";
+        echo "<p>Request URI: " . $_SERVER['REQUEST_URI'] . "</p>";
+        echo "</div>";
+    }
+    ?>
+    
+    <!-- Simulated vulnerability: reflected XSS in user-agent header -->
+    <script>
+        // This is where the /main.js would normally be
+        // But since we're serving HTML, we simulate the JS functionality here
+        
+        function loadUserData() {
+            // Simulate AJAX call that would be in main.js
+            console.log("Loading user data...");
+            // In real JS: fetch('/api/user').then(r => r.json()).then(displayUserData);
+        }
+        
+        function validateForm() {
+            // Simulate form validation
+            var username = document.getElementById('username')?.value || '';
+            if(username.length < 3) {
+                alert('Username must be at least 3 characters');
+                return false;
+            }
+            return true;
+        }
+        
+        // Auto-initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserData();
+            
+            // Simulate vulnerability: reflect user-agent in JS (fake)
+            var ua = navigator.userAgent;
+            if(ua.includes('test')) {
+                console.log('User agent contains test:', ua);
+            }
+        });
+    </script>
+</body>
+</html>

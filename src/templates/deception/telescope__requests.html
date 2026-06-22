@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telescope API - Requests Endpoint</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .endpoint-info { background: #ecf0f1; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0; }
+        code { background: #ecf0f1; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; }
+        .warning { background: #ffebee; border: 1px solid #f44336; color: #c62828; padding: 12px; border-radius: 4px; margin: 20px 0; }
+        .params { margin: 15px 0; }
+        .param-label { font-weight: bold; color: #2980b9; }
+        .example { background: #f8f9fa; padding: 15px; border-radius: 4px; font-family: 'Courier New', monospace; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Telescope API Documentation</h1>
+        <p><strong>Endpoint:</strong> <code>/telescope/requests</code></p>
+        
+        <div class="endpoint-info">
+            <h2>Overview</h2>
+            <p>This endpoint provides access to historical request logs captured by the Telescope monitoring system. It allows filtering, pagination, and detailed inspection of HTTP requests processed by the application.</p>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Security Notice:</strong> This endpoint may expose sensitive request data including headers, payloads, and authentication tokens. Access should be restricted to authorized personnel only in production environments.
+        </div>
+
+        <h2>Available Parameters</h2>
+        <div class="params">
+            <p><span class="param-label">filter</span> (string): Filter requests by URL pattern, method, or status code (e.g., "GET /api/* 200")</p>
+            <p><span class="param-label">limit</span> (integer): Maximum number of results to return (default: 50, max: 1000)</p>
+            <p><span class="param-label">offset</span> (integer): Number of results to skip for pagination</p>
+            <p><span class="param-label">start_time</span> (string): ISO 8601 timestamp for filtering requests after this time</p>
+            <p><span class="param-label">end_time</span> (string): ISO 8601 timestamp for filtering requests before this time</p>
+            <p><span class="param-label">include_payload</span> (boolean): Whether to include request/response bodies in the output</p>
+        </div>
+
+        <h2>Example Usage</h2>
+        <div class="example">
+            GET /telescope/requests?filter=POST+/api/users+201&limit=10&include_payload=true
+        </div>
+
+        <h2>Sample Response Structure</h2>
+        <div class="example">
+[
+  {
+    "id": "req_5f3a2b1c8d4e7f9a0b1c2d3e",
+    "timestamp": "2024-01-15T14:30:22.123Z",
+    "method": "POST",
+    "url": "/api/users",
+    "status_code": 201,
+    "response_time_ms": 145,
+    "request_headers": {
+      "Content-Type": "application/json",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    },
+    "request_payload": {
+      "username": "newuser123",
+      "email": "user@example.com",
+      "password": "SecurePass123!"
+    },
+    "response_headers": {
+      "Content-Type": "application/json",
+      "Location": "/api/users/12345"
+    },
+    "response_payload": {
+      "id": 12345,
+      "username": "newuser123",
+      "created_at": "2024-01-15T14:30:22.000Z"
+    }
+  }
+]
+        </div>
+
+        <h2>Notes</h2>
+        <ul>
+            <li>Response times are measured in milliseconds</li>
+            <li>Sensitive data in payloads may be redacted based on security policies</li>
+            <li>Maximum response size is limited to 10MB</li>
+            <li>This endpoint requires the <code>telescope:read</code> permission</li>
+        </ul>
+
+        <p><em>Last updated: 2024-01-15</em></p>
+    </div>
+</body>
+</html>

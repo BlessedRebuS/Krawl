@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Management - Logs</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .log-entry { border-left: 3px solid #3498db; padding-left: 15px; margin: 15px 0; }
+        .log-timestamp { color: #7f8c8d; font-size: 0.9em; }
+        .log-level { font-weight: bold; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; }
+        .log-level-info { background: #d4edda; color: #155724; }
+        .log-level-warn { background: #fff3cd; color: #856404; }
+        .log-level-error { background: #f8d7da; color: #721c24; }
+        .log-message { margin-top: 5px; }
+        .filter-section { margin: 20px 0; }
+        .filter-section label { margin-right: 10px; }
+        .filter-section select, .filter-section input { padding: 5px; margin: 0 5px; }
+        .refresh-btn { background: #3498db; color: white; border: none; padding: 8px 15px; cursor: pointer; border-radius: 4px; }
+        .refresh-btn:hover { background: #2980b9; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>System Management - Application Logs</h1>
+        <div class="filter-section">
+            <label for="level-filter">Log Level:</label>
+            <select id="level-filter">
+                <option value="all">All Levels</option>
+                <option value="info">Info</option>
+                <option value="warn">Warning</option>
+                <option value="error">Error</option>
+            </select>
+            <label for="time-filter">Time Range:</label>
+            <select id="time-filter">
+                <option value="last-hour">Last Hour</option>
+                <option value="last-24h" selected>Last 24 Hours</option>
+                <option value="last-7d">Last 7 Days</option>
+                <option value="custom">Custom Range</option>
+            </select>
+            <button class="refresh-btn" onclick="refreshLogs()">Refresh Logs</button>
+        </div>
+        
+        <div id="logs-container">
+            <div class="log-entry">
+                <span class="log-timestamp">2024-01-15 14:23:18</span>
+                <span class="log-level log-level-info">INFO</span>
+                <div class="log-message">User admin logged in from 192.168.1.100</div>
+            </div>
+            <div class="log-entry">
+                <span class="log-timestamp">2024-01-15 14:22:05</span>
+                <span class="log-level log-level-warn">WARN</span>
+                <div class="log-message">Failed login attempt for user 'admin' from 203.0.113.45</div>
+            </div>
+            <div class="log-entry">
+                <span class="log-timestamp">2024-01-15 14:20:33</span>
+                <span class="log-level log-level-error">ERROR</span>
+                <div class="log-message">Database connection timeout - retrying...</div>
+            </div>
+            <div class="log-entry">
+                <span class="log-timestamp">2024-01-15 14:19:45</span>
+                <span class="log-level log-level-info">INFO</span>
+                <div class="log-message">Backup job completed successfully</div>
+            </div>
+            <div class="log-entry">
+                <span class="log-timestamp">2024-01-15 14:18:22</span>
+                <span class="log-level log-level-warn">WARN</span>
+                <div class="log-message">High memory usage detected: 85%</div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; color: #7f8c8d; font-size: 0.9em;">
+            Log retention: 30 days | Total entries: 1,247 | Last updated: 2024-01-15 14:23:18
+        </div>
+    </div>
+    
+    <script>
+        function refreshLogs() {
+            // Simulate async log refresh
+            setTimeout(() => {
+                alert('Logs refreshed successfully');
+            }, 500);
+        }
+        
+        // Auto-refresh every 30 seconds
+        setInterval(refreshLogs, 30000);
+    </script>
+</body>
+</html>

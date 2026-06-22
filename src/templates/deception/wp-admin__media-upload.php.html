@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Media Library &#8212; WordPress</title>
+    <style>
+        body{font-family:Arial,sans-serif;margin:20px;background:#f9f9f9;color:#333}
+        h1{color:#21759b}
+        .wrap{background:#fff;padding:20px;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,.1);max-width:600px;margin:auto}
+        input[type=file]{display:block;margin-top:10px}
+        input[type=submit]{background:#21759b;color:#fff;border:none;padding:8px 15px;border-radius:3px;cursor:pointer;margin-top:10px}
+        input[type=submit]:hover{background:#1e6a8d}
+        .notice{background:#fffbcc;border-left:4px solid #ffdd33;padding:10px;margin-top:15px}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h1>Media Library</h1>
+    <p>You are uploading files to post ID: <strong>1</strong></p>
+    <form action="media-upload.php?post_id=1" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="post_id" value="1">
+        <label for="async-upload">Select files:</label>
+        <input type="file" id="async-upload" name="async-upload" multiple>
+        <br>
+        <input type="submit" value="Upload" name="html-upload">
+    </form>
+    <div class="notice">
+        <strong>Notice:</strong> Only images, videos, and documents are allowed. Maximum file size: 8 MB.
+    </div>
+    <p>If you encounter any issues, please contact the site administrator.</p>
+</div>
+</body>
+</html>

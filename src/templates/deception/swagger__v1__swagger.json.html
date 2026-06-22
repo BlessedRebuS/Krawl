@@ -1,0 +1,579 @@
+<html><body>{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Company API",
+    "version": "v1",
+    "description": "Internal API for HR and inventory management systems",
+    "termsOfService": "https://company-internal.local/terms",
+    "contact": {
+      "name": "API Support",
+      "email": "api-support@company-internal.local"
+    },
+    "license": {
+      "name": "Proprietary",
+      "url": "https://company-internal.local/license"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.company-internal.local/v1",
+      "description": "Production server"
+    },
+    {
+      "url": "https://staging-api.company-internal.local/v1",
+      "description": "Staging server"
+    }
+  ],
+  "paths": {
+    "/users": {
+      "get": {
+        "summary": "Retrieve all users",
+        "description": "Returns a list of all active employees in the system. Requires admin privileges.",
+        "operationId": "getUsers",
+        "parameters": [
+          {
+            "name": "department",
+            "in": "query",
+            "description": "Filter by department (e.g., engineering, hr, finance)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of results to return",
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "minimum": 1,
+              "maximum": 1000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new user",
+        "description": "Creates a new employee record. Requires HR or admin role.",
+        "operationId": "createUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Get user by ID",
+        "operationId": "getUserById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "User ID",
+            "schema": {
+              "type": "string",
+              "example": "usr_7a3b9f"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update user",
+        "operationId": "updateUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete user",
+        "operationId": "deleteUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "User deleted"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/inventory": {
+      "get": {
+        "summary": "List inventory items",
+        "operationId": "getInventory",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "minStock",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Inventory list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InventoryItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Add inventory item",
+        "operationId": "addInventoryItem",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InventoryItemCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Item added"
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Authenticate user",
+        "description": "Logs in a user and returns a JWT token. Vulnerable to brute force and missing rate limiting.",
+        "operationId": "login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "j.smith"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "P@ssw0rd123!"
+                  }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    },
+                    "expiresIn": {
+                      "type": "integer",
+                      "example": 3600
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials"
+          },
+          "429": {
+            "description": "Too Many Requests (rate limiting not implemented in v1)"
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "summary": "Refresh JWT token",
+        "operationId": "refreshToken",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refreshToken": {
+                    "type": "string",
+                    "example": "rt_7a3b9f2c1d0e"
+                  }
+                },
+                "required": ["refreshToken"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "New token issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "expiresIn": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired refresh token"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "usr_7a3b9f"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Smith"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "j.smith@company-internal.local"
+          },
+          "department": {
+            "type": "string",
+            "enum": ["engineering", "hr", "finance", "marketing", "operations"],
+            "example": "engineering"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["employee", "manager", "director", "vp", "admin"],
+            "example": "employee"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-05-15T08:30:00Z"
+          },
+          "lastLogin": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-06-10T14:22:10Z"
+          }
+        },
+        "required": ["id", "firstName", "lastName", "email", "department", "role", "isActive"]
+      },
+      "UserCreate": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "Jane"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "j.doe@company-internal.local"
+          },
+          "department": {
+            "type": "string",
+            "enum": ["engineering", "hr", "finance", "marketing", "operations"],
+            "example": "hr"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["employee", "manager", "director"],
+            "example": "employee"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 8,
+            "example": "TempPass123!"
+          }
+        },
+        "required": ["firstName", "lastName", "email", "department", "role", "password"]
+      },
+      "UserUpdate": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "department": {
+            "type": "string",
+            "enum": ["engineering", "hr", "finance", "marketing", "operations"]
+          },
+          "role": {
+            "type": "string",
+            "enum": ["employee", "manager", "director", "vp", "admin"]
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "InventoryItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "inv_4f8c2a"
+          },
+          "name": {
+            "type": "string",
+            "example": "Dell Monitor 24\""
+          },
+          "category": {
+            "type": "string",
+            "enum": ["electronics", "furniture", "supplies", "hardware"],
+            "example": "electronics"
+          },
+          "quantity": {
+            "type": "integer",
+            "example": 15
+          },
+          "minStockLevel": {
+            "type": "integer",
+            "example": 5
+          },
+          "location": {
+            "type": "string",
+            "example": "Warehouse A, Shelf B3"
+          },
+          "lastUpdated": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-06-05T09:15:00Z"
+          }
+        },
+        "required": ["id", "name", "category", "quantity", "minStockLevel", "location"]
+      },
+      "InventoryItemCreate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Logitech Wireless Mouse"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["electronics", "furniture", "supplies", "hardware"]
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 50
+          },
+          "minStockLevel": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 10
+          },
+          "location": {
+            "type": "string",
+            "example": "Supply Closet 2"
+          }
+        },
+        "required": ["name", "category", "quantity", "minStockLevel", "location"]
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "users",
+      "description": "Employee management"
+    },
+    {
+      "name": "inventory",
+      "description": "Asset and supply tracking"
+    },
+    {
+      "name": "auth",
+      "description": "Authentication and authorization"
+    }
+  ],
+  "externalDocs": {
+    "description": "Find more info here",
+    "url": "https://wiki.company-internal.local/api-docs"
+  }
+}</body></html>

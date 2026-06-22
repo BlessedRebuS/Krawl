@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Backup - MyApp</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .file-info { background: #ecf0f1; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .download-btn { display: inline-block; background: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; }
+        .download-btn:hover { background: #2980b9; }
+        .warning { color: #e74c3c; font-size: 0.9em; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Database Backup Archive</h1>
+        <p>Automated daily backup of the production MySQL database for MyApp v2.1.4</p>
+        
+        <div class="file-info">
+            <strong>Filename:</strong> dump.sql.zip<br>
+            <strong>Size:</strong> 42.3 MB<br>
+            <strong>Generated:</strong> 2024-01-15 02:30:00 UTC<br>
+            <strong>Contents:</strong> Full SQL dump of users, orders, products, and audit tables<br>
+            <strong>Compression:</strong> ZIP (deflate, level 6)
+        </div>
+        
+        <a href="/downloads/db_backup_20240115.zip" class="download-btn">Download Backup</a>
+        
+        <p><em>Note: This backup contains sensitive data including user credentials (hashed), personal information, and transaction logs. Handle with care and store securely.</em></p>
+        
+        <div class="warning">
+            ⚠️ Security Notice: Access to database backups is restricted to authorized personnel only. Unauthorized downloading or distribution of this file may violate data protection regulations and company policy.
+        </div>
+        
+        <hr>
+        <p style="font-size: 0.9em; color: #7f8c8d; text-align: center;">
+            © 2024 MyApp Inc. All rights reserved. | <a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Service</a>
+        </p>
+    </div>
+</body>
+</html>

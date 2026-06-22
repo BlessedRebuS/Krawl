@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Proxmox VE - Overview</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, Helvetica, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header {background:#005a9c; color:#fff; padding:1rem;}
+        header h1 {margin:0;}
+        nav {background:#e2e8f0; padding:0.5rem 1rem;}
+        nav a {margin-right:1rem; text-decoration:none; color:#005a9c;}
+        .container {max-width:1200px; margin:2rem auto; padding:0 1rem;}
+        .card {background:#fff; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); padding:1.5rem; margin-bottom:1.5rem;}
+        .stats {display:flex; flex-wrap:wrap; gap:1rem;}
+        .stat {flex:1; min-width:150px; background:#f0f8ff; border-left:4px solid #005a9c; padding:1rem; border-radius:4px;}
+        .stat h3 {margin:0 0 0.5rem; font-size:1rem; color:#555;}
+        .stat .value {font-size:1.8rem; font-weight:bold;}
+        table {width:100%; border-collapse:collapse; margin-top:1rem;}
+        th, td {border:1px solid #ddd; padding:0.5rem; text-align:left;}
+        th {background:#f0f0f0;}
+        tbody tr:nth-child(even) {background:#f9f9f9;}
+        footer {text-align:center; padding:1rem; font-size:0.9rem; color:#666; margin-top:2rem;}
+    </style>
+</head>
+<body>
+<header>
+    <h1>Proxmox VE - Overview</h1>
+    <div>Node: pve1 • Version: 7.4-15</div>
+</header>
+<nav>
+    <a href="/proxmox/dashboard.html">Dashboard</a>
+    <a href="/proxmox/nodes.html">Nodes</a>
+    <a href="/proxmox/vms.html">VMs</a>
+    <a href="/proxmox/containers.html">Containers</a>
+    <a href="/proxmox/storage.html">Storage</a>
+    <a href="/proxmox/network.html">Network</a>
+</nav>
+<div class="container">
+    <section class="card">
+        <h2>System Summary</h2>
+        <div class="stats">
+            <div class="stat">
+                <h3>CPU Usage</h3>
+                <div class="value">23%</div>
+            </div>
+            <div class="stat">
+                <h3>Memory</h3>
+                <div class="value">8.2 GB / 32 GB</div>
+            </div>
+            <div class="stat">
+                <h3>Swap</h3>
+                <div class="value">0.4 GB / 8 GB</div>
+            </div>
+            <div class="stat">
+                <h3>Disk I/O</h3>
+                <div class="value">1.2 MB/s read / 0.9 MB/s write</div>
+            </div>
+            <div class="stat">
+                <h3>Network</h3>
+                <div class="value">12.5 Mbps in / 9.8 Mbps out</div>
+            </div>
+            <div class="stat">
+                <h3>Uptime</h3>
+                <div class="value">12 days, 4h 23m</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Running VMs</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>VMID</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>CPU (%)</th>
+                    <th>Mem (MB)</th>
+                    <th>Disk (GB)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>100</td>
+                    <td>web01</td>
+                    <td>running</td>
+                    <td>12</td>
+                    <td>2048</td>
+                    <td>30</td>
+                </tr>
+                <tr>
+                    <td>101</td>
+                    <td>db01</td>
+                    <td>running</td>
+                    <td>8</td>
+                    <td>4096</td>
+                    <td>50</td>
+                </tr>
+                <tr>
+                    <td>102</td>
+                    <td>mail01</td>
+                    <td>stopped</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>20</td>
+                </tr>
+                <tr>
+                    <td>103</td>
+                    <td>dev01</td>
+                    <td>running</td>
+                    <td>5</td>
+                    <td>1024</td>
+                    <td>15</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="card">
+        <h2>Recent Events</h2>
+        <ul style="list-style:none; padding:0;">
+            <li style="border-bottom:1px solid #eee; padding:0.5rem 0;">
+                <strong>2025-11-02 09:14:22</strong> - VM 101 started successfully.
+            </li>
+            <li style="border-bottom:1px solid #eee; padding:0.5rem 0;">
+                <strong>2025-11-02 08:57:05</strong> - Backup job "daily-vms" completed (VMs: 100,101,103).
+            </li>
+            <li style="border-bottom:1px solid #eee; padding:0.5rem 0;">
+                <strong>2025-11-02 07:30:11</strong> - Node pve1: CPU temperature 42°C.
+            </li>
+            <li style="border-bottom:1px solid #eee; padding:0.5rem 0;">
+                <strong>2025-11-01 23:45:00</strong> - Update available for pve-enterprise repository.
+            </li>
+        </ul>
+    </section>
+</div>
+<footer>
+    © 2025 Proxmox Server Solutions • <a href="/proxmox/help.html">Help</a> • <a href="/proxmox/logout.html">Logout</a>
+</footer>
+</body>
+</html>

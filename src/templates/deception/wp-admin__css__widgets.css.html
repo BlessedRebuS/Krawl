@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordPress Admin CSS - widgets.css</title>
+    <link rel="stylesheet" href="/wp-admin/css/wp-admin.min.css">
+    <style>
+        /* Fake CSS content to mimic widgets.css */
+        .widget { border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+        .widget-title { font-weight: bold; margin-bottom: 10px; color: #333; }
+        .widget-content { line-height: 1.6; }
+        .wp-admin .wrap h1 { font-size: 28px; margin: 0 0 20px; }
+        .wp-admin .wp-list-table { width: 100%; border-collapse: collapse; }
+        .wp-admin .wp-list-table th, .wp-admin .wp-list-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .wp-admin .button { background: #007cba; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; }
+        .wp-admin .button:hover { background: #006296; }
+        .wp-admin .notice { padding: 10px; margin: 10px 0; border-left: 4px solid; }
+        .wp-admin .notice-info { background: #e6f7ff; border-color: #1890ff; color: #0050b3; }
+        .wp-admin .notice-error { background: #fff2f0; border-color: #ff4d4f; color: #c41d28; }
+        .wp-admin .notice-success { background: #f6ffed; border-color: #52c41a; color: #137f09; }
+        .wp-admin .notice-warning { background: #fffbeb; border-color: #faad14; color: #8a6d0b; }
+        /* Simulated vulnerability: fake debug info in comments */
+        /* DEBUG: WP_DEBUG=true, WP_DEBUG_LOG=true, SCRIPT_DEBUG=true */
+        /* Fake database credentials for deception */
+        /* DB_USER: wp_admin, DB_PASS: s3cr3t_2024!, DB_HOST: localhost */
+        /* Fake admin panel path exposure */
+        /* ADMIN_URL: /wp-admin/admin-ajax.php?action=widgets_update */
+        /* Fake XSS vector in comment - for honeypot */
+        /* <script>alert('XSS test')</script> */
+        /* Fake SQLi attempt logging */
+        /* Last query: SELECT * FROM wp_options WHERE option_name = 'siteurl' UNION SELECT 1,2,3,4,5,6,7,8,9,10 -- */
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <h1>Widgets CSS</h1>
+        <p>This file contains the styles for the WordPress Widgets admin screen.</p>
+        <div class="notice notice-info">
+            <p><strong>Note:</strong> This is a development file. Do not modify directly unless you know what you're doing.</p>
+        </div>
+        <div class="notice notice-error">
+            <p><strong>Error:</strong> Unable to load widget configurations. Please check <a href="/wp-admin/widgets.php">Widgets admin</a> for more details.</p>
+        </div>
+        <div class="widget">
+            <h2 class="widget-title">Recent Posts Widget</h2>
+            <div class="widget-content">
+                <ul>
+                    <li><a href="/2024/01/post-one/">Understanding WordPress Hooks</a></li>
+                    <li><a href="/2023/12/post-two/">Customizing the Admin Interface</a></li>
+                    <li><a href="/2023/11/post-three/">Security Best Practices for WP</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="widget">
+            <h2 class="widget-title">Meta Widget</h2>
+            <div class="widget-content">
+                <ul>
+                    <li><a href="/wp-login.php">Log in</a></li>
+                    <li><a href="/wp-admin/">Dashboard</a></li>
+                    <li><a href="https://wordpress.org/" target="_blank">WordPress.org</a></li>
+                </ul>
+            </div>
+        </div>
+        <form method="post" action="/wp-admin/admin-ajax.php">
+            <input type="hidden" name="action" value="save_widget">
+            <input type="hidden" name="widget-id" value="recent-posts-2">
+            <input type="hidden" name="widget-name" value="Recent Posts">
+            <label for="widget-title">Title:</label>
+            <input type="text" id="widget-title" name="widget-title" value="Recent Posts" class="regular-text">
+            <br><br>
+            <label for="widget-count">Number of posts to show:</label>
+            <input type="number" id="widget-count" name="widget-count" value="5" min="1" max="20" class="small-text">
+            <br><br>
+            <input type="submit" value="Save Widget" class="button button-primary">
+            <input type="button" value="Cancel" class="button">
+        </form>
+        <hr>
+        <p style="font-size: 11px; color: #666; margin-top: 20px;">
+            WordPress 6.5.2 | wp-admin/css/widgets.css | Loaded in 0.234s | 
+            <a href="/wp-admin/load-styles.php?c=1&dir=ltr&load%5B%5D=dashicons,admin-bar,wp-admin&ver=6.5.2">View source</a>
+        </p>
+    </div>
+</body>
+</html>

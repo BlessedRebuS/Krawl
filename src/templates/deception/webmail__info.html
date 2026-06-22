@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Webmail - Account Information</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header {background:#003366; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#004080; color:#fff; display:flex; justify-content:center; gap:1.5rem; padding:0.5rem 0;}
+        nav a {color:#fff; text-decoration:none; font-weight:bold;}
+        nav a:hover {text-decoration:underline;}
+        .container {max-width:800px; margin:2rem auto; background:#fff; padding:1.5rem; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+        h1 {color:#003366;}
+        table {width:100%; border-collapse:collapse; margin-top:1rem;}
+        th, td {padding:0.75rem; border-bottom:1px solid #ddd; text-align:left;}
+        th {background:#e9e9e9;}
+        .footer {margin-top:2rem; font-size:0.9rem; color:#666; text-align:center;}
+    </style>
+</head>
+<body>
+<header>
+    <h1>Webmail Portal</h1>
+</header>
+<nav>
+    <a href="/webmail/inbox/">Inbox</a>
+    <a href="/webmail/compose/">Compose</a>
+    <a href="/webmail/settings/">Settings</a>
+    <a href="/webmail/logout/">Logout</a>
+</nav>
+
+<div class="container">
+    <h2>Account Information</h2>
+    <p>Hello, <strong>john.doe@example.com</strong></p>
+    <table>
+        <tr><th>Full Name</th><td>John Doe</td></tr>
+        <tr><th>Username</th><td>john.doe</td></tr>
+        <tr><th>Email Address</th><td>john.doe@example.com</td></tr>
+        <tr><th>Last Login</th><td>2025-09-24 08:15:32 UTC</td></tr>
+        <tr><th>Storage Used</th><td>1.2 GB / 5 GB (24%)</td></tr>
+        <tr><th>Mailbox Quota</th><td>5 GB</td></tr>
+        <tr><th>Server Version</th><td>WebMail Suite 2.4.1 (build 20250912)</td></tr>
+        <tr><th>IMAP Server</th><td>imap.example.com:993 (SSL)</td></tr>
+        <tr><th>SMTP Server</th><td>smtp.example.com:587 (STARTTLS)</td></tr>
+        <tr><th>PHP Version</th><td>7.4.33 (fake)</td></tr>
+    </table>
+
+    <hr>
+    <h3>Recent Activity</h3>
+    <ul>
+        <li>Sent email to <em>alice@example.com</em> – 2025-09-23 14:02</li>
+        <li>Received email from <em>bob@test.org</em> – 2025-09-23 09:18</li>
+        <li>Password changed – 2025-09-20 22:05</li>
+    </ul>
+</div>
+
+<footer class="footer">
+    &copy; 2025 Webmail Services. All rights reserved. | <a href="/webmail/help/" style="color:#004080;">Help & Support</a>
+</footer>
+</body>
+</html>

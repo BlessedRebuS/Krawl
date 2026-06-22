@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Livewire Message - Application</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+        .message-card {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Livewire Message System</h1>
+        <p>Welcome to the internal messaging system. Use this interface to send and receive secure messages within the application.</p>
+        
+        <div class="message-card">
+            <h3>Latest Message</h3>
+            <p><strong>From:</strong> system@internal.local</p>
+            <p><strong>Time:</strong> 2024-06-15 14:32:18</p>
+            <p>System maintenance scheduled for tonight at 02:00 AM UTC. All services will be temporarily unavailable for approximately 15 minutes.</p>
+        </div>
+        
+        <div class="message-card">
+            <h3>Send a New Message</h3>
+            <form id="messageForm">
+                <div class="form-group">
+                    <label for="recipient">Recipient:</label>
+                    <input type="text" id="recipient" name="recipient" placeholder="Enter username or email" required>
+                </div>
+                <div class="form-group">
+                    <label for="subject">Subject:</label>
+                    <input type="text" id="subject" name="subject" placeholder="Message subject" required>
+                </div>
+                <div class="form-group">
+                    <label for="body">Message Body:</label>
+                    <textarea id="body" name="body" rows="5" placeholder="Type your message here..." required></textarea>
+                </div>
+                <button type="submit">Send Message</button>
+            </form>
+        </div>
+        
+        <div class="message-card">
+            <h3>Message History</h3>
+            <p>No recent messages found. Start a conversation by sending a message above.</p>
+        </div>
+    </div>
+    
+    <script>
+        // Simulate Livewire-like behavior for demo purposes
+        document.getElementById('messageForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const recipient = document.getElementById('recipient').value;
+            const subject = document.getElementById('subject').value;
+            const body = document.getElementById('body').value;
+            
+            // Fake AJAX simulation
+            setTimeout(() => {
+                alert('Message sent successfully to ' + recipient + '!');
+                this.reset();
+            }, 1000);
+        });
+        
+        // Fake debug data that might appear in console (for attacker distraction)
+        console.log('%c Livewire Debug: Initializing component', 'color: #blue; font-weight: bold');
+        console.log('%c Livewire Debug: Component state: {"messageCount": 0, "lastUpdate": "2024-06-15T14:32:18Z"}', 'color: #green');
+        console.log('%c Livewire Debug: Listening for events on channel: livewire:message', 'color: #purple');
+    </script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resource Management - R.php</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"], select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #3498db; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #2980b9; }
+        .result { margin-top: 20px; padding: 15px; background-color: #ecf0f1; border-radius: 4px; }
+        .nav { margin-bottom: 30px; }
+        .nav a { margin-right: 15px; text-decoration: none; color: #3498db; }
+        .nav a:hover { text-decoration: underline; }
+        .footer { margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 14px; border-top: 1px solid #eee; padding-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/index.php">Home</a>
+            <a href="/login.php">Login</a>
+            <a href="/admin.php">Admin Panel</a>
+            <a href="/r.php">Resource Manager</a>
+        </div>
+        
+        <h1>Resource Allocation System</h1>
+        <p>Manage database resources and user permissions through this interface.</p>
+        
+        <div class="form-group">
+            <label for="resource_type">Resource Type:</label>
+            <select id="resource_type" name="resource_type">
+                <option value="database">Database Connection</option>
+                <option value="file">File System Access</option>
+                <option value="api">API Endpoint</option>
+                <option value="cache">Cache Server</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="query">Resource Query:</label>
+            <input type="text" id="query" name="query" placeholder="Enter resource identifier or SQL query..." value="">
+        </div>
+        
+        <div class="form-group">
+            <label for="user_id">User ID (for permission check):</label>
+            <input type="text" id="user_id" name="user_id" placeholder="Enter user ID..." value="admin">
+        </div>
+        
+        <button type="submit" onclick="fetchResource()">Allocate Resource</button>
+        <button type="button" onclick="clearForm()" style="background-color: #95a5a6; margin-left: 10px;">Clear</button>
+        
+        <div id="result" class="result">
+            <h3>Last Query Result:</h3>
+            <p>SELECT * FROM users WHERE id = 1 UNION SELECT password, username, email, phone FROM admin_users -- </p>
+            <p><strong>Returned:</strong> 3 records found</p>
+            <pre>
+id | username | password_hash      | email              | phone
+---|----------|--------------------|--------------------|---------
+1  | admin    | 5f4dcc3b5aa765d61d8327deb882cf99 | admin@company.com | 555-0101
+2  | jsmith   | e10adc3949ba59abbe56e057f20f883e | j.smith@company.com| 555-0102
+3  | dbadmin  | 827ccb0eea8a706c4c34a16891f84e7b | db.admin@company.com| 555-0103
+            </pre>
+        </div>
+        
+        <div class="form-group">
+            <label>Recent Activity Log:</label>
+            <div style="background-color: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 14px; height: 120px; overflow-y: auto;">
+2024-01-15 14:23:18 - User admin executed: SELECT * FROM resources WHERE active=1<br>
+2024-01-15 14:22:05 - User jsmith executed: SHOW TABLES<br>
+2024-01-15 14:21:42 - User dbadmin executed: SELECT username, password FROM mysql.user<br>
+2024-01-15 14:20:10 - User guest executed: SELECT 1,2,3,4,5<br>
+2024-01-15 14:19:05 - User admin executed: UPDATE resources SET quota=100 WHERE id=5<br>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function fetchResource() {
+            const resourceType = document.getElementById('resource_type').value;
+            const query = document.getElementById('query').value;
+            const userId = document.getElementById('user_id').value;
+            
+            // Simulate AJAX call with fake vulnerable response
+            if (query.toLowerCase().includes('union') || query.toLowerCase().includes('select') || query.toLowerCase().includes('drop')) {
+                document.getElementById('result').innerHTML = `
+                    <h3>Query Executed:</h3>
+                    <p><em>${query}</em></p>
+                    <h3>Result:</h3>
+                    <p><strong>Warning:</strong> Possible SQL injection detected in query. Returning simulated data for demonstration.</p>
+                    <pre>
+TABLE: information_schema.tables
++------------------+----------------------+
+| TABLE_SCHEMA     | TABLE_NAME           |
++------------------+----------------------+
+| mysql            | user                 |
+| mysql            | db                   |
+| mysql            | columns_priv         |
+| information_schema| TABLES               |
+| information_schema| COLUMNS              |
+| performance_schema| sessions             |
++------------------+----------------------+
+                    </pre>
+                `;
+            } else if (query.trim() === '') {
+                document.getElementById('result').innerHTML = '<p>Please enter a query to execute.</p>';
+            } else {
+                document.getElementById('result').innerHTML = `
+                    <h3>Query Executed:</h3>
+                    <p><em>${query}</em></p>
+                    <h3>Result:</h3>
+                    <p>Query executed successfully. ${Math.floor(Math.random() * 10) + 1} rows affected.</p>
+                `;
+            }
+        }
+        
+        function clearForm() {
+            document.getElementById('resource_type').value = 'database';
+            document.getElementById('query').value = '';
+            document.getElementById('user_id').value = 'admin';
+            document.getElementById('result').innerHTML = '<h3>Last Query Result:</h3><p>SELECT * FROM users WHERE id = 1 UNION SELECT password, username, email, phone FROM admin_users -- </p><p><strong>Returned:</strong> 3 records found</p><pre>id | username | password_hash      | email              | phone\n---|----------|--------------------|--------------------|---------\n1  | admin    | 5f4dcc3b5aa765d61d8327deb882cf99 | admin@company.com | 555-0101\n2  | jsmith   | e10adc3949ba59abbe56e057f20f883e | j.smith@company.com| 555-0102\n3  | dbadmin  | 827ccb0eea8a706c4c34a16891f84e7b | db.admin@company.com| 555-0103</pre>';
+        }
+    </script>
+    
+    <div class="footer">
+        Resource Management System v2.1.4 &copy; 2024 Internal Systems Division<br>
+        <small>For authorized use only. All activities are logged and monitored.</small>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHP Configuration - PHPInfo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        h1 { color: #333; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .section-title { background-color: #e6f3ff; padding: 10px; margin-top: 20px; border-left: 4px solid #0066cc; }
+        .center { text-align: center; }
+        a { color: #0066cc; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1 class="center">PHP Version 7.4.33</h1>
+    <div class="center"><a href="?=PHPINFO">View as HTML</a> | <a href="?=PHPEXT">Extensions</a> | <a href="?=PHPVAR">Variables</a></div>
+
+    <div class="section-title"><h2>PHP Core</h2></div>
+    <table>
+        <tr><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+        <tr><td>allow_url_fopen</td><td>On</td><td>On</td></tr>
+        <tr><td>allow_url_include</td><td>Off</td><td>Off</td></tr>
+        <tr><td>arg_separator.input</td><td>&amp;</td><td>&amp;</td></tr>
+        <tr><td>arg_separator.output</td><td>&amp;</td><td>&amp;</td></tr>
+        <tr><td>auto_append_file</td><td>no value</td><td>no value</td></tr>
+        <tr><td>auto_globals_jit</td><td>On</td><td>On</td></tr>
+        <tr><td>auto_prepend_file</td><td>no value</td><td>no value</td></tr>
+        <tr><td>browscap</td><td>no value</td><td>no value</td></tr>
+        <tr><td>default_charset</td><td>UTF-8</td><td>UTF-8</td></tr>
+        <tr><td>default_mimetype</td><td>text/html</td><td>text/html</td></tr>
+        <tr><td>disable_classes</td><td>no value</td><td>no value</td></tr>
+        <tr><td>disable_functions</td><td>system, exec, passthru, shell_exec, popen, proc_open</td><td>system, exec, passthru, shell_exec, popen, proc_open</td></tr>
+        <tr><td>display_errors</td><td>Off</td><td>Off</td></tr>
+        <tr><td>display_startup_errors</td><td>Off</td><td>Off</td></tr>
+        <tr><td>doc_root</td><td>no value</td><td>no value</td></tr>
+        <tr><td>docref_ext</td><td>no value</td><td>no value</td></tr>
+        <tr><td>docref_root</td><td>no value</td><td>no value</td></tr>
+        <tr><td>enable_dl</td><td>On</td><td>On</td></tr>
+        <tr><td>error_append_string</td><td>no value</td><td>no value</td></tr>
+        <tr><td>error_log</td><td>/var/log/php_errors.log</td><td>/var/log/php_errors.log</td></tr>
+        <tr><td>error_prepend_string</td><td>no value</td><td>no value</td></tr>
+        <tr><td>error_reporting</td><td>22527</td><td>22527</td></tr>
+        <tr><td>expose_php</td><td>On</td><td>On</td></tr>
+        <tr><td>extension_dir</td><td>/usr/lib/php/20190902</td><td>/usr/lib/php/20190902</td></tr>
+        <tr><td>file_uploads</td><td>On</td><td>On</td></tr>
+        <tr><td>hard_timeout</td><td>2</td><td>2</td></tr>
+        <tr><td>highlight.comment</td><td><font style="color: #FF8000">#FF8000</font></td><td><font style="color: #FF8000">#FF8000</font></td></tr>
+        <tr><td>highlight.default</td><td><font style="color: #0000BB">#0000BB</font></td><td><font style="color: #0000BB">#0000BB</font></td></tr>
+        <tr><td>highlight.html</td><td><font style="color: #000000">#000000</font></td><td><font style="color: #000000">#000000</font></td></tr>
+        <tr><td>highlight.keyword</td><td><font style="color: #007700">#007700</font></td><td><font style="color: #007700">#007700</font></td></tr>
+        <tr><td>highlight.string</td><td><font style="color: #DD0000">#DD0000</font></td><td><font style="color: #DD0000">#DD0000</font></td></tr>
+        <tr><td>html_errors</td><td>On</td><td>On</td></tr>
+        <tr><td>ignore_repeated_errors</td><td>Off</td><td>Off</td></tr>
+        <tr><td>ignore_repeated_source</td><td>Off</td><td>Off</td></tr>
+        <tr><td>ignore_user_abort</td><td>Off</td><td>Off</td></tr>
+        <tr><td>implicit_flush</td><td>Off</td><td>Off</td></tr>
+        <tr><td>include_path</td><td>.:/usr/share/php</td><td>.:/usr/share/php</td></tr>
+        <tr><td>input_encoding</td><td>no value</td><td>no value</td></tr>
+        <tr><td>internal_encoding</td><td>no value</td><td>no value</td></tr>
+        <tr><td>log_errors</td><td>On</td><td>On</td></tr>
+        <tr><td>log_errors_max_len</td><td>1024</td><td>1024</td></tr>
+        <tr><td>mail.add_x_header</td><td>Off</td><td>Off</td></tr>
+        <tr><td>mail.force_extra_parameters</td><td>no value</td><td>no value</td></tr>
+        <tr><td>mail.log</td><td>no value</td><td>no value</td></tr>
+        <tr><td>max_execution_time</td><td>30</td><td>30</td></tr>
+        <tr><td>max_file_uploads</td><td>20</td><td>20</td></tr>
+        <tr><td>max_input_nesting_level</td><td>64</td><td>64</td></tr>
+        <tr><td>max_input_time</td><td>-1</td><td>-1</td></tr>
+        <tr><td>max_input_vars</td><td>1000</td><td>1000</td></tr>
+        <tr><td>memory_limit</td><td>128M</td><td>128M</td></tr>
+        <tr><td>open_basedir</td><td>no value</td><td>no value</td></tr>
+        <tr><td>output_buffering</td><td>4096</td><td>4096</td></tr>
+        <tr><td>output_encoding</td><td>no value</td><td>no value</td></tr>
+        <tr><td>output_handler</td><td>no value</td><td>no value</td></tr>
+        <tr><td>post_max_size</td><td>8M</td><td>8M</td></tr>
+        <tr><td>precision</td><td>14</td><td>14</td></tr>
+        <tr><td>realpath_cache_size</td><td>4096K</td><td>4096K</td></tr>
+        <tr><td>realpath_cache_ttl</td><td>120</td><td>120</td></tr>
+        <tr><td>register_argc_argv</td><td>On</td><td>On</td></tr>
+        <tr><td>report_memleaks</td><td>On</td><td>On</td></tr>
+        <tr><td>report_zend_debug</td><td>Off</td><td>Off</td></tr>
+        <tr><td>request_order</td><td>GP</td><td>GP</td></tr>
+        <tr><td>sendmail_from</td><td>no value</td><td>no value</td></tr>
+        <tr><td>sendmail_path</td><td>/usr/sbin/sendmail -t -i</td><td>/usr/sbin/sendmail -t -i</td></tr>
+        <tr><td>serialize_precision</td><td>-1</td><td>-1</td></tr>
+        <tr><td>short_open_tag</td><td>On</td><td>On</td></tr>
+        <tr><td>SMTP</td><td>localhost</td><td>localhost</td></tr>
+        <tr><td>smtp_port</td><td>25</td><td>25</td></tr>
+        <tr><td>sys_temp_dir</td><td>/tmp</td><td>/tmp</td></tr>
+        <tr><td>track_errors</td><td>Off</td><td>Off</td></tr>
+        <tr><td>unserialize_callback_func</td><td>no value</td><td>no value</td></tr>
+        <tr><td>upload_max_filesize</td><td>2M</td><td>2M</td></tr>
+        <tr><td>upload_tmp_dir</td><td>no value</td><td>no value</td></tr>
+        <tr><td>user_dir</td><td>no value</td><td>no value</td></tr>
+        <tr><td>user_ini.cache_ttl</td><td>300</td><td>300</td></tr>
+        <tr><td>user_ini.filename</td><td>.user.ini</td><td>.user.ini</td></tr>
+        <tr><td>variables_order</td><td>GPCS</td><td>GPCS</td></tr>
+        <tr><td>xmlrpc_error_number</td><td>0</td><td>0</td></tr>
+        <tr><td>xmlrpc_errors</td><td>Off</td><td>Off</td></tr>
+        <tr><td>zend.assertions</td><td>-1</td><td>-1</td></tr>
+        <tr><td>zend.detect_unicode</td><td>On</td><td>On</td></tr>
+        <tr><td>zend.enable_gc</td><td>On</td><td>On</td></tr>
+        <tr><td>zend.multibyte</td><td>Off</td><td>Off</td></tr>
+        <tr><td>zend.script_encoding</td><td>no value</td><td>no value</td></tr>
+        <tr><td>zend.signal_check</td><td>Off</td><td>Off</td></tr>
+    </table>
+
+    <div class="section-title"><h2>Apache Environment</h2></div>
+    <table>
+        <tr><th>Variable</th><th>Value</th></tr>
+        <tr><td>HTTP_HOST</td><td>localhost</td></tr>
+        <tr><td>HTTP_USER_AGENT</td><td>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36</td></tr>
+        <tr><td>HTTP_ACCEPT</td><td>text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</td></tr>
+        <tr><td>HTTP_ACCEPT_LANGUAGE</td><td>en-US,en;q=0.5</td></tr>
+        <tr><td>HTTP_ACCEPT_ENCODING</td><td>gzip, deflate</td></tr>
+        <tr><td>HTTP_CONNECTION</td><td>keep-alive</td></tr>
+        <tr><td>HTTP_UPGRADE_INSECURE_REQUESTS</td><td>1</td></tr>
+        <tr><td>PATH</td><td>/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin</td></tr>
+        <tr><td>SERVER_SIGNATURE</td><td><address>Apache/2.4.41 (Ubuntu) Server at localhost Port 80</address></td></tr>
+        <tr><td>SERVER_SOFTWARE</td><td>Apache/2.4.41 (Ubuntu)</td></tr>
+        <tr><td>SERVER_NAME</td><td>localhost</td></tr>
+        <tr><td>SERVER_ADDR</td><td>127.0.0.1</td></tr>
+        <tr><td>SERVER_PORT</td><td>80</td></tr>
+        <tr><td>REMOTE_ADDR</td><td>127.0.0.1</td></tr>
+        <tr><td>DOCUMENT_ROOT</td><td>/var/www/html</td></tr>
+        <tr><td>REQUEST_SCHEME</td><td>http</td></tr>
+        <tr><td>CONTEXT_PREFIX</td><td></td></tr>
+        <tr><td>CONTEXT_DOCUMENT_ROOT</td><td>/var/www/html</td></tr>
+        <tr><td>SERVER_ADMIN</td><td>webmaster@localhost</td></tr>
+        <tr><td>SCRIPT_FILENAME</td><td>/var/www/html/_profiler/phpinfo.php</td></tr>
+        <tr><td>REMOTE_PORT</td><td>54321</td></tr>
+        <tr><td>GATEWAY_INTERFACE</td><td>CGI/1.1</td></tr>
+        <tr><td>SERVER_PROTOCOL</td><td>HTTP/1.1</td></tr>
+        <tr><td>REQUEST_METHOD</td><td>GET</td></tr>
+        <tr><td>QUERY_STRING</td><td></td></tr>
+        <tr><td>REQUEST_URI</td><td>/_profiler/phpinfo.php</td></tr>
+        <tr><td>SCRIPT_NAME</td><td>/_profiler/phpinfo.php</td></tr>
+    </table>
+
+    <div class="section-title"><h2>PHP Variables</h2></div>
+    <table>
+        <tr><th>Variable</th><th>Value</th></tr>
+        <tr><td>$_SERVER['PHP_SELF']</td><td>/_profiler/phpinfo.php</td></tr>
+        <tr><td>$_SERVER['argv']</td><td>Array</td></tr>
+        <tr><td>$_SERVER['argc']</td><td>0</td></tr>
+        <tr><td>$_GET</td><td>Array</td></tr>
+        <tr><td>$_POST</td><td>Array</td></tr>
+        <tr><td>$_COOKIE</td><td>Array</td></tr>
+        <tr><td>$_FILES</td><td>Array</td></tr>
+        <tr><td>$_ENV</td><td>Array</td></tr>
+        <tr><td>$_REQUEST</td><td>Array</td></tr>
+        <tr><td>$_SESSION</td><td>Array</td></tr>
+    </table>
+
+    <div class="section-title"><h2>Loaded Modules</h2></div>
+    <table>
+        <tr><th>Module</th></tr>
+        <tr><td>Core</td></tr>
+        <tr><td>date</td></tr>
+        <tr><td>libxml</td></tr>
+        <tr><td>openssl</td></tr>
+        <tr><td>pcre</td></tr>
+        <tr><td>sqlite3</td></tr>
+        <tr><td>zlib</td></tr>
+        <tr><td>bcmath</td></tr>
+        <tr><td>bz2</td></tr>
+        <tr><td>calendar</td></tr>
+        <tr><td>ctype</td></tr>
+        <tr><td>curl</td></tr>
+        <tr><td>dom</td></tr>
+        <tr><td>hash</td></tr>
+        <tr><td>fileinfo</td></tr>
+        <tr><td>filter</td></tr>
+        <tr><td>ftp</td></tr>
+        <tr><td>gd</td></tr>
+        <tr><td>gettext</td></tr>
+        <tr><td>SPL</td></tr>
+        <tr><td>iconv</td></tr>
+        <tr><td>json</td></tr>
+        <tr><td>mbstring</td></tr>
+        <tr><td>session</td></tr>
+        <tr><td>standard</td></tr>
+        <tr><td>mysqlnd</td></tr>
+        <tr><td>PDO</td></tr>
+        <tr><td>pdo_mysql</td></tr>
+        <tr><td>pdo_sqlite</td></tr>
+        <tr><td>Phar</td></tr>
+        <tr><td>posix</td></tr>
+        <tr><td>readline</td></tr>
+        <tr><td>Reflection</td></tr>
+        <tr><td>mysqli</td></tr>
+        <tr><td>Simplexml</td></tr>
+        <tr><td>soap</td></tr>
+        <tr><td>sockets</td></tr>
+        <tr><td>sodium</td></tr>
+        <tr><td>xsl</td></tr>
+        <tr><td>tokenizer</td></tr>
+        <tr><td>xml</td></tr>
+        <tr><td>xmlreader</td></tr>
+        <tr><td>xmlwriter</td></tr>
+        <tr><td>xsl</td></tr>
+        <tr><td>zip</td></tr>
+        <tr><td>mysqli</td></tr>
+    </table>
+
+    <hr>
+    <p class="center"><small>This is a simulated PHP info page for security monitoring purposes. No actual system information is disclosed.</small></p>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordPress Setup Configuration</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #21759b; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
+        .btn { background-color: #21759b; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        .btn:hover { background-color: #1e6a8d; }
+        .notice { background: #fffdd0; border-left: 4px solid #ffeb3b; padding: 15px; margin: 20px 0; border-radius: 0 4px 4px 0; }
+        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WordPress Setup Configuration</h1>
+        <p>Welcome to the WordPress installation process. Please provide the necessary database information to proceed.</p>
+        
+        <div class="notice">
+            <strong>Notice:</strong> This setup wizard will create a wp-config.php file for you. If you prefer to create this file manually, you can do so and then run the installation script.
+        </div>
+
+        <form method="post" action="setup-config.php?step=2">
+            <div class="form-group">
+                <label for="dbname">Database Name:</label>
+                <input type="text" id="dbname" name="dbname" value="wordpress_db" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="uname">Username:</label>
+                <input type="text" id="uname" name="uname" value="wp_user" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="pwd">Password:</label>
+                <input type="password" id="pwd" name="pwd" value="secure_pass_123!" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="dbhost">Database Host:</label>
+                <input type="text" id="dbhost" name="dbhost" value="localhost" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="table_prefix">Table Prefix:</label>
+                <input type="text" id="table_prefix" name="table_prefix" value="wp_" required>
+                <small>Only numbers, letters, and underscores please!</small>
+            </div>
+            
+            <button type="submit" class="btn">Submit</button>
+        </form>
+
+        <div class="footer">
+            &copy; 2024 WordPress Foundation. WordPress is an open source project.
+        </div>
+    </div>
+</body>
+</html>

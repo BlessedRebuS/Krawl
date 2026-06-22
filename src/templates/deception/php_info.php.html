@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHP Info</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+        tr:hover { background-color: #f5f5f5; }
+        .section { margin: 30px 0; }
+        .section h2 { color: #3498db; border-left: 4px solid #3498db; padding-left: 10px; }
+        code { background: #ecf0f1; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace; }
+        .value { color: #27ae60; font-weight: bold; }
+        .warning { color: #e74c3c; font-size: 0.9em; margin-top: 5px; display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PHP Configuration Information</h1>
+        <p><em>This page displays the current PHP configuration and environment. For security reasons, access to this page should be restricted in production environments.</em></p>
+        
+        <div class="section">
+            <h2>PHP Version</h2>
+            <table>
+                <tr><th>PHP Version</th><td class="value">7.4.33</td></tr>
+                <tr><th>System</th><td class="value">Linux web01.internal 5.4.0-109-generic #123-Ubuntu SMP Fri Jan 8 15:08:21 UTC 2022 x86_64</td></tr>
+                <tr><th>Build Date</th><td class="value">Oct 18 2021 15:14:22</td></tr>
+                <tr><th>Configure Command</th><td class="value"><code>./configure '--with-apxs2=/usr/bin/apxs2' '--with-mysql-sock=/var/run/mysqld/mysqld.sock' '--with-mysqli' '--with-pdo-mysql' '--with-zlib' '--enable-bcmath' '--enable-mbstring' '--enable-sockets' '--with-openssl' '--with-curl'</code></td></tr>
+                <tr><th>Server API</th><td class="value">Apache 2.0 Handler</td></tr>
+                <tr><th>Virtual Directory Support</th><td class="value">disabled</td></tr>
+                <tr><th>Configuration File (php.ini) Path</th><td class="value">/etc/php/7.4/apache2</td></tr>
+                <tr><th>Loaded Configuration File</th><td class="value">/etc/php/7.4/apache2/php.ini</td></tr>
+                <tr><th>Scan this dir for additional .ini files</th><td class="value">/etc/php/7.4/apache2/conf.d</td></tr>
+                <tr><th>Additional .ini files parsed</th><td class="value"><code>/etc/php/7.4/apache2/conf.d/10-opcache.ini, /etc/php/7.4/apache2/conf.d/10-pdo.ini, /etc/php/7.4/apache2/conf.d/20-calendar.ini, /etc/php/7.4/apache2/conf.d/20-ctype.ini, /etc/php/7.4/apache2/conf.d/20-exif.ini, /etc/php/7.4/apache2/conf.d/20-fileinfo.ini, /etc/php/7.4/apache2/conf.d/20-ftp.ini, /etc/php/7.4/apache2/conf.d/20-gd.ini, /etc/php/7.4/apache2/conf.d/20-gettext.ini, /etc/php/7.4/apache2/conf.d/20-iconv.ini, /etc/php/7.4/apache2/conf.d/20-json.ini, /etc/php/7.4/apache2/conf.d/20-mbstring.ini, /etc/php/7.4/apache2/conf.d/20-mysqlnd.ini, /etc/php/7.4/apache2/conf.d/20-pdo.ini, /etc/php/7.4/apache2/conf.d/20-readline.ini</code></td></tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>PHP Core</h2>
+            <table>
+                <tr><th>allow_url_fopen</th><td class="value">On</td></tr>
+                <tr><th>allow_url_include</th><td class="value">Off<span class="warning"> (disabled for security)</span></td></tr>
+                <tr><th>arg_separator.input</th><td class="value">&amp;</td></tr>
+                <tr><th>arg_separator.output</th><td class="value">&amp;</td></tr>
+                <tr><th>auto_append_file</th><td class="value">no value</td></tr>
+                <tr><th>auto_globals_jit</th><td class="value">On</td></tr>
+                <tr><th>auto_prepend_file</th><td class="value">no value</td></tr>
+                <tr><th>browscap</th><td class="value">no value</td></tr>
+                <tr><th>default_charset</th><td class="value">UTF-8</td></tr>
+                <tr><th>default_mimetype</th><td class="value">text/html</td></tr>
+                <tr><th>disable_classes</th><td class="value">no value</td></tr>
+                <tr><th>disable_functions</th><td class="value"><code>system,passthru,shell_exec,proc_open,popen,eval,assert</code></td></tr>
+                <tr><th>display_errors</th><td class="value">Off</td></tr>
+                <tr><th>display_startup_errors</th><td class="value">Off</td></tr>
+                <tr><th>doc_root</th><td class="value">no value</td></tr>
+                <tr><th>docref_ext</th><td class="value">no value</td></tr>
+                <tr><th>docref_root</th><td class="value">no value</td></tr>
+                <tr><th>enable_dl</th><td class="value">Off</td></tr>
+                <tr><th>error_append_string</th><td class="value">no value</td></tr>
+                <tr><th>error_log</th><td class="value">/var/log/apache2/php_errors.log</td></tr>
+                <tr><th>error_prepend_string</th><td class="value">no value</td></tr>
+                <tr><th>error_reporting</th><td class="value">22527</td></tr>
+                <tr><th>expose_php</th><td class="value">On<span class="warning"> (potential information disclosure)</span></td></tr>
+                <tr><th>extension_dir</th><td class="value">/usr/lib/php/20190902</td></tr>
+                <tr><th>file_uploads</th><td class="value">On</td></tr>
+                <tr><th>hard_timeout</th><td class="value">2</td></tr>
+                <tr><th>highlight.bg</th><td class="value">#FFFFFF</td></tr>
+                <tr><th>highlight.comment</th><td class="value">#FF8000</td></tr>
+                <tr><th>highlight.default</th><td class="value">#0000BB</td></tr>
+                <tr><th>highlight.html</th><td class="value">#000000</td></tr>
+                <tr><th>highlight.keyword</th><td class="value">#007F00</td></tr>
+                <tr><th>highlight.string</th><td class="value">#DD0000</td></tr>
+                <tr><th>html_errors</th><td class="value">On</td></tr>
+                <tr><th>ignore_repeated_errors</th><td class="value">Off</td></tr>
+                <tr><th>ignore_repeated_source</th><td class="value">Off</td></tr>
+                <tr><th>ignore_user_abort</th><td class="value">Off</td></tr>
+                <tr><th>implicit_flush</th><td class="value">Off</td></tr>
+                <tr><th>include_path</th><td class="value">.:/usr/share/php</td></tr>
+                <tr><th>input_encoding</th><td class="value">no value</td></tr>
+                <tr><th>internal_encoding</th><td class="value">no value</td></tr>
+                <tr><th>log_errors</th><td class="value">On</td></tr>
+                <tr><th>log_errors_max_len</th><td class="value">1024</td></tr>
+                <tr><th>mail.add_x_header</th><td class="value">Off</td></tr>
+                <tr><th>mail.force_extra_parameters</th><td class="value">no value</td></tr>
+                <tr><th>mail.log</th><td class="value">no value</td></tr>
+                <tr><th>max_execution_time</th><td class="value">30</td></tr>
+                <tr><th>max_file_uploads</th><td class="value">20</td></tr>
+                <tr><th>max_input_nesting_level</th><td class="value">64</td></tr>
+                <tr><th>max_input_time</th><td class="value">60</td></tr>
+                <tr><th>max_input_vars</th><td class="value">1000</td></tr>
+                <tr><th>memory_limit</th><td class="value">128M</td></tr>
+                <tr><th>open_basedir</th><td class="value">no value</td></tr>
+                <tr><th>output_buffering</th><td class="value">4096</td></tr>
+                <tr><th>output_encoding</th><td class="value">no value</td></tr>
+                <tr><th>output_handler</th><td class="value">no value</td></tr>
+                <tr><th>post_max_size</th><td class="value">8M</td></tr>
+                <tr><th>precision</th><td class="value">14</td></tr>
+                <tr><th>realpath_cache_size</th><td class="value">4096K</td></tr>
+                <tr><th>realpath_cache_ttl</th><td class="value">120</td></tr>
+                <tr><th>register_argc_argv</th><td class="value">Off</td></tr>
+                <tr><th>report_memleaks</th><td class="value">On</td></tr>
+                <tr><th>report_zend_debug</th><td class="value">Off</td></tr>
+                <tr><th>request_order</th><td class="value">GP</td></tr>
+                <tr><th>sendmail_from</th><td class="value">no value</td></tr>
+                <tr><th>sendmail_path</th><td class="value">/usr/sbin/sendmail -t -i </td></tr>
+                <tr><th>serialize_precision</th><td class="value">-1</td></tr>
+                <tr><th>short_open_tag</th><td class="value">On</td></tr>
+                <tr><th>SMTP</th><td class="value">localhost</td></tr>
+                <tr><th>smtp_port</th><td class="value">25</td></tr>
+                <tr><th>sys_temp_dir</th><td class="value">/tmp</td></tr>
+                <tr><th>track_errors</th><td class="value">Off</td></tr>
+                <tr><th>unserialize_callback_func</th><td class="value">no value</td></tr>
+                <tr><th>upload_max_filesize</th><td class="value">2M</td></tr>
+                <tr><th>upload_tmp_dir</th><td class="value">no value</td></tr>
+                <tr><th>user_dir</th><td class="value">no value</td></tr>
+                <tr><th>user_ini.cache_ttl</th><td class="value">300</td></tr>
+                <tr><th>user_ini.filename</th><td class="value">.user.ini</td></tr>
+                <tr><th>variables_order</th><td class="value">GPCS</td></tr>
+                <tr><th>xmlrpc_error_number</th><td class="value">0</td></tr>
+                <tr><th>xmlrpc_errors</th><td class="value">Off</td></tr>
+                <tr><th>zend.assertions</th><td class="value">1</td></tr>
+                <tr><th>zend.detect_unicode</th><td class="value">On</td></tr>
+                <tr><th>zend.enable_gc</th><td class="value">On</td></tr>
+                <tr><th>zend.multibyte</th><td class="value">Off</td></tr>
+                <tr><th>zend.script_encoding</th><td class="value">no value</td></tr>
+                <tr><th>zend.signal_check</th><td class="value">Off</td></tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2> Apache Environment</h2>
+            <table>
+                <tr><th>HTTP_HOST</th><td class="value">vulnerable-demo.local</td></tr>
+                <tr><th>HTTP_USER_AGENT</th><td class="value">Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36</td></tr>
+                <tr><th>HTTP_ACCEPT</th><td class="value">text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</td></tr>
+                <tr><th>HTTP_ACCEPT_LANGUAGE</th><td class="value">en-US,en;q=0.5</td></tr>
+                <tr><th>HTTP_ACCEPT_ENCODING</th><td class="value">gzip, deflate</td></tr>
+                <tr><th>HTTP_CONNECTION</th><td class="value">keep-alive</td></tr>
+                <tr><th>HTTP_UPGRADE_INSECURE_REQUESTS</th><td class="value">1</td></tr>
+                <tr><th>REMOTE_ADDR</th><td class="value">192.168.1.100</td></tr>
+                <tr><th>REMOTE_PORT</th><td class="value">54321</td></tr>
+                <tr><th>SERVER_ADDR</th><td class="value">192.168.1.50</td></tr>
+                <tr><th>SERVER_PORT</th><td class="value">80</td></tr>
+                <tr><th>SERVER_NAME</th><td class="value">vulnerable-demo.local</td></tr>
+                <tr><th>SERVER_SOFTWARE</th><td class="value">Apache/2.4.41 (Ubuntu)</td></tr>
+                <tr><th>SERVER_SIGNATURE</th><td class="value">Apache/2.4.41 (Ubuntu) Server at vulnerable-demo.local Port 80</td></tr>
+                <tr><th>SERVER_ADMIN</th><td class="value">webmaster@localhost</td></tr>
+                <tr><th>DOCUMENT_ROOT</th><td class="value">/var/www/html</td></tr>
+                <tr><th>REQUEST_SCHEME</th><td class="value">http</td></tr>
+                <tr><th>CONTEXT_PREFIX</th><td class="value">no value</td></tr>
+                <tr><th>CONTEXT_DOCUMENT_ROOT</th><td class="value">/var/www/html</td></tr>
+                <tr><th>SERVER_ADMIN</th><td class="value">webmaster@localhost</td></tr>
+                <tr><th>SCRIPT_FILENAME</th><td class="value">/var/www/html/php_info.php</td></tr>
+                <tr><th>REMOTE_PORT</th><td class="value">54321</td></tr>
+                <tr><th>GATEWAY_INTERFACE</th><td class="value">CGI/1.1</td></tr>
+                <tr><th>SERVER_PROTOCOL</th><td class="value">HTTP/1.1</td></tr>
+                <tr><th>REQUEST_METHOD</th><td class="value">GET</td></tr>
+                <tr><th>QUERY_STRING</th><td class="value">no value</td></tr>
+                <tr><th>REQUEST_URI</th><td class="value">/php_info.php</td></tr>
+                <tr><th>SCRIPT_NAME</th><td class="value">/php_info.php</td></tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>Loaded Modules</h2>
+            <table>
+                <tr><th>Core</th><td class="value">enabled</td></tr>
+                <tr><th>date</th><td class="value">enabled</td></tr>
+                <tr><th>ereg</th><td class="value">Regex Library => Bundled library enabled</td></tr>
+                <tr><th>filter</th><td class="value">Input Validation and Filtering => enabled</td></tr>
+                <tr><th>hash</th><td class="value">Hash Support => enabled</td></tr>
+                <tr><th>json</th><td class="value">JSON Support => enabled</td></tr>
+                <tr><th>libxml</th><td class="value">libXML Support => active</td></tr>
+                <tr><th>mbstring</th><td class="value">Multibyte Support => enabled</td></tr>
+                <tr><th>mysqlnd</th><td class="value">mysqlnd => enabled</td></tr>
+                <tr><th>openssl</th><td class="value">OpenSSL Support => enabled</td></tr>
+                <tr><th>pcntl</th><td class="value">PCNTL support => enabled</td></tr>
+                <tr><th>pcre</th><td class="value">PCRE (Perl Compatible Regular Expressions) Support => enabled</td></tr>
+                <tr><th>PDO</th><td class="value">PDO support => enabled</td></tr>
+                <tr><th>pdo_mysql</th><td class="value">PDO Driver for MySQL => enabled</td></tr>
+                <tr><th>session</th><td class="value">Session Support => enabled</td></tr>
+                <tr><th>SimpleXML</th><td class="value">SimpleXML support => enabled</td></tr>
+                <tr><th>sockets</th><td class="value">Sockets Support => enabled</td></tr>
+                <tr><th>SPL</th><td class="value">SPL support => enabled</td></tr>
+                <tr><th>standard</th><td class="value">Dynamic Library Support => enabled</td></tr>
+                <tr><th>tokenizer</th><td class="value">Tokenizer Support => enabled</td></tr>
+                <tr><th>xml</th><td class="value">XML Support => active</td></tr>
+                <tr><th>xmlreader</th><td class="value">XMLReader => enabled</td></tr>
+                <tr><th>xmlwriter</th><td class="value">XMLWriter => enabled</td></tr>
+                <tr><th>xsl</th><td class="value">XSL => enabled</td></tr>
+                <tr><th>zip</th><td class="value">Zip => enabled</td></tr>
+                <tr><th>zlib</th><td class="value">ZLib Support => enabled</td></tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>PHP Variables</h2>
+            <table>
+                <tr><th>$_SERVER['PHP_SELF']</th><td class="value">/php_info.php</td></tr>
+                <tr><th>$_SERVER['argv']</th><td class="value">Array ( )</td></tr>
+                <tr><th>$_SERVER['argc']</th><td class="value">0</td></tr>
+                <tr><th>$_GET</th><td class="value">Array ( )</td></tr>
+                <tr><th>$_POST</th><td class="value">Array ( )</td></tr>
+                <tr><th>$_COOKIE</th><td class="value">Array ( [PHPSESSID] => abc123def456ghi789jkl012mno345pqr )</td></tr>
+                <tr><th>$_FILES</th><td class="value">Array ( )</td></tr>
+                <tr><th>$_ENV</th><td class="value">Array ( [PATH] => /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin, [HOME] => /var/www )</td></tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>Additional Information</h2>
+            <p>This server is running a demonstration environment for security training purposes. The configuration shown above may contain intentional vulnerabilities for educational demonstrations.</p>
+            <p><strong>Note:</strong> In a production environment, this information should never be exposed to untrusted users as it can reveal sensitive system details that could be exploited by attackers.</p>
+        </div>
+    </div>
+</body>
+</html>

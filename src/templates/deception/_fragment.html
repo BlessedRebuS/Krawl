@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symfony Fragment - Internal Server Error</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #d32f2f; border-bottom: 2px solid #ffebee; padding-bottom: 10px; }
+        .error-code { background: #ffebee; color: #d32f2f; padding: 15px; border-left: 4px solid #d32f2f; margin: 20px 0; font-family: monospace; }
+        .details { background: #fafafa; padding: 15px; border-radius: 4px; margin: 15px 0; }
+        .trace { font-family: monospace; font-size: 0.9em; background: #eee; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        a { color: #1976d2; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Internal Server Error</h1>
+        <p>The server encountered an unexpected condition that prevented it from fulfilling the request.</p>
+        
+        <div class="error-code">500 Internal Server Error</div>
+        
+        <div class="details">
+            <strong>Exception:</strong> Symfony\Component\DependencyInjection\Exception\InvalidArgumentException<br>
+            <strong>Message:</strong> Cannot autowire service "_fragment": argument "$controller" of method "Symfony\Component\HttpKernel\ControllerFragmentResolver::__construct()" must have a type-hint or be given a value explicitly.
+        </div>
+        
+        <div class="details">
+            <strong>Request URL:</strong> http://example.com/_fragment?_path=what%3D-1%26_controller%3Dphpinfo&_hash=Rwq9W6GU%2FJh%2BoA7x6mgbf90tL55wZ103YUXryRrAGk0%3D<br>
+            <strong>Request Method:</strong> GET<br>
+            <strong>Host:</strong> example.com<br>
+            <strong>User-Agent:</strong> Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36
+        </div>
+        
+        <div class="details">
+            <strong>Trace:</strong><div class="trace">#0 [internal function]: Symfony\Component\HttpKernel\ControllerFragmentResolver->__construct()<br>
+#1 /var/www/html/vendor/symfony/http-kernel/DependencyInjection/FragmentListener.php(42): Symfony\Component\HttpKernel\ControllerFragmentResolver->resolve()<br>
+#2 /var/www/html/vendor/symfony/http-kernel/HttpKernel.php(143): Symfony\Component\HttpKernel\DependencyInjection\FragmentListener->onKernelController()<br>
+#3 /var/www/html/vendor/symfony/event-dispatcher/EventDispatcher.php(212): Symfony\Component\HttpKernel\HttpKernel->handle()<br>
+#4 /var/www/html/vendor/symfony/http-kernel/HttpKernel.php(68): Symfony\Component\EventDispatcher\EventDispatcher->dispatch()<br>
+#5 /var/www/html/vendor/symfony/http-kernel/Kernel.php(200): Symfony\Component\HttpKernel\HttpKernel->handleRaw()<br>
+#6 /var/www/html/public/index.php(15): Symfony\Component\HttpKernel\Kernel->handle()<br>
+#7 {main}</div>
+        </div>
+        
+        <p>If you are the administrator of this website, please check the server logs for more information.</p>
+        
+        <div class="footer">
+            Powered by Symfony 6.4.10 | PHP 8.2.12 | Server: Apache/2.4.58 (Ubuntu)
+        </div>
+    </div>
+</body>
+</html>

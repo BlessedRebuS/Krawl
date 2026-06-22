@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordPress - wp.php</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f9f9f9; color: #333; }
+        h1 { color: #21759b; }
+        .content { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 4px; margin: 20px 0; }
+        .footer { margin-top: 30px; font-size: 0.9em; color: #666; text-align: center; }
+        a { color: #0073aa; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>WordPress Core File</h1>
+        <p>This file is part of the WordPress core. It handles plugin and theme compatibility functions.</p>
+        
+        <div class="warning">
+            <strong>Notice:</strong> This file has been modified for performance optimization. Do not edit unless you understand the implications.
+        </div>
+
+        <h2>Plugin Compatibility Functions</h2>
+        <p>This script provides backward compatibility for deprecated plugin hooks:</p>
+        <ul>
+            <li><code>wp_register_plugin_realpath()</code> - Registers real paths for plugin files</li>
+            <li><code>wp_get_active_and_valid_plugins()</code> - Returns array of active plugins</li>
+            <li><code>wp_plugin_directory_constants()</code> - Defines WP_PLUGIN_DIR and WP_PLUGIN_URL</li>
+        </ul>
+
+        <h2>Debug Information (Development Only)</h2>
+        <?php
+        // Simulated PHP output - in reality this would be processed by server
+        echo "<!-- ";
+        echo "WP_DEBUG: false | ";
+        echo "WP_MEMORY_LIMIT: 256M | ";
+        echo "Loaded Plugins: akismet, contact-form-7, woocommerce, jetpack | ";
+        echo "Template: twentytwentyfour | ";
+        echo "User Agent: " . htmlspecialchars($_SERVER['HTTP_USER_AGENT'] ?? 'unknown', ENT_QUOTES) . " ";
+        echo "-->";
+        ?>
+
+        <p>Last modified: April 5, 2024 | Version: 6.5.2</p>
+
+        <div class="footer">
+            &copy; 2003-2024 WordPress Foundation | <a href="https://wordpress.org/">WordPress.org</a>
+        </div>
+    </div>
+</body>
+</html>

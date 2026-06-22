@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spring Boot Actuator - HTTP Trace</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5;}
+        h1 {color: #2c3e50;}
+        table {width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff;}
+        th, td {padding: 12px; border: 1px solid #ddd; text-align: left;}
+        th {background-color: #3498db; color: #fff;}
+        tr:nth-child(even) {background-color: #f2f2f2;}
+    </style>
+</head>
+<body>
+    <h1>HTTP Trace</h1>
+    <p>The following table shows the most recent HTTP requests captured by the actuator.</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Method</th>
+                <th>URI</th>
+                <th>Status</th>
+                <th>Principal</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>2025-11-02T10:15:42.123Z</td>
+                <td>GET</td>
+                <td>/api/users</td>
+                <td>200</td>
+                <td>alice</td>
+            </tr>
+            <tr>
+                <td>2025-11-02T10:14:07.456Z</td>
+                <td>POST</td>
+                <td>/api/orders</td>
+                <td>201</td>
+                <td>bob</td>
+            </tr>
+            <tr>
+                <td>2025-11-02T10:12:33.789Z</td>
+                <td>GET</td>
+                <td>/actuator/health</td>
+                <td>200</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>2025-11-02T10:10:55.001Z</td>
+                <td>PUT</td>
+                <td>/api/products/42</td>
+                <td>400</td>
+                <td>charlie</td>
+            </tr>
+            <tr>
+                <td>2025-11-02T10:09:20.334Z</td>
+                <td>DELETE</td>
+                <td>/api/sessions/123</td>
+                <td>204</td>
+                <td>-</td>
+            </tr>
+        </tbody>
+    </table>
+    <p><em>Trace data is retained for the last 100 requests.</em></p>
+</body>
+</html>

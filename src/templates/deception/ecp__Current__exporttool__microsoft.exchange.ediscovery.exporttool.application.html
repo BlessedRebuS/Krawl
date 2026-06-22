@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Microsoft Exchange Export Tool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f4; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #0078d4; }
+        .status { padding: 15px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; margin: 20px 0; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; color: #856404; }
+        .btn { display: inline-block; padding: 10px 20px; background-color: #0078d4; color: white; text-decoration: none; border-radius: 4px; margin: 5px; }
+        .btn:hover { background-color: #106ebe; }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"], select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Microsoft Exchange Export Tool</h1>
+        <div class="status">
+            <strong>Status:</strong> Tool is ready for use. Export operations require appropriate permissions.
+        </div>
+        <div class="warning">
+            <strong>Notice:</strong> This tool is intended for authorized eDiscovery export operations only. Unauthorized use may violate corporate policy and applicable laws.
+        </div>
+
+        <h2>Export Configuration</h2>
+        <form id="exportForm">
+            <div class="form-group">
+                <label for="mailbox">Target Mailbox:</label>
+                <input type="text" id="mailbox" name="mailbox" placeholder="user@domain.com" value="admin@contoso.com" required>
+            </div>
+            <div class="form-group">
+                <label for="searchQuery">Search Query (KQL):</label>
+                <input type="text" id="searchQuery" name="searchQuery" placeholder="Sent:>=01/01/2023 AND Sent:<=12/31/2023" value="Sent:>=01/01/2023 AND Sent:<=12/31/2023">
+            </div>
+            <div class="form-group">
+                <label for="outputFormat">Output Format:</label>
+                <select id="outputFormat" name="outputFormat">
+                    <option value="pst">PST File</option>
+                    <option value="mbox">MBOX File</option>
+                    <option value="eml">Individual EML Files</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="includeDumpster">Include Recoverable Items:</label>
+                <input type="checkbox" id="includeDumpster" name="includeDumpster" checked>
+            </div>
+            <button type="submit" class="btn">Start Export</button>
+            <button type="button" class="btn" onclick="window.location.href='/ecp/'">Return to ECP</button>
+        </form>
+
+        <div id="exportStatus" style="margin-top: 20px; padding: 15px; background-color: #e7f3ff; border-left: 4px solid #0078d4; display: none;">
+            <strong>Export Status:</strong> <span id="statusText">Ready to start...</span>
+        </div>
+
+        <h2>Recent Exports</h2>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <thead>
+                <tr style="background-color: #f2f2f2;">
+                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Mailbox</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Date/Time</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Size</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Status</th>
+                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;">admin@contoso.com</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;">2024-01-15 14:30:22</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;">2.4 GB</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd; color: green;">Completed</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;"><a href="#" class="btn" style="font-size: 0.9em; padding: 5px 10px;">Download</a></td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;">hr.manager@contoso.com</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;">2024-01-14 09:15:45</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;">1.1 GB</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd; color: orange;">Processing</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;"><a href="#" class="btn" style="font-size: 0.9em; padding: 5px 10px;">Cancel</a></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div style="margin-top: 30px; font-size: 0.9em; color: #666; border-top: 1px solid #eee; padding-top: 15px;">
+            <p>Microsoft Exchange Server 2019 CU12 | Build 15.2.986.3</p>
+            <p>&copy; 2024 Microsoft Corporation. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('exportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const statusDiv = document.getElementById('exportStatus');
+            const statusText = document.getElementById('statusText');
+            
+            statusDiv.style.display = 'block';
+            statusText.textContent = 'Export initiated... Connecting to mailbox store...';
+            
+            // Simulate progress
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 90) {
+                    clearInterval(interval);
+                    statusText.textContent = 'Export completed successfully! Preparing download...';
+                    setTimeout(() => {
+                        statusText.textContent = 'Export completed. Click Download to retrieve your PST file.';
+                    }, 2000);
+                } else {
+                    statusText.textContent = `Export in progress... ${Math.min(99, Math.floor(progress))}% complete`;
+                }
+            }, 800);
+        });
+    </script>
+</body>
+</html>

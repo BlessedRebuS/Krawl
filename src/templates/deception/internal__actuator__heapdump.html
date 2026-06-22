@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Heap Dump - Actuator</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        .container {max-width:800px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+        pre {background:#eee; padding:10px; overflow:auto;}
+        a.btn {display:inline-block; margin-top:15px; padding:10px 20px; background:#3498db; color:#fff; text-decoration:none; border-radius:4px;}
+        a.btn:hover {background:#2980b9;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Spring Boot Actuator - Heap Dump</h1>
+        <p>This endpoint provides a snapshot of the JVM heap. The dump can be downloaded for offline analysis using tools such as Eclipse MAT or VisualVM.</p>
+        <form action="/internal/actuator/heapdump" method="get">
+            <button type="submit" class="btn">Download Heap Dump (HPROF)</button>
+        </form>
+        <hr>
+        <h2>Heap Dump Metadata</h2>
+        <ul>
+            <li><strong>Timestamp:</strong> 2025-11-03 14:22:07 UTC</li>
+            <li><strong>JVM Version:</strong> OpenJDK 17.0.12</li>
+            <li><strong>Heap Size:</strong> 2.1 GB (used 1.3 GB)</li>
+            <li><strong>Format:</strong> HPROF binary</li>
+        </ul>
+        <h2>Sample Heap Dump Header (first 64 bytes)</h2>
+        <pre>00 00 00 00 0a 00 00 00 01 00 00 00 02 00 00 00
+03 00 00 00 04 00 00 00 05 00 00 00 06 00 00 00
+07 00 00 00 08 00 00 00 09 00 00 00 0a 00 00 00
+0b 00 00 00 0c 00 00 00 0d 00 00 00 0e 00 00 00
+0f 00 00 00 10 00 00 00 11 00 00 00 12 00 00 00</pre>
+        <p>Note: The actual binary data is omitted for brevity. Click the download button above to retrieve the full heap dump file.</p>
+    </div>
+</body>
+</html>

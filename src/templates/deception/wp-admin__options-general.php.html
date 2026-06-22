@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SMTP Settings &rsaquo; WordPress Dashboard</title>
+    <link rel="stylesheet" href="/wp-admin/css/buttons.min.css?ver=6.5">
+    <link rel="stylesheet" href="/wp-admin/css/wp-admin.min.css?ver=6.5">
+    <link rel="stylesheet" href="/wp-admin/css/colors-classic.min.css?ver=6.5">
+    <style>
+        .wrap { padding: 20px; }
+        .form-table { width: 100%; border-collapse: collapse; }
+        .form-table th, .form-table td { padding: 10px; vertical-align: top; }
+        .form-table th { background: #f5f5f5; text-align: left; width: 30%; }
+        .regular-text { width: 300px; }
+        .submit { margin-top: 20px; }
+    </style>
+</head>
+<body class="wp-admin wp-core-ui">
+<div id="wpcontent" class="wp-core-ui">
+    <div id="adminmenuwrap">
+        <div id="adminmenu">
+            <ul>
+                <li class="menu-top menu-icon-dashboard"><a href="/wp-admin/index.php"><div class="wp-menu-image dashicons-before dashicons-admin-home"></div><div class="wp-menu-name">Dashboard</div></a></li>
+                <li class="menu-top menu-icon-plugins"><a href="/wp-admin/plugins.php"><div class="wp-menu-image dashicons-before dashicons-admin-plugins"></div><div class="wp-menu-name">Plugins</div></a></li>
+                <li class="menu-top menu-icon-tools"><a href="/wp-admin/tools.php"><div class="wp-menu-image dashicons-before dashicons-admin-tools"></div><div class="wp-menu-name">Tools</div></a></li>
+                <li class="menu-top menu-icon-settings wp-has-current-submenu wp-menu-open"><a href="/wp-admin/options-general.php" class="wp-has-submenu"><div class="wp-menu-image dashicons-before dashicons-admin-settings"></div><div class="wp-menu-name">Settings</div></a>
+                    <ul class="submenu">
+                        <li><a href="/wp-admin/options-general.php">General</a></li>
+                        <li><a href="/wp-admin/options-writing.php">Writing</a></li>
+                        <li><a href="/wp-admin/options-reading.php">Reading</a></li>
+                        <li><a href="/wp-admin/options-discussion.php">Discussion</a></li>
+                        <li><a href="/wp-admin/options-media.php">Media</a></li>
+                        <li class="current"><a href="/wp-admin/options-general.php?page=swpsmtp_settings">SMTP Settings</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div id="wpbody">
+        <div id="wpbody-content">
+            <div class="wrap">
+                <h1>SMTP Settings</h1>
+                <form method="post" action="options-general.php?page=swpsmtp_settings&amp;updated=true">
+                    <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="page_options" value="swpsmtp_from_email,swpsmtp_from_name,swpsmtp_mailer,swpsmtp_host,swpsmtp_port,swpsmtp_encryption,swpsmtp_auth,swpsmtp_user,swpsmtp_pass">
+                    <table class="form-table">
+                        <tr>
+                            <th scope="row"><label for="swpsmtp_from_email">From Email Address</label></th>
+                            <td><input name="swpsmtp_from_email" type="email" id="swpsmtp_from_email" class="regular-text" value="info@example.com"><br>
+                                <span class="description">The email address that will appear as the sender.</span></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><label for="swpsmtp_from_name">From Name</label></th>
+                            <td><input name="swpsmtp_from_name" type="text" id="swpsmtp_from_name" class="regular-text" value="My Website"><br>
+                                <span class="description">The name that will appear as the sender.</span></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><label for="swpsmtp_mailer">Mailer</label></th>
+                            <td>
+                                <select name="swpsmtp_mailer" id="swpsmtp_mailer">
+                                    <option value="other">Other SMTP</option>
+                                    <option value="gmail" selected>Gmail</option>
+                                    <option value="mailgun">Mailgun</option>
+                                    <option value="sendgrid">SendGrid</option>
+                                </select>
+                                <br><span class="description">Choose the service you want to use for sending emails.</span></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><label for="swpsmtp_host">SMTP Host</label></th>
+                            <td><input name="swpsmtp_host" type="text" id="swpsmtp_host" class="regular-text" value="smtp.gmail.com"><br>
+                                <span class="description">Your SMTP server hostname.</span></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><label for="swpsmtp_port">SMTP Port</label></th>
+                            <td><input name="swpsmtp_port" type="number" id="swpsmtp_port" class="small-text" value="587"><br>
+                                <span class="description">The port to connect to on your SMTP server.</span></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><label for="swpsmtp_encryption">Encryption</label></th>
+                            <td>
+                                <select name="swpsmtp_encryption" id="swpsmtp_encryption">
+                                    <option value="none">No encryption</option>
+                                    <option value="ssl" selected>SSL</option>
+                                    <option value="tls">TLS</option>
+                                </select>
+                                <br><span class="description">Choose the encryption method.</span></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><label for="swpsmtp_auth">Authentication</label></th>
+                            <td>
+                                <label><input type="checkbox" name="swpsmtp_auth" id="swpsmtp_auth" value="1" checked> Use SMTP authentication</label><br>
+                                <span class="description">Most SMTP servers require authentication.</span></td>
+                        </tr>
+                        <tr class="auth-fields">
+                            <th scope="row"><label for="swpsmtp_user">Username</label></th>
+                            <td><input name="swpsmtp_user" type="text" id="swpsmtp_user" class="regular-text" value="yourname@gmail.com"><br>
+                                <span class="description">Your SMTP username.</span></td>
+                        </tr>
+                        <tr class="auth-fields">
+                            <th scope="row"><label for="swpsmtp_pass">Password</label></th>
+                            <td><input name="swpsmtp_pass" type="password" id="swpsmtp_pass" class="regular-text" value="••••••••"><br>
+                                <span class="description">Your SMTP password. For security, the value is masked.</span></td>
+                        </tr>
+                    </table>
+                    <p class="submit">
+                        <input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes">
+                        <span class="spinner"></span>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

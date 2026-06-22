@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Console - System View</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 4px; background: #fafafa; }
+        .debug-section h2 { color: #555; margin-top: 0; }
+        .data-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        .data-table th, .data-table td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        .data-table th { background-color: #e8f5e8; }
+        .data-table tr:nth-child(even) { background-color: #f9f9f9; }
+        .log-entry { padding: 8px; margin: 5px 0; background: #fff; border-left: 3px solid #2196F3; }
+        .log-entry.warning { border-left-color: #ff9800; }
+        .log-entry.error { border-left-color: #f44336; background: #ffebee; }
+        .btn { background: #2196F3; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 5px; }
+        .btn:hover { background: #1976D2; }
+        .footer { margin-top: 30px; padding-top: 10px; border-top: 1px solid #eee; color: #666; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>System Debug Console</h1>
+        <p><em>Last updated: 2024-06-15 14:23:18 UTC</em></p>
+        
+        <div class="debug-section">
+            <h2>Environment Variables</h2>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Variable</th><th>Value</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>APP_ENV</td><td>production</td></tr>
+                    <tr><td>DEBUG_MODE</td><td>false</td></tr>
+                    <tr><td>DB_HOST</td><td>db-internal.prod.local</td></tr>
+                    <tr><td>DB_PORT</td><td>5432</td></tr>
+                    <tr><td>DB_NAME</td><td>app_production</td></tr>
+                    <tr><td>DB_USER</td><td>app_user</td></tr>
+                    <tr><td>DB_PASSWORD</td><td>[REDACTED]</td></tr>
+                    <tr><td>REDIS_URL</td><td>redis://redis-cache:6379</td></tr>
+                    <tr><td>SECRET_KEY</td><td>a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6</td></tr>
+                    <tr><td>ADMIN_EMAIL</td><td>admin@example.com</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="debug-section">
+            <h2>Active Sessions</h2>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Session ID</th><th>User ID</th><th>IP Address</th><th>Last Activity</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>sess_7f3a9b2c</td><td>1024</td><td>192.168.1.105</td><td>2024-06-15 14:20:12</td></tr>
+                    <tr><td>sess_8d2e1f4a</td><td>2056</td><td>10.0.0.42</td><td>2024-06-15 14:18:45</td></tr>
+                    <tr><td>sess_9b3c5d6e</td><td>3012</td><td>172.16.0.23</td><td>2024-06-15 14:22:01</td></tr>
+                    <tr><td>sess_a4b5c6d7</td><td>4089</td><td>203.0.113.45</td><td>2024-06-15 14:15:33</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="debug-section">
+            <h2>Recent Log Entries</h2>
+            <div class="log-entry">[INFO] Application started successfully on port 8080</div>
+            <div class="log-entry">[INFO] Database connection pool initialized (10/20 connections)</div>
+            <div class="log-entry warning">[WARN] Slow query detected: SELECT * FROM users WHERE last_login > '2024-06-01' took 1.2s</div>
+            <div class="log-entry">[INFO] Cache cleared for user profile data</div>
+            <div class="log-entry error">[ERROR] Failed to send email to user@invalid-domain.com: SMTP authentication failed</div>
+            <div class="log-entry">[INFO] Security scan completed: no vulnerabilities found</div>
+            <div class="log-entry">[DEBUG] SQL query executed: UPDATE sessions SET last_activity = NOW() WHERE id = 'sess_7f3a9b2c'</div>
+            <div class="log-entry">[INFO] File upload processed: avatar_1024.jpg (2.4 MB)</div>
+        </div>
+
+        <div class="debug-section">
+            <h2>System Metrics</h2>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Metric</th><th>Value</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>CPU Usage</td><td>23.4%</td><td>Normal</td></tr>
+                    <tr><td>Memory Usage</td><td>1.8 GB / 4.0 GB (45%)</td><td>Normal</td></tr>
+                    <tr><td>Disk Space</td><td>12.4 GB / 50.0 GB (75%)</td><td>Warning</td></tr>
+                    <tr><td>Network In</td><td>12.3 MB/s</td><td>Normal</td></tr>
+                    <tr><td>Network Out</td><td>8.7 MB/s</td><td>Normal</td></tr>
+                    <tr><td>Active Connections</td><td>142</td><td>Normal</td></tr>
+                    <tr><td>Request Rate</td><td>45.2 req/s</td><td>Normal</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="debug-section">
+            <h2>Configuration Files</h2>
+            <p><a href="/web/debug/default/config" class="btn">View Config</a> | <a href="/web/debug/default/logs" class="btn">View Logs</a> | <a href="/web/debug/default/sql" class="btn">Query Console</a></p>
+            <p><em>Note: This debug interface is intended for internal use only. Access is logged and monitored.</em></p>
+        </div>
+    </div>
+    <div class="footer">
+        Debug Console v2.1.4 &copy; 2024 Internal Systems - Unauthorized access prohibited
+    </div>
+</body>
+</html>

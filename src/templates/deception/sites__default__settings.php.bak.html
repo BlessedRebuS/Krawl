@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>settings.php.bak - Site Configuration Backup</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; color:#222; padding:20px;}
+        pre {background:#fff; padding:15px; border:1px solid #ddd; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>Drupal Settings Configuration Backup</h1>
+    <p>This is a backup of the site's settings.php file.</p>
+    <pre>
+<?php
+/**
+ * @file
+ * Drupal site-specific configuration file.
+ *
+ * IMPORTANT NOTE:
+ * This file may have been set to read-only by the Drupal installer.
+ * If you make changes to this file, be sure to protect it again
+ * after making your modifications. Failure to do so could lead
+ * to security vulnerabilities.
+ */
+
+$databases = array (
+  'default' =>
+  array (
+    'default' =>
+    array (
+      'database' => 'drupaldb',
+      'username' => 'dbuser',
+      'password' => 's3cr3tP@ss!',
+      'host' => 'localhost',
+      'port' => '',
+      'driver' => 'mysql',
+      'prefix' => '',
+    ),
+  ),
+);
+
+$settings['hash_salt'] = 'h@shS@ltV@lue123';
+$settings['file_public_path'] = 'sites/default/files';
+$settings['file_private_path'] = '';
+$settings['file_temporary_path'] = '/tmp';
+
+$config_directories = array (
+  CONFIG_SYNC_DIRECTORY => 'sites/default/files/config_XXXXXXX/sync',
+);
+
+$settings['container_yamls'][] = DRUPAL_ROOT . '/sites/development.services.yml';
+$settings['update_free_access'] = FALSE;
+$settings['skip_permissions_hardening'] = TRUE;
+
+/**
+ * Reverse Proxy Configuration:
+ */
+// $settings['reverse_proxy'] = TRUE;
+// $settings['reverse_proxy_addresses'] = array('a.b.c.d', ...);
+
+?>
+    </pre>
+</body>
+</html>

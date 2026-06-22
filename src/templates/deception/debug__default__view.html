@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Debug Console</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .section { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 4px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, textarea, select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 3px; }
+        button { background-color: #007cba; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 3px; }
+        button:hover { background-color: #005a87; }
+        .log { background: #f8f8f8; padding: 10px; height: 200px; overflow-y: auto; border: 1px solid #eee; font-family: monospace; font-size: 12px; }
+        .vuln-warning { background: #fff3cd; color: #856404; padding: 10px; border: 1px solid #ffeaa7; border-radius: 3px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>System Debug Console</h1>
+        <p>Internal debugging interface - For authorized personnel only</p>
+        
+        <div class="section">
+            <h2>Current System Status</h2>
+            <p><strong>Server:</strong> Apache/2.4.41 (Ubuntu)</p>
+            <p><strong>PHP Version:</strong> 7.4.3</p>
+            <p><strong>MySQL:</strong> 5.7.31-0ubuntu0.18.04.1</p>
+            <p><strong>Memory Usage:</strong> 45.2%</p>
+            <p><strong>Uptime:</strong> 12 days, 4 hours, 23 minutes</p>
+        </div>
+
+        <div class="section">
+            <h2>Recent Debug Logs</h2>
+            <div class="log">
+                [2024-01-15 10:30:22] DEBUG: User admin logged in from 192.168.1.100<br>
+                [2024-01-15 10:29:45] INFO: Cache cleared for module 'user_profile'<br>
+                [2024-01-15 10:28:12] WARNING: Slow query detected: SELECT * FROM users WHERE last_login > NOW() - INTERVAL 30 DAY<br>
+                [2024-01-15 10:27:05] DEBUG: Session ID: sess_abc123xyz789 - User: administrator<br>
+                [2024-01-15 10:26:33] ERROR: Failed to connect to external API: api.paymentgateway.com<br>
+                [2024-01-15 10:25:11] DEBUG: SQL Query: SELECT username, email FROM users WHERE id = 1<br>
+                [2024-01-15 10:24:55] INFO: File upload processed: /var/www/html/uploads/doc_123.pdf<br>
+                [2024-01-15 10:23:40] DEBUG: Cookie set: PHPSESSID=abc123def456ghi789jkl012mno345pqr<br>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Execute Diagnostic Command</h2>
+            <form action="/debug/default/exec.php" method="POST">
+                <label for="command">System Command:</label>
+                <input type="text" id="command" name="cmd" value="ls -la /var/www/html" placeholder="Enter command to execute">
+                <br>
+                <label for="output_format">Output Format:</label>
+                <select id="output_format" name="format">
+                    <option value="text">Plain Text</option>
+                    <option value="html">HTML Formatted</option>
+                    <option value="json">JSON</option>
+                </select>
+                <br>
+                <button type="submit">Execute Command</button>
+            </form>
+            <div class="vuln-warning">
+                <strong>Warning:</strong> This interface executes commands with web server privileges. Use with extreme caution.
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Database Query Tool</h2>
+            <form action="/debug/default/query.php" method="POST">
+                <label for="db_query">SQL Query:</label>
+                <textarea id="db_query" name="query" rows="4" placeholder="SELECT * FROM users LIMIT 10">SELECT * FROM users WHERE active = 1</textarea>
+                <br>
+                <button type="submit">Run Query</button>
+            </form>
+            <div class="vuln-warning">
+                <strong>Note:</strong> This tool uses direct database connection. Input is not sanitized for demonstration purposes.
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Configuration Files</h2>
+            <ul>
+                <li><a href="/debug/default/view.html?file=config/database.php">View Database Config</a></li>
+                <li><a href="/debug/default/view.html?file=config/app.php">View Application Config</a></li>
+                <li><a href="/debug/default/view.html?file=.env">View Environment Variables</a></li>
+                <li><a href="/debug/default/view.html?file=/etc/passwd">View System Users</a></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

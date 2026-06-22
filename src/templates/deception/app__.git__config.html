@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Git Configuration</title>
+    <style>
+        body {font-family: monospace; margin: 2em; background:#f9f9f9; color:#222;}
+        pre {background:#eee; padding:1em; border:1px solid #ccc; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>.git/config</h1>
+    <p>Below is the content of the Git configuration file for this repository.</p>
+    <pre>[core]
+        repositoryformatversion = 0
+        filemode = true
+        bare = false
+        logallrefupdates = true
+[remote "origin"]
+        url = https://example.com/user/repo.git
+        fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+        remote = origin
+        merge = refs/heads/main
+</pre>
+</body>
+</html>

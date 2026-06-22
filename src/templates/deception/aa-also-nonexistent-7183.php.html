@@ -1,0 +1,36 @@
+<?php
+// fake vulnerable login page
+$host = 'localhost';
+$user = 'root';
+$pass = '';
+$db = 'users';
+$conn = new mysqli($host,$user,$pass,$db);
+if ($conn->connect_error) die('Connection failed: '.$conn->connect_error);
+
+if(isset($_POST['username']) && isset($_POST['password'])) {
+    $user = $_POST['username'];
+    $pass = $_POST['password'];
+    $sql = "SELECT * FROM users WHERE username='$user' AND password='$pass'";
+    $result = $conn->query($sql);
+    if ($result->num_rows > 0) {
+        echo "Login successful!";
+    } else {
+        echo "Invalid credentials.";
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Admin Panel</title>
+</head>
+<body>
+    <h2>Admin Login</h2>
+    <form method="post" action="">
+        Username: <input type="text" name="username"><br>
+        Password: <input type="password" name="password"><br>
+        <input type="submit" value="Login">
+    </form>
+</body>
+</html>

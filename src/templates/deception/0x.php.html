@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - 0x.php</title>
+    <style>
+        body {font-family:Arial, sans-serif; margin:40px; background:#f9f9f9;}
+        .container {max-width:600px; margin:auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,.1);}
+        input, textarea {width:100%; padding:8px; margin-top:5px; margin-bottom:15px; border:1px solid #ccc;}
+        button {background:#0066cc; color:#fff; border:none; padding:10px 20px; cursor:pointer;}
+        button:hover {background:#004c99;}
+        .note {font-size:0.9em; color:#555;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        <p>Welcome, administrator. Use the panel below to manage content.</p>
+
+        <?php
+        // Simulated vulnerable code - for demonstration only
+        if(isset($_GET['id'])) {
+            $id = $_GET['id']; // No sanitization
+            echo "<p class=\"note\">You requested ID: " . htmlspecialchars($id, ENT_QUOTES) . "</p>";
+            // Pretend to run a query
+            $fake_query = "SELECT * FROM users WHERE id = '$id'";
+            echo "<p class=\"note\">Executing: <code>" . htmlspecialchars($fake_query, ENT_QUOTES) . "</code></p>";
+            // Fake result
+            echo "<p class=\"note\">Fake result: User 'admin' (ID 1) found.</p>";
+        }
+        ?>
+
+        <form method="GET" action="0x.php">
+            <label for="id">User ID:</label>
+            <input type="text" id="id" name="id" value="<?php echo isset($_GET['id']) ? htmlspecialchars($_GET['id'], ENT_QUOTES) : ''; ?>">
+            <button type="submit">Lookup</button>
+        </form>
+
+        <hr>
+
+        <h2>Recent Comments (simulated)</h2>
+        <ul>
+            <li><strong>JohnDoe:</strong> Great site! <em>2025-06-01</em></li>
+            <li><strong>XssTester:</strong> <script>alert('xss')</script> <em>2025-06-02</em></li>
+            <li><strong>SQLInjector:</strong> ' OR 1=1-- <em>2025-06-02</em></li>
+        </ul>
+
+        <p class="note">This is a deliberately vulnerable page for training purposes.</p>
+    </div>
+</body>
+</html>

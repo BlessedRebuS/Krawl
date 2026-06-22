@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechBlog - Latest Posts Feed</title>
+    <meta name="description" content="Subscribe to the latest articles from TechBlog - covering AI, cybersecurity, web development, and more.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .feed-item {
+            background: white;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .feed-item h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .feed-item .meta {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        .feed-item p {
+            margin-bottom: 15px;
+        }
+        .read-more {
+            display: inline-block;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .read-more:hover {
+            text-decoration: underline;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #95a5a6;
+            font-size: 0.9em;
+        }
+        .subscribe-form {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+        .subscribe-form h3 {
+            margin-top: 0;
+        }
+        .subscribe-form input[type="email"] {
+            padding: 10px;
+            width: 70%;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+        }
+        .subscribe-form button {
+            padding: 10px 15px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .subscribe-form button:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>TechBlog Feed</h1>
+        <p>Stay updated with the latest insights and tutorials</p>
+    </header>
+
+    <div class="feed-item">
+        <h3><a href="/blog/post/understanding-zero-trust-architecture">Understanding Zero Trust Architecture: A Practical Guide</a></h3>
+        <div class="meta">
+            <i class="fas fa-calendar"></i> June 10, 2024 | <i class="fas fa-user"></i> By Alex Rivera | <i class="fas fa-tag"></i> Security
+        </div>
+        <p>Zero Trust is no longer just a buzzword—it's becoming a necessity for modern enterprises. This article breaks down the core principles, implementation strategies, and common pitfalls when adopting a Zero Trust security model. We cover identity verification, device security, network segmentation, and continuous monitoring with real-world examples from Fortune 500 companies.</p>
+        <a href="/blog/post/understanding-zero-trust-architecture" class="read-more">Read more →</a>
+    </div>
+
+    <div class="feed-item">
+        <h3><a href="/blog/post/react-18-new-features-explained">React 18 New Features Explained: Concurrent Rendering & Automatic Batching</a></h3>
+        <div class="meta">
+            <i class="fas fa-calendar"></i> June 8, 2024 | <i class="fas fa-user"></i> By Sam Chen | <i class="fas fa-tag"></i> Development
+        </div>
+        <p>React 18 introduces concurrent rendering capabilities that can significantly improve user experience. This guide explores the new root API, automatic batching, startTransition, and useDeferredValue hooks. Learn how to leverage these features to build more responsive applications without compromising on code simplicity.</p>
+        <a href="/blog/post/react-18-new-features-explained" class="read-more">Read more →</a>
+    </div>
+
+    <div class="feed-item">
+        <h3><a href="/blog/post/python-web-scraping-best-practices">Python Web Scraping Best Practices: Avoiding Blocks & Ethical Considerations</a></h3>
+        <div class="meta">
+            <i class="fas fa-calendar"></i> June 5, 2024 | <i class="fas fa-user"></i> By Taylor Jones | <i class="fas fa-tag"></i> Data Science
+        </div>
+        <p>Web scraping remains a powerful technique for data collection, but doing it responsibly is crucial. This article covers request throttling, user-agent rotation, handling JavaScript-rendered content with Playwright, respecting robots.txt, and legal considerations. Includes ready-to-use code templates for common scraping scenarios.</p>
+        <a href="/blog/post/python-web-scraping-best-practices" class="read-more">Read more →</a>
+    </div>
+
+    <div class="subscribe-form">
+        <h3><i class="fas fa-envelope"></i> Subscribe to Updates</h3>
+        <p>Get notified when we publish new articles. No spam, just quality content.</p>
+        <form action="/subscribe" method="POST">
+            <input type="email" name="email" placeholder="Enter your email address" required>
+            <button type="submit">Subscribe</button>
+        </form>
+        <small>We respect your privacy. Unsubscribe anytime.</small>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 TechBlog. All rights reserved.</p>
+        <p>
+            <a href="/about">About</a> | 
+            <a href="/contact">Contact</a> | 
+            <a href="/privacy">Privacy Policy</a> | 
+            <a href="/terms">Terms of Service</a>
+        </p>
+        <p>Follow us: 
+            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+            <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
+        </p>
+    </footer>
+</body>
+</html>

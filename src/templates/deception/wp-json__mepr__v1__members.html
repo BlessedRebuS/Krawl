@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MemberPress API - Members</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 2em; background:#f9f9f9;}
+        h1 {color:#2c3e50;}
+        pre {background:#ecf0f1; padding:1em; border:1px solid #bdc3c7; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>MemberPress REST API – Members Endpoint</h1>
+    <p>This is a simulated response from the <code>/wp-json/mepr/v1/members</code> endpoint.</p>
+    <pre>{
+  "members": [
+    {
+      "id": 101,
+      "name": "Alice Johnson",
+      "email": "alice.j@example.com",
+      "status": "active",
+      "membership_level": "Gold",
+      "joined": "2023-04-12T08:30:00Z"
+    },
+    {
+      "id": 102,
+      "name": "Bob Smith",
+      "email": "bob.s@example.com",
+      "status": "active",
+      "membership_level": "Silver",
+      "joined": "2022-11-05T14:15:00Z"
+    },
+    {
+      "id": 103,
+      "name": "Carol Lee",
+      "email": "carol.lee@example.com",
+      "status": "inactive",
+      "membership_level": "Bronze",
+      "joined": "2021-07-19T09:45:00Z",
+      "expires": "2022-07-19T09:45:00Z"
+    }
+  ],
+  "total": 3,
+  "page": 1,
+  "per_page": 10
+}</pre>
+    <hr>
+    <p><small>Note: This is a decoy response intended for security testing purposes.</small></p>
+</body>
+</html>

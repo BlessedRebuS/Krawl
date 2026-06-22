@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - ioxi-o.php</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"], select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #3498db; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #2980b9; }
+        .status { padding: 15px; margin-top: 20px; border-radius: 4px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .footer { margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>IOXI-O Administration Interface</h1>
+        <p>Welcome to the IOXI-O system management console. This interface provides administrative controls for system configuration and monitoring.</p>
+        
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" placeholder="Enter admin username">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" placeholder="Enter password">
+        </div>
+        
+        <div class="form-group">
+            <label for="action">Select Action:</label>
+            <select id="action" name="action">
+                <option value="">-- Select Action --</option>
+                <option value="view_logs">View System Logs</option>
+                <option value="config_backup">Backup Configuration</option>
+                <option value="user_manage">Manage Users</option>
+                <option value="db_query">Execute Database Query</option>
+                <option value="system_info">System Information</option>
+            </select>
+        </div>
+        
+        <button type="submit" onclick="submitForm()">Execute Action</button>
+        
+        <div id="response" class="status info" style="display:none;">
+            <strong>Status:</strong> <span id="responseText">Ready...</span>
+        </div>
+        
+        <div class="footer">
+            <p>IOXI-O v2.1.4 &copy; 2023-2024 Internal Systems Division</p>
+            <p>Last updated: 2024-05-15 14:32:18</p>
+        </div>
+    </div>
+
+    <script>
+        function submitForm() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const action = document.getElementById('action').value;
+            const responseDiv = document.getElementById('response');
+            const responseText = document.getElementById('responseText');
+            
+            if (!username || !password || !action) {
+                responseDiv.className = 'status error';
+                responseText.textContent = 'Please fill in all fields';
+                responseDiv.style.display = 'block';
+                return;
+            }
+            
+            // Simulate processing delay
+            setTimeout(() => {
+                // Fake responses based on action
+                let message = '';
+                let type = 'info';
+                
+                switch(action) {
+                    case 'view_logs':
+                        message = 'Retrieved 1247 log entries. Last entry: [2024-05-15 14:30:22] INFO: User admin logged in from 192.168.1.100';
+                        type = 'success';
+                        break;
+                    case 'config_backup':
+                        message = 'Configuration backup initiated. Backup file: config_backup_20240515_143218.tar.gz';
+                        type = 'success';
+                        break;
+                    case 'user_manage':
+                        message = 'User management interface loaded. Found 8 active users, 2 locked accounts.';
+                        type = 'info';
+                        break;
+                    case 'db_query':
+                        message = 'Query executed successfully. Returned 42 rows from users table.';
+                        type = 'success';
+                        break;
+                    case 'system_info':
+                        message = 'System Info: OS: Linux 5.4.0, CPU: 4 cores, RAM: 8GB (4.2GB used), Disk: 65% used';
+                        type = 'info';
+                        break;
+                    default:
+                        message = 'Invalid action selected';
+                        type = 'error';
+                }
+                
+                responseDiv.className = `status ${type}`;
+                responseText.textContent = message;
+                responseDiv.style.display = 'block';
+            }, 800);
+        }
+        
+        // Allow Enter key to submit
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                submitForm();
+            }
+        });
+    </script>
+</body>
+</html>

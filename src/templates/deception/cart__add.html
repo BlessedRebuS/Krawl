@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart Added Successfully</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f9f9f9; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #28a745; }
+        .product-info { background: #e9f7ef; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .btn { display: inline-block; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 5px; }
+        .btn:hover { background: #0056b3; }
+        .note { font-size: 0.9em; color: #666; font-style: italic; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Item Added to Cart!</h1>
+        <div class="product-info">
+            <p><strong>Product:</strong> Premium Chocolate Egg</p>
+            <p><strong>Price:</strong> $12.99</p>
+            <p><strong>Quantity:</strong> 1</p>
+            <p><strong>Subtotal:</strong> $12.99</p>
+        </div>
+        <p>Your item has been successfully added to your shopping cart.</p>
+        <a href="/cart/view" class="btn">View Cart</a>
+        <a href="/shop" class="btn">Continue Shopping</a>
+        <div class="note">
+            Note: Taxes and shipping will be calculated at checkout. 
+            This is a simulated shopping cart for demonstration purposes.
+        </div>
+        <!-- Simulated backend tracking (hidden from users) -->
+        <div style="display:none;">
+            <!-- In a real vulnerable system, this might log to a file or database -->
+            <!-- Potential injection point: name parameter not sanitized -->
+            <!-- Price parameter could be manipulated for negative values -->
+            Tracking ID: cart_20240515_083022_7891
+            User-Agent: Mozilla/5.0 (compatible; AttackBot/2.0; +http://evil-scanner.example.com)
+            Referer: /product/detail?id=123
+        </div>
+    </div>
+</body>
+</html>

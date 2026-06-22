@@ -1,0 +1,46 @@
+<html><body>{
+  "Application": {
+    "Name": "ContosoWebApp",
+    "Version": "2.3.1",
+    "Environment": "Production",
+    "DebugMode": false
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=ContosoDB;User Id=sa;Password=P@ssw0rd!2024;",
+    "LoggingConnection": "Server=logdb.internal;Database=Logging;User Id=log_user;Password=LogPass456;"
+  },
+  "JwtSettings": {
+    "SecretKey": "super_secret_key_that_should_never_be_committed_abc123xyz",
+    "Issuer": "https://api.contoso.com",
+    "Audience": "contoso-users",
+    "ExpiryMinutes": 60
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "System": "Error"
+    },
+    "FilePath": "C:\\logs\\appsettings.log"
+  },
+  "Features": {
+    "EnableUserRegistration": true,
+    "EnableTwoFactorAuth": false,
+    "MaintenanceMode": false,
+    "AllowFileUploads": true,
+    "MaxUploadSizeMB": 10
+  },
+  "ExternalServices": {
+    "PaymentGateway": {
+      "Url": "https://payment.gateway.com/api",
+      "ApiKey": "sk_live_51HbXYZ7890abcdef1234567890",
+      "TimeoutSeconds": 30
+    },
+    "EmailService": {
+      "SmtpServer": "smtp.sendgrid.net",
+      "Port": 587,
+      "Username": "apikey",
+      "Password": "SG.abc123xyz.def456ghi789jkl012mno345pqr678stu901vwx234yz"
+    }
+  }
+}</body></html>

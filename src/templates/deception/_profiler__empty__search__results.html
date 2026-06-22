@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results - Profiler Empty</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        body { padding: 20px; }
+        .result-item { border-bottom: 1px solid #eee; padding: 15px 0; }
+        .result-title { font-weight: bold; color: #0d6efd; }
+        .result-snippet { color: #6c757d; margin-top: 5px; }
+        .pagination { margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">Profiler Empty - Search Results</h1>
+        <p class="text-muted">No search query provided. Showing recent profiling data.</p>
+        
+        <form class="mb-4" action="/_profiler/empty/search/results" method="GET">
+            <div class="input-group">
+                <input type="text" name="q" class="form-control" placeholder="Search profiles..." value="">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+        </form>
+
+        <div class="list-group">
+            <div class="list-group-item result-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1 result-title">User Profile: admin</h5>
+                    <small class="text-muted">2024-06-15 14:23:11</small>
+                </div>
+                <p class="mb-1 result-snippet">Role: administrator | Last login: 2024-06-15 14:20:05 | IP: 192.168.1.100</p>
+                <small class="text-muted">Tags: admin, superuser, internal</small>
+            </div>
+            
+            <div class="list-group-item result-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1 result-title">Session Token: sess_abc123xyz</h5>
+                    <small class="text-muted">2024-06-15 14:22:45</small>
+                </div>
+                <p class="mb-1 result-snippet">User: john.doe@example.com | Expires: 2024-06-15 16:22:45 | User-Agent: Mozilla/5.0...</p>
+                <small class="text-muted">Flags: secure, httpOnly</small>
+            </div>
+            
+            <div class="list-group-item result-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1 result-title">Database Query: SELECT * FROM users WHERE id=1</h5>
+                    <small class="text-muted">2024-06-15 14:21:33</small>
+                </div>
+                <p class="mb-1 result-snippet">Execution time: 12ms | Rows: 1 | Connection: db_primary</p>
+                <small class="text-muted">Params: [1] | Cache: missed</small>
+            </div>
+        </div>
+
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1">Previous</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+            </ul>
+        </nav>
+
+        <hr class="my-5">
+        <p class="text-center text-muted small">Profiler v2.1.4 | Debug mode: OFF | Memory usage: 12.4 MB</p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

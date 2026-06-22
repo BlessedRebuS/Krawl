@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internal Dashboard</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f4f4f4;}
+        .container {max-width:800px; margin:auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1 {color:#333;}
+        ul {list-style:none; padding:0;}
+        li {margin:10px 0;}
+        a {text-decoration:none; color:#0066cc;}
+        a:hover {text-decoration:underline;}
+        .form-group {margin-bottom:15px;}
+        label {display:block; margin-bottom:5px; font-weight:bold;}
+        input[type=text], input[type=password] {width:100%; padding:8px; box-sizing:border-box;}
+        button {background:#0066cc; color:#fff; border:none; padding:10px 15px; cursor:pointer;}
+        button:hover {background:#004c99;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Internal Operations Dashboard</h1>
+    <p>Welcome to the internal portal. Use the links below to navigate.</p>
+    <ul>
+        <li><a href="/reports">View Reports</a></li>
+        <li><a href="/users">User Management</a></li>
+        <li><a href="/settings">System Settings</a></li>
+        <li><a href="/logs">Access Logs</a></li>
+        <li><a href="/api/v1/status">API Status (JSON)</a></li>
+    </ul>
+
+    <hr>
+
+    <h2>Quick Login (Demo)</h2>
+    <form action="/auth" method="post">
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" placeholder="Enter username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" placeholder="Enter password" required>
+        </div>
+        <button type="submit">Login</button>
+    </form>
+
+    <hr>
+
+    <h2>Recent Activity</h2>
+    <ul>
+        <li>2025-11-02 08:12:03 - User admin logged in from 10.0.0.5</li>
+        <li>2025-11-02 07:58:41 - Backup job completed successfully</li>
+        <li>2025-11-02 06:45:12 - New user jdoe created</li>
+        <li>2025-11-02 05:30:00 - Security scan initiated</li>
+    </ul>
+
+    <footer style="margin-top:30px; font-size:0.9em; color:#666;">
+        &copy; 2025 Internal Systems. All rights reserved.
+    </footer>
+</div>
+</body>
+</html>

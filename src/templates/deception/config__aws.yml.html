@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>aws.yml - AWS Configuration</title>
+    <style>
+        body { font-family: Consolas, monospace; background: #f8f8f8; color: #333; padding: 20px; }
+        pre { background: #fff; border: 1px solid #ddd; padding: 15px; overflow:auto; }
+    </style>
+</head>
+<body>
+<h1>AWS Configuration File (aws.yml)</h1>
+<pre>
+# AWS credentials and settings for the application
+access_key_id: AKIAEXAMPLE1234567890AB
+secret_access_key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+region: us-west-2
+
+# S3 settings
+s3:
+  bucket: my-company-backups
+  region: us-west-2
+  encryption: AES256
+
+# DynamoDB settings
+dynamodb:
+  table_name: Users
+  region: us-west-2
+  read_capacity: 5
+  write_capacity: 5
+
+# Lambda function defaults
+lambda:
+  runtime: python3.9
+  timeout: 30
+  memory_size: 256
+  role_arn: arn:aws:iam::123456789012:role/lambda-exec-role
+
+# CloudWatch logs
+cloudwatch:
+  log_group: /aws/lambda/my-app
+  retention_days: 14
+
+# IAM roles (example)
+iam:
+  roles:
+    - name: EC2ReadOnly
+      policy: arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+    - name: LambdaFullAccess
+      policy: arn:aws:iam::aws:policy/AWSLambdaFullAccess
+</pre>
+</body>
+</html>

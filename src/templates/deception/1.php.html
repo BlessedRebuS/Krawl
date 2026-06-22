@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - User Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f4; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        input[type="submit"] { background-color: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        input[type="submit"]:hover { background-color: #2980b9; }
+        .result { margin-top: 20px; padding: 15px; background-color: #ecf0f1; border-radius: 4px; }
+        .error { color: #e74c3c; }
+        .success { color: #27ae60; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>User Administration Panel</h1>
+        <p>Welcome, admin. Use the form below to search for users in the system.</p>
+        
+        <form method="GET" action="/1.php">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" placeholder="Enter username to search" value="<?php echo isset($_GET['username']) ? htmlspecialchars($_GET['username']) : ''; ?>">
+            </div>
+            <div class="form-group">
+                <label for="role">Role Filter:</label>
+                <select id="role" name="role">
+                    <option value="">All Roles</option>
+                    <option value="admin" <?php echo isset($_GET['role']) && $_GET['role'] == 'admin' ? 'selected' : ''; ?>>Admin</option>
+                    <option value="user" <?php echo isset($_GET['role']) && $_GET['role'] == 'user' ? 'selected' : ''; ?>>User</option>
+                    <option value="moderator" <?php echo isset($_GET['role']) && $_GET['role'] == 'moderator' ? 'selected' : ''; ?>>Moderator</option>
+                </select>
+            </div>
+            <input type="submit" value="Search Users">
+        </form>
+
+        <?php
+        if (isset($_GET['username']) || isset($_GET['role'])) {
+            $username = isset($_GET['username']) ? $_GET['username'] : '';
+            $role = isset($_GET['role']) ? $_GET['role'] : '';
+            
+            // Simulate database connection and query
+            echo "<div class='result'>";
+            echo "<h2>Search Results</h2>";
+            
+            // Fake SQL query that would be vulnerable in reality
+            $fake_query = "SELECT id, username, email, role, last_login FROM users WHERE 1=1";
+            if (!empty($username)) {
+                $fake_query .= " AND username LIKE '%$username%'"; // Intentional SQLi vulnerability simulation
+            }
+            if (!empty($role)) {
+                $fake_query .= " AND role = '$role'"; // Another SQLi point
+            }
+            
+            echo "<p><em>Executing query: " . htmlspecialchars($fake_query) . "</em></p>";
+            
+            // Fake results
+            $fake_results = [
+                ['id' => 1, 'username' => 'admin', 'email' => 'admin@example.com', 'role' => 'admin', 'last_login' => '2024-06-15 14:30:22'],
+                ['id' => 2, 'username' => 'john_doe', 'email' => 'john@example.com', 'role' => 'user', 'last_login' => '2024-06-14 09:15:33'],
+                ['id' => 3, 'username' => 'jane_smith', 'email' => 'jane@example.com', 'role' => 'moderator', 'last_login' => '2024-06-13 16:45:11'],
+                ['id' => 4, 'username' => 'test123', 'email' => 'test@example.com', 'role' => 'user', 'last_login' => '2024-06-12 11:20:05']
+            ];
+            
+            // Filter fake results based on input (simulating query results)
+            $filtered_results = array_filter($fake_results, function($user) use ($username, $role) {
+                $username_match = empty($username) || stripos($user['username'], $username) !== false;
+                $role_match = empty($role) || $user['role'] === $role;
+                return $username_match && $role_match;
+            });
+            
+            if (count($filtered_results) > 0) {
+                echo "<table border='1' cellpadding='8' cellspacing='0'>";
+                echo "<tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Last Login</th></tr>";
+                foreach ($filtered_results as $user) {
+                    echo "<tr>";
+                    echo "<td>" . htmlspecialchars($user['id']) . "</td>";
+                    echo "<td>" . htmlspecialchars($user['username']) . "</td>";
+                    echo "<td>" . htmlspecialchars($user['email']) . "</td>";
+                    echo "<td>" . htmlspecialchars($user['role']) . "</td>";
+                    echo "<td>" . htmlspecialchars($user['last_login']) . "</td>";
+                    echo "</tr>";
+                }
+                echo "</table>";
+                echo "<p>Found " . count($filtered_results) . " result(s).</p>";
+            } else {
+                echo "<p class='error'>No users found matching your criteria.</p>";
+            }
+            
+            echo "</div>";
+        }
+        ?>
+        
+        <hr>
+        <p><small>System Status: Online | Database: MySQL 5.7.33 | PHP Version: 7.4.3</small></p>
+        <p><small>&copy; 2024 Company Internal Systems. All rights reserved.</small></p>
+    </div>
+</body>
+</html>

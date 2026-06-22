@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SendGrid Settings – Example Site</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        .container {max-width:800px; margin:auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        label {display:block; margin-top:15px; font-weight:bold;}
+        input[type=text], input[type=email], textarea {width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px;}
+        .submit {margin-top:20px; padding:10px 20px; background:#27ae60; color:#fff; border:none; border-radius:4px; cursor:pointer;}
+        .submit:hover {background:#2ecc71;}
+        .info {background:#ecf0f1; padding:15px; margin-top:20px; border-left:4px solid #3498db;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SendGrid Integration Settings</h1>
+        <p>Configure your SendGrid account to send emails from this site.</p>
+        <form action="/wp-json/sendgrid/v1/settings" method="post">
+            <label for="api_key">SendGrid API Key</label>
+            <input type="text" id="api_key" name="api_key" value="SG.fake_api_key_1234567890abcdef" required>
+            
+            <label for="from_email">Default From Email</label>
+            <input type="email" id="from_email" name="from_email" value="no-reply@example.com" required>
+            
+            <label for="from_name">Default From Name</label>
+            <input type="text" id="from_name" name="from_name" value="Example Site" required>
+            
+            <label for="template_id">Default Template ID (optional)</label>
+            <input type="text" id="template_id" name="template_id" value="d-1a2b3c4d5e6f7g8h9i0j">
+            
+            <label for="test_email">Test Email Address</label>
+            <input type="email" id="test_email" name="test_email" value="admin@example.com">
+            
+            <button type="submit" class="submit">Save Settings</button>
+        </form>
+        
+        <div class="info">
+            <h2>Current Status</h2>
+            <p><strong>API Key:</strong> ******** (masked)</p>
+            <p><strong>From Email:</strong> no-reply@example.com</p>
+            <p><strong>From Name:</strong> Example Site</p>
+            <p><strong>Last Test Sent:</strong> 2025-10-31 08:42:13 UTC (Success)</p>
+            <p><strong>Quota Remaining:</strong> 12,345 emails</p>
+        </div>
+    </div>
+</body>
+</html>

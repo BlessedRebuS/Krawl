@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Admin Panel</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .nav { margin-bottom: 20px; }
+        .nav a { margin-right: 15px; text-decoration: none; color: #3498db; }
+        .nav a:hover { text-decoration: underline; }
+        .card { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+        .status { padding: 5px 10px; border-radius: 3px; font-size: 0.9em; }
+        .status.ok { background-color: #d4edda; color: #155724; }
+        .status.warning { background-color: #fff3cd; color: #856404; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f8f9fa; }
+        tr:hover { background-color: #f1f1f1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">Home</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/users">Users</a>
+            <a href="/settings">Settings</a>
+            <a href="/logout">Logout</a>
+        </div>
+        <h1>Admin Dashboard</h1>
+        <p>Welcome back, administrator. Last login: 2024-06-15 09:32:18</p>
+        
+        <div class="card">
+            <h2>System Status</h2>
+            <div class="status ok">● All systems operational</div>
+            <p>CPU Usage: 23% | Memory: 1.2GB / 7.8GB | Disk: 45% used</p>
+            <p>Uptime: 12 days, 4 hours, 22 minutes</p>
+        </div>
+        
+        <div class="card">
+            <h2>Recent Activity</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>09:30:15</td>
+                        <td>admin</td>
+                        <td>Logged in</td>
+                        <td><span class="status ok">Success</span></td>
+                    </tr>
+                    <tr>
+                        <td>09:25:03</td>
+                        <td>j.smith</td>
+                        <td>Updated profile</td>
+                        <td><span class="status ok">Success</td>
+                    </tr>
+                    <tr>
+                        <td>09:20:11</td>
+                        <td>system</td>
+                        <td>Backup completed</td>
+                        <td><span class="status ok">Success</td>
+                    </tr>
+                    <tr>
+                        <td>09:15:44</td>
+                        <td>api_user</td>
+                        <td>Accessed /api/v1/data</td>
+                        <td><span class="status warning">Rate limited</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="card">
+            <h2>Quick Actions</h2>
+            <form action="/das/execute" method="POST">
+                <label for="command">Execute Command:</label><br>
+                <input type="text" id="command" name="cmd" placeholder="Enter system command" style="width: 70%; padding: 8px;">
+                <button type="submit" style="padding: 8px 15px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">Run</button>
+            </form>
+            <p><small>Note: Commands are logged and audited</small></p>
+        </div>
+        
+        <div class="card">
+            <h2>Server Information</h2>
+            <p><strong>Hostname:</strong> web01.internal.company.com</p>
+            <p><strong>OS:</strong> Ubuntu 20.04.4 LTS</p>
+            <p><strong>Kernel:</strong> 5.4.0-109-generic</p>
+            <p><strong>Web Server:</strong> Apache/2.4.41 (Ubuntu)</p>
+            <p><strong>PHP Version:</strong> 7.4.3</p>
+            <p><strong>Database:</strong> MySQL 8.0.28</p>
+        </div>
+    </div>
+</body>
+</html>

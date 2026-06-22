@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>settings.php - Drupal Configuration</title>
+<style>
+body{font-family:monospace;background:#f8f8f8;color:#222;padding:20px;}
+pre{background:#eee;padding:10px;border:1px solid #ccc;overflow:auto;}
+</style>
+</head>
+<body>
+<h1>sites/default/settings.php</h1>
+<pre>
+<?php
+/**
+ * @file
+ * Drupal site-specific configuration file.
+ */
+
+$databases = array (
+  'default' => 
+  array (
+    'default' => 
+    array (
+      'database' => 'drupaldb',
+      'username' => 'dbuser',
+      'password' => 'S3cr3tP@ss!',
+      'host' => 'localhost',
+      'port' => '',
+      'driver' => 'mysql',
+      'prefix' => '',
+    ),
+  ),
+);
+
+$settings['hash_salt'] = 'a1b2c3d4e5f6g7h8i9j0';
+$settings['file_private_path'] = '../private';
+$settings['file_public_path'] = 'sites/default/files';
+$settings['trusted_host_patterns'] = [
+  '^example\\.com$',
+  '^www\\.example\\.com$',
+];
+$settings['update_free_access'] = FALSE;
+$settings['container_yamls'] = [
+  DRUPAL_ROOT . '/sites/development.services.yml',
+];
+?>
+</pre>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Processing Service</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f8f9fa; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; text-align: center; }
+        .form-group { margin: 20px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        textarea { height: 150px; resize: vertical; }
+        button { background-color: #007bff; color: white; padding: 12px 25px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+        .result { margin-top: 20px; padding: 15px; background-color: #e9ecef; border-radius: 4px; }
+        .note { font-size: 14px; color: #666; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Text Processing Service</h1>
+        <p>This service allows you to process and transform text data. Enter your text below and select an operation.</p>
+        
+        <form method="POST" action="/txets.php">
+            <div class="form-group">
+                <label for="input_text">Input Text:</label>
+                <textarea id="input_text" name="input_text" placeholder="Enter text to process..."><?php if(isset($_POST['input_text'])) echo htmlspecialchars($_POST['input_text']); ?></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="operation">Operation:</label>
+                <select id="operation" name="operation">
+                    <option value="reverse">Reverse Text</option>
+                    <option value="uppercase">Convert to Uppercase</option>
+                    <option value="lowercase">Convert to Lowercase</option>
+                    <option value="wordcount">Word Count</option>
+                    <option value="sha1">Generate SHA1 Hash</option>
+                    <option value="md5">Generate MD5 Hash</option>
+                </select>
+            </div>
+            
+            <button type="submit">Process Text</button>
+        </form>
+        
+        <?php
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['input_text']) && isset($_POST['operation'])) {
+            $input = $_POST['input_text'];
+            $operation = $_POST['operation'];
+            $result = '';
+            
+            switch($operation) {
+                case 'reverse':
+                    $result = strrev($input);
+                    break;
+                case 'uppercase':
+                    $result = strtoupper($input);
+                    break;
+                case 'lowercase':
+                    $result = strtolower($input);
+                    break;
+                case 'wordcount':
+                    $result = str_word_count($input) . ' words';
+                    break;
+                case 'sha1':
+                    $result = sha1($input);
+                    break;
+                case 'md5':
+                    $result = md5($input);
+                    break;
+                default:
+                    $result = 'Unknown operation';
+            }
+            
+            echo '<div class="result"><strong>Result:</strong> ' . htmlspecialchars($result) . '</div>';
+        }
+        ?>
+        
+        <div class="note">
+            <p><strong>Note:</strong> This service is for demonstration purposes only. All processing is done client-side in this simulation.</p>
+            <p>Version 2.1.4 | &copy; 2024 TextUtils Inc.</p>
+        </div>
+    </div>
+</body>
+</html>

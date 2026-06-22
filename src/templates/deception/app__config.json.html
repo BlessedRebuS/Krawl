@@ -1,0 +1,42 @@
+<html><body>{
+  "app_name": "CorpApp",
+  "version": "1.4.2",
+  "environment": "production",
+  "database": {
+    "host": "db.internal.corp",
+    "port": 5432,
+    "name": "app_db",
+    "user": "app_user",
+    "password": "s3cr3t_p@ssw0rd!2024",
+    "ssl": true
+  },
+  "api": {
+    "endpoint": "https://api.corp.internal/v1",
+    "timeout": 30000,
+    "retries": 3,
+    "key": "sk_live_51HbKxL2Jv9zZ7Y6X5W4V3U2T1S0R9Q8P7O6N5M4L3K2J1H0G9F8E7D6C5B4A3Z2Y1X0W"
+  },
+  "logging": {
+    "level": "info",
+    "file": "/var/log/app/app.log",
+    "max_size": "100MB",
+    "backup_count": 5
+  },
+  "features": {
+    "enable_analytics": true,
+    "enable_debug_mode": false,
+    "allow_remote_admin": true,
+    "session_timeout": 3600
+  },
+  "external_services": {
+    "payment_gateway": {
+      "provider": "stripe",
+      "publishable_key": "pk_test_51HbKxL2Jv9zZ7Y6X5W4V3U2T1S0R9Q8P7O6N5M4L3K2J1H0G9F8E7D6C5B4A3Z2Y1X0W",
+      "secret_key": "sk_test_51HbKxL2Jv9zZ7Y6X5W4V3U2T1S0R9Q8P7O6N5M4L3K2J1H0G9F8E7D6C5B4A3Z2Y1X0W"
+    },
+    "email_service": {
+      "provider": "sendgrid",
+      "api_key": "SG.xxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    }
+  }
+}</body></html>

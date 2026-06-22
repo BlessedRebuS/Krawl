@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Login - Internal Portal</title>
+<style>
+body {font-family: Arial, sans-serif; margin:40px; background:#f4f4f4;}
+.container {max-width:400px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,.1);}
+input[type=text], input[type=password] {width:100%; padding:8px; margin:8px 0; box-sizing:border-box;}
+input[type=submit] {background:#0066cc; color:#fff; border:none; padding:10px; cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="container">
+<h2>Admin Login</h2>
+<p>Please enter your credentials to access the internal dashboard.</p>
+<form action="/login.php" method="POST">
+<label for="username">Username:</label>
+<input type="text" id="username" name="username" required>
+<label for="password">Password:</label>
+<input type="password" id="password" name="password" required>
+<input type="submit" value="Login">
+</form>
+<hr>
+<p><small>Note: For debugging, the username field is directly concatenated into SQL queries without sanitization.</small></p>
+<!-- Debug: admin' OR '1'='1 -->
+</div>
+</body>
+</html>

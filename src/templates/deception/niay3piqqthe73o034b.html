@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internal Dashboard</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9;}
+        h1 {color:#2c3e50;}
+        form {background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); max-width:400px;}
+        label {display:block; margin-top:15px;}
+        input[type="text"], input[type="password"] {width:100%; padding:8px; margin-top:5px; box-sizing:border-box;}
+        input[type="submit"] {margin-top:20px; padding:10px 15px; background:#3498db; color:#fff; border:none; cursor:pointer;}
+        input[type="submit"]:hover {background:#2980b9;}
+        hr {border:0; border-top:1px solid #ddd; margin:30px 0;}
+        ul {background:#fff; padding:15px; border-radius:5px;}
+        li {margin-bottom:8px; font-family:monospace; color:#555;}
+        p.note {font-size:0.9em; color:#777;}
+    </style>
+</head>
+<body>
+    <h1>Internal Dashboard</h1>
+    <p>Welcome to the internal admin panel. Use the form below to log in.</p>
+    <form action="/login" method="POST">
+        <label for="user">Username:</label>
+        <input type="text" id="user" name="user" required>
+        <label for="pass">Password:</label>
+        <input type="password" id="pass" name="pass" required>
+        <input type="submit" value="Login">
+    </form>
+    <hr>
+    <h2>Recent Activity (debug)</h2>
+    <ul>
+        <li>Query: SELECT * FROM users WHERE id = 1 OR 1=1 --</li>
+        <li>Accessed: /admin.php?id=1' UNION SELECT NULL,NULL,NULL --</li>
+        <li>Failed login attempt from 10.0.0.42 at 2025-09-24 14:32:10</li>
+    </ul>
+    <p class="note">Note: This page is for internal use only. Do not share credentials.</p>
+</body>
+</html>

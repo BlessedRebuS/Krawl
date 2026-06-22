@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WHM Proxy Subdomain Utility</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        .container {max-width:800px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+        form {margin-top:20px;}
+        label {display:block; margin-bottom:5px; font-weight:bold;}
+        input[type="text"] {width:100%; padding:8px; margin-bottom:10px; box-sizing:border-box;}
+        button {background:#2980b9; color:#fff; border:none; padding:10px 15px; cursor:pointer; border-radius:4px;}
+        button:hover {background:#3498db;}
+        pre {background:#ecf0f1; padding:10px; overflow:auto; border-radius:4px;}
+    </style>
+</head>
+<body>
+<div class="container>
+    <h1>WHM Proxy Subdomain Test</h1>
+    <p>Use this tool to verify proxy forwarding for subdomains managed via WHM. Enter a target URL and click <strong>Proxy Request</strong> to see a simulated response.</p>
+    <form action="/___proxy_subdomain_whm" method="get">
+        <label for="url">Target URL:</label>
+        <input type="text" id="url" name="url" value="http://example.com" required>
+        <button type="submit">Proxy Request</button>
+    </form>
+
+    <h2>Sample Proxied Response</h2>
+    <pre>
+{
+    "status": "ok",
+    "message": "Proxy request forwarded successfully.",
+    "data": {
+        "target": "http://example.com",
+        "response_code": 200,
+        "content_type": "text/html",
+        "body_preview": "&lt;!DOCTYPE html&gt;\n&lt;html&gt;\n&lt;head&gt;&lt;title&gt;Example Domain&lt;/title&gt;&lt;/head&gt;\n&lt;body&gt;\n&lt;h1&gt;Example Domain&lt;/h1&gt;\n&lt;p&gt;This domain is for use in illustrative examples in documents.&lt;/p&gt;\n&lt;/body&gt;\n&lt;/html&gt;"
+    }
+}
+</pre>
+    <p><em>Note: This is a demonstration page only. No actual proxying occurs.</em></p>
+</div>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acme Corp - Internal Dashboard</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;padding:20px;background:#f4f4f4;}
+.header{background:#003366;color:#fff;padding:10px 20px;}
+.nav{margin-top:10px;}
+.nav a{color:#fff;margin-right:15px;text-decoration:none;}
+.content{background:#fff;padding:20px;margin-top:20px;border-radius:5px;box-shadow:0 0 5px rgba(0,0,0,0.1);}
+.form-group{margin-bottom:15px;}
+input[type=text],input[type=password]{padding:8px;width:250px;}
+.btn{background:#0066cc;color:#fff;border:none;padding:8px 15px;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>Acme Corp - Internal Dashboard</h1>
+<div class="nav">
+<a href="/">Home</a>
+<a href="/reports">Reports</a>
+<a href="/admin">Admin</a>
+<a href="/logout">Logout</a>
+</div>
+</div>
+<div class="content">
+<h2>Welcome, jdoe</h2>
+<p>Last login: 2025-09-24 08:12:33 UTC</p>
+<form action="/login" method="post">
+<div class="form-group">
+<label for="username">Username:</label>
+<input type="text" id="username" name="username" placeholder="Enter username" required>
+</div>
+<div class="form-group">
+<label for="password">Password:</label>
+<input type="password" id="password" name="password" placeholder="Enter password" required>
+</div>
+<button type="submit" class="btn">Sign In</button>
+</form>
+<hr>
+<h3>System Alerts</h3>
+<ul>
+<li>New patch deployed on 2025-09-20</li>
+<li>Database backup completed successfully</li>
+<li>Unusual login attempt from 10.0.0.42 blocked</li>
+</ul>
+</div>
+</body>
+</html>

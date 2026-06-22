@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Debug Variables - Application Status</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .section { margin: 20px 0; padding: 15px; border-left: 4px solid #3498db; background: #f8f9fa; }
+        .var { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .var-label { font-weight: bold; color: #2c3e50; }
+        .var-value { font-family: monospace; background: #ecf0f1; padding: 2px 6px; border-radius: 3px; }
+        .alert { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 10px; border-radius: 4px; margin: 15px 0; }
+        .footer { margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Debug Variables - Application Status</h1>
+        <div class="alert">
+            <strong>Warning:</strong> Debug information exposed. This endpoint should be restricted in production environments.
+        </div>
+        
+        <div class="section">
+            <h2>Environment Variables</h2>
+            <div class="var"><span class="var-label">APP_ENV</span><span class="var-value">production</span></div>
+            <div class="var"><span class="var-label">DEBUG</span><span class="var-value">true</span></div>
+            <div class="var"><span class="var-label">LOG_LEVEL</span><span class="var-value">info</span></div>
+            <div class="var"><span class="var-label">TIMEZONE</span><span class="var-value">UTC</span></div>
+        </div>
+        
+        <div class="section">
+            <h2>Server Configuration</h2>
+            <div class="var"><span class="var-label">SERVER_NAME</span><span class="var-value">web01.prod.internal</span></div>
+            <div class="var"><span class="var-label">SERVER_PORT</span><span class="var-value">80</span></div>
+            <div class="var"><span class="var-label">WORKER_PROCESSES</span><span class="var-value">4</span></div>
+            <div class="var"><span class="var-label">MAX_CONNECTIONS</span><span class="var-value">1024</span></div>
+        </div>
+        
+        <div class="section">
+            <h2>Database Connection Pool</h2>
+            <div class="var"><span class="var-label">DB_HOST</span><span class="var-value">db-cluster-prod.a1b2c3d4.us-east-1.rds.amazonaws.com</span></div>
+            <div class="var"><span class="var-label">DB_PORT</span><span class="var-value">3306</span></div>
+            <div class="var"><span class="var-label">DB_NAME</span><span class="var-value">app_production</span></div>
+            <div class="var"><span class="var-label">DB_USER</span><span class="var-value">app_user</span></div>
+            <div class="var"><span class="var-label">ACTIVE_CONNECTIONS</span><span class="var-value">12</span></div>
+            <div class="var"><span class="var-label">IDLE_CONNECTIONS</span><span class="var-value">8</span></div>
+            <div class="var"><span class="var-label">MAX_POOL_SIZE</span><span class="var-value">20</span></div>
+        </div>
+        
+        <div class="section">
+            <h2>Cache Statistics</h2>
+            <div class="var"><span class="var-label">CACHE_HOST</span><span class="var-value">cache-prod.abcdef.0001.use1.cache.amazonaws.com</span></div>
+            <div class="var"><span class="var-label">CACHE_PORT</span><span class="var-value">6379</span></div>
+            <div class="var"><span class="var-label">HIT_RATE</span><span class="var-value">87.3%</span></div>
+            <div class="var"><span class="var-label">USED_MEMORY</span><span class="var-value">1.2 GB / 2 GB</span></div>
+            <div class="var"><span class="var-label">KEY_COUNT</span><span class="var-value">15420</span></div>
+        </div>
+        
+        <div class="section">
+            <h2>Application Metrics</h2>
+            <div class="var"><span class="var-label">UPTIME</span><span class="var-value">15 days, 3 hours, 22 minutes</span></div>
+            <div class="var"><span class="var-label">REQUESTS_PER_SECOND</span><span class="var-value">45.2</span></div>
+            <div class="var"><span class="var-label">AVERAGE_RESPONSE_TIME</span><span class="var-value">124ms</span></div>
+            <div class="var"><span class="var-label">ERROR_RATE</span><span class="var-value">0.8%</span></div>
+            <div class="var"><span class="var-label">MEMORY_USAGE</span><span class="var-value">68%</span></div>
+            <div class="var"><span class="var-label">CPU_USAGE</span><span class="var-value">34%</span></div>
+        </div>
+        
+        <div class="section">
+            <h2>Feature Flags</h2>
+            <div class="var"><span class="var-label">FEATURE_NEW_UI</span><span class="var-value">true</span></div>
+            <div class="var"><span class="var-label">FEATURE_API_V2</span><span class="var-value">false</span></div>
+            <div class="var"><span class="var-label">FEATURE_MAINTENANCE_MODE</span><span class="var-value">false</span></div>
+            <div class="var"><span class="var-label">FEATURE_DEBUG_TOOLBAR</span><span class="var-value">true</span></div>
+        </div>
+        
+        <div class="footer">
+            Generated by Application Debug Endpoint • © 2024 Company Internal • <a href="/">Return to Home</a>
+        </div>
+    </div>
+</body>
+</html>

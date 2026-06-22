@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Manager - Internal Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .file-list { margin: 20px 0; }
+        .file-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .file-item:hover { background-color: #f9f9f9; }
+        .file-name { font-weight: bold; color: #0066cc; }
+        .file-size { color: #666; font-size: 0.9em; }
+        .actions { display: flex; gap: 10px; }
+        .btn { padding: 5px 10px; background: #007bff; color: white; text-decoration: none; border-radius: 3px; font-size: 0.9em; }
+        .btn:hover { background: #0056b3; }
+        .upload-form { margin-top: 20px; padding: 15px; border: 1px dashed #ccc; border-radius: 5px; }
+        .upload-form input { margin: 5px 0; padding: 8px; width: 100%; box-sizing: border-box; }
+        .upload-form button { background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 3px; cursor: pointer; }
+        .upload-form button:hover { background: #218838; }
+        .alert { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Internal File Management System</h1>
+        <p>Welcome to the file management interface. This tool is for authorized personnel only.</p>
+
+        <?php
+        // Simulate file listing - this is a fake vulnerable endpoint
+        $dir = isset($_GET['dir']) ? $_GET['dir'] : '.';
+        $files = [];
+
+        // Fake file data for demonstration
+        if ($dir === '.' || $dir === '') {
+            $files = [
+                ['name' => 'index.php', 'size' => '2.4 KB', 'modified' => '2024-01-15 10:30'],
+                ['name' => 'config.php', 'size' => '1.8 KB', 'modified' => '2024-01-14 16:45'],
+                ['name' => 'upload.php', 'size' => '3.1 KB', 'modified' => '2024-01-13 09:20'],
+                ['name' => 'backup.sql', 'size' => '15.2 MB', 'modified' => '2024-01-12 22:10'],
+                ['name' => 'README.txt', 'size' => '850 B', 'modified' => '2024-01-11 14:05'],
+                ['name' => '.htaccess', 'size' => '620 B', 'modified' => '2024-01-10 08:30']
+            ];
+        } else if ($dir === 'uploads') {
+            $files = [
+                ['name' => 'user_avatar.jpg', 'size' => '145 KB', 'modified' => '2024-01-15 11:20'],
+                ['name' => 'document.pdf', 'size' => '2.1 MB', 'modified' => '2024-01-15 10:05'],
+                ['name' => 'script.js', 'size' => '8.7 KB', 'modified' => '2024-01-14 17:30']
+            ];
+        }
+
+        // Simulate potential file inclusion vulnerability (fake)
+        if (isset($_GET['file']) && !empty($_GET['file'])) {
+            $requestedFile = basename($_GET['file']);
+            // In reality this would be dangerous, but here we just show fake content
+            echo '<div class="alert alert-success">File requested: ' . htmlspecialchars($requestedFile) . '</div>';
+            echo '<pre>' . htmlspecialchars("This is fake content from the requested file.\n" .
+                "Line 1: Configuration data\n" .
+                "Line 2: Database credentials (fake)\n" .
+                "Line 3: API keys (simulated)\n" .
+                "Line 4: Internal notes") . '</pre>';
+        }
+        ?>
+
+        <div class="file-list">
+            <h2>Files in <?= htmlspecialchars($dir === '' ? 'root' : $dir) ?>:</h2>
+            <?php if (empty($files)): ?>
+                <p>No files found in this directory.</p>
+            <?php else: ?>
+                <?php foreach ($files as $file): ?>
+                    <div class="file-item">
+                        <div>
+                            <span class="file-name"><?= htmlspecialchars($file['name']) ?></span><br>
+                            <small><?= htmlspecialchars($file['modified']) ?></small>
+                        </div>
+                        <div>
+                            <span class="file-size"><?= htmlspecialchars($file['size']) ?></span><br>
+                            <div class="actions">
+                                <a href="?file=<?= urlencode($file['name']) ?>" class="btn">View</a>
+                                <a href="download.php?file=<?= urlencode($file['name']) ?>" class="btn">Download</a>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+
+        <div class="upload-form">
+            <h3>Upload New File</h3>
+            <form action="upload.php" method="POST" enctype="multipart/form-data">
+                <input type="file" name="file" required>
+                <input type="text" name="description" placeholder="File description (optional)">
+                <button type="submit">Upload File</button>
+            </form>
+        </div>
+
+        <div style="margin-top: 20px; font-size: 0.9em; color: #666;">
+            <p>Current directory: <?= htmlspecialchars($dir === '' ? '/' : $dir) ?></p>
+            <p><a href="?dir=/">Go to root</a> | <a href="?dir=uploads">View uploads</a> | <a href="?dir=../parent">Parent directory</a></p>
+            <hr>
+            <p><em>This is an internal system. Unauthorized access is prohibited.</em></p>
+        </div>
+    </div>
+</body>
+</html>

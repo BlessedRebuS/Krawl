@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Employee Workspace Home</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:20px; background:#f4f4f4;}
+        .container {max-width:960px; margin:auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1 {color:#2c3e50;}
+        .nav {margin-bottom:15px;}
+        .nav a {margin-right:15px; text-decoration:none; color:#3498db;}
+        .nav a:hover {text-decoration:underline;}
+        .card {border:1px solid #ddd; padding:15px; margin-bottom:15px; border-radius:4px;}
+        .footer {font-size:0.9em; color:#7f8c8d; text-align:center; margin-top:30px;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="nav">
+        <a href="/workspace/dashboard.action">Dashboard</a>
+        <a href="/workspace/profile.action">Profile</a>
+        <a href="/workspace/reports.action">Reports</a>
+        <a href="/workspace/logout.action">Logout</a>
+    </div>
+    <h1>Welcome to Your Workspace</h1>
+    <div class="card">
+        <h2>Today's Summary</h2>
+        <p>You have <strong>3</strong> pending tasks and <strong>2</strong> upcoming meetings.</p>
+        <ul>
+            <li>Review Q3 projections – Due today 15:00</li>
+            <li>Update client contact list – Due tomorrow 09:00</li>
+            <li>Prepare sprint retrospective – Due Friday 12:00</li>
+        </ul>
+    </div>
+    <div class="card">
+        <h2>Quick Actions</h2>
+        <form action="/workspace/submit-task.action" method="post">
+            <label for="taskDesc">Add a new task:</label><br>
+            <input type="text" id="taskDesc" name="description" placeholder="Enter task description" required style="width:250px; padding:5px;">
+            <input type="submit" value="Add Task" style="padding:5px 10px;">
+        </form>
+    </div>
+    <div class="card">
+        <h2>Recent Activity</h2>
+        <table border="0" cellpadding="5" cellspacing="0" style="width:100%; border-collapse:collapse;">
+            <tr style="background:#ecf0f1;"><th>Time</th><th>Action</th></tr>
+            <tr><td>09:12</td><td>Logged in from 10.0.2.15</td></tr>
+            <tr style="background:#f9f9f9;"><td>09:05</td><td>Downloaded Q2_Sales_Report.pdf</td></tr>
+            <tr><td>08:58</td><td>Updated profile picture</td></tr>
+            <tr style="background:#f9f9f9;"><td>08:30</td><td>Submitted expense report for March</td></tr>
+        </table>
+    </div>
+</div>
+<div class="footer">
+    &copy; 2025 CorpInternal. All rights reserved.
+</div>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Example Blog</title>
+  <subtitle>A collection of thoughts and ideas</subtitle>
+  <link href="http://example.com/atom.xml" rel="self"/>
+  <link href="http://example.com/"/>
+  <updated>2024-06-15T10:30:00Z</updated>
+  <author>
+    <name>John Doe</name>
+    <email>john@example.com</email>
+  </author>
+  <id>http://example.com/</id>
+
+  <entry>
+    <title>Understanding Web Security Basics</title>
+    <link href="http://example.com/blog/web-security-basics"/>
+    <id>http://example.com/blog/web-security-basics</id>
+    <updated>2024-06-14T08:15:00Z</updated>
+    <summary>Learn the fundamentals of securing web applications against common threats like SQL injection and XSS.</summary>
+    <content type="html">
+      <p>In this post, we explore the basics of web security, including input validation, output encoding, and secure configuration practices.</p>
+      <p>Remember: never trust user input. Always sanitize and validate.</p>
+    </content>
+  </entry>
+
+  <entry>
+    <title>How to Protect Against SQL Injection</title>
+    <link href="http://example.com/blog/sql-injection-protection"/>
+    <id>http://example.com/blog/sql-injection-protection</id>
+    <updated>2024-06-10T14:22:00Z</updated>
+    <summary>A practical guide to preventing SQL injection attacks using parameterized queries and ORMs.</summary>
+    <content type="html">
+      <p>SQL injection remains one of the most dangerous vulnerabilities. This article shows how to defend against it properly.</p>
+      <p>Example of <em>bad</em> code:</p>
+      <pre>&lt;?php
+$query = "SELECT * FROM users WHERE username = '$_POST[username]' AND password = '$_POST[password]'";
+?&gt;</pre>
+      <p>Example of <em>good</em> code:</p>
+      <pre>&lt;?php
+$stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? AND password = ?");
+$stmt->execute([$_POST['username'], $_POST['password']]);
+?&gt;</pre>
+    </content>
+  </entry>
+
+  <entry>
+    <title>Preventing XSS in Modern Web Apps</title>
+    <link href="http://example.com/blog/xss-prevention"/>
+    <id>http://example.com/blog/xss-prevention</id>
+    <updated>2024-06-05T09:00:00Z</updated>
+    <summary>Techniques to mitigate Cross-Site Scripting attacks in JavaScript-heavy applications.</summary>
+    <content type="html">
+      <p>XSS attacks exploit trust in user-generated content. Learn how to escape output and use CSP headers effectively.</p>
+      <p>Fake user comment (for demonstration):</p>
+      <blockquote>&lt;script&gt;alert('XSS')&lt;/script&gt;</blockquote>
+      <p>This is safely escaped in the rendered output.</p>
+    </content>
+  </entry>
+
+</feed>

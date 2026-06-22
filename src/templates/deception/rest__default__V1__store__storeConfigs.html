@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Store Configurations - Magento REST API</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9;}
+        h1 {color:#2c3e50;}
+        table {border-collapse:collapse; width:100%; max-width:800px; background:#fff;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#ecf0f1;}
+        form {margin-top:20px; padding:15px; border:1px solid #ccc; background:#fff; max-width:500px;}
+        label {display:block; margin-bottom:5px;}
+        input[type=text] {width:100%; padding:8px; margin-top:2px;}
+        input[type=submit] {background:#27ae60; color:#fff; padding:10px 15px; border:none; cursor:pointer;}
+        input[type=submit]:hover {background:#219150;}
+    </style>
+</head>
+<body>
+    <h1>Store Configurations</h1>
+    <p>Retrieved via <code>GET /rest/default/V1/store/storeConfigs</code></p>
+    <table>
+        <thead>
+            <tr>
+                <th>Scope</th>
+                <th>Path</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>default</td>
+                <td>web/unsecure/base_url</td>
+                <td>http://example.store/</td>
+            </tr>
+            <tr>
+                <td>default</td>
+                <td>design/header/welcome</td>
+                <td>Welcome to our store!</td>
+            </tr>
+            <tr>
+                <td>default</td>
+                <td>catalog/search/max_query_terms</td>
+                <td>10</td>
+            </tr>
+            <tr>
+                <td>websites</td>
+                <td>payment/paypal_express/active</td>
+                <td>1</td>
+            </tr>
+            <tr>
+                <td>stores</td>
+                <td>general/locale/timezone</td>
+                <td>America/New_York</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Example of a backend query that could be targeted: 
+         SELECT * FROM core_config_data WHERE scope = '$scope' AND path = '$path' -->
+    <form action="/rest/default/V1/store/storeConfigs" method="POST">
+        <label for="scope">Scope:</label>
+        <input type="text" id="scope" name="scope" value="default"><br>
+        <label for="path">Path:</label>
+        <input type="text" id="path" name="path" value="web/unsecure/base_url"><br>
+        <label for="value">Value:</label>
+        <input type="text" id="value" name="value" value=""><br>
+        <input type="submit" value="Update Configuration">
+    </form>
+
+    <footer style="margin-top:30px; font-size:0.9em; color:#7f8c8d;">
+        Note: This is a demonstration endpoint. Changes are not persisted.
+    </footer>
+</body>
+</html>

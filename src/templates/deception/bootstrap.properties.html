@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bootstrap.properties - Application Configuration</title>
+    <style>
+        body { font-family: Consolas, monospace; margin: 40px; background-color: #f8f9fa; color: #212529; }
+        pre { background-color: #e9ecef; padding: 15px; border-radius: 4px; overflow-x: auto; border: 1px solid #dee2e6; }
+        h1 { color: #495057; border-bottom: 1px solid #dee2e6; padding-bottom: 8px; }
+        .note { font-size: 0.9em; color: #6c757d; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>bootstrap.properties</h1>
+    <pre># Application Bootstrap Configuration
+# Generated: Thu May 16 14:22:03 UTC 2024
+# Environment: production
+
+server.port=8080
+server.address=0.0.0.0
+server.servlet.context-path=/
+
+# Database Configuration
+spring.datasource.url=jdbc:mysql://db-prod.internal:3306/app_db?useSSL=false&amp;allowPublicKeyRetrieval=true
+spring.datasource.username=app_user
+spring.datasource.password=********************  # [REDACTED FOR SECURITY]
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.hikari.maximum-pool-size=20
+spring.datasource.hikari.connection-timeout=30000
+
+# JPA/Hibernate
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.format_sql=true
+
+# Redis Cache
+spring.redis.host=cache-prod.internal
+spring.redis.port=6379
+spring.redis.password=********************  # [REDACTED]
+spring.redis.timeout=5000
+
+# Email (SMTP)
+spring.mail.host=smtp.sendgrid.net
+spring.mail.port=587
+spring.mail.username=apikey
+spring.mail.password=SG.********************  # [REDACTED]
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+# Security
+app.security.jwt-secret=********************  # [REDACTED - 256-bit key]
+app.security.jwt-expiration-ms=86400000
+app.security.encryption-key=********************  # [REDACTED - AES-256]
+
+# Logging
+logging.level.root=INFO
+logging.level.org.springframework.web=DEBUG
+logging.level.com.zaxxer.hikari=INFO
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n
+
+# Feature Flags
+feature.new-ui.enabled=true
+feature.legacy-api.enabled=false
+feature.maintenance-mode=false
+
+# External Services
+api.payment-gateway.url=https://api.stripe.com/v1
+api.payment-gateway.key=********************  # [REDACTED]
+api.geolocation.url=https://api.ipgeolocation.io/ipgeo
+api.geolocation.key=********************  # [REDACTED]
+
+# Monitoring
+management.endpoints.web.exposure.include=health,info,metrics
+management.endpoint.health.show-details=always
+</pre>
+    <div class="note">
+        <p><em>Note: This is a configuration file for internal use only. Sensitive values have been redacted for security display purposes. Actual values are stored in the secure vault.</em></p>
+        <p><em>Last modified by: deploy@internal (uid=1001) on 2024-05-16 14:22:03</em></p>
+    </div>
+</body>
+</html>

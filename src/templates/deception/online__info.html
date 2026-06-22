@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Online Info - Company XYZ</title>
+<style>
+body{font-family:Arial,sans-serif;margin:20px;background:#f9f9f9;}
+h1{color:#2c3e50;}
+table{border-collapse:collapse;width:100%;max-width:600px;margin-top:20px;}
+th,td{border:1px solid #ddd;padding:8px;text-align:left;}
+th{background:#ecf0f1;}
+.form-group{margin-bottom:15px;}
+input[type=text],input[type=email],textarea{width:100%;padding:8px;}
+button{background:#27ae60;color:#fff;padding:10px 15px;border:none;cursor:pointer;}
+button:hover{background:#2ecc71;}
+</style>
+</head>
+<body>
+<h1>Online Information Portal</h1>
+<p>Welcome to the internal info page of <strong>Company XYZ</strong>. This page provides general status and contact details.</p>
+
+<h2>System Status</h2>
+<table>
+<tr><th>Parameter</th><th>Value</th></tr>
+<tr><td>Server Uptime</td><td>12 days, 4 hours</td></tr>
+<tr><td>Current Load</td><td>0.35</td></tr>
+<tr><td>Active Connections</td><td>42</td></tr>
+<tr><td>Database Version</td><td>MySQL 5.7.34-log</td></tr>
+<tr><td>Last Backup</td><td>2025-10-28 02:15 UTC</td></tr>
+</table>
+
+<h2>Contact Form</h2>
+<form action="/online/info/submit" method="post">
+<div class="form-group">
+<label for="name">Name:</label>
+<input type="text" id="name" name="name" required>
+</div>
+<div class="form-group">
+<label for="email">Email:</label>
+<input type="email" id="email" name="email" required>
+</div>
+<div class="form-group">
+<label for="message">Message:</label>
+<textarea id="message" name="message" rows="4" required></textarea>
+</div>
+<button type="submit">Send Inquiry</button>
+</form>
+
+<hr>
+<p><small>© 2025 Company XYZ. All rights reserved.</small></p>
+</body>
+</html>

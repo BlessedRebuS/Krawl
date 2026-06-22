@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lumen Log - storage/logs/lumen.log</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; color:#333; margin:40px;}
+        h1 {color:#2c3e50;}
+        pre {background:#fff; padding:15px; border:1px solid #ddd; overflow:auto; max-height:400px;}
+        .path {color:#7f8c8d; font-size:0.9em;}
+        footer {margin-top:30px; font-size:0.8em; color:#95a5a6;}
+    </style>
+</head>
+<body>
+    <h1>Lumen Log File</h1>
+    <div class="path">Path: /storage/logs/lumen.log</div>
+    <pre>
+[2025-09-25 08:05:12] local.INFO: Application started (Lumen v8.2.2) (Environment: local)
+[2025-09-25 08:05:15] local.DEBUG: Loaded configuration from /var/www/html/.env
+[2025-09-25 08:05:18] local.INFO: Booting service providers...
+[2025-09-25 08:05:22] local.DEBUG: Route GET /api/products accessed, IP: 192.168.1.45
+[2025-09-25 08:05:27] local.DEBUG: Query: SELECT * FROM `products` WHERE `active` = 1 LIMIT 20
+[2025-09-25 08:05:31] local.WARNING: Missing header "Authorization" on request to /api/orders
+[2025-09-25 08:05:40] local.ERROR: Exception: PDOException with message 'SQLSTATE[42S02]: Base table or view not found: 1146 Table 'orders' doesn't exist' at /var/www/html/vendor/laravel/framework/src/Illuminate/Database/Connection.php:678
+[2025-09-25 08:05:45] local.INFO: Cache cleared for key: laravel_resolver
+[2025-09-25 08:06:02] local.DEBUG: Route POST /api/auth/login accessed, IP: 203.0.113.78
+[2025-09-25 08:06:05] local.DEBUG: Auth attempt failed for user: admin@example.com
+[2025-09-25 08:06:10] local.NOTICE: Rate limit exceeded for IP: 203.0.113.78 (5 requests in 10 seconds)
+[2025-09-25 08:06:20] local.INFO: Queued job App\Jobs\SendWelcomeEmail processed successfully
+[2025-09-25 08:07:00] local.DEBUG: GET /healthcheck returned 200
+[2025-09-25 08:07:15] local.INFO: Application shutting down...
+    </pre>
+    <footer>Generated for demonstration purposes only.</footer>
+</body>
+</html>

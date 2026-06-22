@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spring Boot Actuator - Heap Dump</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f8f9fa; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .info { background-color: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        code { background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
+        .btn { display: inline-block; padding: 10px 20px; margin: 10px 5px; background-color: #3498db; color: white; text-decoration: none; border-radius: 4px; }
+        .btn:hover { background-color: #2980b9; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Spring Boot Actuator - Heap Dump Endpoint</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Security Notice:</strong> This endpoint exposes sensitive JVM heap dump data. Access should be restricted in production environments.
+        </div>
+        
+        <div class="info">
+            <strong>Endpoint Information:</strong><br>
+            • <code>GET /actuator/heapdump</code> - Retrieves a heap dump in HPROF format<br>
+            • <code>POST /actuator/heapdump</code> - Triggers a heap dump generation<br>
+            • Requires <code>ACTUATOR_ADMIN</code> role or equivalent permissions
+        </div>
+        
+        <p>The heap dump endpoint provides access to the JVM's memory snapshot, which can be used for diagnosing memory leaks, analyzing object retention, and troubleshooting performance issues.</p>
+        
+        <h2>Current JVM Status</h2>
+        <ul>
+            <li><strong>JVM Version:</strong> OpenJDK 64-Bit Server VM (11.0.12+7) mixed mode</li>
+            <li><strong>Heap Memory:</strong> 512 MB committed, 234 MB used (45.7%)</li>
+            <li><strong>Non-Heap Memory:</strong> 128 MB committed, 98 MB used (76.6%)</li>
+            <li><strong>Thread Count:</strong> 24 active threads</li>
+            <li><strong>Classes Loaded:</strong> 8,934</li>
+            <li><strong>Uptime:</strong> 2 days, 5 hours, 12 minutes</li>
+        </ul>
+        
+        <h2>Sample Heap Dump Analysis (Simulated)</h2>
+        <p>Below is a simulated preview of what a heap dump analysis might reveal:</p>
+        
+        <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0;">
+            <strong>Top Memory Consumers:</strong><br>
+            1. <code>[Ljava.lang.Object;</code> - 45.2 MB (19.3%)<br>
+            2. <code>java.lang.String</code> - 38.7 MB (16.5%)<br>
+            3. <code>[C (char arrays)</code> - 32.1 MB (13.7%)<br>
+            4. <code>java.util.HashMap$Node</code> - 28.9 MB (12.3%)<br>
+            5. <code>java.util.ArrayList</code> - 22.4 MB (9.6%)
+        </div>
+        
+        <h2>Available Actions</h2>
+        <a href="/actuator" class="btn">← Back to Actuator Index</a>
+        <a href="/actuator/metrics" class="btn">View Metrics</a>
+        <a href="/actuator/loggers" class="btn">View Loggers</a>
+        
+        <hr>
+        <p><small>Spring Boot v2.5.6 | Actuator v2.5.6 | Server time: 2024-01-15 14:30:22 UTC</small></p>
+    </div>
+</body>
+</html>

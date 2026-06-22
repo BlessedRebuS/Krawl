@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mail Server Configuration - mail.php</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        .container {background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+        .form-group {margin-bottom:15px;}
+        label {display:block; margin-bottom:5px; font-weight:bold;}
+        input[type="text"], input[type="password"], input[type="number"] {width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;}
+        input[type="submit"] {background:#2980b9; color:#fff; border:none; padding:10px 20px; border-radius:4px; cursor:pointer;}
+        input[type="submit"]:hover {background:#3498db;}
+        pre {background:#f4f4f4; padding:10px; border:1px solid #ddd; overflow:auto;}
+        .note {color:#e74c3c; font-style:italic;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mail Server Configuration</h1>
+        <p class="note">Warning: This file contains sensitive configuration settings. Do not expose to untrusted users.</p>
+        <form action="mail.php" method="post">
+            <div class="form-group">
+                <label for="smtp_host">SMTP Host:</label>
+                <input type="text" id="smtp_host" name="smtp_host" value="smtp.example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="smtp_port">SMTP Port:</label>
+                <input type="number" id="smtp_port" name="smtp_port" value="587" min="1" max="65535" required>
+            </div>
+            <div class="form-group">
+                <label for="smtp_user">Username:</label>
+                <input type="text" id="smtp_user" name="smtp_user" value="admin@example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="smtp_pass">Password:</label>
+                <input type="password" id="smtp_pass" name="smtp_pass" value="********" required>
+            </div>
+            <div class="form-group">
+                <label for="from_email">From Email:</label>
+                <input type="text" id="from_email" name="from_email" value="no-reply@example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="subject">Subject:</label>
+                <input type="text" id="subject" name="subject" value="Test Email" required>
+            </div>
+            <input type="submit" value="Save Configuration" name="submit">
+        </form>
+
+        <h2>Current Settings (for reference)</h2>
+        <pre>&lt;?php
+// mail.php - Simple mail configuration wrapper
+// WARNING: Vulnerable to mail header injection via unfiltered $_POST['subject']
+$config = [
+    'smtp_host' => $_POST['smtp_host'] ?? 'smtp.example.com',
+    'smtp_port' => intval($_POST['smtp_port'] ?? 587),
+    'smtp_user' => $_POST['smtp_user'] ?? 'admin@example.com',
+    'smtp_pass' => $_POST['smtp_pass'] ?? '',
+    'from_email'=> $_POST['from_email'] ?? 'no-reply@example.com'
+];
+
+if(isset($_POST['submit'])) {
+    $to      = 'recipient@example.com';
+    $subject = $_POST['subject']; // <-- No sanitization!
+    $message = "This is a test message.";
+    $headers = "From: {$config['from_email']}\r\n";
+    $headers .= "Reply-To: {$config['from_email']}\r\n";
+    $headers .= "X-Mailer: PHP/" . phpversion();
+
+    // mail() function call (vulnerable to header injection)
+    mail($to, $subject, $message, $headers);
+    echo "&lt;p&gt;Email sent!&lt;/p&gt;";
+}
+?&gt;</pre>
+    </div>
+</body>
+</html>

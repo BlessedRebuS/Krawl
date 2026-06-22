@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stored XSS Example - Demo Page</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f9f9f9; }
+        .comment { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .comment:hover { box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        textarea { width: 100%; height: 80px; margin: 10px 0; }
+        button { background: #007cba; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 3px; }
+        button:hover { background: #005a87; }
+    </style>
+</head>
+<body>
+    <h1>User Comments - Stored XSS Demo</h1>
+    <p>This page demonstrates a stored cross-site scripting vulnerability. User comments are saved and displayed without proper sanitization.</p>
+    
+    <form method="POST" action="/submit_comment">
+        <label for="comment">Leave a comment:</label><br>
+        <textarea id="comment" name="comment" placeholder="Enter your comment here..."></textarea><br>
+        <button type="submit">Submit Comment</button>
+    </form>
+
+    <h2>Recent Comments:</h2>
+    <div class="comment">
+        <strong>JohnDoe:</strong> Great tutorial! Very helpful for understanding web security concepts.
+    </div>
+    <div class="comment">
+        <strong>SecurityNewb:</strong> Thanks for the example! <script>alert('XSS')</script> - just testing if this works.
+    </div>
+    <div class="comment">
+        <strong>Admin:</strong> Please note: This is a demo environment. Do not attempt harmful payloads on production systems.
+    </div>
+    <div class="comment">
+        <strong>TestUser123:</strong> <img src=x onerror=alert('Stored XSS triggered!')> This should execute when rendered.
+    </div>
+    <div class="comment">
+        <strong>EthicalHacker:</strong> I reported this vulnerability through proper channels. The fix should involve output encoding.
+    </div>
+
+    <hr>
+    <p><small>Note: This is a deliberately vulnerable demonstration page for educational purposes only. Real applications should always sanitize user input and encode output.</small></p>
+</body>
+</html>

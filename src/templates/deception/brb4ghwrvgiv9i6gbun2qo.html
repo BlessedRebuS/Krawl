@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internal Dashboard</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4;}
+        header {background:#2c3e50; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#34495e; color:#fff; display:flex; justify-content:center; gap:1.5rem; padding:0.5rem;}
+        nav a {color:#ecf0f1; text-decoration:none;}
+        nav a:hover {text-decoration:underline;}
+        main {max-width:800px; margin:2rem auto; padding:1rem; background:#fff; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h2 {color:#2c3e50;}
+        .info {line-height:1.6; color:#333;}
+        footer {text-align:center; padding:1rem; margin-top:2rem; font-size:0.9rem; color:#7f8c8d;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Company Intranet</h1>
+    </header>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/reports">Reports</a>
+        <a href="/settings">Settings</a>
+        <a href="/logout">Logout</a>
+    </nav>
+    <main>
+        <h2>Welcome, Administrator</h2>
+        <p class="info">
+            This is the internal dashboard used for monitoring system health and managing user accounts.
+            Below you can view recent activity and access various administrative tools.
+        </p>
+        <section>
+            <h3>Recent Activity</h3>
+            <ul>
+                <li>2025-11-02 08:14:23 – User <em>jdoe</em> logged in from 10.0.2.45</li>
+                <li>2025-11-02 07:58:11 – Backup job completed successfully</li>
+                <li>2025-11-02 07:45:00 – Security scan initiated (no threats detected)</li>
+                <li>2025-11-01 22:30:12 – Configuration file <em>web.conf</em> updated by <em>admin</em></li>
+            </ul>
+        </section>
+        <section>
+            <h3>Quick Links</h3>
+            <p class="info">
+                <a href="/admin/users">Manage Users</a> |
+                <a href="/admin/logs">View Logs</a> |
+                <a href="/admin/config">Edit Configuration</a> |
+                <a href="/admin/reports">Generate Report</a>
+            </p>
+        </section>
+    </main>
+    <footer>
+        &copy; 2025 Company Intranet. All rights reserved.
+    </footer>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Horizon API - Pending Jobs</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9;}
+        h1 {color: #333;}
+        table {width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff;}
+        th, td {border: 1px solid #ddd; padding: 8px; text-align: left;}
+        th {background-color: #e2e2e2;}
+        tr:nth-child(even) {background-color: #f2f2f2;}
+        tr:hover {background-color: #e8f4ff;}
+        .note {font-size: 0.9em; color: #555; margin-top: 10px;}
+        pre {background: #f0f0f0; padding: 10px; overflow: auto; border: 1px solid #ccc;}
+    </style>
+</head>
+<body>
+    <h1>Horizon API - Pending Jobs</h1>
+    <p>Use the filter below to narrow down the list of pending jobs.</p>
+    <form method="get" action="/horizon/api/jobs/pending">
+        <label for="job_id">Job ID:</label>
+        <input type="text" id="job_id" name="job_id" value="123' OR '1'='1">
+        <input type="submit" value="Filter">
+    </form>
+    <p class="note">Showing results for job_id: 123' OR '1'='1 (example)</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Job ID</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Created At (UTC)</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>101</td>
+                <td>Pending</td>
+                <td>High</td>
+                <td>2025-09-24 08:12:00</td>
+                <td>Process incoming sensor batch #A7</td>
+            </tr>
+            <tr>
+                <td>102</td>
+                <td>Pending</td>
+                <td>Low</td>
+                <td>2025-09-24 07:45:00</td>
+                <td>Generate daily usage report</td>
+            </tr>
+            <tr>
+                <td>103</td>
+                <td>Pending</td>
+                <td>Medium</td>
+                <td>2025-09-24 06:30:00</td>
+                <td>Backup user profiles to archive</td>
+            </tr>
+            <tr>
+                <td>104</td>
+                <td>Pending</td>
+                <td>High</td>
+                <td>2025-09-24 05:05:00</td>
+                <td>Execute security scan on vault</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Raw API Response (JSON)</h2>
+    <pre>[
+  {
+    "id": 101,
+    "status": "pending",
+    "priority": "high",
+    "created_at": "2025-09-24T08:12:00Z",
+    "description": "Process incoming sensor batch #A7"
+  },
+  {
+    "id": 102,
+    "status": "pending",
+    "priority": "low",
+    "created_at": "2025-09-24T07:45:00Z",
+    "description": "Generate daily usage report"
+  },
+  {
+    "id": 103,
+    "status": "pending",
+    "priority": "medium",
+    "created_at": "2025-09-24T06:30:00Z",
+    "description": "Backup user profiles to archive"
+  },
+  {
+    "id": 104,
+    "status": "pending",
+    "priority": "high",
+    "created_at": "2025-09-24T05:05:00Z",
+    "description": "Execute security scan on vault"
+  }
+]</pre>
+
+    <p><a href="/horizon/api/jobs/pending?format=csv">Download as CSV</a></p>
+</body>
+</html>

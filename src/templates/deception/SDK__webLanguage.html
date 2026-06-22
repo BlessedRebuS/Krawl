@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebLanguage SDK - Documentation</title>
+    <style>
+        body {font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; background:#f5f5f5; color:#333;}
+        header {background:#004080; color:#fff; padding:20px; text-align:center;}
+        nav {background:#e0e0e0; padding:10px;}
+        nav a {margin:0 15px; text-decoration:none; color:#004080; font-weight:bold;}
+        main {padding:20px; max-width:960px; margin:auto; background:#fff; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1, h2 {color:#004080;}
+        code {background:#f0f0f0; padding:2px 4px; border-radius:3px;}
+        pre {background:#f8f8f8; padding:10px; overflow:auto; border:1px solid #ddd;}
+        .section {margin-bottom:30px;}
+        footer {text-align:center; padding:15px; font-size:0.9em; color:#666; margin-top:30px;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>WebLanguage SDK</h1>
+        <p>Official documentation for integrating WebLanguage into your applications</p>
+    </header>
+    <nav>
+        <a href="/SDK/webLanguage">Home</a>
+        <a href="/SDK/webLanguage/getting-started">Getting Started</a>
+        <a href="/SDK/webLanguage/api-reference">API Reference</a>
+        <a href="/SDK/webLanguage/examples">Examples</a>
+        <a href="/SDK/webLanguage/download">Download</a>
+    </nav>
+    <main>
+        <section class="section">
+            <h2>Overview</h2>
+            <p>The WebLanguage SDK provides a simple interface for developers to add multilingual support to web applications. It includes utilities for language detection, translation lookup, and dynamic content switching.</p>
+        </section>
+
+        <section class="section">
+            <h2>Installation</h2>
+            <p>Include the SDK via a script tag or install via npm:</p>
+            <pre><code>&lt;script src="https://cdn.example.com/weblanguage-sdk/v1.0.0/weblanguage.min.js"&gt;&lt;/script&gt;</code></pre>
+            <p>Or using npm:</p>
+            <pre><code>npm install @example/weblanguage-sdk</code></pre>
+        </section>
+
+        <section class="section">
+            <h2>Basic Usage</h2>
+            <p>Initialize the SDK with your default language and a translation map:</p>
+            <pre><code>// Initialize SDK
+WL.init({
+    defaultLang: 'en',
+    translations: {
+        en: { greeting: 'Hello', farewell: 'Goodbye' },
+        es: { greeting: 'Hola', farewell: 'Adiós' }
+    }
+});
+
+// Detect user language
+const lang = WL.detectLanguage() || WL.options.defaultLang;
+
+// Get translated string
+const greeting = WL.t('greeting', lang);
+console.log(greeting); // Outputs based on detected language
+</code></pre>
+        </section>
+
+        <section class="section">
+            <h2>API Reference</h2>
+            <h3>WL.init(options)</h3>
+            <p>Initializes the SDK.</p>
+            <ul>
+                <li><strong>defaultLang</strong> (string): Language code to use when no match is found.</li>
+                <li><strong>translations</strong> (object): Mapping of language codes to key/value translation objects.</li>
+            </ul>
+
+            <h3>WL.detectLanguage()</h3>
+            <p>Returns the user's preferred language based on <code>navigator.language</code> or returns <code>null</code> if undetectable.</p>
+
+            <h3>WL.t(key, lang)</h3>
+            <p>Retrieves the translated string for <code>key</code> in the specified <code>lang</code>. Falls back to <code>defaultLang</code> if missing.</p>
+        </section>
+
+        <section class="section">
+            <h2>Changelog</h2>
+            <ul>
+                <li><strong>1.0.0</strong> – Initial release.</li>
+                <li><strong>1.1.0</strong> – Added language detection fallback.</li>
+                <li><strong>1.2.0</strong> – Improved bundle size.</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        © 2025 Example Corp. All rights reserved.
+    </footer>
+</body>
+</html>

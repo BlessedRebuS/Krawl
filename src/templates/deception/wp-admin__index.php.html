@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - WordPress</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/wp-admin/css/wp-admin.min.css?ver=6.5">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif; }
+        .wrap { margin: 20px auto; max-width: 960px; padding: 0 20px; }
+        .welcome-panel { background: #f7f7f7; border: 1px solid #e5e5e5; border-radius: 3px; padding: 20px; margin-bottom: 20px; }
+        .welcome-panel h2 { margin-top: 0; color: #32373c; }
+        .welcome-panel-column { float: left; width: 48%; margin-right: 4%; }
+        .welcome-panel-column:last-child { margin-right: 0; }
+        .welcome-panel-column-3 { clear: both; width: 100%; margin-top: 20px; }
+        .button { background: #007cba; color: white; border: none; padding: 6px 12px; text-decoration: none; border-radius: 3px; font-size: 13px; }
+        .button:hover { background: #006293; }
+        .widget { background: white; border: 1px solid #e5e5e5; border-radius: 3px; padding: 15px; margin-bottom: 20px; }
+        .widget h3 { margin-top: 0; color: #32373c; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .activity-box li { border-bottom: 1px solid #eee; padding: 10px 0; }
+        .activity-box li:last-child { border-bottom: none; }
+        .activity-box .comment-author { font-weight: 600; }
+        .activity-box .comment-date { font-size: 12px; color: #767676; }
+        .update-nag { background: #fffdd0; border-left: 4px solid #ffeb3b; padding: 10px 15px; margin: 15px 0; border-radius: 0 3px 3px 0; }
+        .update-nag a { color: #007cba; text-decoration: underline; }
+        .update-nag a:hover { text-decoration: none; }
+        .screen-reader-text { clip: rect(1px, 1px, 1px, 1px); position: absolute !important; height: 1px; width: 1px; overflow: hidden; }
+        @media (max-width: 782px) {
+            .welcome-panel-column { float: none; width: 100%; margin-right: 0; margin-bottom: 20px; }
+        }
+    </style>
+</head>
+<body class="wp-admin wp-core-ui no-js index-php admin-bar auto-float-bottom-sidebar">
+    <div id="wpcontent" class="wp-content">
+        <div id="wpwrap">
+            <div id="wpadminbar" class="">
+                <div class="quicklinks">
+                    <ul id="wp-admin-bar-root-default" class="ab-list">
+                        <li id="wp-admin-bar-wp-logo" class="menupop">
+                            <a class="ab-item" aria-haspopup="true" href="https://wordpress.org/" tabindex="-1">WordPress</a>
+                            <div class="ab-sub-wrapper">
+                                <ul id="wp-admin-bar-wp-logo-external" class="ab-subsecondary ab-submenu">
+                                    <li id="wp-admin-bar-wporg" class="">
+                                        <a class="ab-item" href="https://wordpress.org/">WordPress.org</a>
+                                    </li>
+                                    <li id="wp-admin-bar-documentation" class="">
+                                        <a class="ab-item" href="https://wordpress.org/support/">Documentation</a>
+                                    </li>
+                                    <li id="wp-admin-bar-support-forums" class="">
+                                        <a class="ab-item" href="https://wordpress.org/support/forums/">Support Forums</a>
+                                    </li>
+                                    <li id="wp-admin-bar-feedback" class="">
+                                        <a class="ab-item" href="https://wordpress.org/support/forum/requests-and-feedback/">Feedback</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li id="wp-admin-bar-site-name" class="menupop">
+                            <a class="ab-item" href="https://example.com/" aria-haspopup="true">Example Blog</a>
+                            <div class="ab-sub-wrapper">
+                                <ul id="wp-admin-bar-site-name-blog" class="ab-subsecondary ab-submenu">
+                                    <li id="wp-admin-bar-view-site" class="">
+                                        <a class="ab-item" href="https://example.com/">Visit Site</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li id="wp-admin-bar-updates" class="">
+                            <a class="ab-item" href="/wp-admin/update-core.php" aria-label="2 updates available">Updates <span class="ab-icon"></span><span class="ab-label">2</span></a>
+                        </li>
+                        <li id="wp-admin-bar-comments" class="">
+                            <a class="ab-item" href="/wp-admin/edit-comments.php" aria-label="3 comments awaiting moderation">Comments <span class="ab-icon"></span><span class="comment-awaiting-mod">3</span></a>
+                        </li>
+                        <li id="wp-admin-bar-new-content" class="menupop">
+                            <a class="ab-item" href="#" aria-haspopup="true">+ New</a>
+                            <div class="ab-sub-wrapper">
+                                <ul id="wp-admin-bar-new-content" class="ab-subsecondary ab-submenu">
+                                    <li id="wp-admin-bar-new-post" class="">
+                                        <a class="ab-item" href="/wp-admin/post-new.php">Post</a>
+                                    </li>
+                                    <li id="wp-admin-bar-new-media" class="">
+                                        <a class="ab-item" href="/wp-admin/media-new.php">Media</a>
+                                    </li>
+                                    <li id="wp-admin-bar-new-page" class="">
+                                        <a class="ab-item" href="/wp-admin/post-new.php?post_type=page">Page</a>
+                                    </li>
+                                    <li id="wp-admin-bar-new-user" class="">
+                                        <a class="ab-item" href="/wp-admin/user-new.php">User</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li id="wp-admin-bar-user-actions" class="menupop">
+                            <a class="ab-item" aria-haspopup="true">admin <span class="avatar"></span></a>
+                            <div class="ab-sub-wrapper">
+                                <ul id="wp-admin-bar-user-actions" class="ab-subsecondary ab-submenu">
+                                    <li id="wp-admin-bar-user-info" class="">
+                                        <a class="ab-item" href="/wp-admin/profile.php">Your Profile</a>
+                                    </li>
+                                    <li id="wp-admin-bar-logout" class="">
+                                        <a class="ab-item" href="/wp-login.php?action=logout&_wpnonce=abcdef123456">Log Out</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div id="wpbody" class="wp-body-open">
+                <div id="wpbody-content">
+                    <div class="wrap">
+                        <h1>Dashboard</h1>
+                        
+                        <div class="update-nag">
+                            WordPress 6.5.2 is available! <a href="/wp-admin/update-core.php">Please update now</a>.
+                        </div>
+                        
+                        <div class="welcome-panel">
+                            <h2>Welcome to WordPress 6.5</h2>
+                            <div class="welcome-panel-column">
+                                <h3>Get Started</h3>
+                                <a href="/wp-admin/post-new.php" class="button button-primary button-large">Write your first blog post</a>
+                                <a href="/wp-admin/customize.php" class="button button-large">Customize your site</a>
+                                <a href="/wp-admin/themes.php" class="button button-large">Add new themes</a>
+                            </div>
+                            <div class="welcome-panel-column">
+                                <h3>Next Steps</h3>
+                                <a href="/wp-admin/widgets.php" class="button button-large">Manage widgets or menus</a>
+                                <a href="/wp-admin/comments.php" class="button button-large">Turn comments on or off</a>
+                                <a href="/wp-admin/users.php?role=administrator" class="button button-large">Learn more about getting started</a>
+                            </div>
+                            <div class="welcome-panel-column-3">
+                                <h3>More Actions</h3>
+                                <p>About <a href="https://wordpress.org/about/">WordPress</a>:
+                                    WordPress is a personal publishing platform and blogging application with a focus on aesthetics, web standards, and usability.
+                                </p>
+                                <p>More information is available at <a href="https://wordpress.org/">WordPress.org</a> and <a href="https://codex.wordpress.org/">the Codex</a>.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="widget" id="dashboard_right_now">
+                            <h3>Right Now</h3>
+                            <ul>
+                                <li>Posts: 12 <a href="/wp-admin/edit.php">(10 published, 2 drafts)</a></li>
+                                <li>Pages: 5 <a href="/wp-admin/edit.php?post_type=page">(all published)</a></li>
+                                <li>Categories: 3 <a href="/wp-admin/edit-tags.php?taxonomy=category">Edit</a></li>
+                                <li>Tags: 8 <a href="/wp-admin/edit-tags.php?taxonomy=post_tag">Edit</a></li>
+                                <li>Comments: 3 <a href="/wp-admin/edit-comments.php">(1 approved, 2 awaiting moderation)</a></li>
+                            </ul>
+                            <div class="clear"></div>
+                        </div>
+                        
+                        <div class="widget" id="dashboard_activity">
+                            <h3>Activity</h3>
+                            <div class="activity-box">
+                                <ul>
+                                    <li>
+                                        <a href="/wp-admin/post.php?post=5&amp;action=edit" class="comment-author">admin</a> published <a href="/wp-admin/post.php?post=5&amp;action=edit">"Welcome to WordPress"</a>
+                                        <span class="comment-date">2 minutes ago</span>
+                                    </li>
+                                    <li>
+                                        <a href="/wp-admin/post.php?post=7&amp;action=edit" class="comment-author">johndoe</a> commented on <a href="/wp-admin/post.php?post=7&amp;action=edit">"My First Blog Post"</a>
+                                        <span class="comment-date">5 minutes ago</span>
+                                        <div class="comment-content">This is a test comment waiting for moderation.</div>
+                                        <a href="/wp-admin/comment.php?action=approvecomment&amp;c=3&amp;_wpnonce=abcdef123456" class="approve">Approve</a> | 
+                                        <a href="/wp-admin/comment.php?action=deletecomment&amp;c=3&amp;_wpnonce=abcdef123456" class="delete">Trash</a> | 
+                                        <span class="spam">Spam</span>
+                                    </li>
+                                    <li>
+                                        <a href="/wp-admin/post.php?post=9&amp;action=edit" class="comment-author">admin</a> updated the theme <a href="/wp-admin/themes.php">Twenty Twenty-Four</a>
+                                        <span class="comment-date">15 minutes ago</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="widget" id="dashboard_quick_press">
+                            <h3>Quick Draft</h3>
+                            <form name="quickpost" id="quickpost" method="post" action="/wp-admin/admin-ajax.php">
+                                <input type="hidden" name="action" value="quick-press">
+                                <p><label for="quickpost-title">Title</label><br>
+                                <input type="text" name="post_title" id="quickpost-title" tabindex="1" value="" size="30" autocomplete="off"></p>
+                                <p><label for="quickpost-content">What’s on your mind?</label><br>
+                                <textarea name="content" id="quickpost-content" tabindex="2" rows="8" cols="30"></textarea></p>
+                                <p class="submit"><input type="submit" name="submit" id="submitquick" value="Save Draft" tabindex="3" class="button"> <label for="hidden_quickpost_privacy"><input type="hidden" name="post_format" value="0" id="post_format" /> Private <input type="checkbox" name="keep_private" value="private" id="hidden_quickpost_privacy" tabindex="4"></label></p>
+                            </form>
+                        </div>
+                        
+                        <div class="clear"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="wpfooter">
+                <div id="wp-footer-upgrade">Running version <strong>6.5</strong>. <a href="/wp-admin/update-core.php">Update to 6.5.2</a>.</div>
+                <p>Thanks for creating with <a href="https://wordpress.org/">WordPress</a>. <span id="wp-version-meta"></span></p>
+            </div>
+        </div>
+    </div>
+    <script>
+        try{window.addEventListener("load",function(){var e,t,n,r,i=document.getElementsByTagName("SCRIPT"),o=document.getElementsByTagName("INPUT"),a=document.getElementsByTagName("TEXTAREA"),s=document.getElementsByTagName("SELECT");for(e=0;e<i.length;e++)i[e].getAttribute("type")&&(i[e].type=i[e].getAttribute("type"));for(e=0;e<o.length;e++)o[e].getAttribute("type")&&(o[e].type=o[e].getAttribute("type"));for(e=0;e<a.length;e++)a[e].getAttribute("type")&&(a[e].type=a[e].getAttribute("type"));for(e=0;e<s.length;e++)s[e].getAttribute("type")&&(s[e].type=s[e].getAttribute("type"))})}catch(e){}
+    </script>
+</body>
+</html>

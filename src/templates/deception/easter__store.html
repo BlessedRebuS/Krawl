@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easter Store - Spring Collection</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f4f0;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #ffb3c6;
+            color: #5a189a;
+            text-align: center;
+            padding: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+        .product-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #f0e6e6;
+        }
+        .product-info {
+            padding: 1rem;
+        }
+        .product-name {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        .product-price {
+            color: #d32f2f;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .product-desc {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 1rem;
+            height: 48px;
+            overflow: hidden;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #ff6b8a;
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        .btn:hover {
+            background-color: #e65a75;
+        }
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            background-color: #ffd1dc;
+            color: #5a189a;
+            margin-top: 3rem;
+            font-size: 0.9rem;
+        }
+        .search-box {
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+        .search-box input {
+            padding: 0.75rem;
+            width: 250px;
+            border: 2px solid #ffb3c6;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .search-box button {
+            padding: 0.75rem 1.5rem;
+            background-color: #ff6b8a;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-left: 0.5rem;
+        }
+        .search-box button:hover {
+            background-color: #e65a75;
+        }
+        .highlight {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Easter Store - Spring Collection</h1>
+        <p>Celebrate the season with pastel delights and festive treasures</p>
+    </header>
+    
+    <div class="container">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search for eggs, bunnies, spring decor...">
+            <button onclick="searchProducts()">Search</button>
+        </div>
+        
+        <div class="product-grid">
+            <div class="product-card">
+                <img src="data:image/svg+xml;charset=UTF-8,<svg width='300' height='200' xmlns='http://www.w3.org/2000/svg'><rect width='300' height='200' fill='%23ffe4e1'/><circle cx='150' cy='100' r='60' fill='%23ffb3c6'/><text x='150' y='110' font-size='24' text-anchor='middle' fill='%23ffffff'>🐣</text></svg>" alt="Chocolate Egg" class="product-img">
+                <div class="product-info">
+                    <div class="product-name">Premium Chocolate Egg</div>
+                    <div class="product-price">$12.99</div>
+                    <div class="product-desc">Handcrafted milk chocolate egg with caramel filling and sprinkled pastel sugar</div>
+                    <a href="/cart/add?name=Premium+Chocolate+Egg&price=12.99" class="btn">Add to Cart</a>
+                </div>
+            </div>
+            
+            <div class="product-card">
+                <img src="data:image/svg+xml;charset=UTF-8,<svg width='300' height='200' xmlns='http://www.w3.org/2000/svg'><rect width='300' height='200' fill='%23fff0f5'/><path d='M150 50 Q100 0 50 50 L50 150 Q100 200 150 150 Q200 200 250 150 L250 50 Q200 0 150 50 Z' fill='%23ffb3c6'/><circle cx='150' cy='100' r='30' fill='%23ffe4e1'/></svg>" alt="Bunny Plush" class="product-img">
+                <div class="product-info">
+                    <div class="product-name">Soft Bunny Plush</div>
+                    <div class="product-price">$19.99</div>
+                    <div class="product-desc">Ultra-soft bunny stuffed animal with embroidered features and pastel ribbon</div>
+                    <a href="/cart/add?name=Soft+Bunny+Plush&price=19.99" class="btn">Add to Cart</a>
+                </div>
+            </div>
+            
+            <div class="product-card">
+                <img src="data:image/svg+xml;charset=UTF-8,<svg width='300' height='200' xmlns='http://www.w3.org/2000/svg'><rect width='300' height='200' fill='%23ffe4e1'/><rect x='50' y='80' width='200' height='40' fill='%23ffb3c6'/><text x='150' y='105' font-size='18' text-anchor='middle' fill='%23ffffff'>Happy Easter</text></svg>" alt="Easter Banner" class="product-img">
+                <div class="product-info">
+                    <div class="product-name">Festive Easter Banner</div>
+                    <div class="product-price">$8.99</div>
+                    <div class="product-desc">Fabric banner with pastel eggs, bunnies, and spring flowers - perfect for mantels or walls</div>
+                    <a href="/cart/add?name=Festive+Easter+Banner&price=8.99" class="btn">Add to Cart</a>
+                </div>
+            </div>
+            
+            <div class="product-card">
+                <img src="data:image/svg+xml;charset=UTF-8,<svg width='300' height='200' xmlns='http://www.w3.org/2000/svg'><rect width='300' height='200' fill='%23fff0f5'/><circle cx='150' cy='100' r='80' fill='%23ffe4e1'/><path d='M110 80 Q150 50 190 80' stroke='%23ff6b8a' stroke-width='4' fill='none'/><circle cx='130' cy='80' r='5' fill='%23000'/><circle cx='170' cy='80' r='5' fill='%23000'/></svg>" alt="Ceramic Egg Cup" class="product-img">
+                <div class="product-info">
+                    <div class="product-name">Ceramic Egg Cup Set</div>
+                    <div class="product-price">$15.99</div>
+                    <div class="product-desc">Set of 4 pastel ceramic egg cups with matching spoons - ideal for breakfast or brunch</div>
+                    <a href="/cart/add?name=Ceramic+Egg+Cup+Set&price=15.99" class="btn">Add to Cart</a>
+                </div>
+            </div>
+            
+            <div class="product-card">
+                <img src="data:image/svg+xml;charset=UTF-8,<svg width='300' height='200' xmlns='http://www.w3.org/2000/svg'><rect width='300' height='200' fill='%23ffe4e1'/><path d='M50 150 L100 80 L150 130 L200 60 L250 110 L300 50' stroke='%23ffb3c6' stroke-width='8' fill='none'/><circle cx='50' cy='150' r='8' fill='%23ff6b8a'/><circle cx='100' cy='80' r='8' fill='%23ff6b8a'/><circle cx='150' cy='130' r='8' fill='%23ff6b8a'/><circle cx='200' cy='60' r='8' fill='%23ff6b8a'/><circle cx='250' cy='110' r='8' fill='%23ff6b8a'/><circle cx='300' cy='50' r='8' fill='%23ff6b8a'/></svg>" alt="Easter Garland" class="product-img">
+                <div class="product-info">
+                    <div class="product-name">Spring Flower Garland</div>
+                    <div class="product-price">$10.99</div>
+                    <div class="product-desc">6-foot garland with fabric tulips, daffodils, and pastel eggs - indoor/outdoor use</div>
+                    <a href="/cart/add?name=Spring+Flower+Garland&price=10.99" class="btn">Add to Cart</a>
+                </div>
+            </div>
+            
+            <div class="product-card">
+                <img src="data:image/svg+xml;charset=UTF-8,<svg width='300' height='200' xmlns='http://www.w3.org/2000/svg'><rect width='300' height='200' fill='%23fff0f5'/><rect x='50' y='50' width='200' height='100' rx='20' fill='%23ffe4e1'/><text x='150' y='90' font-size='20' text-anchor='middle' fill='%23ff6b8a'>🥚</text></svg>" alt="Decorative Egg Basket" class="product-img">
+                <div class="product-info">
+                    <div class="product-name">Decorative Egg Basket</div>
+                    <div class="product-price">$22.99</div>
+                    <div class="product-desc">Wicker basket filled with 12 hand-painted ceramic eggs - perfect centerpiece</div>
+                    <a href="/cart/add?name=Decorative+Egg+Basket&price=22.99" class="btn">Add to Cart</a>
+                </div>
+            </div>
+            
+            <div class="product-card">
+                <img src="data:image/svg+xml;charset=UTF-8,<svg width='300' height='200' xmlns='http://www.w3.org/2000/svg'><rect width='300' height='200' fill='%23ffe4e1'/><circle cx='150' cy='100' r='70' fill='%23ffb3c6'/><path d='M120 80 Q150 50 180 80' stroke='%23ffffff' stroke-width='3' fill='none'/><circle cx='135' cy='75' r='3' fill='%23000'/><circle cx='165' cy='75' r='3' fill='%23000'/><path d='M130 110 Q150 130 170 110' stroke='%23ffffff' stroke-width='2' fill='none'/></svg>" alt="Bunny Ear Headband" class="product-img">
+                <div class="product-info">
+                    <div class="product-name">Bunny Ear Headband</div>
+                    <div class="product-price">$7.99</div>
+                    <div class="product-desc">Adjustable headband with soft pastel bunny ears - great for photos and parties</div>
+                    <a href="/cart/add?name=Bunny+Ear+Headband&price=7.99" class="btn">Add to Cart</a>
+                </div>
+            </div>
+            
+            <div class="product-card">
+                <img src="data:image/svg+xml;charset=UTF-8,<svg width='300' height='200' xmlns='http://www.w3.org/2000/svg'><rect width='300' height='200' fill='%23fff0f5'/><path d='M50 100 Q100 50 150 100 Q200 50 250 100' stroke='%23ffb3c6' stroke-width='6' fill='none'/><circle cx='50' cy='100' r='8' fill='%23ff6b8a'/><circle cx='100' cy='50' r='8' fill='%23ff6b8a'/><circle cx='150' cy='100' r='8' fill='%23ff6b8a'/><circle cx='200' cy='50' r='8' fill='%23ff6b8a'/><circle cx='250' cy='100' r='8' fill='%23ff6b8a'/></svg>" alt="Pastel Candy Jar" class="product-img">
+                <div class="product-info">
+                    <div class="product-name">Pastel Candy Jar</div>
+                    <div class="product-price">$14.99</div>
+                    <div class="product-desc">Glass jar filled with layered pastel jelly beans and chocolate eggs - reusable container</div>
+                    <a href="/cart/add?name=Pastel+Candy+Jar&price=14.99" class="btn">Add to Cart</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>&copy; 2024 Easter Store. All rights reserved.</p>
+        <p>Free shipping on orders over $50 | Returns accepted within 30 days</p>
+        <p>Follow us: <a href="#" style="color: #5a189a; text-decoration: none;">Facebook</a> | <a href="#" style="color: #5a189a; text-decoration: none;">Instagram</a> | <a href="#" style="color: #5a189a; text-decoration: none;">Pinterest</a></p>
+    </div>
+
+    <script>
+        function searchProducts() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.product-card');
+            
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(query) || query === '') {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+        
+        // Allow Enter key to trigger search
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchProducts();
+            }
+        });
+    </script>
+</body>
+</html>

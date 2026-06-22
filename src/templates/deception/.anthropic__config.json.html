@@ -1,0 +1,28 @@
+<html><body>{
+  "anthropic": {
+    "model": "claude-3-opus-20240229",
+    "version": "1.4.7",
+    "api_key": "sk-ant-api03-FAKE-KEY-1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd",
+    "organization": "org_FAKE1234567890abcdef",
+    "features": {
+      "streaming": true,
+      "tool_use": true,
+      "vision": true,
+      "reasoning": "advanced"
+    },
+    "rate_limits": {
+      "requests_per_minute": 50,
+      "tokens_per_minute": 10000
+    },
+    "endpoints": {
+      "chat": "/v1/messages",
+      "completions": "/v1/complete",
+      "embeddings": "/v1/embeddings"
+    },
+    "debug": {
+      "log_level": "info",
+      "enable_tracing": false,
+      "proxy": "http://127.0.0.1:8080"
+    }
+  }
+}</body></html>

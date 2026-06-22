@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Site Manager - sitemanager.xml</title>
+    <style>
+        body { font-family: monospace; margin: 2em; background:#fafafa; color:#222; }
+        pre { background:#fff; padding:1em; border:1px solid #ccc; overflow:auto; }
+    </style>
+</head>
+<body>
+    <h1>Site Manager XML</h1>
+    <pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;sitemanager&gt;
+    &lt;site id="1"&gt;
+        &lt;name&gt;example.com&lt;/name&gt;
+        &lt;url&gt;https://www.example.com&lt;/url&gt;
+        &lt;lastModified&gt;2024-09-15&lt;/lastModified&gt;
+        &lt;pages&gt;
+            &lt;page&gt;
+                &lt;loc&gt;/index.html&lt;/loc&gt;
+                &lt;priority&gt;1.0&lt;/priority&gt;
+                &lt;changefreq&gt;daily&lt;/changefreq&gt;
+            &lt;/page&gt;
+            &lt;page&gt;
+                &lt;loc&gt;/about.html&lt;/loc&gt;
+                &lt;priority&gt;0.8&lt;/priority&gt;
+                &lt;changefreq&gt;monthly&lt;/changefreq&gt;
+            &lt;/page&gt;
+            &lt;page&gt;
+                &lt;loc&gt;/contact.html&lt;/loc&gt;
+                &lt;priority&gt;0.7&lt;/priority&gt;
+                &lt;changefreq&gt;monthly&lt;/changefreq&gt;
+            &lt;/page&gt;
+        &lt;/pages&gt;
+    &lt;/site&gt;
+    &lt;site id="2"&gt;
+        &lt;name&gt;blog.example.com&lt;/name&gt;
+        &lt;url&gt;https://blog.example.com&lt;/url&gt;
+        &lt;lastModified&gt;2024-09-14&lt;/lastModified&gt;
+        &lt;pages&gt;
+            &lt;page&gt;
+                &lt;loc&gt;/&lt;/loc&gt;
+                &lt;priority&gt;1.0&lt;/priority&gt;
+                &lt;changefreq&gt;daily&lt;/changefreq&gt;
+            &lt;/page&gt;
+            &lt;page&gt;
+                &lt;loc&gt;/post1.html&lt;/loc&gt;
+                &lt;priority&gt;0.9&lt;/priority&gt;
+                &lt;changefreq&gt;weekly&lt;/changefreq&gt;
+            &lt;/page&gt;
+        &lt;/pages&gt;
+    &lt;/site&gt;
+&lt;/sitemanager&gt;
+    </pre>
+</body>
+</html>

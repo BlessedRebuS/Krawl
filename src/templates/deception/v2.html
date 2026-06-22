@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>API v2 - Internal Service</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px;}
+        .container {max-width: 800px; margin: auto;}
+        .vuln {color: #d00;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the API v2 Interface</h1>
+        <p>This is an internal service used for testing. Feel free to explore.</p>
+        <h2>Available Endpoints</h2>
+        <ul>
+            <li><a href="/v2/users">/v2/users</a> – List users (GET)</li>
+            <li><a href="/v2/login">/v2/login</a> – Login form (POST)</li>
+            <li><a href="/v2/search?q=test">/v2/search</a> – Search (GET)</li>
+            <li><a href="/v2/admin">/v2/admin</a> – Admin panel (restricted)</li>
+        </ul>
+        <h2>Sample Login Form (Intentionally Vulnerable)</h2>
+        <form action="/v2/login" method="POST">
+            <label for="username">Username:</label><br>
+            <input type="text" id="username" name="username" placeholder="Enter username"><br><br>
+            <label for="password">Password:</label><br>
+            <input type="password" id="password" name="password" placeholder="Enter password"><br><br>
+            <input type="submit" value="Login">
+        </form>
+        <p class="vuln">Note: The backend directly concatenates user input into SQL queries without sanitization.</p>
+        <h2>Comment Section (XSS Prone)</h2>
+        <div id="comments">
+            <p><strong>admin:</strong> Welcome to the test environment.</p>
+            <p><strong>tester:</strong> <script>alert('XSS');</script> Just testing.</p>
+        </div>
+        <form action="/v2/comment" method="POST">
+            <label for="comment">Add a comment:</label><br>
+            <textarea id="comment" name="comment" rows="4" cols="50"></textarea><br><br>
+            <input type="submit" value="Post Comment">
+        </form>
+        <hr>
+        <footer>
+            <p>© 2025 Internal Corp. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>

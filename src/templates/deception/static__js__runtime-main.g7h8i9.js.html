@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Runtime Main JS</title>
+</head>
+<body>
+    <script>
+        // Fake runtime-main.js content
+        // This is a simulated webpack runtime
+        (function() {
+            var modules = {};
+            function __webpack_require__(moduleId) {
+                // fake vulnerable code: eval of user input
+                if (moduleId === 'user') {
+                    var payload = location.hash.slice(1); // pretend to get user input
+                    eval(payload); // intentional XSS/eval vuln
+                }
+                return modules[moduleId] || {};
+            }
+            // expose
+            window.__webpack_require__ = __webpack_require__;
+        })();
+    </script>
+</body>
+</html>

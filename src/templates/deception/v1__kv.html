@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Consul KV Store - /v1/kv?recurse</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px;}
+        table {border-collapse: collapse; width: 100%;}
+        th, td {border: 1px solid #ddd; padding: 8px; text-align: left;}
+        th {background-color: #f2f2f2;}
+    </style>
+</head>
+<body>
+    <h1>Consul Key/Value Store (recursive)</h1>
+    <p>Path: <code>/v1/kv?recurse</code></p>
+    <table>
+        <thead>
+            <tr>
+                <th>Key</th>
+                <th>Value (base64)</th>
+                <th>Flags</th>
+                <th>Modify Index</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>config/database/username</td>
+                <td>YWRtaW4=</td>
+                <td>0</td>
+                <td>12345</td>
+            </tr>
+            <tr>
+                <td>config/database/password</td>
+                <td>cGFzc3dvcmQxMjM=</td>
+                <td>0</td>
+                <td>12346</td>
+            </tr>
+            <tr>
+                <td>service/web/port</td>
+                <td>ODA4MA==</td>
+                <td>0</td>
+                <td>12347</td>
+            </tr>
+            <tr>
+                <td>featureflags/new_ui</td>
+                <td>true</td>
+                <td>0</td>
+                <td>12348</td>
+            </tr>
+            <tr>
+                <td>locks/leader</td>
+                <td></td>
+                <td>0</td>
+                <td>12349</td>
+            </tr>
+        </tbody>
+    </table>
+    <p><em>Note: Values are base64-encoded as per Consul KV API.</em></p>
+</body>
+</html>

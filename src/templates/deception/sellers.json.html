@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Seller Data Export</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h1 { color: #333; }
+        pre { background: #f4f4f4; padding: 15px; border: 1px solid #ddd; overflow-x: auto; }
+        .note { color: #666; font-size: 0.9em; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Seller Information (JSON Export)</h1>
+    <p>This endpoint provides a structured export of registered seller data for integration purposes.</p>
+    <pre>[{
+        "id": "SLR-7890",
+        "name": "GlobalTech Supplies Inc.",
+        "email": "sales@globaltech.example",
+        "phone": "+1-555-0198",
+        "address": {
+            "street": "123 Innovation Drive",
+            "city": "San Jose",
+            "state": "CA",
+            "zip": "95131",
+            "country": "USA"
+        },
+        "status": "active",
+        "rating": 4.7,
+        "joined": "2022-03-15",
+        "products": [
+            {"sku": "GT-1001", "name": "Wireless Router Pro", "price": 89.99},
+            {"sku": "GT-2005", "name": "USB-C Hub 8-in-1", "price": 34.99}
+        ]
+    }, {
+        "id": "SLR-7891",
+        "name": "EcoFriendly Goods Co.",
+        "email": "contact@ecofriendly.example",
+        "phone": "+1-555-0173",
+        "address": {
+            "street": "456 Green Valley Rd",
+            "city": "Portland",
+            "state": "OR",
+            "zip": "97205",
+            "country": "USA"
+        },
+        "status": "active",
+        "rating": 4.9,
+        "joined": "2021-11-02",
+        "products": [
+            {"sku": "EF-3000", "name": "Bamboo Cutting Board Set", "price": 24.99},
+            {"sku": "EF-3001", "name": "Reusable Silicone Bags", "price": 12.99}
+        ]
+    }, {
+        "id": "SLR-7892",
+        "name": "BudgetBuy Distributors",
+        "email": "info@budgetbuy.example",
+        "phone": "+1-555-0144",
+        "address": {
+            "street": "789 Discount Blvd",
+            "city": "Las Vegas",
+            "state": "NV",
+            "zip": "89101",
+            "country": "USA"
+        },
+        "status": "pending_verification",
+        "rating": 3.2,
+        "joined": "2023-01-20",
+        "products": [
+            {"sku": "BB-5000", "name": "Basic LED Desk Lamp", "price": 15.99},
+            {"sku": "BB-5001", "name": "NoName USB Cable 3ft", "price": 4.99}
+        ]
+    }]</pre>
+    <p class="note">Note: This is a simulated data export for demonstration purposes. Actual seller data is protected and access-controlled.</p>
+</body>
+</html>

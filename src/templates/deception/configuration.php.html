@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration - SecurePortal v2.4.1</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .config-section { margin: 25px 0; padding: 20px; border: 1px solid #ecf0f1; border-radius: 5px; background: #fafafa; }
+        .config-label { font-weight: bold; color: #34495e; display: block; margin-bottom: 5px; }
+        .config-value { background: white; padding: 8px 12px; border: 1px solid #ddd; border-radius: 3px; font-family: monospace; font-size: 14px; }
+        .warning { color: #e74c3c; font-size: 14px; margin-top: 10px; }
+        .btn { display: inline-block; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 4px; margin: 5px; }
+        .btn:hover { background: #2980b9; }
+        footer { margin-top: 40px; text-align: center; color: #95a5a6; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>System Configuration</h1>
+        <p><em>SecurePortal Enterprise - Version 2.4.1 (Build 20240315)</em></p>
+        
+        <div class="config-section">
+            <h2>Database Settings</h2>
+            <div class="config-label">Host:</div>
+            <div class="config-value">db-prod01.internal.corp</div>
+            <div class="config-label">Port:</div>
+            <div class="config-value">3306</div>
+            <div class="config-label">Username:</div>
+            <div class="config-value">portal_admin</div>
+            <div class="config-label">Password:</div>
+            <div class="config-value">s3cureP@ssw0rd!2024</div>
+            <div class="config-label">Database Name:</div>
+            <div class="config-value">secureportal_prod</div>
+            <div class="config-label">Charset:</div>
+            <div class="config-value">utf8mb4</div>
+            <div class="config-label">Persistent Connections:</div>
+            <div class="config-value">Enabled</div>
+        </div>
+
+        <div class="config-section">
+            <h2>Security Settings</h2>
+            <div class="config-label">Session Timeout:</div>
+            <div class="config-value">1800 seconds</div>
+            <div class="config-label">Password Policy:</div>
+            <div class="config-value">Minimum 12 characters, require uppercase, lowercase, number, special char</div>
+            <div class="config-label">Failed Login Attempts:</div>
+            <div class="config-value">5 lockout threshold</div>
+            <div class="config-label">CSRF Protection:</div>
+            <div class="config-value">Enabled</div>
+            <div class="config-label">X-Frame-Options:</div>
+            <div class="config-value">SAMEORIGIN</div>
+            <div class="config-label">Content Security Policy:</div>
+            <div class="config-value">default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'</div>
+        </div>
+
+        <div class="config-section">
+            <h2>Email Configuration</h2>
+            <div class="config-label">SMTP Host:</div>
+            <div class="config-value">smtp.sendgrid.net</div>
+            <div class="config-label">SMTP Port:</div>
+            <div class="config-value">587</div>
+            <div class="config-label">SMTP Username:</div>
+            <div class="config-value">apikey</div>
+            <div class="config-label">SMTP Password:</div>
+            <div class="config-value">SG.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+            <div class="config-label">From Address:</div>
+            <div class="config-value">noreply@secureportal.com</div>
+            <div class="config-label">Use TLS:</div>
+            <div class="config-value">Yes</div>
+        </div>
+
+        <div class="config-section">
+            <h2>Application Settings</h2>
+            <div class="config-label">Debug Mode:</div>
+            <div class="config-value">Disabled</div>
+            <div class="config-label">Log Level:</div>
+            <div class="config-value">INFO</div>
+            <div class="config-label">Cache Driver:</div>
+            <div class="config-value">Redis</div>
+            <div class="config-label">Redis Host:</div>
+            <div class="config-value">redis-prod01.internal.corp</div>
+            <div class="config-label">Redis Port:</div>
+            <div class="config-value">6379</div>
+            <div class="config-label">Maintenance Mode:</div>
+            <div class="config-value">Disabled</div>
+            <div class="config-label">API Rate Limit:</div>
+            <div class="config-value">100 requests/minute per IP</div>
+        </div>
+
+        <div class="config-section">
+            <h2>SSL/TLS Configuration</h2>
+            <div class="config-label">Certificate Issuer:</div>
+            <div class="config-value">Let's Encrypt Authority X3</div>
+            <div class="config-label">Valid From:</div>
+            <div class="config-value">2024-03-01</div>
+            <div class="config-label">Valid Until:</div>
+            <div class="config-value">2024-05-30</div>
+            <div class="config-label">Protocol:</div>
+            <div class="config-value">TLSv1.2, TLSv1.3</div>
+            <div class="config-label">Cipher Suites:</div>
+            <div class="config-value">ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256</div>
+            <div class="warning">※ Certificate auto-renewal enabled via certbot</div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="/admin/login.php" class="btn">Admin Login</a>
+            <a href="/dashboard.php" class="btn">Dashboard</a>
+            <a href="/logout.php" class="btn">Logout</a>
+        </div>
+    </div>
+
+    <footer>
+        © 2024 SecurePortal Corporation. All rights reserved.<br>
+        Configuration page accessed: <?php echo date('Y-m-d H:i:s'); ?>
+    </footer>
+</body>
+</html>

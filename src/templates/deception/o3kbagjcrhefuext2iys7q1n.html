@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel - Login</title>
+    <style>
+        body {font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:0;}
+        .container {width:320px; margin:50px auto; background:#fff; padding:20px; border-radius:5px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1 {text-align:center; color:#333;}
+        label {display:block; margin-top:10px;}
+        input[type=text], input[type=password] {width:100%; padding:8px; margin-top:4px; box-sizing:border-box;}
+        input[type=submit] {background:#5cb85c; color:#fff; border:none; padding:10px 15px; cursor:pointer; margin-top:15px; width:100%;}
+        input[type=submit]:hover {background:#4cae4c;}
+        p.note {font-size:0.9em; color:#666; margin-top:15px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Login</h1>
+        <p>Please enter your credentials to access the dashboard.</p>
+        <form action="/process_login.php" method="post">
+            <label>Username:
+                <br><input type="text" name="username" required>
+            </label>
+            <label>Password:
+                <br><input type="password" name="password" required>
+            </label>
+            <input type="submit" value="Login">
+        </form>
+        <p class="note">For debugging purposes, the query is logged as: SELECT * FROM users WHERE username='[username]' AND password='[password]'</p>
+    </div>
+</body>
+</html>

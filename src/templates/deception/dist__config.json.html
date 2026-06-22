@@ -1,0 +1,54 @@
+<html><body>{
+  "server": {
+    "name": "dist-server-01",
+    "version": "1.2.3",
+    "environment": "production",
+    "debug": false
+  },
+  "database": {
+    "host": "db.internal.corp",
+    "port": 5432,
+    "name": "app_prod",
+    "user": "svc_app",
+    "password": "s3cr3t_p@ssw0rd_2024!",
+    "ssl": true,
+    "pool": {
+      "min": 5,
+      "max": 20
+    }
+  },
+  "api": {
+    "base_url": "https://api.internal.corp/v1",
+    "timeout": 30000,
+    "retries": 3,
+    "key": "sk_live_abc123xyz789",
+    "endpoints": {
+      "auth": "/auth/login",
+      "users": "/users",
+      "orders": "/orders",
+      "payments": "/payments"
+    }
+  },
+  "cache": {
+    "type": "redis",
+    "host": "redis.internal.corp",
+    "port": 6379,
+    "password": "cache_pass_456",
+    "db": 0
+  },
+  "logging": {
+    "level": "info",
+    "file": "/var/log/app.log",
+    "max_size": "100MB",
+    "backup_count": 5
+  },
+  "features": {
+    "new_ui": true,
+    "beta_access": false,
+    "maintenance_mode": false,
+    "rate_limiting": {
+      "enabled": true,
+      "requests_per_minute": 100
+    }
+  }
+}</body></html>

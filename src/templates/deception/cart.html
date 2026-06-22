@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Shopping Cart - ExampleStore</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f9f9f9;margin:0;padding:20px;}
+.container{max-width:800px;margin:auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,.1);}
+h1{color:#333;}
+.table{width:100%;border-collapse:collapse;}
+.table th,.table td{border:1px solid #ddd;padding:8px;text-align:left;}
+.table th{background:#f2f2f2;}
+.btn{background:#28a745;color:#fff;border:none;padding:10px 15px;border-radius:4px;cursor:pointer;}
+.btn:hover{background:#218838;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Your Shopping Cart</h1>
+<p>Here are the items you have added:</p>
+<table class="table">
+<thead>
+<tr><th>Product</th><th>Price</th><th>Quantity</th><th>Subtotal</th></tr>
+</thead>
+<tbody>
+<tr><td>Wireless Bluetooth Headphones</td><td>$49.99</td><td>1</td><td>$49.99</td></tr>
+<tr><td>Smartphone Stand</td><td>$12.50</td><td>2</td><td>$25.00</td></tr>
+<tr><td>USB-C Charging Cable (3-pack)</td><td>$8.99</td><td>1</td><td>$8.99</td></tr>
+</tbody>
+<tfoot>
+<tr><td colspan="3"><strong>Total:</strong></td><td><strong>$83.98</strong></td></tr>
+</tfoot>
+</table>
+<form action="/update_cart" method="post">
+<label for="coupon">Coupon Code:</label>
+<input type="text" id="coupon" name="coupon" placeholder="Enter coupon">
+<button type="submit" class="btn">Apply Coupon</button>
+</form>
+<hr>
+<a href="/shop">Continue Shopping</a>
+<button type="button" class="btn" onclick="location.href='/checkout'">Proceed to Checkout</button>
+</div>
+</body>
+</html>

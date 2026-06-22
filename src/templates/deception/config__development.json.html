@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Development Config - development.json</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; margin:2em; color:#333;}
+        pre {background:#eee; padding:1em; border:1px solid #ccc; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>Development Configuration</h1>
+    <p>File: <code>/config/development.json</code></p>
+    <pre>
+{
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "dev_db",
+    "user": "dev_user",
+    "password": "s3cr3tP@ss"
+  },
+  "api_keys": {
+    "google_maps": "AIzaSyDummyKey123",
+    "stripe": "sk_test_dummy"
+  },
+  "debug": true,
+  "log_level": "debug",
+  "features": {
+    "new_ui": true,
+    "beta_features": false
+  }
+}
+</pre>
+    <hr>
+    <p><small>Server time: 2025-09-26 12:34:56 UTC</small></p>
+</body>
+</html>

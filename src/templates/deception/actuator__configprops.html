@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot Actuator - Configuration Properties</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 30px; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        .property { background: #f8f9fa; border-left: 4px solid #3498db; padding: 15px; margin: 15px 0; border-radius: 0 4px 4px 0; }
+        .property-name { font-weight: bold; color: #2c3e50; }
+        .property-value { color: #27ae60; font-family: 'Courier New', monospace; background: #ecf0f1; padding: 2px 6px; border-radius: 3px; }
+        .property-description { color: #7f8c8d; font-size: 0.9em; margin-top: 5px; }
+        .endpoint { background: #e8f4fd; border: 1px solid #bee5eb; padding: 12px; margin: 10px 0; border-radius: 4px; }
+        .endpoint-method { color: #007bff; font-weight: bold; }
+        .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; color: #95a5a6; font-size: 0.9em; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Spring Boot Actuator - Configuration Properties</h1>
+        <p>This endpoint exposes configuration properties from the Spring <code>Environment</code>.</p>
+        
+        <h2>Configuration Properties</h2>
+        
+        <div class="property">
+            <div class="property-name">server.port</div>
+            <div class="property-value">8080</div>
+            <div class="property-description">Server HTTP port.</div>
+        </div>
+        
+        <div class="property">
+            <div class="property-name">spring.application.name</div>
+            <div class="property-value">demo-application</div>
+            <div class="property-description">Name of the application.</div>
+        </div>
+        
+        <div class="property">
+            <div class="property-name">spring.datasource.url</div>
+            <div class="property-value">jdbc:mysql://localhost:3306/demo_db</div>
+            <div class="property-description">JDBC URL of the database.</div>
+        </div>
+        
+        <div class="property">
+            <div class="property-name">spring.datasource.username</div>
+            <div class="property-value">dbuser</div>
+            <div class="property-description">Login username of the database.</div>
+        </div>
+        
+        <div class="property">
+            <div class="property-name">spring.datasource.password</div>
+            <div class="property-value">${SPRING_DATASOURCE_PASSWORD:****}</div>
+            <div class="property-description">Login password of the database (masked).</div>
+        </div>
+        
+        <div class="property">
+            <div class="property-name">spring.jpa.hibernate.ddl-auto</div>
+            <div class="property-value">update</div>
+            <div class="property-description">DDL mode. This is actually a shortcut for the "hibernate.hbm2ddl.auto" property.</div>
+        </div>
+        
+        <div class="property">
+            <div class="property-name">management.endpoints.web.exposure.include</div>
+            <div class="property-value">*</div>
+            <div class="property-description">Comma-separated list of endpoint IDs that should be exposed.</div>
+        </div>
+        
+        <div class="property">
+            <div class="property-name">management.endpoint.health.show-details</div>
+            <div class="property-value">when-authorized</div>
+            <div class="property-description">When to show full health details.</div>
+        </div>
+        
+        <div class="property">
+            <div class="property-name">logging.level.org.springframework</div>
+            <div class="property-value">INFO</div>
+            <div class="property-description">Logging level for Spring framework.</div>
+        </div>
+        
+        <div class="property">
+            <div class="property-name">logging.level.org.hibernate.SQL</div>
+            <div class="property-value">DEBUG</div>
+            <div class="property-description">Log all SQL queries from Hibernate.</div>
+        </div>
+        
+        <h2>Available Endpoints</h2>
+        
+        <div class="endpoint">
+            <span class="endpoint-method">GET</span> /actuator
+        </div>
+        <div class="endpoint">
+            <span class="endpoint-method">GET</span> /actuator/health
+        </div>
+        <div class="endpoint">
+            <span class="endpoint-method">GET</span> /actuator/info
+        </div>
+        <div class="endpoint">
+            <span class="endpoint-method">GET</span> /actuator/metrics
+        </div>
+        <div class="endpoint">
+            <span class="endpoint-method">GET</span> /actuator/env
+        </div>
+        <div class="endpoint">
+            <span class="endpoint-method">GET</span> /actuator/configprops
+        </div>
+        <div class="endpoint">
+            <span class="endpoint-method">GET</span> /actuator/loggers
+        </div>
+        <div class="endpoint">
+            <span class="endpoint-method">GET</span> /actuator/threaddump
+        </div>
+        
+        <div class="footer">
+            Spring Boot v2.5.6 | Actuator v2.5.6
+        </div>
+    </div>
+</body>
+</html>

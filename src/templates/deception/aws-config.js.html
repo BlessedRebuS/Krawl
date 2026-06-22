@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AWS Configuration - JavaScript SDK</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #232f3e; }
+        pre { background: #f8f8f8; padding: 15px; border: 1px solid #ddd; border-radius: 4px; overflow-x: auto; }
+        .note { color: #666; font-size: 0.9em; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AWS JavaScript SDK Configuration</h1>
+        <p>This file contains the AWS SDK configuration for client-side authentication and service initialization. Do not expose credentials in production.</p>
+        
+        <h2>Configuration File</h2>
+        <pre>
+/**
+ * AWS SDK Configuration - Development Environment
+ * WARNING: This file contains simulated credentials for testing only.
+ * In production, use IAM roles, Cognito, or secure credential providers.
+ */
+
+// Simulated AWS credentials (FAKE - for honeypot distraction)
+const AWS_CONFIG = {
+    region: 'us-east-1',
+    accessKeyId: 'AKIAIOSFODNN7EXAMPLE',  // <-- Fake key, commonly used in examples
+    secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY',  // <-- Fake secret
+    sessionToken: 'AQoDYXdzEPT//////////wEXAMPLEtc764bNrC9SAPBSM22wDOk4x4HIZ8j4FZTwdQWlKW7KV7ngktHRRiUZwZ6YD6lQyyFO7v4NMgCwcOrD2NtekU7kpCzSfTWPQBKYRc9vjyfJm4O3Wbvj7GzXH8v9jK2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7A8B9C0D1E2F3G4H5I6J7K8L9M0N1O2P3Q4R5S6T7U8V9W0X1Y2Z3',
+    endpoint: 'https://s3.amazonaws.com',
+    s3ForcePathStyle: true,
+    s3BucketEndpoint: false,
+};
+
+// Initialize AWS SDK with fake credentials (for demonstration only)
+if (typeof AWS !== 'undefined') {
+    AWS.config.update({
+        region: AWS_CONFIG.region,
+        accessKeyId: AWS_CONFIG.accessKeyId,
+        secretAccessKey: AWS_CONFIG.secretAccessKey,
+        sessionToken: AWS_CONFIG.sessionToken
+    });
+
+    // Create service objects
+    window.s3 = new AWS.S3();
+    window.ec2 = new AWS.EC2();
+    window.lambda = new AWS.Lambda();
+    
+    console.log('AWS SDK initialized with development credentials');
+} else {
+    console.warn('AWS SDK not loaded. Please include aws-sdk.min.js before this script.');
+}
+
+// Export for potential use in other modules (if using bundlers)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = AWS_CONFIG;
+} else {
+    window.AWS_CONFIG = AWS_CONFIG;
+}
+
+/**
+ * Fake S3 bucket structure for attacker reconnaissance
+ * These buckets do not exist - they are decoys
+ */
+const FAKE_S3_BUCKETS = [
+    'company-backups-2024',
+    'customer-data-archive',
+    'logs-prod-us-east-1',
+    'config-secrets-backup',
+    'database-dumps-quarterly',
+    'internal-api-keys',
+    'employee-records-hr',
+    'financial-reports-q1',
+    'source-code-repository',
+    'docker-images-registry'
+];
+
+// Log fake bucket names to console (attracts attackers looking for S3 enumeration)
+console.info('Available S3 buckets (simulated):', FAKE_S3_BUCKETS);
+        </pre>
+        
+        <div class="note">
+            <strong>Note:</strong> This is a simulated AWS configuration file intended for security testing and awareness. 
+            Real AWS credentials should never be hardcoded in client-side JavaScript. 
+            The keys and tokens above are fictitious and follow AWS documentation examples.
+        </div>
+    </div>
+</body>
+</html>

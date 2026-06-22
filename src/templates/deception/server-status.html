@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apache Server Status</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        h1 { color: #333; }
+        table { border-collapse: collapse; width: 100%; max-width: 800px; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .status { color: #28a745; font-weight: bold; }
+        .warning { color: #ffc107; }
+        .error { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <h1>Apache Server Status for localhost (via 127.0.0.1)</h1>
+    <dl><dt>Server Version:</dt><dd>Apache/2.4.41 (Ubuntu)</dd></dl>
+    <dl><dt>Server Built:</dt><dd>2020-08-12T15:09:23</dd></dl><br />
+
+    <h2>Current Time: Saturday, 01-Jun-2024 14:23:17 UTC</h2>
+    <h2>Restart Time: Saturday, 01-Jun-2024 08:15:03 UTC</h2>
+    <h2>Parent Server Config. Generation: 1</h2>
+    <h2>Parent Server MPM Generation: 0</h2>
+    <h2>Server uptime: 6 hours 8 minutes 14 seconds</h2>
+    <h2>Server load: 0.15 0.12 0.10</h2>
+    <h2>Total accesses: 1245 - Total Traffic: 18.7 MB</h2>
+    <h2>CPU Usage: u2.1 s0.8 cu0 cs0 - .038% CPU load</h2>
+    <h2>Requests/sec: 0.057</h2>
+    <h2>Traffic/sec: 872.3 B/sec</h2>
+    <h2>Requests currently being processed: 2</h2>
+    <h2>Idle workers: 8</h2>
+
+    <h2>Scoreboard Key:</h2>
+    <dl>
+        <dt>"_"</dt><dd>Waiting for Connection</dd>
+        <dt>"S"</dt><dd>Starting up</dd>
+        <dt>"R"</dt><dd>Reading Request</dd>
+        <dt>"W"</dt><dd>Sending Reply</dd>
+        <dt>"K"</dt><dd>Keepalive (read)</dd>
+        <dt>"D"</dt><dd>DNS Lookup</dd>
+        <dt>"C"</dt><dd>Closing connection</dd>
+        <dt>"L"</dt><dd>Logging</dd>
+        <dt>"G"</dt><dd>Gracefully finishing</dd>
+        <dt>"I"</dt><dd>Idle cleanup of worker</dd>
+        <dt>"."</dt><dd>Open slot with no current process</dd>
+    </dl>
+
+    <h2>Worker Table:</h2>
+    <table>
+        <tr><th>Srv</th><th>PID</th><th>Acc</th><th>M</th><th>CPU</th><th>SS</th><th>Req</th><th>Conn</th><th>Child</th><th>Slot</th><th>Client</th><th>VHost</th><th>Request</th></tr>
+        <tr><td>0</td><td>1234</td><td>0/12/12</td><td>W</td><td>0.02</td><td>12</td><td>0.00</td><td>0.00</td><td>0.0.0.0</td><td>0</td><td>192.168.1.100</td><td>example.com</td><td>GET /index.html HTTP/1.1</td></tr>
+        <tr><td>1</td><td>1235</td><td>0/8/8</td><td>R</td><td>0.01</td><td>8</td><td>0.00</td><td>0.00</td><td>0.0.0.0</td><td>1</td><td>10.0.0.5</td><td>admin.example.com</td><td>GET /server-status?auto HTTP/1.1</td></tr>
+    </table>
+
+    <hr />
+    <address>Apache/2.4.41 (Ubuntu) Server at 127.0.0.1 Port 80</address>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<html><body>/* main.js */
+(function(){
+  // Simulated React bundle
+  var root = document.getElementById('root');
+  if(root){
+    root.innerHTML = '<div id="app">Loading...</div>';
+  }
+  // Vulnerable: reflect hash into DOM without sanitization
+  var hash = window.location.hash.substr(1);
+  var el = document.createElement('div');
+  el.innerHTML = hash; // XSS
+  document.body.appendChild(el);
+  // Fake API call with potential SQLi via user input
+  function loadData(){
+    var txt = hash;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET','/api/items?q='+encodeURIComponent(txt),true);
+    xhr.onreadystatechange = function(){
+      if(xhr.readyState===4 && xhr.status===200){
+        console.log('Data received:', xhr.responseText);
+      }
+    };
+    xhr.send();
+  }
+  loadData();
+})();</body></html>

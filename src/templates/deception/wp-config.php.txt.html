@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>wp-config.php.txt</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; color:#222; margin:2rem;}
+        pre {background:#fff; padding:1rem; border:1px solid #ccc; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>wp-config.php.txt</h1>
+    <pre>
+<?php
+/**
+ * WordPress Configuration File - Fake Example
+ *
+ * This file contains the configuration settings for connecting to the
+ * database and setting up WordPress. It is for demonstration purposes only.
+ */
+
+// ** MySQL settings - You can get this info from your web host ** //
+define('DB_NAME', 'example_wordpress');
+define('DB_USER', 'wp_admin');
+define('DB_PASSWORD', 's3cr3tP@ssw0rd!');
+define('DB_HOST', 'localhost:3306');
+define('DB_CHARSET', 'utf8mb4');
+define('DB_COLLATE', '');
+
+/** Authentication Unique Keys and Salts. **/
+define('AUTH_KEY',         'put your unique phrase here');
+define('SECURE_AUTH_KEY',  'put your unique phrase here');
+define('LOGGED_IN_KEY',    'put your unique phrase here');
+define('NONCE_KEY',        'put your unique phrase here');
+define('AUTH_SALT',        'put your unique phrase here');
+define('SECURE_AUTH_SALT', 'put your unique phrase here');
+define('LOGGED_IN_SALT',   'put your unique phrase here');
+define('NONCE_SALT',       'put your unique phrase here');
+
+/** WordPress Database Table prefix. */
+$table_prefix = 'wp_';
+
+/** For developers: WordPress debugging mode. */
+define('WP_DEBUG', false);
+
+/* That's all, stop editing! Happy publishing. */
+
+/** Absolute path to the WordPress directory. */
+if ( ! defined( 'ABSPATH' ) ) {
+	define( 'ABSPATH', __DIR__ . '/' );
+}
+
+/** Sets up WordPress vars and included files. */
+require_once ABSPATH . 'wp-settings.php';
+?>
+    </pre>
+</body>
+</html>

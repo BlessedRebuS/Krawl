@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spring Boot Actuator - Environment</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9;}
+        h1 {color:#2c3e50;}
+        table {border-collapse: collapse; width: 80%; margin-top:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#ecf0f1;}
+        tr:nth-child(even){background:#f2f2f2;}
+        .nav {margin-bottom:15px;}
+        .nav a {margin-right:10px; text-decoration:none; color:#0066cc;}
+        footer {margin-top:30px; font-size:0.9em; color:#777;}
+    </style>
+</head>
+<body>
+    <h1>Actuator /env</h1>
+    <div class="nav">
+        <a href="/actuator/health">Health</a>
+        <a href="/actuator/info">Info</a>
+        <a href="/actuator/metrics">Metrics</a>
+        <a href="/">Home</a>
+    </div>
+    <p>Endpoint shows the current environment properties.</p>
+    <table>
+        <thead>
+            <tr><th>Key</th><th>Value</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>spring.application.name</td><td>demo-app</td></tr>
+            <tr><td>spring.profiles.active</td><td>dev</td></tr>
+            <tr><td>spring.cloud.config.uri</td><td>http://config.internal:8888</td></tr>
+            <tr><td>java.version</td><td>11.0.12</td></tr>
+            <tr><td>java.vendor</td><td>Oracle Corporation</td></tr>
+            <tr><td>os.name</td><td>Linux</td></tr>
+            <tr><td>os.arch</td><td>amd64</td></tr>
+            <tr><td>server.port</td><td>8080</td></tr>
+            <tr><td>management.endpoints.web.exposure.include</td><td>*</td></tr>
+            <tr><td>spring.datasource.url</td><td>jdbc:postgresql://db.internal:5432/mydb</td></tr>
+            <tr><td>spring.datasource.username</td><td>app_user</td></tr>
+            <tr><td>spring.datasource.password</td><td>[REDACTED]</td></tr>
+            <tr><td>logging.level.root</td><td>INFO</td></tr>
+            <tr><td>logging.level.org.springframework.web</td><td>DEBUG</td></tr>
+        </tbody>
+    </table>
+    <footer>
+        Actuator version 2.5.4 • Spring Boot 2.5.4
+    </footer>
+</body>
+</html>

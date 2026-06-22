@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordPress Admin CSS - l10n.css</title>
+    <style>
+        /* WordPress Admin Localization Stylesheet - Fake */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f1f1f1;
+            color: #32373c;
+        }
+        .wp-admin {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #21759b;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .notice {
+            background: #fffdd0;
+            border-left: 4px solid #ffeb3b;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .button {
+            background: #21759b;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            text-decoration: none;
+            font-size: 13px;
+            border-radius: 2px;
+            cursor: pointer;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        .button:hover {
+            background: #1e6f93;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #777;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="wp-admin">
+        <h1>WordPress Admin Localization Styles</h1>
+        <p>This stylesheet provides localization support for WordPress admin interface elements.</p>
+        
+        <div class="notice">
+            <strong>Note:</strong> This file is part of the WordPress admin interface and should not be modified directly. Changes may be overwritten during updates.
+        </div>
+
+        <h2>Usage</h2>
+        <p>This CSS file is automatically loaded by WordPress when admin pages are rendered. It contains styles for:</p>
+        <ul>
+            <li>Language selector dropdowns</li>
+            <li>Translation strings in admin notices</li>
+            <li>RTL (Right-to-Left) language support</li>
+            <li>Date and time formatting in admin screens</li>
+        </ul>
+
+        <h2>Example Classes</h2>
+        <div style="background: #f9f9f9; padding: 15px; border-radius: 4px; margin: 15px 0;">
+            <p><code>.rtl</code> - Applied to <code>&lt;html&gt;</code> or <code>&lt;body&gt;</code> for right-to-left languages</p>
+            <p><code>.wp-core-ui</code> - Base class for WordPress admin UI components</p>
+            <p><code>.hide-if-no-js</code> - Hides element when JavaScript is disabled</p>
+            <p><code>.screen-reader-text</code> - Makes text accessible to screen readers but visually hidden</p>
+        </div>
+
+        <h2>Variables (CSS Custom Properties)</h2>
+        <pre style="background: #f5f5f5; padding: 15px; overflow-x: auto; border-radius: 4px;">
+:root {
+    --wp-admin-primary: #21759b;
+    --wp-admin-primary-dark: #1e6f93;
+    --wp-admin-light: #f1f1f1;
+    --wp-admin-gray-light: #ddd;
+    --wp-admin-gray: #777;
+    --wp-admin-danger: #d54e21;
+    --wp-admin-success: #46b450;
+    --wp-admin-warning: #f0a00e;
+}
+
+/* Language-specific overrides */
+[dir="rtl"] {
+    --wp-admin-margin-left: 0;
+    --wp-admin-margin-right: 20px;
+}
+
+[dir="ltr"] {
+    --wp-admin-margin-left: 20px;
+    --wp-admin-margin-right: 0;
+}
+        </pre>
+
+        <button class="button" onclick="alert('This is a simulated WordPress admin interface. No actual functionality is implemented.')">
+            Simulate Admin Action
+        </button>
+
+        <div class="footer">
+            <p>WordPress 6.5.2 &bull; Admin Styles &bull; <a href="https://wordpress.org/" target="_blank" rel="noopener">wordpress.org</a></p>
+            <p>Generated for localization support • © 2003-2024 WordPress Foundation</p>
+        </div>
+    </div>
+</body>
+</html>

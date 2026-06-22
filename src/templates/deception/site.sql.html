@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Site SQL Backup</title>
+<style>
+body{font-family:monospace;background:#f8f8f8;margin:20px;}
+h1{color:#333;}
+pre{background:#eee;padding:10px;border:1px solid #ccc;overflow:auto;}
+</style>
+</head>
+<body>
+<h1>Site SQL Backup</h1>
+<p>This is a sample database dump for demonstration purposes.</p>
+<pre>-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: localhost
+-- Generation Time: Sep 26, 2025 at 03:15 PM
+-- Server version: 5.7.34
+-- PHP Version: 8.0.30
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+--
+-- Database: `my_site`
+--
+CREATE DATABASE IF NOT EXISTS `my_site` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `my_site`;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `users`
+--
+INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `created_at`) VALUES
+(1, 'admin', 'admin@example.com', '$2y$10$e0MI0K8yK1VvJzGgU5ZzHeO2JcJ9kZlXcG8fR6sT7uV9wXyZaBcDe', '2025-09-01 08:30:00'),
+(2, 'jdoe', 'jdoe@example.com', '$2y$10$K9fL2uVb8XyZ0aBcDeFgHiJkLmNoPqRsTuVwXyZ1a2b3c4d5e6f7g8h', '2025-09-05 14:12:00');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `posts`
+--
+CREATE TABLE `posts` (
+  `post_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `title` varchar(200) NOT NULL,
+  `body` text NOT NULL,
+  `posted_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `posts`
+--
+INSERT INTO `posts` (`post_id`, `user_id`, `title`, `body`, `posted_at`) VALUES
+(1, 1, 'Welcome to our site', 'This is the first post on our new platform. Enjoy!', '2025-09-10 09:00:00'),
+(2, 2, 'How to secure your SQL', 'Always use prepared statements and parameterized queries to avoid SQL injection.', '2025-09-15 16:45:00');
+
+COMMIT;
+</pre>
+</body>
+</html>
