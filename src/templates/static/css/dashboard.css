@@ -2185,6 +2185,39 @@ tbody {
 .search-results-summary strong {
     color: #58a6ff;
 }
+/* Clickable summary that expands/collapses the results */
+.search-summary-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    color: inherit;
+    font: inherit;
+}
+.search-summary-caret {
+    flex-shrink: 0;
+    color: #8b949e;
+    transition: transform 0.2s;
+}
+.search-results.search-collapsed .search-summary-caret {
+    transform: rotate(-90deg);
+}
+/* Collapsed state: keep only the summary header visible */
+.search-results.search-collapsed .search-results-header {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+.search-results.search-collapsed .search-section,
+.search-results.search-collapsed .search-pagination,
+.search-results.search-collapsed .search-no-results {
+    display: none;
+}
 .search-close-btn {
     background: none;
     border: none;

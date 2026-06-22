@@ -4,6 +4,7 @@ metadata:
   name: {{ include "krawl.fullname" . }}
   labels:
     {{- include "krawl.labels" . | nindent 4 }}
+    app.kubernetes.io/component: krawl
   {{- with .Values.service.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
