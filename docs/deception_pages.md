@@ -37,3 +37,26 @@ Import from ZIP file:
 2. Select ZIP file
 3. System auto-extracts files
 4. Click **Upload**
+
+## Contributing Deception Templates via PR
+
+Open a pull request with the label **`deception`** to submit new deception pages. This can include:
+
+- **Attacker-generated templates**: HTML files scraped or collected from real attacker probes
+- **Ad-hoc generated HTML files**: handcrafted or templated pages that mimic specific applications or endpoints (eg: custom bank pages / specific services)
+
+### Guidelines
+Avoid real secrets or credentials, use fake/template values only. Each file should return a realistic-looking response so scanners believe they found a real target
+
+To upload custom files:
+- Place files in `src/templates/deception/`
+- Use `__` as path separator in filenames (e.g. `admin__login.html` → `/admin/login`)
+- `.html` extension is stripped from the URL; other extensions (`.php`, `.json`, `.xml`, `.env`, etc.) are preserved
+
+or 
+
+- Use the **Generated Deception Templates** download button in the dashboard (authenticated) to export existing templates as a ZIP and use them as reference or a starting point. The downloaded files are already formatted.
+
+
+
+
