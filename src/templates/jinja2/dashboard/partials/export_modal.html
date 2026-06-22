@@ -72,6 +72,23 @@
                 </div>
             </div>
 
+            {# Direct download URL (for OPNsense and other external systems) #}
+            <div class="auth-modal-input-group" style="margin-top: 16px; margin-bottom: 0;" x-show="exportModal.categories.length > 0" x-cloak>
+                <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Direct URL</label>
+                <p style="color: #8b949e; font-size: 12px; margin: 0 0 8px;">Use this URL to fetch the list directly from OPNsense or other external systems.</p>
+                <div style="display: flex; gap: 8px; align-items: stretch;">
+                    <input type="text" readonly :value="exportUrl()"
+                           @click="$event.target.select()"
+                           class="auth-modal-input"
+                           style="flex: 1; min-width: 0; font-family: monospace; font-size: 12px;" />
+                    <button type="button" class="auth-modal-btn auth-modal-btn-cancel"
+                            style="flex: 0 0 auto; display: inline-flex; align-items: center; padding: 0 12px;"
+                            @click="copyExportUrl($event)" title="Copy URL">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+                    </button>
+                </div>
+            </div>
+
             <p class="auth-modal-error" x-show="exportModal.error" x-text="exportModal.error" x-cloak
                style="margin-top: 12px; margin-bottom: 0; color: #f85149; font-size: 13px;"></p>
 
