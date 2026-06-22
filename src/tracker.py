@@ -5,6 +5,7 @@ import re
 import urllib.parse
 
 from database import DatabaseManager, get_database
+from ip_utils import is_local_or_private_ip
 from wordlists import get_wordlists
 
 logger = logging.getLogger("krawl")
@@ -239,6 +240,11 @@ class AccessTracker:
         Returns:
             The page visit count (0 when increment_page_visit is False or on error)
         """
+        # Private/local/reserved IPs (e.g. k8s health-check sources) are never
+        # tracked, categorized, or banned.
+        if is_local_or_private_ip(ip):
+            return 0
+
         # Skip if this is the server's own IP
         from config import get_config
 
@@ -396,6 +402,10 @@ class AccessTracker:
         Returns:
             The updated page visit count for this IP
         """
+        # Private/local/reserved IPs are never tracked or banned.
+        if is_local_or_private_ip(client_ip):
+            return 0
+
         from config import get_config
 
         config = get_config()
