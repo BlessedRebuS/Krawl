@@ -87,14 +87,17 @@ def import_deception_pages_from_directory() -> int:
 
     try:
         # Find all HTML files directly in the directory (not recursive - flat structure only)
-        html_files = list(deception_dir.glob("*.html"))
+        html_files = sorted(f for f in deception_dir.iterdir() if f.is_file())
         total_files = len(html_files)
         logger.debug(f"Found {total_files} HTML files in deception folder")
 
         for html_file in html_files:
             try:
-                # Get filename without extension
-                filename = html_file.stem  # e.g., "admin__panel__login"
+                # Get filename - strip .html extension but keep others
+                if html_file.suffix.lower() == ".html":
+                    filename = html_file.stem  # e.g., "admin__panel__login"
+                else:
+                    filename = html_file.name  # e.g., "config.php"
 
                 # Convert double underscores to slashes for URL path
                 # admin__panel__login → admin/panel/login
@@ -122,7 +125,13 @@ def import_deception_pages_from_directory() -> int:
                         logger.debug(f"Could not read {html_file}: {err}")
                         continue
 
-                # Save to database (will upsert if already exists)
+                # Skip if path already exists in database (don't override)
+                if has_generated_page_in_db(url_path):
+                    logger.debug(
+                        f"Skipping {html_file.name} — path {url_path} already in DB"
+                    )
+                    continue
+
                 if save_generated_page_to_db(url_path, html_content):
                     imported_count += 1
                     logger.debug(f"Imported deception page: {url_path}")

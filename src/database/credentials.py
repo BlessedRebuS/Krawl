@@ -5,7 +5,7 @@ Writes (persist_credential) stay on DatabaseManager as a hot path.
 
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import func
+from sqlalchemy import distinct, func
 
 from logger import get_app_logger
 from models import CredentialAttempt
@@ -139,6 +139,37 @@ class CredentialRepo:
                     "total_pages": total_pages,
                 },
             }
+        finally:
+            self._db.close_session()
+
+    def get_unique_credentials(self) -> dict[str, list[str]]:
+        """Get all unique usernames and passwords (no duplicates, no None/empty).
+
+        Returns:
+            Dictionary with 'usernames' and 'passwords' lists.
+        """
+        session = self._db.session
+        try:
+            usernames = [
+                row[0]
+                for row in session.query(distinct(CredentialAttempt.username))
+                .filter(CredentialAttempt.username.isnot(None))
+                .filter(CredentialAttempt.username != "")
+                .all()
+                if row[0]
+            ]
+            passwords = [
+                row[0]
+                for row in session.query(distinct(CredentialAttempt.password))
+                .filter(CredentialAttempt.password.isnot(None))
+                .filter(CredentialAttempt.password != "")
+                .all()
+                if row[0]
+            ]
+            return {"usernames": usernames, "passwords": passwords}
+        except Exception as e:
+            applogger.error(f"Error fetching unique credentials: {e}")
+            return {"usernames": [], "passwords": []}
         finally:
             self._db.close_session()
 

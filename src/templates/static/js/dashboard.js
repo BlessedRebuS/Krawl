@@ -638,6 +638,32 @@ window.deleteGeneratedPage = async function(path) {
         });
 };
 
+window.deleteSearchGeneratedPage = async function(btn, path) {
+    const dashboardPath = window.__DASHBOARD_PATH__ || '';
+    const confirmed = await krawlModal.confirm('Delete "' + path + '"? This cannot be undone.');
+    if (!confirmed) return;
+    try {
+        await fetch(dashboardPath + '/api/delete-generated-pages?ids=' + encodeURIComponent(path), { method: 'POST' });
+        krawlModal.success('Deleted ' + path);
+        const row = btn.closest('tr');
+        if (row) row.remove();
+        const summary = document.querySelector('.search-results-summary');
+        if (summary) {
+            const match = summary.innerHTML.match(/and <strong>(\d+)<\/strong> deception page/);
+            if (match) {
+                const count = parseInt(match[1]) - 1;
+                summary.innerHTML = summary.innerHTML.replace(
+                    /and <strong>\d+<\/strong> deception page/,
+                    'and <strong>' + count + '</strong> deception page' + (count !== 1 ? 's' : '')
+                );
+            }
+        }
+    } catch (error) {
+        console.error('Delete error:', error);
+        krawlModal.error('Error deleting page');
+    }
+};
+
 // Toggle danger state on deception delete buttons based on conditions
 window.toggleDeceptionBtnState = function() {
     const dateInput = document.getElementById('deception-date-filter');
@@ -1177,6 +1203,12 @@ document.addEventListener('htmx:afterSwap', () => {
     const data = getAlpineData('[x-data="dashboardApp()"]');
     if (data) updateBanActionVisibility(data.authenticated);
 });
+
+// Download credentials as ZIP with usernames.txt and passwords.txt
+window.downloadCredentials = function() {
+    const dashboardPath = window.__DASHBOARD_PATH__ || '';
+    window.open(dashboardPath + '/api/download-credentials', '_blank');
+};
 
 // Utility function for formatting timestamps (used by map popups)
 function formatTimestamp(isoTimestamp) {
