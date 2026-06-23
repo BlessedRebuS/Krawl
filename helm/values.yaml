@@ -6,7 +6,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/blessedrebus/krawl
   pullPolicy: Always
-  tag: "2.1.0"
+  tag: "2.2.0"
 
 imagePullSecrets: []
 nameOverride: "krawl"
