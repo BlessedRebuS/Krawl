@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>.github/workflows/main.yaml</title>
+    <style>
+        body {font-family: monospace; margin: 2em; background:#f9f9f9; color:#222;}
+        pre {background:#eee; padding:1em; border:1px solid #ccc; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>GitHub Actions Workflow</h1>
+    <p>Path: <code>/.github/workflows/main.yaml</code></p>
+    <pre>name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+</pre>
+</body>
+</html>

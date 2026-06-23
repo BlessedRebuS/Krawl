@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Company Intranet</title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f6f9; }
+        .header { background: #2c3e50; color: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .sidebar { width: 220px; background: #ecf0f1; padding: 15px; border-radius: 5px; float: left; margin-right: 20px; }
+        .sidebar h3 { margin-top: 0; color: #34495e; }
+        .sidebar ul { list-style: none; padding: 0; }
+        .sidebar li { margin: 8px 0; }
+        .sidebar a { text-decoration: none; color: #2c3e50; }
+        .sidebar a:hover { text-decoration: underline; }
+        .content { margin-left: 240px; padding: 15px; background: white; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .widget { border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin-bottom: 20px; }
+        .widget h4 { margin-top: 0; color: #2c3e50; }
+        .btn { background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 3px; cursor: pointer; }
+        .btn:hover { background: #2980b9; }
+        .status-ok { color: #27ae60; font-weight: bold; }
+        .status-warn { color: #f39c12; font-weight: bold; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .table th { background-color: #f2f2f2; }
+        .footer { margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Company Intranet - Admin Dashboard</h1>
+        <p>Welcome back, <strong>admin</strong> | <a href="/index.php?p=admin/logout">Logout</a></p>
+    </div>
+    
+    <div class="sidebar">
+        <h3>Navigation</h3>
+        <ul>
+            <li><a href="/index.php?p=admin/dashboard">Dashboard</a></li>
+            <li><a href="/index.php?p=admin/users">User Management</a></li>
+            <li><a href="/index.php?p=admin/settings">System Settings</a></li>
+            <li><a href="/index.php?p=admin/logs">Audit Logs</a></li>
+            <li><a href="/index.php?p=admin/backup">Database Backup</a></li>
+            <li><a href="/index.php?p=admin/plugins">Plugin Manager</a></li>
+        </ul>
+    </div>
+    
+    <div class="content">
+        <div class="widget">
+            <h4>System Overview</h4>
+            <p><span class="status-ok">●</span> System Status: Online</p>
+            <p><span class="status-ok">●</span> Database Connection: Active</p>
+            <p><span class="status-warn">●</span> Last Backup: 2024-05-15 02:30:00 (Warning: overdue)</p>
+            <p><span class="status-ok">●</span> Active Users: 12</p>
+            <p><span class="status-ok">●</span> CPU Usage: 23%</p>
+            <p><span class="status-ok">●</span> Memory Usage: 45%</p>
+        </div>
+        
+        <div class="widget">
+            <h4>Recent Activity</h4>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2024-05-20 14:32:10</td>
+                        <td>admin</td>
+                        <td>Login successful</td>
+                        <td>192.168.1.105</td>
+                    </tr>
+                    <tr>
+                        <td>2024-05-20 14:28:45</td>
+                        <td>j.smith</td>
+                        <td>Updated profile</td>
+                        <td>192.168.1.102</td>
+                    </tr>
+                    <tr>
+                        <td>2024-05-20 14:15:22</td>
+                        <td>m.jones</td>
+                        <td>Uploaded file: report_q2.pdf</td>
+                        <td>192.168.1.108</td>
+                    </tr>
+                    <tr>
+                        <td>2024-05-20 14:05:55</td>
+                        <td>admin</td>
+                        <td>Accessed dashboard</td>
+                        <td>192.168.1.105</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="widget">
+            <h4>Quick Actions</h4>
+            <button class="btn" onclick="alert('Initiating system scan...')">Run Security Scan</button>
+            <button class="btn" onclick="alert('Clearing cache...')">Clear Cache</button>
+            <button class="btn" onclick="window.location='/index.php?p=admin/users'">Manage Users</button>
+            <button class="btn" onclick="alert('Opening backup wizard...')">Create Backup</button>
+        </div>
+    </div>
+    
+    <div class="footer">
+        Company Intranet v2.1.4 &copy; 2024 SecureCorp Solutions | <a href="/index.php?p=admin/about">About</a> | <a href="/index.php?p=admin/help">Help</a>
+    </div>
+</body>
+</html>

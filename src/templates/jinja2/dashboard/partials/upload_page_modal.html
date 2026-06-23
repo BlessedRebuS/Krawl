@@ -16,9 +16,9 @@
             <span class="auth-modal-close" @click="uploadModal.show = false">&times;</span>
         </div>
         <div class="auth-modal-body">
-            <p class="auth-modal-description">Upload a file to serve as a custom deception page. Supported formats: HTML, XML, JSON, TXT.</p>
+            <p class="auth-modal-description">Upload a file to serve as a custom deception page. Supported formats: ZIP, HTML, XML, JSON, TXT.</p>
 
-            <div class="auth-modal-input-group">
+            <div class="auth-modal-input-group" x-show="uploadModal.path !== '__ZIP_UPLOAD__'">
                 <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Serve path</label>
                 <div style="display: flex; align-items: center; gap: 0;">
                     <span style="padding: 10px 12px; background: #161b22; border: 1px solid #30363d; border-right: none; border-radius: 6px 0 0 6px; color: #8b949e; font-size: 14px; white-space: nowrap;">/</span>
@@ -31,6 +31,12 @@
                 </div>
             </div>
 
+            <div class="auth-modal-input-group" x-show="uploadModal.path === '__ZIP_UPLOAD__'" style="display: none;">
+                <p style="color: #58a6ff; font-size: 13px; margin: 0; padding: 12px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px;">
+                    Paths will be extracted from ZIP file
+                </p>
+            </div>
+
             <div class="auth-modal-input-group" style="margin-bottom: 0;">
                 <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">File</label>
                 <div class="upload-dropzone"
@@ -41,14 +47,14 @@
                      :class="{ 'upload-dropzone-active': uploadModal.dragging }">
                     <input type="file"
                            x-ref="uploadFileInput"
-                           accept=".html,.htm,.xml,.json,.txt,.css,.js"
+                           accept=".html,.htm,.xml,.json,.txt,.css,.js,.zip"
                            @change="handleUploadFile($event)"
                            style="display: none;" />
                     <template x-if="!uploadModal.fileName">
                         <div style="text-align: center;">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="24" height="24" fill="#8b949e" style="margin-bottom: 6px;"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM8.75 1.75a.75.75 0 0 0-1.5 0v6.311L5.28 6.091a.749.749 0 1 0-1.06 1.06l3.25 3.25a.749.749 0 0 0 1.06 0l3.25-3.25a.749.749 0 1 0-1.06-1.06L8.75 8.061Z"/></svg>
                             <p style="color: #8b949e; font-size: 13px; margin: 0;">Click or drag a file here</p>
-                            <p style="color: #484f58; font-size: 11px; margin: 4px 0 0;">HTML, XML, JSON, TXT</p>
+                            <p style="color: #484f58; font-size: 11px; margin: 4px 0 0;">ZIP, HTML, XML, JSON, TXT</p>
                         </div>
                     </template>
                     <template x-if="uploadModal.fileName">

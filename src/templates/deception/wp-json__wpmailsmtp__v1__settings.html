@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WP Mail SMTP Settings API</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        .container {max-width:800px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+        pre {background:#f4f4f4; padding:10px; overflow:auto; border-radius:4px;}
+        .note {color:#555; font-size:0.9em;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WP Mail SMTP – Settings Endpoint</h1>
+        <p class="note">This is a simulated endpoint for demonstration purposes only.</p>
+        <p>The <code>/wp-json/wpmailsmtp/v1/settings</code> endpoint returns the current SMTP configuration in JSON format.</p>
+        <h2>Example Response</h2>
+        <pre>{
+    "status": "success",
+    "data": {
+        "mailer": "smtp",
+        "smtp_host": "smtp.example.com",
+        "smtp_port": 587,
+        "smtp_encryption": "tls",
+        "smtp_username": "user@example.com",
+        "smtp_password": "********",
+        "from_name": "Example Site",
+        "from_email": "no-reply@example.com",
+        "return_path": true
+    }
+}</pre>
+        <p>To test the settings, you can use the <a href="/wp-admin/options-general.php?page=wp-mail-smtp">WP Mail SMTP settings page</a> in the WordPress admin dashboard.</p>
+    </div>
+</body>
+</html>

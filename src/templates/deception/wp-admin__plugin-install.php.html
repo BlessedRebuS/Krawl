@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Install Plugins – WordPress</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,300,400,600&amp;subset=latin,latin-ext">
+    <style>
+        body { background-color: #f1f1f1; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif; margin: 0; padding: 20px; color: #32373c; }
+        .wrap { max-width: 960px; margin: 0 auto; background: white; padding: 30px; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+        h1 { font-size: 22px; margin-bottom: 20px; color: #23282d; }
+        .upload-plugin { border: 1px solid #ddd; padding: 20px; border-radius: 3px; margin-bottom: 30px; }
+        .upload-plugin input[type="file"] { display: block; margin: 10px 0; padding: 8px; width: 100%; box-sizing: border-box; }
+        .upload-plugin input[type="submit"] { background: #0073aa; color: white; border: none; padding: 10px 20px; font-size: 14px; cursor: pointer; border-radius: 3px; }
+        .upload-plugin input[type="submit"]:hover { background: #005a87; }
+        .notice { padding: 10px; margin: 15px 0; border-left: 4px solid; }
+        .notice-error { background: #ffecec; border-color: #f78181; color: #9f3a38; }
+        .notice-info { background: #e6f4ff; border-color: #7db6d1; color: #0a516e; }
+        .plugin-card { border: 1px solid #e1e8ed; border-radius: 3px; padding: 15px; margin-bottom: 20px; background: #fafafa; }
+        .plugin-card h3 { margin-top: 0; font-size: 16px; }
+        .plugin-card p { color: #616a70; font-size: 13px; margin: 8px 0; }
+        .plugin-card .button { display: inline-block; background: #0073aa; color: white; text-decoration: none; padding: 5px 10px; font-size: 12px; border-radius: 3px; margin-top: 8px; }
+        .plugin-card .button:hover { background: #005a87; }
+        .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; font-size: 12px; color: #767676; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <h1>Install Plugins</h1>
+        
+        <div class="notice notice-info">
+            <p>Install plugins from the <a href="https://wordpress.org/plugins/">WordPress Plugin Directory</a> or upload a plugin in .zip format.</p>
+        </div>
+
+        <div class="upload-plugin">
+            <h2>Upload a Plugin</h2>
+            <p>Install a plugin in .zip format by uploading the file here.</p>
+            <form method="post" enctype="multipart/form-data">
+                <input type="file" name="pluginzip" id="pluginzip" accept=".zip" required>
+                <input type="submit" class="button" value="Install Now" name="install-plugin-submit">
+                <input type="hidden" name="_wpnonce" value="a1b2c3d4e5">
+                <input type="hidden" name="_wp_http_referer" value="/wp-admin/plugin-install.php?tab=upload">
+                <input type="hidden" name="action" value="upload-plugin">
+            </form>
+            <p>Maximum upload file size: 64 MB.</p>
+        </div>
+
+        <div class="notice notice-error">
+            <p><strong>Error:</strong> The uploaded file could not be moved to wp-content/uploads/2024/06.</p>
+            <p>Please check that the directory exists and is writable by the web server.</p>
+        </div>
+
+        <h2>Popular Tags</h2>
+        <div>
+            <a href="/wp-admin/plugin-install.php?tab=search&s=seo" class="button">SEO</a>
+            <a href="/wp-admin/plugin-install.php?tab=search&s=security" class="button">Security</a>
+            <a href="/wp-admin/plugin-install.php?tab=search&s=cache" class="button">Cache</a>
+            <a href="/wp-admin/plugin-install.php?tab=search&s=backup" class="button">Backup</a>
+            <a href="/wp-admin/plugin-install.php?tab=search&s=form" class="button">Form</a>
+        </div>
+
+        <h2>Recently Added</h2>
+        <div class="plugin-card">
+            <h3>WP Super Cache</h3>
+            <p>Very fast caching plugin for WordPress. It generates static html files from your dynamic WordPress blog.</p>
+            <a href="/wp-admin/plugin-install.php?tab=plugin-information&plugin=wp-super-cache&TB_iframe=true&width=600&height=550" class="button" thickbox>More Details</a>
+            <a href="/wp-admin/update.php?action=install-plugin&plugin=wp-super-cache" class="button">Install Now</a>
+        </div>
+
+        <div class="plugin-card">
+            <h3>Contact Form 7</h3>
+            <p>Just another contact form plugin. Simple but flexible.</p>
+            <a href="/wp-admin/plugin-install.php?tab=plugin-information&plugin=contact-form-7&TB_iframe=true&width=600&height=550" class="button" thickbox>More Details</a>
+            <a href="/wp-admin/update.php?action=install-plugin&plugin=contact-form-7" class="button">Install Now</a>
+        </div>
+
+        <div class="plugin-card">
+            <h3>Yoast SEO</h3>
+            <p>The first true all-in-one SEO solution for WordPress, including on-page content analysis, XML sitemaps and much more.</p>
+            <a href="/wp-admin/plugin-install.php?tab=plugin-information&plugin=wordpress-seo&TB_iframe=true&width=600&height=550" class="button" thickbox>More Details</a>
+            <a href="/wp-admin/update.php?action=install-plugin&plugin=wordpress-seo" class="button">Install Now</a>
+        </div>
+
+        <div class="footer">
+            © 2003–2024 WordPress.org<br>
+            <a href="https://wordpress.org/support/">Documentation</a> | 
+            <a href="https://wordpress.org/support/forums/">Support Forums</a> | 
+            <a href="https://wordpress.org/about/privacy/">Privacy Policy</a>
+        </div>
+    </div>
+</body>
+</html>

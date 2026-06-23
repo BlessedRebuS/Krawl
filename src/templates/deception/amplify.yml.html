@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>amplify.yml</title>
+    <style>
+        body {font-family: monospace; background: #f8f8f8; color: #222; padding: 20px;}
+        h1 {color: #0066cc;}
+        pre {background: #eee; padding: 10px; border: 1px solid #ccc; overflow: auto;}
+    </style>
+</head>
+<body>
+    <h1>amplify.yml</h1>
+    <pre>
+# AWS Amplify Configuration
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm ci
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: build
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
+backend:
+  phases:
+    build:
+      commands:
+        - '# Execute Amplify CLI command'
+        - amplify pull --appId EXAMPLE123 --envName production --yes
+    </pre>
+</body>
+</html>

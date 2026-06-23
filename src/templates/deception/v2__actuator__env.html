@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spring Boot Actuator - Environment</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <style>
+        body{font-family:Arial,sans-serif;margin:20px;}
+        table{border-collapse:collapse;width:100%;margin-top:10px;}
+        th,td{border:1px solid #ccc;padding:8px;vertical-align:top;}
+        th{background:#f0f0f0;}
+        pre{margin:0;background:#fafafa;padding:4px;overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>Actuator /env</h1>
+    <p>Last updated: 2025-09-26 10:15:42 UTC</p>
+    <h2>Property Sources</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Properties</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>applicationConfig: [classpath:/application.yml]</td>
+                <td><pre>{ "server.port": 8080, "management.endpoints.web.exposure.include": "*", "spring.datasource.url": "jdbc:mysql://db.example.com:3306/appdb", "spring.datasource.username": "appuser", "spring.datasource.password": "s3cr3t!" }</pre></td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>servletConfigInitParams</td>
+                <td><pre>{}</pre></td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>systemProperties</td>
+                <td><pre>{ "java.version": "17.0.12", "user.timezone": "UTC", "file.encoding": "UTF-8" }</pre></td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>systemEnvironment</td>
+                <td><pre>{ "SPRING_PROFILES_ACTIVE": "prod", "JAVA_TOOL_OPTIONS": "-XX:+UseG1GC" }</pre></td>
+            </tr>
+        </tbody>
+    </table>
+    <p><a href="/actuator">Back to Actuator Index</a></p>
+</body>
+</html>

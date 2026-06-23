@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Backup - SQL Dump Archive</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { text-align: center; padding: 20px; border-bottom: 1px solid #eee; }
+        .content { padding: 20px; }
+        .file-info { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .download-btn { background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block; margin-top: 10px; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 4px; margin: 20px 0; }
+        footer { text-align: center; margin-top: 40px; color: #666; font-size: 0.9em; border-top: 1px solid #eee; padding-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Database Backup Archive</h1>
+            <p>Secure Database Export Service</p>
+        </div>
+        <div class="content">
+            <h2>Available Database Backup</h2>
+            <div class="file-info">
+                <h3>database.sql.zip</h3>
+                <p><strong>File Size:</strong> 2.4 MB</p>
+                <p><strong>Last Modified:</strong> 2024-01-15 14:32:18 UTC</p>
+                <p><strong>Content:</strong> Compressed SQL dump of production database (MySQL 8.0)</p>
+                <p><strong>Tables Included:</strong> users, orders, products, transactions, audit_log</p>
+            </div>
+            
+            <div class="warning">
+                <strong>⚠️ Security Notice:</strong> This archive contains sensitive data including password hashes and personal information. 
+                Access is restricted to authorized personnel only. Unauthorized access may violate data protection regulations.
+            </div>
+            
+            <p>To download this database backup, please authenticate using your corporate credentials.</p>
+            <form action="/auth/download" method="POST">
+                <label for="username">Username:</label><br>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required><br><br>
+                <label for="password">Password:</label><br>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required><br><br>
+                <button type="submit" class="download-btn">Download Secure Backup</button>
+            </form>
+            
+            <p><em>Alternative access: Contact database administrator at db-admin@company.internal for manual export.</em></p>
+        </div>
+        
+        <footer>
+            &copy; 2024 Company Internal Systems. All rights reserved.<br>
+            Database Backup Service v2.1.0
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GravitySMTP Settings – Example Corp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header {background:#0066cc; color:#fff; padding:1rem; text-align:center;}
+        main {max-width:800px; margin:2rem auto; padding:1rem; background:#fff; box-shadow:0 0 8px rgba(0,0,0,0.1);}
+        h1 {color:#0066cc;}
+        table {width:100%; border-collapse:collapse; margin-bottom:1.5rem;}
+        th, td {border:1px solid #ddd; padding:0.5rem; text-align:left;}
+        th {background:#e9f2fb;}
+        input[type=text], input[type=password], select {width:100%; padding:0.4rem; margin-top:0.2rem;}
+        .form-group {margin-bottom:1rem;}
+        button {background:#0066cc; color:#fff; border:none; padding:0.6rem 1.2rem; cursor:pointer;}
+        button:hover {background:#004c99;}
+        footer {text-align:center; padding:1rem; font-size:0.9rem; color:#666;}
+    </style>
+</head>
+<body>
+<header>
+    <h1>GravitySMTP Settings</h1>
+    <p>Example Corp – WordPress Site</p>
+</header>
+<main>
+    <section>
+        <h2>Current SMTP Configuration</h2>
+        <table>
+            <tr><th>Setting</th><th>Value</th></tr>
+            <tr><td>SMTP Host</td><td>smtp.example.com</td></tr>
+            <tr><td>SMTP Port</td><td>587</td></tr>
+            <tr><td>Encryption</td><td>TLS</td></tr>
+            <tr><td>From Email</td><td>no-reply@example.com</td></tr>
+            <tr><td>From Name</td><td>Example Corp</td></tr>
+            <tr><td>Authentication</td><td>Enabled</td></tr>
+            <tr><td>Username</td><td>smtp_user@example.com</td></tr>
+            <tr><td>Password</td><td>********</td></tr>
+        </table>
+    </section>
+    <section>
+        <h2>Update Settings</h2>
+        <form action="/wp-json/gravitysmtp/v1/settings" method="post">
+            <div class="form-group">
+                <label for="host">SMTP Host</label>
+                <input type="text" id="host" name="host" value="smtp.example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="port">SMTP Port</label>
+                <input type="number" id="port" name="port" value="587" min="1" max="65535" required>
+            </div>
+            <div class="form-group">
+                <label for="encryption">Encryption</label>
+                <select id="encryption" name="encryption">
+                    <option value="none">None</option>
+                    <option value="ssl" selected>SSL</option>
+                    <option value="tls">TLS</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="from_email">From Email</label>
+                <input type="email" id="from_email" name="from_email" value="no-reply@example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="from_name">From Name</label>
+                <input type="text" id="from_name" name="from_name" value="Example Corp" required>
+            </div>
+            <div class="form-group">
+                <label for="auth">Authentication</label>
+                <select id="auth" name="auth">
+                    <option value="0">Disabled</option>
+                    <option value="1" selected>Enabled</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" value="smtp_user@example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" value="" placeholder="Leave blank to keep current">
+            </div>
+            <button type="submit">Save Changes</button>
+        </form>
+    </section>
+</main>
+<footer>
+    &copy; 2025 Example Corp. All rights reserved.
+</footer>
+</body>
+</html>

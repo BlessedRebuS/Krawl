@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>bot.py</title>
+    <style>
+        body { font-family: monospace; background:#f8f8f8; color:#222; margin:2em; }
+        pre { background:#eee; padding:1em; border:1px solid #ccc; overflow:auto; }
+    </style>
+</head>
+<body>
+<h1>Source of bot.py</h1>
+<pre>
+#!/usr/bin/env python3
+"""
+Simple IRC bot with basic command handling.
+NOTE: This is a demo script with intentional vulnerabilities for educational purposes.
+"""
+
+import socket
+import sqlite3
+import re
+
+HOST = "irc.example.com"
+PORT = 6667
+NICK = "VulnBot"
+CHAN = "#test"
+
+def send_msg(sock, target, message):
+    sock.send(f"PRIVMSG {target} :{message}\r\n".encode('utf-8'))
+
+def handle_command(sock, user, target, cmd):
+    # Intentional SQL injection vulnerability
+    if cmd.startswith("!query "):
+        query = cmd[7:]  # everything after "!query "
+        conn = sqlite3.connect('logs.db')
+        c = conn.cursor()
+        try:
+            # VULNERABLE: direct concatenation of user input
+            c.execute("SELECT * FROM logs WHERE msg LIKE '%" + query + "%'")
+            rows = c.fetchall()
+            for row in rows:
+                send_msg(sock, target, str(row))
+        except Exception as e:
+            send_msg(sock, target, f"Error: {e}")
+        finally:
+            conn.close()
+    elif cmd == "!time":
+        import datetime
+        send_msg(sock, target, f"Current time: {datetime.datetime.now()}")
+    elif cmd.startswith("!echo "):
+        # Echo back user input (potential XSS if displayed in web UI)
+        send_msg(sock, target, cmd[6:])
+    else:
+        send_msg(sock, target, f"Unknown command: {cmd}")
+
+def main():
+    irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    irc.connect((HOST, PORT))
+    irc.send(f"NICK {NICK}\r\n".encode('utf-8'))
+    irc.send(f"USER {NICK} 0 * :{NICK}\r\n".encode('utf-8'))
+    irc.send(f"JOIN {CHAN}\r\n".encode('utf-8'))
+
+    while True:
+        data = irc.recv(1024).decode('utf-8', errors='ignore')
+        if not data:
+            break
+        print(data, end='')
+        if data.startswith('PING'):
+            irc.send(f"PONG {data.split()[1]}\r\n".encode('utf-8'))
+        elif f"PRIVMSG {CHAN}" in data:
+            # Parse: :nick!user@host PRIVMSG #chan :message
+            parts = data.split(' :', 2)
+            if len(parts) >= 3:
+                user = parts[0].split('!')[0][1:]
+                message = parts[2].strip()
+                if message.startswith('!'):
+                    handle_command(irc, user, CHAN, message)
+
+if __name__ == "__main__":
+    main()
+</pre>
+</body>
+</html>

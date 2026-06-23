@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Dump - Internal Archive</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .info { background-color: #ecf0f1; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0; }
+        .file-list { background-color: #f8f9fa; padding: 20px; border-radius: 4px; }
+        .file-item { padding: 8px 0; border-bottom: 1px solid #eee; }
+        .file-item:last-child { border-bottom: none; }
+        .file-name { font-weight: bold; color: #2c3e50; }
+        .file-size { color: #7f8c8d; font-size: 0.9em; }
+        .file-date { color: #95a5a6; font-size: 0.9em; }
+        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .btn { display: inline-block; padding: 10px 20px; background-color: #3498db; color: white; text-decoration: none; border-radius: 4px; margin-right: 10px; }
+        .btn:hover { background-color: #2980b9; }
+        .btn-secondary { background-color: #95a5a6; }
+        .btn-secondary:hover { background-color: #7f8c8d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Internal Database Archive</h1>
+        <p>This directory contains historical database backups for audit and recovery purposes. Access is restricted to authorized personnel only.</p>
+        
+        <div class="info">
+            <strong>Last Updated:</strong> 2024-05-15 02:30:00 UTC<br>
+            <strong>Total Backups:</strong> 12<br>
+            <strong>Storage Used:</strong> 4.2 GB
+        </div>
+        
+        <div class="warning">
+            <strong>⚠️ Security Notice:</strong> These files contain sensitive data including user credentials, PII, and internal system information. Unauthorized access or distribution is strictly prohibited and may result in legal action.
+        </div>
+        
+        <div class="file-list">
+            <div class="file-item">
+                <span class="file-name">production_db_20240515.sql.gz</span>
+                <span class="file-size">1.2 GB</span>
+                <span class="file-date">2024-05-15 02:30:00</span>
+            </div>
+            <div class="file-item">
+                <span class="file-name">production_db_20240514.sql.gz</span>
+                <span class="file-size">1.1 GB</span>
+                <span class="file-date">2024-05-14 02:30:00</span>
+            </div>
+            <div class="file-item">
+                <span class="file-name">staging_db_20240515.sql.gz</span>
+                <span class="file-size">850 MB</span>
+                <span class="file-date">2024-05-15 01:15:00</span>
+            </div>
+            <div class="file-item">
+                <span class="file-name">users_export_20240510.csv.gz</span>
+                <span class="file-size">320 MB</span>
+                <span class="file-date">2024-05-10 14:22:00</span>
+            </div>
+            <div class="file-item">
+                <span class="file-name">dump.sql.gz</span>
+                <span class="file-size">45 MB</span>
+                <span class="file-date">2024-05-12 09:05:00</span>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <a href="/" class="btn">← Back to Index</a>
+            <a href="/api/health" class="btn btn-secondary">System Status</a>
+        </div>
+        
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+        <p style="text-align: center; color: #7f8c8d; font-size: 0.9em;">
+            © 2024 Internal Systems Division. All rights reserved.<br>
+            This is an internal system - unauthorized access is monitored and logged.
+        </p>
+    </div>
+</body>
+</html>

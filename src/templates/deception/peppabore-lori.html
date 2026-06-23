@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PeppaBore Lori - Personal Blog</title>
+    <meta name="description" content="A blog about everyday adventures of PeppaBore Lori">
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f9f9f9;}
+        header {background:#4a90e2; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#e2e8f0; padding:0.5rem;}
+        nav a {margin:0 1rem; text-decoration:none; color:#333;}
+        main {max-width:800px; margin:2rem auto; padding:0 1rem; background:#fff; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        article {margin-bottom:2rem;}
+        footer {text-align:center; padding:1rem; font-size:0.9rem; color:#666;}
+        .comment-form {margin-top:1rem;}
+        .comment-form input, .comment-form textarea {width:100%; padding:0.5rem; margin:0.5rem 0; box-sizing:border-box;}
+        .comment-form button {background:#4a90e2; color:#fff; border:none; padding:0.5rem 1rem; cursor:pointer;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PeppaBore Lori</h1>
+        <p>Sharing thoughts, stories, and a dash of whimsy</p>
+    </header>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/archive">Archive</a>
+        <a href="/contact">Contact</a>
+    </nav>
+    <main>
+        <article>
+            <h2>Welcome to My Corner of the Web</h2>
+            <p>Posted on <time datetime="2025-09-24">September 24, 2025</time></p>
+            <p>Hey there! I'm Lori, and this is where I jot down the little things that make life interesting — from quirky observations during my morning walks to the occasional deep dive into hobby projects.</p>
+            <p>Feel free to look around, leave a comment, or drop me a line if you'd like to chat.</p>
+        </article>
+        <article>
+            <h2>Recent Musings</h2>
+            <ul>
+                <li><a href="/peppabore-lori/post1">The Mystery of the Missing Sock</a></li>
+                <li><a href="/peppabore-lori/post2">Why I Love Rainy Afternoons</a></li>
+                <li><a href="/peppabore-lori/post3">DIY Miniature Garden Update</a></li>
+            </ul>
+        </article>
+        <section class="comment-form">
+            <h3>Leave a Comment</h3>
+            <form action="/peppabore-lori/comment" method="POST">
+                <input type="text" name="name" placeholder="Your Name" required>
+                <input type="email" name="email" placeholder="Your Email" required>
+                <textarea name="message" rows="4" placeholder="What's on your mind?" required></textarea>
+                <button type="submit">Post Comment</button>
+            </form>
+        </section>
+    </main>
+    <footer>
+        &copy; 2025 PeppaBore Lori. All rights reserved.
+    </footer>
+</body>
+</html>

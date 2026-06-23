@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Login - MyCompany</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f2f2f2; margin:0; padding:0; display:flex; justify-content:center; align-items:center; height:100vh; }
+        .login-box { background:#fff; padding:30px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1); width:320px; }
+        h2 { margin-top:0; text-align:center; color:#333; }
+        .input-group { margin-bottom:15px; }
+        .input-group label { display:block; margin-bottom:5px; font-weight:bold; }
+        .input-group input { width:100%; padding:8px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; }
+        .btn { width:100%; padding:10px; background:#0066cc; color:#fff; border:none; border-radius:4px; cursor:pointer; }
+        .btn:hover { background:#004c99; }
+        .links { margin-top:15px; text-align:center; font-size:0.9em; }
+        .links a { color:#0066cc; text-decoration:none; }
+        .links a:hover { text-decoration:underline; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h2>Employee Login</h2>
+        <form action="login.php" method="POST">
+            <div class="input-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="btn">Sign In</button>
+        </form>
+        <div class="links">
+            <p>Forgot <a href="reset_password.php">password?</a></p>
+            <p>Not a member? <a href="register.php">Register here</a></p>
+        </div>
+    </div>
+</body>
+</html>

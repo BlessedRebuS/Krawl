@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WP Firewall - Security Settings</title>
+    <style>
+        body {font-family:Arial,Helvetica,sans-serif; margin:20px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        .container {max-width:800px; margin:auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        table {width:100%; border-collapse:collapse; margin-top:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#ecf0f1;}
+        tr:nth-child(even) {background:#f2f2f2;}
+        input[type=text], input[type=password], select {width:100%; padding:6px; margin-top:4px; border:1px solid #ccc; border-radius:4px;}
+        input[type=submit] {background:#27ae60; color:#fff; border:none; padding:10px 15px; cursor:pointer; border-radius:4px;}
+        input[type=submit]:hover {background:#219150;}
+        .note {font-size:0.9em; color:#555; margin-top:10px;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>WP Firewall - Security Settings</h1>
+    <p>Logged in as <strong>admin</strong> (last login: 2025-10-31 08:12 UTC)</p>
+
+    <h2>IP Whitelist</h2>
+    <form action="/wp-firewall.php" method="post">
+        <label for="ip">Add IP or CIDR:</label>
+        <input type="text" id="ip" name="ip" placeholder="e.g. 203.0.113.0/24" required>
+        <input type="submit" value="Add to Whitelist">
+    </form>
+    <p class="note">Whitelisted IPs bypass all firewall rules.</p>
+
+    <h2>Current Whitelist</h2>
+    <table>
+        <thead>
+            <tr><th>IP / CIDR</th><th>Added</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>127.0.0.1</td><td>2025-09-15</td><td><a href="/wp-firewall.php?del=127.0.0.1">Remove</a></td></tr>
+            <tr><td>192.168.1.0/24</td><td>2025-09-20</td><td><a href="/wp-firewall.php?del=192.168.1.0/24">Remove</a></td></tr>
+            <tr><td>203.0.113.5</td><td>2025-10-01</td><td><a href="/wp-firewall.php?del=203.0.113.5">Remove</a></td></tr>
+        </tbody>
+    </table>
+
+    <h2>Recent Blocked Attempts</h2>
+    <table>
+        <thead>
+            <tr><th>Time</th><th>Source IP</th><th>Requested URI</th><th>Reason</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>2025-10-31 07:45:12</td><td>45.33.32.10</td><td>/wp-login.php?action=logout</td><td>Brute-force login</td></tr>
+            <tr><td>2025-10-31 07:46:03</td><td>185.130.105.227</td><td>/wp-admin/admin-ajax.php?action=revslider_show_image&img=../wp-config.php</td><td>Path traversal attempt</td></tr>
+            <tr><td>2025-10-31 07:47:55</td><td>104.244.42.1</td><td>/wp-firewall.php?ip=1' OR '1'='1</td><td>Possible SQLi in parameter</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Firewall Logs (download)</h2>
+    <p><a href="/wp-firewall-log.txt" download>wp-firewall-log.txt (last 1000 entries)</a></p>
+
+    <hr>
+    <p><em>WP Firewall v2.4.1 &copy; 2025 SecureWP Solutions</em></p>
+</div>
+</body>
+</html>

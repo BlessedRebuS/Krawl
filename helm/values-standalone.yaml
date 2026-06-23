@@ -32,6 +32,8 @@ database:
     accessMode: ReadWriteOnce
 
 config:
+  deception:
+    import_pages: true
   dashboard:
     secret_path: null
   database:

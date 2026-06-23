@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Settings Configuration</title>
+    <style>
+        body { font-family: 'Courier New', monospace; background-color: #f5f5f5; color: #333; line-height: 1.6; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .file-info { background: #ecf0f1; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0; }
+        code { background: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace; }
+        .section { margin: 25px 0; }
+        .section h2 { color: #34495e; }
+        .setting { margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .setting-label { font-weight: bold; color: #2980b9; }
+        .setting-value { color: #27ae60; font-family: 'Courier New', monospace; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 12px; border-radius: 4px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 30px; color: #7f8c8d; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Local Settings Configuration</h1>
+        
+        <div class="file-info">
+            <p><strong>File:</strong> /local_settings.py</p>
+            <p><strong>Last Modified:</strong> 2024-01-15 14:32:18</p>
+            <p><strong>Size:</strong> 2.4 KB</p>
+            <p><em>This file contains local environment overrides for the Django project. Do not commit to version control.</em></p>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Security Notice:</strong> This file contains sensitive configuration including database credentials and secret keys. Access should be restricted to authorized personnel only.
+        </div>
+
+        <div class="section">
+            <h2>Database Configuration</h2>
+            <div class="setting">
+                <span class="setting-label">DATABASES:</span><br>
+                <code>{'default': {'ENGINE': 'django.db.backends.postgresql', 'NAME': 'production_db', 'USER': 'dbadmin', 'PASSWORD': 'P@ssw0rd!2024#', 'HOST': 'db-prod.internal.company.com', 'PORT': '5432'}}</code>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Secret Keys</h2>
+            <div class="setting">
+                <span class="setting-label">SECRET_KEY:</span><br>
+                <code>django-insecure-_=8#&amp;@q^x&amp;!$7*v&amp;!t&amp;z&amp;x&amp;y&amp;z&amp;a&amp;b&amp;c&amp;d&amp;e&amp;f&amp;g&amp;h&amp;i&amp;j&amp;k&amp;l&amp;m&amp;n&amp;o&amp;p&amp;q&amp;r&amp;s&amp;t&amp;u&amp;v&amp;w&amp;x&amp;y&amp;z</code>
+            </div>
+            <div class="setting">
+                <span class="setting-label">DEBUG:</span><br>
+                <code>True</code>
+            </div>
+            <div class="setting">
+                <span class="setting-label">ALLOWED_HOSTS:</span><br>
+                <code>['localhost', '127.0.0.1', '.internal.company.com', '.api.company.com']</code>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Email Settings</h2>
+            <div class="setting">
+                <span class="setting-label">EMAIL_BACKEND:</span><br>
+                <code>django.core.mail.backends.smtp.EmailBackend</code>
+            </div>
+            <div class="setting">
+                <span class="setting-label">EMAIL_HOST:</span><br>
+                <code>smtp.sendgrid.net</code>
+            </div>
+            <div class="setting">
+                <span class="setting-label">EMAIL_PORT:</span><br>
+                <code>587</code>
+            </div>
+            <div class="setting">
+                <span class="setting-label">EMAIL_HOST_USER:</span><br>
+                <code>apikey</code>
+            </div>
+            <div class="setting">
+                <span class="setting-label">EMAIL_HOST_PASSWORD:</span><br>
+                <code>SG.xxxxxxxxxxxxxxxxxxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Third-Party API Keys</h2>
+            <div class="setting">
+                <span class="setting-label">STRIPE_PUBLIC_KEY:</span><br>
+                <code>pk_test_51XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</code>
+            </div>
+            <div class="setting">
+                <span class="setting-label">STRIPE_SECRET_KEY:</span><br>
+                <code>sk_test_51XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</code>
+            </div>
+            <div class="setting">
+                <span class="setting-label">GOOGLE_MAPS_API_KEY:</span><br>
+                <code>AIzaSyBXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</code>
+            </div>
+            <div class="setting">
+                <span class="setting-label">AWS_ACCESS_KEY_ID:</span><br>
+                <code>AKIAIOSFODNN7EXAMPLE</code>
+            </div>
+            <div class="setting">
+                <span class="setting-label">AWS_SECRET_ACCESS_KEY:</span><br>
+                <code>wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</code>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Cache & Session Settings</h2>
+            <div class="setting">
+                <span class="setting-label">CACHES:</span><br>
+                <code>{'default': {'BACKEND': 'django_redis.cache.RedisCache', 'LOCATION': 'redis://redis-cache.internal:6379/1', 'OPTIONS': {'CLIENT_CLASS': 'django_redis.client.DefaultClient'}}}</code>
+            </div>
+            <div class="setting">
+                <span class="setting-label">SESSION_ENGINE:</span><br>
+                <code>django.contrib.sessions.backends.cache</code>
+            </div>
+            <div class="setting">
+                <span class="setting-label">SESSION_COOKIE_AGE:</span><br>
+                <code>1209600</code> <!-- 2 weeks -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Logging Configuration</h2>
+            <div class="setting">
+                <span class="setting-label">LOG_LEVEL:</span><br>
+                <code>DEBUG</code>
+            </div>
+            <div class="setting">
+                <span class="setting-label">LOG_FILE:</span><br>
+                <code>/var/log/django/app.log</code>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Generated by Django Settings Manager v2.1.4 &copy; 2024 Internal Systems</p>
+            <p>This is a simulated response for security monitoring purposes.</p>
+        </div>
+    </div>
+</body>
+</html>

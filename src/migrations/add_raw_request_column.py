@@ -5,10 +5,9 @@ Migration script to add raw_request column to access_logs table.
 This script is safe to run multiple times - it checks if the column exists before adding it.
 """
 
+import os
 import sqlite3
 import sys
-import os
-from pathlib import Path
 
 
 def column_exists(cursor, table_name: str, column_name: str) -> bool:

@@ -10,8 +10,8 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from deception_responses import detect_and_respond_deception
-from dependencies import get_client_ip, build_raw_request
-from logger import get_app_logger, get_access_logger
+from dependencies import build_raw_request, get_client_ip
+from logger import get_access_logger, get_app_logger
 
 
 class DeceptionMiddleware(BaseHTTPMiddleware):

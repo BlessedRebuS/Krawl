@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration - Internal Tools</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #007acc; padding-bottom: 10px; }
+        .info { background: #e6f3ff; padding: 15px; border-left: 4px solid #007acc; margin: 20px 0; }
+        .warning { background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0; }
+        code { background: #f8f9fa; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
+        .btn { display: inline-block; padding: 8px 16px; background: #007acc; color: white; text-decoration: none; border-radius: 4px; margin: 5px; }
+        .btn:hover { background: #005a9e; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:hover { background-color: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Server Configuration Dashboard</h1>
+        <p>Welcome to the internal configuration management interface. This page displays current server settings and environment variables.</p>
+        
+        <div class="info">
+            <strong>Environment:</strong> Production<br>
+            <strong>Last Updated:</strong> 2024-01-15 14:32:18<br>
+            <strong>Server IP:</strong> 192.168.1.100<br>
+            <strong>PHP Version:</strong> 8.1.2
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Security Notice:</strong> This interface should only be accessible from internal networks. External access is logged and monitored.
+        </div>
+
+        <h2>Database Configuration</h2>
+        <table>
+            <tr><th>Setting</th><th>Value</th></tr>
+            <tr><td>Host</td><td>db-internal.company.local</td></tr>
+            <tr><td>Port</td><td>3306</td></tr>
+            <tr><td>Database Name</td><td>production_db</td></tr>
+            <tr><td>Username</td><td>db_admin</td></tr>
+            <tr><td>Password</td><td>s3cr3t_p@ssw0rd_2024!</td></tr>
+            <tr><td>Charset</td><td>utf8mb4</td></tr>
+            <tr><td>Persistent Connections</td><td>Enabled</td></tr>
+        </table>
+
+        <h2>API Keys & Secrets</h2>
+        <table>
+            <tr><th>Service</th><th>Key/Token</th><th>Status</th></tr>
+            <tr><td>Stripe Payment Gateway</td><td>sk_live_51Hm9JcL2eZvKYlo2Q7rT8sAbCdEfGhIjKlMnOpQrStUvWxYzAbCdEfGhIjKlMnOpQ</td><td>Active</td></tr>
+            <tr><td>AWS S3 Access</td><td>AKIAIOSFODNN7EXAMPLE</td><td>Active</td></tr>
+            <tr><td>SendGrid Email</td><td>SG.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</td><td>Active</td></tr>
+            <tr><td>Google Maps API</td><td>AIzaSyBvJl2eZvKYlo2Q7rT8sAbCdEfGhIjKlMnOpQ</td><td>Active</td></tr>
+            <tr><td>Slack Webhook</td><td>https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX</td><td>Active</td></tr>
+        </table>
+
+        <h2>Environment Variables</h2>
+        <table>
+            <tr><th>Variable</th><th>Value</th></tr>
+            <tr><td>APP_DEBUG</td><td>false</td></tr>
+            <tr><td>APP_LOG_LEVEL</td><td>info</td></tr>
+            <tr><td>SESSION_SECURE</td><td>true</td></tr>
+            <tr><td>CSRF_TOKEN</td><td>a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0</td></tr>
+            <tr><td>ENCRYPTION_KEY</td><td>v7WzZq$p8L!mN*oP(qR)sT&uVwXyZ@</td></tr>
+            <tr><td>CACHE_DRIVER</td><td>redis</td></tr>
+            <tr><td>QUEUE_CONNECTION</td><td>database</td></tr>
+            <tr><td>MAIL_FROM_ADDRESS</td><td>noreply@company.com</td></tr>
+        </table>
+
+        <h2>Server Paths</h2>
+        <table>
+            <tr><th>Path Type</th><th>Value</th></tr>
+            <tr><td>Document Root</td><td>/var/www/html</td></tr>
+            <tr><td>Upload Directory</td><td>/var/www/html/uploads</td></tr>
+            <tr><td>Log Directory</td><td>/var/log/apache2</td></tr>
+            <tr><td>Backup Directory</td><td>/backups/daily</td></tr>
+            <tr><td>Temp Directory</td><td>/tmp</td></tr>
+            <tr><td>SSL Certificate</td><td>/etc/ssl/certs/company.crt</td></tr>
+            <tr><td>SSL Private Key</td><td>/etc/ssl/private/company.key</td></tr>
+        </table>
+
+        <div style="margin-top: 30px;">
+            <a href="/index.php" class="btn">Return to Dashboard</a>
+            <a href="/logout.php" class="btn">Logout</a>
+            <a href="#" class="btn" onclick="window.print()">Export Configuration</a>
+        </div>
+
+        <hr>
+        <p style="text-align: center; color: #666; font-size: 0.9em;">
+            © 2024 Company Internal Systems<br>
+            Configuration page accessed from: 10.0.0.45<br>
+            Session ID: PHPSESSID=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6<br>
+            User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+        </p>
+    </div>
+</body>
+</html>

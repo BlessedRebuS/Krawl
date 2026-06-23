@@ -1,0 +1,43 @@
+<html>
+<head>
+    <title>Application Links Manifest</title>
+    <meta charset="UTF-8">
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9; color:#333;}
+        h1 {color:#0052cc;}
+        pre {background:#fff; padding:15px; border:1px solid #ddd; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>Application Links Manifest</h1>
+    <p>This manifest describes the available application links for this instance.</p>
+    <pre>
+{
+  "id": "applinks-1.0",
+  "name": "Atlassian Application Links",
+  "version": "1.0",
+  "description": "Manifest for configuring application links between Jira, Confluence, Bitbucket and Bamboo.",
+  "links": [
+    {
+      "rel": "self",
+      "href": "/rest/applinks/1.0/manifest"
+    },
+    {
+      "rel": "alternate",
+      "href": "/rest/applinks/1.0/applications",
+      "type": "application/json"
+    },
+    {
+      "rel": "documentation",
+      "href": "https://confluence.example.com/display/DOC/Application+Links+REST+API"
+    }
+  ],
+  "properties": {
+    "maxLinks": 20,
+    "supportedProtocols": ["oauth", "trustedApplications"],
+    "defaultTimeout": 30000
+  }
+}
+    </pre>
+</body>
+</html>

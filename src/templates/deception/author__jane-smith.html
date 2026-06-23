@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Jane Smith - Author Profile</title>
+    <meta name="description" content="Official author page for Jane Smith, featuring her latest works, biography, and contact information.">
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f9f9f9; color:#333;}
+        header {background:#2c3e50; color:#fff; padding:20px; text-align:center;}
+        header h1 {margin:0; font-size:2.2em;}
+        .container {max-width:960px; margin:20px auto; padding:0 15px;}
+        .bio {background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin-bottom:20px;}
+        .bio img {float:left; margin:0 15px 15px 0; width:150px; height:auto; border-radius:5px;}
+        .articles {background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+        .article-item {border-bottom:1px solid #eee; padding:15px 0;}
+        .article-item:last-child {border-bottom:none;}
+        .article-item h3 {margin:0 0 5px; font-size:1.3em;}
+        .article-item a {color:#2980b9; text-decoration:none;}
+        .article-item a:hover {text-decoration:underline;}
+        .meta {color:#7f8c8d; font-size:0.9em; margin-bottom:8px;}
+        .contact-form {background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin-top:20px;}
+        .contact-form label {display:block; margin-top:10px; font-weight:bold;}
+        .contact-form input, .contact-form textarea {width:100%; padding:8px; margin-top:5px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;}
+        .contact-form button {margin-top:15px; padding:10px 20px; background:#27ae60; color:#fff; border:none; border-radius:4px; cursor:pointer;}
+        .contact-form button:hover {background:#219150;}
+        footer {text-align:center; padding:15px; font-size:0.9em; color:#7f8c8d; margin-top:30px;}
+    </style>
+</head>
+<body>
+<header>
+    <h1>Jane Smith</h1>
+    <p>Bestselling Author &amp; Speaker</p>
+</header>
+
+<div class="container">
+    <section class="bio">
+        <img src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='150'%20height='150'%3E%3Crect%20width='150'%20height='150'%20fill='%23ecf0f1'/%3E%3Ctext%20x='75'%20y='80'%20font-family='Arial'%20font-size='20'%20text-anchor='middle'%20fill='%2395a5a6'%3EPhoto%3C/text%3E%3C/svg%3E" alt="Jane Smith">
+        <div>
+            <h2>About Jane</h2>
+            <p>Jane Smith is an award‑winning novelist known for her gripping thrillers and heartfelt literary fiction. With over ten novels published and translations in more than twenty languages, she has captivated readers worldwide. When she isn’t writing, Jane enjoys hiking, photography, and mentoring aspiring writers through workshops and online courses.</p>
+        </div>
+    </section>
+
+    <section class="articles">
+        <h2>Recent Works</h2>
+        <div class="article-item">
+            <h3><a href="/books/shadows-of-yesterday/">Shadows of Yesterday</a></div>
+            <p class="meta">Published: March 12, 2024 &middot; Genre: Psychological Thriller</p>
+            <p>A chilling tale of memory, betrayal, and the secrets that refuse to stay buried.</p>
+        </div>
+        <div class="article-item">
+            <h3><a href="/books/whispering-pines/">Whispering Pines</a></h3>
+            <p class="meta">Published: September 5, 2023 &middot; Genre: Literary Fiction</p>
+            <p>An evocative portrait of a small town grappling with change, loss, and the enduring power of community.</p>
+        </div>
+        <div class="article-item">
+            <h3><a href="/books/the-last-voyage/">The Last Voyage</a></h3>
+            <p class="meta">Published: January 20, 2023 &middot; Genre: Historical Adventure</p>
+            <p>Set during the Age of Exploration, this novel follows a daring crew on a perilous journey to map the unknown.</p>
+        </div>
+    </section>
+
+    <section class="contact-form">
+        <h2>Contact Jane</h2>
+        <form action="/author/jane-smith/contact" method="POST">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required placeholder="Your name">
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required placeholder="your.email@example.com">
+
+            <label for="subject">Subject:</label>
+            <input type="text" id="subject" name="subject" required placeholder="Inquiry, feedback, etc.">
+
+            <label for="message">Message:</label>
+            <textarea id="message" name="message" rows="5" required placeholder="Your message here..."></textarea>
+
+            <button type="submit">Send Message</button>
+        </form>
+    </section>
+</div>
+
+<footer>
+    &copy; 2025 Jane Smith. All rights reserved. | <a href="/privacy/">Privacy Policy</a> | <a href="/terms/">Terms of Use</a>
+</footer>
+</body>
+</html>

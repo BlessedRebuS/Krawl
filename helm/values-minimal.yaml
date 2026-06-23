@@ -26,6 +26,8 @@ redis:
   enabled: true
 
 config:
+  deception:
+    import_pages: true
   dashboard:
     secret_path: null
   database:

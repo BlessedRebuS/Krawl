@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>File Unzipper - Internal Tools</title>
+<style>
+body{font-family:Arial,sans-serif;margin:20px;background:#f4f4f4;}
+.container{max-width:600px;margin:auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+h1{color:#333;}
+form{margin-top:20px;}
+input[type=file]{display:block;margin-bottom:10px;}
+button{padding:8px 12px;background:#0066cc;color:#fff;border:none;border-radius:4px;cursor:pointer;}
+button:hover{background:#004c99;}
+.result{margin-top:20px;padding:10px;background:#e9f7ff;border-left:4px solid #0066cc;display:none;}
+pre{background:#f8f8f8;padding:10px;overflow:auto;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Internal File Unzipper</h1>
+<p>Use this tool to extract ZIP archives uploaded to the server.</p>
+<form id="unzipForm" action="/unzipper.php" method="post" enctype="multipart/form-data">
+<input type="file" name="archive" accept=".zip" required>
+<button type="submit">Upload & Extract</button>
+</form>
+<div id="result" class="result">
+<h2>Extraction Results</h2>
+<pre id="output"></pre>
+</div>
+</div>
+<script>
+document.getElementById('unzipForm').addEventListener('submit', function(e){
+e.preventDefault();
+const form = e.target;
+const data = new FormData(form);
+fetch(form.action, {method:'POST', body:data})
+.then(r=>r.text())
+.then(txt=>{
+document.getElementById('output').textContent = txt;
+document.getElementById('result').style.display = 'block';
+})
+.catch(err=>{
+document.getElementById('output').textContent = 'Error: '+err;
+document.getElementById('result').style.display = 'block';
+});
+});
+</script>
+</body>
+</html>

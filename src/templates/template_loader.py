@@ -6,7 +6,8 @@ Loads templates from the html/ subdirectory and supports string formatting for d
 """
 
 from pathlib import Path
-from typing import Dict
+
+from logger import get_app_logger
 
 
 class TemplateNotFoundError(Exception):
@@ -16,7 +17,7 @@ class TemplateNotFoundError(Exception):
 
 
 # Module-level cache for loaded templates
-_template_cache: Dict[str, str] = {}
+_template_cache: dict[str, str] = {}
 
 # Base directory for template files
 _TEMPLATE_DIR = Path(__file__).parent / "html"
@@ -61,8 +62,37 @@ def load_template(name: str, **kwargs) -> str:
 
     # Apply substitutions if kwargs provided
     if kwargs:
-        template = template.format(**kwargs)
+        try:
+            template = template.format(**kwargs)
+        except Exception as err:
+            # If formatting fails, return template unchanged (do not validate placeholders)
+            get_app_logger().debug(f"Template formatting failed for '{name}': {err}")
     return template
+
+
+def load_template_from_path(file_path: str, **kwargs) -> str:
+    """
+    Load a template from an absolute or relative file path and perform
+    non-strict placeholder substitution. Replaces occurrences of
+    `{key}` with the provided value for each kwarg. If the file does
+    not exist or cannot be read, raises FileNotFoundError.
+
+    This function deliberately does not validate that placeholders
+    like `{counter}` or `{content}` are present; it performs simple
+    replacements and returns the file contents even if placeholders
+    are missing.
+    """
+    p = Path(file_path)
+    if not p.exists():
+        raise FileNotFoundError(f"Template file not found: {file_path}")
+
+    text = p.read_text(encoding="utf-8")
+
+    # Perform safe replacements without raising KeyError
+    for k, v in kwargs.items():
+        text = text.replace(f"{{{k}}}", str(v))
+
+    return text
 
 
 def clear_cache() -> None:

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GravitySMTP Config - WordPress</title>
+<style>
+body{font-family:Arial,sans-serif;margin:20px;background:#f9f9f9;color:#333}
+.wrap{background:#fff;padding:20px;border-radius:5px;box-shadow:0 0 5px rgba(0,0,0,.1);max-width:800px;margin:auto}
+h1{color:#21759b}
+.form-table{width:100%;border-collapse:collapse;margin-top:20px}
+.form-table th,.form-table td{padding:10px;border:1px solid #ddd;text-align:left}
+.form-table th{background:#eee;width:30%}
+input[type=text],input[type=email],input[type=password],input[type=number],select{width:100%;padding:5px;border:1px solid #ccc;border-radius:3px}
+.submit{margin-top:20px}
+.button{background:#0073aa;color:#fff;border:none;padding:10px 20px;border-radius:3px;cursor:pointer}
+.button:hover{background:#005a87}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>GravitySMTP Settings</h1>
+<form method="post" action="options.php">
+<table class="form-table">
+<tr><th scope="row">From Email</th><td><input type="email" name="gsmtp_from_email" value="no-reply@example.com"></td></tr>
+<tr><th scope="row">From Name</th><td><input type="text" name="gsmtp_from_name" value="Site Admin"></td></tr>
+<tr><th scope="row">Mailer</th><td><select name="gsmtp_mailer"><option value="smtp">SMTP</option><option value="mail">PHP Mail</option></select></td></tr>
+<tr><th scope="row">SMTP Host</th><td><input type="text" name="gsmtp_smtp_host" value="smtp.example.com"></td></tr>
+<tr><th scope="row">SMTP Port</th><td><input type="number" name="gsmtp_smtp_port" value="587"></td></tr>
+<tr><th scope="row">Encryption</th><td><select name="gsmtp_encryption"><option value="tls">TLS</option><option value="ssl">SSL</option><option value="none">None</option></select></td></tr>
+<tr><th scope="row">SMTP Username</th><td><input type="text" name="gsmtp_smtp_user" value="smtp_user"></td></tr>
+<tr><th scope="row">SMTP Password</th><td><input type="password" name="gsmtp_smtp_pass" value="********"></td></tr>
+</table>
+<p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="Save Changes"></p>
+</form>
+</div>
+</body>
+</html>

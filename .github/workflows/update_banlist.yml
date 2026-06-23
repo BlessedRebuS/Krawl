@@ -1,0 +1,50 @@
+name: Fetch krawl ip banlist from demo and create PR
+
+on:
+  schedule:
+    - cron: '0 9 * * 6'  # Runs every saturday at 9:00 AM
+  workflow_dispatch:      # Allow manual trigger too
+
+jobs:
+  fetch-and-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch data from API
+        run: |
+          curl -s \
+            "https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw" \
+            -o banlist.txt
+
+          # Fail the step if the file is empty or curl errored
+          if [ ! -s banlist.txt ]; then
+            echo "Error: API response is empty or request failed"
+            exit 1
+          fi
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet banlist.txt && \
+          ! git ls-files --others | grep -q -e '^banlist\.txt'; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          title: 'Community banlist update'
+          commit-message: Updated banlist
+          branch: community-banlist-update
+          body: |
+            Updated community banlist
+          reviewers: "carnivuth,BlessedRebuS,Lore09"

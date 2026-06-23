@@ -1,0 +1,33 @@
+<?php
+/**
+ * WordPress Configuration Backup File
+ * This file contains database credentials and security keys.
+ * WARNING: Do not expose this file publicly.
+ */
+
+define('DB_NAME', 'wordpress_db');
+define('DB_USER', 'wp_admin');
+define('DB_PASSWORD', 's3cr3t_p@ssw0rd!2024');
+define('DB_HOST', 'localhost');
+define('DB_CHARSET', 'utf8');
+define('DB_COLLATE', '');
+
+/** Authentication Unique Keys and Salts. */
+define('AUTH_KEY',         'put your unique phrase here');
+define('SECURE_AUTH_KEY',  'put your unique phrase here');
+define('LOGGED_IN_KEY',    'put your unique phrase here');
+define('NONCE_KEY',        'put your unique phrase here');
+define('AUTH_SALT',        'put your unique phrase here');
+define('SECURE_AUTH_SALT', 'put your unique phrase here');
+define('LOGGED_IN_SALT',   'put your unique phrase here');
+define('NONCE_SALT',       'put your unique phrase here');
+
+$table_prefix  = 'wp_';
+
+define('WP_DEBUG', false);
+
+if ( !defined('ABSPATH') )
+	define('ABSPATH', dirname(__FILE__) . '/');
+
+require_once(ABSPATH . 'wp-settings.php');
+?>

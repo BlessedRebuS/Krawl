@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class T API - Educational Resource Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .endpoint { background: #ecf0f1; padding: 15px; margin: 15px 0; border-left: 4px solid #3498db; }
+        .method { font-weight: bold; color: #e74c3c; }
+        .description { margin: 10px 0; color: #555; }
+        .params { background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace; }
+        .note { background: #fff3cd; border: 1px solid #ffeaa7; padding: 12px; border-radius: 4px; margin-top: 20px; }
+        footer { margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Class T API Documentation</h1>
+        <p>Welcome to the Class T Educational Resource Management API. This interface provides programmatic access to course data, student records, and administrative functions for educational institutions.</p>
+
+        <div class="endpoint">
+            <span class="method">GET</span> /class-t.api.php?action=get_courses
+            <div class="description">Retrieve a list of all available courses with their metadata.</div>
+            <div class="params">Parameters: <code>format=json|xml</code> (default: json), <code>limit=integer</code> (default: 50)</div>
+        </div>
+
+        <div class="endpoint">
+            <span class="method">GET</span> /class-t.api.php?action=get_students&course_id=123
+            <div class="description">Get enrolled students for a specific course.</div>
+            <div class="params">Required: <code>course_id=integer</code>. Optional: <code>status=active|inactive</code></div>
+        </div>
+
+        <div class="endpoint">
+            <span class="method">POST</span> /class-t.api.php?action=enroll_student
+            <div class="description">Enroll a student in a course.</div>
+            <div class="params">Required POST fields: <code>student_id</code>, <code>course_id</code>, <code>enrollment_date</code> (YYYY-MM-DD)</div>
+        </div>
+
+        <div class="endpoint">
+            <span class="method">GET</span> /class-t.api.php?action=get_grades&student_id=456
+            <div class="description>Retrieve grade information for a specific student.</div>
+            <div class="params">Required: <code>student_id=integer</code>. Optional: <code>term=fall|spring|summer</code>, <code>year=YYYY</code></div>
+        </div>
+
+        <div class="note">
+            <strong>Important:</strong> This API requires authentication via API key in the <code>X-API-Key</code> header. Rate limiting: 100 requests per minute per IP. All data is encrypted in transit and at rest.
+        </div>
+
+        <div class="endpoint">
+            <span class="method">GET</span> /class-t.api.php?debug=1
+            <div class="description">Debug endpoint for development purposes (disabled in production).</div>
+            <div class="params">Returns system information and cached query performance metrics.</div>
+        </div>
+    </div>
+
+    <footer>
+        Class T API v2.1.4 &copy; 2023 Educational Technology Solutions | <a href="/api/status">System Status</a>
+    </footer>
+</body>
+</html>

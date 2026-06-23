@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>/debug/pprof/</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        h1 { color: #333; }
+        ul { line-height: 1.6; }
+        footer { margin-top: 2em; font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+    <h1>/debug/pprof/</h1>
+    <p>Go pprof debugging endpoints.</p>
+    <ul>
+        <li><a href="/debug/pprof/goroutine?debug=1">goroutine</a></li>
+        <li><a href="/debug/pprof/heap?debug=1">heap</a></li>
+        <li><a href="/debug/pprof/threadcreate?debug=1">threadcreate</a></li>
+        <li><a href="/debug/pprof/block?debug=1">block</a></li>
+        <li><a href="/debug/pprof/mutex?debug=1">mutex</a></li>
+        <li><a href="/debug/pprof/allocs?debug=1">allocs</a></li>
+        <li><a href="/debug/pprof/trace?debug=1">trace</a></li>
+        <li><a href="/debug/pprof/cmdline">cmdline</a></li>
+        <li><a href="/debug/pprof/profile?seconds=30">profile (30s)</a></li>
+        <li><a href="/debug/pprof/symbol">symbol</a></li>
+    </ul>
+    <footer>
+        Server time: 2025-11-02 12:34:56 UTC
+    </footer>
+</body>
+</html>

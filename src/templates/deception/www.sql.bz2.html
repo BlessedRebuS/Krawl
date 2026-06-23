@@ -1,0 +1,84 @@
+<html><body>-- phpMyAdmin SQL Dump
+-- version 5.1.0
+-- https://www.phpmyadmin.net/
+--
+-- Host: localhost
+-- Generation Time: Sep 24, 2025 at 03:12 AM
+-- Server version: 5.7.33
+-- PHP Version: 7.4.3
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `company`
+--
+CREATE DATABASE IF NOT EXISTS `company` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `company`;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `employees`
+--
+CREATE TABLE `employees` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `position` varchar(50) NOT NULL,
+  `salary` decimal(10,2) NOT NULL,
+  `hire_date` date NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `employees`
+--
+INSERT INTO `employees` (`id`, `name`, `position`, `salary`, `hire_date`) VALUES
+(1, 'Alice Smith', 'Manager', 75000.00, '2020-06-15'),
+(2, 'Bob Johnson', 'Developer', 60000.00, '2021-02-01'),
+(3, 'Carol Lee', 'Designer', 55000.00, '2021-09-20'),
+(4, 'David Brown', 'QA Engineer', 50000.00, '2022-01-10'),
+(5, 'Eva Green', 'Intern', 30000.00, '2023-05-05');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `departments`
+--
+CREATE TABLE `departments` (
+  `dept_id` int(11) NOT NULL,
+  `dept_name` varchar(100) NOT NULL,
+  `location` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `departments`
+--
+INSERT INTO `departments` (`dept_id`, `dept_name`, `location`) VALUES
+(1, 'Sales', 'New York'),
+(2, 'Engineering', 'San Francisco'),
+(3, 'Marketing', 'Chicago'),
+(4, 'HR', 'Austin');
+
+--
+-- Indexes for dumped tables
+--
+ALTER TABLE `employees`
+  ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `departments`
+  ADD PRIMARY KEY (`dept_id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+ALTER TABLE `employees`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+ALTER TABLE `departments`
+  MODIFY `dept_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+COMMIT;</body></html>

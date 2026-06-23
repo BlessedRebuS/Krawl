@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Information - Server Status</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 4px; }
+        .debug-section h2 { color: #555; margin-top: 0; }
+        pre { background: #f8f8f8; padding: 10px; overflow-x: auto; border-radius: 4px; }
+        .info-row { display: flex; margin: 10px 0; }
+        .info-label { font-weight: bold; width: 150px; color: #444; }
+        .info-value { flex: 1; color: #333; }
+        .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin: 15px 0; }
+        .error { background: #f8d7da; border-left: 4px solid #dc3545; padding: 10px; margin: 15px 0; }
+        a { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Server Debug Information</h1>
+        <p><em>Last updated: <?php echo date('Y-m-d H:i:s'); ?></em></p>
+        
+        <div class="warning">
+            <strong>Warning:</strong> Debug mode is enabled. This page should not be accessible in production environments.
+        </div>
+        
+        <div class="debug-section">
+            <h2>PHP Information</h2>
+            <pre><?php
+ob_start();
+phpinfo();
+$phpinfo = ob_get_contents();
+ob_end_clean();
+// Strip sensitive info for safety in honeypot
+$phpinfo = preg_replace('%^.*<body>(.*)</body>.*$%ms', '$1', $phpinfo);
+echo $phpinfo;
+?></pre>
+        </div>
+        
+        <div class="debug-section">
+            <h2>Environment Variables</h2>
+            <div class="info-row"><span class="info-label">SERVER_SOFTWARE:</span><span class="info-value">Apache/2.4.41 (Ubuntu)</span></div>
+            <div class="info-row"><span class="info-label">DOCUMENT_ROOT:</span><span class="info-value">/var/www/html</span></div>
+            <div class="info-row"><span class="info-label">REMOTE_ADDR:</span><span class="info-value"><?php echo htmlspecialchars($_SERVER['REMOTE_ADDR'] ?? 'Unknown'); ?></span></div>
+            <div class="info-row"><span class="info-label">HTTP_USER_AGENT:</span><span class="info-value"><?php echo htmlspecialchars($_SERVER['HTTP_USER_AGENT'] ?? 'Unknown'); ?></span></div>
+            <div class="info-row"><span class="info-label">REQUEST_METHOD:</span><span class="info-value"><?php echo htmlspecialchars($_SERVER['REQUEST_METHOD'] ?? 'GET'); ?></span></div>
+            <div class="info-row"><span class="info-label">QUERY_STRING:</span><span class="info-value"><?php echo htmlspecialchars($_SERVER['QUERY_STRING'] ?? ''); ?></span></div>
+        </div>
+        
+        <div class="debug-section">
+            <h2>Session Data</h2>
+            <?php
+            session_start();
+            if (!empty($_SESSION)) {
+                echo '<pre>' . print_r($_SESSION, true) . '</pre>';
+            } else {
+                echo '<p><em>No session data available.</em></p>';
+            }
+            ?>
+        </div>
+        
+        <div class="debug-section">
+            <h2>GET Parameters</h2>
+            <?php
+            if (!empty($_GET)) {
+                echo '<pre>' . print_r($_GET, true) . '</pre>';
+            } else {
+                echo '<p><em>No GET parameters.</em></p>';
+            }
+            ?>
+        </div>
+        
+        <div class="debug-section">
+            <h2>POST Data</h2>
+            <?php
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST)) {
+                echo '<pre>' . print_r($_POST, true) . '</pre>';
+            } else {
+                echo '<p><em>No POST data (current request method: ' . htmlspecialchars($_SERVER['REQUEST_METHOD'] ?? 'GET') . ').</em></p>';
+            }
+            ?>
+        </div>
+        
+        <div class="debug-section">
+            <h2>Cookies</h2>
+            <?php
+            if (!empty($_COOKIE)) {
+                echo '<pre>' . print_r($_COOKIE, true) . '</pre>';
+            } else {
+                echo '<p><em>No cookies set.</em></p>';
+            }
+            ?>
+        </div>
+        
+        <div class="error">
+            <strong>Note:</strong> This is a honeypot endpoint designed to detect and log unauthorized access attempts. All activity is monitored and recorded.
+        </div>
+        
+        <p><a href="/">Return to Homepage</a> | <a href="/admin.php">Admin Panel</a></p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Configuration</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { color: #232f3e; }
+        .note { background-color: #fff8dc; border-left: 4px solid #ff9900; padding: 10px; margin: 20px 0; }
+        code { background-color: #f4f4f4; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AWS Credentials Configuration</h1>
+        <p>This page displays AWS configuration information for development and testing purposes.</p>
+        
+        <div class="note">
+            <strong>Note:</strong> This is a development environment. Production credentials are stored securely in AWS Secrets Manager.
+        </div>
+        
+        <h2>Environment Variables</h2>
+        <ul>
+            <li><strong>AWS_ACCESS_KEY_ID:</strong> AKIAIOSFODNN7EXAMPLE</li>
+            <li><strong>AWS_SECRET_ACCESS_KEY:</strong> wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</li>
+            <li><strong>AWS_DEFAULT_REGION:</strong> us-east-1</li>
+            <li><strong>AWS_SESSION_TOKEN:</strong> AQoDYXdzEPT//////////wEXAMPLEtc764bNrC9SAPBSM22wDOk4x4HIZ8j4FZTwdQWWsKxGQu</li>
+        </ul>
+        
+        <h2>Configuration File (~/.aws/credentials)</h2>
+        <pre><code>[default]
+aws_access_key_id = AKIAIOSFODNN7EXAMPLE
+aws_secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+
+[production]
+aws_access_key_id = AKIAI44QH8DHBEXAMPLE
+aws_secret_access_key = je7MtGbClwBF/2Zp9Utk/h3yCo8nvbEXAMPLEKEY
+</code></pre>
+        
+        <h2>Available S3 Buckets</h2>
+        <ul>
+            <li>my-company-backups-dev</li>
+            <li>user-uploads-staging</li>
+            <li>logs-application-prod</li>
+            <li>database-dumps-archive</li>
+        </ul>
+        
+        <h2>IAM Roles</h2>
+        <ul>
+            <li>arn:aws:iam::123456789012:role/EC2-S3Access-Role</li>
+            <li>arn:aws:iam::123456789012:role/Lambda-DatabaseAccess-Role</li>
+            <li>arn:aws:iam::123456789012:role/CodeDeploy-ServiceRole</li>
+        </ul>
+        
+        <p><em>Last updated: 2024-01-15 14:30:22 UTC</em></p>
+    </div>
+</body>
+</html>

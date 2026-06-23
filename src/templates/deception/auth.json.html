@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Auth Service - JSON Endpoint</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9; color:#333;}
+        pre {background:#eee; padding:15px; border:1px solid #ccc; overflow:auto;}
+        a {color:#0066cc;}
+    </style>
+</head>
+<body>
+    <h1>Authentication Service API</h1>
+    <p>This endpoint returns user authentication tokens in JSON format.</p>
+    <h2>Response Example</h2>
+    <pre>
+{
+    "status": "success",
+    "timestamp": "2025-09-24T12:34:56Z",
+    "data": {
+        "user_id": 4242,
+        "username": "admin",
+        "role": "administrator",
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0MjQyIiwibmFtZSI6IkFkbWluIiwiaWF0IjoxNzMwMDAwMDAwfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+        "expires_in": 3600
+    }
+}
+    </pre>
+    <p>For more information, see the <a href="/docs/api.html">API documentation</a>.</p>
+    <hr>
+    <footer>
+        &copy; 2025 Example Corp. All rights reserved.
+    </footer>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<html><body>#include <iostream>
+#include <string>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+using namespace std;
+
+int main() {
+    // Simulate reading POST data from CGI environment
+    char* content_length = getenv("CONTENT_LENGTH");
+    int len = content_length ? atoi(content_length) : 0;
+    string post_data;
+    char c;
+    for (int i = 0; i < len; ++i) {
+        c = getchar();
+        post_data += c;
+    }
+
+    // Simple parsing of username and password (no URL decoding for demo)
+    string username, password;
+    size_t pos = post_data.find("username=");
+    if (pos != string::npos) {
+        size_t end = post_data.find('&', pos);
+        username = post_data.substr(pos + 9,
+                                    (end == string::npos) ? post_data.size() - (pos + 9)
+                                                          : end - (pos + 9));
+    }
+    pos = post_data.find("password=");
+    if (pos != string::npos) {
+        size_t end = post_data.find('&', pos);
+        password = post_data.substr(pos + 9,
+                                    (end == string::npos) ? post_data.size() - (pos + 9)
+                                                          : end - (pos + 9));
+    }
+
+    // Vulnerable SQL query construction (intentionally unsafe)
+    string query = "SELECT * FROM users WHERE username='" + username +
+                   "' AND password='" + password + "'";
+
+    // Fake execution result: always show debug info
+    cout << "Content-type: text/html\n\n";
+    cout << "<!DOCTYPE html>\n<html>\n<head>\n<title>Login Result</title>\n</head>\n<body>\n";
+    cout << "<h2>Login attempt</h2>\n";
+    cout << "<p>Username: " << username << "</p>\n";
+    cout << "<p>Password: " << password << "</p>\n";
+    cout << "<p>Debug SQL query: " << query << "</p>\n";
+    cout << "<p>Note: This is a deliberately vulnerable example for training purposes.</p>\n";
+    cout << "</body>\n</html>\n";
+
+    return 0;
+}</body></html>

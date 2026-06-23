@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Editor - 404.php - WordPress</title>
+    <link rel="stylesheet" href="/wp-admin/css/buttons.css">
+    <link rel="stylesheet" href="/wp-admin/css/forms.css">
+    <link rel="stylesheet" href="/wp-admin/css/l10n.css">
+    <link rel="stylesheet" href="/wp-admin/css/list-tables.css">
+    <link rel="stylesheet" href="/wp-admin/css/menu.css">
+    <link rel="stylesheet" href="/wp-admin/css/metaboxes.css">
+    <link rel="stylesheet" href="/wp-admin/css/theme-editor.css">
+    <link rel="stylesheet" href="/wp-admin/css/widgets.css">
+    <link rel="stylesheet" href="/wp-admin/css/wporg-login.css">
+    <link rel="stylesheet" href="/wp-admin/css/wp-admin.min.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif; margin: 0; padding: 20px; background-color: #f5f6f9; color: #32373d; }
+        .wrap { max-width: 960px; margin: 0 auto; background: white; padding: 20px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        h1 { font-size: 20px; margin: 0 0 20px; color: #23282d; }
+        .notice { padding: 12px; margin: 15px 0; border-left: 4px solid; border-radius: 3px; }
+        .notice-error { background: #fef1f5; border-color: #dc3232; color: #9f0a13; }
+        .notice-info { background: #eff8ff; border-color: #007cba; color: #006080; }
+        textarea { width: 100%; height: 400px; font-family: 'Courier New', Courier, monospace; font-size: 13px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; background: #fafafa; }
+        .submit { background: #007cba; color: white; border: none; padding: 10px 20px; font-size: 13px; border-radius: 3px; cursor: pointer; margin-top: 10px; }
+        .submit:hover { background: #006799; }
+        .file-info { font-size: 13px; color: #666; margin-bottom: 15px; }
+        .help-text { font-size: 13px; color: #666; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <h1>Theme Editor</h1>
+        <p class="help-text">You are editing the file <code>404.php</code> in the <strong>Twenty Twenty-Four</strong> theme</p>
+
+        <div class="notice notice-error">
+            <p><strong>Warning:</strong> The theme editor is disabled for security reasons. To enable it, define <code>WP_DISABLE_THEME_EDITOR</code> as false in your wp-config.php file.</p>
+        </div>
+
+        <div class="notice notice-info">
+            <p><strong>Notice:</strong> Making changes to your theme's code can break your site. If you're not comfortable with PHP, consider using the Customizer or contacting a developer.</p>
+        </div>
+
+        <form method="post" action="/wp-admin/theme-editor.php?file=404.php&amp;theme=twentytwentyfour">
+            <input type="hidden" name="_wpnonce" value="a1b2c3d4e5f6">
+            <input type="hidden" name="_wp_http_referer" value="/wp-admin/theme-editor.php?file=404.php&amp;theme=twentytwentyfour">
+            <input type="hidden" name="newcontent" value="">
+            <input type="hidden" name="action" value="edit">
+            <input type="hidden" name="file" value="404.php">
+            <input type="hidden" name="theme" value="twentytwentyfour">
+
+            <div class="file-info">
+                File: /var/www/html/wp-content/themes/twentytwentyfour/404.php • Size: 2.1 KB • Last modified: April 5, 2024 at 2:15 PM
+            </div>
+
+            <textarea name="content" id="content"><?php
+/**
+ * The template for displaying 404 pages (Not Found)
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
+ */
+
+get_header();
+?>
+
+	<div id="primary" class="content-area">
+		<main id="main" class="site-main">
+
+			<div class="error-404 not-found">
+				<header class="page-header">
+					<h1 class="page-title"><?php esc_html_e( 'Nothing here', 'twentytwentyfour' ); ?></h1>
+				</header><!-- .page-header -->
+
+				<div class="page-content">
+					<p><?php esc_html_e( 'It looks like nothing was found at this location. Maybe try a search?', 'twentytwentyfour' ); ?></p>
+
+					<?php get_search_form(); ?>
+				</div><!-- .page-content -->
+			</div><!-- .error-404 -->
+
+		</main><!-- #site-main -->
+	</div><!-- #content-area -->
+
+<?php
+get_footer();
+?></textarea>
+            <br>
+            <input type="submit" class="submit button button-primary button-large" value="Update File">
+            <p class="help-text">Clicking "Update File" will save your changes to the theme.</p>
+        </form>
+    </div>
+</body>
+</html>

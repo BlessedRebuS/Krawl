@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>phpinfo() - Symfony Profiler</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #f8f9fa; }
+        h1 { color: #333; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .header { background-color: #2c3e50; color: white; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
+        .section { margin-top: 30px; }
+        .section h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px; }
+        code { background-color: #ecf0f1; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
+        .notice { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 12px; border-radius: 4px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Symfony Profiler - phpinfo() Output</h1>
+        <p>Debug information for development environment</p>
+    </div>
+
+    <div class="notice">
+        <strong>Notice:</strong> This is a development tool. Do not use in production. Exposing phpinfo() can leak sensitive server information.
+    </div>
+
+    <div class="section">
+        <h2>PHP Version</h2>
+        <table>
+            <tr><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+            <tr><td>PHP Version</td><td>8.2.12</td><td>8.2.12</td></tr>
+            <tr><td>System</td><td>Linux web01.internal 5.15.0-105-generic #116-Ubuntu SMP Thu Mar 21 14:57:00 UTC 2024 x86_64</td><td>same</td></tr>
+            <tr><td>Build Date</td><td>Oct 26 2023 14:32:11</td><td>same</td></tr>
+            <tr><td>Configure Command</td><td><code>./configure '--with-apxs2' '--enable-mbstring' '--with-mysqli' '--with-pdo-mysql' '--with-openssl' '--with-zlib' '--enable-bcmath' --enable-calendar --enable-exif --enable-ftp --enable-gd --enable-intl --enable-shmop --enable-sockets --enable-sysvmsg --enable-sysvsem --enable-sysvshm --enable-wddx --enable-zip'</code></td><td>same</td></tr>
+            <tr><td>Server API</td><td>Apache 2.0 Handler</td><td>same</td></tr>
+            <tr><td>Virtual Directory Support</td><td>disabled</td><td>same</td></tr>
+            <tr><td>Configuration File (php.ini) Path</td><td>/etc/php/8.2/apache2</td><td>same</td></tr>
+            <tr><td>Loaded Configuration File</td><td>/etc/php/8.2/apache2/php.ini</td><td>same</td></tr>
+            <tr><td>Scan this dir for additional .ini files</td><td>/etc/php/8.2/apache2/conf.d</td><td>same</td></tr>
+            <tr><td>Additional .ini files parsed</td><td>/etc/php/8.2/apache2/conf.d/00-opcache.ini,/etc/php/8.2/apache2/conf.d/00-phpdbg.ini,/etc/php/8.2/apache2/conf.d/10-mysqlnd.ini,/etc/php/8.2/apache2/conf.d/10-opcache.ini,/etc/php/8.2/apache2/conf.d/10-pdo.ini,/etc/php/8.2/apache2/conf.d/20-calendar.ini,/etc/php/8.2/apache2/conf.d/20-ctype.ini,/etc/php/8.2/apache2/conf.d/20-dom.ini,/etc/php/8.2/apache2/conf.d/20-exif.ini,/etc/php/8.2/apache2/conf.d/20-fileinfo.ini,/etc/php/8.2/apache2/conf.d/20-filter.ini,/etc/php/8.2/apache2/conf.d/20-ftp.ini,/etc/php/8.2/apache2/conf.d/20-gd.ini,/etc/php/8.2/apache2/conf.d/20-gettext.ini,/etc/php/8.2/apache2/conf.d/20-hash.ini,/etc/php/8.2/apache2/conf.d/20-iconv.ini,/etc/php/8.2/apache2/conf.d/20-imagick.ini,/etc/php/8.2/apache2/conf.d/20-imap.ini,/etc/php/8.2/apache2/conf.d/20-json.ini,/etc/php/8.2/apache2/conf.d/20-mbstring.ini,/etc/php/8.2/apache2/conf.d/20-mcrypt.ini,/etc/php/8.2/apache2/conf.d/20-mysqli.ini,/etc/php/8.2/apache2/conf.d/20-pdo_mysql.ini,/etc/php/8.2/apache2/conf.d/20-pdo_sqlite.ini,/etc/php/8.2/apache2/conf.d/20-phar.ini,/etc/php/8.2/apache2/conf.d/20-posix.ini,/etc/php/8.2/apache2/conf.d/20-readline.ini,/etc/php/8.2/apache2/conf.d/20-recode.ini,/etc/php/8.2/apache2/conf.d/20-shmop.ini,/etc/php/8.2/apache2/conf.d/20-simplexml.ini,/etc/php/8.2/apache2/conf.d/20-snmp.ini,/etc/php/8.2/apache2/conf.d/20-soap.ini,/etc/php/8.2/apache2/conf.d/20-sockets.ini,/etc/php/8.2/apache2/conf.d/20-sodium.ini,/etc/php/8.2/apache2/conf.d/20-sqlite3.ini,/etc/php/8.2/apache2/conf.d/20-tidy.ini,/etc/php/8.2/apache2/conf.d/20-tokenizer.ini,/etc/php/8.2/apache2/conf.d/20-xml.ini,/etc/php/8.2/apache2/conf.d/20-xmlreader.ini,/etc/php/8.2/apache2/conf.d/20-xmlwriter.ini,/etc/php/8.2/apache2/conf.d/20-xsl.ini,/etc/php/8.2/apache2/conf.d/20-zip.ini</td><td>same</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>PHP Core</h2>
+        <table>
+            <tr><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+            <tr><td>allow_url_fopen</td><td>On</td><td>On</td></tr>
+            <tr><td>allow_url_include</td><td>Off</td><td>Off</td></tr>
+            <tr><td>arg_separator.input</td><td>&amp;</td><td>&amp;</td></tr>
+            <tr><td>arg_separator.output</td><td>&amp;</td><td>&amp;</td></tr>
+            <tr><td>auto_append_file</td><td>no value</td><td>no value</td></tr>
+            <tr><td>auto_globals_jit</td><td>On</td><td>On</td></tr>
+            <tr><td>auto_prepend_file</td><td>no value</td><td>no value</td></tr>
+            <tr><td>browscap</td><td>no value</td><td>no value</td></tr>
+            <tr><td>default_charset</td><td>UTF-8</td><td>UTF-8</td></tr>
+            <tr><td>default_mimetype</td><td>text/html</td><td>text/html</td></tr>
+            <tr><td>disable_classes</td><td>no value</td><td>no value</td></tr>
+            <tr><td>disable_functions</td><td>no value</td><td>no value</td></tr>
+            <tr><td>display_errors</td><td>On</td><td>Off</td></tr>
+            <tr><td>display_startup_errors</td><td>On</td><td>Off</td></tr>
+            <tr><td>doc_root</td><td>no value</td><td>no value</td></tr>
+            <tr><td>docref_ext</td><td>no value</td><td>no value</td></tr>
+            <tr><td>docref_root</td><td>no value</td><td>no value</td></tr>
+            <tr><td>enable_dl</td><td>Off</td><td>Off</td></tr>
+            <tr><td>enable_post_data_reading</td><td>On</td><td>On</td></tr>
+            <tr><td>error_append_string</td><td>no value</td><td>no value</td></tr>
+            <tr><td>error_log</td><td>/var/log/apache2/php_errors.log</td><td>same</td></tr>
+            <tr><td>error_prepend_string</td><td>no value</td><td>no value</td></tr>
+            <tr><td>error_reporting</td><td>32767</td><td>32767</td></tr>
+            <tr><td>expose_php</td><td>On</td><td>On</td></tr>
+            <tr><td>extension_dir</td><td>/usr/lib/php/20220829</td><td>same</td></tr>
+            <tr><td>file_uploads</td><td>On</td><td>On</td></tr>
+            <tr><td>hard_timeout</td><td>2</td><td>2</td></tr>
+            <tr><td>highlight.bg</td><td>#FFFFFF</td><td>#FFFFFF</td></tr>
+            <tr><td>highlight.comment</td><td>#FF8000</td><td>#FF8000</td></tr>
+            <tr><td>highlight.default</td><td>#0000BB</td><td>#0000BB</td></tr>
+            <tr><td>highlight.html</td><td>#000000</td><td>#000000</td></tr>
+            <tr><td>highlight.keyword</td><td>#007F00</td><td>#007F00</td></tr>
+            <tr><td>highlight.string</td><td>#DD0000</td><td>#DD0000</td></tr>
+            <tr><td>html_errors</td><td>On</td><td>On</td></tr>
+            <tr><td>ignore_repeated_errors</td><td>Off</td><td>Off</td></tr>
+            <tr><td>ignore_repeated_source</td><td>Off</td><td>Off</td></tr>
+            <tr><td>ignore_user_abort</td><td>Off</td><td>Off</td></tr>
+            <tr><td>implicit_flush</td><td>Off</td><td>Off</td></tr>
+            <tr><td>include_path</td><td>.:/usr/share/php</td><td>.:/usr/share/php</td></tr>
+            <tr><td>input_encoding</td><td>no value</td><td>no value</td></tr>
+            <tr><td>internal_encoding</td><td>no value</td><td>no value</td></tr>
+            <tr><td>log_errors</td><td>On</td><td>On</td></tr>
+            <tr><td>log_errors_max_len</td><td>1024</td><td>1024</td></tr>
+            <tr><td>mail.add_x_header</td><td>Off</td><td>Off</td></tr>
+            <tr><td>mail.force_extra_parameters</td><td>no value</td><td>no value</td></tr>
+            <tr><td>mail.log</td><td>no value</td><td>no value</td></tr>
+            <tr><td>max_execution_time</td><td>30</td><td>30</td></tr>
+            <tr><td>max_file_uploads</td><td>20</td><td>20</td></tr>
+            <tr><td>max_input_nesting_level</td><td>64</td><td>64</td></tr>
+            <tr><td>max_input_time</td><td>60</td><td>60</td></tr>
+            <tr><td>max_input_vars</td><td>1000</td><td>1000</td></tr>
+            <tr><td>memory_limit</td><td>128M</td><td>128M</td></tr>
+            <tr><td>open_basedir</td><td>no value</td><td>no value</td></tr>
+            <tr><td>output_buffering</td><td>4096</td><td>4096</td></tr>
+            <tr><td>output_encoding</td><td>no value</td><td>no value</td></tr>
+            <tr><td>output_handler</td><td>no value</td><td>no value</td></tr>
+            <tr><td>post_max_size</td><td>8M</td><td>8M</td></tr>
+            <tr><td>precision</td><td>14</td><td>14</td></tr>
+            <tr><td>realpath_cache_size</td><td>4096K</td><td>4096K</td></tr>
+            <tr><td>realpath_cache_ttl</td><td>120</td><td>120</td></tr>
+            <tr><td>register_argc_argv</td><td>Off</td><td>Off</td></tr>
+            <tr><td>report_memleaks</td><td>On</td><td>On</td></tr>
+            <tr><td>report_zend_debug</td><td>Off</td><td>Off</td></tr>
+            <tr><td>request_order</td><td>GP</td><td>GP</td></tr>
+            <tr><td>sendmail_from</td><td>no value</td><td>no value</td></tr>
+            <tr><td>sendmail_path</td><td>/usr/sbin/sendmail -t -i</td><td>same</td></tr>
+            <tr><td>serialize_precision</td><td>-1</td><td>-1</td></tr>
+            <tr><td>short_open_tag</td><td>On</td><td>On</td></tr>
+            <tr><td>SMTP</td><td>localhost</td><td>localhost</td></tr>
+            <tr><td>smtp_port</td><td>25</td><td>25</td></tr>
+            <tr><td>sys_temp_dir</td><td>/tmp</td><td>/tmp</td></tr>
+            <tr><td>syslog.facility</td><td>LOG_USER</td><td>LOG_USER</td></tr>
+            <tr><td>syslog.log_pattern</td><td>%s</td><td>%s</td></tr>
+            <tr><td>track_errors</td><td>Off</td><td>Off</td></tr>
+            <tr><td>unserialize_callback_func</td><td>no value</td><td>no value</td></tr>
+            <tr><td>upload_max_filesize</td><td>2M</td><td>2M</td></tr>
+            <tr><td>upload_tmp_dir</td><td>no value</td><td>no value</td></tr>
+            <tr><td>user_dir</td><td>no value</td><td>no value</td></tr>
+            <tr><td>user_ini.cache_ttl</td><td>300</td><td>300</td></tr>
+            <tr><td>user_ini.filename</td><td>.user.ini</td><td>.user.ini</td></tr>
+            <tr><td>variables_order</td><td>GPCS</td><td>GPCS</td></tr>
+            <tr><td>xmlrpc_error_number</td><td>0</td><td>0</td></tr>
+            <tr><td>xmlrpc_errors</td><td>Off</td><td>Off</td></tr>
+            <tr><td>zend.assertions</td><td>1</td><td>1</td></tr>
+            <tr><td>zend.detect_unicode</td><td>On</td><td>On</td></tr>
+            <tr><td>zend.enable_gc</td><td>On</td><td>On</td></tr>
+            <tr><td>zend.multibyte</td><td>Off</td><td>Off</td></tr>
+            <tr><td>zend.script_encoding</td><td>no value</td><td>no value</td></tr>
+            <tr><td>zend.signal_check</td><td>Off</td><td>Off</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Apache Environment</h2>
+        <table>
+            <tr><th>Variable</th><th>Value</th></tr>
+            <tr><td>HTTP_HOST</td><td>localhost:8000</td></tr>
+            <tr><td>HTTP_USER_AGENT</td><td>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36</td></tr>
+            <tr><td>HTTP_ACCEPT</td><td>text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8</td></tr>
+            <tr><td>HTTP_ACCEPT_LANGUAGE</td><td>en-US,en;q=0.9</td></tr>
+            <tr><td>HTTP_ACCEPT_ENCODING</td><td>gzip, deflate, br</td></tr>
+            <tr><td>HTTP_CONNECTION</td><td>keep-alive</td></tr>
+            <tr><td>HTTP_UPGRADE_INSECURE_REQUESTS</td><td>1</td></tr>
+            <tr><td>HTTP_SEC_FETCH_SITE</td><td>none</td></tr>
+            <tr><td>HTTP_SEC_FETCH_MODE</td><td>navigate</td></tr>
+            <tr><td>HTTP_SEC_FETCH_USER</td><td>?1</td></tr>
+            <tr><td>HTTP_SEC_FETCH_DEST</td><td>document</td></tr>
+            <tr><td>DOCUMENT_ROOT</td><td>/var/www/html/project/public</td></tr>
+            <tr><td>REMOTE_ADDR</td><td>127.0.0.1</td></tr>
+            <tr><td>REMOTE_PORT</td><td>54321</td></tr>
+            <tr><td>SERVER_ADDR</td><td>127.0.0.1</td></tr>
+            <tr><td>SERVER_PORT</td><td>8000</td></tr>
+            <tr><td>SERVER_NAME</td><td>localhost</td></tr>
+            <tr><td>SERVER_SOFTWARE</td><td>Apache/2.4.58 (Debian)</td></tr>
+            <tr><td>SERVER_PROTOCOL</td><td>HTTP/1.1</td></tr>
+            <tr><td>REQUEST_METHOD</td><td>GET</td></tr>
+            <tr><td>QUERY_STRING</td><td></td></tr>
+            <tr><td>REQUEST_URI</td><td>/app_dev.php/_profiler/phpinfo</td></tr>
+            <tr><td>SCRIPT_NAME</td><td>/app_dev.php</td></tr>
+            <tr><td>SCRIPT_FILENAME</td><td>/var/www/html/project/public/app_dev.php</td></tr>
+            <tr><td>PATH_TRANSLATED</td><td>/var/www/html/project/public/app_dev.php</td></tr>
+            <tr><td>PATH_INFO</td><td>/_profiler/phpinfo</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Loaded Modules</h2>
+        <h3>Core Modules</h3>
+        <table>
+            <tr><th>Module</th></tr>
+            <tr><td>core</td></tr>
+            <tr><td>date</td></tr>
+            <tr><td>ereg</td></tr>
+            <tr><td>libxml</td></tr>
+            <tr><td>openssl</td></tr>
+            <tr><td>pcre</td></tr>
+            <tr><td>sqlite3</td></tr>
+            <tr><td>zlib</td></tr>
+            <tr><td>bcmath</td></tr>
+            <tr><td>calendar</td></tr>
+            <tr><td>ctype</td></tr>
+            <tr><td>curl</td></tr>
+            <tr><td>dom</td></tr>
+            <tr><td>hash</td></tr>
+            <tr><td>fileinfo</td></tr>
+            <tr><td>filter</td></tr>
+            <tr><td>ftp</td></tr>
+            <tr><td>gd</td></tr>
+            <tr><td>gettext</td></tr>
+            <tr><td>SPL</td></tr>
+            <tr><td>iconv</td></tr>
+            <tr><td>json</td></tr>
+            <tr><td>mbstring</td></tr>
+            <tr><td>session</td></tr>
+            <tr><td>standard</td></tr>
+            <tr><td>mysqlnd</td></tr>
+            <tr><td>PDO</td></tr>
+            <tr><td>pdo_mysql</td></tr>
+            <tr><td>pdo_sqlite</td></tr>
+            <tr><td>Phar</td></tr>
+            <tr><td>posix</td></tr>
+            <tr><td>Reflection</td></tr>
+            <tr><td>session</td></tr>
+            <tr><td>shmop</td></tr>
+            <tr><td>SimpleXML</td></tr>
+            <tr><td>soap</td></tr>
+            <tr><td>sockets</td></tr>
+            <tr><td>sodium</td></tr>
+            <tr><td>SPL</td></tr>
+            <tr><td>standard</td></tr>
+            <tr><td>sysvmsg</td></tr>
+            <tr><td>sysvsem</td></tr>
+            <tr><td>sysvshm</td></tr>
+            <tr><td>tokenizer</td></tr>
+            <tr><td>wddx</td></tr>
+            <tr><td>xml</td></tr>
+            <tr><td>xmlreader</td></tr>
+            <tr><td>xmlwriter</td></tr>
+            <tr><td>xsl</td></tr>
+            <tr><td>zip</td></tr>
+            <tr><td>mysqli</td></tr>
+            <tr><td>pdo_mysql</td></tr>
+            <tr><td>mysqlnd</td></tr>
+            <tr><td>xdebug</td></tr>
+            <tr><td>opcache</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Environment Variables</h2>
+        <table>
+            <tr><th>Variable</th><th>Value</th></tr>
+            <tr><td>APP_ENV</td><td>dev</td></tr>
+            <tr><td>APP_DEBUG</td><td>1</td></tr>
+            <tr><td>APP_SECRET</td><td>a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6</td></tr>
+            <tr><td>DATABASE_URL</td><td>mysql://symfony:symfony@127.0.0.1:3306/symfony?serverVersion=8.0</td></tr>
+            <tr><td>MAILER_URL</td><td>smtp://localhost:25</td></tr>
+            <tr><td>REDIS_URL</td><td>redis://localhost:6379</td></tr>
+            <tr><td>TRUSTED_PROXIES</td><td>127.0.0.1,10.0.0.0/8</td></tr>
+            <tr><td>TRUSTED_HOSTS</td><td>^localhost|example\.com$</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>PHP License</h2>
+        <p>This program is free software; you can redistribute it and/or modify it under the terms of the PHP License as published by the PHP Group and included in the distribution in the file: LICENSE</p>
+        <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+        <p>If you did not receive a copy of the PHP license, or have any questions about PHP licensing, please contact license@php.net.</p>
+    </div>
+
+    <hr>
+    <p style="text-align: center; color: #666; font-size: 0.9em;">
+        Generated by Symfony Profiler on Wed, 27 Mar 2024 14:22:10 +0000<br>
+        <a href="/app_dev.php/_profiler/search">Search Profiler Data</a> | 
+        <a href="/app_dev.php">Back to Application</a>
+    </p>
+</body>
+</html>

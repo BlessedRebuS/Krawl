@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OAuth Authorization Server Metadata</title>
+<style>
+  body {font-family: Arial, sans-serif; margin: 2em; line-height: 1.5;}
+  h1, h2 {color: #2c3e50;}
+  pre {background:#f8f8f8; padding:1em; border:1px solid #ddd; overflow:auto;}
+  form {margin-top:1.5em;}
+  label {display:block; margin-top:0.5em;}
+  input[type=text], input[type=url] {width:300px; padding:0.3em;}
+  button {margin-top:1em; padding:0.5em 1em;}
+</style>
+</head>
+<body>
+<h1>OAuth 2.0 Authorization Server</h1>
+<p>This server implements the OAuth 2.0 Authorization Framework.</p>
+<h2>Metadata</h2>
+<pre>
+{
+  "issuer": "https://auth.example.com/",
+  "authorization_endpoint": "https://auth.example.com/oauth/authorize",
+  "token_endpoint": "https://auth.example.com/oauth/token",
+  "jwks_uri": "https://auth.example.com/.well-known/jwks.json",
+  "response_types_supported": ["code", "token", "id_token"],
+  "subject_types_supported": ["public"],
+  "id_token_signing_alg_values_supported": ["RS256"]
+}
+</pre>
+<h2>Try it out</h2>
+<form action="/oauth/authorize" method="GET">
+  <label for="client_id">Client ID:</label>
+  <input type="text" id="client_id" name="client_id" required><br><br>
+  <label for="redirect_uri">Redirect URI:</label>
+  <input type="url" id="redirect_uri" name="redirect_uri" required><br><br>
+  <label for="scope">Scope:</label>
+  <input type="text" id="scope" name="scope" value="openid profile email"><br><br>
+  <button type="submit">Start Authorization</button>
+</form>
+<p>For more information, see <a href="https://oauth.net/2/">OAuth 2.0 Specification</a>.</p>
+</body>
+</html>

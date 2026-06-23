@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>web.config - Server Configuration</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        pre {background:#ecf0f1; padding:15px; border:1px solid #bdc3c7; overflow:auto;}
+        a {color:#2980b9; text-decoration:none;}
+        a:hover {text-decoration:underline;}
+    </style>
+</head>
+<body>
+    <h1>web.config</h1>
+    <p>Below is the content of the server configuration file. This file is for reference only.</p>
+    <pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;configuration&gt;
+  &lt;appSettings&gt;
+    &lt;add key="ValidateRequest" value="false" /&gt;
+    &lt;add key="EnableViewStateMac" value="false" /&gt;
+    &lt;add key="CustomErrorMessages" value="On" /&gt;
+    &lt;add key="ConnectionString" value="Server=SQL01;Database=AppDB;User Id=sa;Password=SuperSecret123;" /&gt;
+  &lt;/appSettings&gt;
+  &lt;connectionStrings&gt;
+    &lt;add name="DefaultConnection" connectionString="Data Source=DB-SERVER;Initial Catalog=UserData;Integrated Security=False;UID=webuser;Pwd=P@ssw0rd!;" providerName="System.Data.SqlClient" /&gt;
+  &lt;/connectionStrings&gt;
+  &lt;system.web&gt;
+    &lt;compilation debug="true" targetFramework="4.8" /&gt;
+    &lt;httpRuntime requestValidationMode="2.0" enableVersionHeader="false" /&gt;
+    &lt;customErrors mode="Off" /&gt;
+    &lt;pages validateRequest="false" enableEventValidation="false" /&gt;
+    &lt;authentication mode="Forms"&gt;
+      &lt;forms loginUrl="~/Account/Login" timeout="2880" /&gt;
+    &lt;/authentication&gt;
+    &lt;authorization&gt;
+      &lt;allow users="*" /&gt;
+    &lt;/authorization&gt;
+  &lt;/system.web&gt;
+  &lt;system.webServer&gt;
+    &lt;directoryBrowse enabled="true" /&gt;
+    &lt;staticContent&gt;
+      &lt;mimeMap fileExtension=".json" mimeType="application/json" /&gt;
+    &lt;/staticContent&gt;
+    &lt;httpErrors errorMode="Detailed" /&gt;
+  &lt;/system.webServer&gt;
+&lt;/configuration&gt;
+    </pre>
+    <hr>
+    <p><a href="/">Return to home</a></p>
+</body>
+</html>

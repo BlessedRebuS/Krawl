@@ -15,7 +15,7 @@ A Helm chart for deploying the Krawl honeypot application on Kubernetes.
 
 ```bash
 helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
-  --version 2.1.0 \
+  --version 2.2.0 \
   --namespace krawl-system \
   --create-namespace \
   -f values.yaml  # optional
@@ -62,7 +62,7 @@ This deploys PostgreSQL and Redis StatefulSets with Services in the same namespa
 
 Minimal `values-minimal.yaml` for scalable mode:
 
-> **Tip**: For production deployments, pin the image tag to a specific version (e.g., `tag: "2.1.0"`) instead of `latest` to ensure reproducible deployments.
+> **Tip**: For production deployments, pin the image tag to a specific version (e.g., `tag: "2.2.0"`) instead of `latest` to ensure reproducible deployments.
 
 ```yaml
 mode: scalable
@@ -179,7 +179,7 @@ The following table lists the main configuration parameters of the Krawl chart a
 | `mode` | Deployment mode (`standalone` or `scalable`) | `scalable` |
 | `replicaCount` | Number of pod replicas (>1 only in scalable mode) | `1` |
 | `image.repository` | Image repository | `ghcr.io/blessedrebus/krawl` |
-| `image.tag` | Image tag | `2.1.0` |
+| `image.tag` | Image tag | `2.2.0` |
 | `image.pullPolicy` | Image pull policy | `Always` |
 
 ### Service Configuration
@@ -197,6 +197,31 @@ The following table lists the main configuration parameters of the Krawl chart a
 | `ingress.enabled` | Enable ingress | `true` |
 | `ingress.className` | Ingress class name | `traefik` |
 | `ingress.hosts[0].host` | Ingress hostname | `krawl.example.com` |
+
+### External Traefik / Reverse Proxy Setup
+
+If you're using Traefik in a separate namespace (e.g., `cattle-system`) or running a reverse proxy like nginx in front of Traefik, you must configure both the Traefik service and deployment to preserve the real client IP. This ensures Krawl receives the actual attacker IP instead of the proxy's IP.
+
+**Apply these patches to your Traefik deployment** (replace `cattle-system` with your Traefik namespace and `<IP>` with your actual IP if needed):
+
+1. **Patch the Traefik Service** to use local traffic policy:
+
+```bash
+kubectl patch svc traefik -n cattle-system -p '{"spec":{"externalTrafficPolicy":"Local"}}'
+```
+
+2. **Patch the Traefik Deployment** to add trusted IPs to the entrypoints:
+
+```bash
+kubectl patch deployment traefik -n cattle-system --type=json -p='[
+  {"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--entrypoints.web.forwardedHeaders.trustedIPs=<IP>"},
+  {"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--entrypoints.websecure.forwardedHeaders.trustedIPs=<IP>"}
+]'
+```
+
+> **Note**: These patches must be reapplied after any Traefik upgrade. Consider adding them to your cluster initialization automation or Traefik Helm values if using a Traefik Helm chart.
+
+The Krawl service already includes `externalTrafficPolicy: Local` by default to preserve source IPs at the service level.
 
 ### Server Configuration
 
@@ -361,7 +386,7 @@ kubectl get secret krawl-server -n krawl-system \
 ### Scalable with bundled PostgreSQL and Redis (default)
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.1.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.2.0 \
   --set replicaCount=3 \
   --set postgres.password=your-password \
   --set redis.password=your-redis-password \
@@ -371,7 +396,7 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.1.0 \
 ### Scalable with external PostgreSQL and Redis
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.1.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.2.0 \
   --set replicaCount=3 \
   --set postgres.enabled=false \
   --set postgres.host=your-postgres-host \
@@ -385,7 +410,7 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.1.0 \
 ### Standalone with custom settings
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.1.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.2.0 \
   --set mode=standalone \
   --set postgres.enabled=false \
   --set redis.enabled=false \
@@ -407,7 +432,7 @@ helm upgrade krawl ./helm \
 ## Upgrading
 
 ```bash
-helm upgrade krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.1.0 -f values.yaml
+helm upgrade krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.2.0 -f values.yaml
 ```
 
 ## Uninstalling

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiveWire WebSocket Endpoint</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .status { background: #ecf0f1; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .endpoint { background: #e8f4fd; padding: 12px; border-left: 4px solid #3498db; margin: 15px 0; }
+        code { background: #f8f9fa; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; }
+        .warning { color: #e74c3c; font-weight: bold; }
+        .info { color: #27ae60; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>LiveWire WebSocket Service</h1>
+        <div class="status">
+            <p><span class="info">●</span> Service Status: <strong>Online</strong></p>
+            <p><span class="info">●</span> Protocol: WebSocket (WS/WSS)</p>
+            <p><span class="info">●</span> Server: Laravel LiveWire v2.12.0</p>
+            <p><span class="info">●</span> PHP Version: 8.1.2</p>
+        </div>
+        
+        <h2>Available Endpoints</h2>
+        <div class="endpoint">
+            <strong>Primary WS Endpoint:</strong><br>
+            <code>ws://your-domain.com/livewire/ws</code><br>
+            <small>Used for real-time component updates and DOM diffing</small>
+        </div>
+        
+        <div class="endpoint">
+            <strong>Secure WSS Endpoint:</strong><br>
+            <code>wss://your-domain.com/livewire/ws</code><br>
+            <small>Encrypted WebSocket connection (requires valid SSL certificate)</small>
+        </div>
+        
+        <h2>Connection Parameters</h2>
+        <div class="endpoint">
+            <strong>Headers Required:</strong><br>
+            <code>Upgrade: websocket</code><br>
+            <code>Connection: Upgrade</code><br>
+            <code>Sec-WebSocket-Key: [base64-encoded-random]</code><br>
+            <code>Sec-WebSocket-Version: 13</code><br>
+            <code>Cookie: laravel_session=[session-id]; XSRF-TOKEN=[token]</code>
+        </div>
+        
+        <div class="endpoint">
+            <strong>Message Format (JSON):</strong><br>
+            <pre>
+{
+  "fingerprint": {
+    "id": "component-hash",
+    "name": "ComponentName",
+    "method": "methodName",
+    "params": ["param1", "param2"]
+  },
+  "updates": [
+    {
+      "type": "dom",
+      "selector": "#element-id",
+      "html": "<div>Updated content</div>"
+    }
+  ],
+  "errors": [],
+  "url": "/current-route"
+}
+            </pre>
+        </div>
+        
+        <h2>Security Notes</h2>
+        <p class="warning">⚠️ This endpoint requires authentication. Unauthorized connection attempts are logged and may trigger IP blocking.</p>
+        <p><span class="info">●</span> All WebSocket connections are rate-limited to 100 connections per minute per IP</p>
+        <p><span class="info">●</span> Message size is limited to 64KB to prevent DoS attacks</p>
+        <p><span class="info">●</span> Invalid JSON payloads are immediately rejected</p>
+        
+        <h2>Sample Connection (JavaScript)</h2>
+        <div class="endpoint">
+            <pre>
+// Initialize LiveWire WebSocket connection
+const socket = new WebSocket('ws://your-domain.com/livewire/ws');
+
+socket.onopen = function() {
+    console.log('LiveWire WS connected');
+    // Send authentication token
+    socket.send(JSON.stringify({
+        event: 'auth',
+        token: document.querySelector('meta[name="csrf-token"]').content
+    }));
+};
+
+socket.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    // Handle LiveWire updates
+    LiveWire.receive(data);
+};
+
+socket.onclose = function() {
+    console.log('LiveWire WS disconnected');
+    // Attempt reconnection after 3 seconds
+    setTimeout(() => {
+        const socket = new WebSocket('ws://your-domain.com/livewire/ws');
+    }, 3000);
+};
+            </pre>
+        </div>
+        
+        <p><em>Last updated: <?= date('Y-m-d H:i:s') ?></em></p>
+        <p><small>© 2024 Laravel LiveWire. All rights reserved.</small></p>
+    </div>
+</body>
+</html>

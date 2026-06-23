@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>src.sql - Source Code</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; margin:2em;}
+        pre {background:#eee; padding:1em; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>src.sql</h1>
+    <pre>
+-- Database schema for example application
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    body TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Sample data
+INSERT INTO users (username, password, email) VALUES ('admin', '5f4dcc3b5aa765d61d8327deb882cf99', 'admin@example.com');
+INSERT INTO users (username, password, email) VALUES ('alice', 'e10adc3949ba59abbe56e057f20f883e', 'alice@example.com');
+INSERT INTO posts (user_id, title, body) VALUES (1, 'Welcome', 'This is the first post.');
+    </pre>
+</body>
+</html>

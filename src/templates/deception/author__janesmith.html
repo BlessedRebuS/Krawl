@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Jane Smith – Author Profile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f9f9f9; color:#333;}
+        header {background:#2c3e50; color:#fff; padding:20px; text-align:center;}
+        nav {background:#ecf0f1; padding:10px; text-align:center;}
+        nav a {margin:0 15px; text-decoration:none; color:#2c3e50; font-weight:bold;}
+        .container {max-width:960px; margin:20px auto; padding:0 20px;}
+        .author-card {background:#fff; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); padding:20px; margin-bottom:30px;}
+        .author-card img {float:left; margin-right:20px; width:150px; height:150px; border-radius:50%; object-fit:cover;}
+        .author-card h2 {margin-top:0;}
+        .post-list {list-style:none; padding:0;}
+        .post-list li {background:#fff; margin:10px 0; padding:15px; border-left:4px solid #3498db;}
+        .post-list a {text-decoration:none; color:#2c3e50; font-weight:bold;}
+        .post-list a:hover {text-decoration:underline;}
+        footer {text-align:center; padding:20px; font-size:0.9em; color:#7f8c8d; background:#ecf0f1; margin-top:40px;}
+        .comment-form {background:#fff; padding:20px; border-radius:8px; margin-top:30px;}
+        .comment-form input, .comment-form textarea {width:100%; padding:10px; margin:8px 0; border:1px solid #ccc; border-radius:4px;}
+        .comment-form button {background:#2c3e50; color:#fff; border:none; padding:10px 20px; cursor:pointer; border-radius:4px;}
+        .comment-form button:hover {background:#1a252f;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Jane Smith – Author Profile</h1>
+        <p>Freelance Writer &amp; Technology Enthusiast</p>
+    </header>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/blog">Blog</a>
+        <a href="/about">About</a>
+        <a href="/contact">Contact</a>
+    </nav>
+    <div class="container">
+        <section class="author-card">
+            <img src="https://example.com/images/janesmith.jpg" alt="Jane Smith">
+            <div>
+                <h2>Jane Smith</h2>
+                <p>Jane has been writing about cybersecurity, AI, and software development for over a decade. She contributes to several online magazines and speaks at conferences worldwide.</p>
+                <p>When she’s not typing away, Jane enjoys hiking, photography, and experimenting with new gadgets.</p>
+            </div>
+            <div style="clear:both;"></div>
+        </section>
+
+        <section>
+            <h2>Latest Posts</h2>
+            <ul class="post-list">
+                <li><a href="/post/understanding-zero-trust">Understanding Zero Trust Architecture</a> – <em>March 12, 2025</em></li>
+                <li><a href="/post/ai-ethics-in-2025">AI Ethics in 2025: Challenges and Opportunities</a> – <em>February 28, 2025</em></li>
+                <li><a href="/post/securing-containers-best-practices">Securing Containers: Best Practices for Docker and Kubernetes</a> – <em>February 10, 2025</em></li>
+                <li><a href="/post/the-future-of-quantum-computing">The Future of Quantum Computing</a> – <em>January 20, 2025</em></li>
+                <li><a href="/post/how-to-conduct-a-penetration-test">How to Conduct a Penetration Test: A Step‑by‑Step Guide</a> – <em>January 5, 2025</em></li>
+            </ul>
+        </section>
+
+        <section class="comment-form">
+            <h2>Leave a Comment</h2>
+            <form action="/author/janesmith/comment" method="POST">
+                <input type="text" name="name" placeholder="Your Name" required>
+                <input type="email" name="email" placeholder="Your Email" required>
+                <textarea name="comment" rows="4" placeholder="Your comment..." required></textarea>
+                <button type="submit">Post Comment</button>
+            </form>
+        </section>
+    </div>
+    <footer>
+        © 2025 Jane Smith. All rights reserved.
+    </footer>
+</body>
+</html>

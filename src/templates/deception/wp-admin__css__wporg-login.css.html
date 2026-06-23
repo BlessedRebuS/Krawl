@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordPress Login Stylesheet</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f1f1f1;
+            margin: 0;
+            padding: 20px;
+        }
+        .login {
+            background: white;
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 40px;
+            border-radius: 6px;
+            box-shadow: 0 0 20px rgba(0,0,0,.1);
+        }
+        .login h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .login label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .login input[type="text"],
+        .login input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .login button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007cba;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .login button:hover {
+            background-color: #006799;
+        }
+        .login .notice {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fffbcc;
+            border-left: 4px solid #ffeb3b;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="login">
+        <h1>WordPress</h1>
+        <form>
+            <label for="user_login">Username or Email Address</label>
+            <input type="text" id="user_login" name="log" value="" size="20" placeholder="Username or Email">
+            
+            <label for="user_pass">Password</label>
+            <input type="password" id="user_pass" name="pwd" value="" size="20" placeholder="Password">
+            
+            <button type="submit">Log In</button>
+            
+            <div class="notice">
+                <strong>Notice:</strong> For security reasons, please ensure you are logging in from a trusted network. Failed login attempts are monitored and may result in temporary account lockout.
+            </div>
+        </form>
+        <p style="text-align: center; margin-top: 20px; font-size: 14px; color: #666;">
+            &copy; 2024 WordPress.org | <a href="#" style="color: #007cba; text-decoration: none;">Lost your password?</a>
+        </p>
+    </div>
+</body>
+</html>

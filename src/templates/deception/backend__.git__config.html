@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Git Config - backend/.git/config</title>
+    <style>
+        body { font-family: monospace; white-space: pre-wrap; margin: 2rem; }
+        pre { background: #f8f8f8; padding: 1rem; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+[core]
+    repositoryformatversion = 0
+    filemode = true
+    bare = false
+    logallrefupdates = true
+[remote "origin"]
+    url = https://github.com/example/backend.git
+    fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+    remote = origin
+    merge = refs/heads/main
+</body>
+</html>

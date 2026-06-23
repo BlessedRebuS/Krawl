@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Livewire Component</title>
+    <script>
+        // Fake Livewire JavaScript - for honeypot distraction
+        window.Livewire = {
+            load: function() {
+                console.log('[Livewire] Fake initialization triggered - monitoring...');
+                // Simulate vulnerable endpoint probing
+                setTimeout(function() {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/livewire/message', true);
+                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    xhr.send('fingerprint=livewire_v2.8.0&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c');
+                }, 1000);
+            },
+            on: function(event, callback) {
+                // Fake event listener - logs for attacker reconnaissance
+                console.log('[Livewire] Event listener registered:', event);
+                return function() {};
+            }
+        };
+
+        // Simulate common Livewire vulnerabilities for baiting
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fake XSS vector - harmless but looks exploitable
+            var fakeInput = document.createElement('input');
+            fakeInput.type = 'text';
+            fakeInput.name = 'search';
+            fakeInput.placeholder = 'Search...';
+            fakeInput.setAttribute('wire:model', 'searchTerm');
+            fakeInput.setAttribute('wire:keyup.enter', 'search');
+            document.body.appendChild(fakeInput);
+
+            // Fake SQLi-like parameter in URL (for logging)
+            if (window.location.href.indexOf('id=') > -1) {
+                console.log('[Livewire] Potential SQLi parameter detected in URL:', window.location.href);
+            }
+        });
+    </script>
+</head>
+<body>
+    <div>
+        <h1>Livewire Component Loader</h1>
+        <p>This page loads Livewire frontend assets for dynamic component rendering.</p>
+        <div>
+            <label for="user-input">Enter your query:</label>
+            <input type="text" id="user-input" wire:model.live="query" placeholder="Type to search...">
+            <button wire:click="submit">Submit</button>
+        </div>
+        <div>
+            <p wire:if="results.length > 0">Results:</p>
+            <ul wire:if="results.length > 0">
+                <template wire:if="results.length > 0">
+                    <li wire:for="result in results">{{ result.name }}</li>
+                </template>
+            </ul>
+        </div>
+        <footer>
+            <p>&copy; 2024 Livewire Framework. All rights reserved.</p>
+            <p>Version: 2.8.0 (fake build for honeypot)</p>
+        </footer>
+    </div>
+</body>
+</html>

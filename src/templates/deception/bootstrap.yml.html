@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bootstrap.yml - Configuration File</title>
+    <style>
+        body { font-family: monospace; background-color: #f8f8f8; color: #333; padding: 20px; line-height: 1.6; }
+        pre { background-color: #f0f0f0; padding: 15px; border-radius: 5px; overflow-x: auto; border: 1px solid #ddd; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .footer { margin-top: 30px; font-size: 0.9em; color: #7f8c8d; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>bootstrap.yml</h1>
+        <p>This file contains application configuration settings for the Spring Boot microservice.</p>
+        <pre>
+spring:
+  application:
+    name: user-service
+  profiles:
+    active: dev
+  cloud:
+    config:
+      uri: http://config-server.internal:8888
+      username: config_user
+      password: ${CONFIG_PASSWORD:-supersecret123}
+  datasource:
+    url: jdbc:postgresql://db.internal:5432/usersdb
+    username: db_admin
+    password: ${DB_PASSWORD:-P@ssw0rd!2024}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  redis:
+    host: redis.internal
+    port: 6379
+    password: ${REDIS_PASSWORD:-redispass}
+
+logging:
+  level:
+    ROOT: INFO
+    com.example.userservice: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env,loggers
+  endpoint:
+    health:
+      show-details: always
+        </pre>
+        <p><em>Last modified: 2024-05-15 14:22:03</em></p>
+    </div>
+    <div class="footer">
+        Internal Configuration - Do Not Distribute
+    </div>
+</body>
+</html>

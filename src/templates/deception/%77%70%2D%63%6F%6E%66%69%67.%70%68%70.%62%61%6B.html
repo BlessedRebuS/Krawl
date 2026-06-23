@@ -1,0 +1,47 @@
+<html>
+<head>
+    <title>wp-config.php.bak</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; color:#222; padding:20px;}
+        pre {background:#fff; border:1px solid #ddd; padding:15px; overflow:auto;}
+    </style>
+</head>
+<body>
+<pre>
+<?php
+/**
+ * The base configuration for WordPress
+ */
+define('DB_NAME', 'wordpress_db');
+define('DB_USER', 'wp_user');
+define('DB_PASSWORD', 'SuperSecretPassword123!');
+define('DB_HOST', 'localhost');
+define('DB_CHARSET', 'utf8');
+define('DB_COLLATE', '');
+
+/** Authentication Unique Keys and Salts. */
+define('AUTH_KEY',         'put your unique phrase here');
+define('SECURE_AUTH_KEY',  'put your unique phrase here');
+define('LOGGED_IN_KEY',    'put your unique phrase here');
+define('NONCE_KEY',        'put your unique phrase here');
+define('AUTH_SALT',        'put your unique phrase here');
+define('SECURE_AUTH_SALT', 'put your unique phrase here');
+define('LOGGED_IN_SALT',   'put your unique phrase here');
+define('NONCE_SALT',       'put your unique phrase here');
+
+/**
+ * WordPress Database Table prefix.
+ */
+$table_prefix = 'wp_';
+
+/**
+ * For developers: WordPress debugging mode.
+ */
+define('WP_DEBUG', false);
+
+/* That's all, stop editing! Happy publishing. */
+require_once(ABSPATH . 'wp-settings.php');
+?>
+</pre>
+</body>
+</html>

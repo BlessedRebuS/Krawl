@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>XML-RPC Service</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; line-height: 1.6;}
+        h1, h2 {color: #2c3e50;}
+        form {background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-radius: 5px;}
+        label {display: block; margin-top: 10px;}
+        input[type="text"], textarea {width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;}
+        input[type="submit"] {margin-top: 15px; padding: 10px 20px; background: #3498db; color: white; border: none; cursor: pointer;}
+        input[type="submit"]:hover {background: #2980b9;}
+        pre {background: #ecf0f1; padding: 15px; overflow-x: auto; border-radius: 4px;}
+    </style>
+</head>
+<body>
+    <h1>XML-RPC Service</h1>
+    <p>This endpoint accepts XML-RPC calls.</p>
+    <form method="post" action="/xmlrpc.php">
+        <label for="method">Method:</label>
+        <input type="text" id="method" name="method" value="demo.getUsers"><br>
+        <label for="params">Parameters (JSON array):</label>
+        <textarea id="params" name="params" rows="4">[{"type":"string","value":"test"}]</textarea><br>
+        <input type="submit" value="Send">
+    </form>
+    <hr>
+    <h2>Sample Response</h2>
+    <pre>&lt;?xml version="1.0"?&gt;
+&lt;methodResponse&gt;
+&lt;params&gt;
+&lt;param&gt;
+&lt;value&gt;&lt;array&gt;&lt;data&gt;
+&lt;value&gt;&lt;string&gt;admin&lt;/string&gt;&lt;/value&gt;
+&lt;value&gt;&lt;string&gt;editor&lt;/string&gt;&lt;/value&gt;
+&lt;/data&gt;&lt;/array&gt;&lt;/value&gt;
+&lt;/param&gt;
+&lt;/params&gt;
+&lt;/methodResponse&gt;</pre>
+</body>
+</html>

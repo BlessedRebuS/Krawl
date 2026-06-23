@@ -24,22 +24,22 @@ Run this BEFORE switching your deployment to scalable mode.
 """
 
 import argparse
-import sys
 import os
+import sys
 
 # Add src/ to path so we can import models
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from sqlalchemy import create_engine, text, inspect, event, Integer, Float, Boolean
+from sqlalchemy import Boolean, Float, Integer, create_engine, event, inspect, text
 from sqlalchemy.orm import sessionmaker
 
 from models import (
-    Base,
     AccessLog,
-    CredentialAttempt,
     AttackDetection,
-    IpStats,
+    Base,
     CategoryHistory,
+    CredentialAttempt,
+    IpStats,
     TrackedIp,
 )
 
@@ -145,7 +145,7 @@ def migrate_table(
         except Exception as e:
             dst_session.rollback()
             print(f"    Error at offset {offset}: {e}")
-            print(f"    Retrying row-by-row...")
+            print("    Retrying row-by-row...")
             # Fall back to row-by-row for this batch
             for row_dict in batch_data:
                 try:

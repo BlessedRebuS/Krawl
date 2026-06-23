@@ -206,10 +206,17 @@ tr:hover {
 .rank {
     color: #8b949e;
     font-weight: bold;
+    padding-right: 4px;
+}
+th:first-child {
+    padding-right: 4px;
 }
 .alert-section {
     background: #161b22;
     border-left: 6px solid rgba(248, 81, 73, 0.4);
+}
+#access-history-section {
+    border-left: 6px solid #58a6ff;
 }
 th.sortable {
     cursor: pointer;
@@ -224,6 +231,8 @@ th.sortable::after {
     content: '\21C5';
     position: absolute;
     right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
     opacity: 0.5;
     font-size: 12px;
 }
@@ -1362,12 +1371,12 @@ tbody {
     transition: color 0.2s, background 0.2s;
 }
 .ban-icon-btn svg {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     fill: currentColor;
 }
 .ban-icon-btn .material-symbols-outlined {
-    font-size: 26px;
+    font-size: 24px;
 }
 .ban-icon-unban {
     color: #3fb950;
@@ -1406,6 +1415,13 @@ tbody {
 }
 .ban-icon-btn:hover .ban-icon-tooltip {
     opacity: 1;
+}
+
+/* Table action button group (keep table cell layout intact) */
+.table-action-btns {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 /* IP Tracking buttons */
@@ -2019,12 +2035,35 @@ tbody {
 .view-btn:hover .view-btn-tooltip {
     opacity: 1;
 }
+#access-history-section table tr:not(:last-child) td {
+    border-bottom: 1px solid #30363d;
+}
+#access-history-section .access-row-normal {
+    border-left: none;
+    background: #161b22;
+}
+#access-history-section .access-row-normal .path-truncated {
+    color: #58a6ff !important;
+}
+#access-history-section .access-row-suspicious {
+    background: #161b22;
+}
+.access-row-normal {
+    border-left: 3px solid #58a6ff;
+    background: rgba(88, 166, 255, 0.06);
+}
+.access-row-normal:hover {
+    background: rgba(88, 166, 255, 0.12);
+}
 .access-row-suspicious {
-    border-left: 3px solid #f85149;
+    border-left: none;
     background: rgba(248, 81, 73, 0.06);
 }
 .access-row-suspicious:hover {
     background: rgba(248, 81, 73, 0.12);
+}
+.access-row-suspicious .path-truncated {
+    color: #f85149;
 }
 .inspect-btn {
     display: inline-flex;
@@ -2178,6 +2217,39 @@ tbody {
 .search-results-summary strong {
     color: #58a6ff;
 }
+/* Clickable summary that expands/collapses the results */
+.search-summary-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    color: inherit;
+    font: inherit;
+}
+.search-summary-caret {
+    flex-shrink: 0;
+    color: #8b949e;
+    transition: transform 0.2s;
+}
+.search-results.search-collapsed .search-summary-caret {
+    transform: rotate(-90deg);
+}
+/* Collapsed state: keep only the summary header visible */
+.search-results.search-collapsed .search-results-header {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+.search-results.search-collapsed .search-section,
+.search-results.search-collapsed .search-pagination,
+.search-results.search-collapsed .search-no-results {
+    display: none;
+}
 .search-close-btn {
     background: none;
     border: none;
@@ -2326,6 +2398,18 @@ tbody {
     background: rgba(88, 166, 255, 0.1);
     color: #58a6ff;
     border-color: #58a6ff;
+}
+
+.deception-date-filter {
+    height: 30px;
+    padding: 5px 12px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    border-radius: 6px;
+    font-size: 0.78em;
+    cursor: pointer;
+    box-sizing: border-box;
 }
 
 /* Upload dropzone */

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shell Access</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .command-output {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        input[type="text"] {
+            width: 70%;
+            padding: 8px;
+            font-size: 16px;
+        }
+        button {
+            padding: 8px 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Remote Shell Access</h1>
+        <p>Execute commands on the server:</p>
+        <form method="GET">
+            <input type="text" name="cmd" placeholder="Enter command (e.g., ls -la)" value="">
+            <button type="submit">Execute</button>
+        </form>
+        
+        <?php
+        if(isset($_GET['cmd'])) {
+            $cmd = $_GET['cmd'];
+            // Simulate command execution (fake output)
+            echo '<div class="command-output">';
+            if(strpos($cmd, 'ls') !== false) {
+                echo "total 24\n";
+                echo "drwxr-xr-x 2 www-data www-data 4096 May 10 08:30 .\n";
+                echo "drwxr-xr-x 3 root     root     4096 May 10 08:20 ..\n";
+                echo "-rw-r--r-- 1 www-data www-data   45 May 10 08:30 index.php\n";
+                echo "-rw-r--r-- 1 www-data www-data  120 May 10 08:30 config.php\n";
+                echo "-rw-r--r-- 1 www-data www-data 2048 May 10 08:30 shell.php\n";
+                echo "-rw-r--r-- 1 www-data www-data   0 May 10 08:30 .htaccess\n";
+            } elseif(strpos($cmd, 'whoami') !== false) {
+                echo "www-data";
+            } elseif(strpos($cmd, 'id') !== false) {
+                echo "uid=33(www-data) gid=33(www-data) groups=33(www-data)";
+            } elseif(strpos($cmd, 'pwd') !== false) {
+                echo "/var/www/html";
+            } elseif(strpos($cmd, 'cat /etc/passwd') !== false) {
+                echo "root:x:0:0:root:/root:/bin/bash\n";
+                echo "daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\n";
+                echo "bin:x:2:2:bin:/bin:/usr/sbin/nologin\n";
+                echo "sys:x:3:3:sys:/dev:/usr/sbin/nologin\n";
+                echo "sync:x:4:65534:sync:/bin:/bin/sync\n";
+                echo "games:x:5:60:games:/usr/games:/usr/sbin/nologin\n";
+                echo "man:x:6:12:man:/var/cache/man:/usr/sbin/nologin\n";
+                echo "lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin\n";
+                echo "mail:x:8:8:mail:/var/mail:/usr/sbin/nologin\n";
+                echo "news:x:9:9:news:/var/spool/news:/usr/sbin/nologin\n";
+                echo "uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin\n";
+                echo "proxy:x:13:13:proxy:/bin:/usr/sbin/nologin\n";
+                echo "www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\n";
+                echo "backup:x:34:34:backup:/var/backups:/usr/sbin/nologin\n";
+                echo "list:x:38:38:Mailing List Manager:/var:/usr/sbin/nologin\n";
+                echo "irc:x:39:39:irc:/var/run/ircd:/usr/sbin/nologin\n";
+                echo "gnats:x:41:41:gnats:/var/lib/gnats:/usr/sbin/nologin\n";
+                echo "nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin\n";
+            } else {
+                echo "Command not recognized or disabled for security reasons.";
+            }
+            echo '</div>';
+        }
+        ?>
+    </div>
+</body>
+</html>

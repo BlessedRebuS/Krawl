@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>.git/config - Example Project</title>
+    <style>
+        body {font-family: monospace; margin: 2em; background:#fafafa; color:#222;}
+        pre {background:#eee; padding:1em; overflow:auto;}
+        a {color:#0066cc;}
+    </style>
+</head>
+<body>
+    <h1>.git/config</h1>
+    <p>This is the Git configuration file for the frontend repository.</p>
+    <pre>
+[core]
+    repositoryformatversion = 0
+    filemode = true
+    bare = false
+    logallrefupdates = true
+    ignorecase = true
+    precomposeunicode = false
+[remote "origin"]
+    url = https://git.example.com/example/frontend.git
+    fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+    remote = origin
+    merge = refs/heads/main
+[remote "upstream"]
+    url = https://github.com/example/frontend.git
+    fetch = +refs/heads/*:refs/remotes/upstream/*
+    </pre>
+    <p><a href="/frontend/">Back to frontend index</a></p>
+</body>
+</html>

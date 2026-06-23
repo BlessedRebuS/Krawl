@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PHP Version 7.4.33</title>
+    <style>
+        body {font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:20px;}
+        h1 {color:#2E8B57;}
+        .section {background:#fff; margin:20px 0; padding:15px; border-radius:5px; box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+        table {width:100%; border-collapse:collapse; margin-top:10px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#f0f0f0;}
+        tr:nth-child(even) {background:#f9f9f9;}
+    </style>
+</head>
+<body>
+    <h1>PHP Version 7.4.33</h1>
+    <div class="section">
+        <h2>PHP Core</h2>
+        <table>
+            <tr><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+            <tr><td>allow_url_fopen</td><td>On</td><td>On</td></tr>
+            <tr><td>allow_url_include</td><td>Off</td><td>Off</td></tr>
+            <tr><td>display_errors</td><td>Off</td><td>Off</td></tr>
+            <tr><td>log_errors</td><td>On</td><td>On</td></tr>
+            <tr><td>max_execution_time</td><td>30</td><td>30</td></tr>
+            <tr><td>memory_limit</td><td>128M</td><td>128M</td></tr>
+            <tr><td>post_max_size</td><td>8M</td><td>8M</td></tr>
+            <tr><td>upload_max_filesize</td><td>2M</td><td>2M</td></tr>
+            <tr><td>date.timezone</td><td>UTC</td><td>UTC</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Apache Environment</h2>
+        <table>
+            <tr><th>Variable</th><th>Value</th></tr>
+            <tr><td>SERVER_SOFTWARE</td><td>Apache/2.4.41 (Ubuntu)</td></tr>
+            <tr><td>SERVER_NAME</td><td>example.com</td></tr>
+            <tr><td>SERVER_ADDR</td><td>192.168.1.10</td></tr>
+            <tr><td>SERVER_PORT</td><td>80</td></tr>
+            <tr><td>REMOTE_ADDR</td><td>10.0.0.5</td></tr>
+            <tr><td>DOCUMENT_ROOT</td><td>/var/www/html</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Loaded Modules</h2>
+        <table>
+            <tr><th>Module</th></tr>
+            <tr><td>core</td></tr>
+            <tr><td>mod_so</td></tr>
+            <tr><td>mod_watchdog</td></tr>
+            <tr><td>http_module</td></tr>
+            <tr><td>log_config_module</td></tr>
+            <tr><td>env_module</td></tr>
+            <tr><td>setenvif_module

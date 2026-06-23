@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Panel - Dashboard</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;padding:20px;background:#f4f4f4;}
+.container{max-width:800px;margin:auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+h1{color:#333;}
+form{margin-top:20px;}
+label{display:block;margin-bottom:5px;}
+input[type="text"],input[type="password"]{width:100%;padding:8px;margin-top:5px;border:1px solid #ccc;border-radius:4px;}
+input[type="submit"]{background:#0066cc;color:#fff;border:none;padding:10px 15px;border-radius:4px;cursor:pointer;}
+input[type="submit"]:hover{background:#004c99;}
+ul{margin-top:20px;padding-left:20px;}
+footer{margin-top:30px;font-size:0.9em;color:#777;text-align:center;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Welcome to Admin Dashboard</h1>
+<p>Last login: 2025-10-30 09:12:45</p>
+<form action="/process" method="post">
+<label>Username: <input type="text" name="user" value=""></label>
+<label>Password: <input type="password" name="pass" value=""></label>
+<input type="submit" value="Login">
+</form>
+<hr>
+<h2>Recent Activity</h2>
+<ul>
+<li>User admin attempted login from 192.168.1.10</li>
+<li>Query executed: SELECT * FROM users WHERE id = 1' OR '1'='1</li>
+<li>File upload: /tmp/shell.php (blocked)</li>
+</ul>
+<footer>© 2025 Company Internal</footer>
+</div>
+</body>
+</html>

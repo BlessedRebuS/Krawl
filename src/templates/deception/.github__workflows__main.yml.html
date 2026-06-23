@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>main.yml - GitHub Actions Workflow</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; color:#333; margin:0; padding:20px;}
+        h1 {color:#2c3e50;}
+        pre {background:#fff; padding:15px; border:1px solid #ddd; overflow:auto;}
+        p {line-height:1.5;}
+    </style>
+</head>
+<body>
+    <h1>GitHub Actions Workflow: main.yml</h1>
+    <p>This is the workflow file for the CI/CD pipeline.</p>
+    <pre>
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - run: npm ci
+      - run: npm test
+    </pre>
+    <p>Feel free to modify this file to suit your project's needs.</p>
+</body>
+</html>

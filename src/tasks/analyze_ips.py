@@ -1,12 +1,14 @@
-from collections import Counter
-from database import get_database
-from pathlib import Path
-from datetime import datetime, timedelta
 import re
 import urllib.parse
-from wordlists import get_wordlists
+from collections import Counter
+from datetime import datetime, timedelta
+from pathlib import Path
+
+import metrics
 from config import get_config
+from database import get_database
 from logger import get_app_logger
+from wordlists import get_wordlists
 
 # ----------------------
 # TASK CONFIG
@@ -24,6 +26,9 @@ def main():
     config = get_config()
     db_manager = get_database()
     app_logger = get_app_logger()
+
+    metrics.refresh_ai(db_manager)
+    metrics.refresh_system(db_manager)
 
     http_risky_methods_threshold = config.http_risky_methods_threshold
     violated_robots_threshold = config.violated_robots_threshold
@@ -99,7 +104,7 @@ def main():
     # Parse robots.txt once before the loop (it never changes during a run)
     robots_disallows = []
     robots_path = Path(__file__).parent.parent / "templates" / "html" / "robots.txt"
-    with open(robots_path, "r") as f:
+    with open(robots_path) as f:
         for line in f:
             line = line.strip()
             if not line:
@@ -110,7 +115,7 @@ def main():
                 robots_disallows.append(parts[1].strip())
 
     # Get IPs flagged for reevaluation (set when a suspicious request arrives)
-    ips_to_analyze = set(db_manager.get_ips_needing_reevaluation())
+    ips_to_analyze = set(db_manager.ip_stats.get_ips_needing_reevaluation())
 
     if not ips_to_analyze:
         app_logger.debug(
@@ -120,7 +125,7 @@ def main():
 
     for ip in ips_to_analyze:
         # Get full history for this IP to perform accurate analysis
-        ip_accesses = db_manager.get_access_logs(
+        ip_accesses = db_manager.access_logs.get_list(
             limit=10000, ip_filter=ip, since_minutes=1440 * 30
         )  # look back up to 30 days of history for better accuracy
         total_accesses_count = len(ip_accesses)
@@ -382,9 +387,11 @@ def main():
             "bad_crawler": bad_crawler_score,
             "regular_user": regular_user_score,
         }
+
         category = max(category_scores, key=category_scores.get)
+
         last_analysis = datetime.now()
-        db_manager.update_ip_stats_analysis(
+        db_manager.ip_stats.update_ip_stats_analysis(
             ip, analyzed_metrics, category, category_scores, last_analysis
         )
     return

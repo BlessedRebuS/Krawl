@@ -226,7 +226,7 @@
 {% endif %}
 
 {# Access History table #}
-<div class="table-container alert-section" style="margin-top: 20px;">
+<div class="table-container alert-section" id="access-history-section" style="margin-top: 20px;">
     <h2>Access History</h2>
     <div class="htmx-container"
          hx-get="{{ dashboard_path }}/htmx/access-logs?page=1&ip_filter={{ ip_address }}"

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manifest</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 2rem;}
+        pre {background: #f4f4f4; padding: 1rem; border: 1px solid #ccc;}
+    </style>
+</head>
+<body>
+    <h1>Web App Manifest</h1>
+    <p>Below is the manifest file for the application.</p>
+    <pre>
+{
+  "name": "Example App",
+  "short_name": "ExApp",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "description": "A sample application manifest.",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+    </pre>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<html><body>/**
+ * Nuxt application bundle
+ * (Generated for demonstration)
+ */
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory((global.app = {})));
+})(this, (function (exports) {
+  'use strict';
+
+  var config = {
+    apiBase: 'https://api.example.com',
+    token: 'fake_token_12345',
+    debug: true
+  };
+
+  function log(msg) {
+    if (config.debug) {
+      console.log('[Nuxt] ' + msg);
+    }
+  }
+
+  // Simulated vulnerability: direct use of location.hash in innerHTML
+  function renderHash() {
+    var hash = location.hash.substring(1);
+    // fake dangerous code
+    document.getElementById('output').innerHTML = hash; // XSS sink
+  }
+
+  // Fake API call with potential SQLi mimicry
+  function fetchUser(id) {
+    return fetch(config.apiBase + '/user?id=' + id)
+      .then(r => r.json())
+      .catch(e => { log('Error fetching user: ' + e); });
+  }
+
+  // Expose some functions globally for debugging (bad practice)
+  window.__NUXT_DEBUG__ = {
+    config: config,
+    log: log,
+    renderHash: renderHash,
+    fetchUser: fetchUser
+  };
+
+  exports.renderHash = renderHash;
+  exports.fetchUser = fetchUser;
+  Object.defineProperty(exports, '__esModule', { value: true });
+  return exports;
+}));</body></html>

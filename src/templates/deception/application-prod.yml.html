@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>application-prod.yml</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; margin:2em;}
+        pre {background:#eee; padding:1em; border:1px solid #ccc; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>application-prod.yml</h1>
+    <pre>
+# Application Production Configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  datasource:
+    url: jdbc:postgresql://db-prod.example.com:5432/proddb
+    username: prod_user
+    password: S3cr3tP@ssw0rd!
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  mail:
+    host: smtp.example.com
+    port: 587
+    username: noreply@example.com
+    password: mailpass123
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+logging:
+  level:
+    root: INFO
+    com.example: DEBUG
+  file:
+    name: /var/logs/application-prod.log
+
+security:
+  jwt:
+    secret: fakeSecretKey1234567890abcdef
+    expiration: 86400000
+    </pre>
+</body>
+</html>

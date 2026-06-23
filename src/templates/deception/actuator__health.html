@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot Actuator Health</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .status.up {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.down {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .detail {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #007bff;
+        }
+        .detail h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .badge.success { background-color: #28a745; color: white; }
+        .badge.warning { background-color: #ffc107; color: #212529; }
+        .badge.error { background-color: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Spring Boot Actuator Health Endpoint</h1>
+        
+        <div class="status up">
+            STATUS: UP
+        </div>
+
+        <div class="detail">
+            <h3>Application Information</h3>
+            <p><strong>Application Name:</strong> spring-boot-demo-app</p>
+            <p><strong>Version:</strong> 2.4.5</p>
+            <p><strong>Profile:</strong> production</p>
+            <p><strong>Uptime:</strong> 12 days, 4 hours, 23 minutes</p>
+            <p><strong>Started At:</strong> 2024-05-15T08:30:22Z</p>
+        </div>
+
+        <div class="detail">
+            <h3>Health Checks</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Status</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>diskSpace</td>
+                        <td><span class="badge success">UP</span></td>
+                        <td>Total: 499.7GB, Free: 234.1GB, Threshold: 10GB</td>
+                    </tr>
+                    <tr>
+                        <td>db</td>
+                        <td><span class="badge success">UP</span></td>
+                        <td>PostgreSQL 13.4, Connections: 8/100, Validated in 12ms</td>
+                    </tr>
+                    <tr>
+                        <td>redis</td>
+                        <td><span class="badge success">UP</span></td>
+                        <td>Redis 6.2.6, Connected, Used memory: 45.2MB</td>
+                    </tr>
+                    <tr>
+                        <td>rabbit</td>
+                        <td><span class="badge warning">DOWN</span></td>
+                        <td>Connection refused - RabbitMQ server unavailable</td>
+                    </tr>
+                    <tr>
+                        <td>mail</td>
+                        <td><span class="badge success">UP</span></td>
+                        <td>SMTP: smtp.gmail.com:587, Authenticated</td>
+                    </tr>
+                    <tr>
+                        <td>livenessState</td>
+                        <td><span class="badge success">UP</span></td>
+                        <td>Application is responsive</td>
+                    </tr>
+                    <tr>
+                        <td>readinessState</td>
+                        <td><span class="badge success">UP</span></td>
+                        <td>Ready to serve traffic</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="detail">
+            <h3>System Properties</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>java.version</td>
+                        <td>11.0.14</td>
+                    </tr>
+                    <tr>
+                        <td>java.vendor</td>
+                        <td>Oracle Corporation</td>
+                    </tr>
+                    <tr>
+                        <td>os.name</td>
+                        <td>Linux</td>
+                    </tr>
+                    <tr>
+                        <td>os.arch</td>
+                        <td>amd64</td>
+                    </tr>
+                    <tr>
+                        <td>os.version</td>
+                        <td>5.4.0-109-generic</td>
+                    </tr>
+                    <tr>
+                        <td>user.timezone</td>
+                        <td>UTC</td>
+                    </tr>
+                    <tr>
+                        <td>file.encoding</td>
+                        <td>UTF-8</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>Actuator endpoint exposed for monitoring purposes. Access restricted to internal networks.</p>
+            <p>© 2024 Spring Boot Demo Application. All rights reserved.</p>
+            <p>Health check timestamp: 2024-05-27T14:22:18Z</p>
+        </p>
+    </div>
+</body>
+</html>

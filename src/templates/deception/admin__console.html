@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Console - Internal Dashboard</title>
+<style>
+body{font-family:Arial,sans-serif;margin:20px;background:#f4f4f4;}
+.container{background:#fff;padding:20px;border-radius:8px;max-width:800px;margin:auto;box-shadow:0 0 10px rgba(0,0,0,.1);}
+h1{color:#333;}
+.form-group{margin-bottom:15px;}
+label{display:block;margin-bottom:5px;font-weight:bold;}
+input[type=text],input[type=password],textarea{width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;}
+button{background:#0066cc;color:#fff;border:none;padding:10px 15px;border-radius:4px;cursor:pointer;}
+button:hover{background:#004c99;}
+.result{background:#e9f7fe;padding:10px;margin-top:15px;border-left:4px solid #0066cc;white-space:pre-wrap;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Admin Console</h1>
+<p>Welcome to the internal administration panel. Use the tools below to manage the system.</p>
+
+<form id="sqlForm" method="post" action="/admin/console">
+<div class="form-group">
+<label for="query">SQL Query:</label>
+<textarea id="query" name="query" rows="4" placeholder="Enter SQL statement...">SELECT * FROM users WHERE id = 1;</textarea>
+</div>
+<button type="submit">Execute Query</button>
+</form>
+
+<div class="result">
+<!-- Simulated output -->
+Query executed successfully.
++----+----------+------------------+
+| id | username | email            |
++----+----------+------------------+
+| 1  | admin    | admin@example.com|
+| 2  | john_doe | john@example.com |
++----+----------+------------------+
+Rows returned: 2
+</div>
+
+<hr>
+
+<form id="xssForm" method="get" action="/admin/console">
+<div class="form-group">
+<label for="search">Search Logs:</label>
+<input type="text" id="search" name="q" value="test">
+</div>
+<button type="submit">Search</button>
+</form>
+
+<div class="result">
+<!-- Simulated XSS vulnerable output -->
+Showing results for: <script>alert('xss')</script>
+</div>
+</div>
+</body>
+</html>

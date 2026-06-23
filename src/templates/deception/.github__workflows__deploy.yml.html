@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>deploy.yml - GitHub Actions Workflow</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; color:#222; padding:20px;}
+        pre {background:#eee; padding:10px; border:1px solid #ccc;}
+        .note {color:#555; font-size:0.9em;}
+    </style>
+</head>
+<body>
+    <h1>GitHub Actions Workflow: deploy.yml</h1>
+    <p class="note">This file is part of the repository's CI/CD pipeline.</p>
+    <pre>
+name: Deploy Application
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Deploy to Server
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SERVER_USER: deploy
+          SERVER_HOST: example.com
+        run: |
+          echo "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          scp -o StrictHostKeyChecking=no -r dist/* ${SERVER_USER}@${SERVER_HOST}:/var/www/html/
+    </pre>
+    <p class="note">Tip: The SSH key is stored as a repository secret; ensure proper rotation.</p>
+    <!-- Debug: potential SQLi in logging parameter -->
+</body>
+</html>

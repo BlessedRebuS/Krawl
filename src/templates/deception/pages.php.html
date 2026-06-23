@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pages - Content Management System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .nav { background: #ecf0f1; padding: 10px; margin-bottom: 20px; border-radius: 4px; }
+        .nav a { margin-right: 15px; text-decoration: none; color: #2980b9; }
+        .nav a:hover { text-decoration: underline; }
+        .page-list { margin-top: 20px; }
+        .page-item { border: 1px solid #ddd; margin-bottom: 10px; padding: 15px; border-radius: 4px; background: #fafafa; }
+        .page-title { font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
+        .page-snippet { color: #555; font-size: 0.9em; }
+        .edit-btn, .delete-btn { display: inline-block; margin-top: 10px; padding: 5px 10px; background: #3498db; color: white; text-decoration: none; border-radius: 3px; font-size: 0.9em; }
+        .edit-btn:hover { background: #2980b9; }
+        .delete-btn { background: #e74c3c; }
+        .delete-btn:hover { background: #c0392b; }
+        .create-btn { display: inline-block; padding: 10px 15px; background: #27ae60; color: white; text-decoration: none; border-radius: 4px; margin-bottom: 20px; }
+        .create-btn:hover { background: #219a52; }
+        .footer { margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 0.9em; border-top: 1px solid #eee; padding-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Page Management</h1>
+        <div class="nav">
+            <a href="/index.php">Dashboard</a>
+            <a href="/pages.php">Pages</a>
+            <a href="/users.php">Users</a>
+            <a href="/settings.php">Settings</a>
+            <a href="/logout.php">Logout</a>
+        </div>
+        
+        <a href="/page_edit.php?id=new" class="create-btn">Create New Page</a>
+        
+        <div class="page-list">
+            <div class="page-item">
+                <div class="page-title">Home Page</div>
+                <div class="page-snippet">Welcome to our company website. We provide high-quality services and solutions for businesses of all sizes.</div>
+                <a href="/page_edit.php?id=1" class="edit-btn">Edit</a>
+                <a href="/page_delete.php?id=1" class="delete-btn" onclick="return confirm('Delete this page?');">Delete</a>
+            </div>
+            
+            <div class="page-item">
+                <div class="page-title">About Us</div>
+                <div class="page-snippet">Learn more about our mission, vision, and the team behind our success. Founded in 2010, we've grown to serve clients worldwide.</div>
+                <a href="/page_edit.php?id=2" class="edit-btn">Edit</a>
+                <a href="/page_delete.php?id=2" class="delete-btn" onclick="return confirm('Delete this page?');">Delete</a>
+            </div>
+            
+            <div class="page-item">
+                <div class="page-title">Services</div>
+                <div class="page-snippet">Explore our range of services including web development, consulting, and technical support tailored to your needs.</div>
+                <a href="/page_edit.php?id=3" class="edit-btn">Edit</a>
+                <a href="/page_delete.php?id=3" class="delete-btn" onclick="return confirm('Delete this page?');">Delete</a>
+            </div>
+            
+            <div class="page-item">
+                <div class="page-title">Contact</div>
+                <div class="page-snippet">Get in touch with us via phone, email, or visit our office. We're here to help you succeed.</div>
+                <a href="/page_edit.php?id=4" class="edit-btn">Edit</a>
+                <a href="/page_delete.php?id=4" class="delete-btn" onclick="return confirm('Delete this page?');">Delete</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            &copy; 2023 Company Name. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Page - Demo</title>
+    <style>
+        body{font-family:Arial,sans-serif;margin:20px;}
+        table{border-collapse:collapse;width:50%;}
+        th,td{border:1px solid #ccc;padding:8px;text-align:left;}
+        th{background:#f0f0f0;}
+    </style>
+</head>
+<body>
+    <h1>Test Page</h1>
+    <p>This is a test page for debugging.</p>
+    <form method="GET" action="/test.php1">
+        <label for="id">Enter ID:</label>
+        <input type="text" id="id" name="id" value="">
+        <input type="submit" value="Submit">
+    </form>
+    <?php
+        // Simulated PHP code (not executed in static HTML)
+        // In a real server this would query the database.
+    ?>
+    <!-- Fake data displayed when ID=1 -->
+    <div id="result">
+        <h2>Query Results</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>admin</td>
+                    <td>admin@example.com</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>user1</td>
+                    <td>user1@example.com</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>guest</td>
+                    <td>guest@example.com</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <hr>
+    <p><small>Note: This page is for demonstration only.</small></p>
+</body>
+</html>

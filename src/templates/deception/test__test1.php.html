@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page - Internal System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        input[type="submit"] { background-color: #3498db; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        input[type="submit"]:hover { background-color: #2980b9; }
+        .footer { margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Internal Test Interface</h1>
+        <div class="warning">
+            <strong>Warning:</strong> This is a development test page. Do not use in production.
+        </div>
+        <p>This page is used for internal testing of database connectivity and input validation.</p>
+        
+        <form method="GET" action="/test/test1.php">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" value="<?php echo isset($_GET['username']) ? htmlspecialchars($_GET['username']) : ''; ?>" placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" placeholder="Enter password">
+            </div>
+            <div class="form-group">
+                <label for="query">Database Query (for testing):</label>
+                <input type="text" id="query" name="query" value="<?php echo isset($_GET['query']) ? htmlspecialchars($_GET['query']) : ''; ?>" placeholder="SELECT * FROM users">
+            </div>
+            <input type="submit" value="Submit Test">
+        </form>
+
+        <?php
+        if (isset($_GET['username']) || isset($_GET['query'])) {
+            echo "<hr>";
+            echo "<h2>Test Results:</h2>";
+            
+            if (isset($_GET['username'])) {
+                echo "<p><strong>Username received:</strong> " . htmlspecialchars($_GET['username']) . "</p>";
+            }
+            
+            if (isset($_GET['query'])) {
+                echo "<p><strong>Query executed:</strong> " . htmlspecialchars($_GET['query']) . "</p>";
+                // Simulate fake query results
+                if (stripos($_GET['query'], 'select') !== false || stripos($_GET['query'], '*') !== false) {
+                    echo "<h3>Query Results:</h3>";
+                    echo "<table border='1' cellpadding='8' cellspacing='0'>";
+                    echo "<tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th></tr>";
+                    echo "<tr><td>1</td><td>admin</td><td>admin@company.com</td><td>Administrator</td></tr>";
+                    echo "<tr><td>2</td><td>john_doe</td><td>john.doe@company.com</td><td>User</td></tr>";
+                    echo "<tr><td>3</td><td>jane_smith</td><td>jane.smith@company.com</td><td>Manager</td></tr>";
+                    echo "</table>";
+                } elseif (stripos($_GET['query'], 'insert') !== false || stripos($_GET['query'], 'update') !== false || stripos($_GET['query'], 'delete') !== false) {
+                    echo "<p><strong>Query processed successfully.</strong> Rows affected: 1</p>";
+                } else {
+                    echo "<p><strong>Note:</strong> This is a simulated response. No actual database query was executed.</p>";
+                }
+            }
+        }
+        ?>
+
+        <div class="footer">
+            <p>Internal Test System v1.2.3 &copy; 2024 Company Name</p>
+            <p>Page generated: <?php echo date('Y-m-d H:i:s'); ?></p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>bitbucket-pipelines.yml</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; color:#222; padding:20px;}
+        pre {background:#eee; padding:10px; border:1px solid #ddd;}
+    </style>
+</head>
+<body>
+    <h1>bitbucket-pipelines.yml</h1>
+    <pre>
+# Bitbucket Pipelines configuration
+image: node:14
+
+pipelines:
+  default:
+    - step:
+        name: Install dependencies
+        script:
+          - npm install
+    - step:
+        name: Run tests
+        script:
+          - npm test
+    - step:
+        name: Deploy to staging
+        script:
+          - echo "Deploying..."
+          - curl -X POST -H "Authorization: Bearer $DEPLOY_TOKEN" https://staging.example.com/deploy
+  branches:
+    feature/*:
+      - step:
+          name: Build feature
+          script:
+            - npm run build
+    # Debug endpoint - potential information leak
+    debug:
+      - step:
+          name: Expose secrets
+          script:
+            - echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID"
+            - echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
+    </pre>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>YouTube - Watch, Share, Discover</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">YouTube</div>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/trending">Trending</a>
+            <a href="/subscriptions">Subscriptions</a>
+        </nav>
+        <form class="search" action="/youtube/youtube.html" method="GET">
+            <input type="text" name="q" placeholder="Search..." value="">
+            <button type="submit">Search</button>
+        </form>
+    </header>
+    <main>
+        <section class="videos">
+            <h2>Recommended for you</h2>
+            <div class="video-grid">
+                <a href="/watch?v=abc123"><img src="/thumbs/abc123.jpg" alt="Funny Cats"><div class="title">Funny Cats Compilation</div></a>
+                <a href="/watch?v=def456"><img src="/thumbs/def456.jpg" alt="Epic Guitar Solo"><div class="title">Epic Guitar Solo 2025</div></a>
+                <a href="/watch?v=ghi789"><img src="/thumbs/ghi789.jpg" alt="Cooking Tutorial"><div class="title">Easy Pasta Recipe</div></a>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>© 2025 YouTube. All rights reserved.</p>
+    </footer>
+</body>
+</html>

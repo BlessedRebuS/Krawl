@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Example Corp – Home</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9;}
+        h1, h2 {color:#2c3e50;}
+        form {background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+        input[type=text], input[type=password] {width:200px; padding:8px; margin-top:5px;}
+        input[type=submit] {padding:10px 20px; background:#3498db; color:#fff; border:none; cursor:pointer;}
+        input[type=submit]:hover {background:#2980b9;}
+        ul {list-style-type:none; padding:0;}
+        li {background:#ecf0f1; margin:5px 0; padding:10px; border-left:4px solid #3498db;}
+    </style>
+</head>
+<body>
+    <h1>Welcome to Example Corp</h1>
+    <p>Please log in to access the dashboard.</p>
+    <form action="login.jsp" method="post">
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username"><br><br>
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password"><br><br>
+        <input type="submit" value="Login">
+    </form>
+    <hr>
+    <h2>Latest Updates</h2>
+    <ul>
+        <li>Quarterly revenue increased by 12% – <em>Q3 2025 Report</em></li>
+        <li>New security patch scheduled for release next week</li>
+        <li>Upcoming webinar: "Best Practices for Secure Coding"</li>
+    </ul>
+    <!--
+        Note: This page is a simulated honeypot.
+        In a real environment, the login form would be vulnerable to SQL injection
+        and reflected XSS via improperly escaped user input.
+    -->
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Console - Internal Tool</title>
+    <style>
+        body { font-family: monospace; background-color: #1e1e1e; color: #d4d4d4; margin: 0; padding: 20px; }
+        h1 { color: #569cd6; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .log-entry { margin: 10px 0; padding: 8px; background-color: #252526; border-left: 3px solid #3c3c3c; }
+        .log-info { color: #9cdcfe; }
+        .log-warn { color: #dcdcaa; }
+        .log-error { color: #f44747; }
+        .log-debug { color: #ce9178; }
+        .btn { background-color: #0e639c; color: white; border: none; padding: 8px 16px; cursor: pointer; margin: 5px; }
+        .btn:hover { background-color: #1177bb; }
+        pre { background-color: #252526; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Internal Debug Console</h1>
+        <p>Access restricted to 127.0.0.1 ::1</p>
+        <div>
+            <button class="btn" onclick="fetchLogs()">Refresh Logs</button>
+            <button class="btn" onclick="clearLogs()">Clear Logs</button>
+            <button class="btn" onclick="dumpEnv()">Dump Env</button>
+        </div>
+        <div id="logs">
+            <div class="log-entry log-info">[INFO] Server started at 2024-06-15T08:30:22Z</div>
+            <div class="log-entry log-debug">[DEBUG] Loading configuration from /etc/app/config.yaml</div>
+            <div class="log-entry log-warn">[WARN] Deprecated API endpoint accessed: /legacy/user?id=123</div>
+            <div class="log-entry log-error">[ERROR] Failed to connect to redis:6379 - Connection refused</div>
+            <div class="log-entry log-info">[INFO] Health check passed: OK</div>
+            <div class="log-entry log-debug">[DEBUG] GET /api/users?limit=100&offset=0 - 200 OK (45ms)</div>
+            <div class="log-entry log-warn">[WARN] Slow query detected: SELECT * FROM logs WHERE timestamp > NOW() - INTERVAL '1 hour' took 2.3s</div>
+            <div class="log-entry log-info">[INFO] User admin@internal logged in from 10.0.0.5</div>
+        </div>
+        <div style="margin-top: 20px;">
+            <h2>Environment Variables (Filtered)</h2>
+            <pre>APP_ENV=production
+LOG_LEVEL=info
+PORT=8080
+DATABASE_URL=postgres://user:***@db.internal:5432/app
+REDIS_URL=redis://redis.internal:6379
+SECRET_KEY=***REDACTED***
+API_KEY=***REDACTED***
+</pre>
+        </div>
+    </div>
+    <script>
+        function fetchLogs() {
+            // Simulate AJAX call - in reality this would hit /api/debug/logs
+            alert('Fetching latest logs... (simulated)');
+        }
+        function clearLogs() {
+            if (confirm('Clear all debug logs? This action cannot be undone.')) {
+                alert('Logs cleared. (simulated)');
+            }
+        }
+        function dumpEnv() {
+            alert('Dumping environment variables... (simulated - see below)');
+        }
+    </script>
+</body>
+</html>

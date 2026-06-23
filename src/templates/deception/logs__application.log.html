@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Application Log - /logs/application.log</title>
+<style>
+body{font-family:monospace;background:#f8f8f8;color:#222;padding:20px;}
+pre{background:#fff;padding:10px;border:1px solid #ddd;overflow:auto;}
+</style>
+</head>
+<body>
+<h1>Application Log</h1>
+<p>Path: /logs/application.log</p>
+<pre>
+[2025-09-25 08:12:01] INFO  Server started on port 8080
+[2025-09-25 08:12:05] DEBUG Loading configuration from /etc/app/config.yaml
+[2025-09-25 08:12:07] WARN  Deprecated API endpoint /old/users accessed from 203.0.113.45
+[2025-09-25 08:12:10] ERROR Database connection failed: Connection refused
+[2025-09-25 08:12:12] INFO  Retrying DB connection...
+[2025-09-25 08:12:15] INFO  DB connection established
+[2025-09-25 08:12:20] INFO  Request GET /api/users from 198.51.100.22 (200)
+[2025-09-25 08:12:25] DEBUG Cache hit for key user:42
+[2025-09-25 08:12:30] WARN  High memory usage: 78%
+[2025-09-25 08:12:35] INFO  Scheduled backup started
+[2025-09-25 08:13:00] INFO  Backup completed successfully
+</pre>
+</body>
+</html>

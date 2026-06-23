@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug View - Yii2 Application</title>
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/css/site.css">
+    <style>
+        body { padding-top: 20px; }
+        .debug-panel { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 20px; margin-bottom: 20px; }
+        .debug-title { color: #2c3e50; border-bottom: 1px solid #ecf0f1; padding-bottom: 10px; margin-bottom: 15px; }
+        .data-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        .data-table th, .data-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .data-table th { background-color: #f2f2f2; }
+        .btn { display: inline-block; padding: 6px 12px; margin-bottom: 0; font-size: 14px; font-weight: 400; line-height: 1.42857143; text-align: center; white-space: nowrap; vertical-align: middle; -ms-touch-action: manipulation; touch-action: manipulation; cursor: pointer; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; background-image: none; border: 1px solid transparent; border-radius: 4px; }
+        .btn-primary { color: #fff; background-color: #337ab7; border-color: #2e6da4; }
+        .btn-default { color: #333; background-color: #fff; border-color: #ccc; }
+        code { background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar navbar-default">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="/frontend/web/">MyApp</a>
+                </div>
+                <ul class="nav navbar-nav">
+                    <li><a href="/frontend/web/site/index">Home</a></li>
+                    <li><a href="/frontend/web/site/about">About</a></li>
+                    <li class="active"><a href="/frontend/web/debug/default/view">Debug</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <h1>Yii2 Debug Panel</h1>
+        <p>Current request: <code>/frontend/web/debug/default/view</code></p>
+
+        <div class="debug-panel">
+            <h2 class="debug-title">Request Information</h2>
+            <table class="data-table">
+                <tr><th>Route</th><td>/debug/default/view</td></tr>
+                <tr><th>Controller ID</th><td>debug</td></tr>
+                <tr><th>Action ID</th><td>view</td></tr>
+                <tr><th>Request Method</th><td>GET</td></tr>
+                <tr><th>User Agent</th><td>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36</td></tr>
+                <tr><th>IP Address</th><td>192.168.1.105</td></tr>
+                <tr><th>Timestamp</th><td>2024-01-15 14:32:18</td></tr>
+            </table>
+        </div>
+
+        <div class="debug-panel">
+            <h2 class="debug-title">Application Configuration</h2>
+            <table class="data-table">
+                <tr><th>Application ID</th><td>frontend</td></tr>
+                <tr><th>Base Path</th><td>/var/www/html/frontend</td></tr>
+                <tr><th>Runtime Path</th><td>/var/www/html/frontend/runtime</td></tr>
+                <tr><th>Language</th><td>en-US</td></tr>
+                <tr><th>Source Language</th><td>en</td></tr>
+                <tr><th>Timezone</th><td>UTC</td></tr>
+                <tr><th>Debug Mode</th><td><span style="color: green;">Enabled</span></td></tr>
+            </table>
+        </div>
+
+        <div class="debug-panel">
+            <h2 class="debug-title">Database Queries (Last 5)</h2>
+            <table class="data-table">
+                <thead>
+                    <tr><th>#</th><th>Duration</th><th>Query</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>12.4 ms</td><td>SELECT * FROM `user` WHERE `id` = 1</td></tr>
+                    <tr><td>2</td><td>8.7 ms</td><td>SELECT `id`, `username`, `email` FROM `user` WHERE `status` = 10 LIMIT 20</td></tr>
+                    <tr><td>3</td><td>15.2 ms</td><td>SELECT * FROM `profile` WHERE `user_id` = 1</td></tr>
+                    <tr><td>4</td><td>5.3 ms</td><td>SHOW COLUMNS FROM `post`</td></tr>
+                    <tr><td>5</td><td>22.1 ms</td><td>SELECT COUNT(*) FROM `comment` WHERE `post_id` IN (SELECT `id` FROM `post` WHERE `author_id` = 1)</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="debug-panel">
+            <h2 class="debug-title">Loaded Modules</h2>
+            <ul>
+                <li>debug</li>
+                <li>gii</li>
+                <li>admin</li>
+                <li>user</li>
+                <li>settings</li>
+                <li>mailer</li>
+                <li>cache</li>
+                <li>log</li>
+            </ul>
+        </div>
+
+        <div class="debug-panel">
+            <h2 class="debug-title">Environment Variables</h2>
+            <table class="data-table">
+                <tr><th>Variable</th><th>Value</th></tr>
+                <tr><td>APP_ENV</td><td>development</td></tr>
+                <tr><td>DB_HOST</td><td>localhost</td></tr>
+                <tr><td>DB_NAME</td><td>myapp_db</td></tr>
+                <tr><td>DB_USER</td><td>myapp_user</td></tr>
+                <tr><td>DB_PASSWORD</td><td>****hidden****</td></tr>
+                <tr><td>MAIL_HOST</td><td>smtp.gmail.com</td></tr>
+                <tr><td>MAIL_PORT</td><td>587</td></tr>
+                <tr><td>MAIL_USERNAME</td><td>admin@myapp.com</td></tr>
+                <tr><td>MAIL_PASSWORD</td><td>****hidden****</td></tr>
+                <tr><td>SECRET_KEY</td><td>a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6</td></tr>
+            </table>
+        </div>
+
+        <div class="debug-panel">
+            <h2 class="debug-title">Recent Log Entries</h2>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Level</th><th>Time</th><th>Category</th><th>Message</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>info</td><td>14:32:15</td><td>application</td><td>Loading config: /var/www/html/frontend/config/main.php</td></tr>
+                    <tr><td>warning</td><td>14:32:16</td><td>yii\db\Connection</td><td>Opening DB connection: mysql:host=localhost;dbname=myapp_db</td></tr>
+                    <tr><td>error</td><td>14:32:17</td><td>yii\web\HttpException:404</td><td>Page not found: /nonexistent/path</td></tr>
+                    <tr><td>info</td><td>14:32:18</td><td>debug</td><td>Debug panel rendered successfully</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="debug-panel">
+            <h2 class="debug-title">Session Data</h2>
+            <table class="data-table">
+                <tr><th>Key</th><th>Value</th></tr>
+                <tr><td>__flash</td><td>Array</td></tr>
+                <tr><td>__id</td><td>1</td></tr>
+                <tr><td>__returnUrl</td><td>/frontend/web/site/index</td></tr>
+                <tr><td>__csrf_token</td><td>aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890</td></tr>
+                <tr><td>language</td><td>en-US</td></tr>
+                <tr><td>theme</td><td>default</td></tr>
+            </table>
+        </div>
+
+        <footer class="text-center mt-5 pb-3">
+            <p>Yii Framework Debugger v2.0.15 &copy; 2024 MyApp</p>
+            <p><small>Debug panel is enabled for development environment only.</small></p>
+        </footer>
+    </div>
+
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/js/bootstrap.min.js"></script>
+</body>
+</html>

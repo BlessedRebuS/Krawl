@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>fetch-icanhazip.com-with python.py</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; line-height: 1.6;}
+        pre {background:#f4f4f4; padding:10px; border:1px solid #ddd; overflow:auto;}
+        a {color:#0066cc; text-decoration:none;}
+        a:hover {text-decoration:underline;}
+        hr {border:0; border-top:1px solid #eee; margin:20px 0;}
+    </style>
+</head>
+<body>
+    <h1>fetch-icanhazip.com-with python.py</h1>
+    <p>This script demonstrates how to retrieve your public IP address using the <code>icanhazip.com</code> service.</p>
+    <pre>#!/usr/bin/env python3
+import urllib.request
+import sys
+
+def get_ip():
+    try:
+        with urllib.request.urlopen('http://icanhazip.com') as response:
+            ip = response.read().decode('utf-8').strip()
+            return ip
+    except Exception as e:
+        return f'Error: {e}'
+
+if __name__ == '__main__':
+    print(get_ip())
+</pre>
+    <p>Feel free to download and run:</p>
+    <a href="/fetch-icanhazip.com-with python.py" download>Download Script</a>
+    <hr>
+    <p><small>Note: This is a demonstration script for educational purposes only.</small></p>
+</body>
+</html>

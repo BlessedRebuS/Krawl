@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>App Settings Development</title>
+</head>
+<body>
+    <h1>appsettings.Development.json</h1>
+    <pre>
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=MyAppDb;Trusted_Connection=True;"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "Jwt": {
+    "Secret": "fake-super-secret-key-12345",
+    "Issuer": "MyApp",
+    "Audience": "Users"
+  }
+}
+</pre>
+</body>
+</html>

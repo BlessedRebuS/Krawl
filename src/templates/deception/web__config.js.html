@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Configuration - config.js</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        pre { background-color: #f0f0f0; padding: 15px; border-radius: 5px; overflow-x: auto; border: 1px solid #ddd; }
+        .container { max-width: 800px; margin: 0 auto; background-color: white; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .note { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 4px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JavaScript Configuration File</h1>
+        <p>This file contains client-side configuration settings for the web application.</p>
+        <div class="note">
+            <strong>Note:</strong> This is a development configuration file. In production, sensitive values should be stored server-side.
+        </div>
+        <pre>
+/**
+ * Application Configuration
+ * DO NOT MODIFY THIS FILE IN PRODUCTION WITHOUT PROPER TESTING
+ */
+
+const config = {
+    // API Endpoints
+    apiBaseUrl: 'https://api.internal.company.com/v1',
+    authEndpoint: '/auth/login',
+    userEndpoint: '/users/profile',
+    dataEndpoint: '/data/fetch',
+    
+    // Authentication Settings
+    tokenStorageKey: 'auth_token',
+    refreshTokenKey: 'refresh_token',
+    sessionTimeout: 3600000, // 1 hour in milliseconds
+    
+    // Feature Flags
+    features: {
+        enableAnalytics: true,
+        enableDebugMode: false,
+        enableExperimentalUI: true,
+        enableFileUpload: true,
+        enableChatSupport: false
+    },
+    
+    // Database Connection (Client-side cache settings)
+    dbConfig: {
+        host: 'db-internal.company.com',
+        port: 5432,
+        database: 'app_db',
+        username: 'app_user',
+        password: 'SuperSecretDBPass2024!', // WARNING: Hardcoded credential - for demo only
+        ssl: true
+    },
+    
+    // Third-party Service Keys
+    services: {
+        googleAnalytics: 'UA-123456789-1',
+        mixpanelToken: 'mp_token_abc123xyz',
+        stripePublishableKey: 'pk_test_51HpLmJ2eZvKYq2Lr8R7sT6uV8wX9yZ0aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV1wX2yZ3',
+        mapboxAccessToken: 'pk.eyJ1IjoiYXBwbHl0ZWFtIiwiYSI6ImNrZzBvN2NiazAwdm0yb3BwamJ0ZGxoIn0.XYZ'
+    },
+    
+    // Email Configuration
+    email: {
+        smtpServer: 'smtp.internal.company.com',
+        smtpPort: 587,
+        smtpUser: 'noreply@company.com',
+        smtpPass: 'EmailPass2024!Secure',
+        fromAddress: 'noreply@company.com'
+    },
+    
+    // Debug Settings (Should be false in production)
+    debug: {
+        enableLogging: true,
+        logLevel: 'debug',
+        enableConsoleErrors: true,
+        mockApiResponses: false,
+        // Potential XSS vector - for demonstration purposes only
+        testXSS: '<img src=x onerror=alert("XSS")>',
+        testSQLi: "' OR '1'='1"
+    }
+};
+
+// Export for use in other modules
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = config;
+} else {
+    window.config = config;
+}
+
+// Development helper - remove in production
+if (config.debug.enableLogging && window.console) {
+    console.log('Configuration loaded:', config);
+}
+        </pre>
+    </div>
+</body>
+</html>

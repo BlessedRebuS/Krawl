@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backup Download - SecureCorp Internal</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .info-box { background: #ecf0f1; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .warning { color: #e74c3c; font-weight: bold; }
+        .btn { display: inline-block; background: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin-top: 10px; }
+        .btn:hover { background: #2980b9; }
+        .file-details { background: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Internal Backup Archive</h1>
+        <p>Welcome to the SecureCorp internal backup repository. This section contains archived system backups for disaster recovery purposes.</p>
+        
+        <div class="info-box">
+            <strong>Access Level:</strong> Internal Use Only<br>
+            <strong>Last Updated:</strong> 2024-05-15 02:30:UTC<br>
+            <strong>Retention Policy:</strong> 30 days
+        </div>
+
+        <div class="file-details">
+            <h3>Available Backup: backup.zip</h3>
+            <p><strong>Filename:</strong> backup.zip</p>
+            <p><strong>Size:</strong> 2.4 GB</p>
+            <p><strong>Created:</strong> 2024-05-15 02:25:UTC</p>
+            <p><strong>Contents:</strong> Full system snapshot including:</p>
+            <ul>
+                <li>Database dumps (MySQL, PostgreSQL)</li>
+                <li>Web application files (/var/www/)</li>
+                <li>Configuration files (/etc/)</li>
+                <li>Log archives (/var/log/)</li>
+                <li>User home directories (/home/)</li>
+            </ul>
+        </div>
+
+        <p>⚠️ <span class="warning">WARNING:</span> This backup contains sensitive information including password hashes, API keys, and internal database structures. Access is restricted to authorized personnel only.</p>
+
+        <p>To download this backup, please use the secure internal download portal or contact the IT administration team.</p>
+
+        <a href="#" class="btn" onclick="alert('Download initiated via secure internal channel. For security reasons, direct downloads are disabled from this interface.'); return false;">Request Secure Download</a>
+
+        <hr>
+        <p style="font-size: 0.9em; color: #7f8c8d; text-align: center;">
+            SecureCorp Internal Systems © 2024<br>
+            This is an internal resource. Unauthorized access is prohibited and monitored.
+        </p>
+    </div>
+</body>
+</html>

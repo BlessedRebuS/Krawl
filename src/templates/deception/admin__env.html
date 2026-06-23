@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Environment Variables</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9;}
+        h1 {color:#333;}
+        table {border-collapse:collapse; width:80%; background:#fff;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background-color:#f2f2f2;}
+        tr:nth-child(even) {background-color:#fafafa;}
+        .filter {margin-bottom:15px;}
+        input[type=text] {padding:5px; width:200px;}
+    </style>
+</head>
+<body>
+    <h1>Server Environment Variables</h1>
+    <div class="filter">
+        Filter: <input type="text" id="filterInput" placeholder="Search variable name..." onkeyup="filterTable()">
+    </div>
+    <table id="envTable">
+        <thead>
+            <tr>
+                <th>Variable</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>APP_ENV</td><td>production</td></tr>
+            <tr><td>DEBUG</td><td>false</td></tr>
+            <tr><td>DATABASE_URL</td><td>mysql://admin:secret123@db.internal:3306/appdb</td></tr>
+            <tr><td>REDIS_HOST</td><td>cache.internal</td></tr>
+            <tr><td>REDIS_PORT</td><td>6379</td></tr>
+            <tr><td>SECRET_KEY</td><td>a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6</td></tr>
+            <tr><td>MAIL_SMTP_HOST</td><td>smtp.mailprovider.com</td></tr>
+            <tr><td>MAIL_SMTP_PORT</td><td>587</td></tr>
+            <tr><td>MAIL_SMTP_USER</td><td>no-reply@app.com</td></tr>
+            <tr><td>MAIL_SMTP_PASS</td><td>mailPass!2025</td></tr>
+            <tr><td>AWS_ACCESS_KEY_ID</td><td>AKIAEXAMPLEFAKEKEY</td></tr>
+            <tr><td>AWS_SECRET_ACCESS_KEY</td><td>wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</td></tr>
+            <tr><td>CACHE_TTL</td><td>300</td></tr>
+            <tr><td>SESSION_COOKIE_NAME</td><td>app_session</td></tr>
+            <tr><td>LOG_LEVEL</td><td>info</td></tr>
+            <tr><td>ENABLE_METRICS</td><td>true</td></tr>
+            <tr><td>METRICS_ENDPOINT</td><td>/metrics</td></tr>
+        </tbody>
+    </table>
+
+    <script>
+        function filterTable() {
+            const input = document.getElementById('filterInput');
+            const filter = input.value.toUpperCase();
+            const table = document.getElementById('envTable');
+            const rows = table.getElementsByTagName('tr');
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                if (cells.length > 0) {
+                    const txt = cells[0].textContent || cells[0].innerText;
+                    if (txt.toUpperCase().indexOf(filter) > -1) {
+                        rows[i].style.display = '';
+                    } else {
+                        rows[i].style.display = 'none';
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Remote Desktop Web Access</title>
+    <style>
+        body {font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:0;}
+        .container {width:360px; margin:100px auto; background:#fff; padding:30px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,.1);}
+        h2 {text-align:center; color:#333;}
+        .form-group {margin-bottom:15px;}
+        label {display:block; margin-bottom:5px; font-weight:bold;}
+        input[type="text"], input[type="password"] {width:100%; padding:8px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px;}
+        button {width:100%; padding:10px; background:#0066cc; color:#fff; border:none; border-radius:4px; cursor:pointer;}
+        button:hover {background:#004c99;}
+        .links {margin-top:20px; text-align:center; font-size:0.9em;}
+        .links a {color:#0066cc; text-decoration:none;}
+        .links a:hover {text-decoration:underline;}
+        .footer {margin-top:30px; font-size:0.8em; color:#777; text-align:center;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Remote Desktop Web Access</h2>
+    <form id="loginForm" action="/RDWeb/Pages/auth.aspx" method="post">
+        <div class="form-group">
+            <label for="username">User name:</label>
+            <input type="text" id="username" name="username" autocomplete="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" autocomplete="current-password" required>
+        </div>
+        <button type="submit">Sign in</button>
+    </form>
+    <div class="links">
+        <a href="/RDWeb/Pages/help.aspx">Help</a> |
+        <a href="/RDWeb/Pages/forgot.aspx">Forgot password?</a>
+    </div>
+    <div class="footer">
+        © 2025 Contoso Corporation. All rights reserved. Version 10.0.19041.1
+    </div>
+</div>
+<script>
+    // Simple client-side validation (fake)
+    document.getElementById('loginForm').addEventListener('submit', function(e){
+        var u = document.getElementById('username').value.trim();
+        var p = document.getElementById('password').value.trim();
+        if(u==='' || p===''){
+            e.preventDefault();
+            alert('Please enter both username and password.');
+        }
+        // In a real scenario this would be submitted to the server.
+    });
+</script>
+</body>
+</html>
+</html>

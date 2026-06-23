@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Environment Variables - Actutor</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; color: #333;}
+        h1 {color: #2c3e50;}
+        table {border-collapse: collapse; width: 80%; margin-top: 20px;}
+        th, td {border: 1px solid #ddd; padding: 8px; text-align: left;}
+        th {background-color: #f2f2f2;}
+        tr:nth-child(even) {background-color: #fafafa;}
+        .note {margin-top: 30px; font-size: 0.9em; color: #555;}
+    </style>
+</head>
+<body>
+    <h1>Environment Variables</h1>
+    <p>Below are the current server environment variables for debugging purposes.</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Variable</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>APP_ENV</td><td>production</td></tr>
+            <tr><td>DEBUG</td><td>false</td></tr>
+            <tr><td>DATABASE_URL</td><td>mysql://actutor_user:********@db.actutor.local:3306/actutor_db</td></tr>
+            <tr><td>CACHE_HOST</td><td>cache.actutor.local</td></tr>
+            <tr><td>REDIS_PORT</td><td>6379</td></tr>
+            <tr><td>SESSION_SECRET</td><td>a1b2c3d4e5f6g7h8i9j0</td></tr>
+            <tr><td>MAIL_FROM</td><td>no-reply@actutor.local</td></tr>
+            <tr><td>LOG_LEVEL</td><td>info</td></tr>
+            <tr><td>FEATURE_FLAG_NEW_UI</td><td>true</td></tr>
+            <tr><td>API_KEY_EXTERNAL</td><td>********</td></tr>
+        </tbody>
+    </table>
+    <div class="note">
+        Note: This page is intended for internal administrators only. Do not expose to untrusted networks.
+    </div>
+</body>
+</html>

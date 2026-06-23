@@ -1,8 +1,9 @@
-from database import get_database
-from logger import get_app_logger
 import requests
-from sanitizer import sanitize_for_storage, sanitize_dict
+
+from database import get_database
 from geo_utils import extract_geolocation_from_ip, fetch_blocklist_data
+from logger import get_app_logger
+from sanitizer import sanitize_dict, sanitize_for_storage
 
 # ----------------------
 # TASK CONFIG
@@ -21,7 +22,7 @@ def main():
     app_logger = get_app_logger()
 
     # Only get IPs that haven't been enriched yet
-    unenriched_ips = db_manager.get_unenriched_ips(limit=50)
+    unenriched_ips = db_manager.ip_stats.get_unenriched_ips(limit=50)
     app_logger.info(
         f"{len(unenriched_ips)} IP's need to be have reputation enrichment."
     )
@@ -81,7 +82,7 @@ def main():
                 )
                 sanitized_list_on = sanitize_dict(list_on, 100000)
 
-                db_manager.update_ip_rep_infos(
+                db_manager.ip_stats.update_ip_rep_infos(
                     ip,
                     sanitized_country_iso_code,
                     sanitized_asn,

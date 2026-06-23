@@ -104,6 +104,8 @@ services:
       - KRAWL_REDIS_HOST=redis
       - KRAWL_REDIS_PORT=6379
       - KRAWL_DASHBOARD_WARMUP_AGGREGATION=true
+      # Optional: path inside the container where a custom HTML template can be mounted
+      - KRAWL_CUSTOM_TEMPLATE_PATH=/templates/custom_page.html
       # Uncomment to set a custom dashboard password (auto-generated if not set)
       # - KRAWL_DASHBOARD_PASSWORD=your-secret-password
       # Set this to change timezone
@@ -111,6 +113,8 @@ services:
     volumes:
       - ./wordlists.json:/app/wordlists.json:ro
       - ./config.yaml:/app/config.yaml:ro
+      # Optional: mount your custom template file to /templates/custom_page.html
+      # - ./custom_page.html:/templates/custom_page.html:ro
       - ./logs:/app/logs
       - ./backups:/app/backups
     restart: unless-stopped

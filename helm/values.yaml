@@ -6,7 +6,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/blessedrebus/krawl
   pullPolicy: Always
-  tag: "2.1.0"
+  tag: "2.2.0"
 
 imagePullSecrets: []
 nameOverride: "krawl"
@@ -24,11 +24,29 @@ podSecurityContext: {}
 securityContext: {}
 
 service:
-  type: LoadBalancer
+  type: ClusterIP
   port: 5000
   annotations: {}
   # Preserve source IP when using LoadBalancer
   externalTrafficPolicy: Local
+
+# Prometheus Operator ServiceMonitor for scraping the /metrics endpoint.
+# Requires the ServiceMonitor CRD (monitoring.coreos.com/v1) in the cluster.
+# The resource is only rendered when ALL of the following are true:
+#   - serviceMonitor.enabled is true
+#   - config.metrics.enabled is true
+#   - config.dashboard.secret_path is set (the metrics path is
+#     /<secret_path>/metrics, so an auto-generated/blank path can't be scraped)
+serviceMonitor:
+  enabled: false
+  interval: 30s
+  scrapeTimeout: 10s
+  # Extra labels so your Prometheus's serviceMonitorSelector matches this
+  # resource (e.g. release: kube-prometheus-stack).
+  labels: {}
+  honorLabels: false
+  relabelings: []
+  metricRelabelings: []
 
 ingress:
   enabled: true
@@ -82,12 +100,16 @@ config:
   canary:
     token_url: null  # Set your canary token URL here
     token_tries: 10
+  deception:
+    import_pages: true  # Auto-import HTML deception pages from src/templates/deception/ at startup
   dashboard:
     secret_path: null  # Auto-generated if not set, or set to "/my-secret-dashboard"
     cache_warmup: true  # Pre-compute dashboard data every 5 minutes. In scalable mode with Redis, consider setting to false — table caching handles it.
     warmup_pages: 10  # Number of pages to pre-warm per table panel (attacks, attackers, credentials, honeypot)
     warmup_aggregation: true  # Pre-compute full top_paths/top_ua aggregations for instant any-page serving (recommended for scalable)
     top_n_min_count: 5  # Minimum access count to include a path/user-agent in top-N panels (set to 1 to disable)
+  metrics:
+    enabled: true  # Expose Prometheus metrics at /<dashboard.secret_path>/metrics
   backups:
     path: "backups"
     enabled: false
@@ -113,33 +135,61 @@ config:
     ban_duration_seconds: 600
   ai:
     enabled: false
-    provider: "openrouter"  # "openrouter" or "openai"
-# openai_base_url: "https://api.openai.com/v1" is only needed if provider is set to "openai" and you want to use a custom endpoint to reach different models
+    provider: "openrouter"  # "openrouter" or "openai". Use "openai" for OpenAI-compatible endpoints such as Ollama or llama.cpp.
+    openai_base_url: "https://api.openai.com/v1"  # Set to your OpenAI-compatible endpoint, e.g.http://krawl-llm:8080/v1
     api_key: null # set your OpenAI or OpenRouter API key here
     model: null  # for example nvidia/nemotron-3-super-120b-a12b:free or gpt-5.1-mini
-    timeout: 60  # Request timeout in seconds for API calls
+    timeout: 300  # Request timeout in seconds for API calls
     max_daily_requests: 100  # Limit the number of AI-generated responses per day
     reasoning:
       enabled: false # only supported for OpenRouter's models with reasoning capabilities
       effort: "medium"  # "none", "minimal", "low", "medium", "high", "xhigh" (doc: https://openrouter.ai/docs/guides/best-practices/reasoning-tokens)
     prompt: |
-      Your goal is to create a plausible but fake intentionally vulnerable page that might appear on a real server, that can distract attackers. 
-      Your input will be a query path, that the attacker asked for. 
+      You are a web server. Generate a realistic, plausible page for the requested path.
+      The page must look like it belongs to a real vulnerable server to deceive security scanners and attackers.
 
-      Follow this rules:
-      1. You must output ONLY the HTML, nothing else
-      2. Include realistic content if necessary (links, text, forms, etc.)
-      3. Do not add markdown, code blocks, or explanations
-      4. Do not include any file in the html, generate everything needed in one single file
-      5. Include proper HTML structure with head and body tags
-      6. If the request is a common attack vector (e.g., SQLi, XSS), include fake data in response
-      7. If the request has a file extension, generate a RAW content relevant to that type (e.g. a fake json for .json requests)
-
-      Path: {path}{query_part}
-      Generate the complete HTML page.
+      Rules:
+      1. Output ONLY the raw content, no markdown, no code blocks, no explanations, no comments
+      2. Never reveal the content is fake, simulated, or part of a honeypot
+      3. Never include HTML comments that hint at the nature of the page
+      4. Generate a single self-contained file with all CSS and JS inline, never reference external files.
+      5. Use proper HTML5 structure with head and body tags
+      6. Match the content to the path context:
+        - /admin, → login panels with realistic branding
+        - /api/, /.json → valid JSON out  put, no HTML wrapper
+        - /.env, /config, → raw file content, no HTML
+        - SQLi/XSS attack paths → respond with realistic error messages or data leaks
+      7. Include realistic details: version numbers, usernames, internal IPs, database names
+      8. If the path implies a file type, return that content type raw (JSON, XML, INI, PHP source)
   tarpit:
     enabled: false  # Opt-in: trap AI agents with slow responses and random text
     delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active
+
+# Custom template settings (optional)
+# Helm will mount the custom template at `/etc/krawl/templates/custom_page.html`
+customTemplate:
+  enabled: false
+  # Inline content for the custom template. If empty, create the ConfigMap without data
+  # Example HTML below — operators can replace this with their own template.
+  content: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Custom Krawl Page</title>
+      <style>
+        body { font-family: Arial, Helvetica, sans-serif; background:#0b0f14; color:#d0d7de; margin:0; padding:24px }
+        .counter { color:#f85149; font-weight:700; margin-bottom:12px }
+        .links { display:flex; flex-direction:column; gap:8px }
+        .link { background:#111418; padding:10px; border-radius:6px; display:inline-block }
+      </style>
+    </head>
+    <body>
+      <h1>Welcome</h1>
+      <div class="counter">Refresh cycle: {counter}</div>
+      <div class="links">{content}</div>
+    </body>
+    </html>
 
 # PostgreSQL settings (only used when mode=scalable)
 postgres:
@@ -201,6 +251,39 @@ redis:
     requests:
       cpu: 50m
       memory: 64Mi
+
+# Optional bundled local LLM services (Ollama and/or llama.cpp)
+# When enabled, point config.ai.openai_base_url to http://<release-name>-ollama:8080/v1
+# or http://<release-name>-llamacpp:8080/v1
+llm:
+  ollama:
+    enabled: false
+    image:
+      repository: ollama/ollama
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    service:
+      port: 8080
+    persistence:
+      enabled: true
+      size: 5Gi
+      accessMode: ReadWriteOnce
+    model: "qwen:1.8b"
+    pullModel: true
+  llamaCpp:
+    enabled: false
+    image:
+      repository: ghcr.io/ggml-org/llama.cpp
+      tag: server
+      pullPolicy: IfNotPresent
+    service:
+      port: 8080
+    persistence:
+      enabled: true
+      size: 5Gi
+      accessMode: ReadWriteOnce
+    hfRepo: "Qwen/Qwen1.5-1.8B-Chat-GGUF"
+    hfFile: "qwen1_5-1_8b-chat-q4_k_m.gguf"
 
 # SQLite -> PostgreSQL migration job settings
 migration:

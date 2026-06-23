@@ -51,6 +51,7 @@
 - [Ban Malicious IPs](#use-krawl-to-ban-malicious-ips)
 - [IP Reputation](#ip-reputation)
 - [Forward Server Header](#forward-server-header)
+- [Metrics & Monitoring](#metrics--monitoring)
 - [Additional Documentation](#additional-documentation)
 - [Deception using AI](#ai-generated-deception-pages)
 - [Contributing](#contributing)
@@ -257,7 +258,7 @@ For more details on both modes, see [Deployment Modes](docs/deployment-modes.md)
 The Helm chart **defaults to scalable mode** with bundled PostgreSQL and Redis:
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.1.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.2.0 \
   -n krawl-system --create-namespace \
   --set postgres.password=your-password \
   --set redis.password=your-redis-password \
@@ -277,7 +278,7 @@ Run Krawl directly with Python 3.13+ and uvicorn for local development or testin
 
 ```bash
 pip install -r requirements.txt
-uvicorn app:app --host 0.0.0.0 --port 5000 --app-dir src
+uvicorn app:app --host 0.0.0.0 --port 5000 --app-dir src --no-server-header
 ```
 
 Access the server at `http://localhost:5000`
@@ -335,6 +336,7 @@ You can use the [config.yaml](config.yaml) file for advanced configurations, suc
 | `KRAWL_AI_TIMEOUT` | Request timeout in seconds for AI API calls | `60` |
 | `KRAWL_AI_MAX_DAILY_REQUESTS` | Max number of AI-generated pages per day (0 = unlimited) | `0` |
 | `KRAWL_AI_PROMPT` | Custom prompt template for AI page generation | Default prompt |
+| `KRAWL_CUSTOM_TEMPLATE_PATH` | Path inside the container to a custom HTML template. Template must include `{counter}` and `{content}` placeholders. | `/templates/custom_page.html` |
 | **Scalable mode** | | |
 | `KRAWL_MODE` | Deployment mode (`standalone` or `scalable`) | `standalone` |
 | `KRAWL_POSTGRES_HOST` | PostgreSQL hostname | `localhost` |
@@ -378,6 +380,7 @@ docker run -d \
   -e KRAWL_PORT=5000 \
   -e KRAWL_DELAY=100 \
   -e KRAWL_DASHBOARD_PASSWORD="my-secret-password" \
+  -e KRAWL_CUSTOM_TEMPLATE_PATH="/templates/custom_page.html" \
   -e KRAWL_CANARY_TOKEN_URL="http://your-canary-token-url" \
   --name krawl \
   ghcr.io/blessedrebus/krawl:latest
@@ -448,6 +451,8 @@ ai:
 
 For detailed configuration and usage, see the [AI Generation documentation](docs/ai_generation.md).
 
+You can also **contribute deception templates** by opening a PR, see [Contributing Deception Templates](docs/deception_pages.md#contributing-deception-templates-via-pr).
+
 ## Forward server header
 If Krawl is deployed behind a proxy such as NGINX the **server header** should be forwarded using the following configuration in your proxy:
 
@@ -458,11 +463,18 @@ location / {
 }
 ```
 
+## Metrics & Monitoring
+
+Krawl exposes [Prometheus](https://prometheus.io/) metrics at `/<dashboard_secret_path>/metrics` (enabled by default) and ships with a ready-to-import [Grafana](https://grafana.com/) dashboard at [`grafana-dashboard.json`](grafana-dashboard.json).
+
+See the [Monitoring documentation](docs/monitoring.md) for the full metric list, Grafana import steps, and Prometheus / Kubernetes (`ServiceMonitor`) scraping setup.
+
 ## Additional Documentation
 
 | Topic | Description |
 |-------|-------------|
 | [AI Generation](docs/ai_generation.md) | Configure AI-generated deception pages using OpenRouter or OpenAI |
+| [Deception Pages](docs/deception_pages.md) | Manage, import, and export deception pages; bulk operations and date-based filtering |
 | [Deployment Modes](docs/deployment-modes.md) | Standalone (SQLite) vs Scalable (PostgreSQL + Redis) mode, configuration, and data migration |
 | [Honeypot](docs/honeypot.md) | Full overview of honeypot pages: fake logins, directory listings, credential files, SQLi/XSS/XXE/command injection traps, and more |
 | [Dashboard](docs/dashboard.md) | Access and explore the real-time monitoring dashboard |
@@ -473,6 +485,7 @@ location / {
 | [Wordlist](docs/wordlist.md) | Customize fake usernames, passwords, and directory listings |
 | [Architecture](docs/architecture.md) | Technical overview of the codebase, request pipeline, database schema, and background tasks |
 | [Firewall Exporters](docs/firewall-exporters.md) | Export IP banlists in raw, iptables, or nftables format via REST API |
+| [Metrics & Monitoring](docs/monitoring.md) | Prometheus metrics endpoint, exposed metrics reference, Grafana dashboard, and ServiceMonitor scraping |
 
 ## Contributing
 

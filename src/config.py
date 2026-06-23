@@ -4,14 +4,11 @@ import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Tuple
-from zoneinfo import ZoneInfo
-import time
-from logger import get_app_logger
-import socket
-import time
+
 import requests
 import yaml
+
+from logger import get_app_logger
 
 
 @dataclass
@@ -25,14 +22,14 @@ class Config:
     postgres_host: str = "localhost"
     postgres_port: int = 5432
     postgres_user: str = "krawl"
-    postgres_password: str = "krawl"
+    postgres_password: str = "krawl"  # noqa: S105 — dev default, overridable via env
     postgres_database: str = "krawl"
 
     # Redis settings (scalable mode)
     redis_host: str = "localhost"
     redis_port: int = 6379
     redis_db: int = 0
-    redis_password: Optional[str] = None
+    redis_password: str | None = None
     redis_cache_ttl: int = 600
     redis_hot_ttl: int = 30
     redis_table_ttl: int = 120
@@ -40,20 +37,23 @@ class Config:
     port: int = 5000
     delay: int = 100  # milliseconds
     server_header: str = ""
-    links_length_range: Tuple[int, int] = (5, 15)
-    links_per_page_range: Tuple[int, int] = (10, 15)
+    links_length_range: tuple[int, int] = (5, 15)
+    links_per_page_range: tuple[int, int] = (10, 15)
     char_space: str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     max_counter: int = 10
-    canary_token_url: Optional[str] = None
+    canary_token_url: str | None = None
     canary_token_tries: int = 10
     dashboard_secret_path: str = None
-    dashboard_password: Optional[str] = None
+    dashboard_password: str | None = None
     dashboard_password_generated: bool = False
     dashboard_cache_warmup: bool = True
     dashboard_warmup_pages: int = 10
     dashboard_warmup_aggregation: bool = False
     dashboard_top_n_min_count: int = 5
     probability_error_codes: int = 0  # Percentage (0-100)
+
+    # Prometheus metrics
+    metrics_enabled: bool = True
 
     # Crawl limiting settings - for legitimate vs malicious crawlers
     max_pages_limit: int = (
@@ -88,8 +88,8 @@ class Config:
     # AI generation settings
     ai_enabled: bool = False
     ai_provider: str = "openrouter"
-    ai_openai_base_url: Optional[str] = "https://api.openai.com/v1"
-    ai_api_key: Optional[str] = None
+    ai_openai_base_url: str | None = "https://api.openai.com/v1"
+    ai_api_key: str | None = None
     ai_model: str = "nvidia/nemotron-3-super-120b-a12b:free"
     ai_prompt: str = ""
     ai_timeout: int = 60
@@ -97,7 +97,14 @@ class Config:
     ai_reasoning_enabled: bool = True
     ai_reasoning_effort: str = "medium"
 
-    _server_ip: Optional[str] = None
+    # Custom page template settings
+    # If `custom_template_path` is set (non-null), the custom template will be used.
+    custom_template_path: str | None = None
+
+    # Deception pages import settings
+    deception_import_pages: bool = True
+
+    _server_ip: str | None = None
     _server_ip_resolved: bool = False
 
     def resolve_server_ip(self) -> None:
@@ -139,7 +146,7 @@ class Config:
 
         self._server_ip_resolved = True
 
-    def get_server_ip(self) -> Optional[str]:
+    def get_server_ip(self) -> str | None:
         """Get the server's public IP (resolved once at startup)."""
         return self._server_ip
 
@@ -150,14 +157,14 @@ class Config:
         config_path = Path(__file__).parent.parent / config_location
 
         try:
-            with open(config_path, "r") as f:
+            with open(config_path) as f:
                 data = yaml.safe_load(f)
         except FileNotFoundError:
             print(
                 f"Error: Configuration file '{config_path}' not found.", file=sys.stderr
             )
             print(
-                f"Please create a config.yaml file or set CONFIG_LOCATION environment variable.",
+                "Please create a config.yaml file or set CONFIG_LOCATION environment variable.",
                 file=sys.stderr,
             )
             sys.exit(1)
@@ -179,7 +186,7 @@ class Config:
         links = data.get("links", {})
         canary = data.get("canary", {})
         dashboard = data.get("dashboard", {})
-        api = data.get("api", {})
+        data.get("api", {})
         backups = data.get("backups", {})
         database = data.get("database", {})
         behavior = data.get("behavior", {})
@@ -188,6 +195,15 @@ class Config:
         tarpit = data.get("tarpit", {})
         logging_cfg = data.get("logging", {})
         ai = data.get("ai", {})
+        metrics = data.get("metrics", {})
+        deception = data.get("deception", {})
+        # Support legacy nested `page_template` or top-level `custom_template_path`.
+        page_template = data.get("page_template", {})
+        custom_template_path = data.get("custom_template_path", None)
+        # If nested page_template is present and defines custom_template_path, prefer it
+        if not custom_template_path and isinstance(page_template, dict):
+            custom_template_path = page_template.get("custom_template_path", None)
+        metrics = data.get("metrics", {})
 
         # Handle dashboard_secret_path - auto-generate if null/not set
         dashboard_path = dashboard.get("secret_path")
@@ -252,6 +268,7 @@ class Config:
             dashboard_warmup_pages=int(dashboard.get("warmup_pages", 10)),
             dashboard_warmup_aggregation=dashboard.get("warmup_aggregation", False),
             dashboard_top_n_min_count=int(dashboard.get("top_n_min_count", 5)),
+            metrics_enabled=metrics.get("enabled", True),
             probability_error_codes=behavior.get("probability_error_codes", 0),
             backups_path=backups.get("path", "backups"),
             backups_enabled=backups.get("enabled", False),
@@ -309,6 +326,8 @@ Generate the complete HTML page.""",
             ),
             ai_timeout=ai.get("timeout", 60),
             ai_max_daily_requests=ai.get("max_daily_requests", 0),
+            deception_import_pages=deception.get("import_pages", True),
+            custom_template_path=custom_template_path,
         )
 
 
@@ -336,14 +355,14 @@ def override_config_from_env(config: Config = None):
                 # If password is overridden, it's no longer auto-generated
                 if field == "dashboard_password":
                     config.dashboard_password_generated = False
-                if field_type == int:
+                if field_type is int:
                     setattr(config, field, int(env_value))
-                elif field_type == float:
+                elif field_type is float:
                     setattr(config, field, float(env_value))
-                elif field_type == bool:
+                elif field_type is bool:
                     # Handle boolean values (case-insensitive: true/false, yes/no, 1/0)
                     setattr(config, field, env_value.lower() in ("true", "yes", "1"))
-                elif field_type == Tuple[int, int]:
+                elif field_type == tuple[int, int]:
                     parts = env_value.split(",")
                     if len(parts) == 2:
                         setattr(config, field, (int(parts[0]), int(parts[1])))

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chosen - User Selection Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border: 1px solid #a8d5ba;
+            border-radius: 4px;
+        }
+        .warning {
+            color: #d32f2f;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>User Selection Portal</h1>
+        <p>Select a user from the database to view their profile information.</p>
+        
+        <form method="GET" action="/chosen.php">
+            <div class="form-group">
+                <label for="user_id">User ID:</label>
+                <input type="text" id="user_id" name="id" value="" placeholder="Enter user ID (e.g., 1, 2, 3)">
+                <small class="warning">Tip: Try values like 1 OR 1=1-- to see all users</small>
+            </div>
+            <div class="form-group">
+                <label for="sort_by">Sort By:</label>
+                <select id="sort_by" name="sort">
+                    <option value="id">ID (Default)</option>
+                    <option value="username">Username</option>
+                    <option value="email">Email</option>
+                    <option value="created_at">Date Created</option>
+                </select>
+            </div>
+            <button type="submit">Fetch User Data</button>
+        </form>
+
+        <?php
+        // Simulated backend processing - in reality this would be server-side
+        // For honeypot purposes, we show what might happen if parameters were processed
+        if(isset($_GET['id'])) {
+            $user_id = $_GET['id'];
+            $sort = isset($_GET['sort']) ? $_GET['sort'] : 'id';
+            
+            // Fake database simulation for honeypot
+            $fake_users = [
+                ['id' => 1, 'username' => 'admin', 'email' => 'admin@company.com', 'created_at' => '2023-01-15'],
+                ['id' => 2, 'username' => 'john_doe', 'email' => 'john.doe@company.com', 'created_at' => '2023-02-20'],
+                ['id' => 3, 'username' => 'jane_smith', 'email' => 'jane.smith@company.com', 'created_at' => '2023-03-10'],
+                ['id' => 4, 'username' => 'test_user', 'email' => 'test@test.com', 'created_at' => '2023-04-05']
+            ];
+            
+            echo '<div class="results">';
+            echo '<h2>Query Results</h2>';
+            
+            // Simulate vulnerable query processing
+            if(preg_match('/[0-9]+/', $user_id)) {
+                $clean_id = intval($user_id);
+                $found = false;
+                foreach($fake_users as $user) {
+                    if($user['id'] == $clean_id) {
+                        echo '<p><strong>User Found:</strong></p>';
+                        echo '<ul>';
+                        echo '<li>ID: ' . htmlspecialchars($user['id']) . '</li>';
+                        echo '<li>Username: ' . htmlspecialchars($user['username']) . '</li>';
+                        echo '<li>Email: ' . htmlspecialchars($user['email']) . '</li>';
+                        echo '<li>Created At: ' . htmlspecialchars($user['created_at']) . '</li>';
+                        echo '</ul>';
+                        $found = true;
+                        break;
+                    }
+                }
+                if(!$found) {
+                    echo '<p>No user found with ID ' . htmlspecialchars($clean_id) . '</p>';
+                }
+            } else {
+                // Simulate what might happen with injection - show all users as if vulnerable
+                echo '<p><strong>Note: Non-numeric input detected. Showing all users (simulated vulnerability):</strong></p>';
+                echo '<ul>';
+                foreach($fake_users as $user) {
+                    echo '<li>';
+                    echo 'ID: ' . htmlspecialchars($user['id']) . ' | ';
+                    echo 'Username: ' . htmlspecialchars($user['username']) . ' | ';
+                    echo 'Email: ' . htmlspecialchars($user['email']) . ' | ';
+                    echo 'Created: ' . htmlspecialchars($user['created_at']);
+                    echo '</li>';
+                }
+                echo '</ul>';
+                echo '<p class="warning">This behavior suggests potential SQL injection vulnerability.</p>';
+            }
+            
+            echo '</div>';
+        }
+        ?>
+        
+        <div class="warning" style="margin-top: 30px; padding: 15px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;">
+            <strong>Security Notice:</strong> This system logs all access attempts for monitoring purposes. 
+            Unauthorized attempts to manipulate database queries will be traced and reported.
+        </div>
+        
+        <hr>
+        <p style="text-align: center; color: #666; font-size: 14px;">
+            © 2023 Chosen Corporation. All rights reserved. | <a href="/">Return to Home</a>
+        </p>
+    </div>
+</body>
+</html>

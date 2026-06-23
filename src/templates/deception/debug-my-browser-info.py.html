@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Debug My Browser Info</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 2em; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        .info {background:#fff; padding:1em; border:1px solid #ddd; border-radius:4px; max-width:600px;}
+        label {display:block; margin-top:0.5em; font-weight:bold;}
+        .value {word-break:break-all; color:#0066cc;}
+    </style>
+</head>
+<body>
+    <h1>Browser Debug Information</h1>
+    <p>This page collects and displays basic information about your browser and connection for debugging purposes.</p>
+    <div class="info">
+        <label>User Agent:</label>
+        <div class="value" id="ua"></div>
+        <label>Language:</label>
+        <div class="value" id="lang"></div>
+        <label>Platform:</label>
+        <div class="value" id="platform"></div>
+        <label>Screen Resolution:</label>
+        <div class="value" id="screen"></div>
+        <label>Timezone Offset:</label>
+        <div class="value" id="tz"></div>
+        <label>Cookies Enabled:</label>
+        <div class="value" id="cookies"></div>
+        <label>Java Enabled:</label>
+        <div class="value" id="java"></div>
+        <label>Online Status:</label>
+        <div class="value" id="online"></div>
+    </div>
+
+    <script>
+        function showInfo() {
+            document.getElementById('ua').textContent = navigator.userAgent;
+            document.getElementById('lang').textContent = navigator.language || navigator.userLanguage;
+            document.getElementById('platform').textContent = navigator.platform;
+            document.getElementById('screen').textContent = screen.width + '×' + screen.height;
+            document.getElementById('tz').textContent = (new Date()).getTimezoneOffset() + ' minutes';
+            document.getElementById('cookies').textContent = navigator.cookieEnabled ? 'Yes' : 'No';
+            document.getElementById('java').textContent = navigator.javaEnabled() ? 'Yes' : 'No';
+            document.getElementById('online').textContent = navigator.onLine ? 'Online' : 'Offline';
+        }
+        window.onload = showInfo;
+    </script>
+</body>
+</html>

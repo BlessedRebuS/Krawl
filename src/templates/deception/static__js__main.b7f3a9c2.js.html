@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Static JS - main.b7f3a9c2.js</title>
+</head>
+<body>
+    <h1>JavaScript Resource</h1>
+    <p>This file contains the main application logic for the site.</p>
+    <script>
+        // Fake main.b7f3a9c2.js content
+        (function() {
+            console.log('Application initialized');
+
+            // Simulated vulnerable AJAX function
+            function loadUserData(id) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', '/api/user?id=' + id, true);
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        var data = JSON.parse(xhr.responseText);
+                        displayUser(data);
+                    }
+                };
+                xhr.send();
+            }
+
+            function displayUser(data) {
+                var container = document.getElementById('user-info');
+                if (container) {
+                    container.innerHTML = '<p>Name: ' + data.name + '</p><p>Email: ' + data.email + '</p>';
+                }
+            }
+
+            // Expose to global for debugging (intentionally vulnerable)
+            window.loadUserData = loadUserData;
+        })();
+    </script>
+</body>
+</html>

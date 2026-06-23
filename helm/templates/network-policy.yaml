@@ -9,6 +9,7 @@ spec:
   podSelector:
     matchLabels:
       {{- include "krawl.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: krawl
   {{- with .Values.networkPolicy.policyTypes }}
   policyTypes:
     {{- toYaml . | nindent 4 }}

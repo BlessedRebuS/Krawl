@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NodeInfo - Instance Metadata</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1, h2 { color: #2c3e50; }
+        .endpoint { background: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0; }
+        code { background: #ecf0f1; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
+        .warning { color: #e74c3c; font-style: italic; }
+        .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; color: #7f8c8d; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>NodeInfo Instance Metadata</h1>
+        <p>This endpoint provides standardized metadata about this Mastocompatible instance according to the <a href="https://nodeinfo.diaspora.software/" target="_blank">NodeInfo 2.0</a> specification.</p>
+
+        <div class="endpoint">
+            <h2>Protocol Versions</h2>
+            <p>Supported NodeInfo versions:</p>
+            <ul>
+                <li><code>http://nodeinfo.diaspora.software/ns/schema/2.0</code></li>
+                <li><code>http://nodeinfo.diaspora.software/ns/schema/1.0</code></li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <h2>Instance Metadata (NodeInfo 2.0)</h2>
+            <p>Access the full metadata at: <a href="/nodeinfo/2.0" target="_blank">/nodeinfo/2.0</a></p>
+            <p><strong>Note:</strong> This is a discovery endpoint only. Actual instance statistics are available via the versioned endpoints.</p>
+        </div>
+
+        <div class="endpoint">
+            <h2>Related Endpoints</h2>
+            <ul>
+                <li><a href="/nodeinfo">/nodeinfo</a> - Legacy NodeInfo 1.0 discovery</li>
+                <li><a href="/nodeinfo/2.0">/nodeinfo/2.0</a> - Full NodeInfo 2.0 metadata</li>
+                <li><a href="/api/v1/instance">/api/v1/instance</a> - Mastodon instance info</li>
+                <li><a href="/.well-known/webfinger">/.well-known/webfinger</a> - WebFinger endpoint</li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <h2>Sample NodeInfo 2.0 Response (simulated)</h2>
+            <pre style="background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto;">
+{
+  "version": "2.0",
+  "usage": {
+    "users": {
+      "total": 1245,
+      "activeHalfyear": 892,
+      "activeMonth": 456
+    },
+    "localPosts": 18432,
+    "localComments": 42109,
+    "statuses": {
+      "public": 15678,
+      "unlisted": 1245,
+      "private": 892,
+      "direct": 345
+    }
+  },
+  "services": {
+    "inbound": [],
+    "outbound": [
+      "https://social.example.com",
+      "https://mastodon.social",
+      "https://fosstodon.org"
+    ]
+  },
+  "openRegistrations": true,
+  "metadata": {
+    "contact": {
+      "email": "admin@example.com"
+    },
+    "configuration": {
+      "birthday": {
+        "enabled": true,
+        "visibility": "public"
+      },
+      "federation": {
+        "rejectionsPrivate": [],
+        "rejectionsPublic": [
+          "spam-domain.net",
+          "toxic-forum.org"
+        ]
+      },
+      "posting": {
+        "statuses": {
+          "maxCharacters": 500
+        },
+        "poll": {
+          "maxOptions": 4,
+          "maxExpiration": 86400
+        }
+      },
+      "upload": {
+        "limit": 8388608,
+        "picture": {
+          "extensions": ["png", "jpg", "jpeg", "gif"],
+          "mimeTypes": ["image/png", "image/jpeg", "image/gif"]
+        },
+        "video": {
+          "extensions": ["mp4", "webm"],
+          "mimeTypes": ["video/mp4", "video/webm"]
+        }
+      }
+    }
+  },
+  "software": {
+    "name": "mastodon",
+    "version": "4.2.0"
+  },
+  "protocols": [
+    "activitypub"
+  ]
+}</pre>
+            <p class="warning">⚠️ This is simulated data for demonstration purposes only. Actual instance statistics vary.</p>
+        </div>
+
+        <div class="footer">
+            <p>NodeInfo is a decentralized protocol for exposing metadata about social network instances. <br>
+            Learn more at <a href="https://nodeinfo.diaspora.software/" target="_blank">nodeinfo.diaspora.software</a></p>
+        </div>
+    </div>
+</body>
+</html>

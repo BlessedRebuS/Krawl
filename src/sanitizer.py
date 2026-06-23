@@ -7,7 +7,6 @@ Protects against SQL injection payloads, XSS, and storage exhaustion attacks.
 
 import html
 import re
-from typing import Optional, Dict
 
 # Field length limits for database storage
 MAX_IP_LENGTH = 45  # IPv6 max length
@@ -20,7 +19,7 @@ MAX_ASN_ORG_LENGTH = 256
 MAX_REPUTATION_SOURCE_LENGTH = 64
 
 
-def sanitize_for_storage(value: Optional[str], max_length: int) -> str:
+def sanitize_for_storage(value: str | None, max_length: int) -> str:
     """
     Sanitize and truncate string for safe database storage.
 
@@ -48,32 +47,32 @@ def sanitize_for_storage(value: Optional[str], max_length: int) -> str:
     return cleaned[:max_length]
 
 
-def sanitize_ip(value: Optional[str]) -> str:
+def sanitize_ip(value: str | None) -> str:
     """Sanitize IP address for storage."""
     return sanitize_for_storage(value, MAX_IP_LENGTH)
 
 
-def sanitize_path(value: Optional[str]) -> str:
+def sanitize_path(value: str | None) -> str:
     """Sanitize URL path for storage."""
     return sanitize_for_storage(value, MAX_PATH_LENGTH)
 
 
-def sanitize_user_agent(value: Optional[str]) -> str:
+def sanitize_user_agent(value: str | None) -> str:
     """Sanitize user agent string for storage."""
     return sanitize_for_storage(value, MAX_USER_AGENT_LENGTH)
 
 
-def sanitize_credential(value: Optional[str]) -> str:
+def sanitize_credential(value: str | None) -> str:
     """Sanitize username or password for storage."""
     return sanitize_for_storage(value, MAX_CREDENTIAL_LENGTH)
 
 
-def sanitize_attack_pattern(value: Optional[str]) -> str:
+def sanitize_attack_pattern(value: str | None) -> str:
     """Sanitize matched attack pattern for storage."""
     return sanitize_for_storage(value, MAX_ATTACK_PATTERN_LENGTH)
 
 
-def escape_html(value: Optional[str]) -> str:
+def escape_html(value: str | None) -> str:
     """
     Escape HTML special characters for safe display in web pages.
 
@@ -91,7 +90,7 @@ def escape_html(value: Optional[str]) -> str:
     return html.escape(str(value))
 
 
-def escape_html_truncated(value: Optional[str], max_display_length: int) -> str:
+def escape_html_truncated(value: str | None, max_display_length: int) -> str:
     """
     Escape HTML and truncate for display.
 
@@ -112,5 +111,5 @@ def escape_html_truncated(value: Optional[str], max_display_length: int) -> str:
     return html.escape(value_str)
 
 
-def sanitize_dict(value: Optional[Dict[str, str]], max_display_length):
+def sanitize_dict(value: dict[str, str] | None, max_display_length):
     return {k: sanitize_for_storage(v, max_display_length) for k, v in value.items()}

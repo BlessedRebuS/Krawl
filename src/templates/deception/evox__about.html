@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>About EvoX</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header {background:#004080; color:#fff; padding:20px; text-align:center;}
+        nav {background:#0066cc; color:#fff; padding:10px;}
+        nav a {color:#fff; margin:0 15px; text-decoration:none;}
+        main {max-width:960px; margin:20px auto; padding:0 20px; background:#fff; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        footer {text-align:center; padding:15px; font-size:0.9em; color:#666;}
+        .vuln-notice {background:#fffbcc; border-left:4px solid #ffdd00; padding:10px; margin:20px 0;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>EvoX Solutions</h1>
+        <p>Innovating Tomorrow's Technology</p>
+    </header>
+    <nav>
+        <a href="/evox/home">Home</a>
+        <a href="/evox/about">About</a>
+        <a href="/evox/services">Services</a>
+        <a href="/evox/contact">Contact</a>
+    </nav>
+    <main>
+        <h2>About Us</h2>
+        <p>EvoX Solutions was founded in 2010 with a vision to deliver cutting-edge software services to businesses worldwide. Our team of expert engineers specializes in cloud computing, AI-driven analytics, and enterprise security.</p>
+        <div class="vuln-notice">
+            <strong>Note:</strong> This page includes a sample search feature for demonstration purposes. Please do not enter malicious input.
+        </div>
+        <form action="/evox/about" method="get">
+            <label for="site-search">Search our site:</label>
+            <input type="text" id="site-search" name="q" placeholder="Enter keywords..." value="">
+            <button type="submit">Search</button>
+        </form>
+        <?php
+        // Simulated backend processing - for illustration only
+        if(isset($_GET['q'])) {
+            echo "<h3>Results for: " . htmlspecialchars($_GET['q']) . "</h3>";
+            // In a real vulnerable version, the above line would lack htmlspecialchars
+            // allowing XSS via the q parameter.
+            // Additionally, a simulated SQL query might look like:
+            // $query = "SELECT * FROM articles WHERE content LIKE '%" . $_GET['q'] . "%'";
+        }
+        ?>
+        <p>Our mission is to empower organizations through innovative technology solutions that drive growth and efficiency.</p>
+        <h3>Leadership Team</h3>
+        <ul>
+            <li><strong>John Doe</strong> – Chief Executive Officer</li>
+            <li><strong>Jane Smith</strong> – Chief Technology Officer</li>
+            <li><strong>Alan Turing</strong> – Head of AI Research</li>
+        </ul>
+        <h3>Contact Information</h3>
+        <p>Email: <a href="mailto:info@evox.com">info@evox.com</a></p>
+        <p>Phone: +1 (555) 123-4567</p>
+        <address>
+            123 Innovation Drive<br>
+            Tech City, TC 98765<br>
+            United States
+        </address>
+    </main>
+    <footer>
+        © 2025 EvoX Solutions. All rights reserved.
+    </footer>
+</body>
+</html>

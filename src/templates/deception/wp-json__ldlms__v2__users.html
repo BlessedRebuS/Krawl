@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LDLMS Users API</title>
+<style>
+body{font-family:Arial,sans-serif; margin:2em; background:#f9f9f9; color:#333;}
+h1{color:#2c3e50;}
+p{margin-bottom:1.5em;}
+pre{background:#ecf0f1; padding:1em; border:1px solid #bdc3c7; overflow:auto;}
+</style>
+</head>
+<body>
+<h1>LDLMS v2 Users</h1>
+<p>This endpoint returns a list of users in JSON format.</p>
+<pre>[
+  {
+    "id": 1,
+    "username": "admin",
+    "email": "admin@example.com",
+    "roles": ["administrator"],
+    "capabilities": {"edit_posts":true,"manage_options":true}
+  },
+  {
+    "id": 2,
+    "username": "editor",
+    "email": "editor@example.com",
+    "roles": ["editor"],
+    "capabilities": {"edit_posts":true,"publish_pages":true}
+  },
+  {
+    "id": 3,
+    "username": "subscriber",
+    "email": "subscriber@example.com",
+    "roles": ["subscriber"],
+    "capabilities": {"read":true}
+  }
+]</pre>
+</body>
+</html>

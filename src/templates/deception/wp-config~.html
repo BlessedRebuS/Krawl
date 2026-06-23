@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>wp-config~ - WordPress Configuration Backup</title>
+    <style>
+        body {font-family: monospace; margin: 2rem; background:#fafafa; color:#222;}
+        textarea {width:100%; height:400px; background:#fff; border:1px solid #ccc; padding:1rem; font-size:0.9rem;}
+        h1 {color:#0066cc;}
+    </style>
+</head>
+<body>
+    <h1>wp-config~</h1>
+    <p>This appears to be a backup copy of the WordPress configuration file. It may contain sensitive information such as database credentials and authentication keys.</p>
+    <textarea readonly>
+<?php
+/**
+ * WordPress Configuration Backup (fake)
+ */
+define('DB_NAME', 'wordpress');
+define('DB_USER', 'wp_user');
+define('DB_PASSWORD', 'SuperSecretPass!23');
+define('DB_HOST', 'localhost');
+define('DB_CHARSET', 'utf8');
+define('DB_COLLATE', '');
+
+define('AUTH_KEY',         'put your unique phrase here');
+define('SECURE_AUTH_KEY',  'put your unique phrase here');
+define('LOGGED_IN_KEY',    'put your unique phrase here');
+define('NONCE_KEY',        'put your unique phrase here');
+define('AUTH_SALT',        'put your unique phrase here');
+define('SECURE_AUTH_SALT', 'put your unique phrase here');
+define('LOGGED_IN_SALT',   'put your unique phrase here');
+define('NONCE_SALT',       'put your unique phrase here');
+
+$table_prefix  = 'wp_';
+
+define('WP_DEBUG', false);
+
+/* That's all, stop editing! Happy publishing. */
+require_once(ABSPATH . 'wp-settings.php');
+?>
+    </textarea>
+    <hr>
+    <p><em>Note: This is a simulated environment for security training purposes. No actual data is exposed.</em></p>
+</body>
+</html>

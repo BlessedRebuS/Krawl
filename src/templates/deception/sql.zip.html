@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SQL Backup Download</title>
+</body>
+<h1>SQL Database Backup</h1>
+<p>Download the latest backup:</p>
+<a href="sql.zip" download>sql.zip</a>
+<pre>
+-- Fake SQL dump
+CREATE TABLE users (
+    id INT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    email VARCHAR(100)
+);
+INSERT INTO users (id, username, email) VALUES (1, 'admin', 'admin@example.com');
+INSERT INTO users (id, username, email) VALUES (2, 'guest', 'guest@example.com');
+</pre>
+</body>
+</html>

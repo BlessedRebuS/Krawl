@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - System Initialization</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; }
+        .status { padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #3498db; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #2980b9; }
+        .footer { text-align: center; margin-top: 30px; color: #7f8c8d; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Panel - System Initialization</h1>
+        <div class="status success">
+            <strong>Status:</strong> System is ready for initialization. Last boot: 2024-05-15 08:30:22 UTC
+        </div>
+        <form action="/admin/init" method="POST">
+            <div class="form-group">
+                <label for="admin_username">Administrator Username:</label>
+                <input type="text" id="admin_username" name="admin_username" value="admin" required>
+            </div>
+            <div class="form-group">
+                <label for="admin_password">Administrator Password:</label>
+                <input type="password" id="admin_password" name="admin_password" value="admin123" required>
+            </div>
+            <div class="form-group">
+                <label for="db_host">Database Host:</label>
+                <input type="text" id="db_host" name="db_host" value="localhost" required>
+            </div>
+            <div class="form-group">
+                <label for="db_name">Database Name:</label>
+                <input type="text" id="db_name" name="db_name" value="company_db" required>
+            </div>
+            <div class="form-group">
+                <label for="db_user">Database User:</label>
+                <input type="text" id="db_user" name="db_user" value="dbadmin" required>
+            </div>
+            <div class="form-group">
+                <label for="db_pass">Database Password:</label>
+                <input type="text" id="db_pass" name="db_pass" value="dbpass123" required>
+            </div>
+            <button type="submit">Initialize System</button>
+        </form>
+        <div class="status warning">
+            <strong>Note:</strong> This initialization script will reset all system configurations. Use only in controlled environments.
+        </div>
+        <div class="footer">
+            &copy; 2024 Company Internal Systems. All rights reserved.<br>
+            Server: Apache/2.4.41 (Ubuntu) | PHP/7.4.3
+        </div>
+    </div>
+</body>
+</html>

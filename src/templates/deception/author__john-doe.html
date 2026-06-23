@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Author: John Doe - Example Blog</title>
+    <meta name="description" content="Profile page for author John Doe on Example Blog">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header>
+    <h1>Author Profile: John Doe</h1>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/blog">Blog</a></li>
+            <li><a href="/contact">Contact</a></li>
+        </ul>
+    </nav>
+</header>
+<main>
+    <section class="author-bio">
+        <img src="/images/author/john-doe.jpg" alt="John Doe" style="width:150px;height:150px;border-radius:50%;">
+        <h2>About John Doe</h2>
+        <p>John Doe is a seasoned writer with over 10 years of experience in technology journalism. He enjoys writing about emerging trends, cybersecurity, and software development.</p>
+        <p>Follow him on <a href="https://twitter.com/johndoe" target="_blank">Twitter</a> and <a href="https://linkedin.com/in/johndoe" target="_blank">LinkedIn</a>.</p>
+    </section>
+    <section class="author-posts">
+        <h2>Recent Posts by John Doe</h2>
+        <ul>
+            <li><a href="/2024/09/ai-trends">The Future of AI in 2025</a> – Sep 10, 2024</li>
+            <li><a href="/2024/08/secure-coding">Secure Coding Practices for Developers</a> – Aug 22, 2024</li>
+            <li><a href="/2024/07/cloud-migration">Migrating Legacy Systems to the Cloud</a> – Jul 15, 2024</li>
+        </ul>
+    </section>
+    <section class="contact-form">
+        <h2>Contact John Doe</h2>
+        <form action="/author/john-doe/contact" method="post">
+            <label for="name">Name:</label><br>
+            <input type="text" id="name" name="name" required><br><br>
+            <label for="email">Email:</label><br>
+            <input type="email" id="email" name="email" required><br><br>
+            <label for="message">Message:</label><br>
+            <textarea id="message" name="message" rows="4" cols="50" required></textarea><br><br>
+            <input type="submit" value="Send Message">
+        </form>
+    </section>
+</main>
+<footer>
+    <p>&copy; 2024 Example Blog. All rights reserved.</p>
+</footer>
+</body>
+</html>

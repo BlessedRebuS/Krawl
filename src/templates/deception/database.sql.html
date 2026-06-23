@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Backup - Internal Use Only</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; border: 1px solid #dee2e6; }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Database Backup - Internal Use Only</h1>
+        <div class="warning">
+            <strong>WARNING:</strong> This file contains sensitive database information. Access is restricted to authorized personnel only. Unauthorized access, distribution, or modification is strictly prohibited and may result in disciplinary action or legal consequences.
+        </div>
+        <p><em>Generated: 2024-01-15 14:32:18 UTC</em> | <em>Server: db-prod-01.internal.corp</em> | <em>Database: production_main</em></p>
+        
+        <h2>Database Schema Export</h2>
+        <pre>-- MySQL dump 10.13  Distrib 8.0.36, for Linux (x86_64)
+--
+-- Host: localhost    Database: production_main
+-- ------------------------------------------------------
+-- Server version	8.0.36-0ubuntu0.22.04.1
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `users`
+--
+
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `users` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_admin` tinyint(1) DEFAULT '0',
+  `last_login` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=1247 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `users`
+--
+
+LOCK TABLES `users` WRITE;
+/*!40100 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` VALUES (1,'admin','admin@company.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi','2023-01-15 08:30:00','2024-01-14 16:45:22',1,'2024-01-14 16:45:22'),
+(2,'john.doe','john.doe@company.com','$2y$10$8KjX5J.ZZQv3JZqoJ5VJUeVv3Gq6fZ5kL7mN8oP9qR0sT1uV2wX3Y','2023-02-03 09:15:00','2024-01-10 11:20:05',0,'2024-01-10 11:20:05'),
+(3,'jane.smith','jane.smith@company.com','$2y$10$7LiX4W.YYPu2JZqoJ5VJUeVv3Gq6fZ5kL7mN8oP9qR0sT1uV2wX3Z','2023-02-10 14:22:00','2024-01-12 08:30:15',0,'2024-01-12 08:30:15'),
+(4,'mike.wilson','mike.wilson@company.com','$2y$10$6KiX3V.ZZQo1JZqoJ5VJUeVv3Gq6fZ5kL7mN8oP9qR0sT1uV2wX3a','2023-03-01 11:05:00','2024-01-13 14:10:30',0,'2024-01-13 14:10:30'),
+(5,'sarah.cheng','sarah.cheng@company.com','$2y$10$5LiX2U.YYPo0JZqoJ5VJUeVv3Gq6fZ5kL7mN8oP9qR0sT1uV2wX3b','2023-03-15 16:40:00','2024-01-11 09:05:45',0,'2024-01-11 09:05:45');
+/*!40100 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `orders`
+--
+
+DROP TABLE IF EXISTS `orders`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `orders` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `product_id` int NOT NULL,
+  `quantity` int NOT NULL DEFAULT '1',
+  `total_price` decimal(10,2) NOT NULL,
+  `order_status` enum('pending','processing','shipped','delivered','cancelled') DEFAULT 'pending',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `shipping_address` text,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5892 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `orders`
+--
+
+LOCK TABLES `orders` WRITE;
+/*!40100 ALTER TABLE `orders` DISABLE KEYS */;
+INSERT INTO `orders` VALUES (1001,1,101,2,299.98,'delivered','2024-01-10 14:22:10','123 Main St, Anytown, USA 12345'),
+(1002,2,205,1,89.99,'shipped','2024-01-11 09:15:30','456 Oak Ave, Somewhere, USA 67890'),
+(1003,3,101,1,149.99,'processing','2024-01-12 16:40:15','789 Pine Rd, Elsewhere, USA 54321'),
+(1004,4,307,3,449.97,'pending','2024-01-13 11:05:22','321 Elm St, Nowhere, USA 98765'),
+(1005,5,402,1,199.99,'delivered','2024-01-14 08:30:10','654 Oak Lane, Anywhere, USA 13579');
+/*!40100 ALTER TABLE `orders` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `products`
+--
+
+DROP TABLE IF EXISTS `products`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `products` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(200) NOT NULL,
+  `description` text,
+  `price` decimal(10,2) NOT NULL,
+  `category` varchar(100) DEFAULT NULL,
+  `stock_quantity` int NOT NULL DEFAULT '0',
+  `sku` varchar(50) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `sku` (`sku`)
+) ENGINE=InnoDB AUTO_INCREMENT=503 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `products`
+--
+
+LOCK TABLES `products` WRITE;
+/*!40100 ALTER TABLE `products` DISABLE KEYS */;
+INSERT INTO `products` VALUES (101,'Wireless Bluetooth Headphones','Premium noise-cancelling wireless headphones with 30hr battery life',149.99,'Electronics',157,'WBH-PRO-2024'),
+(205,'Organic Green Tea Set','Certified organic loose-leaf green tea with ceramic infuser',89.99,'Beverages',89,'OGT-SET-001'),
+(307,'Ergonomic Office Chair','Adjustable lumbar support chair with breathable mesh back',149.99,'Furniture',42,'EOC-CHAIR-01'),
+(402,'Smart Home Security Camera','1080p indoor/outdoor camera with night vision and motion detection',199.99,'Electronics',234,'SHSC-CAM-1080'),
+(501,'Stainless Steel Water Bottle','Double-walled vacuum insulated bottle keeps drinks cold for 24h',24.99,'Outdoor',312,'SSWB-24OZ-001');
+/*!40100 ALTER TABLE `products` ENABLE KEYS */;
+UNLOCK TABLES;
+
+-- Additional tables for completeness
+--
+-- Table structure for table `admin_sessions`
+--
+
+DROP TABLE IF EXISTS `admin_sessions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `admin_sessions` (
+  `session_id` varchar(64) NOT NULL,
+  `user_id` int NOT NULL,
+  `ip_address` varchar(45) NOT NULL,
+  `user_agent` text NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` timestamp NULL DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT '1',
+  PRIMARY KEY (`session_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `admin_sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `admin_sessions`
+--
+
+LOCK TABLES `admin_sessions` WRITE;
+/*!40100 ALTER TABLE `admin_sessions` DISABLE KEYS */;
+INSERT INTO `admin_sessions` VALUES ('a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6',1,'192.168.1.100','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36','2024-01-14 16:45:22','2024-01-15 04:45:22',1),
+('b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7',2,'10.0.0.50','Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36','2024-01-13 14:10:30','2024-01-14 02:10:30',1);
+/*!40100 ALTER TABLE `admin_sessions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2024-01-15 14:32:18
+</pre>
+        
+        <div class="footer">
+            <p>This is an automated backup file. For restoration procedures, refer to DOC-BACKUP-007 in the internal wiki.</p>
+            <p>File size: 2.4 MB | Rows: 1247 users, 5892 orders, 503 products</p>
+            <p><em>NOTE: This is a simulated database dump for security monitoring purposes. No actual production data is exposed.</em></p>
+        </p>
+    </div>
+</body>
+</html>

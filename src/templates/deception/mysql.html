@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MySQL Administration</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background-color: #f9f9f9;}
+        h1, h2 {color: #2c3e50;}
+        form {background: #fff; padding: 20px; border: 1px solid #ddd; border-radius: 5px; max-width: 300px;}
+        label {display: block; margin-top: 10px;}
+        input[type=text], input[type=password] {width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box;}
+        input[type=submit] {margin-top: 15px; padding: 10px 15px; background: #2980b9; color: #fff; border: none; cursor: pointer;}
+        input[type=submit]:hover {background: #3498db;}
+        table {width: 100%; border-collapse: collapse; margin-top: 20px;}
+        th, td {border: 1px solid #ccc; padding: 8px; text-align: left;}
+        th {background: #ecf0f1;}
+    </style>
+</head>
+<body>
+    <h1>MySQL Server Administration</h1>
+    <p>Welcome to the MySQL admin interface. Please log in to manage databases.</p>
+    <form action="/mysql/login.php" method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <input type="submit" value="Login">
+    </form>
+    <hr>
+    <h2>Recent Queries (demo)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Query</th>
+                <th>Rows Returned</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>SELECT * FROM users LIMIT 5</td>
+                <td>5</td>
+            </tr>
+            <tr>
+                <td>SHOW TABLES</td>
+                <td>3</td>
+            </tr>
+            <tr>
+                <td>SELECT VERSION()</td>
+                <td>1</td>
+            </tr>
+            <tr>
+                <td>SELECT COUNT(*) FROM orders WHERE status='pending'</td>
+                <td>12</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

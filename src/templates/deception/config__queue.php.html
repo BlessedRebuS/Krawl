@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Queue Configuration - MyApp</title>
+<style>
+body{font-family:Arial,sans-serif;margin:20px;}
+table{border-collapse:collapse;width:100%;margin-top:20px;}
+th,td{border:1px solid #ddd;padding:8px;text-align:left;}
+th{background-color:#f2f2f2;}
+.form-group{margin-bottom:15px;}
+input[type=text],input[type=number],select{padding:5px;width:200px;}
+.button{background:#4CAF50;color:white;padding:8px 12px;border:none;cursor:pointer;}
+.button:hover{background:#45a049;}
+</style>
+</head>
+<body>
+<header>
+<h1>Queue Configuration</h1>
+<nav>
+<a href="/dashboard.php">Dashboard</a> |
+<a href="/config/queue.php">Queue Config</a> |
+<a href="/config/cache.php">Cache Config</a> |
+<a href="/logout.php">Logout</a>
+</nav>
+<hr>
+</header>
+<main>
+<h2>Current Queue Workers</h2>
+<table>
+<thead>
+<tr><th>ID</th><th>Name</th><th>Status</th><th>Jobs Processed</th><th>Last Heartbeat</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>worker-01</td><td>Running</td><td>1245</td><td>2025-09-26 10:12:03</td></tr>
+<tr><td>2</td><td>worker-02</td><td>Idle</td><td>987</td><td>2025-09-26 10:11:58</td></tr>
+<tr><td>3</td><td>worker-03</td><td>Running</td><td>1562</td><td>2025-09-26 10:12:01</td></tr>
+</tbody>
+</table>
+
+<h2>Add New Worker</h2>
+<form action="/config/queue.php" method="post">
+<div class="form-group">
+<label for="wname">Worker Name:</label>
+<input type="text" id="wname" name="wname" required>
+</div>
+<div class="form-group">
+<label for="wtype">Type:</label>
+<select id="wtype" name="wtype">
+<option value="default">Default</option>
+<option value="high">High Priority</option>
+<option value="low">Low Priority</option>
+</select>
+</div>
+<div class="form-group">
+<button type="submit" class="button">Add Worker</button>
+</div>
+</form>
+
+<h2>Queue Settings</h2>
+<ul>
+<li><strong>Max Retries:</strong> 3</li>
+<li><strong>Visibility Timeout:</strong> 300 seconds</li>
+<li><strong>Polling Interval:</strong> 5 seconds</li>
+<li><strong>Dead Letter Queue:</strong> enabled</li>
+</ul>
+
+<p><em>Last updated: 2025-09-26 10:15:00</em></p>
+</main>
+<footer>
+<hr>
+<p>&copy; 2025 MyApp Inc. All rights reserved.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Configuration - Internal</title>
+</head>
+<body>
+    <h1>Service Configuration</h1>
+    <p>This file defines the available services for the internal network.</p>
+    <pre>
+services:
+  web:
+    port: 8080
+    image: nginx:latest
+    environment:
+      - DEBUG=true
+      - API_KEY=sk_live_abc123xyz789
+    volumes:
+      - ./web:/usr/share/nginx/html
+  db:
+    port: 5432
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=supersecretpassword123
+      - POSTGRES_DB=production
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  cache:
+    port: 6379
+    image: redis:alpine
+    command: redis-server --requirepass redispass456
+volumes:
+  db_data:
+</pre>
+    <hr>
+    <p><em>Last updated: 2024-06-15 10:30:00 UTC</em></p>
+    <p>Access restricted to internal network only.</p>
+</body>
+</html>

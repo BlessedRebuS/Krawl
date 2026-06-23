@@ -23,19 +23,20 @@ Note: This script will make API calls to fetch geolocation data, so it may take 
 """
 
 import random
-import time
 import sys
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
+import time
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
 import requests
 
 # Add parent src directory to path so we can import database and logger
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from database import get_database
-from logger import get_app_logger
 from geo_utils import extract_geolocation_from_ip
+from logger import get_app_logger
 
 # ----------------------
 # TEST DATA GENERATORS
@@ -195,10 +196,10 @@ def cleanup_database(db_manager, app_logger):
     """
     from models import (
         AccessLog,
-        CredentialAttempt,
         AttackDetection,
-        IpStats,
         CategoryHistory,
+        CredentialAttempt,
+        IpStats,
     )
 
     app_logger.info("=" * 60)
@@ -371,7 +372,7 @@ def generate_fake_data(
         app_logger.info(f"  ✓ Generated {credentials_per_ip} credential attempts")
 
         # Fetch geolocation data from API
-        app_logger.info(f"  🌍 Fetching geolocation from API...")
+        app_logger.info("  🌍 Fetching geolocation from API...")
         geo_data = fetch_geolocation_from_api(ip, app_logger)
 
         if geo_data:
@@ -468,7 +469,7 @@ def generate_fake_data(
             # Don't generate access logs for good crawlers to prevent re-categorization
             # We'll just create the IP stats entry with the category set
             app_logger.info(
-                f"  ✓ Adding as good crawler (no logs to prevent re-categorization)"
+                "  ✓ Adding as good crawler (no logs to prevent re-categorization)"
             )
 
             # First, we need to create the IP in the database via persist_access
@@ -541,7 +542,7 @@ def generate_fake_data(
     app_logger.info(
         "All IPs have API-fetched geolocation with reverse geocoded city names."
     )
-    app_logger.info("Run: uvicorn app:app --app-dir src")
+    app_logger.info("Run: uvicorn app:app --app-dir src --no-server-header")
     app_logger.info("=" * 60)
 
 

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BuddyPress Members - Example Site</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        .container {max-width:960px; margin:20px auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1 {color:#2c3e50; text-align:center;}
+        .search-box {margin-bottom:20px; text-align:center;}
+        .search-box input[type="text"] {padding:8px; width:250px; border:1px solid #ccc; border-radius:4px;}
+        .search-box button {padding:8px 12px; background:#3498db; color:#fff; border:none; border-radius:4px; cursor:pointer;}
+        .search-box button:hover {background:#2980b9;}
+        .member-list {list-style:none; padding:0;}
+        .member-list li {display:flex; align-items:center; padding:15px; border-bottom:1px solid #eee;}
+        .member-list li:last-child {border-bottom:none;}
+        .member-avatar {width:50px; height:50px; border-radius:50%; object-fit:cover; margin-right:15px;}
+        .member-info {flex:1;}
+        .member-name {font-weight:bold; margin-bottom:4px;}
+        .member-meta {font-size:0.9em; color:#7f8c8d;}
+        .pagination {text-align:center; margin-top:20px;}
+        .pagination a {margin:0 5px; padding:6px 12px; background:#ecf0f1; text-decoration:none; border-radius:4px;}
+        .pagination a.active {background:#3498db; color:#fff;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>BuddyPress Members</h1>
+    <div class="search-box">
+        <form method="get" action="/wp-json/buddypress/v1/members">
+            <input type="text" name="search" placeholder="Search members..." value="">
+            <button type="submit">Search</button>
+        </form>
+    </div>
+    <ul class="member-list">
+        <li>
+            <img src="https://via.placeholder.com/150/3498db/ffffff?text=A" alt="Avatar" class="member-avatar">
+            <div class="member-info">
+                <div class="member-name">Alice Johnson</div>
+                <div class="member-meta">Joined: 2023-04-12 • <a href="/members/alicej">View Profile</a></div>
+            </div>
+        </li>
+        <li>
+            <img src="https://via.placeholder.com/150/2ecc71/ffffff?text=B" alt="Avatar" class="member-avatar">
+            <div class="member-info">
+                <div class="member-name">Bob Smith</div>
+                <div class="member-meta">Joined: 2022-11-05 • <a href="/members/bobsmith">View Profile</a></div>
+            </div>
+        </li>
+        <li>
+            <img src="https://via.placeholder.com/150/e74c3c/ffffff?text=C" alt="Avatar" class="member-avatar">
+            <div class="member-info">
+                <div class="member-name">Carol Lee</div>
+                <div class="member-meta">Joined: 2021-09-30 • <a href="/members/carolle">View Profile</a></div>
+            </div>
+        </li>
+        <li>
+            <img src="https://via.placeholder.com/150/f1c40f/ffffff?text=D" alt="Avatar" class="member-avatar">
+            <div class="member-info">
+                <div class="member-name">David Brown</div>
+                <div class="member-meta">Joined: 2020-02-18 • <a href="/members/davidb">View Profile</a></div>
+            </div>
+        </li>
+        <li>
+            <img src="https://via.placeholder.com/150/9b59b6/ffffff?text=E" alt="Avatar" class="member-avatar">
+            <div class="member-info">
+                <div class="member-name">Eva Green</div>
+                <div class="member-meta">Joined: 2023-01-22 • <a href="/members/evag">View Profile</a></div>
+            </div>
+        </li>
+    </ul>
+    <div class="pagination">
+        <a href="?page=1" class="active">1</a>
+        <a href="?page=2">2</a>
+        <a href="?page=3">3</a>
+        <a href="?page=4">4</a>
+        <a href="?page=5">5</a>
+        <a href="?page=2">&raquo;</a>
+    </div>
+    <hr>
+    <p style="font-size:0.8em; text-align:center; color:#999;">
+        Note: This is a simulated BuddyPress REST endpoint for demonstration purposes only.
+    </p>
+</div>
+</body>
+</html>

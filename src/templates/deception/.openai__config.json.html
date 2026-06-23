@@ -1,0 +1,23 @@
+<html><body>{
+  "openai": {
+    "api_key": "sk-fake-abc123def456ghi789jkl012mno345pqr678stu90vwx1234yz5678",
+    "organization": "org_fake_1a2b3c4d5e6f7g8h9i0j",
+    "models": [
+      "gpt-4-turbo-preview",
+      "gpt-3.5-turbo",
+      "text-embedding-ada-002"
+    ],
+    "endpoint": "https://api.openai.com/v1",
+    "timeout": 30,
+    "max_retries": 3,
+    "logging": {
+      "level": "debug",
+      "output": "/var/log/openai/api.log"
+    },
+    "proxy": {
+      "enabled": false,
+      "host": "",
+      "port": 0
+    }
+  }
+}</body></html>

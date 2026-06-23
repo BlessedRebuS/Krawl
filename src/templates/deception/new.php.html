@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Archive - Community Bulletin</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 10px; }
+        .news-item { border-bottom: 1px solid #eee; padding: 15px 0; }
+        .news-item:last-child { border-bottom: none; }
+        .date { color: #666; font-size: 0.9em; }
+        .summary { margin: 10px 0; color: #555; }
+        .read-more { color: #0066cc; text-decoration: none; font-size: 0.9em; }
+        .read-more:hover { text-decoration: underline; }
+        .search-form { margin: 20px 0; }
+        .search-form input[type="text"] { padding: 8px; width: 60%; border: 1px solid #ddd; border-radius: 4px; }
+        .search-form input[type="submit"] { padding: 8px 15px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .search-form input[type="submit"]:hover { background: #0052a3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Community News Archive</h1>
+        
+        <div class="search-form">
+            <form method="GET" action="/new.php">
+                <input type="text" name="q" placeholder="Search news..." value="<?php echo isset($_GET['q']) ? htmlspecialchars($_GET['q']) : ''; ?>">
+                <input type="submit" value="Search">
+            </form>
+        </div>
+
+        <?php
+        // Simulate database connection and query
+        $search_term = isset($_GET['q']) ? $_GET['q'] : '';
+        $articles = [
+            ['id' => 1, 'title' => 'Annual Town Festival Scheduled for July', 'date' => '2024-06-15', 'summary' => 'The annual summer festival will feature live music, food vendors, and family activities.'],
+            ['id' => 2, 'title' => 'Local Library Expands Hours', 'date' => '2024-06-10', 'summary' => 'Starting next month, the community library will extend its weekend hours to better serve residents.'],
+            ['id' => 3, 'title' => 'Road Maintenance on Main Street Begins', 'date' => '2024-06-05', 'summary' => 'Construction crews will begin repaving Main Street between Oak and Pine avenues.'],
+            ['id' => 4, 'title' => 'New Parks Initiative Approved', 'date' => '2024-05-28', 'summary' => 'City council approved funding for three new neighborhood parks and playgrounds.'],
+            ['id' => 5, 'title' => 'School Board Announces Budget Changes', 'date' => '2024-05-20', 'summary' => 'Proposed changes include increased funding for STEM programs and facility upgrades.']
+        ];
+
+        if (!empty($search_term)) {
+            $filtered = array_filter($articles, function($article) use ($search_term) {
+                return stripos($article['title'], $search_term) !== false || 
+                       stripos($article['summary'], $search_term) !== false;
+            });
+            $articles = array_values($filtered);
+        }
+        ?>
+
+        <?php if (empty($articles)): ?>
+            <p>No articles found matching your search.</p>
+        <?php else: ?>
+            <?php foreach ($articles as $article): ?>
+                <div class="news-item">
+                    <h2><a href="/article.php?id=<?php echo $article['id']; ?>"><?php echo htmlspecialchars($article['title']); ?></a></h2>
+                    <p class="date">Posted on <?php echo htmlspecialchars($article['date']); ?></p>
+                    <p class="summary"><?php echo htmlspecialchars($article['summary']); ?></p>
+                    <a href="/article.php?id=<?php echo $article['id']; ?>" class="read-more">Read full story →</a>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 0.9em; color: #888;">
+            <p>&copy; 2024 Community Bulletin. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

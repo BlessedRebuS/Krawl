@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internal Dashboard - Acme Corp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header {background:#004080; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#e2e2e2; padding:0.5rem;}
+        nav a {margin:0 1rem; text-decoration:none; color:#004080;}
+        main {padding:2rem;}
+        .card {background:#fff; border-radius:5px; box-shadow:0 2px 5px rgba(0,0,0,0.1); padding:1.5rem; margin-bottom:1.5rem;}
+        table {width:100%; border-collapse:collapse;}
+        th, td {border:1px solid #ddd; padding:0.5rem; text-align:left;}
+        th {background:#004080; color:#fff;}
+        tr:nth-child(even) {background:#f9f9f9;}
+        footer {text-align:center; padding:1rem; font-size:0.9rem; color:#666; background:#ddd;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Acme Corp Internal Dashboard</h1>
+        <p>Welcome, administrator</p>
+    </header>
+    <nav>
+        <a href="/home">Home</a>
+        <a href="/users">Users</a>
+        <a href="/reports">Reports</a>
+        <a href="/settings">Settings</a>
+        <a href="/logout">Logout</a>
+    </nav>
+    <main>
+        <section class="card">
+            <h2>System Overview</h2>
+            <p>Last updated: 2025-11-02 10:14 UTC</p>
+            <ul>
+                <li>Active sessions: 12</li>
+                <li>Pending tickets: 3</li>
+                <li>Disk usage: 42%</li>
+            </ul>
+        </section>
+        <section class="card">
+            <h2>Recent Activity</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>09:58</td>
+                        <td>jdoe</td>
+                        <td>Login</td>
+                        <td>Success</td>
+                    </tr>
+                    <tr>
+                        <td>09:45</td>
+                        <td>asmith</td>
+                        <td>File Upload</td>
+                        <td>Success</td>
+                    </tr>
+                    <tr>
+                        <td>09:30</td>
+                        <td>rbrown</td>
+                        <td>Password Change</td>
+                        <td>Success</td>
+                    </tr>
+                    <tr>
+                        <td>09:12</td>
+                        <td>ljones</td>
+                        <td>Failed Login</td>
+                        <td>Blocked</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="card">
+            <h2>Submit a Support Ticket</h2>
+            <form action="/ticket" method="post">
+                <label for="title">Title:</label><br>
+                <input type="text" id="title" name="title" required><br><br>
+                <label for="description">Description:</label><br>
+                <textarea id="description" name="description" rows="4" required></textarea><br><br>
+                <label for="priority">Priority:</label><br>
+                <select id="priority" name="priority">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                </select><br><br>
+                <button type="submit">Submit</button>
+            </form>
+        </section>
+    </main>
+    <footer>
+        &copy; 2025 Acme Corp • Internal Use Only
+    </footer>
+</body>
+</html>

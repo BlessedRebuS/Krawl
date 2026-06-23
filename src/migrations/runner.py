@@ -13,7 +13,6 @@ create_all() cannot apply to existing tables (new columns, new indexes).
 """
 
 import logging
-from typing import List
 
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
@@ -50,12 +49,28 @@ def _migrate_need_reevaluation_column(engine: Engine) -> bool:
         return False
     with engine.begin() as conn:
         conn.execute(
-            text("ALTER TABLE ip_stats ADD COLUMN need_reevaluation BOOLEAN DEFAULT 0")
+            text(
+                "ALTER TABLE ip_stats ADD COLUMN need_reevaluation BOOLEAN DEFAULT false"
+            )
         )
     return True
 
 
-def _migrate_ban_state_columns(engine: Engine) -> List[str]:
+def _migrate_has_triggered_honeypot_column(engine: Engine) -> bool:
+    """Add has_triggered_honeypot column to ip_stats if missing."""
+    if _column_exists(engine, "ip_stats", "has_triggered_honeypot"):
+        return False
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "ALTER TABLE ip_stats ADD COLUMN has_triggered_honeypot "
+                "BOOLEAN DEFAULT false"
+            )
+        )
+    return True
+
+
+def _migrate_ban_state_columns(engine: Engine) -> list[str]:
     """Add ban/rate-limit columns to ip_stats if missing."""
     added = []
     columns = {
@@ -74,7 +89,7 @@ def _migrate_ban_state_columns(engine: Engine) -> List[str]:
     return added
 
 
-def _migrate_performance_indexes(engine: Engine) -> List[str]:
+def _migrate_performance_indexes(engine: Engine) -> list[str]:
     """Add performance indexes to attack_detections if missing."""
     added = []
     if not _index_exists(
@@ -102,7 +117,7 @@ def _migrate_performance_indexes(engine: Engine) -> List[str]:
     return added
 
 
-def _migrate_scalable_indexes(engine: Engine) -> List[str]:
+def _migrate_scalable_indexes(engine: Engine) -> list[str]:
     """Add indexes for query performance (benefits both SQLite and PostgreSQL)."""
     added = []
 
@@ -115,6 +130,10 @@ def _migrate_scalable_indexes(engine: Engine) -> List[str]:
         ("ix_ip_stats_category", "ip_stats", "category"),
         ("ix_ip_stats_need_reevaluation", "ip_stats", "need_reevaluation"),
         ("ix_ip_stats_total_requests", "ip_stats", "total_requests"),
+        # Sort columns for paginated attacker / all-IP views.
+        ("ix_ip_stats_last_seen", "ip_stats", "last_seen"),
+        ("ix_ip_stats_first_seen", "ip_stats", "first_seen"),
+        ("ix_ip_stats_reputation_score", "ip_stats", "reputation_score"),
     ]
     for idx_name, table, column in indexes:
         if not _index_exists(engine, table, idx_name):
@@ -148,32 +167,50 @@ def run_migrations(engine: Engine) -> None:
     Args:
         engine: SQLAlchemy Engine instance (works with any dialect).
     """
-    applied: List[str] = []
+    applied: list[str] = []
 
-    try:
-        if _migrate_raw_request_column(engine):
-            applied.append("add raw_request column to access_logs")
+    # Each migration runs in its own try/except so that one failure does not
+    # abort the rest of the chain (a single bad ALTER must not leave later
+    # columns/indexes unapplied).
+    def _step(label: str, fn):
+        try:
+            result = fn()
+            if isinstance(result, list):
+                for item in result:
+                    applied.append(f"add {item}")
+            elif result:
+                applied.append(label)
+        except Exception as e:
+            logger.error(f"Migration error ({label}): {e}")
 
-        if _migrate_need_reevaluation_column(engine):
-            applied.append("add need_reevaluation column to ip_stats")
-
-        ban_cols = _migrate_ban_state_columns(engine)
-        for col in ban_cols:
-            applied.append(f"add {col} column to ip_stats")
-
-        if _migrate_ban_override_column(engine):
-            applied.append("add ban_override column to ip_stats")
-
-        idx_added = _migrate_performance_indexes(engine)
-        for idx in idx_added:
-            applied.append(f"add index {idx}")
-
-        scalable_idx = _migrate_scalable_indexes(engine)
-        for idx in scalable_idx:
-            applied.append(f"add index {idx}")
-
-    except Exception as e:
-        logger.error(f"Migration error: {e}")
+    _step(
+        "add raw_request column to access_logs",
+        lambda: _migrate_raw_request_column(engine),
+    )
+    _step(
+        "add need_reevaluation column to ip_stats",
+        lambda: _migrate_need_reevaluation_column(engine),
+    )
+    _step(
+        "add has_triggered_honeypot column to ip_stats",
+        lambda: _migrate_has_triggered_honeypot_column(engine),
+    )
+    _step(
+        "ban state columns on ip_stats",
+        lambda: [f"{c} column to ip_stats" for c in _migrate_ban_state_columns(engine)],
+    )
+    _step(
+        "add ban_override column to ip_stats",
+        lambda: _migrate_ban_override_column(engine),
+    )
+    _step(
+        "performance indexes",
+        lambda: [f"index {i}" for i in _migrate_performance_indexes(engine)],
+    )
+    _step(
+        "scalable indexes",
+        lambda: [f"index {i}" for i in _migrate_scalable_indexes(engine)],
+    )
 
     if applied:
         for m in applied:

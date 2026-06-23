@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Registry v2 API - Catalog</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #0db7ed; }
+        code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-family: 'Courier New', monospace; }
+        .endpoint { background: #e8f4fd; padding: 15px; border-left: 4px solid #0db7ed; margin: 20px 0; }
+        .params { font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Docker Registry v2 API</h1>
+        <p>Welcome to the Docker Registry HTTP API V2. This endpoint provides access to the registry's catalog functionality.</p>
+        
+        <div class="endpoint">
+            <h2>GET /v2/_catalog</h2>
+            <p>List all repositories in the registry.</p>
+            <div class="params">
+                <strong>Parameters:</strong>
+                <ul>
+                    <li><code>n</code> (optional): Maximum number of repository names to return</li>
+                    <li><code>last</code> (optional): Return repositories after this value (for pagination)</li>
+                </ul>
+            </div>
+            <strong>Response:</strong>
+            <pre>
+{
+  "repositories": [
+    "library/nginx",
+    "library/mysql", 
+    "library/redis",
+    "library/postgres",
+    "library/mongo",
+    "app/frontend",
+    "app/backend",
+    "api/auth-service",
+    "api/payment-service",
+    "infra/database",
+    "infra/cache",
+    "monitoring/prometheus",
+    "monitoring/grafana",
+    "ci/cd-pipeline",
+    "security/vuln-scanner"
+  ]
+}</pre>
+        </div>
+
+        <div class="endpoint">
+            <h2>Related Endpoints</h2>
+            <ul>
+                <li><a href="/v2/">API Root</a></li>
+                <li><a href="/v2/_catalog?n=10">Catalog (limited to 10)</a></li>
+                <li><a href="/v2/library/nginx/tags/list">Tags for nginx</a></li>
+                <li><a href="/v2/_manifests/library/nginx/latest">Manifest for nginx:latest</a></li>
+            </ul>
+        </div>
+
+        <div class="endpoint">
+            <h2>Authentication</h2>
+            <p>This registry requires authentication for push/pull operations. Catalog listing is publicly accessible.</p>
+            <p><em>Note: For security reasons, anonymous access to catalog may be disabled in production environments.</em></p>
+        </div>
+
+        <footer>
+            <hr>
+            <p><small>Docker Registry API v2.0.1 &copy; 2023 Docker, Inc. | <a href="/docs">Documentation</a></small></p>
+        </footer>
+    </div>
+</body>
+</html>

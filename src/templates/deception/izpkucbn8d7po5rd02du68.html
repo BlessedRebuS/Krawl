@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel - Dashboard</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <header>
+        <h1>Internal Admin Dashboard</h1>
+        <nav>
+            <a href="/">Home</a> | <a href="/logs">Logs</a> | <a href="/users">Users</a> | <a href="/settings">Settings</a>
+        </nav>
+    </header>
+    <section>
+        <h2>Recent Activity</h2>
+        <table border="1" cellpadding="5" cellspacing="0">
+            <tr><th>Time</th><th>User</th><th>Action</th></tr>
+            <tr><td>2025-09-26 10:12</td><td>admin</td><td>Logged in</td></tr>
+            <tr><td>2025-09-26 09:58</td><td>jdoe</td><td>Updated profile</td></tr>
+            <tr><td>2025-09-26 09:45</td><td>system</td><td>Backup completed</td></tr>
+        </table>
+    </section>
+    <section>
+        <h2>Execute Command (for debugging)</h2>
+        <form action="/exec" method="post">
+            <label>Command: <input type="text" name="cmd" size="50"></label>
+            <input type="submit" value="Run">
+        </form>
+        <p>Note: Only whitelisted commands allowed.</p>
+    </section>
+    <footer>
+        <p>&copy; 2025 Company Internal. All rights reserved.</p>
+    </footer>
+</body>
+</html>

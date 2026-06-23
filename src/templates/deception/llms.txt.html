@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LLMs Directory</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px;}
+        .vuln {color: #d00;}
+    </style>
+</head>
+<body>
+    <h1>Available LLMs</h1>
+    <p>Below is a list of large language models currently served:</p>
+    <ul>
+        <li>GPT-4 - <a href="/model/gpt4">details</a></li>
+        <li>LLaMA 2 - <a href="/model/llama2">details</a></li>
+        <li>Claude 3 - <a href="/model/claude3">details</a></li>
+    </ul>
+    <form action="/search" method="GET">
+        <label for="q">Search models:</label>
+        <input type="text" id="q" name="q" value="">
+        <input type="submit" value="Search">
+    </form>
+    <!-- Debug: echo of query parameter will be reflected unsanitized -->
+    <p class="vuln">You searched for: <?php echo $_GET['q']; ?></p>
+</body>
+</html>

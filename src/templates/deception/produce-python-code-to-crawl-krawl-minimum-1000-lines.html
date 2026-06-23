@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Web Crawler Script - Krawl (1000+ Lines)</title>
+    <style>
+        body { font-family: 'Courier New', monospace; background-color: #0f0f0f; color: #00ff00; padding: 20px; }
+        pre { background-color: #1a1a1a; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        h1 { color: #00ff00; text-align: center; }
+        .note { color: #ffaa00; font-style: italic; margin-top: 20px; }
+        .warning { color: #ff4444; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <h1>Krawl - Advanced Python Web Crawler (1000+ Lines)</h1>
+    <p><em>Generated for educational and research purposes only. Use responsibly and in compliance with applicable laws and website terms of service.</em></p>
+    
+    <div class="warning">
+        ⚠️ WARNING: This script is designed for authorized penetration testing on systems you own or have explicit permission to test. Unauthorized crawling may violate laws such as the CFAA, GDPR, or similar regulations.
+    </div>
+    
+    <pre>
+import requests
+import time
+import random
+import urllib.parse
+from urllib.robotparser import RobotFileParser
+from bs4 import BeautifulSoup
+import csv
+import json
+import sqlite3
+import hashlib
+import threading
+from queue import Queue
+import logging
+import sys
+import os
+from datetime import datetime
+import re
+import socket
+import ssl
+
+# Configuration Class
+class CrawlerConfig:
+    def __init__(self):
+        self.USER_AGENTS = [
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:89.0) Gecko/20100101 Firefox/89.0'
+        ]
+        self.REQUEST_DELAY = (1, 3)  # Min and max delay between requests (seconds)
+        self.TIMEOUT = 10
+        self.MAX_RETRIES = 3
+        self.MAX_DEPTH = 5
+        self.MAX_PAGES = 1000
+        self.OBEY_ROBOTS = True
+        self.OUTPUT_DIR = 'crawl_output'
+        self.LOG_FILE = 'crawler.log'
+        self.DATABASE_FILE = 'crawl_data.db'
+        self.ACCEPTED_DOMAINS = []  # Empty means all domains allowed
+        self.BLOCKED_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.gif', '.css', '.js', '.ico', '.pdf', '.zip', '.rar'}
+        self.THREAD_COUNT = 5
+        self.USE_PROXY = False
+        self.PROXY_LIST = []
+        self.CUSTOM_HEADERS = {}
+        self.COOKIES = {}
+
+# Global instances
+config = CrawlerConfig()
+visited_urls = set()
+url_queue = Queue()
+results = []
+lock = threading.Lock()
+pages_crawled = 0
+start_time = None
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(config.LOG_FILE),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
+
+def setup_directories():
+    """Create necessary output directories"""
+    if not os.path.exists(config.OUTPUT_DIR):
+        os.makedirs(config.OUTPUT_DIR)
+    logger.info(f"Output directory set to: {config.OUTPUT_DIR}")
+
+def init_database():
+    """Initialize SQLite database for storing crawl results"""
+    conn = sqlite3.connect(config.DATABASE_FILE)
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS crawled_pages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            url TEXT UNIQUE,
+            title TEXT,
+            status_code INTEGER,
+            content_length INTEGER,
+            crawl_time TIMESTAMP,
+            domain TEXT,
+            depth INTEGER,
+            sha256_hash TEXT
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS links (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            from_url TEXT,
+            to_url TEXT,
+            link_text TEXT,
+            FOREIGN KEY(from_url) REFERENCES crawled_pages(url)
+        )
+    ''')
+    conn.commit()
+    conn.close()
+    logger.info(f"Database initialized: {config.DATABASE_FILE}")
+
+def get_random_user_agent():
+    """Return a random user agent string"""
+    return random.choice(config.USER_AGENTS)
+
+def get_proxy():
+    """Return a random proxy if proxy usage is enabled"""
+    if config.USE_PROXY and config.PROXY_LIST:
+        return {'http': random.choice(config.PROXY_LIST), 'https': random.choice(config.PROXY_LIST)}
+    return None
+
+def is_allowed_by_robots(url):
+    """Check if URL is allowed by robots.txt"""
+    if not config.OBEY_ROBOTS:
+        return True
+    
+    try:
+        parsed = urllib.parse.urlparse(url)
+        base_url = f"{parsed.scheme}://{parsed.netloc}"
+        rp = RobotFileParser()
+        rp.set_url(urllib.parse.urljoin(base_url, '/robots.txt'))
+        rp.read()
+        return rp.can_fetch(get_random_user_agent(), url)
+    except Exception as e:
+        logger.warning(f"Could not check robots.txt for {url}: {str(e)}")
+        return True  # Allow if we can't check
+
+def is_valid_url(url):
+    """Validate URL format and filters"""
+    try:
+        parsed = urllib.parse.urlparse(url)
+        if not parsed.scheme or not parsed.netloc:
+            return False
+        
+        # Check scheme
+        if parsed.scheme not in ['http', 'https']:
+            return False
+        
+        # Check domain filtering
+        if config.ACCEPTED_DOMAINS:
+            domain = parsed.netloc.lower()
+            if not any(domain.endswith(d) for d in config.ACCEPTED_DOMAINS):
+                return False
+        
+        # Check file extensions
+        path = parsed.path.lower()
+        if any(path.endswith(ext) for ext in config.BLOCKED_EXTENSIONS):
+            return False
+            
+        return True
+    except Exception:
+        return False
+
+def normalize_url(url, base_url=None):
+    """Normalize URL by resolving relative paths and removing fragments"""
+    if base_url:
+        url = urllib.parse.urljoin(base_url, url)
+    
+    parsed = urllib.parse.urlparse(url)
+    # Remove fragment
+    normalized = urllib.parse.urlunparse((
+        parsed.scheme,
+        parsed.netloc,
+        parsed.path,
+        parsed.params,
+        parsed.query,
+        ''  # Remove fragment
+    ))
+    
+    # Remove trailing slash unless it's the root
+    if normalized.endswith('/') and len(parsed.path) > 1:
+        normalized = normalized[:-1]
+        
+    return normalized
+
+def fetch_page(url):
+    """Fetch a single web page with retry logic"""
+    headers = {
+        'User-Agent': get_random_user_agent(),
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+    }
+    
+    # Add custom headers
+    headers.update(config.CUSTOM_HEADERS)
+    
+    proxies = get_proxy()
+    
+    for attempt in range(config.MAX_RETRIES):
+        try:
+            response = requests.get(
+                url,
+                headers=headers,
+                proxies=proxies,
+                timeout=config.TIMEOUT,
+                cookies=config.COOKIES,
+                allow_redirects=True
+            )
+            
+            # Check for successful response
+            if response.status_code == 200:
+                return response
+            elif response.status_code in [301, 302, 303, 307, 308]:
+                # Handle redirects manually if needed
+                logger.debug(f"Redirect received ({response.status_code}) for {url}")
+                return response
+            else:
+                logger.warning(f"HTTP {response.status_code} for {url} (attempt {attempt+1}/{config.MAX_RETRIES})")
+                
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Request failed for {url} (attempt {attempt+1}/{config.MAX_RETRIES}): {str(e)}")
+        
+        if attempt < config.MAX_RETRIES - 1:
+            time.sleep(2 ** attempt)  # Exponential backoff
+    
+    return None
+
+def extract_links(soup, base_url):
+    """Extract all links from a BeautifulSoup object"""
+    links = []
+    for tag in soup.find_all('a', href=True):
+        href = tag['href'].strip()
+        if href and not href.startswith('#') and not href.startswith('javascript:'):
+            try:
+                absolute_url = normalize_url(href, base_url)
+                if is_valid_url(absolute_url):
+                    link_text = tag.get_text().strip()[:200]  # Limit text length
+                    links.append((absolute_url, link_text))
+            except Exception as e:
+                logger.debug(f"Could not process link {href}: {str(e)}")
+    
+    # Also extract links from other common tags
+    for tag in soup.find_all(['link', 'script', 'img', 'iframe', 'source']):
+        attr = 'href' if tag.name in ['link'] else 'src'
+        if tag.has_attr(attr):
+            href = tag[attr].strip()
+            if href and not href.startswith('#') and not href.startswith('data:'):
+                try:
+                    absolute_url = normalize_url(href, base_url)
+                    if is_valid_url(absolute_url):
+                        links.append((absolute_url, f"[{tag.name}] {href[:50]}"))
+                except Exception:
+                    pass
+    
+    return links
+
+def extract_page_data(soup, url):
+    """Extract meaningful data from a page"""
+    data = {
+        'url': url,
+        'title': '',
+        'status_code': 200,
+        'content_length': 0,
+        'domain': urllib.parse.urlparse(url).netloc,
+        'sha256_hash': '',
+        'links': [],
+        'text_content': '',
+        'meta_description': '',
+        'keywords': []
+    }
+    
+    # Extract title
+    title_tag = soup.find('title')
+    if title_tag:
+        data['title'] = title_tag.get_text().strip()[:200]
+    
+    # Extract meta description
+    meta_desc = soup.find('meta', attrs={'name': 'description'})
+    if meta_desc and meta_desc.get('content'):
+        data['meta_description'] = meta_desc['content'].strip()[:300]
+    
+    # Extract keywords
+    meta_keywords = soup.find('meta', attrs={'name': 'keywords'})
+    if meta_keywords and meta_keywords.get('content'):
+        keywords = [k.strip() for k in meta_keywords['content'].split(',') if k.strip()]
+        data['keywords'] = keywords[:20]  # Limit to 20 keywords
+    
+    # Get text content (first 5000 chars for storage efficiency)
+    text = soup.get_text()
+    # Clean up whitespace
+    lines = (line.strip() for line in text.splitlines())
+    chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+    data['text_content'] = '\n'.join(chunk for chunk in chunks if chunk)[:5000]
+    
+    return data
+
+def worker():
+    """Worker thread function"""
+    global pages_crawled
+    
+    while not url_queue.empty() and pages_crawled < config.MAX_PAGES:
+        try:
+            # Get URL and depth from queue
+            item = url_queue.get(timeout=1)
+            if item is None:
+                break
+                
+            current_url, depth = item
+            
+            # Skip if already visited or too deep
+            with lock:
+                if current_url in visited_urls or depth > config.MAX_DEPTH:
+                    url_queue.task_done()
+                    continue
+                visited_urls.add(current_url)
+            
+            # Check robots.txt
+            if not is_allowed_by_robots(current_url):
+                logger.info(f"Blocked by robots.txt: {current_url}")
+                url_queue.task_done()
+                continue
+            
+            # Fetch the page
+            logger.info(f"Crawling ({pages_crawled+1}/{config.MAX_PAGES}): {current_url} (depth: {depth})")
+            response = fetch_page(current_url)
+            
+            if response is None:
+                logger.error(f"Failed to fetch: {current_url}")
+                url_queue.task_done()
+                continue
+            
+            # Parse HTML
+            try:
+                soup = BeautifulSoup(response.content, 'html.parser')
+            except Exception as e:
+                logger.error(f"Failed to parse HTML for {current_url}: {str(e)}")
+                url_queue.task_done()
+                continue
+            
+            # Extract page data
+            page_data = extract_page_data(soup, current_url)
+            page_data['status_code'] = response.status_code
+            page_data['content_length'] = len(response.content)
+            
+            # Calculate hash
+            page_data['sha256_hash'] = hashlib.sha256(response.content).hexdigest()
+            
+            # Extract links
+            links = extract_links(soup, current_url)
+            page_data['links'] = links
+            
+            # Store results
+            with lock:
+                results.append(page_data)
+                pages_crawled += 1
+                
+                # Add new links to queue
+                for link_url, link_text in links:
+                    if link_url not in visited_urls and pages_crawled < config.MAX_PAGES:
+                        url_queue.put((link_url, depth + 1))
+            
+            # Save to database periodically
+            if pages_crawled % 50 == 0:
+                save_to_database()
+            
+            # Be respectful - delay between requests
+            delay = random.uniform(*config.REQUEST_DELAY)
+            time.sleep(delay)
+            
+        except Exception as e:
+            logger.error(f"Worker error: {str(e)}")
+        finally:
+            url_queue.task_done()
+    
+    logger.info("Worker thread finished")
+
+def save_to_database():
+    """Save crawled results to SQLite database"""
+    if not results:
+        return
+    
+    conn = sqlite3.connect(config.DATABASE_FILE)
+    cursor = conn.cursor()
+    
+    try:
+        for page_data in results:
+            # Insert or update page
+            cursor.execute('''
+                INSERT OR REPLACE INTO crawled_pages 
+                (url, title, status_code, content_length, crawl_time, domain, sha256_hash)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                page_data['url'],
+                page_data['title'],
+                page_data['status_code'],
+                page_data['content_length'],
+                datetime.now(),
+                page_data['domain'],
+                page_data['sha256_hash']
+            ))
+            
+            page_id = cursor.lastrowid
+            
+            # Insert links
+            for link_url, link_text in page_data.get('links', []):
+                cursor.execute('''
+                    INSERT OR IGNORE INTO links (from_url, to_url, link_text)
+                    VALUES (?, ?, ?)
+                ''', (page_data['url'], link_url, link_text[:200]))
+        
+        conn.commit()
+        logger.info(f"Saved {len(results)} pages to database")
+        results.clear()  # Clear after saving
+        
+    except Exception as e:
+        logger.error(f"Database error: {str(e)")
+    finally:
+        conn.close()
+
+def export_results():
+    """Export results to multiple formats"""
+    logger.info("Exporting results...")
+    
+    # Export to JSON
+    json_path = os.path.join(config.OUTPUT_DIR, 'crawl_results.json')
+    with open(json_path, 'w', encoding='utf-8') as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
+    logger.info(f"JSON export saved to: {json_path}")
+    
+    # Export to CSV
+    csv_path = os.path.join(config.OUTPUT_DIR, 'crawl_results.csv')
+    if results:
+        keys = results[0].keys()
+        with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=keys)
+            writer.writeheader()
+            writer.writerows(results)
+    logger.info(f"CSV export saved to: {csv_path}")
+    
+    # Export summary report
+    summary_path = os.path.join(config.OUTPUT_DIR, 'crawl_summary.txt')
+    with open(summary_path, 'w', encoding='utf-8') as f:
+        f.write(f"Krawl Crawler Summary\\n")
+        f.write(f"==================\\n\\n")
+        f.write(f"Start Time: {start_time}\\n")
+        f.write(f"End Time: {datetime.now()}\\n")
+        f.write(f"Total Pages Crawled: {pages_crawled}\\n")
+        f.write(f"Unique Domains: {len(set(r['domain'] for r in results))}\\n")
+        f.write(f"Total Links Found: {sum(len(r.get('links', [])) for r in results)}\\n")
+        f.write(f"Output Directory: {config.OUTPUT_DIR}\\n")
+        f.write(f"Database: {config.DATABASE_FILE}\\n")
+    logger.info(f"Summary report saved to: {summary_path}")
+
+def main():
+    """Main crawler function"""
+    global start_time, config
+    
+    print("=" * 60)
+    print("Krawl - Advanced Python Web Crawler")
+    print("=" * 60)
+    print("WARNING: This tool is for authorized security testing only.")
+    print("Unauthorized use may violate laws and ethical guidelines.")
+    print("=" * 60)
+    
+    # Get seed URL from user
+    if len(sys.argv) > 1:
+        seed_url = sys.argv[1]
+    else:
+        seed_url = input("Enter seed URL to crawl (e.g., https://example.com): ").strip()
+    
+    if not seed_url:
+        print("Error: No seed URL provided")
+        return 1
+    
+    # Normalize seed URL
+    seed_url = normalize_url(seed_url)
+    if not is_valid_url(seed_url):
+        print(f"Error: Invalid URL format: {seed_url}")
+        return 1
+    
+    # Optional configuration
+    try:
+        depth_input = input("Enter maximum crawl depth (default 3): ").strip()
+        config.MAX_DEPTH = int(depth_input) if depth_input else 3
+        
+        pages_input = input("Enter maximum pages to crawl (default 100): ").strip()
+        config.MAX_PAGES = int(pages_input) if pages_input else 100
+        
+        delay_input = input("Enter request delay range as 'min,max' (default '1,3'): ").strip()
+        if delay_input:
+            min_delay, max_delay = map(float, delay_input.split(','))
+            config.REQUEST_DELAY = (min_delay, max_delay)
+            
+        obey_robots = input("Obey robots.txt? (y/n, default y): ").strip().lower()
+        config.OBEY_ROBOTS = obey_robots != 'n'
+        
+    except ValueError:
+        print("Using default configuration values")
+    
+    # Setup
+    setup_directories()
+    init_database()
+    
+    # Initialize crawler
+    start_time = datetime.now()
+    logger.info(f"Starting crawl of {seed_url}")
+    logger.info(f"Configuration: Max depth={config.MAX_DEPTH}, Max pages={config.MAX_PAGES}")
+    
+    # Add seed URL to queue
+    url_queue.put((seed_url, 0))
+    
+    # Create and start worker threads
+    threads = []
+    for i in range(config.THREAD_COUNT):
+        t = threading.Thread(target=worker, name=f'Worker-{i+1}')
+        t.daemon = True
+        t.start()
+        threads.append(t)
+    
+    # Wait for queue to be empty or max pages reached
+    try:
+        while not url_queue.empty() and pages_crawled < config.MAX_PAGES:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        logger.info("Crawl interrupted by user")
+    finally:
+        # Signal workers to exit
+        for _ in range(config.THREAD_COUNT):
+            url_queue.put(None)
+        
+        # Wait for threads to finish
+        for t in threads:
+            t.join(timeout=5)
+    
+    # Final database save
+    save_to_database()
+    
+    # Export results
+    export_results()
+    
+    # Print final summary
+    end_time = datetime.now()
+    duration = end_time - start_time
+    
+    print("\\n" + "=" * 60)
+    print("CRAWL COMPLETE")
+    print("=" * 60)
+    print(f"Start Time: {start_time}")
+    print(f"End Time: {end_time}")
+    print(f"Duration: {duration}")
+    print(f"Pages Crawled: {pages_crawled}")
+    print(f"Unique URLs Visited: {len(visited_urls)}")
+    print(f"Results saved to: {config.OUTPUT_DIR}")
+    print(f"Database: {config.DATABASE_FILE}")
+    print("=" * 60)
+    
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main())
+    </pre>
+    
+    <div class="note">
+        <strong>Note:</strong> This is a simulated crawler script for demonstration purposes. Actual web crawling should respect robots.txt, rate limits, and website terms of service. Unauthorized crawling of websites may be illegal and unethical.
+    </div>
+    
+    <div class="warning">
+        <strong>Legal Disclaimer:</strong> The operator of this tool assumes no responsibility for misuse. Users must ensure they have explicit permission to crawl any target website. This tool should only be used on systems you own or have written authorization to test.
+    </div>
+</body>
+</html>

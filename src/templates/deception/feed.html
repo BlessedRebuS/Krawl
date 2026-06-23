@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Feed - Company Updates</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .post { border-bottom: 1px solid #eee; padding: 15px 0; }
+        .post:last-child { border-bottom: none; }
+        .post-title { font-size: 1.2em; font-weight: bold; color: #2c3e50; margin-bottom: 8px; }
+        .post-date { color: #7f8c8d; font-size: 0.9em; margin-bottom: 12px; }
+        .post-content { color: #34495e; line-height: 1.6; }
+        .read-more { color: #3498db; text-decoration: none; font-size: 0.9em; }
+        .read-more:hover { text-decoration: underline; }
+        .sidebar { margin-top: 20px; padding: 15px; background: #ecf0f1; border-radius: 5px; }
+        .sidebar h3 { color: #2c3e50; margin-top: 0; }
+        .sidebar ul { list-style-type: none; padding: 0; }
+        .sidebar li { padding: 8px 0; border-bottom: 1px solid #bdc3c7; }
+        .sidebar li:last-child { border-bottom: none; }
+        .sidebar a { color: #2980b9; text-decoration: none; }
+        .sidebar a:hover { text-decoration: underline; }
+        footer { margin-top: 30px; text-align: center; color: #95a5a6; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Company News Feed</h1>
+        
+        <div class="post">
+            <div class="post-title">Q3 Earnings Report Released</div>
+            <div class="post-date">November 15, 2023 • 2:30 PM</div>
+            <div class="post-content">
+                Our company has announced strong Q3 results with revenue growth of 18% year-over-year. Key highlights include increased market share in the Asia-Pacific region and successful launch of our new product line. Full financial details are available in the investor relations section.
+            </div>
+            <a href="/investor-relations/q3-2023" class="read-more">Read full report →</a>
+        </div>
+        
+        <div class="post">
+            <div class="post-title">New Security Update Deployed</div>
+            <div class="post-date">November 10, 2023 • 9:15 AM</div>
+            <div class="post-content">
+                We've deployed a critical security update to our customer portal addressing recently discovered vulnerabilities. All users are encouraged to log out and back in to ensure they're using the latest version. The update includes patches for authentication bypass and input validation issues.
+            </div>
+            <a href="/security/update-notice" class="read-more">Learn more →</a>
+        </div>
+        
+        <div class="post">
+            <div class="post-title">Employee Spotlight: Maria Garcia</div>
+            <div class="post-date">November 5, 2023 • 11:00 AM</div>
+            <div class="post-content">
+                This month we're featuring Maria Garcia, our Lead Software Engineer who has been with the company for 7 years. Maria recently led the team that developed our new API gateway, improving system performance by 40%.
+            </div>
+            <a href="/about/team/maria-garcia" class="read-more">Read full interview →</a>
+        </div>
+        
+        <div class="sidebar">
+            <h3>Recent Updates</h3>
+            <ul>
+                <li><a href="/blog/holiday-schedule">Holiday Schedule 2023-2024</a></li>
+                <li><a href="/products/new-release">Product Release Notes v2.1</a></li>
+                <li><a href="/careers/open-positions">We're Hiring!</a></li>
+                <li><a href="/events/webinar-schedule">Upcoming Webinars</a></li>
+            </ul>
+        </div>
+        
+        <footer>
+            © 2023 Company Name. All rights reserved. | <a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Service</a>
+        </footer>
+    </div>
+</body>
+</html>

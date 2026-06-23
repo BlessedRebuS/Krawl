@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>app.log - Application Log</title>
+    <style>
+        body { font-family: monospace; white-space: pre; margin: 2em; }
+        .info { color: #006400; }
+        .debug { color: #000080; }
+        .warn  { color: #B8860B; }
+        .error { color: #8B0000; }
+    </style>
+</head>
+<body>
+<span class="info">2025-09-24 10:12:34 INFO Starting application...</span>
+<span class="debug">2025-09-24 10:12:35 DEBUG Loading configuration from /etc/app/config.yaml</span>
+<span class="warn">2025-09-24 10:12:36 WARN Deprecated setting 'legacy_mode' found</span>
+<span class="error">2025-09-24 10:12:38 ERROR Failed to connect to database: Connection refused</span>
+<span class="info">2025-09-24 10:12:39 INFO Retrying DB connection...</span>
+<span class="info">2025-09-24 10:12:40 INFO Database connection established</span>
+<span class="debug">2025-09-24 10:12:41 DEBUG Query: SELECT * FROM users WHERE id = 1</span>
+<span class="info">2025-09-24 10:12:42 INFO User login: admin (IP: 192.168.1.10)</span>
+<span class="warn">2025-09-24 10:12:45 WARN High memory usage detected: 85%</span>
+<span class="info">2025-09-24 10:12:50 INFO Shutdown signal received</span>
+</body>
+</html>

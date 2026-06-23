@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Debugbar - Request Information</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f8f9fa;}
+#debugbar{position:fixed;top:0;left=0;width:100%;background:#2c3e50;color:#fff;padding:10px;z-index:9999;}
+#debugbar a{color:#fff;text-decoration:none;margin-right:15px;}
+#content{margin-top:60px;padding:20px;}
+.box{background:#fff;border:1px solid #ddd;padding:15px;margin-bottom:20px;border-radius:4px;}
+</style>
+</head>
+<body>
+<div id="debugbar">
+<span>Debugbar v2.4.1</span>
+<a href="/_debugbar/request">Request</a>
+<a href="/_debugbar/exceptions">Exceptions</a>
+<a href="/_debugbar/logs">Logs</a>
+<a href="/_debugbar/config">Config</a>
+</div>
+<div id="content">
+<h1>Debugbar Overview</h1>
+<div class="box">
+<h2>Current Request</h2>
+<p><strong>Method:</strong> GET</p>
+<p><strong>URI:</strong> /_debugbar</p>
+<p><strong>Controller:</strong> App\\Controller\\DebugbarController::index</p>
+<p><strong>Route:</strong> _debugbar</p>
+<p><strong>IP:</strong> 203.0.113.45</p>
+<p><strong>User-Agent:</strong> Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36</p>
+</div>
+<div class="box">
+<h2>Environment</h2>
+<p><strong>APP_ENV:</strong> dev</p>
+<p><strong>APP_DEBUG:</strong> true</p>
+<p><strong>PHP Version:</strong> 8.2.12</p>
+<p><strong>Server:</strong> Apache/2.4.58 (Ubuntu)</p>
+</div>
+<div class="box">
+<h2>Timeline (ms)</h2>
+<ul>
+<li>Bootstrap: 12.3</li>
+<li>Route Match: 3.4</li>
+<li>Controller: 45.6</li>
+<li>Template Render: 23.1</li>
+<li>Total: 84.4</li>
+</ul>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environment Configuration - Management Portal</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/admin-theme.css">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
+        .container { margin-top: 30px; }
+        .card { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .card-header { background: linear-gradient(135deg, #6c757d, #495057); color: white; border-bottom: none; }
+        .form-label { font-weight: 600; }
+        .btn-primary { background: #0d6efd; border: none; }
+        .btn-primary:hover { background: #0b5ed7; }
+        .alert { margin-top: 20px; }
+        .env-variable { background: #e9ecef; padding: 10px; border-radius: 5px; margin: 8px 0; font-family: 'Courier New', monospace; }
+        .env-key { font-weight: bold; color: #0d6efd; }
+        .env-value { color: #212529; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">CorpManage Pro</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/users">Users</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/management">Management</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/settings">Settings</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">Environment Variables Configuration</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">Configure system environment variables for the application. Changes require a server restart to take effect.</p>
+                        
+                        <div class="alert alert-info">
+                            <strong>Notice:</strong> This interface is for administrative use only. Modifying these values may affect system stability.
+                        </div>
+
+                        <form id="envForm" method="POST" action="/management/env/update">
+                            <div class="mb-3">
+                                <label for="db_host" class="form-label">Database Host</label>
+                                <input type="text" class="form-control" id="db_host" name="DB_HOST" value="db-prod.internal.corp" required>
+                                <div class="form-text">Internal database server hostname</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="db_port" class="form-label">Database Port</label>
+                                <input type="number" class="form-control" id="db_port" name="DB_PORT" value="5432" min="1" max="65535" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="db_name" class="form-label">Database Name</label>
+                                <input type="text" class="form-control" id="db_name" name="DB_NAME" value="corp_manage_prod" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="db_user" class="form-label">Database Username</label>
+                                <input type="text" class="form-control" id="db_user" name="DB_USER" value="app_user" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="db_pass" class="form-label">Database Password</label>
+                                <input type="password" class="form-control" id="db_pass" name="DB_PASS" value="s3cureP@ssw0rd!2024" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="redis_url" class="form-label">Redis Connection String</label>
+                                <input type="text" class="form-control" id="redis_url" name="REDIS_URL" value="redis://redis-cache.internal:6379/0" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="secret_key" class="form-label">Application Secret Key</label>
+                                <input type="text" class="form-control" id="secret_key" name="SECRET_KEY" value="a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6" required>
+                                <div class="form-text">Used for session encryption and CSRF protection. Keep this value secret!</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="debug_mode" class="form-label">Debug Mode</label>
+                                <select class="form-select" id="debug_mode" name="DEBUG_MODE">
+                                    <option value="false">False (Production)</option>
+                                    <option value="true">True (Development)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="log_level" class="form-label">Log Level</label>
+                                <select class="form-select" id="log_level" name="LOG_LEVEL">
+                                    <option value="ERROR">ERROR</option>
+                                    <option value="WARN">WARN</option>
+                                    <option value="INFO" selected>INFO</option>
+                                    <option value="DEBUG">DEBUG</option>
+                                    <option value="TRACE">TRACE</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="admin_email" class="form-label">Admin Notification Email</label>
+                                <input type="email" class="form-control" id="admin_email" name="ADMIN_EMAIL" value="admin@corp.example.com" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-lg w-100">Save Environment Configuration</button>
+                            <button type="button" class="btn btn-outline-secondary btn-lg w-100 mt-3" onclick="window.location.href='/management'">Cancel</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Simulate form submission prevention for demo
+        document.getElementById('envForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Environment configuration saved successfully! (Simulated)')
+            window.location.href = '/management';
+        });
+    </script>
+</body>
+</html>

@@ -9,13 +9,14 @@ import os
 from pathlib import Path
 
 import yaml
-from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
-from logger import get_app_logger
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import JSONResponse, Response
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
-from dependencies import get_db, get_templates
 from config import get_config
 from dashboard_cache import get_cached, is_warm
+from dependencies import get_db, get_templates
+from logger import get_app_logger
 
 router = APIRouter()
 
@@ -36,6 +37,29 @@ def _get_krawl_version() -> str:
 KRAWL_VERSION = _get_krawl_version()
 
 
+@router.get("/healthz", include_in_schema=False)
+async def healthz():
+    """Liveness/readiness/startup probe target.
+
+    Lives under the secret dashboard prefix, so it inherits that prefix's
+    exemption from the ban-check and deception middleware — probes are never
+    tracked, counted toward bans, or served a 429.
+    """
+    return JSONResponse({"status": "ok"})
+
+
+@router.get("/metrics", include_in_schema=False)
+async def metrics_endpoint(request: Request):
+    if not get_config().metrics_enabled:
+        raise HTTPException(status_code=404)
+    # generate_latest() invokes KrawlMetricsCollector.collect(), which does
+    # blocking cache/DB reads — run it off the event loop.
+    import asyncio
+
+    content = await asyncio.to_thread(generate_latest)
+    return Response(content=content, media_type=CONTENT_TYPE_LATEST)
+
+
 @router.get("")
 @router.get("/")
 async def dashboard_page(request: Request):
@@ -50,10 +74,10 @@ async def dashboard_page(request: Request):
         import asyncio
 
         db = get_db()
-        stats = await asyncio.to_thread(db.get_dashboard_counts)
-        suspicious = await asyncio.to_thread(db.get_recent_suspicious, 10)
+        stats = await asyncio.to_thread(db.access_logs.get_dashboard_counts)
+        suspicious = await asyncio.to_thread(db.access_logs.get_recent_suspicious, 10)
         cred_result = await asyncio.to_thread(
-            db.get_credentials_paginated, page=1, page_size=1
+            db.credentials.get_paginated, page=1, page_size=1
         )
         stats["credential_count"] = cred_result["pagination"]["total"]
 
@@ -84,7 +108,7 @@ async def ip_page(ip_address: str, request: Request):
 
     db = get_db()
     try:
-        stats = await asyncio.to_thread(db.get_ip_stats_by_ip, ip_address)
+        stats = await asyncio.to_thread(db.ip_stats.get_ip_stats_by_ip, ip_address)
         config = request.app.state.config
         dashboard_path = "/" + config.dashboard_secret_path.lstrip("/")
 

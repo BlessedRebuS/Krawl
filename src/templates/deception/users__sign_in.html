@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign in – MyApp</title>
+    <style>
+        body {font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:20px;}
+        .container {max-width:400px; margin:auto; background:#fff; padding:20px; border-radius:5px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1 {text-align:center; color:#333;}
+        label {display:block; margin-top:10px; font-weight:bold;}
+        input[type="email"], input[type="password"] {width:100%; padding:8px; margin-top:5px; box-sizing:border-box;}
+        .checkbox {margin-top:15px;}
+        button {display:block; width:100%; padding:10px; margin-top:20px; background:#0069d9; color:#fff; border:none; border-radius:4px; cursor:pointer;}
+        button:hover {background:#0053b3;}
+        p {text-align:center; margin-top:15px;}
+        a {color:#0069d9; text-decoration:none;}
+        a:hover {text-decoration:underline;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sign in</h1>
+        <form action="/users/sign_in" method="post">
+            <input type="hidden" name="authenticity_token" value="fake_token_1234567890abcdef">
+            <label for="user_email">Email</label>
+            <input type="email" id="user_email" name="user[email]" placeholder="you@example.com" required>
+            <label for="user_password">Password</label>
+            <input type="password" id="user_password" name="user[password]" placeholder="••••••••" required>
+            <div class="checkbox">
+                <label><input type="checkbox" name="user[remember_me]" value="1"> Remember me</label>
+            </div>
+            <button type="submit">Log in</button>
+        </form>
+        <p>Don't have an account? <a href="/users/sign_up">Sign up</a></p>
+        <p><a href="/users/password/new">Forgot your password?</a></p>
+        <!-- Debug info: simulated query: SELECT * FROM users WHERE email = '' AND password = '' -->
+    </div>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cache Configuration - Example Corp</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9;}
+        h1 {color:#2c3e50;}
+        table {border-collapse:collapse; width:80%; margin-top:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#ecf0f1;}
+        tr:nth-child(even) {background:#f2f2f2;}
+        form {margin-top:30px;}
+        input[type=submit] {padding:10px 20px; font-size:1em; cursor:pointer;}
+    </style>
+</head>
+<body>
+    <h1>Cache Configuration</h1>
+    <p>This page displays the current cache settings for the application.</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Cache Key</th>
+                <th>Stored Value (truncated)</th>
+                <th>TTL (seconds)</th>
+                <th>Last Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>user_session_</td><td>a1b2c3d4e5f6...</td><td>1800</td><td>2025-11-02 10:15:00</td></tr>
+            <tr><td>product_list_</td><td>[{"id":101,"name":"Widget"}...]</td><td>3600</td><td>2025-11-02 09:45:12</td></tr>
+            <tr><td>api_rate_limit_</td><td>{"limit":100,"remaining":97}</td><td>60</td><td>2025-11-02 10:20:05</td></tr>
+            <tr><td>footer_html_</td><td>&lt;div&gt;© 2025 Corp&lt;/div&gt;</td><td>86400</td><td>2025-11-01 22:00:00</td></tr>
+            <tr><td>debug_trace_</td><td>SELECT * FROM users WHERE id=1</td><td>300</td><td>2025-11-02 10:22:30</td></tr>
+        </tbody>
+    </table>
+    <form action="/config/cache.php" method="post">
+        <input type="submit" name="clear_cache" value="Clear Cache">
+    </form>
+    <hr>
+    <p><small>Note: This is a demonstration page. In a real environment, direct access to cache configuration files should be restricted.</small></p>
+</body>
+</html>

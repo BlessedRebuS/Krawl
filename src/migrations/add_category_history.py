@@ -10,8 +10,8 @@ from pathlib import Path
 # Add parent directory to path to import modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from database import get_database, DatabaseManager
-from models import Base, CategoryHistory
+from database import get_database
+from models import CategoryHistory
 
 
 def migrate():

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JWKS JSON</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 2em; background:#f9f9f9;}
+        pre {background:#fff; padding:1em; border:1px solid #ddd; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>JSON Web Key Set</h1>
+    <p>This endpoint provides the public keys used to verify JWT signatures.</p>
+    <pre>
+{
+  "keys": [
+    {
+      "kty": "RSA",
+      "kid": "2025-01",
+      "use": "sig",
+      "alg": "RS256",
+      "n": "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw",
+      "e": "AQAB"
+    },
+    {
+      "kty": "RSA",
+      "kid": "2024-12",
+      "use": "sig",
+      "alg": "RS256",
+      "n": "ANl8Yj4sF6J3J6x7K2pV9sX5WZy2Vt3R4U5V6W7X8Y9Z0a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6A7B8C9D0E1F2G3H4I5J6K7L8M9N0O1P2Q3R4S5T6U7V8W9X0Y1Z2A3B4C5D6E7F8G9H0I1J2K3L4M5N6O7P8Q9R0S1T2U3V4W5X6Y7Z8",
+      "e": "AQAB"
+    }
+  ]
+}
+</pre>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<html><body>{
+  "version": "1.0.0",
+  "statements": [
+    {
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "web",
+        "site": "https://example.com"
+      }
+    },
+    {
+      "relation": ["delegate_permission/common.get_login_creds"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.example.app",
+        "sha256_cert_fingerprints": [
+          "A1:B2:C3:D4:E5:F6:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78"
+        ]
+      }
+    }
+  ]
+}</body></html>

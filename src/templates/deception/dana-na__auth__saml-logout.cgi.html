@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAML Logout Service</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="email"], input[type="password"], select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
+        button { background-color: #3498db; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #2980b9; }
+        .notice { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin-top: 20px; }
+        .footer { margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SAML Single Logout Service</h1>
+        <p>This service handles SAML-based single logout requests for federated identity providers.</p>
+        
+        <form method="POST" action="/dana-na/auth/saml-logout.cgi">
+            <div class="form-group">
+                <label for="samlRequest">SAML Logout Request:</label>
+                <textarea id="samlRequest" name="samlRequest" rows="6" placeholder="Paste SAMLLogoutRequest here..." required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="relayState">Relay State (optional):</label>
+                <input type="text" id="relayState" name="relayState" placeholder="Enter relay state if provided by SP">
+            </div>
+            
+            <div class="form-group">
+                <label for="destination">Destination:</label>
+                <input type="text" id="destination" name="destination" value="https://idp.example.com/saml/SingleLogoutService" readonly>
+            </div>
+            
+            <button type="submit">Submit Logout Request</button>
+        </form>
+        
+        <div class="notice">
+            <strong>Note:</strong> This endpoint processes SAML 2.0 Single Logout requests. Ensure the SAMLLogoutRequest is properly deflated and base64-encoded as per the SAML 2.0 specification. Invalid or malformed requests will be logged for audit purposes.
+        </div>
+        
+        <div class="footer">
+            © 2024 Corporation Network Systems. All rights reserved.<br>
+            SAML Logout Service v2.1.3 - Build 20240515
+        </div>
+    </div>
+</body>
+</html>

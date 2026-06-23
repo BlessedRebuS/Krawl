@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Database Backup - Internal Use Only</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f9f9f9; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #d32f2f; }
+        pre { background: #f5f5f5; padding: 15px; overflow-x: auto; border: 1px solid #ddd; border-radius: 4px; }
+        .warning { color: #d32f2f; font-weight: bold; margin-top: 20px; padding: 10px; background: #ffebee; border-left: 4px solid #d32f2f; }
+        .footer { margin-top: 30px; font-size: 0.9em; color: #666; border-top: 1px solid #eee; padding-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Database Backup - Internal Use Only</h1>
+        <p>This is a confidential database backup file. Access is restricted to authorized personnel only.</p>
+        <p><strong>File:</strong> dump.bak<br>
+           <strong>Generated:</strong> 2024-06-15 03:22:18 UTC<br>
+           <strong>Size:</strong> 4.2 MB<br>
+           <strong>Format:</strong> PostgreSQL Custom Format</p>
+        <div class="warning">
+            WARNING: This file contains sensitive data including user credentials, payment information, and internal system configurations.
+            Unauthorized access, distribution, or modification is strictly prohibited and may result in legal action.
+        </div>
+        <h2>Backup Contents Summary:</h2>
+        <ul>
+            <li>Users table: 1,247 records</li>
+            <li>Transactions table: 89,342 records</li>
+            <li>Products table: 5,618 records</li>
+            <li>Configuration settings: 89 parameters</li>
+        </ul>
+        <p>To restore this backup, use:</p>
+        <pre>pg_restore -h localhost -U admin -d production_db dump.bak</p>
+        <div class="footer">
+            &copy; 2024 Internal Systems Division. All rights reserved.<br>
+            This is an automated backup notification - do not reply.
+        </div>
+    </div>
+</body>
+</html>

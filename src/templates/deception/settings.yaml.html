@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Settings Configuration</title>
+    <style>
+        body { font-family: monospace; background: #f8f8f8; color: #222; padding: 20px; }
+        pre { background: #fff; border: 1px solid #ddd; padding: 15px; overflow: auto; }
+    </style>
+</head>
+<body>
+<pre>
+# Application settings
+database:
+  host: localhost
+  port: 5432
+  name: appdb
+  user: admin
+  password: s3cr3tP@ss
+cache:
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password: redisPass
+smtp:
+  host: smtp.example.com
+  port: 587
+  user: noreply@example.com
+  password: mailPass
+security:
+  secret_key: superSecretKey123!
+  jwt_expiration: 3600
+</pre>
+</body>
+</html>

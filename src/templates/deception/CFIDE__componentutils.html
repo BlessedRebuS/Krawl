@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CFIDE Component Utilities</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background-color:#f9f9f9;}
+        h1 {color:#2c3e50;}
+        ul {list-style-type:none; padding:0;}
+        li {margin:5px 0;}
+        a {text-decoration:none; color:#2980b9;}
+        a:hover {text-decoration:underline;}
+        form {margin-top:20px;}
+        input[type=text] {padding:5px; width:250px;}
+        button {padding:5px 10px; background:#2980b9; color:#fff; border:none; cursor:pointer;}
+        button:hover {background:#1f618d;}
+        hr {border:0; border-top:1px solid #ddd; margin:20px 0;}
+        footer {font-size:0.9em; color:#7f8c8d;}
+    </style>
+</head>
+<body>
+    <h1>CFIDE Component Utilities</h1>
+    <p>Welcome to the ColdFusion Component Utilities interface. Use the tools below to manage and inspect components.</p>
+    <ul>
+        <li><a href="./cfc/">Component Browser</a></li>
+        <li><a href="./admin/">Administrator Console</a></li>
+        <li><a href="./docs/">Component Documentation</a></li>
+        <li><a href="./test/">Test Harness</a></li>
+    </ul>
+    <form action="./search.cfm" method="get">
+        <label for="q">Search Components:</label>
+        <input type="text" id="q" name="q" placeholder="Enter component name or path">
+        <button type="submit">Search</button>
+    </form>
+    <hr>
+    <footer>
+        © 2025 Adobe Systems Incorporated. All rights reserved.
+    </footer>
+</body>
+</html>

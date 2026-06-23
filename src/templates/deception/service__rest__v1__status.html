@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Service Status - MyApp</title>
+<style>
+body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9;}
+h1 {color:#2c3e50;}
+table {width:100%; border-collapse:collapse; margin-top:10px;}
+th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+th {background:#ecf0f1;}
+tr:nth-child(even) {background:#f2f2f2;}
+a {color:#2980b9; text-decoration:none;}
+a:hover {text-decoration:underline;}
+footer {margin-top:30px; font-size:0.9em; color:#7f8c8d;}
+</style>
+</head>
+<body>
+<h1>Service Status</h1>
+<p>Last updated: 2025-09-24 10:15:30 UTC</p>
+<table>
+<tr><th>Component</th><th>Status</th><th>Details</th></tr>
+<tr><td>API Gateway</td><td>OK</td><td>Response time 12ms</td></tr>
+<tr><td>Auth Service</td><td>OK</td><td>200 active sessions</td></tr>
+<tr><td>Database</td><td>OK</td><td>Replication lag 0s</td></tr>
+<tr><td>Cache</td><td>WARNING</td><td>Memory usage 78%</td></tr>
+</table>
+<p><a href="/service/rest/v1/metrics">View Metrics</a> | <a href="/service/rest/v1/logs">Recent Logs</a></p>
+<footer>© 2025 MyCorp</footer>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Shell - Internal Debugging Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; }
+        textarea { height: 150px; resize: vertical; }
+        button { background-color: #007cba; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #005a87; }
+        .result { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; font-family: monospace; white-space: pre-wrap; }
+        .warning { color: #d32f2f; font-size: 14px; margin-top: 10px; }
+        .info { color: #1976d2; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Shell v1.2 - Internal Debugging Interface</h1>
+        <p class="info">Authorized personnel only. This tool is for internal system diagnostics and testing.</p>
+        
+        <form method="POST" action="">
+            <div class="form-group">
+                <label for="command">Enter System Command:</label>
+                <input type="text" id="command" name="command" placeholder="e.g., ls -la, whoami, pwd, cat /etc/passwd" value="<?php echo isset($_POST['command']) ? htmlspecialchars($_POST['command']) : ''; ?>">
+            </div>
+            
+            <div class="form-group">
+                <label for="output">Command Output:</label>
+                <textarea id="output" name="output" readonly><?php 
+                    if(isset($_POST['command']) && !empty($_POST['command'])) {
+                        $cmd = $_POST['command'];
+                        // Simulate command execution - in reality this would be dangerous
+                        // But here we fake realistic output for common commands
+                        if(strpos($cmd, 'ls') !== false || strpos($cmd, 'dir') !== false) {
+                            echo "index.php\nconfig.php\nincludes/\nlogs/\ntestshell.php\nuploads/\n.htaccess";
+                        } elseif(strpos($cmd, 'whoami') !== false) {
+                            echo "www-data";
+                        } elseif(strpos($cmd, 'pwd') !== false) {
+                            echo "/var/www/html";
+                        } elseif(strpos($cmd, 'cat /etc/passwd') !== false) {
+                            echo "root:x:0:0:root:/root:/bin/bash\n"
+                                ."daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\n"
+                                ."bin:x:2:2:bin:/bin:/usr/sbin/nologin\n"
+                                ."sys:x:3:3:sys:/dev:/usr/sbin/nologin\n"
+                                ."sync:x:4:65534:sync:/bin:/bin/sync\n"
+                                ."games:x:5:60:games:/usr/games:/usr/sbin/nologin\n"
+                                ."man:x:6:12:man:/var/cache/man:/usr/sbin/nologin\n"
+                                ."lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin\n"
+                                ."mail:x:8:8:mail:/var/mail:/usr/sbin/nologin\n"
+                                ."news:x:9:9:news:/var/spool/news:/usr/sbin/nologin\n"
+                                ."uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin\n"
+                                ."proxy:x:13:13:proxy:/bin:/usr/sbin/nologin\n"
+                                ."www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\n"
+                                ."backup:x:34:34:backup:/var/backups:/usr/sbin/nologin\n"
+                                ."list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin\n"
+                                ."irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin\n"
+                                ."gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin\n"
+                                ."nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin";
+                        } elseif(strpos($cmd, 'id') !== false) {
+                            echo "uid=33(www-data) gid=33(www-data) groups=33(www-data)";
+                        } else {
+                            echo "Command executed: " . htmlspecialchars($cmd) . "\n"
+                                . "[SUCCESS] Exit code: 0\n"
+                                . "[OUTPUT] Simulated output for demonstration purposes only.";
+                        }
+                    } 
+                ?></textarea>
+            </div>
+            
+            <button type="submit">Execute Command</button>
+        </form>
+        
+        <div class="warning">
+            <strong>Security Notice:</strong> This interface is logged and monitored. Unauthorized use will be reported to system administrators.
+        </div>
+        
+        <p class="info">Last accessed: <?php echo date('Y-m-d H:i:s'); ?> from <?php echo htmlspecialchars($_SERVER['REMOTE_ADDR'] ?? 'unknown'); ?></p>
+    </div>
+</body>
+</html>

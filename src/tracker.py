@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-from typing import Dict, Tuple, Optional
 import logging
 import re
 import urllib.parse
 
+from database import DatabaseManager, get_database
+from ip_utils import is_local_or_private_ip
 from wordlists import get_wordlists
-from database import get_database, DatabaseManager
 
 logger = logging.getLogger("krawl")
 
@@ -37,7 +37,7 @@ class AccessTracker:
         self,
         max_pages_limit,
         ban_duration_seconds,
-        db_manager: Optional[DatabaseManager] = None,
+        db_manager: DatabaseManager | None = None,
     ):
         """
         Initialize the access tracker.
@@ -97,7 +97,7 @@ class AccessTracker:
         self._db_manager = db_manager
 
     @property
-    def db(self) -> Optional[DatabaseManager]:
+    def db(self) -> DatabaseManager | None:
         """
         Get the database manager, lazily initializing if needed.
 
@@ -111,7 +111,7 @@ class AccessTracker:
                 logger.error(f"Failed to initialize database manager: {e}")
         return self._db_manager
 
-    def parse_credentials(self, post_data: str) -> Tuple[str, str]:
+    def parse_credentials(self, post_data: str) -> tuple[str, str]:
         """
         Parse username and password from POST data.
         Returns tuple (username, password) or (None, None) if not found.
@@ -240,6 +240,11 @@ class AccessTracker:
         Returns:
             The page visit count (0 when increment_page_visit is False or on error)
         """
+        # Private/local/reserved IPs (e.g. k8s health-check sources) are never
+        # tracked, categorized, or banned.
+        if is_local_or_private_ip(ip):
+            return 0
+
         # Skip if this is the server's own IP
         from config import get_config
 
@@ -372,7 +377,7 @@ class AccessTracker:
             if not db:
                 return False
 
-            ip_stats = db.get_ip_stats_by_ip(safe_ip)
+            ip_stats = db.ip_stats.get_ip_stats_by_ip(safe_ip)
             if not ip_stats or not ip_stats.get("category"):
                 return False
 
@@ -397,6 +402,10 @@ class AccessTracker:
         Returns:
             The updated page visit count for this IP
         """
+        # Private/local/reserved IPs are never tracked or banned.
+        if is_local_or_private_ip(client_ip):
+            return 0
+
         from config import get_config
 
         config = get_config()
@@ -421,7 +430,7 @@ class AccessTracker:
         if not self.db:
             return False
 
-        return self.db.is_banned_ip(client_ip, self.ban_duration_seconds)
+        return self.db.ip_stats.is_banned_ip(client_ip, self.ban_duration_seconds)
 
     def get_ban_info(self, client_ip: str) -> dict:
         """
@@ -438,23 +447,25 @@ class AccessTracker:
                 "remaining_ban_seconds": 0,
             }
 
-        return self.db.get_ban_info(client_ip, self.ban_duration_seconds)
+        return self.db.ip_stats.get_ban_info(client_ip, self.ban_duration_seconds)
 
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> dict:
         """Get statistics summary from database."""
         if not self.db:
             raise RuntimeError("Database not available for dashboard stats")
 
         # Get aggregate counts from database
-        stats = self.db.get_dashboard_counts()
+        stats = self.db.access_logs.get_dashboard_counts()
 
         # Add detailed lists from database
-        stats["top_ips"] = self.db.get_top_ips(10)
-        stats["top_paths"] = self.db.get_top_paths(10)
-        stats["top_user_agents"] = self.db.get_top_user_agents(10)
-        stats["recent_suspicious"] = self.db.get_recent_suspicious(20)
-        stats["honeypot_triggered_ips"] = self.db.get_honeypot_triggered_ips()
-        stats["attack_types"] = self.db.get_recent_attacks(20)
-        stats["credential_attempts"] = self.db.get_credential_attempts(limit=50)
+        stats["top_ips"] = self.db.analytics.get_top_ips(10)
+        stats["top_paths"] = self.db.analytics.get_top_paths(10)
+        stats["top_user_agents"] = self.db.analytics.get_top_user_agents(10)
+        stats["recent_suspicious"] = self.db.access_logs.get_recent_suspicious(20)
+        stats["honeypot_triggered_ips"] = (
+            self.db.access_logs.get_honeypot_triggered_ips()
+        )
+        stats["attack_types"] = self.db.access_logs.get_recent_attacks(20)
+        stats["credential_attempts"] = self.db.credentials.get_list(limit=50)
 
         return stats

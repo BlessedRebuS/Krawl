@@ -6,7 +6,6 @@ Provides common IP filtering logic used across the Krawl honeypot.
 """
 
 import ipaddress
-from typing import Optional
 
 
 def is_local_or_private_ip(ip_str: str) -> bool:
@@ -36,14 +35,14 @@ def is_local_or_private_ip(ip_str: str) -> bool:
             or ip.is_loopback
             or ip.is_reserved
             or ip.is_link_local
-            or str(ip) in ("0.0.0.0", "::1")
+            or str(ip) in ("0.0.0.0", "::1")  # noqa: S104 — IP comparison, not a bind
         )
     except ValueError:
         # Invalid IP address
         return True
 
 
-def is_valid_public_ip(ip: str, server_ip: Optional[str] = None) -> bool:
+def is_valid_public_ip(ip: str, server_ip: str | None = None) -> bool:
     """
     Check if an IP is public and not the server's own IP.
 

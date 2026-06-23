@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>wp-config.old - Backup</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; color:#333; padding:20px;}
+        h1 {color:#2c3e50;}
+        pre {background:#eee; padding:10px; overflow:auto;}
+        .note {font-size:0.9em; color:#555;}
+    </style>
+</head>
+<body>
+    <h1>WordPress Configuration Backup (wp-config.php.old)</h1>
+    <p>This file is a backup of the WordPress configuration file. It contains sensitive data such as database credentials.</p>
+    <pre>
+<?php
+/**
+ * The base configuration for WordPress
+ */
+define('DB_NAME', 'example_db');
+define('DB_USER', 'wp_user');
+define('DB_PASSWORD', 'SuperSecretPass!2025');
+define('DB_HOST', 'localhost');
+define('DB_CHARSET', 'utf8mb4');
+define('DB_COLLATE', '');
+
+define('AUTH_KEY',         'put your unique phrase here');
+define('SECURE_AUTH_KEY',  'put your unique phrase here');
+define('LOGGED_IN_KEY',    'put your unique phrase here');
+define('NONCE_KEY',        'put your unique phrase here');
+define('AUTH_SALT',        'put your unique phrase here');
+define('SECURE_AUTH_SALT', 'put your unique phrase here');
+define('LOGGED_IN_SALT',   'put your unique phrase here');
+define('NONCE_SALT',       'put your unique phrase here');
+
+$table_prefix = 'wp_';
+
+define('WP_DEBUG', false);
+
+if ( !defined('ABSPATH') )
+    define('ABSPATH', dirname(__FILE__) . '/');
+
+require_once(ABSPATH . 'wp-settings.php');
+?>
+    </pre>
+    <p class="note">Note: This is a backup file and should not be accessible from the web.</p>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WordPress API Response</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; line-height: 1.5;}
+        h1 {color: #2c3e50;}
+        pre {background: #f8f9fa; padding: 15px; border: 1px solid #ddd; overflow: auto;}
+    </style>
+</head>
+<body>
+    <h1>WordPress REST API</h1>
+    <p>Endpoint: <code>/wp-json/wp/v2/users/me</code></p>
+    <pre>
+{
+  "id": 1,
+  "name": "Admin",
+  "url": "",
+  "description": "",
+  "link": "https://example.com/about/admin/",
+  "slug": "admin",
+  "avatar_urls": {
+    "24": "https://secure.gravatar.com/avatar/abcd1234?d=mm&s=24",
+    "48": "https://secure.gravatar.com/avatar/abcd1234?d=mm&s=48",
+    "96": "https://secure.gravatar.com/avatar/abcd1234?d=mm&s=96"
+  },
+  "meta": [],
+  "_links": {
+    "self": [
+      {
+        "href": "https://example.com/wp-json/wp/v2/users/1"
+      }
+    ],
+    "collection": [
+      {
+        "href": "https://example.com/wp-json/wp/v2/users"
+      }
+    ]
+  }
+}
+</pre>
+</body>
+</html>

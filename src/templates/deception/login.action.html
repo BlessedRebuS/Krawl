@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Corporate Portal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 320px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        .error-message {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .links {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .links a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Employee Login</h2>
+        <form id="loginForm" action="/login.action" method="POST">
+            <div class="error-message" id="errorMsg">Invalid username or password. Please try again.</div>
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" placeholder="Enter your employee ID" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+            <input type="submit" value="Sign In">
+        </form>
+        <div class="links">
+            <p>Don't have an account? <a href="/register.action">Register here</a></p>
+            <p><a href="/forgot-password.action">Forgot Password?</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Simulate client-side validation and fake error for demonstration
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent actual submission for demo
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            // Fake vulnerability: if username contains SQL-like payload, show fake success but actually log it
+            if (username.includes("' OR '1'='1") || username.includes("--") || username.includes(";")) {
+                // Simulate fake successful login (but actually it's a trap)
+                alert("Welcome back, admin! Redirecting to dashboard...");
+                // In reality, this would log the attack attempt
+                setTimeout(() => {
+                    window.location.href = "/dashboard.action"; // Fake redirect
+                }, 1500);
+                return;
+            }
+            
+            // Fake validation: only accept specific hardcoded credentials for realism
+            if (username === "admin" && password === "password123") {
+                alert("Login successful! Welcome to the corporate portal.");
+                setTimeout(() => {
+                    window.location.href = "/dashboard.action";
+                }, 1000);
+            } else if (username === "j.smith" && password === "SecurePass!2024") {
+                alert("Login successful! Welcome back, John Smith.");
+                setTimeout(() => {
+                    window.location.href = "/dashboard.action";
+                }, 1000);
+            } else {
+                // Show fake error message
+                document.getElementById('errorMsg').style.display = 'block';
+                // Shake effect for UX
+                const form = document.getElementById('loginForm');
+                form.style.transform = 'translateX(5px)';
+                setTimeout(() => {
+                    form.style.transform = 'translateX(-5px)';
+                    setTimeout(() => {
+                        form.style.transform = 'translateX(0)';
+                    }, 50);
+                }, 100);
+            }
+        });
+    </script>
+</body>
+</html>

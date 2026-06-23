@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WordPress Debug Log</title>
+    <style>
+        body { font-family: monospace; background:#f8f8f8; color:#222; margin:2rem; }
+        h1 { color:#0066cc; }
+        pre { background:#fff; padding:1rem; border:1px solid #ddd; overflow:auto; }
+    </style>
+</head>
+<body>
+    <h1>/logs/wp-debug.log</h1>
+    <pre>
+[23-Sep-2025 10:12:34 UTC] PHP Notice:  Undefined index: HTTP_X_FORWARDED_FOR in /var/www/html/wp-content/plugins/cache-enabler/cache-enabler.php on line 124
+[23-Sep-2025 10:12:35 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /var/www/html/wp-config.php:1) in /var/www/html/wp-includes/pluggable.php on line 1292
+[23-Sep-2025 10:12:36 UTC] MySQL query error: SELECT * FROM wp_options WHERE option_name = 'siteurl' LIMIT 1; Table 'wp_options' is marked as crashed and should be repaired
+[23-Sep-2025 10:12:37 UTC] PHP Notice:  Undefined variable: wp_query in /var/www/html/wp-content/themes/twentytwentyfour/header.php on line 45
+[23-Sep-2025 10:12:38 UTC] PHP Deprecated:  Function create_function() is deprecated in /var/www/html/wp-content/plugins/old-plugin/old.php on line 78
+[23-Sep-2025 10:12:39 UTC] PHP Warning:  fopen(/var/www/html/wp-content/uploads/2025/09/debug.txt): failed to open stream: Permission denied in /var/www/html/wp-admin/includes/file.php on line 155
+[23-Sep-2025 10:12:40 UTC] [INFO] WP Cron spawn: wp_scheduled_delete
+[23-Sep-2025 10:12:41 UTC] [ERROR] Failed to connect to remote API: cURL error 28: Operation timed out after 5000 milliseconds with 0 bytes received
+[23-Sep-2025 10:12:42 UTC] PHP Notice:  Trying to access array offset on value of type null in /var/www/html/wp-includes/post.php on line 3784
+[23-Sep-2025 10:12:43 UTC] [DEBUG] Loaded plugin: akismet (version 5.2.1)
+[23-Sep-2025 10:12:44 UTC] [DEBUG] Loaded plugin: wordpress-seo (version 22.5)
+[23-Sep-2025 10:12:45 UTC] PHP Notice:  Undefined index: HTTP_USER_AGENT in /var/www/html/wp-content/plugins/user-agent-blocker/ua-blocker.php on line 22
+    </pre>
+</body>
+</html>

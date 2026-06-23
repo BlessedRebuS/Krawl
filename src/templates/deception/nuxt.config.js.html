@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>nuxt.config.js</title>
+<style>
+body{font-family:monospace;background:#f8f8f8;color:#222;padding:20px;}
+pre{background:#fff;padding:10px;border:1px solid #ddd;overflow:auto;}
+</style>
+</head>
+<body>
+<h1>nuxt.config.js</h1>
+<pre>export default {
+  // Server configuration
+  server: {
+    host: '0.0.0.0',
+    port: 3000
+  },
+  // Build modules
+  buildModules: [
+    '@nuxtjs/eslint-module',
+    '@nuxtjs/tailwindcss'
+  ],
+  // Environment variables (exposed for demo)
+  env: {
+    API_KEY: 'fake_api_key_12345',
+    DB_URL: 'mongodb://admin:password@localhost:27017/mydb'
+  },
+  // Axios module config (potential SSRF)
+  axios: {
+    baseURL: 'http://internal.service.local/api',
+    credentials: false
+  },
+  // Router middleware (open redirect)
+  router: {
+    middleware: ['log'],
+    extendRoutes (routes, resolve) {
+      routes.push({
+        name: 'redirect',
+        path: '/redirect',
+        component: resolve(__dirname, 'pages/redirect.vue')
+      })
+    }
+  }
+};
+</pre>
+</body>
+</html>

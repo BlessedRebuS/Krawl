@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHP Test Page - Internal Development</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .info { background: #e9ecef; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .warning { color: #856404; background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; }
+        code { background: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PHP Information & Test Page</h1>
+        <p>This page is used for internal development and testing purposes. Do not expose to production environments.</p>
+        
+        <div class="info">
+            <h2>Server Information</h2>
+            <p><strong>PHP Version:</strong> 7.4.33</p>
+            <p><strong>Server API:</strong> Apache 2.0 Handler</p>
+            <p><strong>Loaded Configuration File:</strong> /etc/php/7.4/apache2/php.ini</p>
+            <p><strong>Document Root:</strong> /var/www/html</p>
+            <p><strong>Current Directory:</strong> /var/www/html/dev</p>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Security Notice:</strong> This page contains debug information and should not be accessible from external networks. Contact system administrator if you see this page in production.
+        </div>
+
+        <h2>Test Form (Simulated Vulnerable Endpoint)</h2>
+        <form action="/submit.php" method="POST">
+            <div style="margin-bottom: 15px;">
+                <label for="username">Username:</label><br>
+                <input type="text" id="username" name="username" placeholder="Enter username" required style="padding: 8px; width: 250px;">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="password">Password:</label><br>
+                <input type="password" id="password" name="password" placeholder="Enter password" required style="padding: 8px; width: 250px;">
+            </div>
+            <div style="margin-bottom 15px;">
+                <label for="comment">Additional Comments:</label><br>
+                <textarea id="comment" name="comment" rows="4" placeholder="Enter any additional information..." style="width: 100%; padding: 8px;"></textarea>
+            </div>
+            <button type="submit" style="background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                Submit Test Data
+            </button>
+            <button type="reset" style="background-color: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; margin-left: 10px; cursor: pointer;">
+                Reset
+            </button>
+        </form>
+
+        <h2>Database Connection Test (Simulated)</h2>
+        <div class="info">
+            <p>Testing connection to internal development database...</p>
+            <p><strong>Host:</strong> db-dev.internal.company.local</p>
+            <p><strong>Database:</strong> dev_app_db</p>
+            <p><strong>Username:</strong> dev_user</p>
+            <p><strong>Status:</strong> ✅ Connected Successfully</p>
+            <p><strong>Last Query:</strong> <code>SELECT * FROM users WHERE id = 1 LIMIT 1</code></p>
+            <p><strong>Query Time:</strong> 0.0023s</p>
+        </div>
+
+        <h2>Available Test Endpoints</h2>
+        <ul>
+            <li><a href="/login.php">Login Simulation</a></li>
+            <li><a href="/admin/">Admin Panel (Restricted)</a></li>
+            <li><a href="/config.php">Configuration Backup</a></li>
+            <li><a href="/backup/db.sql">Database Dump (Development)</a></li>
+            <li><a href="/test/xss.php">XSS Test Page</a></li>
+            <li><a href="/test/sqli.php">SQL Injection Test</a></li>
+        </ul>
+
+        <hr>
+        <p style="text-align: center; color: #666; font-size: 0.9em;">
+            © 2024 Internal Development Team | This is a test environment - Data is not real
+        </p>
+    </div>
+</body>
+</html>

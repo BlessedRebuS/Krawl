@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Environment - actuator/env</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; margin:2em; color:#333;}
+        h1 {color:#2c3e50;}
+        pre {background:#fff; padding:1em; border:1px solid #ddd; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>actuator/env</h1>
+    <p>Spring Boot Actuator environment dump:</p>
+    <pre>
+{
+  "profiles": ["production"],
+  "propertySources": [
+    {
+      "name": "systemProperties",
+      "properties": {
+        "java.version": {"value":"11.0.12"},
+        "user.name": {"value":"appuser"}
+      }
+    },
+    {
+      "name": "applicationConfig: [classpath:/application.yml]",
+      "properties": {
+        "server.port": {"value":"8080"},
+        "spring.datasource.url": {"value":"jdbc:mysql://db.example.com:3306/appdb"},
+        "spring.datasource.username": {"value":"app_user"},
+        "spring.datasource.password": {"value":"SuperSecretPassword123!"}
+      }
+    },
+    {
+      "name": "environmentVariables",
+      "properties": {
+        "SPRING_PROFILES_ACTIVE": {"value":"prod"},
+        "DB_PASSWORD": {"value":"EnvVarPass!@#"},
+        "AWS_ACCESS_KEY_ID": {"value":"AKIAEXAMPLEFAKEKEY"},
+        "AWS_SECRET_ACCESS_KEY": {"value":"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"}
+      }
+    }
+  ]
+}
+</pre>
+</body>
+</html>

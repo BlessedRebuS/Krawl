@@ -1,0 +1,18 @@
+<html><body>/* NewWindow_2_all.js - Utility for opening new windows */
+function openNewWindow(url, features) {
+    // Vulnerable: directly uses user input in eval
+    var win = window.open('', '_blank', features);
+    if (!win) {
+        alert('Popup blocked');
+        return;
+    }
+    win.document.write('<html><head><title>Loading...</title></head><body>');
+    win.document.write('<script>var userInput = "' + url + '"; eval(userInput);</script>');
+    win.document.write('</body></html>');
+    win.document.close();
+}
+
+// Exported for use
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { openNewWindow };
+}</body></html>

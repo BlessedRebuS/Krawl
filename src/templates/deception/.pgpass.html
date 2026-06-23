@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PostgreSQL Password File</title>
+    <style>
+        body { font-family: monospace; background-color: #f5f5f5; margin: 40px; color: #333; }
+        pre { background-color: #fff; padding: 15px; border: 1px solid #ddd; border-radius: 4px; }
+        .note { color: #666; font-size: 0.9em; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>PostgreSQL Password File (.pgpass)</h1>
+    <p>This file contains PostgreSQL connection passwords for libpq. For security, it should have permissions 0600.</p>
+    <pre>localhost:5432:*:postgres:postgres123
+localhost:5432:mydb:appuser:secret_pass_2024
+192.168.1.100:5432:analytics:readonly:ro_pass_789
+db-server.internal:5432:production:dbadmin:prod_admin_2024!
+backup-server:5432:backups:backup_user:backup_pass_!@#</pre>
+    <p class="note">Note: This is a simulated file for demonstration purposes. Actual .pgpass files should never be exposed via web servers.</p>
+</body>
+</html>

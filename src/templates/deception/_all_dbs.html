@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database List</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        h1 { color: #333; }
+        table { border-collapse: collapse; width: 50%; margin-top: 20px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .footer { margin-top: 30px; color: #666; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>Available Databases</h1>
+    <p>The following databases are currently accessible on this server:</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Database Name</th>
+                <th>Size (MB)</th>
+                <th>Last Modified</th>
+                <th>Owner</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>users</td>
+                <td>12.4</td>
+                <td>2024-06-10 14:22:18</td>
+                <td>admin</td>
+            </tr>
+            <tr>
+                <td>logs</td>
+                <td>89.1</td>
+                <td>2024-06-10 14:20:05</td>
+                <td>system</td>
+            </tr>
+            <tr>
+                <td>config</td>
+                <td>0.8</td>
+                <td>2024-06-09 09:15:33</td>
+                <td>admin</td>
+            </tr>
+            <tr>
+                <td>sessions</td>
+                <td>5.6</td>
+                <td>2024-06-10 14:21:44</td>
+                <td>system</td>
+            </tr>
+            <tr>
+                <td>backup_20240609</td>
+                <td>210.3</td>
+                <td>2024-06-09 02:00:00</td>
+                <td>backup</td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="footer">
+        <p>Total databases: 5 | Server time: 2024-06-10 14:23:11 UTC</p>
+        <p><em>Note: This is a development instance. Production data is isolated.</em></p>
+    </div>
+</body>
+</html>

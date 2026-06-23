@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Search - Example Corp</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:20px; background:#f4f4f4;}
+        header {background:#003366; color:#fff; padding:10px 0; text-align:center;}
+        nav {background:#004080; color:#fff; padding:10px; text-align:center;}
+        nav a {color:#fff; margin:0 15px; text-decoration:none;}
+        main {background:#fff; margin:20px auto; max-width:800px; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        form {margin-bottom:20px;}
+        input[type="text"] {padding:8px; width:250px;}
+        button {padding:8px 12px; background:#0066cc; color:#fff; border:none; cursor:pointer;}
+        table {width:100%; border-collapse:collapse; margin-top:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#003366; color:#fff;}
+        tr:nth-child(even) {background:#f2f2f2;}
+        .error {color:#ff0000; background:#ffe6e6; padding:10px; margin-top:15px; border:1px solid #ff0000;}
+    </style>
+</head>
+<body>
+<header>
+    <h1>Example Corp</h1>
+</header>
+<nav>
+    <a href="/index.html">Home</a>
+    <a href="/products.html">Products</a>
+    <a href="/about.html">About</a>
+    <a href="/contact.html">Contact</a>
+</nav>
+<main>
+    <h2>Product Search</h2>
+    <form method="GET" action="/p.php">
+        <label for="q">Search:</label>
+        <input type="text" id="q" name="q" value="fake product">
+        <button type="submit">Search</button>
+    </form>
+    <!-- Simulated PHP output -->
+    <p>Results for: <em>fake product</em></p>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>101</td>
+                <td>Fake Widget A</td>
+                <td>$19.99</td>
+                <td>A high-quality widget for everyday use.</td>
+            </tr>
+            <tr>
+                <td>102</td>
+                <td>Fake Gadget B</td>
+                <td>$29.95</td>
+                <td>Gadget with advanced features.</td>
+            </tr>
+            <tr>
+                <td>103</td>
+                <td>Fake Tool C</td>
+                <td>$9.99</td>
+                <td>Essential tool for any workshop.</td>
+            </tr>
+        </tbody>
+    </table>
+    <!-- Simulated vulnerability: show fake error if a quote is injected -->
+    <div class="error">
+        Warning: mysqli_query(): (HY000/1064): You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '''' at line 1 in /var/www/html/p.php on line 42
+    </div>
+</main>
+</body>
+</html>

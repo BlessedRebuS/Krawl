@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Configuration - Parameters</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        h1 { color: #2c3e50; }
+        .config-section { margin: 20px 0; padding: 15px; border-left: 3px solid #3498db; background-color: #f8f9fa; }
+        .param { margin: 10px 0; }
+        .param-label { font-weight: bold; color: #2980b9; }
+        .param-value { color: #27ae60; font-family: monospace; }
+        .warning { color: #e74c3c; font-style: italic; }
+        footer { margin-top: 40px; padding-top: 10px; border-top: 1px solid #eee; color: #7f8c8d; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>Application Configuration Parameters</h1>
+    <p>This file contains environment-specific configuration parameters for the Symfony application.</p>
+    <p><em>Last modified: 2024-05-15 14:32:18</em></p>
+
+    <div class="config-section">
+        <h2>Database Configuration</h2>
+        <div class="param">
+            <span class="param-label">database_host:</span> <span class="param-value">db-prod.internal.company.local</span>
+        </div>
+        <div class="param">
+            <span class="param-label">database_port:</span> <span class="param-value">5432</span>
+        </div>
+        <div class="param">
+            <span class="param-label">database_name:</span> <span class="param-value">symfony_prod</span>
+        </div>
+        <div class="param">
+            <span class="param-label">database_user:</span> <span class="param-value">symfony_user</span>
+        </div>
+        <div class="param">
+            <span class="param-label">database_password:</span> <span class="param-value">s3cr3t_P@ssw0rd!2024</span>
+        </div>
+    </div>
+
+    <div class="config-section">
+        <h2>Mailer Configuration</h2>
+        <div class="param">
+            <span class="param-label">mailer_transport:</span> <span class="param-value">smtp</span>
+        </div>
+        <div class="param">
+            <span class="param-label">mailer_host:</span> <span class="param-value">smtp.sendgrid.net</span>
+        </div>
+        <div class="param">
+            <span class="param-label">mailer_user:</span> <span class="param-value">apikey</span>
+        </div>
+        <div class="param">
+            <span class="param-label">mailer_password:</span> <span class="param-value">SG.xYzAbCdEfGhIkLmNoPqRsTuVwXyZ1234567890</span>
+        </div>
+        <div class="param">
+            <span class="param-label">mailer_port:</span> <span class="param-value">587</span>
+        </div>
+        <div class="param">
+            <span class="param-label">mailer_encryption:</span> <span class="param-value">tls</span>
+        </div>
+    </div>
+
+    <div class="config-section">
+        <h2>Secret Keys</h2>
+        <div class="param">
+            <span class="param-label">secret:</span> <span class="param-value">8f3a2b1c9d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1</span>
+        </div>
+        <div class="param">
+            <span class="param-label">jwt_secret_key:</span> <span class="param-value">-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...\n-----END PRIVATE KEY-----\n</span>
+        </div>
+        <div class="param">
+            <span class="param-label">api_key_stripe:</span> <span class="param-value">sk_live_51HbO4uLmNpQrStUvWxYzAbCdEfGhIkLmNoPqRsTuVwXyZ1234567890abcdef</span>
+        </div>
+    </div>
+
+    <div class="config-section">
+        <h2>Third-party Services</h2>
+        <div class="param">
+            <span class="param-label">google_maps_api_key:</span> <span class="param-value">AIzaSyBvWxYzAbCdEfGhIkLmNoPqRsTuVwXyZ123</span>
+        </div>
+        <div class="param">
+            <span class="param-label">aws_access_key_id:</span> <span class="param-value">AKIAIOSFODNN7EXAMPLE</span>
+        </div>
+        <div class="param">
+            <span class="param-label">aws_secret_access_key:</span> <span class="param-value">wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY</span>
+        </div>
+        <div class="param">
+            <span class="param-label">recaptcha_site_key:</span> <span class="param-value">6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI</span>
+        </div>
+        <div class="param">
+            <span class="param-label">recaptcha_secret_key:</span> <span class="param-value">6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe</span>
+        </div>
+    </div>
+
+    <div class="config-section">
+        <h2>Feature Flags</h2>
+        <div class="param">
+            <span class="param-label">feature_new_ui:</span> <span class="param-value">true</span>
+        </div>
+        <div class="param">
+            <span class="param-label">feature_maintenance_mode:</span> <span class="param-value">false</span>
+        </div>
+        <div class="param">
+            <span class="param-label">feature_debug_toolbar:</span> <span class="param-value">false</span>
+        </div>
+        <div class="param">
+            <span class="param-label">feature_verbose_logging:</span> <span class="param-value">true</span>
+        </div>
+    </div>
+
+    <p class="warning"><strong>Notice:</strong> This configuration file should never be committed to version control or exposed publicly. For security reasons, consider using environment variables or a secrets management system in production.</p>
+
+    <footer>
+        Generated by Symfony Configuration System • © 2024 Company Internal • All rights reserved
+    </footer>
+</body>
+</html>

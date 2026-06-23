@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Server Information - Internal Dashboard</title>
+    <style>
+        body {font-family:Arial,Helvetica,sans-serif; margin:20px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        table {border-collapse:collapse; width:100%; max-width:800px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#ecf0f1;}
+        tr:nth-child(even) {background:#f2f2f2;}
+        .note {font-size:0.9em; color:#555; margin-top:15px;}
+    </style>
+</head>
+<body>
+    <h1>Server Information</h1>
+    <p>Generated on: 2025-11-03 14:22:07 UTC</p>
+    <table>
+        <tr><th>PHP Version</th><td>7.4.33 (fake)</td></tr>
+        <tr><th>Server API</th><td>Apache 2.4.41 (Unix)</td></tr>
+        <tr><th>Server Software</th><td>Apache/2.4.41 (Ubuntu)</td></tr>
+        <tr><th>Document Root</th><td>/var/www/html</td></tr>
+        <tr><th>Loaded Modules</th><td>core, mod_soap, mod_rewrite, mod_headers, mod_expires, mod_deflate, mod_ssl, mod_proxy, mod_proxy_http, mod_cache, mod_cache_disk</td></tr>
+        <tr><th>Environment Variables</th><td>
+            <ul style="margin:0; padding-left:20px;">
+                <li>DB_HOST: localhost</li>
+                <li>DB_USER: app_user</li>
+                <li>DB_PASS: s3cr3t!Pass</li>
+                <li>DB_NAME: app_db</li>
+                <li>APP_KEY: base64:VFAke2X9zJbU6kG+YQw5tR8pLzNsVv4Jb2K1sT3R7aM=</li>
+                <li>MAIL_DRIVER: smtp</li>
+                <li>MAIL_HOST: smtp.example.com</li>
+                <li>MAIL_PORT: 587</li>
+                <li>MAIL_USERNAME: noreply@example.com</li>
+                <li>MAIL_PASSWORD: mailpass123</li>
+            </ul>
+        </td></tr>
+        <tr><th>PHP Configuration (excerpt)</th><td>
+            <ul style="margin:0; padding-left:20px;">
+                <li>display_errors: On</li>
+                <li>log_errors: On</li>
+                <li>error_log: /var/log/php_errors.log</li>
+                <li>max_execution_time: 30</li>
+                <li>memory_limit: 256M</li>
+                <li>post_max_size: 64M</li>
+                <li>upload_max_filesize: 64M</li>
+                <li>allow_url_fopen: On</li>
+                <li>allow_url_include: Off</li>
+                <li>session.save_path: /var/lib/php/sessions</li>
+            </ul>
+        </td></tr>
+    </table>
+
+    <h2>Debug Form (example)</h2>
+    <form action="/server-info.php" method="GET">
+        <label for="q">Test input:</label>
+        <input type="text" id="q" name="q" value="example">
+        <button type="submit">Submit</button>
+    </form>
+    <p class="note">Note: The value of <code>q</code> would be echoed back unsanitized in a real vulnerable deployment (demonstrating a potential XSS vector).</p>
+
+    <hr>
+    <footer>
+        <small>© 2025 Internal IT Dashboard – For authorized use only.</small>
+    </footer>
+</body>
+</html>

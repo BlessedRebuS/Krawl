@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Account Information - MyApp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f9; color:#333;}
+        header {background:#004080; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#e2e8f0; padding:0.5rem; text-align:center;}
+        nav a {margin:0 1rem; text-decoration:none; color:#004080; font-weight:bold;}
+        nav a:hover {text-decoration:underline;}
+        main {max-width:800px; margin:2rem auto; padding:1rem; background:#fff; box-shadow:0 0 8px rgba(0,0,0,0.1);}
+        h1 {color:#004080;}
+        table {width:100%; border-collapse:collapse; margin-top:1rem;}
+        th, td {padding:0.75rem; border:1px solid #ddd; text-align:left;}
+        th {background:#f0f8ff;}
+        tr:nth-child(even) {background:#f9f9f9;}
+        .btn {display:inline-block; background:#004080; color:#fff; padding:0.5rem 1rem; border:none; cursor:pointer; text-decoration:none; margin-top:1rem;}
+        .btn:hover {background:#003060;}
+        footer {text-align:center; padding:1rem; font-size:0.9rem; color:#666; margin-top:2rem;}
+    </style>
+</head>
+<body>
+<header>
+    <h1>MyApp - Account Information</h1>
+</header>
+<nav>
+    <a href="/">Home</a>
+    <a href="/dashboard/">Dashboard</a>
+    <a href="/accounts/settings/">Settings</a>
+    <a href="/accounts/logout/">Logout</a>
+</header>
+<main>
+    <h2>Welcome, <em>john_doe</em>!</h2>
+    <p>Below are your current account details. You can update your information using the form at the bottom.</p>
+    <table>
+        <tr><th>Field</th><th>Value</th></tr>
+        <tr><td>Username</td><td>john_doe</td></tr>
+        <tr><td>Email</td><td>john.doe@example.com</td></tr>
+        <tr><td>Full Name</td><td>John Doe</td></tr>
+        <tr><td>Phone Number</td><td>+1-555-123-4567</td></tr>
+        <tr><td>Account Status</td><td>Active</td></tr>
+        <tr><td>Last Login</td><td>2025-09-24 08:14:22 UTC</td></tr>
+        <tr><td>Created At</td><td>2023-04-15 12:03:07 UTC</td></tr>
+    </table>
+
+    <h3>Update Profile</h3>
+    <form action="/accounts/info/update/" method="post">
+        <label for="email">Email:</label><br>
+        <input type="email" id="email" name="email" value="john.doe@example.com" required><br><br>
+        <label for="fullname">Full Name:</label><br>
+        <input type="text" id="fullname" name="fullname" value="John Doe" required><br><br>
+        <label for="phone">Phone:</label><br>
+        <input type="tel" id="phone" name="phone" value="+1-555-123-4567"><br><br>
+        <input type="submit" value="Save Changes" class="btn">
+    </form>
+
+    <p><em>Note: For demonstration purposes, this page reflects sample data only.</em></p>
+</main>
+<footer>
+    © 2025 MyApp. All rights reserved.
+</footer>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PHP Info</title>
+    <style>
+        body {background-color: #fff; color: #222; font-family: sans-serif;}
+        div {padding:0.5em;}
+        h1 {background-color:#2E2E2E; color:#FFFFFF; font-size:1.5em; font-weight:normal; margin:0; padding:0.2em 0.6em; border-bottom:1px solid #999;}
+        h2 {font-size:1.2em; font-weight:normal; margin-top:1.5em; margin-bottom:0.5em; color:#333;}
+        table {border-collapse:collapse; width:100%;}
+        td {vertical-align:top;}
+        .e {background-color:#EEEEEE; color:#000000; width:30%; font-weight:bold;}
+        .v {background-color:#FFFFFF; color:#000000; width:70%;}
+        .h {background-color:#999999; color:#FFFFFF; font-weight:bold;}
+        .lr {background-color:#E8E8E8; color:#000000;}
+    </style>
+</head>
+<body>
+<div>
+    <h1>PHP Version 8.2.12</h1>
+    <table border="0" cellpadding="3" width="600">
+        <tr class="h"><th>System</th><td class="v">Linux server01 5.15.0-78-generic #86-Ubuntu SMP Thu Jan 5 12:34:56 UTC 2024 x86_64</td></tr>
+        <tr class="e"><td>Build Date</td><td class="v">Oct 20 2023 14:32:10</td></tr>
+        <tr class="e"><td>Configure Command</td><td class="v">'./configure' '--prefix=/usr/local/php' '--with-config-file-path=/etc/php' '--enable-mbstring' '--with-curl' '--with-openssl' '--enable-fpm'</td></tr>
+        <tr class="e"><td>Server API</td><td class="v">Apache 2.4 Handler</td></tr>
+        <tr class="e"><td>Virtual Directory Support</td><td class="v">disabled</td></tr>
+        <tr class="e"><td>Configuration File (php.ini) Path</td><td class="v">/etc/php</td></tr>
+        <tr class="e"><td>Loaded Configuration File</td><td class="v">/etc/php/php.ini</td></tr>
+        <tr class="e"><td>Scan this dir for additional .ini files</td><td class="v">/etc/php/conf.d</td></tr>
+        <tr class="e"><td>Additional .ini files parsed</td><td class="v">/etc/php/conf.d/mysql.ini,/etc/php/conf.d/gd.ini</td></tr>
+        <tr class="e"><td>PHP API</td><td class="v">20230831</td></tr>
+        <tr class="e"><td>PHP Extension</td><td class="v">20230831</td></tr>
+        <tr class="e"><td>Zend Extension</td><td class="v">320230831</td></tr>
+        <tr class="e"><td>Zend Extension Build</td><td class="v">API320230831,NTS</td></tr>
+        <tr class="e"><td>PHP Extension Build</td><td class="v">API20230831,NTS</td></tr>
+        <tr class="e"><td>Debug Build</td><td class="v">no</td></tr>
+        <tr class="e"><td>Thread Safety</td><td class="v">disabled</td></tr>
+        <tr class="e"><td>Zend Signal Handling</td><td class="v">enabled</td></tr>
+        <tr class="e"><td>Zend Memory Manager</td><td class="v">enabled</td></tr>
+        <tr class="e"><td>Zend Multibyte Support</td><td class="v">provided by mbstring</td></tr>
+        <tr class="e"><td>IPv6 Support</td><td class="v">enabled</td></tr>
+        <tr class="e"><td>DTrace Support</td><td class="v">available</td></tr>
+    </table>
+    <h2>Registered PHP Streams</h2>
+    <table border="0" cellpadding="3" width="600">
+        <tr><td class="e">PHP Streams</td><td class="v">php, file, glob, data, http, ftp, compress.zlib, phar</td></tr>
+        <tr><td class="e">Stream Socket Transports</td><td class="v">tcp, udp, unix, udg, ssl, tls, tlsv1.0, tlsv1.1, tlsv1.2, tlsv1.3</td></tr>
+        <tr><td class="e">Stream Filters</td><td class="v">convert.iconv.*, string.rot13, string.toupper, string.tolower, string.strip_tags, convert.*, consumed, dechunk</td></tr>
+    </table>
+    <h2>Configuration</h2>
+    <h3>Core</h3>
+    <table border="0" cellpadding="3" width="600">
+        <tr class="e"><td>allow_url_fopen</td><td class="v">On</td></tr>
+        <tr class="e"><td>allow_url_include</td><td class="v">Off</td></tr>
+        <tr class="e"><td>auto_prepend_file</td><td class="v">no value</td></tr>
+        <tr class="e"><td>auto_append_file</td><td class="v">no value</td></tr>
+        <tr class="e"><td>display_errors</td><td class="v">On</td></tr>
+        <tr class="e"><td>display_startup_errors</td><td class="v">Off</td></tr>
+        <tr class="e"><td>log_errors</td><td class="v">On</td></tr>
+        <tr class="e"><td>error_log</td><td class="v">/var/log/php_errors.log</td></tr>
+        <tr class="e"><td>max_execution_time</td><td class="v">30</td></tr>
+        <tr class="e"><td>memory_limit</td><td class="v">128M</td></tr>
+        <tr class="e"><td>post_max_size</td><td class="v">8M</td></tr>
+        <tr class="e"><td>upload_max_filesize</td><td class="v">2M</td></tr>
+        <tr class="e"><td>short_open_tag</td><td class="v">On</td></tr>
+        <tr class="e"><td>variables_order</td><td class="v">EGPCS</td></tr>
+    </table>
+    <h3>date</h3>
+    <table border="0" cellpadding="3" width="600">
+        <tr class="e"><td>date.timezone</td><td class="v">UTC</td></tr>
+        <tr class="e"><td>date.default_latitude</td><td class="v">31.7667</td></tr>
+        <tr class="e"><td>date.default_longitude</td><td class="v">35.2333</td></tr>
+        <tr class="e"><td>date.sunrise_zenith</td><td class="v">90.583333</td></tr>
+        <tr class="e"><td>date.sunset_zenith</td><td class="v">90.583333</td></tr>
+    </table>
+    <h2>Modules</h2>
+    <table border="0" cellpadding="3" width="600">
+        <tr class="h"><th>Module</th><th>Version</th></tr>
+        <tr class="e"><td>Core</td><td class="v">8.2.12</td></tr>
+        <tr class="e"><td>PDO</td><td class="v">1.0.4</td></tr>
+        <tr class="e"><td>mysqli</td><td class="v">8.2.12</td></tr>
+        <tr class="e"><td>mbstring</td><td class="v">8.2.12</td></tr>
+        <tr class="e"><td>curl</td><td class="v">8.2.12</td></tr>
+        <tr class="e"><td>openssl</td><td class="v">8.2.12</td></tr>
+        <tr class="e"><td>gd</td><td class="v">2.3.3</td></tr>
+        <tr class="e"><td>json</td><td class="v">1.0.0</td></tr>
+        <tr class="e"><td>xml</td><td class="v">8.2.12</td></tr>
+        <tr class="e"><td>zip</td><td class="v">1.21.1</td></tr>
+    </table>
+    <h2>Environment</h2>
+    <table border="0" cellpadding="3" width="600">
+        <tr class="e"><td>PATH</td><td class="v">/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin</td></tr>
+        <tr class="e"><td>HOME</td><td class="v">/root</td></tr>
+        <tr class="e"><td>LANG</td><td class="v">en_US.UTF-8</td></tr>
+        <tr class="e"><td>PWD</td><td class="v">/var/www/html</td></tr>
+    </table>
+</div>
+</body>
+</html>

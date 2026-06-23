@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FluentSMTP Settings</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 2em; background:#f9f9f9;}
+        pre {background:#eee; padding:1em; border:1px solid #ccc;}
+    </style>
+</head>
+<body>
+    <h1>FluentSMTP v2 Settings</h1>
+    <p>Below are the current SMTP settings retrieved from the API.</p>
+    <pre>
+{
+    "smtp": {
+        "host": "smtp.example.com",
+        "port": 587,
+        "encryption": "tls",
+        "auth": true,
+        "username": "user@example.com",
+        "password": "********"
+    },
+    "from": {
+        "email": "no-reply@example.com",
+        "name": "Example Site"
+    },
+    "admin_notices": true,
+    "logging": {
+        "enable": true,
+        "path": "/wp-content/uploads/fluent-smtp/logs/"
+    }
+}
+</pre>
+</body>
+</html>

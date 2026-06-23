@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internal Administration Portal</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:40px; background:#f9f9f9; color:#333;}
+        .container {max-width:600px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+        h1 {color:#2c3e50;}
+        form {margin-top:20px;}
+        label {display:block; margin-top:10px;}
+        input[type=text], input[type=password] {width:100%; padding:8px; margin-top:4px; box-sizing:border-box;}
+        input[type=submit] {margin-top:15px; padding:10px 20px; background:#3498db; color:#fff; border:none; cursor:pointer;}
+        input[type=submit]:hover {background:#2980b9;}
+        ul {margin-top:20px;}
+        li {margin:5px 0;}
+        a {text-decoration:none; color:#2980b9;}
+        a:hover {text-decoration:underline;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Internal Administration Portal</h1>
+        <p>Welcome, authorized personnel. Please log in to access the system.</p>
+        <form action="/login" method="post">
+            <label for="user">Username:</label>
+            <input type="text" id="user" name="user" required>
+            <label for="pass">Password:</label>
+            <input type="password" id="pass" name="pass" required>
+            <input type="submit" value="Login">
+        </form>
+        <p>Last updated: 2025-09-26 10:15 UTC</p>
+        <ul>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/logs">System Logs</a></li>
+            <li><a href="/settings">Settings</a></li>
+        </ul>
+    </div>
+</body>
+</html>

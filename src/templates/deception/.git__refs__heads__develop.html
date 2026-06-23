@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Git Reference - develop</title>
+    <style>
+        body { font-family: monospace; background-color: #f8f9fa; color: #212529; margin: 40px; }
+        pre { background-color: #e9ecef; padding: 15px; border-radius: 4px; overflow-x: auto; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { border-bottom: 1px solid #dee2e6; padding-bottom: 10px; margin-bottom: 20px; }
+        .path { color: #0d6efd; font-weight: bold; }
+        .note { color: #6c757d; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Git Reference</h1>
+            <p class="path">/.git/refs/heads/develop</p>
+            <p class="note">This is a symbolic reference to the latest commit on the develop branch</p>
+        </div>
+        <pre>ref: refs/heads/develop</pre>
+        <div class="note">
+            <p>This file contains a reference to the current HEAD of the develop branch. In a real Git repository, this would either contain a direct SHA-1 hash or be a symbolic reference pointing to another ref.</p>
+            <p>For security reasons, direct access to Git internals should be restricted on production servers.</p>
+        </div>
+    </div>
+</body>
+</html>

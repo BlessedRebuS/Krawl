@@ -7,45 +7,41 @@ Migrated from handler.py serve_special_path(), do_POST(), and do_GET() catch-all
 
 import asyncio
 import random
-import time
 from datetime import datetime
-from urllib.parse import urlparse, parse_qs, unquote_plus
+from urllib.parse import parse_qs
 
-from fastapi import APIRouter, Request, Response, Depends
-from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse
+from fastapi import APIRouter, Depends, Request, Response
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 
-from dependencies import (
-    get_tracker,
-    get_app_config,
-    get_client_ip,
-    build_raw_request,
-)
 from config import Config
-from tracker import AccessTracker
-from templates import html_templates
-from generators import (
-    credentials_txt,
-    passwords_txt,
-    users_json,
-    api_keys_json,
-    api_response,
-    directory_listing,
-)
 from deception_responses import (
-    generate_sql_error_response,
-    get_sql_response_with_data,
     detect_xss_pattern,
-    generate_xss_response,
     generate_server_error,
+    generate_sql_error_response,
+    generate_xss_response,
+    get_sql_response_with_data,
+)
+from dependencies import (
+    build_raw_request,
+    get_client_ip,
 )
 from generative_ai import (
-    should_use_ai_for_path,
     generate_html_for_path,
     get_model,
     get_provider,
+    should_use_ai_for_path,
 )
+from generators import (
+    api_keys_json,
+    api_response,
+    credentials_txt,
+    directory_listing,
+    passwords_txt,
+    users_json,
+)
+from logger import get_access_logger, get_app_logger, get_credential_logger
+from templates import html_templates
 from wordlists import get_wordlists
-from logger import get_app_logger, get_access_logger, get_credential_logger
 
 
 async def _safe_body(request: Request) -> str:
@@ -161,10 +157,9 @@ async def sql_endpoint_post(request: Request):
 @router.post("/api/contact")
 async def contact_post(request: Request):
     client_ip = get_client_ip(request)
-    user_agent = request.headers.get("User-Agent", "")
-    tracker = request.app.state.tracker
+    request.headers.get("User-Agent", "")
     access_logger = get_access_logger()
-    app_logger = get_app_logger()
+    get_app_logger()
 
     post_data = await _safe_body(request)
 
@@ -357,7 +352,7 @@ async def fake_directory_listing(request: Request):
 async def sql_endpoint_get(request: Request):
     client_ip = get_client_ip(request)
     access_logger = get_access_logger()
-    app_logger = get_app_logger()
+    get_app_logger()
 
     base_path = request.url.path
     request_query = request.url.query or ""
@@ -451,7 +446,9 @@ async def trap_page(request: Request, path: str):
                 content_type,
                 status_code,
                 was_cached,
-            ) = await generate_html_for_path(full_path, request.url.query or "")
+            ) = await asyncio.shield(
+                generate_html_for_path(full_path, request.url.query or "")
+            )
             model = get_model()
             provider = get_provider()
             cache_flag = "[CACHED]" if was_cached else ""

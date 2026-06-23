@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Aspera Faspex - File Transfer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, Helvetica, sans-serif; margin:0; background:#f4f4f4; color:#333;}
+        header {background:#003366; color:#fff; padding:1rem;}
+        header h1 {margin:0;}
+        nav {background:#004080; color:#fff; padding:0.5rem;}
+        nav a {color:#fff; margin-right:1rem; text-decoration:none;}
+        nav a:hover {text-decoration:underline;}
+        .container {max-width:960px; margin:2rem auto; background:#fff; padding:1.5rem; box-shadow:0 0 8px rgba(0,0,0,0.1);}
+        h2 {color:#003366;}
+        table {width:100%; border-collapse:collapse; margin-top:1rem;}
+        th, td {border:1px solid #ddd; padding:0.5rem; text-align:left;}
+        th {background:#e2e8f0;}
+        tr:nth-child(even) {background:#f9f9f9;}
+        .form-group {margin-bottom:1rem;}
+        label {display:block; margin-bottom:0.3rem; font-weight:bold;}
+        input[type="text"], input[type="password"] {width:100%; padding:0.5rem; box-sizing:border-box;}
+        button {background:#003366; color:#fff; border:none; padding:0.6rem 1.2rem; cursor:pointer;}
+        button:hover {background:#002244;}
+        .footer {margin-top:2rem; font-size:0.9rem; color:#666; text-align:center;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Aspera Faspex</h1>
+        <p>Secure High‑Speed File Transfer</p>
+    </header>
+    <nav>
+        <a href="/aspera/faspex/">Home</a>
+        <a href="/aspera/faspex/transfers">Transfers</a>
+        <a href="/aspera/faspex/users">Users</a>
+        <a href="/aspera/faspex/reports">Reports</a>
+        <a href="/aspera/faspex/help">Help</a>
+        <a href="/aspera/faspex/logout">Logout</a>
+    </nav>
+    <div class="container">
+        <h2>Welcome, admin</h2>
+        <p>Below is a summary of recent file transfers.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Package</th>
+                    <th>Sender</th>
+                    <th>Recipient</th>
+                    <th>Status</th>
+                    <th>Size</th>
+                    <th>Completed</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1024</td>
+                    <td>Q4_Financials.zip</td>
+                    <td>j.smith@example.com</td>
+                    <td>finance-team@example.com</td>
+                    <td>Completed</td>
+                    <td>4.2 GB</td>
+                    <td>2025-10-28 09:14</td>
+                </tr>
+                <tr>
+                    <td>1025</td>
+                    <td>Project_X_Designs.tar</td>
+                    <td>a.lee@example.com</td>
+                    <td>design@example.com</td>
+                    <td>In Progress</td>
+                    <td>1.8 GB</td>
+                    <td>2025-10-28 09:20</td>
+                </tr>
+                <tr>
+                    <td>1026</td>
+                    <td>Backup_20251027.iso</td>
+                    <td>backup@example.com</td>
+                    <td>storage@example.com</td>
+                    <td>Failed</td>
+                    <td>12.5 GB</td>
+                    <td>2025-10-28 08:45</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Create New Package</h2>
+        <form action="/aspera/faspex/package_create.php" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="pkg_name">Package Name:</label>
+                <input type="text" id="pkg_name" name="pkg_name" required>
+            </div>
+            <div class="form-group">
+                <label for="recipients">Recipients (comma‑separated):</label>
+                <input type="text" id="recipients" name="recipients" placeholder="user1@example.com, user2@example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="files">Files to Upload:</label>
+                <input type="file" id="files" name="files[]" multiple>
+            </div>
+            <button type="submit">Send Package</button>
+        </form>
+    </div>
+    <footer class="footer">
+        &copy; 2025 Aspera, Inc. | Faspex Version 4.5.0 (build 12345) | <a href="/aspera/faspex/privacy">Privacy Policy</a>
+    </footer>
+</body>
+</html>

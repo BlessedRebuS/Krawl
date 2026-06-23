@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation - Swagger UI</title>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css" integrity="sha512-DdXv8U7f5R0j5Z5X4Qb8jY6V5Q9e3Y7QbR6c5X5V7R3Q9tG5Q5Y5R5X5V7R3Q9tG5Q5Y5R5X5V7R3Q9tG5Q5Y5R5" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            margin: 0;
+            background-color: #fafafa;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+        .swagger-ui .topbar {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        .swagger-ui .info {
+            margin: 10px 20px;
+        }
+        .swagger-ui .info .title {
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+<div id="swagger-ui"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.js" integrity="sha512-5Kj9j4j5Q5X5V7R3Q9tG5Q5Y5R5X5V7R3Q9tG5Q5Y5R5X5V7R3Q9tG5Q5Y5R5X5V7R3Q9tG5Q5Y5R5X5V7R3Q9tG5Q5Y5R5" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.js" integrity="sha512-5Kj9j4j5Q5X5V7R3Q9tG5Q5Y5R5X5V7R3Q9tG5Q5Y5R5X5V7R3Q9tG5Q5Y5R5X5V7R3Q9tG5Q5Y5R5X5V7R3Q9tG5Q5Y5R5X5V7R3Q9tG5Q5Y5R5" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    window.onload = function() {
+        // Begin Swagger UI call region
+        const ui = SwaggerUIBundle({
+            url: "/v2/api-docs.json",
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            presets: [
+                SwaggerUIBundle.presets.forApis,
+                SwaggerUIStandalonePreset
+            ],
+            plugins: [
+                SwaggerUIBundle.plugins.DownloadUrl
+            ],
+            layout: "StandaloneLayout"
+        });
+        // End Swagger UI call region
+        window.ui = ui
+    };
+</script>
+</body>
+</html>

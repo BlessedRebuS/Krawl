@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Backup - Download</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; text-align: center; }
+        .btn { display: inline-block; background: #007cba; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; margin: 20px 0; }
+        .btn:hover { background: #005a87; }
+        .info { background: #e8f4fd; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .warning { color: #d32f2f; font-size: 0.9em; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Database Backup Archive</h1>
+        <p>This page provides access to the latest database backup for system maintenance and recovery purposes.</p>
+        
+        <div class="info">
+            <strong>Backup Information:</strong><br>
+            • File: dump.zip<br>
+            • Size: 42.3 MB<br>
+            • Created: 2024-05-15 02:30:00 UTC<br>
+            • Contains: Full MySQL dump of production database<br>
+            • Password protected: Yes (contact sysadmin for credentials)
+        </div>
+
+        <a href="/download/dump.zip" class="btn">Download Backup (dump.zip)</a>
+        
+        <p><em>Note: This backup contains sensitive data including user credentials, transaction records, and configuration files. Handle with extreme care and comply with data protection regulations.</em></p>
+        
+        <div class="warning">
+            ⚠️ Security Notice: Unauthorized access to this backup may violate company policy and applicable laws. All download attempts are logged and monitored.
+        </div>
+        
+        <hr>
+        <p style="text-align: center; font-size: 0.9em; color: #666;">
+            Internal Systems Portal © 2024 | <a href="/">Return to Home</a>
+        </p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WooCommerce REST API – Customers</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9;}
+        h1 {color:#2c3e50;}
+        .endpoint {background:#ecf0f1; padding:15px; border-radius:5px; margin-bottom:20px;}
+        table {width:100%; border-collapse:collapse; margin-top:10px;}
+        th, td {border:1px solid #bbb; padding:8px; text-align:left;}
+        th {background:#3498db; color:#fff;}
+        tr:nth-child(even) {background:#ecf0f1;}
+        .note {color:#7f8c8d; font-size:0.9em;}
+        .form-group {margin-bottom:15px;}
+        label {display:block; margin-bottom:5px; font-weight:bold;}
+        input[type=text], input[type=number] {width:250px; padding:8px;}
+        input[type=submit] {background:#27ae60; color:#fff; border:none; padding:10px 15px; cursor:pointer;}
+        input[type=submit]:hover {background:#219150;}
+    </style>
+</head>
+<body>
+    <h1>WooCommerce REST API – Customers Endpoint</h1>
+    <div class="endpoint">
+        <p><strong>URL:</strong> <code>/wp-json/wc/v3/customers</code></p>
+        <p><strong>Method:</strong> GET</p>
+        <p>Returns a list of customers. This endpoint is intended for integration with WooCommerce stores.</p>
+        <p class="note">※ This is a simulated response for debugging purposes. Real API responses are JSON.</p>
+    </div>
+
+    <h2>Test the Endpoint</h2>
+    <form method="GET" action="/wp-json/wc/v3/customers">
+        <div class="form-group">
+            <label for="search">Search (vulnerable to SQLi):</label>
+            <input type="text" id="search" name="search" value="" placeholder="e.g. ' OR 1=1--">
+        </div>
+        <div class="form-group">
+            <label for="page">Page:</label>
+            <input type="number" id="page" name="page" min="1" value="1">
+        </div>
+        <div class="form-group">
+            <label for="per_page">Per page:</label>
+            <input type="number" id="per_page" name="per_page" min="1" max="100" value="10">
+        </div>
+        <input type="submit" value="Fetch Customers">
+    </form>
+
+    <h2>Sample Customer Data</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Username</th>
+                <th>Last Order Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>John Doe</td>
+                <td>john.doe@example.com</td>
+                <td>johndoe</td>
+                <td>2024-10-12</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Jane Smith</td>
+                <td>jane.smith@example.com</td>
+                <td>janesmith</td>
+                <td>2024-09-30</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Alex Johnson</td>
+                <td>alex.j@example.com</td>
+                <td>alexj</td>
+                <td>2024-10-01</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>Maria Garcia</td>
+                <td>maria.g@example.com</td>
+                <td>mariag</td>
+                <td>2024-09-25</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>Li Wei</td>
+                <td>li.wei@example.com</td>
+                <td>liwei</td>
+                <td>2024-10-05</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+    <p class="note">For actual API usage, ensure proper authentication (OAuth 1.0a) and handle responses as JSON. This page is intentionally simplified and contains fake data for demonstration only.</p>
+</body>
+</html>

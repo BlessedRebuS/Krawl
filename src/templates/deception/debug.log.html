@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Debug Log</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; color:#222; padding:20px;}
+        pre {background:#eee; padding:10px; border:1px solid #ccc; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>Server Debug Log</h1>
+    <p>Generated on: 2025-09-24 14:32:10 UTC</p>
+    <pre>
+[2025-09-24 14:30:01] INFO: Application started.
+[2025-09-24 14:30:05] DEBUG: Loading configuration from /etc/app/config.yaml.
+[2025-09-24 14:30:07] INFO: Database connection established (mysql://user:***@db.internal:3306/app).
+[2025-09-24 14:30:12] WARN: Slow query detected: SELECT * FROM users WHERE email = 'admin@example.com' AND password = '' OR '1'='1';
+[2025-09-24 14:30:15] ERROR: Failed to send email to admin@example.com: SMTP authentication failure.
+[2025-09-24 14:30:20] INFO: User agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+[2025-09-24 14:30:22] DEBUG: Session ID: s3cr3t-s3ss10n-id-abc123
+[2025-09-24 14:30:25] INFO: Request to /login.php processed in 120ms.
+[2025-09-24 14:31:00] INFO: Cron job backup started.
+[2025-09-24 14:31:05] INFO: Backup completed successfully, size 2.3GB.
+[2025-09-24 14:31:10] WARN: Disk usage at 78% on /var/log.
+[2025-09-24 14:31:45] ERROR: PHP Notice: Undefined variable: $user_input in /var/www/html/search.php on line 42
+[2025-09-24 14:32:00] INFO: Stopping graceful shutdown.
+    </pre>
+</body>
+</html>

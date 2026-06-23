@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>db.zip</title>
+    <style>
+        body { font-family: monospace; background:#f8f8f8; color:#222; padding:20px; }
+        pre { background:#fff; border:1px solid #ccc; padding:15px; overflow:auto; }
+    </style>
+</head>
+<body>
+    <h1>Database Backup (db.zip)</h1>
+    <p>The following is the contents of the database backup archive.</p>
+    <pre>
+-- phpMyAdmin SQL Dump
+-- version 5.1.0
+-- https://www.phpmyadmin.net/
+--
+-- Host: localhost
+-- Generation Time: Sep 24, 2025 at 03:12 AM
+-- Server version: 5.7.33
+-- PHP Version: 7.4.3
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `company_db`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `created_at`) VALUES
+(1, 'admin', 'admin@example.com', '5f4dcc3b5aa765d61d8327deb882cf99', '2025-09-20 08:15:00'),
+(2, 'jdoe', 'jdoe@example.com', 'e10adc3949ba59abbe56e057f20f883e', '2025-09-21 12:05:00'),
+(3, 'asmith', 'asmith@example.com', 'd8578edf8458ce06fbc5bb76a58c5ca4', '2025-09-22 09:30:00');
+
+--
+-- Table structure for table `orders`
+--
+
+CREATE TABLE `orders` (
+  `order_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `product` varchar(100) NOT NULL,
+  `quantity` int(11) NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `order_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `orders`
+--
+
+INSERT INTO `orders` (`order_id`, `user_id`, `product`, `quantity`, `price`, `order_date`) VALUES
+(101, 1, 'Widget A', 2, 9.99, '2025-09-23 10:00:00'),
+(102, 2, 'Widget B', 1, 14.50, '2025-09-23 11:20:00'),
+(103, 3, 'Widget C', 5, 4.75, '2025-09-23 13:45:00');
+
+-- Indexes for dumped tables
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `username` (`username`);
+
+ALTER TABLE `orders`
+  ADD PRIMARY KEY (`order_id`),
+  ADD KEY `user_id` (`user_id`);
+
+-- AUTO_INCREMENT for dumped tables
+--
+ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+ALTER TABLE `orders`
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=104;
+
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+    </pre>
+    <p>End of archive.</p>
+</body>
+</html>

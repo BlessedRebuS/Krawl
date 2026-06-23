@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>.s3cfg Configuration - Example Corp</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 30px; }
+        .content { background: #f9f9f9; padding: 20px; border-radius: 5px; }
+        pre { background: #eee; padding: 15px; border-radius: 3px; overflow-x: auto; }
+        .footer { margin-top: 40px; text-align: center; color: #666; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>.s3cfg Configuration File</h1>
+            <p>Amazon S3 Configuration - Example Corporation</p>
+        </div>
+        <div class="content">
+            <p>This is the s3cmd configuration file for accessing Amazon S3 services. Contains access credentials and bucket settings.</p>
+            <pre>[default]
+access_key = AKIAIOSFODNN7EXAMPLE
+secret_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+bucket_location = US
+cloudfront_host = cloudfront.example.com
+cloudfront_resource = /cf/dist_id
+default_mime_type = binary/octet-stream
+delete_removed = False
+dry_run = False
+enable_multipart = True
+encoding = UTF-8
+encrypt = False
+expiry_date = 
+expiry_days = 
+expiry_prefix = 
+follow_symlinks = False
+force = False
+get_continue = False
+gpg_command = /usr/bin/gpg
+gpg_decrypt = %(gpg_command)s -d --verbose --no-use-agent --batch --yes --passphrase-fd %(passphrase_fd)s -o %(output_file)s %(input_file)s
+gpg_encrypt = %(gpg_command)s -c --verbose --no-use-agent --batch --yes --passphrase-fd %(passphrase_fd)s -o %(output_file)s %(input_file)s
+gpg_passphrase = 
+guess_mime_type = True
+host_base = s3.amazonaws.com
+host_bucket = %(bucket)s.s3.amazonaws.com
+human_readable_sizes = False
+invalidate_cloudfront_objects = False
+list_md5 = False
+log_target_prefix = 
+max_retries = 10
+max_retry_delay = 30
+mime_type = 
+multipart_chunk_size_mb = 15
+preserve_attrs = True
+progress_meter = True
+proxy_host = 
+proxy_port = 0
+proxy_user = 
+recursive = False
+recv_chunk = 4096
+reduced_redundancy = False
+requester_pays = False
+restore_days = 1
+result_proxy_err_enable = False
+send_chunk = 4096
+simpledb_host = sdb.amazonaws.com
+skip_existing = False
+socket_timeout = 300
+stderrredirect = True
+stderrlevel = 1
+verbose = False
+website_endpoint = http://%(bucket)s.s3-website-%(location)s.amazonaws.com/
+website_error = 
+website_index = index.html
+</pre>
+            <p><em>Note: This configuration file contains example credentials. In production, always use secure credential management.</em></p>
+        </div>
+        <div class="footer">
+            <p>Example Corporation &copy; 2024 - Internal Use Only</p>
+        </div>
+    </div>
+</body>
+</html>

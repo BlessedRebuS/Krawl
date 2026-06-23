@@ -1,0 +1,308 @@
+<html><body>{
+  "swagger": "2.0",
+  "info": {
+    "title": "Internal API Documentation",
+    "version": "1.0.0",
+    "description": "API for internal company services including user management, billing, and analytics. Access restricted to authorized personnel."
+  },
+  "host": "api.internal.company.com",
+  "schemes": [
+    "https"
+  ],
+  "basePath": "/v1",
+  "paths": {
+    "/users": {
+      "get": {
+        "summary": "Retrieve list of users",
+        "description": "Returns a paginated list of all registered users. Requires admin privileges.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "integer",
+            "description": "Number of users to return (max 100)",
+            "default": 20
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "type": "integer",
+            "description": "Offset for pagination",
+            "default": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/User"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new user",
+        "description": "Creates a new user account. Returns the created user object.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserInput"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid input data"
+          },
+          "409": {
+            "description": "Conflict - User with this email already exists"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Get user by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Unique identifier of the user"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User details",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a user",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Unique identifier of the user to delete"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "User deleted successfully"
+          },
+          "403": {
+            "description": "Forbidden - Cannot delete admin users"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/billing": {
+      "get": {
+        "summary": "Get billing information",
+        "description": "Retrieves current billing status and usage metrics for the authenticated organization.",
+        "responses": {
+          "200": {
+            "description": "Billing data",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "currentUsage": {
+                  "type": "number",
+                  "format": "float",
+                  "example": 1245.67
+                },
+                "billingCycleStart": {
+                  "type": "string",
+                  "format": "date",
+                  "example": "2024-06-01"
+                },
+                "billingCycleEnd": {
+                  "type": "string",
+                  "format": "date",
+                  "example": "2024-06-30"
+                },
+                "plan": {
+                  "type": "string",
+                  "example": "Enterprise"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/analytics/events": {
+      "post": {
+        "summary": "Track custom event",
+        "description": "Logs a custom analytics event for user behavior tracking.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["eventName", "userId"],
+              "properties": {
+                "eventName": {
+                  "type": "string",
+                  "example": "button_click"
+                },
+                "userId": {
+                  "type": "string",
+                  "example": "usr_123abc"
+                },
+                "properties": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "example": {
+                    "page": "/checkout",
+                    "element": "submit-btn"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Event queued for processing"
+          },
+          "400": {
+            "description": "Invalid event payload"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "usr_789xyz"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "example": "john.doe@company.com"
+        },
+        "firstName": {
+          "type": "string",
+          "example": "John"
+        },
+        "lastName": {
+          "type": "string",
+          "example": "Doe"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "user", "viewer"],
+          "example": "user"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2024-01-15T08:30:00Z"
+        },
+        "isActive": {
+          "type": "boolean",
+          "example": true
+        }
+      },
+      "required": ["id", "email", "firstName", "lastName", "role"]
+    },
+    "UserInput": {
+      "type": "object",
+      "required": ["email", "firstName", "lastName"],
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "user", "viewer"],
+          "default": "user"
+        },
+        "password": {
+          "type": "string",
+          "minLength": 8,
+          "description": "Must be at least 8 characters"
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "api_key": {
+      "type": "apiKey",
+      "name": "X-API-Key",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "api_key": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "users",
+      "description": "User management operations"
+    },
+    {
+      "name": "billing",
+      "description": "Billing and subscription management"
+    },
+    {
+      "name": "analytics",
+      "description": "Event tracking and usage analytics"
+    }
+  ],
+  "externalDocs": {
+    "description": "Find more info here",
+    "url": "https://docs.internal.company.com"
+  }
+}</body></html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Symfony dev controller - /app_dev.php</title>
+<style>
+    body {font-family:Arial,Helvetica,sans-serif; margin:0; padding:0; background:#f8f9fa; color:#212529;}
+    header {background:#343a40; color:#fff; padding:1rem; position:relative;}
+    header h1 {margin:0; font-size:1.5rem;}
+    .toolbar {background:#e9ecef; border-bottom:1px solid #dee2e6; padding:0.5rem 1rem; font-size:0.9rem;}
+    .toolbar a {color:#007bff; text-decoration:none; margin-right:1rem;}
+    .toolbar a:hover {text-decoration:underline;}
+    .container {max-width:960px; margin:2rem auto; padding:0 1rem;}
+    .card {background:#fff; border:1px solid #dee2e6; border-radius:.25rem; padding:1.5rem; margin-bottom:1.5rem;}
+    h2 {color:#343a40; margin-top:0;}
+    pre {background:#f8f9fa; padding:1rem; overflow:auto; border:1px solid #dee2e6;}
+    .form-group {margin-bottom:1rem;}
+    label {display:block; margin-bottom:.25rem; font-weight:bold;}
+    input[type=text], input[type=password], select {width:100%; padding:.5rem; border:1px solid #ced4da; border-radius:.25rem;}
+    button {background:#007bff; color:#fff; border:none; padding:.5rem 1rem; border-radius:.25rem; cursor:pointer;}
+    button:hover {background:#0056b3;}
+    .notice {background:#fff3cd; border:1px solid #ffeeba; color:#856404; padding:.75rem 1rem; border-radius:.25rem;}
+</style>
+</head>
+<body>
+<header>
+    <h1>Symfony</h1>
+    <div style="position:absolute; right:1rem; top:50%; transform:translateY(-50%); font-size:.9rem;">
+        <a href="/app.php">Production</a> |
+        <a href="/app/config">Config</a> |
+        <a href="/app/logs">Logs</a>
+    </div>
+</header>
+<div class="toolbar">
+    <a href="/app_dev.php?_panel=info">Information</a> |
+    <a href="/app_dev.php?_panel=config">Config Dump</a> |
+    <a href="/app_dev.php?_panel=logs">Logs</a> |
+    <a href="/app_dev.php?_panel=routes">Routes</a> |
+    <a href="/app_dev.php?_panel=mailer">Mailer</a>
+</div>
+<div class="container">
+    <div class="notice">
+        <strong>Notice:</strong> You are accessing the Symfony development front controller. This script is intended for use in development environments only.
+    </div>
+
+    <section class="card">
+        <h2>Welcome to the Symfony dev environment</h2>
+        <p>The application is running in <code>dev</code> mode. Debug tools are enabled.</p>
+        <p><strong>Current URL:</strong> <code>/app_dev.php</code></p>
+        <p><strong>PHP Version:</strong> 8.2.12 (cli) (built: Oct 26 2023 12:00:00) <br>
+           <strong>Server:</strong> Apache/2.4.57 (Unix) <br>
+           <strong>Database:</strong> MySQL 5.7.40-log</p>
+    </section>
+
+    <section class="card">
+        <h2>Fake SQL Injection Demo (for illustration)</h2>
+        <form method="GET" action="/app_dev.php">
+            <div class="form-group">
+                <label for="user_id">User ID:</label>
+                <input type="text" id="user_id" name="id" value="1">
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+        <?php
+        // Simulate GET parameter processing for demo only
+        if(isset($_GET['id'])) {
+            $id = $_GET['id'];
+            echo '<pre class="mt-2">';
+            echo 'Executing query: SELECT * FROM users WHERE id = \'' . htmlspecialchars($id, ENT_QUOTES) . '\';';
+            echo "\n";
+            // Fake result
+            if(preg_match("/[\"'\\-\\;]/", $id)) {
+                echo '[ERROR] You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ...';
+            } else {
+                echo '+----+----------+-------------------+';
+                echo "\n| id | username | email             |";
+                echo "\n+----+----------+-------------------+";
+                echo "\n| 1  | admin    | admin@example.com |";
+                echo "\n+----+----------+-------------------+";
+            }
+            echo '</pre>';
+        }
+        ?>
+    </section>
+
+    <section class="card">
+        <h2>Environment Variables (faked)</h2>
+        <pre>
+APP_ENV=dev
+APP_DEBUG=1
+APP_SECRET=fakesecret1234567890abcdef
+DATABASE_URL=mysql://db_user:db_pass@127.0.0.1:3306/demo_db
+MAILER_URL=smtp://localhost:25
+TRUSTED_PROXIES=127.0.0.1,10.0.0.0/8
+        </pre>
+    </section>
+
+    <section class="card">
+        <h2>Recent Request Log (faked)</h2>
+        <pre>
+[2025-11-02 10:15:23] request.INFO: Matched route "home". {"route":"home","route_parameters":{"_controller":"App\\Controller\\DefaultController::index","_route":"home"},"request_uri":"/app_dev.php","method":"GET"}
+[2025-11-02 10:14:57] request.INFO: Matched route "login". {"route":"login","route_parameters":{"_controller":"App\\Controller\\SecurityController::login","_route":"login"},"request_uri":"/app_dev.php/login","method":"POST"}
+[2025-11-02 10:14:12] request.INFO: Matched route "admin_dashboard". {"route":"admin_dashboard","route_parameters":{"_controller":"App\\Controller\\AdminController::dashboard","_route":"admin_dashboard"},"request_uri":"/app_dev.php/admin","method":"GET"}
+        </pre>
+    </section>
+</div>
+</body>
+</html>

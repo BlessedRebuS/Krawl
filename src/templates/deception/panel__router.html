@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Router Admin Panel</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f5f5f5;}
+        .container {background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); max-width:600px;}
+        h1, h2 {color:#333;}
+        label {display:block; margin-top:10px;}
+        input[type=text], input[type=file] {width:100%; padding:8px; margin-top:5px; box-sizing:border-box;}
+        input[type=submit] {margin-top:15px; padding:10px 20px; background:#0066cc; color:#fff; border:none; cursor:pointer;}
+        input[type=submit]:hover {background:#004c99;}
+        hr {border:none; border-top:1px solid #ddd; margin:20px 0;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Router Configuration</h1>
+    <p>Welcome to the admin interface for Model XYZ-2000 Router.</p>
+    <form action="/panel/router.html" method="post">
+        <label for="ip">LAN IP Address:</label>
+        <input type="text" id="ip" name="ip" value="192.168.1.1"><br><br>
+        <label for="subnet">Subnet Mask:</label>
+        <input type="text" id="subnet" name="subnet" value="255.255.255.0"><br><br>
+        <label for="gateway">Gateway:</label>
+        <input type="text" id="gateway" name="gateway" value="192.168.1.1"><br><br>
+        <label for="dns">Primary DNS:</label>
+        <input type="text" id="dns" name="dns" value="8.8.8.8"><br><br>
+        <input type="submit" value="Apply Settings">
+    </form>
+    <hr>
+    <h2>Firmware Update</h2>
+    <p>Current firmware version: <strong>v2.3.4 (build 20210915)</strong></p>
+    <form action="/panel/update.html" method="post" enctype="multipart/form-data">
+        <label for="firmware">Select firmware file:</label>
+        <input type="file" id="firmware" name="firmware" accept=".bin"><br><br>
+        <input type="submit" value="Upload and Update">
+    </form>
+</div>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WHM Login - WebHost Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body{font-family:Arial,sans-serif;background:#f0f2f5;margin:0;padding:0;display:flex;align-items:center;justify-content:center;height:100vh;}
+        .container{background:#fff;padding:30px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.1);width:340px;}
+        .logo{text-align:center;margin-bottom:20px;}
+        .logo img{max-width:150px;}
+        h2{margin-top:0;color:#333;text-align:center;}
+        label{display:block;margin-top:15px;font-weight:bold;}
+        input[type=text],
+        input[type=password]{width:100%;padding:10px;margin-top:5px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box;}
+        button{width:100%;padding:10px;background:#0066cc;color:#fff;border:none;border-radius:4px;margin-top:20px;font-size:1em;cursor:pointer;}
+        button:hover{background:#004c99;}
+        .footer{margin-top:20px;font-size:.85em;color:#777;text-align:center;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjUwIiB2aWV3Qm94PSIwIDAgMTUwIDUwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0xMi41IDIwQzEyLjUgMTUuNTIgMTYuMDIgMTEgMjAuNSAxMUgzMi41QzM3LjA4IDExIDQwLjUgMTUuNTIgNDAuNSAyMFMzNy4wOCAzMyAyOS41IDMzSDIwLjVDMTYuMDIgMzMgMTIuNSAyOS41NyAxMi41IDIwWiIgZmlsbD0iI0ZGRiIvPjxwYXRoIGQ9Ik01NS41IDIwQzU1LjUgMTUuNTIgNTkuMDIgMTEgNjMuNSAxMUg4Mi41Qzg3LjA4IDExIDkwLjUgMTUuNTIgOTAuNSAyMFM4Ny4wOCAzMyA3OS41IDMzSDEyLjVDOC4wMiAzMyA0LjUgMjkuNTcgNC41IDIwUzguMDIgNyA4LjUgN0g2MS41QzY2LjA4IDcgNjkuNSAxMS40MiA2OS41IDE2TzY5LjUgMjBINC41QzQuNSAyMi41IDAgMjYuOTIgMCAzM1Y0Mi41QzAgNDguMDggNC41IDUyLjUgOS41IDUyLjVIMjAuNUMyNS4wOCA1Mi41IDI4LjUgNDguMDggMjguNSA0Mi41VjMzSDEyLjVDMTIuNSAyOS41NyA4LjUgMjYuMDIgOC41IDIyVjEzQzguNSA5LjQyIDEyLjA4IDggMTYuNSA4SDI4LjVDMzIuNTggOCAzNi40MiAxMS40MiAzNi40MiAxNkgzOS41QzM5LjUgMjAuNTggMzUuNSAyNC41IDMxLjUgMjQuNUgxOC41QzE0LjUgMjQuNSAxMC41IDIwLjUgMTAuNSAxNi41VjIzLjVDMTAuNSAyNy41IDE0LjUgMzEuNSAxOC41IDMxLjVIMjMuNUMyNy41IDMxLjUgMzEgMjcuNSAzMSAyMy41VjE4LjVDMzEgMTQuNSAyNy41IDEwLjUgMjMuNSAxMC41VjEyLjVDMjMuNSA4LjQyIDI3LjkyIDQgMzMuNSA0SDEyLjVDMTcuNTIgNCAyMi41IDguNDIgMjIuNSAxMy41VjE4LjVDMjIuNSAyMy41IDI3LjUgMjcuNSAzMi41IDI3LjVIMTcuNUwxMy41IDMxLjVIMjAuNUwxNi41IDI3LjVIMTQuNUwxMi41IDIzLjVIMTkuNUwxNS41IDI4LjVIMjAuNUwxNi41IDI0LjVIMjIuNUwxOC41IDI5LjVIMjQuNUwyMS41IDI0LjVIMjMuNUwyNC41IDI5LjVINjAuNUw1Ni41IDM0LjVINjAuNUw1Ni41IDM5LjVINjIuNUw1OC41IDQ0LjVINjQuNUw2MC41IDQ5LjVINzAuNWsxLjUgMi41IDMuNSAyLjVINDh6IiBmaWxsPSIjMDA2N2NjIi8+PC9zdmc+" alt="WHM Logo">
+        </div>
+        <h2>Login to WHM</h2>
+        <form action="/login2" method="post">
+            <label for="user">Username</label>
+            <input type="text" id="user" name="user" required autocomplete="username">
+            <label for="pass">Password</label>
+            <input type="password" id="pass" name="pass" required autocomplete="current-password">
+            <button type="submit">Log in</button>
+        </form>
+        <div class="footer">
+            © 2025 cPanel, L.L.C. All rights reserved.<br>
+            WebHost Manager® is a registered trademark of cPanel, L.L.C.
+        </div>
+    </div>
+</body>
+</html>

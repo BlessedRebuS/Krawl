@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Check - API Gateway</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .status { padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .healthy { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .endpoint { background-color: #f8f9fa; padding: 10px; margin: 10px 0; border-left: 4px solid #007bff; font-family: monospace; }
+        .timestamp { color: #6c757d; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>API Gateway Health Check</h1>
+        <div class="status healthy">
+            <strong>Status:</strong> HEALTHY
+        </div>
+        <div class="timestamp">
+            Last checked: 2024-01-15T10:30:45Z
+        </div>
+        <h2>System Overview</h2>
+        <p>This endpoint provides real-time health status of the API gateway and its dependent services.</p>
+        <div class="endpoint">GET /v1/sys/health</div>
+        <div class="endpoint">GET /v1/sys/ready</div>
+        <div class="endpoint">GET /v1/sys/live</div>
+        <h2>Component Status</h2>
+        <div class="endpoint">Database Connection: <span style="color: green;">OK</span></div>
+        <div class="endpoint">Redis Cache: <span style="color: green;">OK</span></div>
+        <div class="endpoint">Message Queue: <span style="color: green;">OK</span></div>
+        <div class="endpoint">External API Proxy: <span style="color: green;">OK</span></div>
+        <h2>Performance Metrics</h2>
+        <div class="endpoint">Response Time (avg): 12ms</div>
+        <div class="endpoint">Requests/sec: 1,245</div>
+        <div class="endpoint">Error Rate: 0.02%</div>
+        <div class="endpoint">Uptime: 99.98%</div>
+        <hr>
+        <p><em>This is a simulated health endpoint for monitoring purposes. No sensitive data is exposed.</em></p>
+    </div>
+</body>
+</html>

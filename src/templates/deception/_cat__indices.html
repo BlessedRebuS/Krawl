@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elasticsearch Cat Indices</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .status-green { color: #28a745; font-weight: bold; }
+        .status-yellow { color: #ffc107; font-weight: bold; }
+        .status-red { color: #dc3545; font-weight: bold; }
+        .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Elasticsearch Cat Indices</h1>
+        <p>Cluster: <strong>elasticsearch-cluster-prod</strong> | Nodes: 3 | Indices: 12</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>health</th>
+                    <th>status</th>
+                    <th>index</th>
+                    <th>pri</th>
+                    <th>rep</th>
+                    <th>docs.count</th>
+                    <th>docs.deleted</th>
+                    <th>store.size</th>
+                    <th>pri.store.size</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="status-green">green</span></td>
+                    <td>open</td>
+                    <td>logs-2024.06.01</td>
+                    <td>3</td>
+                    <td>1</td>
+                    <td>1245890</td>
+                    <td>12</td>
+                    <td>456.2mb</td>
+                    <td>228.1mb</td>
+                </tr>
+                <tr>
+                    <td><span class="status-green">green</span></td>
+                    <td>open</td>
+                    <td>logs-2024.06.02</td>
+                    <td>3</td>
+                    <td>1</td>
+                    <td>1302456</td>
+                    <td>8</td>
+                    <td>489.7mb</td>
+                    <td>244.8mb</td>
+                </tr>
+                <tr>
+                    <td><span class="status-yellow">yellow</span></td>
+                    <td>open</td>
+                    <td>metrics-app</td>
+                    <td naquela>
+                    <td>2</td>
+                    <td>0</td>
+                    <td>89234</td>
+                    <td>0</td>
+                    <td>12.4mb</td>
+                    <td>12.4mb</td>
+                </tr>
+                <tr>
+                    <td><span class="status-red">red</span></td>
+                    <td>close</td>
+                    <td>old-backup-2023</td>
+                    <td>1</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>0b</td>
+                    <td>0b</td>
+                </tr>
+                <tr>
+                    <td><span class="status-green">green</span></td>
+                    <td>open</td>
+                    <td>users-profile</td>
+                    <td>2</td>
+                    <td>1</td>
+                    <td>45892</td>
+                    <td>3</td>
+                    <td>8.7mb</td>
+                    <td>4.3mb</td>
+                </tr>
+                <tr>
+                    <td><span class="status-green">green</span></td>
+                    <td>open</td>
+                    <td>transactions-2024</td>
+                    <td>5</td>
+                    <td>1</td>
+                    <td>2105678</td>
+                    <td>45</td>
+                    <td>1.2gb</td>
+                    <td>600mb</td>
+                </tr>
+                <tr>
+                    <td><span class="status-green">green</span></td>
+                    <td>open</td>
+                    <td>audit-logs</td>
+                    <td>1</td>
+                    <td>0</td>
+                    <td>67890</td>
+                    <td>0</td>
+                    <td>15.3mb</td>
+                    <td>15.3mb</td>
+                </tr>
+                <tr>
+                    <td><span class="status-yellow">yellow</span></td>
+                    <td>open</td>
+                    <td>cache-session</td>
+                    <td>3</td>
+                    <td>2</td>
+                    <td>1205</td>
+                    <td>0</td>
+                    <td>2.1mb</td>
+                    <td>700kb</td>
+                </tr>
+                <tr>
+                    <td><span class="status-green">green</span></td>
+                    <td>open</td>
+                    <td>error-tracking</td>
+                    <td>2</td>
+                    <td>1</td>
+                    <td>3421</td>
+                    <td>1</td>
+                    <td>1.8mb</td>
+                    <td>900kb</td>
+                </tr>
+                <tr>
+                    <td><span class="status-green">green</span></td>
+                    <td>open</td>
+                    <td>kibana_sample_data_ecommerce</td>
+                    <td>1</td>
+                    <td>0</td>
+                    <td>4675</td>
+                    <td>0</td>
+                    <td>1.2mb</td>
+                    <td>1.2mb</td>
+                </tr>
+                <tr>
+                    <td><span class="status-green">green</span></td>
+                    <td>open</td>
+                    <td>.security</td>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>128</td>
+                    <td>0</td>
+                    <td>45kb</td>
+                    <td>22kb</td>
+                </tr>
+                <tr>
+                    <td><span class="status-green">green</span></td>
+                    <td>open</td>
+                    <td>.monitoring-es-6-2024.06.02</td>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>1456</td>
+                    <td>0</td>
+                    <td>320kb</td>
+                    <td>160kb</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="footer">
+            <p>Total indices: 12 | Total docs: 5,256,790 | Total size: 2.4tb</p>
+            <p>Generated by Elasticsearch 8.11.0 • <a href="/_cat/nodes">Nodes</a> • <a href="/_cluster/health">Cluster Health</a></p>
+        </div>
+    </div>
+</body>
+</html>

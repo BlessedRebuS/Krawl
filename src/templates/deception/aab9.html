@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internal Dashboard - Admin Panel</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9; color:#333;}
+        .container {max-width: 600px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+        h1 {color:#2c3e50;}
+        form {margin-top:20px;}
+        label {display:block; margin-top:10px;}
+        input[type="text"], input[type="password"] {width:100%; padding:8px; margin-top:4px; border:1px solid #ccc; border-radius:4px;}
+        input[type="submit"] {margin-top:15px; padding:10px 20px; background:#27ae60; color:#fff; border:none; border-radius:4px; cursor:pointer;}
+        input[type="submit"]:hover {background:#2ecc71;}
+        .note {font-size:0.9em; color:#7f8c8d; margin-top:20px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Login Panel</h1>
+        <p>Please enter your credentials to access the internal management console.</p>
+        <form action="/login" method="POST">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" placeholder="Enter username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" placeholder="Enter password" required>
+            <input type="submit" value="Log In">
+        </form>
+        <div class="note">
+            <p>Note: This system is for authorized personnel only. Unauthorized access attempts will be logged and monitored.</p>
+            <!-- Simulated backend error for demonstration purposes -->
+            <!-- If username contains a single quote, the following error may appear: 
+                 SQL syntax error near '' at line 1: SELECT * FROM users WHERE username=''' AND password='...' -->
+        </div>
+    </div>
+</body>
+</html>

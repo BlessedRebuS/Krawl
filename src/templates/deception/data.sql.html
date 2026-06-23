@@ -1,0 +1,35 @@
+<html><body>-- Fake database dump for demonstration purposes
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `users` (`id`, `username`, `password`, `email`, `created_at`) VALUES
+(1, 'admin', '5f4dcc3b5aa765d61d8327deb882cf99', 'admin@example.com', '2024-01-15 08:30:00'),
+(2, 'john_doe', 'e10adc3949ba59abbe56e057f20f883e', 'john.doe@example.com', '2024-02-03 14:22:10'),
+(3, 'jane_smith', '8cb2237d0679ca88db6464eac60da963', 'jane.smith@example.com', '2024-02-20 09:05:45'),
+(4, 'test_user', 'd033e22ae348aeb5660fc2140aec35850c4da997', 'test@example.com', '2024-03-05 11:12:33'),
+(5, 'guest', 'a87ff679a2f3e71d9181a67b7542122c', 'guest@example.com', '2024-03-12 16:40:05');
+
+-- Additional tables for demo
+CREATE TABLE IF NOT EXISTS `logs` (
+  `log_id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL,
+  `action` varchar(100) NOT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`log_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `logs` (`log_id`, `user_id`, `action`, `ip_address`, `timestamp`) VALUES
+(1, 1, 'login successful', '203.0.113.5', '2024-04-01 07:12:00'),
+(2, 2, 'failed login', '198.51.100.22', '2024-04-01 07:13:45'),
+(3, NULL, 'admin panel access', '203.0.113.5', '2024-04-01 08:00:10'),
+(4, 3, 'profile update', '203.0.113.5', '2024-04-01 09:22:30');</body></html>

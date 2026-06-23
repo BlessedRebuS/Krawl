@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Astroid Component Settings - Joomla! Administrator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, Helvetica, sans-serif; margin:0; padding:0; background:#f4f6f9; color:#333;}
+        header {background:#2c3e50; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#ecf0f1; padding:0.5rem 1rem; border-bottom:1px solid #bdc3c7;}
+        nav a {margin-right:1rem; text-decoration:none; color:#2c3e50; font-weight:bold;}
+        nav a:hover {text-decoration:underline;}
+        .container {max-width:960px;margin:2rem auto;background:#fff;padding:2rem;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1,h2 {color:#2c3e50;}
+        table {width:100%;border-collapse:collapse;margin-top:1rem;}
+        th,td {padding:0.75rem;border:1px solid #ddd;text-align:left;}
+        th {background:#ecf0f1;}
+        tr:nth-child(even){background:#f9f9f9;}
+        .btn {display:inline-block;background:#27ae60;color:#fff;padding:0.5rem 1rem;border:none;border-radius:3px;cursor:pointer;}
+        .btn:hover{background:#219150;}
+        .footer {text-align:center;font-size:0.9rem;color:#7f8c8d;margin-top:2rem;}
+    </style>
+</head>
+<body>
+<header>
+    <h1>Joomla! Administrator</h1>
+    <p>Astroid Component – Template Settings</p>
+</header>
+<nav>
+    <a href="/administrator/index.php">Control Panel</a>
+    <a href="/administrator/index.php?option=com_astroid">Astroid Dashboard</a>
+    <a href="/administrator/index.php?option=com_config">Global Configuration</a>
+    <a href="/administrator/index.php?option=com_users&view=profile">Profile</a>
+    <a href="/administrator/index.php?option=com_logout">Logout</a>
+</nav>
+<div class="container>
+    <h2>Astroid Template Settings</h2>
+    <form action="/administrator/index.php?option=com_astroid&task=settings.apply" method="post" enctype="multipart/form-data">
+        <fieldset>
+            <legend>General</legend>
+            <label for="site_name">Site Name:</label><br>
+            <input type="text" id="site_name" name="site_name" value="My Joomla Site" style="width:100%;max-width:400px;"><br><br>
+            <label for="site_slogan">Site Slogan:</label><br>
+            <input type="text" id="site_slogan" name="site_slogan" value="Powered by Astroid Framework" style="width:100%;max-width:400px;"><br><br>
+        </fieldset>
+        <fieldset>
+            <legend>Logo</legend>
+            <label for="logo_upload">Upload Logo (PNG/JPG, max 2MB):</label><br>
+            <input type="file" id="logo_upload" name="logo_upload" accept="image/png,image/jpeg"><br><br>
+            <img src="/images/placeholder-logo.png" alt="Current Logo Preview" style="max-width:150px;border:1px solid #ccc;margin-top:0.5rem;"><br><br>
+        </fieldset>
+        <fieldset>
+            <legend>Layout Options</legend>
+            <label><input type="checkbox" name="fluid_layout" checked> Fluid Layout</label><br><br>
+            <label for="sidebar_position">Sidebar Position:</label>
+            <select id="sidebar_position" name="sidebar_position">
+                <option value="left">Left</option>
+                <option value="right" selected>Right</option>
+                <option value="none">Hidden</option>
+            </select><br><br>
+            <label for="color_scheme">Color Scheme:</label>
+            <select id="color_scheme" name="color_scheme">
+                <option value="default" selected>Default (Blue)</option>
+                <option value="dark">Dark</option>
+                <option value="green">Green</option>
+                <option value="red">Red</option>
+            </select><br><br>
+        </fieldset>
+        <fieldset>
+            <legend>Social Links</legend>
+            <label for="facebook_url">Facebook URL:</label><br>
+            <input type="url" id="facebook_url" name="facebook_url" value="https://www.facebook.com/example" style="width:100%;max-width:400px;"><br><br>
+            <label for="twitter_url">Twitter URL:</label><br>
+            <input type="url" id="twitter_url" name="twitter_url" value="https://twitter.com/example" style="width:100%;max-width:400px;"><br><br>
+            <label for="instagram_url">Instagram URL:</label><br>
+            <input type="url" id="instagram_url" name="instagram_url" value="https://www.instagram.com/example" style="width:100%;max-width:400px;"><br><br>
+        </fieldset>
+        <input type="hidden" name="token" value="a1b2c3d4e5f6g7h8i9j0">
+        <button type="submit" class="btn">Save & Close</button>
+        <button type="button" class="btn" onclick="window.history.back()">Cancel</button>
+    </form>
+</div>
+<div class="footer">
+    &copy; 2025 Joomla! Project • Astroid Template Framework v2.8.4
+</div>
+</body>
+</html>

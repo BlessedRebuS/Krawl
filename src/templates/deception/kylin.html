@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Apache Kylin – OLAP Dashboard</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header {background:#0066cc; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#e2e2e2; padding:0.5rem;}
+        nav a {margin:0 1rem; text-decoration:none; color:#0066cc;}
+        .content {padding:1.5rem;}
+        .card {background:#fff; border:1px solid #ddd; border-radius:4px; padding:1rem; margin-bottom:1rem;}
+        table {width:100%; border-collapse:collapse; margin-top:0.5rem;}
+        th, td {border:1px solid #ddd; padding:0.5rem; text-align:left;}
+        th {background:#f0f0f0;}
+        footer {text-align:center; font-size:0.8rem; color:#777; padding:1rem; margin-top:2rem;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Apache Kylin</h1>
+        <p>OLAP Engine for Big Data</p>
+    </header>
+    <nav>
+        <a href="/kylin/">Home</a>
+        <a href="/kylin/cubes">Cubes</a>
+        <a href="/kylin/jobs">Jobs</a>
+        <a href="/kylin/model">Model</a>
+        <a href="/kylin/admin">Admin</a>
+        <a href="/kylin/login">Login</a>
+    </nav>
+    <div class="content">
+        <div class="card">
+            <h2>Welcome to Kylin</h2>
+            <p>This is a demonstration instance of Apache Kylin. Use the navigation above to explore cubes, monitor jobs, and manage the metadata model.</p>
+            <p><strong>Version:</strong> 4.0.0‑SNAPSHOT (build 20240915)</p>
+            <p><strong>Uptime:</strong> 12 days, 3 hours, 45 minutes</p>
+        </div>
+        <div class="card">
+            <h2>Latest Cubes</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cube Name</th>
+                        <th>Status</th>
+                        <th>Size</th>
+                        <th>Last Build</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>kylin_sales</td>
+                        <td>READY</td>
+                        <td>2.3 GB</td>
+                        <td>2024-09-14 08:12:03</td>
+                    </tr>
+                    <tr>
+                        <td>kylin_inventory</td>
+                        <td>BUILDING</td>
+                        <td>1.7 GB</td>
+                        <td>2024-09-15 02:05:41</td>
+                    </tr>
+                    <tr>
+                        <td>kylin_customer</td>
+                        <td>DISABLED</td>
+                        <td>0.9 GB</td>
+                        <td>2024-09-10 19:33:12</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="card">
+            <h2>Recent Jobs</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Job ID</th>
+                        <th>Cube</th>
+                        <th>Step</th>
+                        <th>Progress</th>
+                        <th>Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>JOB_162374</td>
+                        <td>kylin_inventory</td>
+                        <td>Aggregation</td>
+                        <td>68%</td>
+                        <td>00:14:22</td>
+                    </tr>
+                    <tr>
+                        <td>JOB_162371</td>
+                        <td>kylin_sales</td>
+                        <td>Dictionary Build</td>
+                        <td>100%</td>
+                        <td>00:08:05</td>
+                    </tr>
+                    <tr>
+                        <td>JOB_162369</td>
+                        <td>kylin_customer</td>
+                        <td>Fact Distinct</td>
+                        <td>0%</td>
+                        <td>00:00:00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="card">
+            <h2>System Information</h2>
+            <ul>
+                <li>Host: kylin-demo01.internal</li>
+                <li>OS: Linux 5.4.0-150-generic #157-Ubuntu SMP</li>
+                <li>Java: OpenJDK 11.0.22</li>
+                <li>Hadoop Version: 3.3.6</li>
+                <li>HBase Version: 2.4.13</li>
+                <li>Storage Type: HDFS</li>
+            </ul>
+        </div>
+    </div>
+    <footer>
+        &copy; 2024 Apache Software Foundation. Licensed under the Apache License, Version 2.0.
+    </footer>
+</body>
+</html>

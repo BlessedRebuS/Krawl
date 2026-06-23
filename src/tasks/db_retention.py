@@ -7,10 +7,11 @@ Periodically deletes old records based on configured retention_days.
 
 from datetime import datetime, timedelta
 
+from sqlalchemy import delete as sa_delete
 from sqlalchemy import or_
 
-from database import get_database
 from dashboard_cache import invalidate_table_cache
+from database import get_database
 from logger import get_app_logger
 
 # ----------------------
@@ -38,8 +39,9 @@ def main():
         from models import (
             AccessLog,
             AttackDetection,
-            IpStats,
             CategoryHistory,
+            IpStats,
+            MetricsSummary,
         )
 
         config = get_config()
@@ -53,8 +55,8 @@ def main():
         # Delete attack detections linked to old NON-suspicious access logs (FK constraint)
         old_nonsuspicious_log_ids = session.query(AccessLog.id).filter(
             AccessLog.timestamp < cutoff,
-            AccessLog.is_suspicious == False,
-            AccessLog.is_honeypot_trigger == False,
+            not AccessLog.is_suspicious,
+            not AccessLog.is_honeypot_trigger,
         )
         detections_deleted = (
             session.query(AttackDetection)
@@ -67,8 +69,8 @@ def main():
             session.query(AccessLog)
             .filter(
                 AccessLog.timestamp < cutoff,
-                AccessLog.is_suspicious == False,
-                AccessLog.is_honeypot_trigger == False,
+                not AccessLog.is_suspicious,
+                not AccessLog.is_honeypot_trigger,
             )
             .delete(synchronize_session=False)
         )
@@ -78,22 +80,36 @@ def main():
             session.query(AccessLog.ip)
             .filter(
                 or_(
-                    AccessLog.is_suspicious == True,
-                    AccessLog.is_honeypot_trigger == True,
+                    AccessLog.is_suspicious,
+                    AccessLog.is_honeypot_trigger,
                 )
             )
             .distinct()
         )
 
-        # Delete stale IPs, but keep those linked to suspicious logs
-        ips_deleted = (
-            session.query(IpStats)
-            .filter(
+        # Delete stale IPs, but keep those linked to suspicious logs.
+        # Use RETURNING so we tally exactly the rows THIS run deleted — under
+        # per-pod scheduling the second pod deletes 0 rows and tallies nothing,
+        # keeping the cumulative counts correct without cross-pod coordination.
+        deleted_rows = session.execute(
+            sa_delete(IpStats)
+            .where(
                 IpStats.last_seen < cutoff,
                 ~IpStats.ip.in_(preserved_ips),
             )
-            .delete(synchronize_session=False)
-        )
+            .returning(IpStats.total_requests)
+        ).fetchall()
+        ips_deleted = len(deleted_rows)
+        deleted_accesses = sum(int(r[0] or 0) for r in deleted_rows)
+
+        # Accumulate what we removed into the cumulative "deleted" tallies, so
+        # reconciliation keeps total_accesses / unique_ips absolute (total-ever,
+        # not just retained rows): reconciled = count(current rows) + tally.
+        if ips_deleted:
+            _bump_deleted_tally(session, MetricsSummary, "unique_ips", ips_deleted)
+            _bump_deleted_tally(
+                session, MetricsSummary, "total_accesses", deleted_accesses
+            )
 
         # Delete old category history, but keep records for preserved IPs
         history_deleted = (
@@ -119,6 +135,15 @@ def main():
                 f"older than {retention_days} days"
             )
 
+        # Recompute cumulative counters from (current rows + deleted tallies) now
+        # that data was purged. Lock-guarded so only one pod runs the scan.
+        try:
+            import metrics_counters
+
+            metrics_counters.reconcile(db)
+        except Exception as e:
+            app_logger.error(f"Error reconciling metrics after retention: {e}")
+
     except Exception as e:
         app_logger.error(f"Error during DB retention cleanup: {e}")
     finally:
@@ -126,3 +151,30 @@ def main():
             db.close_session()
         except Exception as e:
             app_logger.error(f"Error closing DB session after retention cleanup: {e}")
+
+
+def _bump_deleted_tally(session, MetricsSummary, metric: str, amount: int) -> None:
+    """Add `amount` to the cumulative (metric, '_deleted') tally row in-session.
+
+    Runs inside the retention transaction so the tally and the deletes commit
+    atomically.
+    """
+    if amount <= 0:
+        return
+    row = (
+        session.query(MetricsSummary)
+        .filter(MetricsSummary.metric == metric, MetricsSummary.label == "_deleted")
+        .first()
+    )
+    if row:
+        row.value = int(row.value) + int(amount)
+        row.updated_at = datetime.now()
+    else:
+        session.add(
+            MetricsSummary(
+                metric=metric,
+                label="_deleted",
+                value=int(amount),
+                updated_at=datetime.now(),
+            )
+        )

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Portal - Internal Testing</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9;}
+        .container {max-width:600px; margin:auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1 {color:#2c3e50;}
+        .note {background:#fff3cd; border-left:4px solid #ffc107; padding:10px; margin-top:20px;}
+        input[type=text], input[type=password] {width:100%; padding:8px; margin:8px 0; box-sizing:border-box;}
+        input[type=submit] {background:#3498db; color:#fff; border:none; padding:10px 15px; cursor:pointer;}
+        input[type=submit]:hover {background:#2980b9;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Internal Admin Login</h1>
+        <p>Welcome to the internal testing portal. Use the form below to authenticate.</p>
+        <form action="/55m868f5pjb4imq2r" method="POST">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required><br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required><br>
+            <input type="submit" value="Login">
+        </form>
+        <div class="note">
+            <strong>Note:</strong> This page is part of a security assessment environment. 
+            Any unusual behavior (e.g., SQL errors, script execution) is expected and simulated.
+        </div>
+        <!-- Simulated debug info: if a parameter 'debug' is present, it would be reflected unsafely -->
+        <!-- Example: <?php echo $_GET['debug']; ?> -->
+    </div>
+</body>
+</html>

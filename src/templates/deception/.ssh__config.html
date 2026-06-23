@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>.ssh/config - Server Files</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 2em; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        pre {background:#ecf0f1; padding:1em; overflow:auto; border:1px solid #bdc3c7;}
+        .note {font-size:0.9em; color:#555; margin-top:1em;}
+    </style>
+</head>
+<body>
+    <h1>.ssh/config</h1>
+    <pre>
+# -------------------------------------------------
+# Personal SSH configuration (example)
+# -------------------------------------------------
+
+# Default settings for all hosts
+Host *
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+    Compression yes
+    ForwardAgent no
+
+# Github
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_rsa_github
+    IdentitiesOnly yes
+
+# Internal development servers
+Host dev*
+    HostName dev%h.internal.example.com
+    User deploy
+    IdentityFile ~/.ssh/id_rsa_dev
+    ProxyJump bastion.example.com
+
+# Bastion host
+Host bastion
+    HostName bastion.example.com
+    User ops
+    Port 2222
+    IdentityFile ~/.ssh/id_rsa_bastion
+
+# AWS EC2 instances (using EC2 instance connect)
+Host ec2*
+    HostName %h.compute-1.amazonaws.com
+    User ec2-user
+    IdentityFile ~/.ssh/aws/ec2-key.pem
+    StrictHostKeyChecking no
+    UserKnownHostsFile=/dev/null
+
+# Shortcut for quick access to a test server
+Host test
+    HostName 203.0.113.45
+    User tester
+    Port 2222
+    IdentityFile ~/.ssh/test_key
+    LocalForward 8080 localhost:80
+    RemoteForward 9000 localhost:9000
+    </pre>
+    <div class="note">
+        This file is shown for illustrative purposes only. Actual SSH configurations may vary.
+    </div>
+</body>
+</html>

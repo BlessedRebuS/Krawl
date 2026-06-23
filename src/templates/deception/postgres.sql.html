@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PostgreSQL Database Dump</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; color:#222; margin:2em;}
+        pre {background:#fff; padding:1em; border:1px solid #ddd; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>PostgreSQL Database Dump</h1>
+    <p>Generated on 2025-09-24 08:15:00 UTC</p>
+    <pre>
+-- PostgreSQL database dump
+--
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.users (
+    id integer NOT NULL,
+    username character varying(50) NOT NULL,
+    email character varying(255),
+    password_hash character varying(60),
+    created_at timestamp without time zone DEFAULT now()
+);
+
+ALTER TABLE public.users OWNER TO postgres;
+
+--
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.users (id, username, email, password_hash, created_at) FROM stdin;
+1	jdoe	jdoe@example.com	$2a$10$V3JvZ2luZm9ybWF0aW9uU3RyaW5n	2024-09-15 10:23:00
+2	asmith	asmith@example.com	$2a$10$V3JvZ2luZm9ybWF0aW9uU3RyaW5n	2024-09-16 14:05:12
+3	bgates	bgates@example.com	$2a$10$V3JvZ2luZm9ybWF0aW9uU3RyaW5n	2024-09-17 09:12:45
+\.
+
+
+--
+-- Name: orders; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.orders (
+    order_id integer NOT NULL,
+    user_id integer NOT NULL,
+    product character varying(100),
+    quantity integer,
+    order_date timestamp without time zone DEFAULT now()
+);
+
+ALTER TABLE public.orders OWNER TO postgres;
+
+--
+-- Data for Name: orders; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.orders (order_id, user_id, product, quantity, order_date) FROM stdin;
+1001	1	Widget A	2	2024-09-18 11:00:00
+1002	2	Gadget B	1	2024-09-18 12:30:00
+1003	3	Widget A	5	2024-09-19 08:45:00
+\.
+
+
+--
+-- PostgreSQL database dump complete
+--
+    </pre>
+</body>
+</html>

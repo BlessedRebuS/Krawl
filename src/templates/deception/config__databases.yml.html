@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>databases.yml</title>
+<style>
+body{font-family:monospace;background:#f8f8f8;color:#333;padding:20px}
+pre{background:#fff;border:1px solid #ddd;padding:10px;overflow:auto}
+</style>
+</head>
+<body>
+<h1>databases.yml</h1>
+<pre>
+development:
+  adapter: postgresql
+  host: localhost
+  database: myapp_dev
+  username: dev_user
+  password: s3cr3tP@ss
+
+test:
+  adapter: postgresql
+  host: localhost
+  database: myapp_test
+  username: test_user
+  password: t3stP@ss
+
+production:
+  adapter: postgresql
+  host: db-prod.example.com
+  database: myapp_prod
+  username: prod_user
+  password: pr0dP@ssw0rd!
+</pre>
+</body>
+</html>

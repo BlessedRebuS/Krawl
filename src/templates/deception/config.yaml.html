@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Configuration - Internal Use Only</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 2px solid #007acc; padding-bottom: 10px; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .config-section { margin: 25px 0; }
+        .config-key { font-weight: bold; color: #2c3e50; }
+        .config-value { color: #34495e; margin-left: 20px; }
+        .sensitive { color: #e74c3c; font-family: monospace; background: #f8f9fa; padding: 2px 4px; border-radius: 3px; }
+        footer { margin-top: 40px; text-align: center; color: #7f8c8d; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Server Configuration File</h1>
+        <div class="warning">
+            <strong>WARNING:</strong> This file contains sensitive configuration data. Access is restricted to authorized personnel only. Unauthorized access may violate security policies.
+        </div>
+        
+        <div class="config-section">
+            <h2>Database Configuration</h2>
+            <div><span class="config-key">host:</span> <span class="config-value sensitive">db-prod.internal.company.com</span></div>
+            <div><span class="config-key">port:</span> <span class="config-value">5432</span></div>
+            <div><span class="config-key">name:</span> <span class="config-value sensitive">production_db</span></div>
+            <div><span class="config-key">username:</span> <span class="config-value sensitive">admin_user</span></div>
+            <div><span class="config-key">password:</span> <span class="config-value sensitive">s3cr3t_P@ssw0rd!2024</span></div>
+            <div><span class="config-key">ssl_mode:</span> <span class="config-value">require</span></div>
+            <div><span class="config-key">pool_size:</span> <span class="config-value">20</span></div>
+        </div>
+        
+        <div class="config-section">
+            <h2>API Keys & Secrets</h2>
+            <div><span class="config-key">aws_access_key_id:</span> <span class="config-value sensitive">AKIAIOSFODNN7EXAMPLE</span></div>
+            <div><span class="config-key">aws_secret_access_key:</span> <span class="config-value sensitive">wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</span></div>
+            <div><span class="config-key">stripe_secret_key:</span> <span class="config-value sensitive">sk_test_51Hb8JYLJfdsskffghsU8e90askdjfhasldfkjahsdkfjahsdlfkjashdf</span></div>
+            <div><span class="config-key">jwt_secret:</span> <span class="config-value sensitive">super_secret_jwt_key_that_should_be_rotated_regularly</span></div>
+            <div><span class="config-key">encryption_key:</span> <span class="config-value sensitive">a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6</span></div>
+        </div>
+        
+        <div class="config-section">
+            <h2>Email Configuration</h2>
+            <div><span class="config-key">smtp_host:</span> <span class="config-value">smtp.sendgrid.net</span></div>
+            <div><span class="config-key">smtp_port:</span> <span class="config-value">587</span></div>
+            <div><span class="config-key">smtp_user:</span> <span class="config-value sensitive">apikey</span></div>
+            <div><span class="config-key">smtp_pass:</span> <span class="config-value sensitive">SG.xxxxYYYYZZZZ.aaaBBBcccDDDeeeFFFgggHHHiiiJJJkkkLLLmmmNNNoooPPP</span></div>
+            <div><span class="config-key">from_email:</span> <span class="config-value">noreply@company.com</span></div>
+        </div>
+        
+        <div class="config-section">
+            <h2>Application Settings</h2>
+            <div><span class="config-key">debug:</span> <span class="config-value">false</span></div>
+            <div><span class="config-key">log_level:</span> <span class="config-value">info</span></div>
+            <div><span class="config-key">session_timeout:</span> <span class="config-value">3600</span></div>
+            <div><span class="config-key">max_upload_size:</span> <span class="config-value">10MB</span></div>
+            <div><span class="config-key">allowed_origins:</span> <span class="config-value">["https://app.company.com", "https://portal.company.com"]</span></div>
+            <div><span class="config-key">rate_limit:</span> <span class="config-value">100 requests/minute</span></div>
+        </div>
+        
+        <div class="config-section">
+            <h2>Internal Services</h2>
+            <div><span class="config-key">redis_url:</span> <span class="config-value sensitive">redis://:redispass@redis-cluster:6379/0</span></div>
+            <div><span class="config-key">elasticsearch_host:</span> <span class="config-value">es-cluster.internal:9200</span></div>
+            <div><span class="config-key">message_queue:</span> <span class="config-value sensitive">amqp://user:pass@rabbitmq:5672/vhost</span></div>
+            <div><span class="config-key">backup_endpoint:</span> <span class="config-value">s3://company-backups/prod/</span></div>
+        </div>
+        
+        <footer>
+            Configuration generated: 2024-01-15 14:30:22 UTC<br>
+            File: config.yaml<br>
+            Environment: production<br>
+            <em>This is a simulated configuration file for security training purposes only.</em>
+        </footer>
+    </div>
+</body>
+</html>

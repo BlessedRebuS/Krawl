@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>.gitlab-ci.yml</title>
+    <style>
+        body {font-family: monospace; background:#f8f8f8; color:#333; margin:2rem;}
+        pre {background:#fff; padding:1rem; border:1px solid #ddd; overflow:auto;}
+    </style>
+</head>
+<body>
+    <h1>.gitlab-ci.yml</h1>
+    <p>GitLab CI configuration for the project.</p>
+    <pre>
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+
+build_job:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker build -t myapp:$IMAGE_TAG .
+    - docker push myapp:$IMAGE_TAG
+  only:
+    - branches
+
+test_job:
+  stage: test
+  image: python:3.9
+  script:
+    - pip install -r requirements.txt
+    - pytest tests/
+  artifacts:
+    reports:
+      junit: report.xml
+  only:
+    - merge_requests
+
+deploy_job:
+  stage: deploy
+  image: alpine/k8s:1.18.0
+  script:
+    - kubectl set image deployment/myapp myapp=myapp:$IMAGE_TAG --namespace=production
+  environment:
+    name: production
+    url: https://example.com
+  only:
+    - main
+    </pre>
+</body>
+</html>

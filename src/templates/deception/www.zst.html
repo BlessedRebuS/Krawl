@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ZST Technologies - Internal Portal</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        .container {width:80%; max-width:960px; margin:20px auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1, h2 {color:#2c3e50;}
+        input[type=text], input[type=password], textarea {width:100%; padding:8px; margin:5px 0 15px; border:1px solid #ccc; border-radius:4px;}
+        input[type=submit] {background:#2980b9; color:#fff; border:none; padding:10px 15px; cursor:pointer; border-radius:4px;}
+        input[type=submit]:hover {background:#3498db;}
+        #comments {border-top:1px solid #ddd; margin-top:20px; padding-top:10px;}
+        .comment {background:#ecf0f1; padding:10px; margin-bottom:10px; border-radius:4px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to ZST Technologies</h1>
+        <p>Internal employee portal for staff resources, announcements, and internal tools.</p>
+
+        <h2>Employee Login</h2>
+        <form action="login.php" method="post">
+            <label for="username">Username:</label><br>
+            <input type="text" id="username" name="username" required><br>
+            <label for="password">Password:</label><br>
+            <input type="password" id="password" name="password" required><br>
+            <input type="submit" value="Login">
+        </form>
+
+        <hr>
+
+        <h2>Company Announcements</h2>
+        <ul>
+            <li><strong>July 12, 2025:</strong> New security policy effective August 1.</li>
+            <li><strong>June 30, 2025:</strong> Quarterly performance reviews scheduled.</li>
+            <li><strong>May 15, 2025:</strong> Office relocation to 123 Innovation Drive.</li>
+        </ul>
+
+        <h2>Leave Feedback</h2>
+        <form action="comment.php" method="post">
+            <label for="comment">Your feedback:</label><br>
+            <textarea id="comment" name="comment" rows="4" placeholder="Type your comment here..." required></textarea><br>
+            <input type="submit" value="Post Comment">
+        </form>
+
+        <div id="comments">
+            <h3>Recent Comments</h3>
+            <div class="comment"><strong>Alice:</strong> Great update on the new policy!</div>
+            <div class="comment"><strong>Bob:</strong> Looking forward to the office move.</div>
+            <div class="comment"><strong>Charlie:</strong> The login page could use improvements.</div>
+            <!-- Example of potentially vulnerable data: SQL query that might be reflected if unsanitized input is used -->
+            <!-- SQL: SELECT * FROM users WHERE username = '$username' AND password = '$password' -->
+            <!-- Example of potentially vulnerable data: XSS vector that might be echoed unsanitized -->
+            <!-- XSS: <script>alert('XSS')</script> -->
+        </div>
+    </div>
+</body>
+</html>

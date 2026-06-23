@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <appSettings>
+    <add key="DatabaseConnectionString" value="Server=localhost;Database=appdb;User Id=admin;Password=secret123;"/>
+    <add key="EnableDebug" value="true"/>
+  </appSettings>
+  <connectionStrings>
+    <add name="DefaultConnection" connectionString="Data Source=localhost;Initial Catalog=Users;Integrated Security=True"/>
+  </connectionStrings>
+  <system.web>
+    <authentication mode="Forms">
+      <forms loginUrl="~/Account/Login" timeout="2880"/>
+    </authentication>
+  </system.web>
+</configuration>

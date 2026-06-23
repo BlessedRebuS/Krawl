@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSS Example - Comment System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .comment { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; background-color: #fafafa; }
+        .comment-header { font-weight: bold; color: #333; margin-bottom: 5px; }
+        .comment-text { color: #555; line-height: 1.5; }
+        textarea { width: 100%; height: 80px; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 10px; border-radius: 4px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>User Comments - Public Forum</h1>
+        <p>Welcome to our community discussion board. Feel free to leave your thoughts below!</p>
+        
+        <div class="warning">
+            <strong>Note:</strong> All comments are moderated for inappropriate content. Please keep discussions respectful.
+        </div>
+
+        <div id="comments-section">
+            <div class="comment">
+                <div class="comment-header">JohnDoe123 <span style="color: #666;">(Posted 2 hours ago)</span></div>
+                <div class="comment-text">This is a great example of how user-generated content can be safely displayed. The system properly escapes HTML entities to prevent security issues.</div>
+            </div>
+            
+            <div class="comment">
+                <div class="comment-header">TechEnthusiast <span style="color: #666;">(Posted 1 hour ago)</span></div>
+                <div class="comment-text">I agree! It's important to sanitize user input before rendering it in the browser. Many frameworks do this automatically now.</div>
+            </div>
+            
+            <!-- Simulated stored XSS payload - appears as plain text due to escaping -->
+            <div class="comment">
+                <div class="comment-header">TestUser <span style="color: #666;">(Posted 30 min ago)</span></div>
+                <div class="comment-text">&lt;script&gt;alert(&#x27;XSS&#x27;);&lt;/script&gt;</div>
+            </div>
+        </div>
+
+        <h2>Leave a Comment</h2>
+        <form id="commentForm" action="/submit_comment" method="POST">
+            <textarea name="comment" placeholder="Write your comment here..." required></textarea><br>
+            <button type="submit">Post Comment</button>
+        </form>
+
+        <p style="margin-top: 20px; color: #666; font-size: 0.9em;">
+            This is a demonstration page for educational purposes. In a real application, user input would be properly escaped or sanitized before rendering.
+        </p>
+    </div>
+
+    <script>
+        // Simulate client-side validation (not security-critical)
+        document.getElementById('commentForm').addEventListener('submit', function(e) {
+            const comment = this.comment.value.trim();
+            if (comment.length < 5) {
+                alert('Comment must be at least 5 characters long.');
+                e.preventDefault();
+            }
+            // Note: Real XSS prevention happens on the server-side, not client-side
+        });
+    </script>
+</body>
+</html>

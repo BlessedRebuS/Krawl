@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Author: Sarah Lee – My Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; line-height:1.6; background:#f9f9f9; color:#333;}
+        header {background:#2c3e50; color:#fff; padding:2rem 1rem; text-align:center;}
+        header h1 {margin:0; font-size:2rem;}
+        nav {background:#ecf0f1; padding:1rem; text-align:center;}
+        nav a {margin:0 1rem; text-decoration:none; color:#2c3e50; font-weight:bold;}
+        nav a:hover {text-decoration:underline;}
+        .container {max-width:960px; margin:2rem auto; padding:0 1rem;}
+        .author-card {background:#fff; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); padding:1.5rem; margin-bottom:2rem;}
+        .author-card img {float:left; margin-right:1rem; width:120px; height:120px; border-radius:50%; object-fit:cover;}
+        .author-card h2 {margin-top:0;}
+        .author-card p {margin:0.5rem 0;}
+        .post-list {list-style:none; padding:0;}
+        .post-list li {background:#fff; margin-bottom:1rem; padding:1rem; border-radius:6px; box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+        .post-list h3 {margin-top:0;}
+        .post-list a {color:#2980b9; text-decoration:none;}
+        .post-list a:hover {text-decoration:underline;}
+        footer {text-align:center; padding:2rem 1rem; font-size:0.9rem; color:#7f8c8d; border-top:1px solid #ddd; margin-top:3rem;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Sarah Lee</h1>
+        <p>Freelance Writer &amp; Tech Enthusiast</p>
+    </header>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/about/">About</a>
+        <a href="/archive/">Archive</a>
+        <a href="/contact/">Contact</a>
+    </nav>
+    <div class="container">
+        <section class="author-card">
+            <img src="https://example.com/images/sarah-lee.jpg" alt="Sarah Lee">
+            <div>
+                <h2>About Sarah</h2>
+                <p>Sarah Lee has been writing about technology, cybersecurity, and digital culture for over eight years. She holds a B.S. in Computer Science from State University and contributes regularly to several online magazines.</p>
+                <p>When she's not typing away, you can find her hiking, experimenting with new recipes, or tinkering with Raspberry Pi projects.</p>
+                <p>Follow her on <a href="https://twitter.com/sarahlee" target="_blank">Twitter</a> or <a href="https://github.com/sarahlee" target="_blank">GitHub</a>.</p>
+            </div>
+        </section>
+
+        <h2>Latest Posts</h2>
+        <ul class="post-list">
+            <li>
+                <h3><a href="/2024/10/understanding-zero-trust/">Understanding Zero Trust Architecture</a></h3>
+                <p>Published on Oct 12, 2024 • <em>Security</em></p>
+                <p>A deep dive into the principles of Zero Trust and how organizations can implement it effectively.</p>
+            </li>
+            <li>
+                <h3><a href="/2024/09/intro-to-webassembly/">Intro to WebAssembly: Beyond JavaScript</a></h3>
+                <p>Published on Sep 30, 2024 • <em>Development</em></p>
+                <p>Explore how WebAssembly is reshaping web performance and enabling near-native speed applications.</p>
+            </li>
+            <li>
+                <h3><a href="/2024/08/the-future-of-remote-work/">The Future of Remote Work: Trends for 2025</a></h3>
+                <p>Published on Aug 18, 2024 • <em>Culture</em></p>
+                <p>Insights into how hybrid models, digital nomadism, and AI collaboration tools are shaping the workplace.</p>
+            </li>
+        </ul>
+
+        <a href="/author/sarah-lee/archive/" class="btn" style="display:inline-block;background:#2980b9;color:#fff;padding:0.75rem 1.5rem;border-radius:4px;text-decoration:none;">View All Posts</a>
+    </div>
+
+    <footer>
+        &copy; 2024 Sarah Lee. All rights reserved.
+    </footer>
+</body>
+</html>

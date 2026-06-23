@@ -23,6 +23,7 @@ spec:
       {{- end }}
       labels:
         {{- include "krawl.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: krawl
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -31,6 +32,20 @@ spec:
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if eq .Values.mode "scalable" }}
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.36
+        command:
+          - sh
+          - -c
+          - |
+            until nc -z {{ .Values.postgres.host }} {{ .Values.postgres.port }}; do
+              echo "Waiting for PostgreSQL at {{ .Values.postgres.host }}:{{ .Values.postgres.port }}..."
+              sleep 2
+            done
+            echo "PostgreSQL is ready."
       {{- end }}
       containers:
       - name: krawl
@@ -64,6 +79,10 @@ spec:
             secretKeyRef:
               name: {{ include "krawl.fullname" . }}-ai
               key: ai-api-key
+        {{- end }}
+        {{- if .Values.customTemplate.enabled }}
+        - name: KRAWL_CUSTOM_TEMPLATE_PATH
+          value: "/etc/krawl/templates/custom_page.html"
         {{- end }}
         {{- if eq .Values.mode "scalable" }}
         - name: KRAWL_MODE
@@ -110,6 +129,11 @@ spec:
           mountPath: /app/wordlists.json
           subPath: wordlists.json
           readOnly: true
+        {{- if .Values.customTemplate.enabled }}
+        - name: custom-template
+          mountPath: /etc/krawl/templates
+          readOnly: true
+        {{- end }}
         {{- if and .Values.database.persistence.enabled (ne .Values.mode "scalable") }}
         - name: database
           mountPath: /app/data
@@ -118,6 +142,26 @@ spec:
         resources:
           {{- toYaml . | nindent 12 }}
         {{- end }}
+        startupProbe:
+          {{- $secret := .Values.config.dashboard.secret_path }}
+          {{- if $secret }}
+          # Probe the health endpoint under the secret dashboard prefix, which
+          # is exempt from ban/deception tracking. Path is built dynamically
+          # from config.dashboard.secret_path.
+          httpGet:
+            path: /{{ $secret | trimPrefix "/" | trimSuffix "/" }}/healthz
+            port: http
+          {{- else }}
+          # secret_path is auto-generated at runtime and unknowable here, so the
+          # HTTP health path can't be templated. Fall back to a TCP check, which
+          # verifies the server is up without hitting the honeypot catch-all.
+          tcpSocket:
+            port: http
+          {{- end }}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30
       volumes:
       - name: config
         configMap:
@@ -125,6 +169,11 @@ spec:
       - name: wordlists
         configMap:
           name: {{ include "krawl.fullname" . }}-wordlists
+      {{- if .Values.customTemplate.enabled }}
+      - name: custom-template
+        configMap:
+          name: {{ include "krawl.fullname" . }}-custom-template
+      {{- end }}
       {{- if and .Values.database.persistence.enabled (ne .Values.mode "scalable") }}
       - name: database
         {{- if .Values.database.persistence.existingClaim }}

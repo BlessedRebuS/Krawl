@@ -1,0 +1,31 @@
+<html><body>{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=sql-prod01.internal;Database=ProdAppDB;User Id=svc_app;Password=P@ssw0rd!2024;"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "AllowedHosts": "*",
+  "JwtSettings": {
+    "SecretKey": "a1B2c3D4e5F6g7H8i9J0kLmNoPqRsTuVwXyZ1234567890!@#$%",
+    "Issuer": "https://api.mycompany.com",
+    "Audience": "https://app.mycompany.com",
+    "ExpiryMinutes": 60
+  },
+  "EmailService": {
+    "SmtpServer": "smtp.sendgrid.net",
+    "SmtpPort": 587,
+    "Username": "apikey",
+    "Password": "SG.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "FromAddress": "no-reply@mycompany.com"
+  },
+  "FeatureFlags": {
+    "EnableNewPaymentGateway": true,
+    "EnableUserAnalytics": false,
+    "EnableDebugEndpoints": true
+  }
+}</body></html>

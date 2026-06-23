@@ -26,10 +26,10 @@
             <th class="sortable {% if sort_by == 'count' %}{{ sort_order }}{% endif %}"
                 hx-get="{{ dashboard_path }}/htmx/top-ips?page=1&page_size={{ ps }}&sort_by=count&sort_order={% if sort_by == 'count' and sort_order == 'desc' %}asc{% else %}desc{% endif %}&search={{ sq }}&categories={{ cats }}"
                 hx-target="closest .htmx-container"
-                hx-swap="innerHTML">
+                hx-swap="innerHTML"
+                style="width: 130px;">
                 Access Count
             </th>
-            <th style="width: 40px;"></th>
         </tr>
     </thead>
     <tbody>
@@ -48,22 +48,24 @@
                 {% set cat_colors = {'attacker': '#f85149', 'good_crawler': '#3fb950', 'bad_crawler': '#f0883e', 'regular_user': '#58a6ff', 'unknown': '#8b949e'} %}
                 <span class="category-dot" style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: {{ cat_colors.get(cat, '#8b949e') }};" title="{{ cat | replace('_', ' ') | title }}"></span>
             </td>
-            <td>{{ item.count }}</td>
             <td>
-                <button class="inspect-btn" @click="openIpInsight('{{ item.ip | e }}')" title="Inspect IP">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
-                </button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span>{{ item.count }}</span>
+                    <button class="inspect-btn" style="padding: 0; margin-left: auto;" @click="openIpInsight('{{ item.ip | e }}')" title="Inspect IP">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
+                    </button>
+                </div>
             </td>
         </tr>
         <tr class="ip-stats-row" style="display: none;">
-            <td colspan="5" class="ip-stats-cell">
+            <td colspan="4" class="ip-stats-cell">
                 <div class="ip-stats-dropdown">
                     <div class="loading">Loading stats...</div>
                 </div>
             </td>
         </tr>
         {% else %}
-        <tr><td colspan="3" class="empty-state">No data</td></tr>
+        <tr><td colspan="4" class="empty-state">No data</td></tr>
         {% endfor %}
     </tbody>
 </table>

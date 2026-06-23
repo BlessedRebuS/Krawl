@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Guest Author - Example Blog</title>
+    <meta name="description" content="Articles written by our guest author.">
+    <style>
+        body{font-family:Arial,sans-serif;margin:0;padding:20px;background:#f9f9f9;color:#333}
+        header{background:#2c3e50;color:#fff;padding:15px;text-align:center}
+        nav a{margin:0 10px;color:#fff;text-decoration:none}
+        .container{max-width:800px;margin:auto;background:#fff;padding:20px;margin-top:20px;box-shadow:0 0 10px rgba(0,0,0,.1)}
+        .article{border-bottom:1px solid #eee;padding:15px 0}
+        .article h2{margin-top:0}
+        .meta{color:#777;font-size:.9em}
+        footer{text-align:center;margin-top:30px;font-size:.8em;color:#777}
+        form label{display:block;margin-top:10px}
+        form input, form textarea{width:100%;padding:8px;margin-top:4px;box-sizing:border-box}
+        form input[type=submit]{background:#2c3e50;color:#fff;border:none;padding:10px 20px;cursor:pointer;margin-top:10px}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Example Blog</h1>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/about">About</a>
+            <a href="/contact">Contact</a>
+            <a href="/archive">Archive</a>
+        </nav>
+    </header>
+    <div class="container">
+        <h2>Guest Author</h2>
+        <p>Welcome to the page of our guest author. Below you'll find a selection of articles contributed by our guest writer.</p>
+        <div class="article">
+            <h2>Understanding Basic Web Security</h2>
+            <div class="meta">Posted on September 12, 2024 • 3 min read</div>
+            <p>In this article, we explore the fundamentals of web security, covering topics such as input validation, output encoding, and common vulnerabilities like SQL injection and cross-site scripting.</p>
+            <a href="/articles/understanding-basic-web-security">Read more →</a>
+        </div>
+        <div class="article">
+            <h2>How to Secure Your WordPress Site</h2>
+            <div class="meta">Posted on August 30, 2024 • 4 min read</div>
+            <p>A step‑by‑step guide to hardening WordPress installations, including plugin recommendations, file permission settings, and regular backup strategies.</p>
+            <a href="/articles/how-to-secure-your-wordpress-site">Read more →</a>
+        </div>
+        <div class="article">
+            <h2>Introduction to Ethical Hacking</h2>
+            <div class="meta">Posted on July 15, 2024 • 5 min read</div>
+            <p>An overview of ethical hacking methodologies, tools, and the importance of penetration testing in modern cybersecurity.</p>
+            <a href="/articles/introduction-to-ethical-hacking">Read more →</a>
+        </div>
+        <h3>Contact the Guest Author</h3>
+        <form action="/author/guest-author/contact" method="post">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required placeholder="Your name">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required placeholder="your@example.com">
+            <label for="message">Message:</label>
+            <textarea id="message" name="message" rows="4" placeholder="Your message here" required></textarea>
+            <input type="submit" value="Send Message">
+        </form>
+    </div>
+    <footer>
+        © 2024 Example Blog. All rights reserved.
+    </footer>
+</body>
+</html>

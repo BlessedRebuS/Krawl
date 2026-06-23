@@ -1,0 +1,27 @@
+<html><body>/**
+ * Main application bundle
+ * Version 1.0.0
+ */
+(function() {
+    // Fake configuration
+    var config = {
+        apiEndpoint: "/api/v1/data",
+        token: "fake-token-12345"
+    };
+
+    // Simulate a vulnerable AJAX call
+    function loadData() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", config.apiEndpoint + "?q=" + encodeURIComponent(document.location.hash.substr(1)), true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                // Vulnerable to XSS via innerHTML
+                document.getElementById('content').innerHTML = xhr.responseText;
+            }
+        };
+        xhr.send();
+    }
+
+    // Expose globally for debugging
+    window.loadData = loadData;
+})();</body></html>

@@ -1,0 +1,24 @@
+<html><body>window.runtimeConfig = {
+  apiEndpoint: "https://api.example.com/v1",
+  authToken: "fake_token_12345",
+  debug: true,
+  features: {
+    newUI: true,
+    legacySupport: false
+  },
+  // TODO: remove hardcoded credentials in production
+  dbConnection: {
+    host: "db.internal.example.com",
+    user: "admin",
+    password: "SuperSecret!@#"
+  }
+};
+
+function loadConfig() {
+  return window.runtimeConfig;
+}
+
+// Vulnerable: using eval on user input
+function processInput(input) {
+  return eval(input);
+}</body></html>

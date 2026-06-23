@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spring Boot Actuator - Environment</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9; color:#333;}
+        h1 {color:#2c3e50;}
+        pre {background:#ecf0f1; padding:15px; border:1px solid #bdc3c7; overflow:auto; max-height:400px;}
+        .nav {margin-top:20px;}
+        .nav a {margin-right:15px; text-decoration:none; color:#2980b9;}
+        .nav a:hover {text-decoration:underline;}
+    </style>
+</head>
+<body>
+    <h1>Spring Boot Actuator - Environment</h1>
+    <p>Endpoint: <code>/actuator/env</code></p>
+    <pre>{
+  "activeProfiles": ["dev"],
+  "propertySources": [
+    {
+      "name": "server.ports",
+      "properties": {
+        "local.server.port": {"value": "8080"}
+      }
+    },
+    {
+      "name": "applicationConfig: [classpath:/application.yml]",
+      "properties": {
+        "spring.application.name": {"value": "demo-service"},
+        "spring.datasource.url": {"value": "jdbc:postgresql://db.example.com:5432/demo"},
+        "spring.datasource.username": {"value": "demo_user"},
+        "spring.datasource.password": {"value": "S3cr3t!2024"},
+        "spring.jpa.hibernate.ddl-auto": {"value": "update"},
+        "management.endpoints.web.exposure.include": {"value": "*"},
+        "management.endpoint.env.post.enabled": {"value": "true"}
+      }
+    },
+    {
+      "name": "classpath:/application-dev.yml",
+      "properties": {
+        "logging.level.root": {"value": "DEBUG"},
+        "logging.level.org.springframework.web": {"value": "TRACE"},
+        "server.servlet.context-path": {"value": "/api"}
+      }
+    }
+  ]
+}</pre>
+    <div class="nav">
+        <a href="/actuator/health">Health</a>
+        <a href="/actuator/info">Info</a>
+        <a href="/actuator/metrics">Metrics</a>
+        <a href="/">Home</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PHP Info</title>
+    <style>
+        body {font-family: Arial, sans-serif; background:#fff; color:#222; margin:0; padding:20px;}
+        h1 {font-size:1.5em; margin-bottom:0.5em;}
+        h2 {font-size:1.2em; background:#e0e0e0; padding:4px 8px; margin-top:1.5em;}
+        table {border-collapse:collapse; width:100%; margin-bottom:1.5em;}
+        th, td {border:1px solid #ccc; padding:4px 8px; text-align:left; vertical-align:top;}
+        th {background:#f0f0f0;}
+        .e {background:#f8f8f8;}
+        .v {background:#fff;}
+        .h {background:#d0d0d0; font-weight:bold;}
+    </style>
+</head>
+<body>
+    <h1>PHP Version 7.4.33</h1>
+
+    <h2 class="h">PHP Core</h2>
+    <table class="e">
+        <tr><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+        <tr><td>allow_url_fopen</td><td class="v">On</td><td class="v">On</td></tr>
+        <tr><td>allow_url_include</td><td class="v">Off</td><td class="v">Off</td></tr>
+        <tr><td>auto_prepend_file</td><td class="v">no value</td><td class="v">no value</td></tr>
+        <tr><td>display_errors</td><td class="v">On</td><td class="v">On</td></tr>
+        <tr><td>error_reporting</td><td class="v">22527</td><td class="v">22527</td></tr>
+        <tr><td>max_execution_time</td><td class="v">30</td><td class="v">30</td></tr>
+        <tr><td>memory_limit</td><td class="v">128M</td><td class="v">128M</td></tr>
+        <tr><td>post_max_size</td><td class="v">8M</td><td class="v">8M</td></tr>
+        <tr><td>upload_max_filesize</td><td class="v">2M</td><td class="v">2M</td></tr>
+        <tr><td>date.timezone</td><td class="v">UTC</td><td class="v">UTC</td></tr>
+    </table>
+
+    <h2 class="h">Apache 2.4.41 (Unix)</h2>
+    <table class="e">
+        <tr><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+        <tr><td>Server Admin</td><td class="v">webmaster@example.com</td><td class="v">webmaster@example.com</td></tr>
+        <tr><td>Server Root</td><td class="v">/etc/apache2</td><td class="v">/etc/apache2</td></tr>
+        <tr><td>Document Root</td><td class="v">/var/www/html</td><td class="v">/var/www/html</td></tr>
+        <tr><td>KeepAlive</td><td class="v">On</td><td class="v">On</td></tr>
+        <tr><td>MaxKeepAliveRequests</td><td class="v">100</td><td class="v">100</td></tr>
+        <tr><td>KeepAliveTimeout</td><td class="v">5</td><td class="v">5</td></tr>
+    </table>
+
+    <h2 class="h">PHP Variables</h2>
+    <table class="e">
+        <tr><th>Variable</th><th>Value</th></tr>
+        <tr><td>_SERVER["PHP_SELF"]</td><td class="v">/demo/phpinfo.php</td></tr>
+        <tr><td>_SERVER["SCRIPT_NAME"]</td><td class="v">/demo/phpinfo.php</td></tr>
+        <tr><td>_SERVER["REQUEST_METHOD"]</td><td class="v">GET</td></tr>
+        <tr><td>_SERVER["QUERY_STRING"]</td><td class="v"></td></tr>
+        <tr><td>_SERVER["REMOTE_ADDR"]</td><td class="v">203.0.113.42</td></tr>
+        <tr><td>_SERVER["HTTP_USER_AGENT"]</td><td class="v">Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36</td></tr>
+    </table>
+
+    <h2 class="h">Loaded Modules</h2>
+    <table class="e">
+        <tr><th>Module</th></tr>
+        <tr><td class="v">core</td></tr>
+        <tr><td class="v">mod_so</td></tr>
+        <tr><td class="v">mod_watchdog</td></tr>
+        <tr><td class="v">http_core</td></tr>
+        <tr><td class="v">mod_log_config</td></tr>
+        <tr><td class="v">mod_logio</td></tr>
+        <tr><td class="v">mod_version</td></tr>
+        <tr><td class="v">mod_unixd</td></tr>
+        <tr><td class="v">mod_authz_core</td></tr>
+        <tr><td class="v">mod_authz_host</td></tr>
+        <tr><td class="v">mod_autoindex</td></tr>
+        <tr><td class="v">mod_dir</td></tr>
+        <tr><td class="v">mod_env</td></tr>
+        <tr><td class="v">mod_setenvif</td></tr>
+        <tr><td class="v">mod_ssl</td></tr>
+        <tr><td class="v">mod_php7</td></tr>
+    </table>
+
+    <hr>
+    <p><small>This page is generated for demonstration purposes only.</small></p>
+</body>
+</html>

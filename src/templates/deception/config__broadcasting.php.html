@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Broadcasting Configuration</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:20px;}
+        table {border-collapse:collapse; width:80%;}
+        th, td {border:1px solid #ccc; padding:8px; text-align:left;}
+        th {background:#f4f4f4;}
+        .form-group {margin-bottom:15px;}
+        label {display:block; margin-bottom:5px;}
+        input[type=text], input[type=password], input[type=number], select {width:100%; padding:8px; box-sizing:border-box;}
+        .btn {background:#007bff; color:#fff; border:none; padding:10px 15px; cursor:pointer;}
+    </style>
+</head>
+<body>
+    <h1>Broadcasting Configuration</h1>
+    <p>Manage your application's broadcasting drivers and connections.</p>
+
+    <h2>Current Settings</h2>
+    <table>
+        <thead>
+            <tr><th>Setting</th><th>Value</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Default Driver</td><td><code>log</code></td></tr>
+            <tr><td>Log Channel</td><td><code>broadcasting</code></td></tr>
+            <tr><td>Redis Host</td><td><code>127.0.0.1</code></td></tr>
+            <tr><td>Redis Port</td><td><code>6379</code></tr>
+            <tr><td>Redis Password</td><td><code>(hidden)</code></tr>
+            <tr><td>Pusher App ID</td><td><code>123456</code></td></tr>
+            <tr><td>Pusher Key</td><td><code>abcdef1234567890</code></td></tr>
+            <tr><td>Pusher Secret</td><td><code>ghijkl9876543210</code></td></tr>
+            <tr><td>Pusher Cluster</td><td><code>mt1</code></tr>
+        </tbody>
+    </table>
+
+    <h2>Update Configuration</h2>
+    <form action="/config/broadcasting.php" method="post">
+        <div class="form-group">
+            <label for="default_driver">Default Driver:</label>
+            <select id="default_driver" name="default_driver">
+                <option value="log">log</option>
+                <option value="redis">redis</option>
+                <option value="pusher">pusher</option>
+                <option value="null">null</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="redis_host">Redis Host:</label>
+            <input type="text" id="redis_host" name="redis_host" value="127.0.0.1">
+        </div>
+        <div class="form-group">
+            <label for="redis_port">Redis Port:</label>
+            <input type="number" id="redis_port" name="redis_port" value="6379" min="1" max="65535">
+        </div>
+        <div class="form-group">
+            <label for="redis_password">Redis Password:</label>
+            <input type="password" id="redis_password" name="redis_password" value="">
+        </div>
+        <div class="form-group">
+            <label for="pusher_app_id">Pusher App ID:</label>
+            <input type="text" id="pusher_app_id" name="pusher_app_id" value="123456">
+        </div>
+        <div class="form-group">
+            <label for="pusher_key">Pusher Key:</label>
+            <input type="text" id="pusher_key" name="pusher_key" value="abcdef1234567890">
+        </div>
+        <div class="form-group">
+            <label for="pusher_secret">Pusher Secret:</label>
+            <input type="text" id="pusher_secret" name="pusher_secret" value="ghijkl9876543210">
+        </div>
+        <div class="form-group">
+            <label for="pusher_cluster">Pusher Cluster:</label>
+            <input type="text" id="pusher_cluster" name="pusher_cluster" value="mt1">
+        </div>
+        <button type="submit" class="btn">Save Changes</button>
+    </form>
+
+    <hr>
+    <p><small>Note: This is a configuration interface for demonstration purposes only. Do not expose in production.</small></p>
+</body>
+</html>
