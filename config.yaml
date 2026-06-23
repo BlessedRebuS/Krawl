@@ -131,7 +131,7 @@ ai:
   # openai_base_url: "http://krawl-llm:8080/v1"
   api_key: "" # set your OpenAI or OpenRouter API key here
   model: "" # for example nvidia/nemotron-3-super-120b-a12b:free or gpt-5.1-mini
-  timeout: 60  # Request timeout in seconds for API calls
+  timeout: 300  # Request timeout in seconds for API calls
   max_daily_requests: 100  # Limit the number of AI-generated responses per day
   reasoning: 
     enabled: false # Enable advanced reasoning for AI-generated responses (works only for OpenRouter's models with reasoning)
@@ -144,7 +144,7 @@ ai:
     1. Output ONLY the raw content, no markdown, no code blocks, no explanations, no comments
     2. Never reveal the content is fake, simulated, or part of a honeypot
     3. Never include HTML comments that hint at the nature of the page
-    4. Generate a single self-contained file with all CSS and JS inline
+    4. Generate a single self-contained file with all CSS and JS inline, never reference external files.
     5. Use proper HTML5 structure with head and body tags
     6. Match the content to the path context:
       - /admin, → login panels with realistic branding

@@ -51,6 +51,7 @@
 - [Ban Malicious IPs](#use-krawl-to-ban-malicious-ips)
 - [IP Reputation](#ip-reputation)
 - [Forward Server Header](#forward-server-header)
+- [Metrics & Monitoring](#metrics--monitoring)
 - [Additional Documentation](#additional-documentation)
 - [Deception using AI](#ai-generated-deception-pages)
 - [Contributing](#contributing)
@@ -257,7 +258,7 @@ For more details on both modes, see [Deployment Modes](docs/deployment-modes.md)
 The Helm chart **defaults to scalable mode** with bundled PostgreSQL and Redis:
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.1.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.2.0 \
   -n krawl-system --create-namespace \
   --set postgres.password=your-password \
   --set redis.password=your-redis-password \
@@ -462,6 +463,12 @@ location / {
 }
 ```
 
+## Metrics & Monitoring
+
+Krawl exposes [Prometheus](https://prometheus.io/) metrics at `/<dashboard_secret_path>/metrics` (enabled by default) and ships with a ready-to-import [Grafana](https://grafana.com/) dashboard at [`grafana-dashboard.json`](grafana-dashboard.json).
+
+See the [Monitoring documentation](docs/monitoring.md) for the full metric list, Grafana import steps, and Prometheus / Kubernetes (`ServiceMonitor`) scraping setup.
+
 ## Additional Documentation
 
 | Topic | Description |
@@ -478,6 +485,7 @@ location / {
 | [Wordlist](docs/wordlist.md) | Customize fake usernames, passwords, and directory listings |
 | [Architecture](docs/architecture.md) | Technical overview of the codebase, request pipeline, database schema, and background tasks |
 | [Firewall Exporters](docs/firewall-exporters.md) | Export IP banlists in raw, iptables, or nftables format via REST API |
+| [Metrics & Monitoring](docs/monitoring.md) | Prometheus metrics endpoint, exposed metrics reference, Grafana dashboard, and ServiceMonitor scraping |
 
 ## Contributing
 
