@@ -24,7 +24,7 @@ podSecurityContext: {}
 securityContext: {}
 
 service:
-  type: LoadBalancer
+  type: ClusterIP
   port: 5000
   annotations: {}
   # Preserve source IP when using LoadBalancer
@@ -152,7 +152,7 @@ config:
       1. Output ONLY the raw content, no markdown, no code blocks, no explanations, no comments
       2. Never reveal the content is fake, simulated, or part of a honeypot
       3. Never include HTML comments that hint at the nature of the page
-      4. Generate a single self-contained file with all CSS and JS inline
+      4. Generate a single self-contained file with all CSS and JS inline, never reference external files.
       5. Use proper HTML5 structure with head and body tags
       6. Match the content to the path context:
         - /admin, → login panels with realistic branding
