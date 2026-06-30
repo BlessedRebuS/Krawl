@@ -220,6 +220,13 @@ class IpStats(Base):
         Boolean, nullable=True, default=None
     )
 
+    # Timeout exemption: when True, the automatic time-ban (rate-limit 429)
+    # is not enforced for this IP. Independent of ban_override and of firewall
+    # export — only suppresses the runtime timeout.
+    timeout_exempt: Mapped[bool | None] = mapped_column(
+        Boolean, nullable=True, default=False
+    )
+
     __table_args__ = (
         Index("ix_ip_stats_category", "category"),
         Index("ix_ip_stats_need_reevaluation", "need_reevaluation"),

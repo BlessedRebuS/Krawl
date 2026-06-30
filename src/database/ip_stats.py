@@ -19,6 +19,10 @@ if TYPE_CHECKING:
 
 applogger = get_app_logger()
 
+# Mirror of MAX_BAN_EXPONENT in database/core.py (2 ** 10). Used only as a
+# coarse lower-bound to bound the timed-out candidate scan.
+_MAX_BAN_MULTIPLIER = 1024
+
 
 class IpStatsRepo:
     """Queries and mutations centered on the ip_stats table."""
@@ -106,6 +110,7 @@ class IpStatsRepo:
                     IpStats.total_violations,
                     IpStats.ban_multiplier,
                     IpStats.ban_override,
+                    IpStats.timeout_exempt,
                 )
                 .filter(IpStats.ip == sanitized_ip)
                 .first()
@@ -121,7 +126,13 @@ class IpStatsRepo:
                 set_cached_short(f"ban:{sanitized_ip}", result)
                 return result
 
-            ban_timestamp, violations_raw, multiplier_raw, ban_override = row
+            (
+                ban_timestamp,
+                violations_raw,
+                multiplier_raw,
+                ban_override,
+                timeout_exempt,
+            ) = row
             violations = violations_raw or 0
             multiplier = multiplier_raw or 1
 
@@ -138,6 +149,16 @@ class IpStatsRepo:
                 )
                 return result
             if ban_override is False:
+                result = {
+                    "is_banned": False,
+                    "violations": violations,
+                    "ban_multiplier": multiplier,
+                    "remaining_ban_seconds": 0,
+                }
+                set_cached_short(f"ban:{sanitized_ip}", result)
+                return result
+
+            if timeout_exempt:
                 result = {
                     "is_banned": False,
                     "violations": violations,
@@ -235,6 +256,34 @@ class IpStatsRepo:
         except Exception as e:
             session.rollback()
             applogger.error(f"Error force-banning {sanitized_ip}: {e}")
+            return False
+        finally:
+            self._db.close_session()
+
+    def set_timeout_exempt(self, ip: str, exempt: bool) -> bool:
+        """
+        Exempt an IP from (or re-enable) the automatic time-ban.
+        exempt=True: the rate-limit 429 is not enforced for this IP.
+        exempt=False: reset to automatic timeout behaviour.
+
+        Returns True if the IP exists and was updated.
+        """
+        from dashboard_cache import delete_cached_short
+
+        session = self._db.session
+        sanitized_ip = sanitize_ip(ip)
+        ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
+        if not ip_stats:
+            return False
+
+        ip_stats.timeout_exempt = exempt
+        try:
+            session.commit()
+            delete_cached_short(f"ban:{sanitized_ip}")
+            return True
+        except Exception as e:
+            session.rollback()
+            applogger.error(f"Error setting timeout_exempt for {sanitized_ip}: {e}")
             return False
         finally:
             self._db.close_session()
@@ -987,6 +1036,160 @@ class IpStatsRepo:
                     "page": page,
                     "page_size": page_size,
                     "total": total_ips,
+                    "total_pages": total_pages,
+                },
+            }
+        finally:
+            self._db.close_session()
+
+    def _timedout_candidates(self, session, ban_duration_seconds: int) -> list[IpStats]:
+        """
+        Rows currently serving an automatic time-ban, newest ban first.
+
+        Currently timed out := ban_timestamp set and within
+        ban_duration_seconds * ban_multiplier, ban_override is NULL
+        (force ban/unban are shown elsewhere), and not timeout_exempt.
+
+        A coarse SQL lower-bound on ban_timestamp bounds the scan; the exact
+        per-row window is computed in Python (dialect-agnostic, mirrors the
+        per-request logic in get_ban_info).
+        """
+        coarse_floor = datetime.now() - timedelta(
+            seconds=ban_duration_seconds * _MAX_BAN_MULTIPLIER
+        )
+        rows = (
+            session.query(IpStats)
+            .filter(
+                IpStats.ban_timestamp.isnot(None),
+                IpStats.ban_override.is_(None),
+                or_(
+                    IpStats.timeout_exempt.is_(None),
+                    IpStats.timeout_exempt.is_(False),
+                ),
+                IpStats.ban_timestamp >= coarse_floor,
+            )
+            .order_by(IpStats.ban_timestamp.desc())
+            .all()
+        )
+        now = datetime.now()
+        live = []
+        for r in rows:
+            multiplier = r.ban_multiplier or 1
+            effective = ban_duration_seconds * multiplier
+            elapsed = (now - r.ban_timestamp).total_seconds()
+            if elapsed < effective:
+                live.append(r)
+        return live
+
+    def get_timedout_ips(self, ban_duration_seconds: int) -> list[str]:
+        """IP strings currently serving an automatic time-ban (for export)."""
+        session = self._db.session
+        try:
+            return [
+                r.ip for r in self._timedout_candidates(session, ban_duration_seconds)
+            ]
+        finally:
+            self._db.close_session()
+
+    def count_timed_out(self, ban_duration_seconds: int) -> int:
+        """Count of IPs currently serving an automatic time-ban."""
+        session = self._db.session
+        try:
+            return len(self._timedout_candidates(session, ban_duration_seconds))
+        finally:
+            self._db.close_session()
+
+    def get_timedout_ips_paginated(
+        self,
+        ban_duration_seconds: int,
+        page: int = 1,
+        page_size: int = 25,
+    ) -> dict[str, Any]:
+        """Paginated view of currently timed-out IPs with remaining time."""
+        session = self._db.session
+        try:
+            candidates = self._timedout_candidates(session, ban_duration_seconds)
+            total = len(candidates)
+            total_pages = max(1, (total + page_size - 1) // page_size)
+            page = max(1, page)
+            start = (page - 1) * page_size
+            window = candidates[start : start + page_size]
+
+            now = datetime.now()
+            items = []
+            for r in window:
+                multiplier = r.ban_multiplier or 1
+                effective = ban_duration_seconds * multiplier
+                elapsed = (now - r.ban_timestamp).total_seconds()
+                remaining = max(0, int(effective - elapsed))
+                items.append(
+                    {
+                        "ip": r.ip,
+                        "remaining_ban_seconds": remaining,
+                        "total_violations": r.total_violations or 0,
+                        "ban_multiplier": multiplier,
+                        "category": r.category,
+                        "country_code": r.country_code,
+                        "city": r.city,
+                        "last_seen": r.last_seen.isoformat() if r.last_seen else None,
+                    }
+                )
+
+            return {
+                "items": items,
+                "pagination": {
+                    "page": page,
+                    "page_size": page_size,
+                    "total": total,
+                    "total_pages": total_pages,
+                },
+            }
+        finally:
+            self._db.close_session()
+
+    def get_timeout_exempt_paginated(
+        self,
+        page: int = 1,
+        page_size: int = 25,
+    ) -> dict[str, Any]:
+        """Get all IPs with timeout_exempt=True, paginated."""
+        session = self._db.session
+        try:
+            base_query = session.query(IpStats).filter(IpStats.timeout_exempt.is_(True))
+            total = (
+                session.query(func.count(IpStats.ip))
+                .filter(IpStats.timeout_exempt.is_(True))
+                .scalar()
+                or 0
+            )
+            total_pages = max(1, (total + page_size - 1) // page_size)
+
+            results = (
+                base_query.order_by(IpStats.last_seen.desc())
+                .offset((max(1, page) - 1) * page_size)
+                .limit(page_size)
+                .all()
+            )
+
+            items = []
+            for r in results:
+                items.append(
+                    {
+                        "ip": r.ip,
+                        "category": r.category,
+                        "total_requests": r.total_requests,
+                        "country_code": r.country_code,
+                        "city": r.city,
+                        "last_seen": r.last_seen.isoformat() if r.last_seen else None,
+                    }
+                )
+
+            return {
+                "items": items,
+                "pagination": {
+                    "page": max(1, page),
+                    "page_size": page_size,
+                    "total": total,
                     "total_pages": total_pages,
                 },
             }
