@@ -3,12 +3,12 @@
     <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} timed out</span>
     <div style="display: flex; gap: 8px;">
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/timedout/active?page={{ pagination.page - 1 }}"
+                hx-get="{{ dashboard_path }}/htmx/timedout/active?page={{ pagination.page - 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
                 {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/timedout/active?page={{ pagination.page + 1 }}"
+                hx-get="{{ dashboard_path }}/htmx/timedout/active?page={{ pagination.page + 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
                 {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
@@ -19,9 +19,21 @@
         <tr>
             <th>#</th>
             <th>IP Address</th>
-            <th>Time Left</th>
-            <th>Violations</th>
-            <th>Multiplier</th>
+            <th class="sortable {% if sort_by == 'time_left' %}{{ sort_order }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/timedout/active?page=1&sort_by=time_left&sort_order={% if sort_by == 'time_left' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML">
+                Time Left</th>
+            <th class="sortable {% if sort_by == 'violations' %}{{ sort_order }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/timedout/active?page=1&sort_by=violations&sort_order={% if sort_by == 'violations' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML">
+                Violations</th>
+            <th class="sortable {% if sort_by == 'multiplier' %}{{ sort_order }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/timedout/active?page=1&sort_by=multiplier&sort_order={% if sort_by == 'multiplier' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML">
+                Multiplier</th>
             <th>Category</th>
             <th>Location</th>
             <th>Last Seen</th>
