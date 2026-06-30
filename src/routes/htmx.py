@@ -876,3 +876,85 @@ async def htmx_ban_overrides(
             "pagination": result["pagination"],
         },
     )
+
+
+# ── Timed-Out IPs Panel ──────────────────────────────────────────────
+
+
+@router.get("/htmx/timedout")
+async def htmx_timedout(request: Request):
+    if not verify_auth(request):
+        return HTMLResponse(
+            '<div class="table-container" style="text-align:center;padding:80px 20px;">'
+            '<h1 style="color:#f0883e;font-size:48px;margin:20px 0 10px;">Nice try bozo</h1>'
+            "<br>"
+            '<img src="https://media0.giphy.com/media/v1.Y2lkPTZjMDliOTUyaHQ3dHRuN2wyOW1kZndjaHdkY2dhYzJ6d2gzMDJkNm53ZnNrdnNlZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mOY97EXNisstZqJht9/200w.gif" alt="Diddy">'
+            "</div>",
+            status_code=200,
+        )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/timedout_panel.html",
+        {"dashboard_path": _dashboard_path(request)},
+    )
+
+
+@router.get("/htmx/timedout/active")
+async def htmx_timedout_active(
+    request: Request,
+    page: int = Query(1),
+    page_size: int = Query(25),
+):
+    if not verify_auth(request):
+        return HTMLResponse(
+            "<p style='color:#f85149;'>Unauthorized</p>", status_code=200
+        )
+
+    db = get_db()
+    duration = get_config().ban_duration_seconds
+    result = await asyncio.to_thread(
+        db.ip_stats.get_timedout_ips_paginated,
+        ban_duration_seconds=duration,
+        page=max(1, page),
+        page_size=page_size,
+    )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/timedout_ips_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "items": result["items"],
+            "pagination": result["pagination"],
+        },
+    )
+
+
+@router.get("/htmx/timeout-exempt")
+async def htmx_timeout_exempt(
+    request: Request,
+    page: int = Query(1),
+    page_size: int = Query(25),
+):
+    if not verify_auth(request):
+        return HTMLResponse(
+            "<p style='color:#f85149;'>Unauthorized</p>", status_code=200
+        )
+
+    db = get_db()
+    result = await asyncio.to_thread(
+        db.ip_stats.get_timeout_exempt_paginated,
+        page=max(1, page),
+        page_size=page_size,
+    )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/timeout_exempt_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "items": result["items"],
+            "pagination": result["pagination"],
+        },
+    )
