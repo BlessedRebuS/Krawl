@@ -157,6 +157,17 @@ def _migrate_ban_override_column(engine: Engine) -> bool:
     return True
 
 
+def _migrate_timeout_exempt_column(engine: Engine) -> bool:
+    """Add timeout_exempt column to ip_stats if missing."""
+    if _column_exists(engine, "ip_stats", "timeout_exempt"):
+        return False
+    with engine.begin() as conn:
+        conn.execute(
+            text("ALTER TABLE ip_stats ADD COLUMN timeout_exempt BOOLEAN DEFAULT false")
+        )
+    return True
+
+
 def run_migrations(engine: Engine) -> None:
     """
     Check the database schema and apply any pending migrations.
@@ -202,6 +213,10 @@ def run_migrations(engine: Engine) -> None:
     _step(
         "add ban_override column to ip_stats",
         lambda: _migrate_ban_override_column(engine),
+    )
+    _step(
+        "add timeout_exempt column to ip_stats",
+        lambda: _migrate_timeout_exempt_column(engine),
     )
     _step(
         "performance indexes",

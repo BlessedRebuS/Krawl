@@ -187,6 +187,36 @@ async def ban_override(request: Request, body: BanOverrideRequest):
     return JSONResponse(content={"error": "IP not found"}, status_code=404)
 
 
+class TimeoutExemptRequest(BaseModel):
+    ip: str
+    action: str  # "exempt" or "reset"
+
+
+@router.post("/api/timeout-exempt")
+async def timeout_exempt(request: Request, body: TimeoutExemptRequest):
+    if not verify_auth(request):
+        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
+
+    action_map = {"exempt": True, "reset": False}
+    if body.action not in action_map:
+        return JSONResponse(
+            content={"error": "Invalid action. Use: exempt, reset"},
+            status_code=400,
+        )
+
+    db = get_db()
+    success = await asyncio.to_thread(
+        db.ip_stats.set_timeout_exempt, body.ip, action_map[body.action]
+    )
+    if success:
+        get_app_logger().info(f"Timeout exempt: {body.action} on IP {body.ip}")
+        invalidate_table_cache()
+        return JSONResponse(
+            content={"success": True, "ip": body.ip, "action": body.action}
+        )
+    return JSONResponse(content={"error": "IP not found"}, status_code=404)
+
+
 # ── Protected IP Tracking API ────────────────────────────────────────
 
 
@@ -609,7 +639,13 @@ async def export_ips(
     categories: str = Query(...),
     fwtype: str = Query("raw"),
 ):
-    valid_categories = {"attacker", "bad_crawler", "regular_user", "good_crawler"}
+    valid_categories = {
+        "attacker",
+        "bad_crawler",
+        "regular_user",
+        "good_crawler",
+        "timed_out",
+    }
     cat_list = [c.strip() for c in categories.split(",") if c.strip()]
     if not cat_list or not all(c in valid_categories for c in cat_list):
         return JSONResponse(content={"error": "Invalid categories"}, status_code=400)
@@ -629,7 +665,19 @@ async def export_ips(
         config = request.app.state.config
         server_ip = config.get_server_ip()
 
-        ips = await asyncio.to_thread(db.ip_stats.get_ips_for_export, cat_list)
+        real_cats = [c for c in cat_list if c != "timed_out"]
+        ip_set: set[str] = set()
+        if real_cats:
+            ip_set.update(
+                await asyncio.to_thread(db.ip_stats.get_ips_for_export, real_cats)
+            )
+        if "timed_out" in cat_list:
+            ip_set.update(
+                await asyncio.to_thread(
+                    db.ip_stats.get_timedout_ips, config.ban_duration_seconds
+                )
+            )
+        ips = list(ip_set)
 
         from ip_utils import is_valid_public_ip
 
