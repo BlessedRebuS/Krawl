@@ -905,6 +905,8 @@ async def htmx_timedout_active(
     request: Request,
     page: int = Query(1),
     page_size: int = Query(25),
+    sort_by: str = Query("time_left"),
+    sort_order: str = Query("desc"),
 ):
     if not verify_auth(request):
         return HTMLResponse(
@@ -918,6 +920,8 @@ async def htmx_timedout_active(
         ban_duration_seconds=duration,
         page=max(1, page),
         page_size=page_size,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
     templates = get_templates()
     return templates.TemplateResponse(
@@ -927,6 +931,8 @@ async def htmx_timedout_active(
             "dashboard_path": _dashboard_path(request),
             "items": result["items"],
             "pagination": result["pagination"],
+            "sort_by": result["sort_by"],
+            "sort_order": result["sort_order"],
         },
     )
 
