@@ -40,8 +40,8 @@
             <td>{{ ip.city | default('') | e }}{% if ip.city and ip.country_code %}, {% endif %}{{ ip.country_code | default('N/A') | e }}</td>
             <td>{{ ip.last_seen | format_ts }}</td>
             <td>
-                <button class="ban-icon-btn ban-icon-reset" onclick="timeoutExemptAction('{{ ip.ip | e }}', 'exempt')" title="Exempt from timeout">
-                    <span class="material-symbols-outlined" style="font-size:18px;">block</span>
+                <button class="ban-icon-btn ban-icon-unban" onclick="timeoutExemptAction('{{ ip.ip | e }}', 'exempt')" title="Exempt from timeout">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M2.344 2.343h-.001a8 8 0 0 1 11.314 11.314A8.002 8.002 0 0 1 .234 10.089a8 8 0 0 1 2.11-7.746Zm1.06 1.06a6.5 6.5 0 1 0 9.193 9.193L3.404 3.404Zm9.193-1.06a6.5 6.5 0 0 0-9.193 0l9.193 9.193a6.5 6.5 0 0 0 0-9.193Z"/></svg>
                     <span class="ban-icon-tooltip">Exempt</span>
                 </button>
             </td>
