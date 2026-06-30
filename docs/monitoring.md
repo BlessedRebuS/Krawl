@@ -55,6 +55,7 @@ Point-in-time values. `krawl_clients_total` is recomputed live at scrape time; t
 | `krawl_ips_needing_reevaluation` | IPs currently flagged for reevaluation by the analyzer |
 | `krawl_unenriched_ips` | IPs awaiting geolocation/reputation enrichment (capped at 1000) |
 | `krawl_auth_locked_ips` | IPs currently locked out from dashboard authentication |
+| `krawl_timed_out_ips` | IPs currently serving an automatic rate-limit time-ban |
 | `krawl_dashboard_warmup_duration_seconds` | Last observed duration of each dashboard warmup sub-step, labeled by `step` |
 
 ## Grafana Dashboard
