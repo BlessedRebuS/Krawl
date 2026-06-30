@@ -106,6 +106,21 @@ class KrawlMetricsCollector:
             app_logger.error(f"collect clients_total failed: {e}")
         yield clients
 
+        timed_out = GaugeMetricFamily(
+            "krawl_timed_out_ips",
+            "IPs currently serving an automatic time-ban (timed out)",
+        )
+        try:
+            from config import get_config
+            from database import get_database
+
+            db = get_database()
+            duration = get_config().ban_duration_seconds
+            timed_out.add_metric([], db.ip_stats.count_timed_out(duration))
+        except Exception as e:
+            app_logger.error(f"collect timed_out_ips failed: {e}")
+        yield timed_out
+
 
 # Register the collector once (guard against re-import in test/reload paths).
 _collector = KrawlMetricsCollector()
