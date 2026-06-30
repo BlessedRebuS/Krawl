@@ -1,0 +1,30 @@
+{# Timed-Out IPs panel #}
+<div>
+    <div class="table-container" style="margin-bottom: 20px;">
+        <h2>Currently Timed Out</h2>
+        <p style="color: #8b949e; font-size: 14px; margin-bottom: 16px;">
+            IPs serving an automatic rate-limit time-ban right now. The remaining time counts down live; expired entries drop on refresh.
+        </p>
+        <div id="timedout-active-container"
+             class="htmx-container"
+             hx-get="{{ dashboard_path }}/htmx/timedout/active?page=1"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <div class="htmx-indicator">Loading...</div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <h2>Timeout-Exempt IPs</h2>
+        <p style="color: #8b949e; font-size: 14px; margin-bottom: 16px;">
+            IPs excluded from the automatic time-ban. Re-enable to subject them to timeouts again.
+        </p>
+        <div id="timeout-exempt-container"
+             class="htmx-container"
+             hx-get="{{ dashboard_path }}/htmx/timeout-exempt?page=1"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <div class="htmx-indicator">Loading...</div>
+        </div>
+    </div>
+</div>

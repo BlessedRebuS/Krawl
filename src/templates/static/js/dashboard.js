@@ -148,6 +148,8 @@ document.addEventListener('alpine:init', () => {
                 this.switchToAttacks();
             } else if (hash === 'banlist' && this.authenticated) {
                 this.switchToBanlist();
+            } else if (hash === 'timedout' && this.authenticated) {
+                this.switchToTimedOut();
             } else if (hash === 'tracked-ips' && this.authenticated) {
                 this.switchToTrackedIps();
             } else if (hash === 'deception' && this.authenticated) {
@@ -170,6 +172,8 @@ document.addEventListener('alpine:init', () => {
                         this.switchToAttacks();
                     } else if (h === 'banlist') {
                         if (this.authenticated) this.switchToBanlist();
+                    } else if (h === 'timedout') {
+                        if (this.authenticated) this.switchToTimedOut();
                     } else if (h === 'tracked-ips') {
                         if (this.authenticated) this.switchToTrackedIps();
                     } else if (h === 'deception') {
@@ -224,6 +228,22 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
+        switchToTimedOut() {
+            if (!this.authenticated) return;
+            if (this.tab === 'timedout') return;  // Prevent duplicate loading
+            this.tab = 'timedout';
+            window.location.hash = '#timedout';
+            this.$nextTick(() => {
+                const container = document.getElementById('timedout-htmx-container');
+                if (container && typeof htmx !== 'undefined') {
+                    htmx.ajax('GET', `${this.dashboardPath}/htmx/timedout`, {
+                        target: '#timedout-htmx-container',
+                        swap: 'innerHTML'
+                    });
+                }
+            });
+        },
+
         switchToTrackedIps() {
             if (!this.authenticated) return;
             if (this.tab === 'tracked-ips') return;  // Prevent duplicate loading
@@ -264,7 +284,7 @@ document.addEventListener('alpine:init', () => {
                 });
             } catch {}
             this.authenticated = false;
-            if (this.tab === 'banlist' || this.tab === 'tracked-ips' || this.tab === 'deception') this.switchToOverview();
+            if (this.tab === 'banlist' || this.tab === 'tracked-ips' || this.tab === 'deception' || this.tab === 'timedout') this.switchToOverview();
         },
 
         promptAuth() {
@@ -1152,6 +1172,85 @@ window.ipBanAction = async function(ip, action) {
         }
     } catch {
         krawlModal.error('Request failed');
+    }
+};
+
+// Global timeout exempt/reset action (auth-gated)
+window.timeoutExemptAction = async function(ip, action) {
+    const data = getAlpineData('[x-data="dashboardApp()"]');
+    if (!data || !data.authenticated) {
+        if (data && typeof data.promptAuth === 'function') data.promptAuth();
+        return;
+    }
+    const safeIp = escapeHtml(ip);
+    const label = action === 'exempt' ? 'exempt from timeout' : 're-enable timeout for';
+    const confirmed = await krawlModal.confirm(`Are you sure you want to ${label} IP <strong>${safeIp}</strong>?`);
+    if (!confirmed) return;
+    try {
+        const resp = await fetch(`${window.__DASHBOARD_PATH__}/api/timeout-exempt`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ ip, action }),
+        });
+        const result = await resp.json().catch(() => ({}));
+        if (resp.ok) {
+            krawlModal.success(escapeHtml(result.message || `${action} successful for ${ip}`));
+            // Refresh both tables so the IP moves between them
+            const active = document.getElementById('timedout-active-container');
+            if (active && typeof htmx !== 'undefined') {
+                htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/timedout/active?page=1`, {
+                    target: '#timedout-active-container', swap: 'innerHTML'
+                });
+            }
+            const exempt = document.getElementById('timeout-exempt-container');
+            if (exempt && typeof htmx !== 'undefined') {
+                htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/timeout-exempt?page=1`, {
+                    target: '#timeout-exempt-container', swap: 'innerHTML'
+                });
+            }
+        } else {
+            krawlModal.error(escapeHtml(result.error || `Failed to ${action} IP ${ip}`));
+        }
+    } catch {
+        krawlModal.error('Request failed');
+    }
+};
+
+// Live per-row countdown for the Timed Out IPs table.
+let _timeoutCountdownTimer = null;
+
+function _formatRemaining(secs) {
+    if (secs <= 0) return 'Expired';
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m`;
+    if (m > 0) return `${m}m ${String(s).padStart(2, '0')}s`;
+    return `${s}s`;
+}
+
+function _tickTimeoutCountdowns() {
+    const cells = document.querySelectorAll('.timeout-countdown');
+    if (cells.length === 0) {
+        if (_timeoutCountdownTimer) { clearInterval(_timeoutCountdownTimer); _timeoutCountdownTimer = null; }
+        return;
+    }
+    cells.forEach((cell) => {
+        let remaining = parseInt(cell.getAttribute('data-remaining'), 10);
+        if (isNaN(remaining)) return;
+        cell.textContent = _formatRemaining(remaining);
+        if (remaining > 0) {
+            cell.setAttribute('data-remaining', String(remaining - 1));
+        }
+    });
+}
+
+// Called from the table fragment after each HTMX swap, and on tab enter.
+window.startTimeoutCountdowns = function() {
+    _tickTimeoutCountdowns();  // paint immediately
+    if (!_timeoutCountdownTimer) {
+        _timeoutCountdownTimer = setInterval(_tickTimeoutCountdowns, 1000);
     }
 };
 

@@ -1,0 +1,54 @@
+{# HTMX fragment: currently timed-out IPs #}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} timed out</span>
+    <div style="display: flex; gap: 8px;">
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/timedout/active?page={{ pagination.page - 1 }}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML"
+                {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/timedout/active?page={{ pagination.page + 1 }}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML"
+                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
+    </div>
+</div>
+<table class="ip-stats-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>IP Address</th>
+            <th>Time Left</th>
+            <th>Violations</th>
+            <th>Multiplier</th>
+            <th>Category</th>
+            <th>Location</th>
+            <th>Last Seen</th>
+            <th style="width: 40px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for ip in items %}
+        <tr>
+            <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
+            <td>{{ ip.ip | e }}</td>
+            <td class="timeout-countdown" data-remaining="{{ ip.remaining_ban_seconds }}" data-ip="{{ ip.ip | e }}">&mdash;</td>
+            <td>{{ ip.total_violations }}</td>
+            <td>&times;{{ ip.ban_multiplier }}</td>
+            <td><span class="category-badge category-{{ ip.category | default('unknown') | replace('_', '-') }}">{{ ip.category | default('unknown') | replace('_', ' ') | title }}</span></td>
+            <td>{{ ip.city | default('') | e }}{% if ip.city and ip.country_code %}, {% endif %}{{ ip.country_code | default('N/A') | e }}</td>
+            <td>{{ ip.last_seen | format_ts }}</td>
+            <td>
+                <button class="ban-icon-btn ban-icon-reset" onclick="timeoutExemptAction('{{ ip.ip | e }}', 'exempt')" title="Exempt from timeout">
+                    <span class="material-symbols-outlined" style="font-size:18px;">block</span>
+                    <span class="ban-icon-tooltip">Exempt</span>
+                </button>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="empty-state">No IPs are currently timed out</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<script>if (typeof startTimeoutCountdowns === 'function') startTimeoutCountdowns();</script>
