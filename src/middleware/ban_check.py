@@ -51,5 +51,20 @@ class BanCheckMiddleware(BaseHTTPMiddleware):
                 headers={"Retry-After": str(retry_after)},
             )
 
+        # Check global banlist (external maintainer sources)
+        if config.banlist_export_path or config.banlist_sources:
+            from banlist_sync import get_global_banlist
+
+            global_bans = get_global_banlist()
+            if client_ip in global_bans:
+                get_access_logger().info(
+                    f"[GLOBAL-BANNED] [{request.method}] {client_ip} - {request.url.path}"
+                )
+                request.state.banned = True
+                return Response(
+                    status_code=429,
+                    headers={"Retry-After": "3600"},
+                )
+
         response = await call_next(request)
         return response

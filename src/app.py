@@ -160,6 +160,15 @@ async def lifespan(app: FastAPI):
     tracker = AccessTracker(config.max_pages_limit, config.ban_duration_seconds)
     set_tracker(tracker)
 
+    # Initial banlist sync (before accepting traffic)
+    if config.banlist_sources:
+        try:
+            from banlist_sync import refresh_banlist_sources
+            refresh_banlist_sources()
+            app_logger.info("Initial banlist sync complete")
+        except Exception as e:
+            app_logger.warning(f"Initial banlist sync failed: {e}")
+
     # Store in app.state for dependency injection
     app.state.config = config
     app.state.tracker = tracker
@@ -318,6 +327,19 @@ def create_app() -> FastAPI:
 
     # OpenAPI spec and Swagger UI served under the secret dashboard path
     _setup_openapi(application, dashboard_prefix)
+
+    # Public banlist route (before honeypot catch-all, after dashboard)
+    if config.banlist_export_path:
+        from routes.banlist import public_banlist_handler
+        banlist_path = config.banlist_export_path
+        if not banlist_path.startswith("/"):
+            banlist_path = "/" + banlist_path
+        application.add_api_route(
+            banlist_path,
+            public_banlist_handler,
+            methods=["GET"],
+            include_in_schema=False,
+        )
 
     # Honeypot routes (catch-all must be last)
     application.include_router(honeypot_router)

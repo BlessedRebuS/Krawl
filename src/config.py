@@ -126,6 +126,11 @@ class Config:
     # Deception pages import settings
     deception_import_pages: bool = True
 
+    # Banlist export/import settings
+    banlist_export_path: str = ""
+    banlist_sources: list[str] | None = None
+    banlist_refresh_interval: int = 3600
+
     _server_ip: str | None = None
     _server_ip_resolved: bool = False
 
@@ -219,6 +224,7 @@ class Config:
         ai = data.get("ai", {})
         metrics = data.get("metrics", {})
         deception = data.get("deception", {})
+        banlist = data.get("banlist", {})
         # Support legacy nested `page_template` or top-level `custom_template_path`.
         page_template = data.get("page_template", {})
         custom_template_path = data.get("custom_template_path", None)
@@ -351,6 +357,9 @@ Generate the complete HTML page.""",
             ai_max_daily_requests=ai.get("max_daily_requests", 0),
             deception_import_pages=deception.get("import_pages", True),
             custom_template_path=custom_template_path,
+            banlist_export_path=banlist.get("export_path", ""),
+            banlist_sources=banlist.get("sources") or None,
+            banlist_refresh_interval=banlist.get("refresh_interval", 3600),
         )
 
 
