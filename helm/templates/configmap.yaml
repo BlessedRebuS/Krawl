@@ -53,6 +53,10 @@ data:
       infinite_pages_for_malicious: {{ .Values.config.crawl.infinite_pages_for_malicious }}
       max_pages_limit: {{ .Values.config.crawl.max_pages_limit }}
       ban_duration_seconds: {{ .Values.config.crawl.ban_duration_seconds }}
+    {{- with .Values.config.ignored_ips }}
+    ignored_ips:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
     ai:
       enabled: {{ .Values.config.ai.enabled }}
       provider: {{ .Values.config.ai.provider | quote }}
