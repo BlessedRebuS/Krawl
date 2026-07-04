@@ -74,17 +74,13 @@ class Config:
     metrics_enabled: bool = True
 
     # Crawl limiting settings - for legitimate vs malicious crawlers
-    max_pages_limit: int = (
-        100  # Max pages limit for good crawlers and regular users (and bad crawlers/attackers if infinite_pages_for_malicious is False)
-    )
+    max_pages_limit: int = 100  # Max pages limit for good crawlers and regular users (and bad crawlers/attackers if infinite_pages_for_malicious is False)
     infinite_pages_for_malicious: bool = True  # Infinite pages for malicious crawlers
     ban_duration_seconds: int = 600  # Ban duration in seconds for IPs exceeding limits
 
     # IPs/CIDRs to ignore everywhere (never tracked, banned, exported, purged
     # on startup). See DEFAULT_IGNORED_IPS.
-    ignored_ips: list[str] = dc_field(
-        default_factory=lambda: list(DEFAULT_IGNORED_IPS)
-    )
+    ignored_ips: list[str] = dc_field(default_factory=lambda: list(DEFAULT_IGNORED_IPS))
 
     # backup job settings
     backups_path: str = "backups"
@@ -367,10 +363,8 @@ def override_config_from_env(config: Config = None):
     """Initialize configuration from environment variables"""
 
     for field in config.__dataclass_fields__:
-
         env_var = __get_env_from_config(field)
         if env_var in os.environ:
-
             get_app_logger().info(
                 f"Overriding config '{field}' from environment variable '{env_var}'"
             )
