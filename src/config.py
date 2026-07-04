@@ -3,12 +3,30 @@
 import os
 import sys
 from dataclasses import dataclass
+from dataclasses import field as dc_field
 from pathlib import Path
 
 import requests
 import yaml
 
 from logger import get_app_logger
+
+# IPs/CIDRs ignored everywhere (never tracked, banned, exported, and purged on
+# startup). Defaults reproduce the previous hardcoded private/loopback/
+# link-local/CGNAT behaviour; operators can override via the `ignored_ips`
+# config section.
+DEFAULT_IGNORED_IPS = [
+    "127.0.0.0/8",
+    "10.0.0.0/8",
+    "172.16.0.0/12",
+    "192.168.0.0/16",
+    "169.254.0.0/16",
+    "0.0.0.0/8",
+    "100.64.0.0/10",
+    "::1/128",
+    "fc00::/7",
+    "fe80::/10",
+]
 
 
 @dataclass
@@ -61,6 +79,12 @@ class Config:
     )
     infinite_pages_for_malicious: bool = True  # Infinite pages for malicious crawlers
     ban_duration_seconds: int = 600  # Ban duration in seconds for IPs exceeding limits
+
+    # IPs/CIDRs to ignore everywhere (never tracked, banned, exported, purged
+    # on startup). See DEFAULT_IGNORED_IPS.
+    ignored_ips: list[str] = dc_field(
+        default_factory=lambda: list(DEFAULT_IGNORED_IPS)
+    )
 
     # backup job settings
     backups_path: str = "backups"
@@ -295,6 +319,7 @@ class Config:
             ),
             max_pages_limit=crawl.get("max_pages_limit", 250),
             ban_duration_seconds=crawl.get("ban_duration_seconds", 600),
+            ignored_ips=data.get("ignored_ips") or list(DEFAULT_IGNORED_IPS),
             tarpit_enabled=tarpit.get("enabled", False),
             tarpit_delay_seconds=tarpit.get("delay_seconds", 5),
             log_level=os.getenv(
@@ -366,6 +391,12 @@ def override_config_from_env(config: Config = None):
                     parts = env_value.split(",")
                     if len(parts) == 2:
                         setattr(config, field, (int(parts[0]), int(parts[1])))
+                elif field_type == list[str]:
+                    setattr(
+                        config,
+                        field,
+                        [p.strip() for p in env_value.split(",") if p.strip()],
+                    )
                 else:
                     # Treat empty strings as None for Optional fields (e.g. passwords)
                     setattr(config, field, env_value if env_value else None)
