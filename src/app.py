@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from config import get_config
 from dashboard_cache import flush_all as flush_cache
 from dashboard_cache import initialize_cache
-from database import initialize_database
+from database import get_database, initialize_database
 from generators import random_server_header
 from logger import get_access_logger, get_app_logger, initialize_logging
 from routes.dashboard import KRAWL_VERSION
@@ -68,6 +68,17 @@ async def lifespan(app: FastAPI):
                 f"Database initialization failed: {e}. Continuing with in-memory only."
             )
 
+    # One-time startup cleanup: purge configured ignored IPs that predate the
+    # tracking guard and clear stale (fully expired) ban state.
+    try:
+        from database.startup import run_startup_cleanup
+
+        run_startup_cleanup(
+            get_database(), config.ban_duration_seconds, config.ignored_ips
+        )
+    except Exception as e:
+        app_logger.warning(f"Startup cleanup skipped: {e}")
+
     # Initialize cache backend (in-memory dict for standalone, Redis for scalable)
     try:
         if config.mode == "scalable":
@@ -108,7 +119,6 @@ async def lifespan(app: FastAPI):
     # recompute). In scalable mode only the first pod actually seeds.
     try:
         import metrics_counters
-        from database import get_database
 
         metrics_counters.bootstrap(get_database())
         app_logger.info("Metric counters seeded")

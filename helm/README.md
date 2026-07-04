@@ -357,6 +357,12 @@ A one-shot Kubernetes Job that copies data from an existing SQLite PVC into Post
 | `config.crawl.max_pages_limit` | Maximum pages limit for legitimate crawlers | `250` |
 | `config.crawl.ban_duration_seconds` | IP ban duration in seconds | `600` |
 
+### Ignored IPs
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `config.ignored_ips` | List of IPs / CIDR ranges (IPv4/IPv6) never tracked, banned, exported, or persisted — and purged from the database on startup | loopback, RFC1918, link-local, CGNAT ranges |
+
 ### Resource Limits
 
 | Parameter | Description | Default |

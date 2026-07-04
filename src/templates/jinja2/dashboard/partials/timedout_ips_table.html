@@ -42,9 +42,15 @@
     </thead>
     <tbody>
         {% for ip in items %}
-        <tr>
+        <tr class="ip-row" data-ip="{{ ip.ip | e }}">
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
-            <td>{{ ip.ip | e }}</td>
+            <td class="ip-clickable"
+                hx-get="{{ dashboard_path }}/htmx/ip-detail/{{ ip.ip | e }}"
+                hx-target="next .ip-stats-row .ip-stats-dropdown"
+                hx-swap="innerHTML"
+                @click="toggleIpDetail($event)">
+                {{ ip.ip | e }}
+            </td>
             <td class="timeout-countdown" data-remaining="{{ ip.remaining_ban_seconds }}" data-ip="{{ ip.ip | e }}">&mdash;</td>
             <td>{{ ip.total_violations }}</td>
             <td>&times;{{ ip.ban_multiplier }}</td>
@@ -53,9 +59,16 @@
             <td>{{ ip.last_seen | format_ts }}</td>
             <td>
                 <button class="ban-icon-btn ban-icon-unban" onclick="timeoutExemptAction('{{ ip.ip | e }}', 'exempt')" title="Exempt from timeout">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M2.344 2.343h-.001a8 8 0 0 1 11.314 11.314A8.002 8.002 0 0 1 .234 10.089a8 8 0 0 1 2.11-7.746Zm1.06 1.06a6.5 6.5 0 1 0 9.193 9.193L3.404 3.404Zm9.193-1.06a6.5 6.5 0 0 0-9.193 0l9.193 9.193a6.5 6.5 0 0 0 0-9.193Z"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6.25"/><line x1="3.75" y1="3.75" x2="12.25" y2="12.25"/></svg>
                     <span class="ban-icon-tooltip">Exempt</span>
                 </button>
+            </td>
+        </tr>
+        <tr class="ip-stats-row" style="display: none;">
+            <td colspan="9" class="ip-stats-cell">
+                <div class="ip-stats-dropdown">
+                    <div class="loading">Loading stats...</div>
+                </div>
             </td>
         </tr>
         {% else %}

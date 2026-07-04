@@ -110,6 +110,23 @@ crawl:
   max_pages_limit: 250
   ban_duration_seconds: 600
 
+# IPs / CIDR ranges to ignore everywhere: never tracked, banned, exported, and
+# purged from the database on startup. Accepts single IPs (e.g. 203.0.113.5) or
+# CIDR ranges (IPv4 and IPv6). Defaults cover loopback, RFC1918 private,
+# link-local and CGNAT ranges; add your own trusted networks (monitoring,
+# health checks, office egress, etc.) here.
+ignored_ips:
+  - 127.0.0.0/8      # loopback
+  - 10.0.0.0/8       # RFC1918 private
+  - 172.16.0.0/12    # RFC1918 private
+  - 192.168.0.0/16   # RFC1918 private
+  - 169.254.0.0/16   # link-local
+  - 0.0.0.0/8        # "this network"
+  - 100.64.0.0/10    # CGNAT
+  - ::1/128          # IPv6 loopback
+  - fc00::/7         # IPv6 unique local
+  - fe80::/10        # IPv6 link-local
+
 tarpit:
   enabled: false  # Opt-in: trap AI agents with slow responses and random text
   delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active
