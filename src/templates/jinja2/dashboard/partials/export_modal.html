@@ -100,12 +100,7 @@
                                         <span style="color: #f85149; font-size: 11px; margin-left: 4px;" x-show="source.status !== 'ok'" x-text="'(' + source.status + ')'"></span>
                                     </div>
                                 </div>
-                                {# Category breakdown with colored text (skip unknown) #}
-                                <div x-show="source.status === 'ok' && source.categories" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; padding-left: 20px;">
-                                    <template x-for="(count, cat) in source.categories" :key="cat">
-                                        <span x-show="cat !== 'unknown'" :style="'font-size: 11px; text-transform: capitalize; color: ' + ({attacker:'#f85149',bad_crawler:'#d29922',regular_user:'#58a6ff',good_crawler:'#3fb950',timed_out:'#db61a2'}[cat] || '#8b949e')" x-text="cat.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) + ' ' + count"></span>
-                                    </template>
-                                </div>
+
                             </div>
                         </template>
                         <div x-show="banlistSources.length === 0" style="color: #8b949e; font-size: 12px; text-align: center; padding: 8px;">No sources configured</div>
