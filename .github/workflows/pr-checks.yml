@@ -6,7 +6,7 @@ on:
       - dev
 
 permissions:
-  contents: read
+  contents: write
   issues: write
   pull-requests: write
 
@@ -16,6 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Check out the PR head branch itself (not the detached merge commit)
+          # so we can commit auto-fixes back to it. Using the head repo/ref means
+          # this also works for PRs opened from forks (read-only in that case).
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - uses: actions/setup-python@v5
         with:
@@ -27,6 +33,29 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install black pip-check-reqs ruff
+
+      - name: Apply auto-fixes (ruff --fix & black)
+        run: |
+          ruff check --fix src/ || true
+          black src/
+
+      - name: Commit & push auto-fixes
+        id: autofix
+        # GITHUB_TOKEN is read-only for PRs from forks, so we can only push back
+        # to branches that live in this repository.
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No formatting/lint changes to commit."
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "style: apply ruff --fix and black auto-fixes"
+          git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
 
       - name: Ruff lint & security check
         id: ruff
@@ -41,6 +70,7 @@ jobs:
         env:
           RUFF_REPORT_PATH: ${{ runner.temp }}/ruff-report.txt
           EXIT_CODE: ${{ steps.ruff.outputs.exit_code }}
+          PUSHED: ${{ steps.autofix.outputs.pushed }}
         with:
           script: |
             const fs = require('fs');
@@ -48,6 +78,12 @@ jobs:
             const reportPath = process.env.RUFF_REPORT_PATH;
             const exitCode = process.env.EXIT_CODE;
             const hasFailed = exitCode !== '0';
+            // 'pushed' is 'true' only when CI committed fixes back to this repo's
+            // branch; it's empty for fork PRs (where CI can't push).
+            const canPush = process.env.PUSHED === 'true' || process.env.PUSHED === 'false';
+            const autofixNote = canPush
+              ? 'Auto-fixable issues have already been fixed and pushed to this branch by CI (\`ruff --fix\` + \`black\`). The issues below **could not be fixed automatically** and must be addressed manually'
+              : 'This PR appears to come from a fork, so CI could not push auto-fixes. Run \`ruff check --fix src/\` and \`black src/\` locally and push. The issues below also include ones that **cannot be fixed automatically**';
 
             let body;
             if (hasFailed) {
@@ -55,7 +91,7 @@ jobs:
               body = `${marker}
             ### Ruff — lint & security issues
 
-            The following issues were found by Ruff (includes linting rules and security checks via \`S\` / Bandit rules).
+            ${autofixNote} (includes linting rules and security checks via \`S\` / Bandit rules).
 
             <details>
             <summary>View full report</summary>
@@ -66,11 +102,11 @@ jobs:
 
             </details>
 
-            **To fix auto-fixable issues locally:**
+            **Tip:** pull the latest changes first (\`git pull\`), then try:
             \`\`\`sh
             ruff check --fix --unsafe-fixes src/
             \`\`\`
-            Then address any remaining \`S\` (security) findings manually.`;
+            and address any remaining \`S\` (security) findings manually.`;
             } else {
               body = `${marker}
             ### Ruff — lint & security issues
