@@ -56,9 +56,7 @@ def refresh_banlist_sources(*, source_urls: list[str] | None = None) -> None:
                         count += 1
                 entry["status"] = "ok"
                 entry["count"] = count
-                get_app_logger().info(
-                    f"[BanlistSync] Fetched {count} IPs from {url}"
-                )
+                get_app_logger().info(f"[BanlistSync] Fetched {count} IPs from {url}")
             else:
                 get_app_logger().warning(
                     f"[BanlistSync] Source {url} returned HTTP {resp.status_code}"
