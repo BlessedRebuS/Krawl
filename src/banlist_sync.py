@@ -126,9 +126,7 @@ def _enrich_source_categories(
             ip_category[ip] = cat or "unknown"
         db.close_session()
     except Exception as e:
-        get_app_logger().warning(
-            f"[BanlistSync] Failed to categorize source IPs: {e}"
-        )
+        get_app_logger().warning(f"[BanlistSync] Failed to categorize source IPs: {e}")
         return
 
     for entry in sources_info:
