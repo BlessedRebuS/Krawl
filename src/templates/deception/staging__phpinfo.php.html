@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Acme Corp – Internal Portal</title>
+    <style>
+        body {font-family: Arial, Helvetica, sans-serif; background:#f4f6f9; margin:0; padding:0; color:#333;}
+        header {background:#003366; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#004080; color:#fff; display:flex; justify-content:center; gap:2rem; padding:0.5rem 0;}
+        nav a {color:#fff; text-decoration:none; font-weight:bold;}
+        nav a:hover {text-decoration:underline;}
+        .container {max-width:960px; margin:2rem auto; padding:0 1rem;}
+        .card {background:#fff; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1); padding:1.5rem; margin-bottom:1.5rem;}
+        h2 {color:#003366; margin-top:0;}
+        footer {text-align:center; padding:1rem; font-size:0.9rem; color:#666; background:#eaeaea; margin-top:2rem;}
+        .btn {display:inline-block; background:#00529b; color:#fff; padding:0.6rem 1.2rem; border:none; border-radius:4px; cursor:pointer; text-decoration:none;}
+        .btn:hover {background:#003d7a;}
+        table {width:100%; border-collapse:collapse; margin-top:1rem;}
+        th, td {padding:0.5rem; border:1px solid #ddd; text-align:left;}
+        th {background:#e2e8f0;}
+        tr:nth-child(even) {background:#f9f9f9;}
+    </style>
+    <script>
+        function showTime() {
+            const now = new Date();
+            document.getElementById('live-time').textContent = now.toLocaleString();
+        }
+        setInterval(showTime, 1000);
+        window.onload = showTime;
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Acme Corp – Internal Portal</h1>
+        <p>Version 2.3.1 • Build 20240915</p>
+    </header>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/reports">Reports</a>
+        <a href="/users">User Management</a>
+        <a href="/settings">Settings</a>
+        <a href="/logout">Logout</a>
+    </nav>
+    <div class="container">
+        <div class="card">
+            <h2>Welcome, <span id="user-name">j.smith</span></h2>
+            <p>Last login: <span id="last-login">2024-09-20 08:14:22 UTC</span> from <span id="last-ip">10.0.0.57</span></p>
+            <p>Current server time: <span id="live-time"></span></p>
+            <p>System status: <span style="color:green;">Operational</span></p>
+        </div>
+        <div class="card">
+            <h2>Quick Actions</h2>
+            <a href="/tickets/new" class="btn">Create Ticket</a>
+            <a href="/backup/now" class="btn">Run Backup Now</a>
+            <a href="/admin/logs" class="btn">View System Logs</a>
+        </div>
+        <div class="card">
+            <h2>Recent Activity</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2024-09-20 09:03:12</td>
+                        <td>j.smith</td>
+                        <td>Accessed /reports/sales</td>
+                        <td>Success</td>
+                    </tr>
+                    <tr>
+                        <td>2024-09-20 08:58:05</td>
+                        <td>admin</td>
+                        <td>Modified firewall rules</td>
+                        <td>Success</td>
+                    </tr>
+                    <tr>
+                        <td>2024-09-20 08:45:33</td>
+                        <td>m.jones</td>
+                        <td>Failed login attempt</td>
+                        <td>Failed (IP: 10.0.0.102)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <footer>
+        &copy; 2024 Acme Corp. All rights reserved. • Internal use only.
+    </footer>
+</body>
+</html>

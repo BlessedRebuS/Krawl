@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acme Corp – Internal Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:0;background:#f4f6f9;color:#333}
+    header{background:#003366;color:#fff;padding:1rem;text-align:center}
+    .container{max-width:960px;margin:auto;padding:1rem}
+    .card{background:#fff;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,.1);margin-bottom:1.5rem;padding:1rem}
+    h2{color:#003366;margin-top:0}
+    table{width:100%;border-collapse:collapse;margin-top:0.5rem}
+    th,td{padding:.5rem;text-align:left;border-bottom:1px solid #ddd}
+    th{background:#e9f2ff}
+    .status-ok{color:#28a745;font-weight:bold}
+    .status-warn{color:#ffc107;font-weight:bold}
+    .footer{font-size:.85rem;color:#666;margin-top:2rem;text-align:center}
+    @media(max-width:600px){header{font-size:.9rem}.container{padding:.5rem}}
+</style>
+</head>
+<body>
+<header>
+    <h1>Acme Corp – Internal Dashboard</h1>
+    <div>v2.4.1 (build 20231105) &nbsp;|&nbsp; Server: 10.0.0.42</div>
+</header>
+<div class="container">
+    <section class="card">
+        <h2>System Overview</h2>
+        <table>
+            <tr><th>Hostname</th><td>acme-intranet01</td></tr>
+            <tr><th>OS</th><td>Ubuntu 20.04.5 LTS</td></tr>
+            <tr><th>Kernel</th><td>5.4.0-150-generic</td></tr>
+            <tr><th>Uptime</th><td>12 days, 3:45</td></tr>
+            <tr><th>Database</th><td>acme_prod (MySQL 8.0.34)</td></tr>
+            <tr><th>DB User</th><td>db_admin</td></tr>
+            <tr><th>Last Backup</th><td>2025-10-28 02:15 UTC</td></tr>
+        </table>
+    </section>
+
+    <section class="card">
+        <h2>Active Services</h2>
+        <table>
+            <tr><th>Service</th><th>Status</th><th>Port</th></tr>
+            <tr><td>HTTP (NGINX)</td><td class="status-ok">Running</td><td>80</td></tr>
+            <tr><td>SSH</td><td class="status-ok">Running</td><td>22</td></tr>
+            <tr><td>MySQL</td><td class="status-ok">Running</td><td>3306</td></tr>
+            <tr><td>Redis</td><td class="status-warn">Delayed Replication</td><td>6379</td></tr>
+            <tr><td>Mail (Postfix)</td><td class="status-ok">Running</td><td>25</td></tr>
+        </table>
+    </section>
+
+    <section class="card">
+        <h2>Recent Logins</h2>
+        <table>
+            <tr><th>User</th><th>IP</th><th>Time</th></tr>
+            <tr><td>j.smith</td><td>10.0.5.23</td><td>2025-11-02 08:12</td></tr>
+            <tr><td>m.lee</td><td>10.0.5.89</td><td>2025-11-02 07:58</td></tr>
+            <tr><td>admin</td><td>10.0.0.42</td><td>2025-11-02 07:02</td></tr>
+            <tr><td>db_admin</td><td>10.0.5.11</td><td>2025-11-02 06:45</td></tr>
+        </table>
+    </section>
+</div>
+<footer class="footer">
+    &copy; 2025 Acme Corp. All rights reserved. Internal use only.
+</footer>
+</body>
+</html>

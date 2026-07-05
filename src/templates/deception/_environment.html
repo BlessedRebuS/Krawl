@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Login - Intranet Portal</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:0;display:flex;justify-content:center;align-items:center;height:100vh}
+.container{background:#fff;padding:30px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.1);width:320px}
+h2{text-align:center;color:#333;margin-bottom:20px}
+label{display:block;margin-top:15px;font-weight:bold}
+input[type=text],
+input[type=password]{width:100%;padding:8px;margin-top:5px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box}
+button{margin-top:20px;width:100%;padding:10px;background:#0066cc;color:#fff;border:none;border-radius:4px;cursor:pointer}
+button:hover{background:#004c99}
+.footer{margin-top:20px;font-size:12px;color:#777;text-align:center}
+</style>
+</head>
+<body>
+<div class="container">
+<h2>Intranet Admin Portal</h2>
+<form action="/admin/login" method="post">
+<label for="username">Username:</label>
+<input type="text" id="username" name="username" required>
+<label for="password">Password:</label>
+<input type="password" id="password" name="password" required>
+<button type="submit">Sign In</button>
+</form>
+<p class="footer">Version 2.4.1 &copy; 2025 CorpName. Server: 10.0.0.5</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<html><body>version: '3.8'
+services:
+  web:
+    image: myapp-web:1.2.3
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      - DB_HOST=db
+      - DB_USER=appuser
+      - DB_PASSWORD=secret123
+      - DEBUG=1
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+  db:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_DB: myapp_dev
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: secret123
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  worker:
+    image: myapp-worker:1.2.3
+    build: .
+    environment:
+      - DB_HOST=db
+      - DB_USER=appuser
+      - DB_PASSWORD=secret123
+    volumes:
+      - .:/app
+volumes:
+  pgdata:</body></html>

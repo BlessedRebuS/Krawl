@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acme Corp – Internal Portal</title>
+<style>
+    body {font-family:Arial,Helvetica,sans-serif; margin:0; padding:0; background:#f4f6f9; color:#333;}
+    header {background:#003366; color:#fff; padding:1rem 2rem; display:flex; justify-content:space-between; align-items:center;}
+    header h1 {margin:0; font-size:1.5rem;}
+    nav a {color:#fff; margin-left:1.5rem; text-decoration:none;}
+    nav a:hover {text-decoration:underline;}
+    main {max-width:960px; margin:2rem auto; padding:0 1rem;}
+    .card {background:#fff; border:1px solid #d0d7de; border-radius:6px; padding:1.5rem; margin-bottom:1.5rem; box-shadow:0 2px 4px rgba(0,0,0,.05);}
+    .card h2 {margin-top:0; color:#003366;}
+    .footer {text-align:center; font-size:.85rem; color:#777; padding:1rem; background:#e9ecef; margin-top:2rem;}
+    .badge {display:inline-block; background:#28a745; color:#fff; font-size:.75rem; padding:2px 6px; border-radius:3px; margin-left:8px;}
+</style>
+</head>
+<body>
+<header>
+    <h1>Acme Corp</h1>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/reports">Reports</a>
+        <a href="/admin/login">Admin</a>
+        <a href="/logout">Logout</a>
+    </nav>
+</header>
+<main>
+    <section class="card">
+        <h2>Welcome, <span id="user">j.smith</span> <span class="badge">admin</span></h2>
+        <p>Last login: <span id="lastlogin">2025-09-24 08:13:42</span> from <span id="lastip">10.0.0.57</span></p>
+        <p>Current server time: <span id="servertime"></span></p>
+    </section>
+
+    <section class="card">
+        <h2>System Overview</h2>
+        <ul>
+            <li>Hostname: <strong>acme-intranet01</strong></li>
+            <li>Internal IP: <strong>10.0.0.5</strong></li>
+            <li>OS: Ubuntu 22.04 LTS (Kernel 5.15.0-78-generic)</li>
+            <li>Web Server: Apache/2.4.52 (Ubuntu)</li>
+            <li>Application Version: Acme Intranet v2.3.1 (build 20240915)</li>
+            <li>Database: MySQL 8.0.33 – Schema: <code>acme_prod</code></li>
+        </ul>
+    </section>
+
+    <section class="card">
+        <h2>Announcements</h2>
+        <p><strong>2025-09-20:</strong> Scheduled maintenance on the backup storage array (10.0.0.12) from 02:00–04:00 UTC.</p>
+        <p><strong>2025-09-15:</strong> New VPN client rolled out – please update to version 3.2.1.</p>
+    </section>
+</main>
+
+<footer class="footer">
+    &copy; 2025 Acme Corp. All rights reserved. | Internal use only.
+</footer>
+
+<script>
+    // Update server time every second
+    function updateServerTime() {
+        const now = new Date();
+        const options = { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false };
+        document.getElementById('servertime').textContent = now.toLocaleString('sv-SE', options);
+    }
+    setInterval(updateServerTime, 1000);
+    updateServerTime();
+
+    // Mock user data (in real scenario would come from server)
+    document.getElementById('user').textContent = 'j.smith';
+    document.getElementById('lastlogin').textContent = '2025-09-24 08:13:42';
+    document.getElementById('lastip').textContent = '10.0.0.57';
+</script>
+</body>
+</html>

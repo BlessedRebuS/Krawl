@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Acme Corp – Internal Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family:Arial,Helvetica,sans-serif; margin:0; padding:0; background:#f4f6f9; color:#333;}
+        header {background:#003366; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#004080; color:#fff; display:flex; justify-content:center; gap:2rem; padding:0.5rem 0;}
+        nav a {color:#fff; text-decoration:none; font-weight:bold;}
+        nav a:hover {text-decoration:underline;}
+        .container {max-width:960px; margin:2rem auto; padding:0 1rem;}
+        .card {background:#fff; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); padding:1.5rem; margin-bottom:1.5rem;}
+        h2 {color:#003366; margin-top:0;}
+        table {width:100%; border-collapse:collapse; margin-top:1rem;}
+        th, td {border:1px solid #ddd; padding:0.75rem; text-align:left;}
+        th {background:#e9ecef;}
+        tr:nth-child(even) {background:#f9f9f9;}
+        footer {text-align:center; padding:1rem; font-size:0.9rem; color:#666; margin-top:2rem;}
+        #clock {font-weight:bold; color:#0066cc;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Acme Corp Internal Portal</h1>
+        <p>Version 3.4.2 • Build 20240915</p>
+    </header>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/reports">Reports</a>
+        <a href="/users">User Management</a>
+        <a href="/settings">Settings</a>
+        <a href="/logout">Logout</a>
+    </nav>
+    <div class="container">
+        <div class="card">
+            <h2>Welcome, <span id="user">jdoe</span></h2>
+            <p>Last login: <span id="lastlogin">2025-09-24 08:13:42 UTC</span></p>
+            <p>Current server time: <span id="clock"></span></p>
+        </div>
+        <div class="card">
+            <h2>System Overview</h2>
+            <table>
+                <tr><th>Metric</th><th>Value</th></tr>
+                <tr><td>CPU Usage</td><td>23%</td></tr>
+                <tr><td>Memory Usage</td><td>4.2 GB / 16 GB</td></tr>
+                <tr><td>Disk Space</td><td>120 GB / 500 GB</td></tr>
+                <tr><td>Active Sessions</td><td>12</td></tr>
+                <tr><td>Database</td><td>acme_prod (MySQL 8.0.33)</td></tr>
+            </table>
+        </div>
+        <div class="card">
+            <h2>Recent Alerts</h2>
+            <ul style="list-style:none; padding:0;">
+                <li style="border-bottom:1px solid #eee; padding:0.5rem 0;">[INFO] Backup completed successfully (2025-09-23 02:00)</li>
+                <li style="border-bottom:1px solid #eee; padding:0.5rem 0;">[WARN] High latency detected on API gateway (avg 210ms)</li>
+                <li style="border-bottom:1px solid #eee; padding:0.5rem 0;">[INFO] New patch applied: KB5001234</li>
+            </ul>
+        </div>
+    </div>
+    <footer>
+        &copy; 2025 Acme Corporation. All rights reserved.<br>
+        Internal IP: 10.0.5.77 • HVAC: 10.0.5.88
+    </footer>
+    <script>
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+        // Simulate user data retrieval
+        document.getElementById('user').textContent = localStorage.getItem('username') || 'jdoe';
+        document.getElementById('lastlogin').textContent = localStorage.getItem('lastlogin') || '2025-09-24 08:13:42 UTC';
+    </script>
+</body>
+</html>

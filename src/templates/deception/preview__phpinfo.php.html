@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Acme Solutions – Internal Portal</title>
+    <style>
+        body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f4f4;color:#333}
+        header{background:#003366;color:#fff;padding:1rem;text-align:center}
+        nav{background:#004080;color:#fff;display:flex;justify-content:center;gap:2rem;padding:0.5rem}
+        nav a{color:#fff;text-decoration:none;font-weight:bold}
+        nav a:hover{text-decoration:underline}
+        .container{max-width:960px;margin:2rem auto;background:#fff;padding:2rem;box-shadow:0 0 10px rgba(0,0,0,0.1)}
+        h1{color:#003366}
+        .footer{text-align:center;font-size:0.85rem;color:#777;margin-top:2rem;padding-top:1rem;border-top:1px solid #ddd}
+        .badge{display:inline-block;background:#28a745;color:#fff;padding:0.2rem 0.5rem;border-radius:3px;font-size:0.85rem}
+    </style>
+    <script>
+        function trackPage() {
+            var img = new Image();
+            img.src = "/analytics?page=" + encodeURIComponent(location.pathname) + "&ts=" + Date.now();
+        }
+        window.onload = trackPage;
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Acme Solutions – Internal Portal</h1>
+        <p>Secure access to corporate resources</p>
+    </header>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/reports">Reports</a>
+        <a href="/admin">Admin</a>
+        <a href="/contact">Contact</a>
+    </nav>
+    <div class="container">
+        <h2>Welcome, <span class="badge">j.smith</span></h2>
+        <p>Last login: 2025-09-24 08:13:42 from <code>10.12.34.57</code></p>
+        <p>Here you can access internal tools, view reports, and manage your profile.</p>
+        <div style="margin-top:1.5rem;">
+            <h3>Quick Links</h3>
+            <ul>
+                <li><a href="/projects">Project Management</a></li>
+                <li><a href="/inventory">Inventory System</a></li>
+                <li><a href="/hr">HR Portal</a></li>
+                <li><a href="/vpn">VPN Access</a></li>
+            </ul>
+        </div>
+        <hr>
+        <h3>System Information</h3>
+        <p><strong>Server:</strong> acme-internal01.acme.local</p>
+        <p><strong>OS:</strong> Ubuntu 20.04.5 LTS</p>
+        <p><strong>Web Server:</strong> Apache/2.4.41 (Ubuntu)</p>
+        <p><strong>PHP Version:</strong> 7.4.3</p>
+        <p><strong>Database:</strong> MySQL 5.7.33-0ubuntu0.18.04.1</p>
+        <p><strong>Internal IP:</strong> 10.12.34.57</p>
+    </div>
+    <footer class="footer">
+        © 2025 Acme Solutions. All rights reserved. | Version 2.3.1 (build 20250924)
+    </footer>
+</body>
+</html>
