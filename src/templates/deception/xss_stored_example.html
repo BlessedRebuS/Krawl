@@ -2,44 +2,73 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Stored XSS Example - Demo Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stored XSS Example - Security Demo</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f9f9f9; }
-        .comment { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .comment:hover { box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        textarea { width: 100%; height: 80px; margin: 10px 0; }
-        button { background: #007cba; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 3px; }
-        button:hover { background: #005a87; }
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .comment-box { border: 1px solid #ddd; padding: 15px; margin: 15px 0; border-radius: 4px; background: #f9f9f9; }
+        .comment-text { margin: 10px 0; }
+        textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #2980b9; }
+        .warning { color: #e74c3c; font-weight: bold; }
+        .user-comment { background: #ecf0f1; padding: 10px; margin: 5px 0; border-left: 3px solid #3498db; }
     </style>
 </head>
 <body>
-    <h1>User Comments - Stored XSS Demo</h1>
-    <p>This page demonstrates a stored cross-site scripting vulnerability. User comments are saved and displayed without proper sanitization.</p>
-    
-    <form method="POST" action="/submit_comment">
-        <label for="comment">Leave a comment:</label><br>
-        <textarea id="comment" name="comment" placeholder="Enter your comment here..."></textarea><br>
-        <button type="submit">Submit Comment</button>
-    </form>
+    <div class="container">
+        <h1>User Comments - Stored XSS Demo</h1>
+        <p class="warning">⚠️ This is a security training page. Stored XSS vulnerabilities are demonstrated here for educational purposes only.</p>
+        
+        <h2>Post a Comment</h2>
+        <form id="commentForm">
+            <textarea id="commentInput" placeholder="Enter your comment here... (Try <script>alert('XSS')</script>)" rows="4"></textarea><br>
+            <button type="submit">Submit Comment</button>
+        </form>
+        
+        <h2>Recent Comments</h2>
+        <div id="comments">
+            <div class="comment-box user-comment">
+                <strong>Admin</strong>: Welcome to the comment section! Feel free to share your thoughts.
+                <div class="comment-text">This is a safe comment.</div>
+            </div>
+            <div class="comment-box user-comment">
+                <strong>JohnDoe</strong>: Great page! Very informative.
+                <div class="comment-text">I learned a lot about web security here.</div>
+            </div>
+            <div class="comment-box user-comment">
+                <strong>SecurityTester</strong>: Testing XSS payload: <img src=x onerror=alert('Stored XSS')>
+                <div class="comment-text">Just checking if the filter works...</div>
+            </div>
+            <div class="comment-box user-comment">
+                <strong>Hacker123</strong>: <svg onload=alert(document.cookie)>
+                <div class="comment-text">Trying to steal cookies via SVG.</div>
+            </div>
+            <div class="comment-box user-comment">
+                <strong>NormalUser</strong>: I like the design of this page.
+                <div class="comment-text">It's clean and easy to read.</div>
+            </div>
+        </div>
+    </div>
 
-    <h2>Recent Comments:</h2>
-    <div class="comment">
-        <strong>JohnDoe:</strong> Great tutorial! Very helpful for understanding web security concepts.
-    </div>
-    <div class="comment">
-        <strong>SecurityNewb:</strong> Thanks for the example! <script>alert('XSS')</script> - just testing if this works.
-    </div>
-    <div class="comment">
-        <strong>Admin:</strong> Please note: This is a demo environment. Do not attempt harmful payloads on production systems.
-    </div>
-    <div class="comment">
-        <strong>TestUser123:</strong> <img src=x onerror=alert('Stored XSS triggered!')> This should execute when rendered.
-    </div>
-    <div class="comment">
-        <strong>EthicalHacker:</strong> I reported this vulnerability through proper channels. The fix should involve output encoding.
-    </div>
-
-    <hr>
-    <p><small>Note: This is a deliberately vulnerable demonstration page for educational purposes only. Real applications should always sanitize user input and encode output.</small></p>
+    <script>
+        document.getElementById('commentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const comment = document.getElementById('commentInput').value;
+            if (comment.trim() === '') return;
+            
+            const commentDiv = document.createElement('div');
+            commentDiv.className = 'comment-box user-comment';
+            commentDiv.innerHTML = `
+                <strong>User</strong>: ${comment}
+                <div class="comment-text">${comment}</div>
+            `;
+            
+            document.getElementById('comments').appendChild(commentDiv);
+            document.getElementById('commentInput').value = '';
+        });
+    </script>
 </body>
 </html>

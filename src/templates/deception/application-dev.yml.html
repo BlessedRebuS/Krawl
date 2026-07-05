@@ -1,0 +1,20 @@
+<html><body>application:
+  name: DevApp
+  version: 1.2.3
+  environment: development
+  database:
+    name: appdb_dev
+    host: 10.0.0.5
+    port: 5432
+    user: devuser
+    password: secret123
+  server:
+    host: 127.0.0.1
+    port: 8080
+    ssl: false
+  logging:
+    level: DEBUG
+    file: /var/log/app-dev.log
+  features:
+    debug: true
+    enableBeta: false</body></html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Acme Corp Intranet Portal</title>
+    <style>
+        body {font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:0;}
+        header {background:#003366; color:#fff; padding:20px; text-align:center;}
+        .container {max-width:960px; margin:20px auto; padding:0 20px;}
+        .card {background:#fff; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); padding:20px; margin-bottom:20px;}
+        h2 {color:#003366;}
+        .info {font-size:0.9em; color:#555;}
+        .footer {text-align:center; font-size:0.8em; color:#777; margin-top:30px;}
+        a {color:#0066cc; text-decoration:none;}
+        a:hover {text-decoration:underline;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Acme Corp Intranet Portal</h1>
+        <p>Internal Dashboard – Version 2.4.1</p>
+    </header>
+    <div class="container">
+        <div class="card">
+            <h2>Welcome, jdoe</h2>
+            <p class="info">Last login: 2025-11-02 08:14:23 from 10.0.0.57</p>
+            <p>You have <strong>3</strong> pending tasks.</p>
+        </div>
+        <div class="card">
+            <h2>System Overview</h2>
+            <p class="info">Server: <code>web01.acme.local</code> (10.0.0.5)</p>
+            <p class="info">Database: <code>acme_db</code> (MySQL 5.7.33)</p>
+            <p class="info">PHP Version: 7.4.3</p>
+            <p class="info">Apache: 2.4.41 (Ubuntu)</p>
+        </div>
+        <div class="card">
+            <h2>Quick Links</h2>
+            <ul>
+                <li><a href="/admin/login.php">Admin Login</a></li>
+                <li><a href="/reports/">Reports</a></li>
+                <li><a href="/docs/">Documentation</a></li>
+                <li><a href="/contact/">IT Support</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer">
+        &copy; 2025 Acme Corporation. All rights reserved.
+    </div>
+</body>
+</html>

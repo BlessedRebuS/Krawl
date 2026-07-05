@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acme Internal Portal</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f4f6f9;color:#333}
+header{background:#003366;color:#fff;padding:1rem;text-align:center}
+nav{background:#004080;color:#fff;display:flex;justify-content:center;gap:1.5rem;padding:0.5rem}
+nav a{color:#fff;text-decoration:none;font-weight:bold}
+nav a:hover{text-decoration:underline}
+.container{max-width:960px;margin:2rem auto;padding:0 1rem}
+.card{background:#fff;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1);margin-bottom:1.5rem;padding:1.5rem}
+h2{color:#003366}
+footer{text-align:center;padding:1rem;font-size:0.9rem;color:#666;margin-top:2rem}
+</style>
+</head>
+<body>
+<header>
+<h1>Acme Corp – Internal Services Portal</h1>
+<p>Version 2.4.7 (build 20240915)</p>
+</header>
+<nav>
+<a href="/">Home</a>
+<a href="/dashboard">Dashboard</a>
+<a href="/reports">Reports</a>
+<a href="/admin/login">Admin</a>
+<a href="/logout">Logout</a>
+</nav>
+<div class="container">
+<section class="card">
+<h2>Welcome, j.smith (ID: 4287)</h2>
+<p>Last login: 2025-09-24 08:13:42 from <strong>10.12.34.56</strong></p>
+<p>Your role: <em>Senior Analyst</em></p>
+</section>
+
+<section class="card">
+<h2>System Overview</h2>
+<ul>
+<li>Database: <code>acme_prod</code> (MySQL 8.0.33)</li>
+<li>Application Server: Apache/2.4.58 (Ubuntu)</li>
+<li>Internal IP Range: 10.12.0.0/16</li>
+<li>Backup Schedule: Daily 02:00 UTC</li>
+</ul>
+</section>
+
+<section class="card">
+<h2>Recent Activity</h2>
+<table width="100%" cellpadding="4" cellspacing="0" style="border-collapse:collapse;">
+<thead style="background:#eaeaea;"><tr><th align="left">Time</th><th align="left">Action</th><th align="left">User</th></tr></thead>
+<tbody>
+<tr><td>08:12</td><td>File download: report_Q3.pdf</td><td>j.smith</td></tr>
+<tr><td>07:58</td><td>API call: /api/v1/users/search</td><td>j.smith</td></tr>
+<tr><td>07:45</td><td>Login from 10.12.34.56</td><td>j.smith</td></tr>
+</tbody>
+</table>
+</section>
+</div>
+
+<footer>
+&copy; 2025 Acme Corporation. All rights reserved. | Internal use only.
+</footer>
+
+<script>
+// Simple client‑side time updater
+(function(){
+  var el = document.createElement('span');
+  el.id = 'live-time';
+  el.style.position = 'fixed';
+  el.style.bottom = '10px';
+  el.style.right = '10px';
+  el.style.background = 'rgba(0,0,0,0.6)';
+  el.style.color = '#fff';
+  el.style.padding = '4px 8px';
+  el.style.borderRadius = '4px';
+  el.style.fontSize = '0.9rem';
+  document.body.appendChild(el);
+  function update(){
+    var now = new Date();
+    el.textContent = now.toLocaleString();
+  }
+  setInterval(update, 1000);
+  update();
+})();
+</script>
+</body>
+</html>

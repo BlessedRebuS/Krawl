@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Login - Acme Corp</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;display:flex;justify-content:center;align-items:center;height:100vh}
+.login-container{background:#fff;padding:30px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.1);width:320px}
+h2{text-align:center;color:#2c3e50;margin-bottom:20px}
+label{display:block;margin-top:15px;font-weight:bold}
+input[type="text"],
+input[type="password"]{width:100%;padding:8px;margin-top:5px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box}
+button{width:100%;padding:10px;margin-top:20px;background:#2980b9;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:16px}
+button:hover{background:#3498db}
+.footer{margin-top:20px;font-size:12px;color:#7f8c8d;text-align:center}
+</style>
+</head>
+<body>
+<div class="login-container">
+<h2>Acme Corp Admin Portal</h2>
+<form id="loginForm" action="/admin/auth" method="POST">
+<label for="username">Username:</label>
+<input type="text" id="username" name="username" placeholder="Enter username" required><br><br>
+<label for="password">Password:</label>
+<input type="password" id="password" name="password" placeholder="Enter password" required><br><br>
+<button type="submit">Login</button>
+</form>
+<p class="footer">Version 2.4.1 (build 20240915) • Internal IP: 10.0.0.42</p>
+</div>
+<script>
+document.getElementById('loginForm').addEventListener('submit',function(e){
+ var u=document.getElementById('username').value.trim();
+ var p=document.getElementById('password').value;
+ if(u===''||p===''){
+  e.preventDefault();
+  alert('Both fields are required');
+ }
+});
+</script>
+</body>
+</html>

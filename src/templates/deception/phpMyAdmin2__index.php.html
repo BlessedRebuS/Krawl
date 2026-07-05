@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Acme Corp – Internal Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, Helvetica, sans-serif; margin:0; padding:0; background:#f4f6f8; color:#333;}
+        header {background:#003366; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#004080; overflow:hidden;}
+        nav a {float:left; display:block; color:#fff; text-align:center; padding:1rem 1.5rem; text-decoration:none;}
+        nav a:hover {background:#0059b3;}
+        .container {padding:2rem;}
+        .card {background:#fff; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin-bottom:1.5rem; padding:1.5rem;}
+        h2 {color:#003366; margin-top:0;}
+        footer {background:#003366; color:#ddd; text-align:center; padding:1rem; font-size:0.9rem;}
+        .version {font-size:0.85rem; color:#666; margin-top:0.5rem;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Acme Corp Internal Dashboard</h1>
+        <div class="version">Version 2.3.4 • Build 20240912</div>
+    </header>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/reports">Reports</a>
+        <a href="/users">User Management</a>
+        <a href="/settings">Settings</a>
+        <a href="/logout">Logout</a>
+    </nav>
+    <div class="container">
+        <section class="card">
+            <h2>Welcome, jdoe (IT Administrator)</h2>
+            <p>Last login: 2025-09-24 08:13:42 from <strong>10.0.5.23</strong></p>
+            <p>System status: <span style="color:green;">Operational</span></p>
+            <p>Database: <code>acme_prod</code> (PostgreSQL 13.7) on <code>db01.internal.acme.corp:5432</code></p>
+        </section>
+        <section class="card">
+            <h2>Quick Stats</h2>
+            <ul>
+                <li>Active Users: 142</li>
+                <li>Pending Tickets: 23</li>
+                <li>Backup Size (last 24h): 4.8 GB</li>
+                <li>CPU Load: 34%</li>
+                <li>Memory Usage: 58%</li>
+            </ul>
+        </section>
+        <section class="card">
+            <h2>Recent Activity</h2>
+            <table width="100%" cellpadding="4" cellspacing="0">
+                <tr style="background:#eaeaea;"><th>Time</th><th>Action</th><th>User</th></tr>
+                <tr><td>08:05</td><td>Deployed patch KB2024-09-01</td><td>admin</td></tr>
+                <tr><td>07:58</td><td>Export of sales_q3.csv</td><td>asmith</td></tr>
+                <tr><td>07:45</td><td>Password reset for temp_user</td><td>jdoe</td></tr>
+                <tr><td>07:30</td><td>Firewall rule updated (allow 10.0.10.0/24)</td><td>netadmin</td></tr>
+            </table>
+        </section>
+    </div>
+    <footer>
+        &copy; 2025 Acme Corporation • Internal Use Only • <a href="/admin/login" style="color:#ddd;">Admin Login</a>
+    </footer>
+    <script>
+        // Simple clock update
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+</body>
+</html>

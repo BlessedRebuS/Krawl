@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Acme Corp Internal Portal</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header {background:#003366; color:#fff; padding:20px; text-align:center;}
+        nav {background:#004080; overflow:hidden;}
+        nav a {float:left; display:block; color:#fff; text-align:center; padding:14px 20px; text-decoration:none;}
+        nav a:hover {background:#005fa3;}
+        .container {padding:20px;}
+        .card {background:#fff; margin-bottom:20px; padding:15px; border-radius:5px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+        footer {background:#003366; color:#fff; text-align:center; padding:10px; position:fixed; bottom:0; width:100%; font-size:0.9em;}
+    </style>
+</head>
+<body>
+<header>
+    <h1>Acme Corp Internal Portal</h1>
+    <p>Version 2.4.1 (Build 20240915)</p>
+</header>
+<nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/reports">Reports</a>
+    <a href="/users">User Management</a>
+    <a href="/settings">Settings</a>
+    <a href="/logout">Logout</a>
+</nav>
+<div class="container">
+    <div class="card">
+        <h2>Welcome, jdoe (IT Administrator)</h2>
+        <p>Last login: 2025-09-24 08:12:03 from 10.0.0.57</p>
+        <p>Internal IP: <strong>10.0.0.5</strong></p>
+        <p>Server: Apache/2.4.41 (Ubuntu) OpenSSL/1.1.1f</p>
+        <p>Database: MySQL 5.7.33-log (acme_internal)</p>
+    </div>
+    <div class="card">
+        <h2>System Alerts</h2>
+        <ul>
+            <li><strong>INFO</strong> - Backup completed successfully (2025-09-23 02:00:00)</li>
+            <li><strong>WARN</strong> - Disk usage on /var/log at 78%</li>
+            <li><strong>INFO</strong> - New patch applied: Apache 2.4.41-2ubuntu3.14</li>
+        </ul>
+    </div>
+    <div class="card">
+        <h2>Quick Links</h2>
+        <p><a href="/admin/login" style="color:#003366;font-weight:bold;">Admin Login</a></p>
+        <p><a href="/api/v1/status" style="color:#003366;">API Status (JSON)</a></p>
+        <p><a href="/config/app.ini" style="color:#003366;">Configuration File</a></p>
+    </div>
+</div>
+<footer>
+    &copy; 2025 Acme Corp. All rights reserved.
+</footer>
+</body>
+</html>

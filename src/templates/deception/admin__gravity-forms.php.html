@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acme Corp - Internal Portal</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f4f4f4;}
+header{background:#003366;color:#fff;padding:1rem;text-align:center;}
+nav{background:#004080;color:#fff;padding:0.5rem;text-align:center;}
+nav a{color:#fff;margin:0 1rem;text-decoration:none;}
+.container{max-width:960px;margin:2rem auto;background:#fff;padding:2rem;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+.footer{text-align:center;padding:1rem;font-size:0.9rem;color:#666;}
+</style>
+</head>
+<body>
+<header>
+<h1>Acme Corp Internal Portal</h1>
+<p>Version 2.4.1 (build 20240915)</p>
+</header>
+<nav>
+<a href="/dashboard">Dashboard</a>
+<a href="/reports">Reports</a>
+<a href="/admin/login">Admin</a>
+<a href="/logout">Logout</a>
+</nav>
+<div class="container">
+<h2>Welcome, j.smith (ID: 4231)</h2>
+<p>Last login: 2025-09-24 08:12:34 from 10.0.5.23</p>
+<h3>System Overview</h3>
+<ul>
+<li>Database: <code>acme_prod</code> (MySQL 5.7.44)</li>
+<li>Application Server: Apache/2.4.58 (Ubuntu)</li>
+<li>Internal IP: 10.0.0.12</li>
+<li>Active Sessions: 57</li>
+</ul>
+<h3>Recent Alerts</h3>
+<div id="alerts">
+<p>No critical alerts.</p>
+</div>
+</div>
+<footer class="footer">
+&copy; 2025 Acme Corp. All rights reserved.
+</footer>
+<script>
+setInterval(function(){
+fetch('/api/status')
+.then(r=>r.json())
+.then(data=>{
+if(data.alerts && data.alerts.length){
+const div=document.getElementById('alerts');
+div.innerHTML='<ul>'+data.alerts.map(a=>`<li>${a}</li>`).join('')+'</ul>';
+}
+});
+}, 15000);
+</script>
+</body>
+</html>

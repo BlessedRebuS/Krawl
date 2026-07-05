@@ -1,0 +1,50 @@
+<html><body>application:
+  name: SecureApp
+  version: 3.2.1
+  debug: true
+  secret_key: a1b2c3d4e5f67890abcdef1234567890
+database:
+  host: 10.0.2.15
+  port: 5432
+  name: secure_db
+  user: admin
+  password: supersecretpassword
+  pool_size: 10
+cache:
+  redis_host: 10.0.2.16
+  redis_port: 6379
+  ttl: 3600
+logging:
+  level: INFO
+  file: /var/log/secureapp.log
+security:
+  csrf_enabled: true
+  xss_filter: true
+  allowed_ips:
+    - 127.0.0.1
+    - 10.0.2.15
+    - 10.0.2.16
+auth:
+  provider: ldap
+  server: ldap://ad.internal.local
+  bind_dn: cn=appuser,ou=service,dc=internal,dc=local
+  bind_password: ldappass123
+  user_base_dn: ou=users,dc=internal,dc=local
+features:
+  enable_metrics: true
+  enable_notifications: false
+  max_upload_size_mb: 50
+  allowed_mime_types:
+    - image/png
+    - image/jpeg
+    - application/pdf
+  rate_limit:
+    window_seconds: 300
+    limit: 60
+environment:
+  node_env: production
+  api_endpoint: https://api.internal.local/v1
+  smtp_host: smtp.internal.local
+  smtp_port: 25
+  smtp_user: noreply@internal.local
+  smtp_pass: smtppass123</body></html>

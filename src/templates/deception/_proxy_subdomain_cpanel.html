@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>cPanel Proxy Subdomain Manager</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9; color:#333;}
+        h1 {color:#0066cc;}
+        .container {max-width:800px; margin:auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        table {width:100%; border-collapse:collapse; margin-top:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#f0f0f0;}
+        input[type=text], input[type=url], select {width:100%; padding:6px; margin-top:4px; box-sizing:border-box;}
+        .btn {background:#0066cc; color:#fff; border:none; padding:8px 12px; cursor:pointer; margin-top:10px;}
+        .btn:hover {background:#004c99;}
+        .msg {padding:10px; margin-top:15px; border-radius:4px;}
+        .success {background:#dff0d8; color:#3c763d; border:1px solid #d6e9c6;}
+        .error {background:#f2dede; color:#a94442; border:1px solid #ebccd1;}
+    </style>
+    <script>
+        function validateForm() {
+            var sub = document.forms["proxyForm"]["subdomain"].value.trim();
+            var target = document.forms["proxyForm"]["target"].value.trim();
+            if (sub === "" || target === "") {
+                alert("Subdomain and Target URL are required.");
+                return false;
+            }
+            var urlPattern = /^(https?:\/\/).+/i;
+            if (!urlPattern.test(target)) {
+                alert("Target URL must start with http:// or https://");
+                return false;
+            }
+            return true;
+        }
+    </script>
+</head>
+<body>
+<div class="container">
+    <h1>Proxy Subdomain Configuration</h1>
+    <p>Manage subdomain proxy rules for your cPanel account. Use this interface to forward subdomains to external URLs or internal services.</p>
+
+    <form name="proxyForm" action="/___proxy_subdomain_cpanel" method="post" onsubmit="return validateForm()">
+        <label for="subdomain">Subdomain:</label><br>
+        <input type="text" id="subdomain" name="subdomain" placeholder="e.g., blog.example.com"><br>
+        <label for="protocol">Protocol:</label><br>
+        <select id="protocol" name="protocol">
+            <option value="http">HTTP</option>
+            <option value="https">HTTPS</option>
+        </select><br>
+        <label for="target">Target URL:</label><br>
+        <input type="url" id="target" name="target" placeholder="https://destination.example.com/path"><br>
+        <label for="port">Port (optional):</label><br>
+        <input type="text" id="port" name="port" placeholder="e.g., 8080"><br>
+        <input type="submit" value="Add Proxy Rule" class="btn">
+    </form>
+
+    <div id="message">
+        <!-- Simulated server response -->
+        <div class="msg success">
+            <strong>Success:</strong> Proxy rule for <code>shop.example.com</code> added and active.
+        </div>
+    </div>
+
+    <h2>Existing Proxy Rules</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Subdomain</th>
+                <th>Protocol</th>
+                <th>Target</th>
+                <th>Port</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>shop.example.com</td>
+                <td>HTTPS</td>
+                <td>https://store.example.com</td>
+                <td>443</td>
+                <td>Active</td>
+                <td><a href="#" onclick="return confirm('Delete this rule?');">Delete</a></td>
+            </tr>
+            <tr>
+                <td>dev.example.com</td>
+                <td>HTTP</td>
+                <td>http://192.168.1.45:3000</td>
+                <td>3000</td>
+                <td>Active</td>
+                <td><a href="#" onclick="return confirm('Delete this rule?');">Delete</a></td>
+            </tr>
+            <tr>
+                <td>legacy.example.com</td>
+                <td>HTTP</td>
+                <td>http://legacy.internal.net</td>
+                <td></td>
+                <td>Inactive (SSL expired)</td>
+                <td><a href="#" onclick="return confirm('Delete this rule?');">Delete</a></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+    <p><small>Note: This is a simulated interface for demonstration purposes only. No actual changes are made to your hosting environment.</small></p>
+</div>
+</body>
+</html>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acme Corp - Internal Dashboard</title>
+<style>
+body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+header {background:#003366; color:#fff; padding:20px; text-align:center;}
+.container {max-width:960px; margin:20px auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+.card {border:1px solid #ddd; border-radius:5px; padding:15px; margin-bottom:20px; background:#fafafa;}
+.card h3 {margin-top:0; color:#003366;}
+footer {text-align:center; padding:10px; font-size:0.9em; color:#666;}
+</style>
+</head>
+<body>
+<header>
+<h1>Acme Corp Internal Dashboard</h1>
+<p>Version 2.4.1 (build 20240915)</p>
+</header>
+<div class="container">
+<div class="card">
+<h2>System Overview</h2>
+<p><strong>Server:</strong> web01.acme.internal (10.10.5.23)</p>
+<p><strong>Database:</strong> MySQL 5.7.44 - acme_prod</p>
+<p><strong>Last backup:</strong> 2024-09-14 02:30 UTC</p>
+</div>
+<div class="card">
+<h2>Recent Activity</h2>
+<ul>
+<li>2024-09-25 08:12 - User jdoe logged in from 10.10.5.78</li>
+<li>2024-09-25 07:58 - File upload: report_Q3.pdf</li>
+<li>2024-09-25 07:45 - DB query: SELECT * FROM invoices WHERE status='paid'</li>
+</ul>
+</div>
+<div class="card">
+<h2>Quick Links</h2>
+<a href="/admin/login.php" style="margin-right:15px;">Admin Login</a>
+<a href="/api/v1/status.json" style="margin-right:15px;">API Status</a>
+<a href="/docs/manual.pdf">User Manual</a>
+</div>
+</div>
+<footer>
+&copy; 2024 Acme Corp. All rights reserved.
+</footer>
+</body>
+</html>

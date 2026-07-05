@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acme Corporation – Internal Dashboard</title>
+    <style>
+        body {font-family:Arial,Helvetica,sans-serif; margin:0; padding:0; background:#f4f6f9; color:#333;}
+        header {background:#003366; color:#fff; padding:1rem; text-align:center;}
+        header h1 {margin:0; font-size:1.8rem;}
+        nav {background:#004080; color:#fff; display:flex; justify-content:center; gap:1.5rem; padding:0.5rem 0;}
+        nav a {color:#fff; text-decoration:none; font-weight:bold;}
+        nav a:hover {text-decoration:underline;}
+        .container {max-width:960px; margin:2rem auto; padding:0 1rem;}
+        .card {background:#fff; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); padding:1.5rem; margin-bottom:1.5rem;}
+        h2 {color:#003366; margin-top:0;}
+        .footer {text-align:center; font-size:0.85rem; color:#666; padding:1rem; margin-top:2rem;}
+        .status {display:inline-block; padding:0.2rem 0.5rem; background:#28a745; color:#fff; border-radius:3px; font-size:0.9rem;}
+        table {width:100%; border-collapse:collapse; margin-top:1rem;}
+        th, td {padding:0.75rem; text-align:left; border-bottom:1px solid #ddd;}
+        th {background:#e9f2ff;}
+        tr:hover {background:#f1f7ff;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Acme Corporation – Internal Dashboard</h1>
+        <p>Version 2.3.1 • Build 20240915</p>
+    </header>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/reports">Reports</a>
+        <a href="/users">User Management</a>
+        <a href="/settings">Settings</a>
+        <a href="/logout">Logout</a>
+    </nav>
+    <div class="container">
+        <section class="card">
+            <h2>System Overview</h2>
+            <p><span class="status">Online</span> • Server: <code>web01.acme.local (10.0.0.45)</code></p>
+            <p>Database: <strong>acme_prod</strong> (PostgreSQL 13.7)</p>
+            <p>Last backup: 2024-09-14 02:15 UTC</p>
+        </section>
+
+        <section class="card">
+            <h2>Recent Activity</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>09:12</td>
+                        <td>jdoe</td>
+                        <td>Login</td>
+                        <td>From 10.0.2.18 (Windows 10)</td>
+                    </tr>
+                    <tr>
+                        <td>09:05</td>
+                        <td>asmith</td>
+                        <td>Report Export</td>
+                        <td>Q3 Sales Summary (PDF)</td>
+                    </tr>
+                    <tr>
+                        <td>08:58</td>
+                        <td>ljones</td>
+                        <td>Password Change</td>
+                        <td>Success</td>
+                    </tr>
+                    <tr>
+                        <td>08:45</td>
+                        <td>system</td>
+                        <td>Backup Completed</td>
+                        <td>acme_prod_20240914.dump</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="card">
+            <h2>Quick Links</h2>
+            <ul style="list-style:none; padding:0;">
+                <li><a href="/admin">Admin Panel</a></li>
+                <li><a href="/api/v1/status">API Status (JSON)</a></li>
+                <li><a href="/docs/internal.pdf">Internal Documentation (PDF)</a></li>
+                <li><a href="/mail">Webmail</a></li>
+            </ul>
+        </section>
+    </div>
+
+    <footer class="footer">
+        © 2024 Acme Corporation • Internal Use Only • <a href="/privacy">Privacy Policy</a> • <a href="/terms">Terms of Use</a>
+    </footer>
+
+    <script>
+        // Simple client‑side clock
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Mock AJAX status fetch (does nothing real)
+        async function fetchStatus() {
+            try {
+                const resp = await fetch('/api/v1/status');
+                const data = await resp.json();
+                console.log('Status:', data);
+            } catch (e) {
+                console.warn('Status fetch failed');
+            }
+        }
+        fetchStatus();
+    </script>
+    <div id="clock" style="position:fixed; bottom:10px; right:10px; background:#003366; color:#fff; padding:0.3rem 0.6rem; border-radius:4px; font-family:monospace;"></div>
+</body>
+</html>

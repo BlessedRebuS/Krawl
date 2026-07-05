@@ -3,81 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SQLi Demo Page - Safe Testing Environment</title>
+    <title>User Search - Internal Tool</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
-        .container { max-width: 800px; margin: 0 auto; }
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="password"] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        button { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-        .result { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 4px; }
-        .warning { color: #dc3545; font-weight: bold; }
-        .note { font-size: 0.9em; color: #6c757d; margin-top: 10px; }
+        input[type="text"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #005a87; }
+        .results { margin-top: 20px; padding: 15px; background-color: #f9f9f9; border: 1px solid #eee; border-radius: 4px; }
+        .user { padding: 10px; border-bottom: 1px solid #eee; }
+        .user:last-child { border-bottom: none; }
+        .error { color: #d32f2f; background-color: #ffebee; padding: 10px; border-radius: 4px; margin-top: 10px; }
+        .success { color: #388e3c; background-color: #e8f5e9; padding: 10px; border-radius: 4px; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>SQL Injection Demo Page</h1>
-        <p class="note">This is a controlled environment for educational purposes only. All data is simulated.</p>
+        <h1>Employee Directory Search</h1>
+        <p>Search for employees by name, department, or employee ID.</p>
         
-        <div class="warning">⚠️ This page demonstrates SQL injection vulnerabilities for learning. Do not use on production systems.</div>
-        
-        <h2>User Login Simulation</h2>
-        <form method="GET" action="/sqli-page-example/">
+        <form method="GET" action="/sqli-page-example">
             <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" value="' OR '1'='1" placeholder="Enter username">
+                <label for="search">Search Query:</label>
+                <input type="text" id="search" name="q" placeholder="Enter search term..." value="<?php echo isset($_GET['q']) ? htmlspecialchars($_GET['q']) : ''; ?>">
             </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" value="anything" placeholder="Enter password">
-            </div>
-            <button type="submit">Login</button>
+            <button type="submit">Search Employees</button>
         </form>
 
         <?php
-        // Simulated backend processing - all data is fake
-        if(isset($_GET['username']) && isset($_GET['password'])) {
-            $username = $_GET['username'];
-            $password = $_GET['password'];
+        // Simulate database connection and query
+        if(isset($_GET['q']) && !empty($_GET['q'])) {
+            $search = $_GET['q'];
             
-            // Simulate vulnerable query: SELECT * FROM users WHERE username='$username' AND password='$password'
-            echo "<div class='result'>";
-            echo "<h3>Login Attempt Results:</h3>";
+            // Fake vulnerable query - in reality this would be: 
+            // $query = "SELECT * FROM employees WHERE name LIKE '%$search%' OR department LIKE '%$search%' OR emp_id = '$search'";
+            // But we simulate the output for demonstration
             
-            // Fake database response based on input
-            if(strpos($username, "' OR '1'='1") !== false || strpos($username, "' OR '1'='1'--") !== false) {
-                echo "<p><strong>Status:</strong> Login Successful (Simulated)</p>";
-                echo "<p><strong>User ID:</strong> 1001</p>";
-                echo "<p><strong>Username:</strong> admin</p>";
-                echo "<p><strong>Email:</strong> admin@example.com</p>";
-                echo "<p><strong>Role:</strong> Administrator</p>";
-                echo "<p><strong>Last Login:</strong> 2024-01-15 14:30:22</p>";
-                echo "<p><em>Note: This response was generated by a simulated vulnerable query:</em></p>";
-                echo "<p><code>SELECT * FROM users WHERE username='$username' AND password='$password'</code></p>";
+            // Simulated database results based on input
+            $fake_results = [
+                ["id" => 101, "name" => "John Smith", "department" => "Engineering", "email" => "john.smith@company.com", "emp_id" => "E101"],
+                ["id" => 102, "name" => "Jane Doe", "department" => "Marketing", "email" => "jane.doe@company.com", "emp_id" => "E102"],
+                ["id" => 103, "name" => "Bob Johnson", "department" => "Sales", "email" => "bob.johnson@company.com", "emp_id" => "E103"],
+                ["id" => 104, "name" => "Alice Brown", "department" => "Engineering", "email" => "alice.brown@company.com", "emp_id" => "E104"],
+                ["id" => 105, "name" => "Charlie Wilson", "department" => "HR", "email" => "charlie.wilson@company.com", "emp_id" => "E105"]
+            ];
+            
+            // Simple filtering simulation (not actually vulnerable in this demo, but appears to be)
+            $filtered_results = array_filter($fake_results, function($user) use ($search) {
+                return stripos($user['name'], $search) !== false || 
+                       stripos($user['department'], $search) !== false || 
+                       stripos($user['emp_id'], $search) !== false;
+            });
+            
+            if(count($filtered_results) > 0) {
+                echo '<div class="success">Found ' . count($filtered_results) . ' result(s):</div>';
+                echo '<div class="results">';
+                foreach($filtered_results as $user) {
+                    echo '<div class="user">';
+                    echo '<strong>Name:</strong> ' . htmlspecialchars($user['name']) . '<br>';
+                    echo '<strong>Employee ID:</strong> ' . htmlspecialchars($user['emp_id']) . '<br>';
+                    echo '<strong>Department:</strong> ' . htmlspecialchars($user['department']) . '<br>';
+                    echo '<strong>Email:</strong> ' . htmlspecialchars($user['email']) . '';
+                    echo '</div>';
+                }
+                echo '</div>';
             } else {
-                echo "<p><strong>Status:</strong> Login Failed - Invalid credentials</p>";
-                echo "<p><em>Simulated query:</em> <code>SELECT * FROM users WHERE username='$username' AND password='$password'</code></p>";
+                echo '<div class="error">No employees found matching your search.</div>';
             }
-            echo "</div>";
         }
         ?>
-        
-        <h2>About This Demo</h2>
-        <p>This page intentionally contains a simulated SQL injection vulnerability to help security professionals and students understand how such attacks work. All data presented here is completely fabricated and no real database is involved.</p>
-        
-        <h3>Common SQLi Patterns Demonstrated:</h3>
-        <ul>
-            <li><code>' OR '1'='1</code> - Basic tautology bypass</li>
-            <li><code>' OR '1'='1'--</code> - Commenting out password check</li>
-            <li><code>admin'--</code> - Username bypass</li>
-            <li><code>' UNION SELECT NULL, username, password FROM users--</code> - Data extraction attempt</li>
-        </ul>
-        
+
         <hr>
-        <p><small>Generated by: Internal Security Training System v2.1 | © 2024 DemoCorp Internal Use Only</small></p>
+        <p><small>Note: This is an internal tool for HR department use only. All searches are logged.</small></p>
     </div>
 </body>
 </html>
