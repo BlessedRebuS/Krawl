@@ -106,7 +106,7 @@ document.addEventListener('alpine:init', () => {
         exportModal: { show: false, categories: ['attacker'], fwtype: 'raw', error: '', loading: false },
 
         // Raw request modal
-        rawModal: { show: false, content: '', logId: null },
+        rawModal: { show: false, content: '', highlightedContent: '', logId: null },
 
         // Map state
         mapInitialized: false,
@@ -458,6 +458,7 @@ document.addEventListener('alpine:init', () => {
                 }
                 const data = await resp.json();
                 this.rawModal.content = data.raw_request || 'No content available';
+                this.rawModal.highlightedContent = this.highlightRawRequest(this.rawModal.content);
                 this.rawModal.logId = logId;
                 this.rawModal.show = true;
             } catch (err) {
@@ -465,9 +466,43 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
+        escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        },
+
+        highlightRawRequest(rawRequest) {
+            const escapedLines = this.escapeHtml(rawRequest).split(/\r?\n/);
+            const requestLine = /^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+(\S+)\s+(HTTP\/\d(?:\.\d)?)$/i;
+            const headerLine = /^([^:\s][^:]*):(.*)$/;
+
+            return escapedLines.map((line, index) => {
+                if (index === 0) {
+                    return line.replace(
+                        requestLine,
+                        '<span class="raw-token-method">$1</span> <span class="raw-token-path">$2</span> <span class="raw-token-version">$3</span>'
+                    );
+                }
+
+                if (!line.trim()) {
+                    return '<span class="raw-token-separator"></span>';
+                }
+
+                return line.replace(
+                    headerLine,
+                    '<span class="raw-token-header">$1:</span><span class="raw-token-value">$2</span>'
+                );
+            }).join('\n');
+        },
+
         closeRawModal() {
             this.rawModal.show = false;
             this.rawModal.content = '';
+            this.rawModal.highlightedContent = '';
             this.rawModal.logId = null;
         },
 
