@@ -18,7 +18,7 @@ jobs:
     name: Validate Kubernetes Manifests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Validate YAML syntax
         run: |
@@ -45,7 +45,7 @@ jobs:
     name: Validate Helm Chart
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: azure/setup-helm@v4
 
