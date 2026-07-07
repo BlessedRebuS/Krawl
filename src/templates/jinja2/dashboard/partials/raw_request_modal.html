@@ -11,7 +11,7 @@
             <span class="raw-request-modal-close" @click="closeRawModal()">&times;</span>
         </div>
         <div class="raw-request-modal-body">
-            <pre class="raw-request-content" x-text="rawModal.content"></pre>
+            <pre class="raw-request-content" x-html="rawModal.highlightedContent"></pre>
         </div>
         <div class="raw-request-modal-footer">
             <button class="raw-request-icon-btn" @click="copyRawRequest($event)" title="Copy to clipboard">

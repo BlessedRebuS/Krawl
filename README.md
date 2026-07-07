@@ -40,6 +40,7 @@
 - [What is Krawl?](#what-is-krawl)
 - [Krawl Dashboard](#krawl-dashboard)
 - [Deployment Modes](#deployment-modes)
+- [Krawl Banlist](#krawl-banlist)
 - [Quickstart](#quickstart)
   - [Docker Run](#docker-run)
   - [Docker Compose](#docker-compose)
@@ -126,16 +127,23 @@ Krawl supports two deployment modes, controlled by the `mode` setting in `config
 | **External deps** | None | PostgreSQL + Redis |
 | **Best for** | Dev, homelabs, <500k requests | Production, HA, >500k requests |
 
-**Standalone** — ideal for development environments or homelabs with low request counts. Zero additional configuration needed, just run Krawl and it works.
-- Single container deployment — no external dependencies
+**Standalone**: ideal for development environments or homelabs with low request counts. Zero additional configuration needed, just run Krawl and it works.
+- Single container deployment with no external dependencies
 - Lower RAM and resource usage
 
-**Scalable** — designed for production environments or high-traffic honeypots. The Helm chart defaults to this mode.
+**Scalable**: designed for production environments or high-traffic honeypots. The Helm chart defaults to this mode.
 - Faster, more responsive dashboard thanks to Redis multi-tier caching
 - Lower disk I/O with Redis acting as a hot-path cache in front of PostgreSQL
-- Horizontal scaling — increase the number of Krawl replicas behind a load balancer
+- Horizontal scaling increase the number of Krawl replicas behind a load balancer
 
 For detailed configuration, Docker Compose examples, Kubernetes/Helm setup, and step-by-step migration instructions, see the [Deployment Modes documentation](docs/deployment-modes.md).
+
+## Krawl Banlist
+
+Krawl maintains a regularly updated [`banlist.txt`](banlist.txt) of IP addresses from **attackers that triggered its honeypot traps**. The banlist is published weekly and available for download, helping the community preemptively block known malicious actors even without using Krawl.
+
+The banlist can also be fetched directly from:
+[https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw](https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw).
 
 ## Quickstart
 
@@ -159,7 +167,7 @@ Access the server at `http://localhost:5000`
 
 Create a `docker-compose.yaml` with one of the two deployment modes.
 
-**Standalone** — just Krawl server with Sqlite storage:
+**Standalone**: just Krawl server with Sqlite storage:
 
 ```yaml
 services:
@@ -180,7 +188,7 @@ volumes:
   krawl-data:
 ```
 
-**Scalable** — with PostgreSQL and Redis:
+**Scalable**: with PostgreSQL and Redis:
 
 > [!CAUTION]
 > The example below uses **default passwords** (`krawl`/`krawl`). **Change them before deploying to production.**
@@ -267,8 +275,8 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.2.0 \
 ```
 
 Minimal example values files are provided for both modes:
-- [`values-minimal.yaml`](helm/values-minimal.yaml) — Scalable (default)
-- [`values-standalone.yaml`](helm/values-standalone.yaml) — Standalone
+- [`values-minimal.yaml`](helm/values-minimal.yaml) ---> Scalable (default)
+- [`values-standalone.yaml`](helm/values-standalone.yaml) ---> Standalone
 
 See [Deployment Modes](docs/deployment-modes.md) and [Chart documentation](helm/README.md) for full configuration and migration instructions.
 
