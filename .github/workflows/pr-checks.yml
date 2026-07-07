@@ -15,7 +15,7 @@ jobs:
     name: Lint & Dependency Checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # Check out the PR head branch itself (not the detached merge commit)
           # so we can commit auto-fixes back to it. Using the head repo/ref means
@@ -23,7 +23,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
           cache: 'pip'
@@ -68,7 +68,7 @@ jobs:
 
       - name: Comment Ruff findings on PR
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           RUFF_REPORT_PATH: ${{ runner.temp }}/ruff-report.txt
           EXIT_CODE: ${{ steps.ruff.outputs.exit_code }}
@@ -156,7 +156,7 @@ jobs:
     name: Build Docker
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build Docker image
         run: docker build -t krawl:test .
