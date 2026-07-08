@@ -35,6 +35,10 @@ jobs:
           pip install black pip-check-reqs ruff
 
       - name: Apply auto-fixes (ruff --fix & black)
+        # Only auto-fix on same-repo PRs, where we can push the result back.
+        # On fork PRs we skip this so the checks below validate the *submitted*
+        # code rather than a locally-fixed tree (which would give a false pass).
+        if: github.event.pull_request.head.repo.full_name == github.repository
         run: |
           ruff check --fix src/ || true
           black src/
@@ -67,7 +71,9 @@ jobs:
           echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
 
       - name: Comment Ruff findings on PR
-        if: github.event_name == 'pull_request'
+        # GITHUB_TOKEN is read-only for fork PRs, so commenting would 403.
+        # Skip on forks; the Ruff/Black/deps checks below still gate the PR.
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@v8
         env:
           RUFF_REPORT_PATH: ${{ runner.temp }}/ruff-report.txt
