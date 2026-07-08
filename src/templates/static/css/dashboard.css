@@ -711,6 +711,17 @@ tbody {
     color: #f0883e;
     font-weight: 500;
 }
+.method-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 1px solid #58a6ff4d;
+    border-radius: 999px;
+    background: #1f6feb26;
+    color: #58a6ff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
 .reputation-score {
     font-weight: 700;
 }
