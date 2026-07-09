@@ -14,14 +14,18 @@ permissions:
 jobs:
   security-checks:
     name: Security & Dependencies
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.13'
-          cache: 'pip'
+      # Self-hosted Debian runner: actions/setup-python can't fetch a prebuilt
+      # Python for this distro, so use the interpreter already installed and
+      # isolate installs in a venv (avoids PEP 668 / polluting the runner).
+      # Prereq on the runner: python3 + python3-venv (matching 3.13).
+      - name: Set up Python venv
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
 
       - name: Install dependencies
         run: |
