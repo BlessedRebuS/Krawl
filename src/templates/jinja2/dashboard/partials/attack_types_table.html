@@ -33,7 +33,7 @@
             <th>#</th>
             <th>IP Address</th>
             <th>Method</th>
-            <th>Size</th>
+            <th>Request Size</th>
             <th>Path</th>
             <th>Attack Types</th>
             <th>User-Agent</th>
@@ -57,8 +57,11 @@
                 @click="toggleIpDetail($event)">
                 {{ attack.ip | e }}
             </td>
-            <td><span class="method-badge">{{ attack.method | default('GET') | e }}</span></td>
-            <td>{{ attack.body_size | default('0 B') | e }}</td>
+            <td>
+                {% set method = attack.method | default('GET') | upper %}
+                <span class="method-badge method-{{ method | lower | e }}">{{ method | e }}</span>
+            </td>
+            <td>{{ attack.request_size | default('0 B') | e }}</td>
             <td>
                 <div class="path-cell-container">
                     <span class="path-truncated">{{ attack.path | e }}</span>
