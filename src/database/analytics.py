@@ -456,6 +456,7 @@ class AnalyticsRepo:
                 {
                     "id": log.id,
                     "ip": log.ip,
+                    "method": log.method,
                     "path": log.path,
                     "user_agent": log.user_agent,
                     "timestamp": log.timestamp.isoformat() if log.timestamp else None,
@@ -743,6 +744,7 @@ class AnalyticsRepo:
                 {
                     "id": log.id,
                     "ip": log.ip,
+                    "method": log.method,
                     "path": log.path,
                     "user_agent": log.user_agent,
                     "timestamp": log.timestamp.isoformat() if log.timestamp else None,
