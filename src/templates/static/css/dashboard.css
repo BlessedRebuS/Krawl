@@ -754,6 +754,10 @@ tbody {
     background: #39c5cf26;
     color: #39c5cf;
 }
+.size-cell {
+    white-space: nowrap;
+    min-width: 64px;
+}
 .reputation-score {
     font-weight: 700;
 }
