@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PHP Info</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9;}
+        h1 {color:#2E2E2E;}
+        table {border-collapse: collapse; width: 100%; margin-bottom:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#e0e0e0;}
+        .section {margin-top:30px;}
+    </style>
+</head>
+<body>
+    <h1>PHP Version 7.4.33</h1>
+    <div class="section">
+        <h2>System</h2>
+        <table>
+            <tr><th>System</th><td>Linux server01.example.com 5.4.0-150-generic #166-Ubuntu SMP Thu Aug 17 21:53:15 UTC 2023 x86_64</td></tr>
+            <tr><th>Build Date</th><td>Oct 28 2022 11:09:46</td></tr>
+            <tr><th>Configure Command</th><td>./configure '--with-apxs2=/usr/bin/apxs2' '--with-mysqli' '--with-pdo-mysql' '--enable-mbstring' '--with-curl' '--with-openssl'</td></tr>
+            <tr><th>Server API</th><td>Apache 2.4 Handler</td></tr>
+            <tr><th>Virtual Directory Support</th><td>enabled</td></tr>
+            <tr><th>Configuration File (php.ini) Path</th><td>/etc/php/7.4/apache2</td></tr>
+            <tr><th>Loaded Configuration File</th><td>/etc/php/7.4/apache2/php.ini</td></tr>
+            <tr><th>Scan this dir for additional .ini files</th><td>/etc/php/7.4/apache2/conf.d</td></tr>
+            <tr><th>Additional .ini files parsed</th><td>/etc/php/7.4/apache2/conf.d/00-opcache.ini, /etc/php/7.4/apache2/conf.d/10-pdo.ini, /etc/php/7.4/apache2/conf.d/20-mysql.ini, /etc/php/7.4/apache2/conf.d/20-mysqli.ini, /etc/php/7.4/apache2/conf.d/20-pdo_mysql.ini</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>PHP Core</h2>
+        <table>
+            <tr><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+            <tr><td>allow_url_fopen</td><td>On</td><td>On</td></tr>
+            <tr><td>allow_url_include</td><td>Off</td><td>Off</td></tr>
+            <tr><td>auto_prepend_file</td><td>no value</td><td>no value</td></tr>
+            <tr><td>auto_append_file</td><td>no value</td><td>no value</td></tr>
+            <tr><td>display_errors</td><td>On</td><td>On</td></tr>
+            <tr><td>display_startup_errors</td><td>Off</td><td>Off</td></tr>
+            <tr><td>doc_root</td><td>no value</td><td>no value</td></tr>
+            <tr><td>error_log</td><td>/var/log/apache2/php_errors.log</td><td>/var/log/apache2/php_errors.log</td></tr>
+            <tr><td>expose_php</td><td>On</td><td>On</td></tr>
+            <tr><td>extension_dir</td><td>/usr/lib/php/20190902</td><td>/usr/lib/php/20190902</td></tr>
+            <tr><td>file_uploads</td><td>On</td><td>On</td></tr>
+            <tr><td>memory_limit</td><td>128M</td><td>128M</td></tr>
+            <tr><td>output_buffering</td><td>4096</td><td>4096</td></tr>
+            <tr><td>post_max_size</td><td>8M</td><td>8M</td></tr>
+            <tr><td>upload_max_filesize</td><td>2M</td><td>2M</td></tr>
+            <tr><td>max_execution_time</td><td>30</td><td>30</td></tr>
+            <tr><td>max_input_time</td><td>60</td><td>60</td></tr>
+            <tr><td>max_input_vars</td><td>1000</td><td>1000</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Loaded Modules</h2>
+        <table>
+            <tr><th>Module</th></tr>
+            <tr><td>Core</td></tr>
+            <tr><td>date</td></tr>
+            <tr><td>ereg</td></tr>
+            <tr><td>libxml</td></tr>
+            <tr><td>openssl</td></tr>
+            <tr><td>pcre</td></tr>
+            <tr><td>sqlite3</td></tr>
+            <tr><td>zlib</td></tr>
+            <tr><td>bcmath</td></tr>
+            <tr><td>calendar</td></tr>
+            <tr><td>ctype</td></tr>
+            <tr><td>curl</td></tr>
+            <tr><td>dom</td></tr>
+            <tr><td>hash</td></tr>
+            <tr><td>fileinfo</td></tr>
+            <tr><td>filter</td></tr>
+            <tr><td>ftp</td></tr>
+            <tr><td>gd</td></tr>
+            <tr><td>gettext</td></tr>
+            <tr><td>iconv</td></tr>
+            <tr><td>json</td></tr>
+            <tr><td>mbstring</td></tr>
+            <tr><td>mysqli</td></tr>
+            <tr><td>mysqlnd</td></tr>
+            <tr><td>PDO</td></tr>
+            <tr><td>pdo_mysql</td></tr>
+            <tr><td>pdo_sqlite</td></tr>
+            <tr><td>Phar</td></tr>
+            <tr><td>posix</td></tr>
+            <tr><td>readline</td></tr>
+            <tr><td>Reflection</td></tr>
+            <tr><td>session</td></tr>
+            <tr><td>shmop</td></tr>
+            <tr><td>SimpleXML</td></tr>
+            <tr><td>soap</td></tr>
+            <tr><td>sockets</td></tr>
+            <tr><td>SPL</td></tr>
+            <tr><td>standard</td></tr>
+            <tr><td>sysvmsg</td></tr>
+            <tr><td>sysvsem</td></tr>
+            <tr><td>sysvshm</td></tr>
+            <tr><td>tokenizer</td></tr>
+            <tr><td>wddx</td></tr>
+            <tr><td>xml</td></tr>
+            <tr><td>xmlreader</td></tr>
+            <tr><td>xmlwriter</td></tr>
+            <tr><td>xsl</td></tr>
+            <tr><td>zip</td></tr>
+            <tr><td>zlib</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Environment</h2>
+        <table>
+            <tr><th>Variable</th><th>Value</th></tr>
+            <tr><td>PATH</td><td>/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin</td></tr>
+            <tr><td>HOME</td><td>/var/www</td></tr>
+            <tr><td>USER</td><td>www-data</td></tr>
+            <tr><td>LOGNAME</td><td>www-data</td></tr>
+            <tr><td>SERVER_ADDR</td><td>192.168.10.45</td></tr>
+            <tr><td>SERVER_NAME</td><td>forum.example.com</td></tr>
+            <tr><td>SERVER_PORT</td><td>80</td></tr>
+            <tr><td>REMOTE_ADDR</td><td>10.0.2.15</td></tr>
+            <tr><td>DOCUMENT_ROOT</td><td>/var/www/forum</td></tr>
+        </table>
+    </div>
+
+    <hr>
+    <p>This page was generated by the fake phpinfo() simulation for defensive purposes.</p>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Acme Corp - Internal Portal</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header {background:#004080; color:#fff; padding:20px; text-align:center;}
+        nav {background:#e2e2e2; padding:10px;}
+        nav a {margin:0 15px; text-decoration:none; color:#004080; font-weight:bold;}
+        .container {max-width:960px; margin:20px auto; padding:20px; background:#fff; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        .footer {text-align:center; padding:10px; font-size:0.9em; color:#666; margin-top:30px;}
+        .btn {display:inline-block; padding:8px 12px; background:#004080; color:#fff; border:none; cursor:pointer; text-decoration:none;}
+        .btn:hover {background:#003060;}
+        table {width:100%; border-collapse:collapse; margin-top:20px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#f2f2f2;}
+    </style>
+    <script>
+        function showAlert() {
+            alert('Welcome to Acme Corp internal portal. Unauthorized access is prohibited.');
+        }
+    </script>
+</head>
+<body onload="showAlert()">
+    <header>
+        <h1>Acme Corp - Internal Portal</h1>
+        <p>Version 2.4.1 (build 20240915)</p>
+    </header>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/reports">Reports</a>
+        <a href="/admin/login">Admin Login</a>
+        <a href="/support">Support</a>
+    </nav>
+    <div class="container">
+        <h2>Welcome</h2>
+        <p>Internal server IP: <strong>10.0.0.42</strong></p>
+        <p>Database: <strong>acme_prod</strong> (PostgreSQL 13.7)</p>
+        <p>Last backup: 2024-09-10 02:15 UTC</p>
+        <h3>System Status</h3>
+        <table>
+            <tr><th>Component</th><th>Status</th><th>Uptime</th></tr>
+            <tr><td>Web Server</td><td>Running</td><td>12 days, 4:32</td></tr>
+            <tr><td>Application Server</td><td>Running</td><td>12 days, 4:30</td></tr>
+            <tr><td>Database</td><td>Running</td><td>12 days, 4:28</td></tr>
+            <tr><td>Cache</td><td>Running</td><td>12 days, 4:31</td></tr>
+        </table>
+        <p><a href="/admin/login" class="btn">Go to Admin Login</a></p>
+    </div>
+    <footer class="footer">
+        &copy; 2024 Acme Corp. All rights reserved.<br>
+        Internal use only.
+    </footer>
+</body>
+</html>

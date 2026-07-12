@@ -1,0 +1,14 @@
+<html><body>(function(){ 
+  var VERSION = "3.2.1";
+  var LOG = function(msg){ console.log("[MyApp] " + msg); };
+  LOG("Initialized");
+  var config = { apiEndpoint: "http://10.0.5.23/api", authToken: "Bearer abc123xyz", dbName: "prod_db" };
+  function init(){ 
+    LOG("Starting up...");
+    var banner = document.createElement('div');
+    banner.textContent = "MyApp - Secure Bundle";
+    document.body.appendChild(banner);
+  }
+  return { init: init };
+})();
+app.init();</body></html>

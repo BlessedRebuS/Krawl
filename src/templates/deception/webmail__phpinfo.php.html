@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Acme Corp - Internal Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family:Arial,Helvetica,sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header {background:#003366; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#004080; color:#fff; display:flex; justify-content:center; gap:1.5rem; padding:0.5rem 0;}
+        nav a {color:#fff; text-decoration:none; font-weight:bold;}
+        nav a:hover {text-decoration:underline;}
+        .container {max-width:960px; margin:2rem auto; background:#fff; padding:2rem; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1 {color:#003366;}
+        .footer {text-align:center; font-size:0.85rem; color:#666; margin-top:2rem; padding-top:1rem; border-top:1px solid #ddd;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Acme Corp Internal Portal</h1>
+        <p>Secure Access for Authorized Personnel</p>
+    </header>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/reports">Reports</a>
+        <a href="/users">User Management</a>
+        <a href="/settings">Settings</a>
+        <a href="/logout">Logout</a>
+    </nav>
+    <div class="container">
+        <h2>Welcome, jdoe</h2>
+        <p>Last login: 2025-09-24 08:13:42 from 10.0.2.15</p>
+        <p>Below are quick links to frequently used tools:</p>
+        <ul>
+            <li><a href="/admin">Admin Console</a></li>
+            <li><a href="/api/v1/status">API Status</a></li>
+            <li><a href="/docs">Documentation</a></li>
+        </ul>
+        <p>Current system version: <strong>AcmePortal v3.4.2 (build 20250912)</strong></p>
+        <p>Database: <em>acme_prod</em> on <code>db01.acme.internal:3306</code></p>
+    </div>
+    <footer class="footer">
+        &copy; 2025 Acme Corp. All rights reserved. | Internal IP: 10.0.2.15 | Server: Apache/2.4.58 (Ubuntu)
+    </footer>
+</body>
+</html>

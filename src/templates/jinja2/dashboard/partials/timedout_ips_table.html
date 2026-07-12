@@ -3,12 +3,12 @@
     <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} timed out</span>
     <div style="display: flex; gap: 8px;">
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/timedout/active?page={{ pagination.page - 1 }}"
+                hx-get="{{ dashboard_path }}/htmx/timedout/active?page={{ pagination.page - 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
                 {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/timedout/active?page={{ pagination.page + 1 }}"
+                hx-get="{{ dashboard_path }}/htmx/timedout/active?page={{ pagination.page + 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
                 {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
@@ -19,20 +19,38 @@
         <tr>
             <th>#</th>
             <th>IP Address</th>
-            <th>Time Left</th>
-            <th>Violations</th>
-            <th>Multiplier</th>
+            <th class="sortable {% if sort_by == 'time_left' %}{{ sort_order }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/timedout/active?page=1&sort_by=time_left&sort_order={% if sort_by == 'time_left' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML">
+                Time Left</th>
+            <th class="sortable {% if sort_by == 'violations' %}{{ sort_order }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/timedout/active?page=1&sort_by=violations&sort_order={% if sort_by == 'violations' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML">
+                Violations</th>
+            <th class="sortable {% if sort_by == 'multiplier' %}{{ sort_order }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/timedout/active?page=1&sort_by=multiplier&sort_order={% if sort_by == 'multiplier' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML">
+                Multiplier</th>
             <th>Category</th>
             <th>Location</th>
             <th>Last Seen</th>
-            <th style="width: 40px;"></th>
+            <th style="width: 72px;"></th>
         </tr>
     </thead>
     <tbody>
         {% for ip in items %}
-        <tr>
+        <tr class="ip-row" data-ip="{{ ip.ip | e }}">
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
-            <td>{{ ip.ip | e }}</td>
+            <td class="ip-clickable"
+                hx-get="{{ dashboard_path }}/htmx/ip-detail/{{ ip.ip | e }}"
+                hx-target="next .ip-stats-row .ip-stats-dropdown"
+                hx-swap="innerHTML"
+                @click="toggleIpDetail($event)">
+                {{ ip.ip | e }}
+            </td>
             <td class="timeout-countdown" data-remaining="{{ ip.remaining_ban_seconds }}" data-ip="{{ ip.ip | e }}">&mdash;</td>
             <td>{{ ip.total_violations }}</td>
             <td>&times;{{ ip.ban_multiplier }}</td>
@@ -40,10 +58,22 @@
             <td>{{ ip.city | default('') | e }}{% if ip.city and ip.country_code %}, {% endif %}{{ ip.country_code | default('N/A') | e }}</td>
             <td>{{ ip.last_seen | format_ts }}</td>
             <td>
-                <button class="ban-icon-btn ban-icon-reset" onclick="timeoutExemptAction('{{ ip.ip | e }}', 'exempt')" title="Exempt from timeout">
-                    <span class="material-symbols-outlined" style="font-size:18px;">block</span>
-                    <span class="ban-icon-tooltip">Exempt</span>
-                </button>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <button class="inspect-btn" @click="openIpInsight('{{ ip.ip | e }}')" title="Inspect IP">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
+                    </button>
+                    <button class="ban-icon-btn ban-icon-unban" onclick="timeoutExemptAction('{{ ip.ip | e }}', 'exempt')" title="Exempt from timeout">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6.25"/><line x1="3.75" y1="3.75" x2="12.25" y2="12.25"/></svg>
+                        <span class="ban-icon-tooltip">Exempt</span>
+                    </button>
+                </div>
+            </td>
+        </tr>
+        <tr class="ip-stats-row" style="display: none;">
+            <td colspan="9" class="ip-stats-cell">
+                <div class="ip-stats-dropdown">
+                    <div class="loading">Loading stats...</div>
+                </div>
             </td>
         </tr>
         {% else %}

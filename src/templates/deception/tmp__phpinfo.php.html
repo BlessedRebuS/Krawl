@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acme Corp - Internal Portal</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f4f4f4;color:#333}
+header{background:#003366;color:#fff;padding:1rem;text-align:center}
+nav{background:#004080;color:#fff;padding:.5rem;text-align:center}
+nav a{color:#fff;margin:0 1rem;text-decoration:none}
+nav a:hover{text-decoration:underline}
+main{padding:2rem}
+.card{background:#fff;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1);margin-bottom:1.5rem;padding:1.5rem}
+.card h2{margin-top:0;color:#003366}
+footer{background:#003366;color:#fff;text-align:center;padding:1rem;font-size:.9rem}
+</style>
+</head>
+<body>
+<header>
+<h1>Acme Corp Internal Portal</h1>
+<p>Secure Access to Internal Services</p>
+</header>
+<nav>
+<a href="/">Home</a>
+<a href="/admin">Admin Panel</a>
+<a href="/api/status">API Status</a>
+<a href="/contact">Contact</a>
+</nav>
+<main>
+<div class="card">
+<h2>Welcome, j.smith</h2>
+<p>Last login: 2025-09-24 08:12:34 from 10.0.0.57</p>
+<p>Your role: <strong>Systems Administrator</strong></p>
+</div>
+<div class="card">
+<h2>System Overview</h2>
+<ul>
+<li>Server: <code>web01.acme.local</code> (10.0.0.12)</li>
+<li>OS: Ubuntu 20.04.5 LTS</li>
+<li>Web Server: Apache/2.4.41 (Ubuntu)</li>
+<li>Application: AcmeCMS v2.3.1</li>
+<li>Database: MySQL 5.7.33 - <code>acme_prod</code></li>
+<li>Internal IP Range: 10.0.0.0/24</li>
+</ul>
+</div>
+<div class="card">
+<h2>Quick Links</h2>
+<ul>
+<li><a href="/admin/login.php">Admin Login</a></li>
+<li><a href="/api/v1/users.json">User API (JSON)</a></li>
+<li><a href="/config/app.ini">Application Config (INI)</a></li>
+<li><a href="/logs/access.log">Access Log (TXT)</a></li>
+</ul>
+</div>
+</main>
+<footer>
+© 2025 Acme Corporation &bull; Internal Use Only &bull; Build 2025.09.24.01
+</footer>
+</body>
+</html>

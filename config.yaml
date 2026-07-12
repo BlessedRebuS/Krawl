@@ -110,6 +110,23 @@ crawl:
   max_pages_limit: 250
   ban_duration_seconds: 600
 
+# IPs / CIDR ranges to ignore everywhere: never tracked, banned, exported, and
+# purged from the database on startup. Accepts single IPs (e.g. 203.0.113.5) or
+# CIDR ranges (IPv4 and IPv6). Defaults cover loopback, RFC1918 private,
+# link-local and CGNAT ranges; add your own trusted networks (monitoring,
+# health checks, office egress, etc.) here.
+ignored_ips:
+  - 127.0.0.0/8      # loopback
+  - 10.0.0.0/8       # RFC1918 private
+  - 172.16.0.0/12    # RFC1918 private
+  - 192.168.0.0/16   # RFC1918 private
+  - 169.254.0.0/16   # link-local
+  - 0.0.0.0/8        # "this network"
+  - 100.64.0.0/10    # CGNAT
+  - ::1/128          # IPv6 loopback
+  - fc00::/7         # IPv6 unique local
+  - fe80::/10        # IPv6 link-local
+
 tarpit:
   enabled: false  # Opt-in: trap AI agents with slow responses and random text
   delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active
@@ -155,6 +172,12 @@ ai:
     8. If the path implies a file type, return that content type raw (JSON, XML, INI, PHP source)
 
     Path: {path}{query_part}
+
+banlist:
+  export_path:  # Public banlist download path, e.g. "/public_banlist.txt". This supports ublic endpoint at banlist_export_path already supports ?categories= and ?fwtype= as the main banlist API. Empty = disabled.
+  sources:
+    - "https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw" # Upstream banlist URLs to fetch, e.g. ["https://krawl.example.com/public_banlist.txt"]. You can add an array of URLs here. Even external "".txt" banlists are supported.
+  refresh_interval: 3600  # Seconds between fetches
 
 deception:
   # Enable automatic import of deception pages from src/templates/deception directory on startup

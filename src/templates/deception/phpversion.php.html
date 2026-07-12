@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acme Corp - Internal Portal</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:0;color:#333}
+.header{background:#003366;color:#fff;padding:20px;text-align:center}
+.header h1{margin:0}
+.content{max-width:800px;margin:20px auto;padding:20px;background:#fff;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+.footer{text-align:center;padding:10px;font-size:0.9em;color:#666;background:#eaeaea;margin-top:20px}
+.btn{display:inline-block;background:#0066cc;color:#fff;padding:10px 20px;border:none;border-radius:4px;cursor:pointer;text-decoration:none}
+.btn:hover{background:#004c99}
+input[type="text"],input[type="password"]{width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>Acme Corp Internal Portal</h1>
+<p>Secure access to internal resources</p>
+</div>
+<div class="content">
+<h2>Welcome, Administrator</h2>
+<p>Last login: 2025-09-24 08:15:32 from 10.0.0.57</p>
+<p>Internal IP: <code>10.0.0.5</code></p>
+<p>Database: <code>acme_internal</code> (MySQL 5.7.34)</p>
+<p>Apache version: <code>Apache/2.4.41 (Ubuntu)</code></p>
+<form action="/admin/login.php" method="post">
+<label for="username">Username:</label><br>
+<input type="text" id="username" name="username" placeholder="admin" required><br><br>
+<label for="password">Password:</label><br>
+<input type="password" id="password" name="password" placeholder="••••••••" required><br><br>
+<button type="submit" class="btn">Log In</button>
+</form>
+</div>
+<div class="footer">
+&copy; 2025 Acme Corp. All rights reserved.
+</div>
+</body>
+</html>

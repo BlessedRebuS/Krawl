@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NovaTech Solutions – Innovating IT Infrastructure</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f6f9; color:#333;}
+        header {background:#003366; color:#fff; padding:1rem 2rem; text-align:center;}
+        header h1 {margin:0; font-size:2rem;}
+        nav {background:#004080; overflow:hidden;}
+        nav a {float:left; display:block; color:#fff; text-align:center; padding:1rem 1.5rem; text-decoration:none;}
+        nav a:hover {background:#0055a5;}
+        .hero {background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="%23e0eafc"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23003366" font-size="24">NovaTech</text></svg>') center/cover no-repeat; color:#fff; text-align:center; padding:4rem 1rem; position:relative;}
+        .hero::after {content:""; position:absolute; inset:0; background:rgba(0,0,0,0.4);}
+        .hero-content {position:relative; z-index:1;}
+        .hero h2 {font-size:2.5rem; margin-bottom:0.5rem;}
+        .hero p {font-size:1.2rem; margin-bottom:2rem;}
+        .btn {background:#ffcc00; color:#003366; padding:0.8rem 1.5rem; border:none; border-radius:4px; cursor:pointer; font-weight:bold;}
+        .btn:hover {background:#e6b800;}
+        section {padding:2rem; max-width:960px; margin:auto;}
+        .features {display:flex; flex-wrap:wrap; gap:1.5rem;}
+        .feature {flex:1 1 250px; background:#fff; padding:1.5rem; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+        .feature h3 {color:#003366;}
+        footer {background:#003366; color:#fff; text-align:center; padding:1rem; font-size:0.9rem;}
+        footer a {color:#ffcc00; text-decoration:none;}
+        footer a:hover {text-decoration:underline;}
+    </style>
+</head>
+<body>
+<header>
+    <h1>NovaTech Solutions</h1>
+    <p>Empowering Enterprises with Secure, Scalable IT</p>
+</header>
+<nav>
+    <a href="/">Home</a>
+    <a href="/about">About Us</a>
+    <a href="/services">Services</a>
+    <a href="/contact">Contact</a>
+    <a href="/admin/login">Admin Portal</a>
+</nav>
+<section class="hero">
+    <div class="hero-content">
+        <h2>Transform Your Business</h2>
+        <p>From cloud migration to cybersecurity, we deliver end‑to‑end solutions tailored to your needs.</p>
+        <button class="btn" onclick="alert('Request a free consultation – our team will contact you shortly.')">Get Started</button>
+    </div>
+</section>
+<section>
+    <h2 style="text-align:center; color:#003366;">Our Core Services</h2>
+    <div class="features">
+        <div class="feature">
+            <h3>Cloud Infrastructure</h3>
+            <p>Deploy, manage, and optimize AWS, Azure, and private cloud environments with 99.9% SLA.</p>
+        </div>
+        <div class="feature">
+            <h3>Cybersecurity</h3>
+            <p>Threat detection, penetration testing, and compliance (ISO 27001, GDPR) services.</p>
+        </div>
+        <div class="feature">
+            <h3>DevOps Automation</h3>
+            <p>CI/CD pipelines, Kubernetes orchestration, and IaC using Terraform and Ansible.</p>
+        </div>
+        <div class="feature">
+            <h3>Data Analytics</h3>
+            <p>Real‑time dashboards, ETL pipelines, and AI‑driven insights powered by PostgreSQL and Spark.</p>
+        </div>
+    </div>
+</section>
+<footer>
+    <p>&copy; 2025 NovaTech Solutions. All rights reserved.</p>
+    <p>Server: 10.0.0.5 | Apache/2.4.41 (Ubuntu) | PHP/7.4.3 | MySQL 5.7.33-0ubuntu0.18.04.1</p>
+    <p><a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Service</a></p>
+</footer>
+</body>
+</html>

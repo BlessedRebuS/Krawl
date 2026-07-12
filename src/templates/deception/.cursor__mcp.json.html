@@ -1,28 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>.cursor/mcp.json</title>
-    <style>
-        body { font-family: monospace; background:#f8f8f8; margin:2rem; color:#333; }
-        pre { background:#fff; padding:1rem; border:1px solid #ddd; overflow:auto; }
-    </style>
-</head>
-<body>
-    <h1>/.cursor/mcp.json</h1>
-    <pre>
-{
-  "server": "localhost",
-  "port": 3306,
-  "username": "admin",
-  "password": "s3cr3t!",
-  "database": "mcp",
-  "debug": true,
-  "allowed_origins": [
-    "http://example.com",
-    "http://localhost:8080"
-  ]
-}
-    </pre>
-</body>
-</html>
+<html><body>{
+  "mcp": {
+    "version": "0.1.0",
+    "server": {
+      "name": "cursor-internal-mcp",
+      "description": "Internal Model Context Protocol service for Cursor IDE integration",
+      "endpoints": [
+        {
+          "path": "/mcp/context",
+          "method": "POST",
+          "description": "Receive contextual prompts from editor",
+          "auth": "bearer"
+        },
+        {
+          "path": "/mcp/tools",
+          "method": "GET",
+          "description": "List available agent tools",
+          "auth": "none"
+        }
+      ],
+      "capabilities": [
+        "code-generation",
+        "debug-assist",
+        "refactor-suggestions",
+        "test-generation"
+      ],
+      "security": {
+        "rateLimit": "100/hour",
+        "cors": ["https://*.cursor.sh", "http://localhost:*"],
+        "headers": {
+          "X-MCP-Version": "0.1.0",
+          "X-Internal-Use-Only": "true"
+        }
+      }
+    }
+  }
+}</body></html>

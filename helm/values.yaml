@@ -133,6 +133,21 @@ config:
     infinite_pages_for_malicious: true
     max_pages_limit: 250
     ban_duration_seconds: 600
+  # IPs / CIDR ranges to ignore everywhere: never tracked, banned, exported, or
+  # persisted, and purged from the database on startup. Single IPs or CIDRs
+  # (IPv4/IPv6). Defaults cover loopback, RFC1918, link-local and CGNAT ranges;
+  # add trusted networks (monitoring, health checks, office egress) as needed.
+  ignored_ips:
+    - 127.0.0.0/8      # loopback
+    - 10.0.0.0/8       # RFC1918 private
+    - 172.16.0.0/12    # RFC1918 private
+    - 192.168.0.0/16   # RFC1918 private
+    - 169.254.0.0/16   # link-local
+    - 0.0.0.0/8        # "this network"
+    - 100.64.0.0/10    # CGNAT
+    - ::1/128          # IPv6 loopback
+    - fc00::/7         # IPv6 unique local
+    - fe80::/10        # IPv6 link-local
   ai:
     enabled: false
     provider: "openrouter"  # "openrouter" or "openai". Use "openai" for OpenAI-compatible endpoints such as Ollama or llama.cpp.
@@ -161,6 +176,11 @@ config:
         - SQLi/XSS attack paths → respond with realistic error messages or data leaks
       7. Include realistic details: version numbers, usernames, internal IPs, database names
       8. If the path implies a file type, return that content type raw (JSON, XML, INI, PHP source)
+  banlist:
+    export_path: ""  # Public banlist download path, e.g. "/public_banlist.txt". Empty = disabled.
+    sources: []      # Upstream banlist URLs to fetch, e.g. ["https://krawl1.example.com/public_banlist.txt"]
+    refresh_interval: 3600  # Seconds between fetches
+
   tarpit:
     enabled: false  # Opt-in: trap AI agents with slow responses and random text
     delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active

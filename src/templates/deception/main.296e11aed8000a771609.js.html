@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acme Corp Intranet Portal</title>
+<style>
+    body {font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:0;display:flex;justify-content:center;align-items:center;height:100vh;}
+    .container {background:#fff;padding:30px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1);width:320px;}
+    h2 {text-align:center;color:#333;margin-bottom:20px;}
+    label {display:block;margin-top:15px;font-weight:bold;color:#555;}
+    input[type="text"], input[type="password"] {width:100%;padding:10px;margin-top:5px;border:1px solid #ccc;border-radius:4px;font-size:16px;}
+    button {width:100%;padding:12px;background:#0066cc;color:#fff;border:none;border-radius:4px;font-size:16px;margin-top:20px;cursor:pointer;}
+    button:hover {background:#004c99;}
+    .footer {text-align:center;margin-top:20px;font-size:12px;color:#777;}
+</style>
+<script>
+    function validateForm() {
+        var u = document.forms["login"]["username"].value.trim();
+        var p = document.forms["login"]["password"].value.trim();
+        if (u == "" || p == "") {
+            alert("Username and password are required.");
+            return false;
+        }
+        return true;
+    }
+</script>
+</head>
+<body>
+<div class="container">
+    <h2>Acme Corp Intranet</h2>
+    <form name="login" action="/auth/login" method="POST" onsubmit="return validateForm()">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" placeholder="Enter username">
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" placeholder="Enter password">
+        <button type="submit">Sign In</button>
+    </form>
+    <div class="footer">
+        Apache/2.4.41 (Ubuntu) • PHP 7.4.3 • DB: acme_intranet • Server: 10.0.0.45
+    </div>
+</div>
+</body>
+</html>

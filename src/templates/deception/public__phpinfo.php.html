@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Intranet Portal - Acme Corp</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header {background:#003366; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#004080; color:#fff; display:flex; justify-content:center; gap:2rem; padding:0.5rem;}
+        nav a {color:#fff; text-decoration:none;}
+        nav a:hover {text-decoration:underline;}
+        .container {max-width:960px; margin:2rem auto; background:#fff; padding:2rem; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1 {color:#003366;}
+        .footer {text-align:center; font-size:0.8rem; color:#666; margin-top:2rem;}
+        .badge {display:inline-block; background:#28a745; color:#fff; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.9rem;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Acme Corp Intranet Portal</h1>
+        <p>Version 2.4.1 • Build 20240915</p>
+    </header>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/reports">Reports</a>
+        <a href="/users">User Management</a>
+        <a href="/settings">Settings</a>
+        <a href="/help">Help</a>
+    </nav>
+    <div class="container">
+        <h2>Welcome, <span class="badge">admin</span></h2>
+        <p>Last login: 2025-09-24 08:32:10 from <strong>10.0.0.57</strong></p>
+        <p>Current server: <strong>intranet01.acme.local</strong> (10.0.0.5)</p>
+        <p>Connected database: <strong>corp_db</strong> (MySQL 5.7.34)</p>
+        <hr>
+        <h3>System Status</h3>
+        <ul>
+            <li>CPU Usage: 23%</li>
+            <li>Memory Usage: 4.2 GB / 16 GB</li>
+            <li>Disk Space: 120 GB free of 500 GB</li>
+            <li>Uptime: 12 days, 4 hours</li>
+        </ul>
+        <hr>
+        <h3>Announcements</h3>
+        <p><em>2025-09-20</em> – Scheduled maintenance on the backup server (10.0.0.12) tonight at 02:00 AM.</p>
+        <p><em>2025-09-15</em> – New VPN client released (v3.2.1). Please update your remote access software.</p>
+    </div>
+    <footer class="footer">
+        &copy; 2025 Acme Corporation. All rights reserved.<br>
+        Internal IP: 10.0.0.5 | Contact: it-support@acme.corp
+    </footer>
+    <script>
+        // Simple clock for demo
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('liveclock').textContent = now.toLocaleString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+    <div style="position:fixed;bottom:10px;right:10px;font-size:0.8rem;color:#666;">
+        <span id="liveclock"></span>
+    </div>
+</body>
+</html>

@@ -60,6 +60,54 @@
                 </div>
             </div>
 
+            {# Merge external banlists checkbox #}
+            <div class="auth-modal-input-group" style="margin-bottom: 0;">
+                <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">External Banlists</label>
+                <div style="position: relative;">
+                    <label style="display: flex; align-items: center; gap: 8px; color: #c9d1d9; font-size: 14px; cursor: pointer;">
+                        <input type="checkbox" x-model="exportModal.mergeBanlists" style="accent-color: #58a6ff;" />
+                        <span>Merge banlists</span>
+                        <span class="banlist-sources-hint"
+                              x-show="banlistSources.length > 0"
+                              @mouseenter="banlistSources.length > 0 && (showBanlistSources = true)"
+                              @mouseleave="showBanlistSources = false"
+                              style="position: relative; display: inline-flex; align-items: center; cursor: help; color: #8b949e;"
+                              title="Loaded banlist sources">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+                                <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/>
+                            </svg>
+                        </span>
+                    </label>
+                    {# Tooltip with source list #}
+                    <div x-show="showBanlistSources && banlistSources.length > 0"
+                         x-cloak
+                         @mouseenter="showBanlistSources = true"
+                         @mouseleave="showBanlistSources = false"
+                         style="position: absolute; top: 100%; left: 0; margin-top: 6px; background: #1c2220; border: 1px solid #2a3028; border-radius: 8px; padding: 12px; z-index: 100; min-width: 360px; max-height: 300px; overflow-y: auto; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+                        <div style="color: #8b949e; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Loaded Banlist Sources</div>
+                        <template x-for="source in banlistSources" :key="source.url">
+                            <div style="padding: 6px 0; font-size: 12px; border-bottom: 1px solid #2a3028;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span x-show="source.status === 'ok'" style="color: #3fb950; flex-shrink: 0;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>
+                                    </span>
+                                    <span x-show="source.status !== 'ok'" style="color: #f85149; flex-shrink: 0;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M4.22 4.22a.75.75 0 0 1 1.06 0L8 6.94l2.72-2.72a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L9.06 8l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L8 9.06l-2.72 2.72a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L6.94 8 4.22 5.28a.749.749 0 0 1 0-1.06Z"/></svg>
+                                    </span>
+                                    <div style="flex: 1; min-width: 0; color: #c9d1d9; font-size: 12px;">
+                                        <span x-html="colorizeUrl(source.url)"></span>
+                                        <span style="color: #8b949e; font-size: 11px; margin-left: 4px;" x-show="source.status === 'ok'" x-text="'(' + source.count + ' IPs)'"></span>
+                                        <span style="color: #f85149; font-size: 11px; margin-left: 4px;" x-show="source.status !== 'ok'" x-text="'(' + source.status + ')'"></span>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </template>
+                        <div x-show="banlistSources.length === 0" style="color: #8b949e; font-size: 12px; text-align: center; padding: 8px;">No sources configured</div>
+                    </div>
+                </div>
+            </div>
+
             {# Format radio buttons #}
             <div class="auth-modal-input-group" style="margin-bottom: 0;">
                 <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Format</label>

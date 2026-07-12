@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acme Corp - Internal Portal</title>
+<style>
+    body {font-family: Arial, Helvetica, sans-serif; margin:0; padding:0; background:#f4f6f9; color:#333;}
+    header {background:#003366; color:#fff; padding:1rem 2rem; display:flex; justify-content:space-between; align-items:center;}
+    header h1 {margin:0; font-size:1.5rem;}
+    header .user {font-size:0.9rem;}
+    nav {background:#004080; color:#fff; padding:0.5rem 2rem;}
+    nav a {color:#fff; margin-right:1.5rem; text-decoration:none; font-weight:bold;}
+    nav a:hover {text-decoration:underline;}
+    .container {padding:2rem;}
+    .card {background:#fff; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); padding:1.5rem; margin-bottom:1.5rem;}
+    h2 {color:#003366; margin-top:0;}
+    label {display:block; margin-top:0.5rem; font-weight:bold;}
+    input[type="text"], input[type="password"], input[type="email"] {width:100%; padding:0.5rem; margin-top:0.2rem; border:1px solid #ccc; border-radius:4px;}
+    button {background:#0066cc; color:#fff; border:none; padding:0.75rem 1.5rem; margin-top:1rem; border-radius:4px; cursor:pointer;}
+    button:hover {background:#004c99;}
+    footer {text-align:center; padding:1rem; font-size:0.8rem; color:#666; background:#eaeaea; margin-top:2rem;}
+</style>
+</head>
+<body>
+<header>
+    <h1>Acme Corp Internal Portal</h1>
+    <div class="user">Logged in as: j.smith (ID: 4287)</div>
+</header>
+<nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/reports">Reports</a>
+    <a href="/admin/users">User Management</a>
+    <a href="/settings">Settings</a>
+    <a href="/logout">Logout</a>
+</nav>
+<div class="container">
+    <div class="card">
+        <h2>Welcome to the Acme Corp Internal Portal</h2>
+        <p>Version: 3.2.1 (Build 20240915)</p>
+        <p>Server: internal-acme01.acme.local (10.10.5.23)</p>
+        <p>Database: acme_prod (PostgreSQL 13.7)</p>
+        <p>Last login: 2025-09-24 08:14:22 UTC from 10.10.5.87</p>
+    </div>
+    <div class="card">
+        <h2>Quick Actions</h2>
+        <form action="/api/search" method="get">
+            <label for="search">Search Documents:</label>
+            <input type="text" id="search" name="q" placeholder="Enter keywords...">
+            <button type="submit">Search</button>
+        </form>
+    </div>
+    <div class="card">
+        <h2>System Alerts</h2>
+        <ul>
+            <li><strong>2025-09-24 07:58:</strong> Backup completed successfully (size: 4.2 GB)</li>
+            <li><strong>2025-09-23 22:13:</strong> Security patch applied (CVE-2025-3421)</li>
+            <li><strong>2025-09-22 15:05:</strong> New user created: a.jones (ID: 4301)</li>
+        </ul>
+    </div>
+</div>
+<footer>
+    © 2025 Acme Corporation. All rights reserved. | Internal use only.
+</footer>
+<script>
+    // Simple client-side timeout warning
+    var timeout = 15 * 60 * 1000; // 15 minutes
+    var warningTime = timeout - 2 * 60 * 1000; // 2 minutes before expiry
+    setTimeout(function(){
+        if(confirm('Your session will expire in 2 minutes. Stay logged in?')){
+            // Reset timer
+            timeout = 15 * 60 * 1000;
+            warningTime = timeout - 2 * 60 * 1000;
+        } else {
+            window.location.href = '/logout';
+        }
+    }, warningTime);
+</script>
+</body>
+</html>

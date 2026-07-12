@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Login - Corp Intranet</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f2f2f2;margin:0;display:flex;justify-content:center;align-items:center;height:100vh;}
+.login-container{background:#fff;padding:30px;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.1);width:320px;}
+h2{text-align:center;color:#333;}
+label{display:block;margin-top:15px;font-weight:bold;}
+input[type=text],input[type=password]{width:100%;padding:8px;margin-top:5px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box;}
+button{width:100%;padding:10px;margin-top:20px;background:#0066cc;color:#fff;border:none;border-radius:4px;cursor:pointer;}
+button:hover{background:#004c99;}
+p{font-size:0.9em;color:#666;text-align:center;margin-top:20px;}
+</style>
+</head>
+<body>
+<div class="login-container">
+<h2>Admin Panel</h2>
+<form id="loginForm" action="/admin/login" method="POST">
+<label for="username">Username:</label>
+<input type="text" id="username" name="username" required placeholder="Enter username">
+<label for="password">Password:</label>
+<input type="password" id="password" name="password" required placeholder="Enter password">
+<button type="submit">Sign In</button>
+</form>
+<p>Version 2.3.1 • Build 20240915 • Internal IP: 10.0.0.5</p>
+</div>
+<script>
+document.getElementById('loginForm').addEventListener('submit',function(e){
+ var u=document.getElementById('username').value.trim();
+ var p=document.getElementById('password').value.trim();
+ if(u===''||p===''){
+  e.preventDefault();
+  alert('Username and password are required.');
+ }
+});
+</script>
+</body>
+</html>

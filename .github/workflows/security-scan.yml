@@ -14,14 +14,18 @@ permissions:
 jobs:
   security-checks:
     name: Security & Dependencies
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-          cache: 'pip'
+      # Self-hosted Debian runner: actions/setup-python can't fetch a prebuilt
+      # Python for this distro, so use the interpreter already installed and
+      # isolate installs in a venv (avoids PEP 668 / polluting the runner).
+      # Prereq on the runner: python3 + python3-venv (matching 3.13).
+      - name: Set up Python venv
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
 
       - name: Install dependencies
         run: |
@@ -53,8 +57,8 @@ jobs:
           fi
 
       - name: Comment Bandit findings on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v8
         env:
           BANDIT_REPORT_PATH: ${{ runner.temp }}/bandit-report.txt
           EXIT_CODE: ${{ steps.bandit.outputs.exit_code }}

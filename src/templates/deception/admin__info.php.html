@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acme Corp - Internal Portal</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f4f4f4;}
+header{background:#003366;color:#fff;padding:1rem;text-align:center;}
+nav{background:#004080;color:#fff;padding:0.5rem;}
+nav a{color:#fff;margin:0 1rem;text-decoration:none;}
+.main{padding:2rem;}
+.card{background:#fff;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1);padding:1.5rem;margin-bottom:1.5rem;}
+input[type=text],input[type=password]{width:100%;padding:0.5rem;margin:0.5rem 0;border:1px solid #ccc;border-radius:4px;}
+button{background:#0066cc;color:#fff;border:none;padding:0.75rem 1.5rem;border-radius:4px;cursor:pointer;}
+button:hover{background:#004c99;}
+footer{background:#003366;color:#fff;text-align:center;padding:1rem;margin-top:2rem;font-size:0.9rem;}
+</style>
+</head>
+<body>
+<header>
+<h1>Acme Corp Internal Portal</h1>
+<p>Version 2.4.41 (Apache) • PHP 7.4.3 • MySQL 5.7.33</p>
+</header>
+<nav>
+<a href="/">Home</a>
+<a href="/dashboard">Dashboard</a>
+<a href="/reports">Reports</a>
+<a href="/admin">Admin</a>
+</nav>
+<div class="main">
+<div class="card">
+<h2>Welcome, operator</h2>
+<p>Last login: 2025-09-24 08:12:13 from 10.0.0.57</p>
+<p>Internal database: <strong>acmedb</strong></p>
+<p>Server IP: <strong>10.0.0.5</strong></p>
+</div>
+<div class="card">
+<h2>Quick Access</h2>
+<form action="/login" method="post">
+<label for="username">Username:</label>
+<input type="text" id="username" name="username" placeholder="Enter username" required>
+<label for="password">Password:</label>
+<input type="password" id="password" name="password" placeholder="Enter password" required>
+<button type="submit">Sign In</button>
+</form>
+</div>
+<div class="card">
+<h2>System Status</h2>
+<ul>
+<li>CPU Load: 0.23</li>
+<li>Memory Usage: 34% (2.1 GB / 6.0 GB)</li>
+<li>Disk Space: 45% used (120 GB / 265 GB)</li>
+<li>Uptime: 12 days, 4 hours</li>
+</ul>
+</div>
+</div>
+<footer>
+&copy; 2025 Acme Corp. All rights reserved.
+</footer>
+</body>
+</html>

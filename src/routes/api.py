@@ -633,11 +633,21 @@ async def raw_request(log_id: int, request: Request):
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
+@router.get("/api/banlist-sources")
+async def banlist_sources(request: Request):
+    """Return current banlist source status for dashboard display."""
+    from banlist_sync import get_banlist_sources
+
+    sources = get_banlist_sources()
+    return JSONResponse(content={"sources": sources})
+
+
 @router.get("/api/export-ips")
 async def export_ips(
     request: Request,
     categories: str = Query(...),
     fwtype: str = Query("raw"),
+    merge_banlists: bool = Query(False),
 ):
     valid_categories = {
         "attacker",
@@ -677,6 +687,16 @@ async def export_ips(
                     db.ip_stats.get_timedout_ips, config.ban_duration_seconds
                 )
             )
+
+        if merge_banlists:
+            from banlist_sync import get_global_banlist
+
+            external = get_global_banlist()
+            ip_set.update(external)
+            get_app_logger().debug(
+                f"[ExportIPs] Merged {len(external)} external banlist IPs"
+            )
+
         ips = list(ip_set)
 
         from ip_utils import is_valid_public_ip
