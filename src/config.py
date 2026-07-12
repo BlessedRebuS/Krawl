@@ -104,6 +104,11 @@ class Config:
     # Deception pages import settings
     deception_import_pages: bool = True
 
+    # SniffCat threat intel reporting
+    sniffcat_enabled: bool = False
+    sniffcat_api_key: str = ""
+    sniffcat_api_url: str = "https://api.sniffcat.com/api/v1"
+
     _server_ip: str | None = None
     _server_ip_resolved: bool = False
 
@@ -197,6 +202,7 @@ class Config:
         ai = data.get("ai", {})
         metrics = data.get("metrics", {})
         deception = data.get("deception", {})
+        sniffcat = data.get("sniffcat", {})
         # Support legacy nested `page_template` or top-level `custom_template_path`.
         page_template = data.get("page_template", {})
         custom_template_path = data.get("custom_template_path", None)
@@ -328,6 +334,9 @@ Generate the complete HTML page.""",
             ai_max_daily_requests=ai.get("max_daily_requests", 0),
             deception_import_pages=deception.get("import_pages", True),
             custom_template_path=custom_template_path,
+            sniffcat_enabled=sniffcat.get("enabled", False),
+            sniffcat_api_key=sniffcat.get("api_key", ""),
+            sniffcat_api_url=sniffcat.get("api_url", "https://api.sniffcat.com/api/v1"),
         )
 
 

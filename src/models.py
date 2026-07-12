@@ -227,6 +227,12 @@ class IpStats(Base):
         Boolean, nullable=True, default=False
     )
 
+    # Timestamp of the last successful SniffCat report for this IP.
+    # Used to respect the 20-minute cooldown between reports for the same IP.
+    sniffcat_reported_at: Mapped[datetime | None] = mapped_column(
+        DateTime, nullable=True, default=None
+    )
+
     __table_args__ = (
         Index("ix_ip_stats_category", "category"),
         Index("ix_ip_stats_need_reevaluation", "need_reevaluation"),

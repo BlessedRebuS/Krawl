@@ -161,3 +161,12 @@ deception:
   # Files are mapped to paths by replacing "/" with "_" (e.g., test_blabla.html -> /test/blabla)
   # A zip file containing deception pages can also be uploaded via the dashboard
   import_pages: true
+
+# SniffCat threat intelligence reporting.
+# When enabled, IPs categorized as "attacker" or "bad_crawler" are reported
+# to SniffCat at https://sniffcat.com. A valid API key is required.
+# Get one at https://sniffcat.com/api
+sniffcat:
+  enabled: false
+  api_key: ""
+  api_url: "https://api.sniffcat.com/api/v1"

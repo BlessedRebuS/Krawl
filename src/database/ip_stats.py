@@ -433,6 +433,63 @@ class IpStatsRepo:
         finally:
             self._db.close_session()
 
+    def get_ips_for_sniffcat_report(
+        self, interval_minutes: int = 20
+    ) -> list[dict[str, object]]:
+        session = self._db.session
+        try:
+            cutoff = datetime.now() - timedelta(minutes=interval_minutes)
+            rows = (
+                session.query(
+                    IpStats.ip,
+                    IpStats.category,
+                    IpStats.analyzed_metrics,
+                    IpStats.category_scores,
+                    IpStats.total_requests,
+                    IpStats.country_code,
+                )
+                .filter(
+                    IpStats.category.in_(["attacker", "bad_crawler"]),
+                    (
+                        IpStats.sniffcat_reported_at.is_(None)
+                        | (IpStats.sniffcat_reported_at < cutoff)
+                    ),
+                )
+                .all()
+            )
+            return [
+                {
+                    "ip": r.ip,
+                    "category": r.category,
+                    "analyzed_metrics": r.analyzed_metrics or {},
+                    "category_scores": r.category_scores or {},
+                    "total_requests": r.total_requests,
+                    "country_code": r.country_code,
+                }
+                for r in rows
+            ]
+        except Exception as e:
+            applogger.error(f"Error fetching IPs for sniffcat report: {e}")
+            return []
+        finally:
+            self._db.close_session()
+
+    def mark_sniffcat_reported(self, ip: str, reported_at: datetime | None = None) -> None:
+        session = self._db.session
+        try:
+            sanitized_ip = sanitize_ip(ip)
+            ip_stats = (
+                session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
+            )
+            if ip_stats:
+                ip_stats.sniffcat_reported_at = reported_at or datetime.now()
+                session.commit()
+        except Exception as e:
+            session.rollback()
+            applogger.error(f"Error marking IP {ip} as sniffcat reported: {e}")
+        finally:
+            self._db.close_session()
+
     def _record_category_change(
         self,
         ip: str,
