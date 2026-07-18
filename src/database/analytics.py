@@ -463,7 +463,6 @@ class AnalyticsRepo:
                     "ip": log.ip,
                     "method": log.method,
                     "path": log.path,
-                    "method": log.method,
                     "user_agent": log.user_agent,
                     "timestamp": log.timestamp.isoformat() if log.timestamp else None,
                     "attack_types": [d.attack_type for d in log.attack_detections],
