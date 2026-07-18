@@ -393,7 +393,7 @@ class AnalyticsRepo:
             offset = (page - 1) * page_size
 
             # Validate sort parameters
-            valid_sort_fields = {"timestamp", "ip", "attack_type"}
+            valid_sort_fields = {"timestamp", "ip", "attack_type", "request_size"}
             sort_by = sort_by if sort_by in valid_sort_fields else "timestamp"
             sort_order = (
                 sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
@@ -425,9 +425,14 @@ class AnalyticsRepo:
                 or 0
             )
 
-            # Order column lives on AccessLog (timestamp default; ip optional),
+            # Order column lives on AccessLog (timestamp default; ip/size optional),
             # so the outer query can be ordered and limited directly.
-            order_col = AccessLog.ip if sort_by == "ip" else AccessLog.timestamp
+            if sort_by == "ip":
+                order_col = AccessLog.ip
+            elif sort_by == "request_size":
+                order_col = func.length(AccessLog.raw_request)
+            else:
+                order_col = AccessLog.timestamp
             order_expr = order_col.desc() if sort_order == "desc" else order_col.asc()
 
             # Two-step load: page the matching ids first (index-driven, no
@@ -461,6 +466,7 @@ class AnalyticsRepo:
                     "user_agent": log.user_agent,
                     "timestamp": log.timestamp.isoformat() if log.timestamp else None,
                     "attack_types": [d.attack_type for d in log.attack_detections],
+                    "request_size": len(log.raw_request) if log.raw_request else 0,
                     "raw_request": log.raw_request,  # Keep for backward compatibility
                 }
                 for log in logs
