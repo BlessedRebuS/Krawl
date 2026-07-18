@@ -393,7 +393,13 @@ class AnalyticsRepo:
             offset = (page - 1) * page_size
 
             # Validate sort parameters
-            valid_sort_fields = {"timestamp", "ip", "attack_type", "request_size", "method"}
+            valid_sort_fields = {
+                "timestamp",
+                "ip",
+                "attack_type",
+                "request_size",
+                "method",
+            }
             sort_by = sort_by if sort_by in valid_sort_fields else "timestamp"
             sort_order = (
                 sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"

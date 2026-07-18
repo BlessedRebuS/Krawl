@@ -29,7 +29,6 @@ def _dashboard_path(request: Request) -> str:
     return "/" + config.dashboard_secret_path.lstrip("/")
 
 
-
 # ── Honeypot Triggers ────────────────────────────────────────────────
 
 
