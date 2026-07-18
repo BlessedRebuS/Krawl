@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acme Corp - Internal Portal</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f4f4f4;color:#333}
+.container{width:90%;max-width:960px;margin:20px auto;background:#fff;padding:20px;box-shadow:0 0 10px rgba(0,0,0,.1)}
+header{text-align:center;border-bottom:2px solid #0066cc;padding-bottom:10px;margin-bottom:20px}
+header h1{margin:0;color:#0066cc}
+header p{margin:5px 0 0;color:#666;font-size:.9em}
+nav{text-align:center;border-top:1px solid #ddd;border-bottom:1px solid #ddd;padding:10px 0;margin-bottom:20px;font-size:.9em}
+nav a{color:#0066cc;text-decoration:none;margin:0 10px}
+nav a:hover{text-decoration:underline}
+.main h2{color:#0066cc}
+.main ul{line-height:1.6}
+footer{text-align:center;font-size:.8em;color:#777;margin-top:30px;border-top:1px solid #ddd;padding-top:10px}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>Acme Corp Internal Portal</h1>
+<p>Version 2.3.1 - Build 20240915</p>
+</header>
+<nav>
+<a href="/">Home</a> |
+<a href="/admin">Admin Login</a> |
+<a href="/api/status">API Status</a> |
+<a href="/contact">Contact</a>
+</nav>
+<section class="main">
+<h2>Welcome to the Intranet</h2>
+<p>Internal server details:</p>
+<ul>
+<li>Hostname: intra.acme.local</li>
+<li>IP Address: 10.0.0.5</li>
+<li>OS: Ubuntu 20.04 LTS</li>
+<li>Web Server: Apache/2.4.41 (Ubuntu)</li>
+<li>PHP: 7.4.3</li>
+<li>Database: MySQL 5.7.33-0ubuntu0.18.04.1</li>
+</ul>
+</section>
+<footer>
+<p>&copy; 2024 Acme Corp. All rights reserved.</p>
+</footer>
+</div>
+<script>
+// Simple client-side date display
+(function(){
+var d=new Date();
+var options={year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'};
+var str=d.toLocaleDateString(undefined,options);
+document.getElementById('date')?document.getElementById('date').textContent=str:null;
+})();
+</script>
+</body>
+</html>

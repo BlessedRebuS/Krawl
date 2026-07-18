@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Acme Corp - Internal Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family: Arial, Helvetica, sans-serif; margin:0; padding:0; background:#f4f6f9; color:#333;}
+        header {background:#003366; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#004080; color:#fff; display:flex; justify-content:center; gap:1.5rem; padding:0.5rem 0;}
+        nav a {color:#fff; text-decoration:none; font-weight:bold;}
+        nav a:hover {text-decoration:underline;}
+        .container {max-width:1200px; margin:2rem auto; padding:0 1rem;}
+        .card {background:#fff; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin-bottom:1.5rem; overflow:hidden;}
+        .card-header {background:#e6f0ff; padding:0.75rem 1rem; font-size:1.1rem; border-bottom:1px solid #cce0f5;}
+        .card-body {padding:1rem;}
+        table {width:100%; border-collapse:collapse;}
+        th, td {padding:0.75rem; text-align:left; border-bottom:1px solid #eee;}
+        th {background:#f0f8ff;}
+        tr:hover td {background:#f9fcff;}
+        .badge {display:inline-block; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.85rem;}
+        .bg-green {background:#d4edda; color:#155724;}
+        .bg-yellow {background:#fff3cd; color:#856404;}
+        .bg-red {background:#f8d7da; color:#721c24;}
+        footer {text-align:center; padding:1rem; font-size:0.9rem; color:#666; background:#e9ecef; margin-top:2rem;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Acme Corp Internal Portal</h1>
+        <p>Version 2.4.1 • Build 20240915</p>
+    </header>
+    <nav>
+        <a href="/">Dashboard</a>
+        <a href="/users">User Management</a>
+        <a href="/logs">System Logs</a>
+        <a href="/settings">Settings</a>
+        <a href="/help">Help</a>
+    </nav>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">System Overview</div>
+            <div class="card-body">
+                <table>
+                    <tr><th>Metric</th><th>Value</th></tr>
+                    <tr><td>Server OS</td><td>Ubuntu 20.04.6 LTS (Focal Fossa)</td></tr>
+                    <tr><td>Web Server</td><td>Apache/2.4.41 (Ubuntu)</td></tr>
+                    <tr><td>PHP Version</td><td>7.4.33</td></tr>
+                    <tr><td>Database</td><td>MySQL 5.7.40-log</td></tr>
+                    <tr><td>Hostname</td><td>acme-internal01.acme.local</td></tr>
+                    <tr><td>Internal IP</td><td>10.0.0.5</td></tr>
+                    <tr><td>Uptime</td><td>12 days, 3 hours, 42 minutes</td></tr>
+                    <tr><td>Load Average</td><td>0.23, 0.18, 0.15</td></tr>
+                </table>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">Recent Activity</div>
+            <div class="card-body">
+                <table>
+                    <tr><th>Time</th><th>User</th><th>Action</th><th>Status</th></tr>
+                    <tr><td>2024-09-25 08:12:04</td><td>j.smith</td><td>Login</td><td><span class="badge bg-green">Success</span></td></tr>
+                    <tr><td>2024-09-25 07:58:19</td><td>m.lee</td><td>File Upload</td><td><span class="badge bg-green">Success</td></tr>
+                    <tr><td>2024-09-25 07:45:03</td><td>admin</td><td>Config Change</td><td><span class="badge bg-yellow">Warning</span></td></tr>
+                    <tr><td>2024-09-25 07:30:21</td><td>unknown (10.0.0.57)</td><td>Failed Login</td><td><span class="badge bg-red">Failed</span></td></tr>
+                </table>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">Notifications</div>
+            <div class="card-body">
+                <ul style="list-style:none; padding:0;">
+                    <li><strong>[INFO]</strong> Backup completed successfully at 02:00 AM.</li>
+                    <li><strong>[WARN]</strong> Disk usage on /var/log is 78% (threshold 80%).</li>
+                    <li><strong>[INFO]</strong> New patch Apache 2.4.46 available.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <footer>
+        &copy; 2024 Acme Corporation • Internal Use Only • <a href="/logout" style="color:#003366;">Logout</a>
+    </footer>
+</body>
+</html>

@@ -1104,25 +1104,26 @@ class IpStatsRepo:
         ban_duration_seconds: int,
         page: int = 1,
         page_size: int = 25,
+        sort_by: str = "time_left",
+        sort_order: str = "desc",
     ) -> dict[str, Any]:
-        """Paginated view of currently timed-out IPs with remaining time."""
+        """Paginated view of currently timed-out IPs with remaining time.
+
+        Sortable by ``time_left`` (remaining_ban_seconds), ``violations``, or
+        ``multiplier``; any other value falls back to newest-ban-first order.
+        """
         session = self._db.session
         try:
             candidates = self._timedout_candidates(session, ban_duration_seconds)
-            total = len(candidates)
-            total_pages = max(1, (total + page_size - 1) // page_size)
-            page = max(1, page)
-            start = (page - 1) * page_size
-            window = candidates[start : start + page_size]
 
             now = datetime.now()
-            items = []
-            for r in window:
+            all_items = []
+            for r in candidates:
                 multiplier = r.ban_multiplier or 1
                 effective = ban_duration_seconds * multiplier
                 elapsed = (now - r.ban_timestamp).total_seconds()
                 remaining = max(0, int(effective - elapsed))
-                items.append(
+                all_items.append(
                     {
                         "ip": r.ip,
                         "remaining_ban_seconds": remaining,
@@ -1135,8 +1136,27 @@ class IpStatsRepo:
                     }
                 )
 
+            sort_keys = {
+                "time_left": "remaining_ban_seconds",
+                "violations": "total_violations",
+                "multiplier": "ban_multiplier",
+            }
+            if sort_by in sort_keys:
+                all_items.sort(
+                    key=lambda d: d[sort_keys[sort_by]],
+                    reverse=(sort_order != "asc"),
+                )
+
+            total = len(all_items)
+            total_pages = max(1, (total + page_size - 1) // page_size)
+            page = max(1, page)
+            start = (page - 1) * page_size
+            items = all_items[start : start + page_size]
+
             return {
                 "items": items,
+                "sort_by": sort_by,
+                "sort_order": sort_order,
                 "pagination": {
                     "page": page,
                     "page_size": page_size,

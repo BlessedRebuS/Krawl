@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Acme Corp - Internal Dashboard</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:20px; background:#f4f4f4;}
+        header {background:#003366; color:#fff; padding:10px 20px;}
+        nav {margin:15px 0;}
+        nav a {margin-right:15px; text-decoration:none; color:#003366;}
+        .content {background:#fff; padding:20px; margin-top:20px; box-shadow:0 0 5px rgba(0,0,0,0.1);}
+        table {width:100%; border-collapse:collapse; margin-top:10px;}
+        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+        th {background:#e2e2e2;}
+        form {margin-top:15px;}
+        input[type=text], input[type=password] {padding:8px; width:200px;}
+        input[type=submit] {padding:8px 12px; background:#003366; color:#fff; border:none; cursor:pointer;}
+    </style>
+</head>
+<body>
+<header>
+    <h1>Acme Corp</h1>
+    <p>Internal Dashboard</p>
+</header>
+<nav>
+    <a href="/">Home</a>
+    <a href="/reports">Reports</a>
+    <a href="/admin">Admin</a>
+    <a href="/login">Login</a>
+</nav>
+<div class="content">
+    <h2>Welcome to the Internal Portal</h2>
+    <p>Use the navigation above to access various internal tools.</p>
+    <h3>Latest Announcements</h3>
+    <ul>
+        <li>System maintenance scheduled for 2025-11-05 02:00 AM UTC.</li>
+        <li>New security policy effective immediately.</li>
+        <li>Quarterly sales figures uploaded to /reports/sales Q3.pdf</li>
+    </ul>
+    <h3>Employee Directory (sample)</h3>
+    <table>
+        <thead>
+            <tr><th>ID</th><th>Name</th><th>Department</th><th>Email</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>1001</td><td>John Doe</td><td>IT</td><td>john.doe@acmecorp.example</td></tr>
+            <tr><td>1002</td><td>Jane Smith</td><td>HR</td><td>jane.smith@acmecorp.example</td></tr>
+            <tr><td>1003</td><td>Alice Johnson</td><td>Finance</td><td>alice.johnson@acmecorp.example</td></tr>
+            <tr><td>1004</td><td>Bob Brown</td><td>Marketing</td><td>bob.brown@acmecorp.example</td></tr>
+        </tbody>
+    </table>
+    <h3>Quick Login (for demo)</h3>
+    <form action="/login" method="post">
+        <label for="user">Username:</label>
+        <input type="text" id="user" name="username" placeholder="Enter username"><br><br>
+        <label for="pass">Password:</label>
+        <input type="password" id="pass" name="password" placeholder="Enter password"><br><br>
+        <input type="submit" value="Log In">
+    </form>
+    <p><em>Note: This is a demo environment. No real credentials are stored.</em></p>
+</div>
+</body>
+</html>

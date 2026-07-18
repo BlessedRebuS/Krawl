@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Intranet Portal - Acme Corp</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header {background:#003366; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#004080; color:#fff; display:flex; justify-content:center; gap:1.5rem; padding:0.5rem 0;}
+        nav a {color:#fff; text-decoration:none; font-weight:bold;}
+        nav a:hover {text-decoration:underline;}
+        .container {max-width:960px; margin:2rem auto; background:#fff; padding:2rem; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1 {color:#003366;}
+        .footer {text-align:center; font-size:0.8rem; color:#666; margin-top:2rem; border-top:1px solid #ddd; padding-top:1rem;}
+        .info {background:#e8f4fc; border-left:4px solid #003366; padding:1rem; margin:1.5rem 0;}
+        .version {font-size:0.9rem; color:#555;}
+    </style>
+    <script>
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleString();
+        }
+        setInterval(updateTime, 1000);
+        window.onload = updateTime;
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Acme Corp Intranet Portal</h1>
+        <p>Internal access only</p>
+    </header>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/reports">Reports</a>
+        <a href="/admin">Admin</a>
+        <a href="/settings">Settings</a>
+        <a href="/logout">Logout</a>
+    </nav>
+    <div class="container">
+        <h2>Welcome, <span id="user">admin</span></h2>
+        <p>Last login: 2025-10-28 08:14:22 from 10.0.0.57</p>
+        <div class="info">
+            <strong>Server Information:</strong><br>
+            Apache/2.4.41 (Ubuntu)<br>
+            PHP/7.4.3<br>
+            MySQL 5.7.33-log<br>
+            <span class="version">Internal IP: 10.0.0.5</span><br>
+            <span class="version">Database: acme_db</span>
+        </div>
+        <div class="info">
+            <strong>System Status:</strong><br>
+            Uptime: 12 days, 4 hours<br>
+            Load average: 0.23, 0.19, 0.15<br>
+            Active sessions: 7
+        </div>
+        <p>Current server time: <span id="clock"></span></p>
+    </div>
+    <footer class="footer">
+        &copy; 2025 Acme Corp. All rights reserved. | Internal use only.
+    </footer>
+</body>
+</html>

@@ -125,7 +125,7 @@ h1 {
     align-items: center;
     gap: 6px;
     transition: background 0.2s;
-    font-size: 12px;
+    font-size: 14px;
 }
 .banlist-dropdown-menu a:hover {
     background-color: #1c2128;
@@ -170,7 +170,7 @@ h1 {
     color: #f85149;
 }
 .stat-label {
-    font-size: 12px;
+    font-size: 14px;
     color: #8b949e;
     margin-top: 8px;
     line-height: 1.3;
@@ -711,6 +711,53 @@ tbody {
     color: #f0883e;
     font-weight: 500;
 }
+.method-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid #8b949e4d;
+    background: #8b949e26;
+    color: #c9d1d9;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+.method-get {
+    border-color: #58a6ff4d;
+    background: #1f6feb26;
+    color: #58a6ff;
+}
+.method-post {
+    border-color: #3fb9504d;
+    background: #23863626;
+    color: #3fb950;
+}
+.method-put,
+.method-patch {
+    border-color: #d299224d;
+    background: #9e6a0326;
+    color: #d29922;
+}
+.method-delete {
+    border-color: #f851494d;
+    background: #da363326;
+    color: #f85149;
+}
+.method-head,
+.method-options {
+    border-color: #a371f74d;
+    background: #8957e526;
+    color: #a371f7;
+}
+.method-query {
+    border-color: #39c5cf4d;
+    background: #39c5cf26;
+    color: #39c5cf;
+}
+.size-cell {
+    white-space: nowrap;
+    min-width: 64px;
+}
 .reputation-score {
     font-weight: 700;
 }
@@ -1142,12 +1189,32 @@ tbody {
     border-radius: 6px;
     padding: 16px;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
+    font-size: 14px;
     color: #c9d1d9;
     white-space: pre-wrap;
     word-wrap: break-word;
     max-height: 400px;
     overflow-y: auto;
+}
+.raw-token-method {
+    color: #ff7b72;
+    font-weight: 700;
+}
+.raw-token-path {
+    color: #d2a8ff;
+}
+.raw-token-version {
+    color: #79c0ff;
+}
+.raw-token-header {
+    color: #7ee787;
+}
+.raw-token-value {
+    color: #c9d1d9;
+}
+.raw-token-separator {
+    display: block;
+    height: 8px;
 }
 .raw-request-modal-footer {
     padding: 16px 20px;

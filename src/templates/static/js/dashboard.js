@@ -103,10 +103,12 @@ document.addEventListener('alpine:init', () => {
         dashboardPath: window.__DASHBOARD_PATH__ || '',
 
         // Export IPs modal
-        exportModal: { show: false, categories: ['attacker'], fwtype: 'raw', error: '', loading: false },
+        exportModal: { show: false, categories: ['attacker'], fwtype: 'raw', error: '', loading: false, mergeBanlists: false },
+        banlistSources: [],
+        showBanlistSources: false,
 
         // Raw request modal
-        rawModal: { show: false, content: '', logId: null },
+        rawModal: { show: false, content: '', highlightedContent: '', logId: null },
 
         // Map state
         mapInitialized: false,
@@ -138,6 +140,19 @@ document.addEventListener('alpine:init', () => {
             // Sync ban action button visibility with auth state
             this.$watch('authenticated', (val) => updateBanActionVisibility(val));
             updateBanActionVisibility(this.authenticated);
+
+            // Fetch banlist sources when export modal opens
+            this.$watch('exportModal.show', async (show) => {
+                if (show) {
+                    try {
+                        const resp = await fetch(`${this.dashboardPath}/api/banlist-sources`, { credentials: 'same-origin' });
+                        if (resp.ok) {
+                            const data = await resp.json();
+                            this.banlistSources = data.sources || [];
+                        }
+                    } catch {}
+                }
+            });
 
             // Set flag to prevent double-triggering during initialization
             this._initializingHash = true;
@@ -306,6 +321,9 @@ document.addEventListener('alpine:init', () => {
                 categories: (this.exportModal.categories.slice().sort()).join(','),
                 fwtype: this.exportModal.fwtype,
             });
+            if (this.exportModal.mergeBanlists) {
+                params.set('merge_banlists', 'true');
+            }
             return `${window.location.origin}${this.dashboardPath}/api/export-ips?${params}`;
         },
 
@@ -334,6 +352,9 @@ document.addEventListener('alpine:init', () => {
                     categories: this.exportModal.categories.join(','),
                     fwtype: this.exportModal.fwtype,
                 });
+                if (this.exportModal.mergeBanlists) {
+                    params.set('merge_banlists', 'true');
+                }
                 const resp = await fetch(`${this.dashboardPath}/api/export-ips?${params}`, {
                     credentials: 'same-origin',
                 });
@@ -458,6 +479,7 @@ document.addEventListener('alpine:init', () => {
                 }
                 const data = await resp.json();
                 this.rawModal.content = data.raw_request || 'No content available';
+                this.rawModal.highlightedContent = this.highlightRawRequest(this.rawModal.content);
                 this.rawModal.logId = logId;
                 this.rawModal.show = true;
             } catch (err) {
@@ -465,9 +487,43 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
+        escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        },
+
+        highlightRawRequest(rawRequest) {
+            const escapedLines = this.escapeHtml(rawRequest).split(/\r?\n/);
+            const requestLine = /^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+(\S+)\s+(HTTP\/\d(?:\.\d)?)$/i;
+            const headerLine = /^([^:\s][^:]*):(.*)$/;
+
+            return escapedLines.map((line, index) => {
+                if (index === 0) {
+                    return line.replace(
+                        requestLine,
+                        '<span class="raw-token-method">$1</span> <span class="raw-token-path">$2</span> <span class="raw-token-version">$3</span>'
+                    );
+                }
+
+                if (!line.trim()) {
+                    return '<span class="raw-token-separator"></span>';
+                }
+
+                return line.replace(
+                    headerLine,
+                    '<span class="raw-token-header">$1:</span><span class="raw-token-value">$2</span>'
+                );
+            }).join('\n');
+        },
+
         closeRawModal() {
             this.rawModal.show = false;
             this.rawModal.content = '';
+            this.rawModal.highlightedContent = '';
             this.rawModal.logId = null;
         },
 
@@ -506,6 +562,19 @@ document.addEventListener('alpine:init', () => {
                 detailRow.style.display =
                     detailRow.style.display === 'table-row' ? 'none' : 'table-row';
             }
+        },
+
+        colorizeUrl(url) {
+            const catColors = { attacker:'#f85149', bad_crawler:'#d29922', regular_user:'#58a6ff', good_crawler:'#3fb950', timed_out:'#db61a2' };
+            const escaped = url.replace(/[&<>"']/g, function(m) {
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+            });
+            let result = escaped;
+            for (const [cat, color] of Object.entries(catColors)) {
+                const re = new RegExp('(' + cat.replace(/_/g, '[_-]') + ')', 'gi');
+                result = result.replace(re, '<span style="color:' + color + ';font-weight:600;">$1</span>');
+            }
+            return result;
         },
     }));
 });

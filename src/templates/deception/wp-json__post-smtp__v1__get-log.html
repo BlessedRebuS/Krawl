@@ -2,52 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>WP JSON Post SMTP Log</title>
+    <title>Post SMTP Mail Log – get‑log</title>
     <style>
-        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9; color:#333;}
+        body {font-family: Arial, sans-serif; margin: 2rem; background:#f9f9f9; color:#333;}
         h1 {color:#2c3e50;}
-        pre {background:#ecf0f1; padding:15px; border-radius:5px; overflow-x:auto;}
-        nav {margin-bottom:20px;}
-        nav a {margin-right:15px; text-decoration:none; color:#2980b9;}
-        nav a:hover {text-decoration:underline;}
+        pre {background:#fff; padding:1rem; border:1px solid #ddd; overflow:auto; max-height:400px;}
+        .info {color:#27ae60;}
+        .debug {color:#2980b9;}
+        .warning {color:#f39c12;}
+        .error {color:#c0392b;}
     </style>
 </head>
 <body>
-    <nav>
-        <a href="/">Home</a>
-        <a href="/wp-admin/">Admin</a>
-        <a href="/wp-json/">WP JSON API</a>
-    </nav>
-    <h1>Post SMTP – Log Retrieval</h1>
-    <p>This endpoint returns the latest SMTP logging data for the Post SMTP plugin.</p>
+    <h1>Post SMTP Mail Log</h1>
+    <p><strong>Endpoint:</strong> /wp-json/post-smtp/v1/get-log</p>
     <pre>
-{
-  "status": "success",
-  "logs": [
-    {
-      "timestamp": "2025-09-25 10:12:03",
-      "level": "INFO",
-      "message": "Email sent to user@example.com via SMTP (smtp.gmail.com:587)"
-    },
-    {
-      "timestamp": "2025-09-25 10:11:58",
-      "level": "ERROR",
-      "message": "SMTP connection failed: Connection timed out after 30000ms"
-    },
-    {
-      "timestamp": "2025-09-25 10:10:45",
-      "level": "INFO",
-      "message": "SMTP authentication succeeded for user@example.com"
-    },
-    {
-      "timestamp": "2025-09-25 10:09:12",
-      "level": "WARN",
-      "message": "Retrying email to admin@example.com (attempt 2/3)"
-    }
-  ],
-  "total_entries": 4,
-  "generated_at": "2025-09-25T10:12:10Z"
-}
-</pre>
+<span class="info">[2025-09-24 10:12:03] INFO: Email sent to user@example.com (Subject: Welcome to Our Site)</span>
+<span class="debug">[2025-09-24 10:12:05] DEBUG: SMTP connection established to smtp.example.com:587 (TLS)</span>
+<span class="info">[2025-09-24 10:12:07] INFO: Email sent to admin@domain.com (Subject: Password Reset)</span>
+<span class="warning">[2025-09-24 10:12:09] WARNING: Retry attempt 1 for failed delivery to bounced@spam.net (Reason: 550 Mailbox unavailable)</span>
+<span class="debug">[2025-09-24 10:12:11] DEBUG: SMTP connection closed</span>
+<span class="info">[2025-09-24 10:12:13] INFO: Email sent to newsletter@list.org (Subject: Weekly Newsletter)</span>
+<span class="error">[2025-09-24 10:12:15] ERROR: Authentication failed for user smtp_user (Invalid credentials)</span>
+<span class="debug">[2025-09-24 10:12:17] DEBUG: Reconnecting with backup SMTP server smtp-backup.example.com:25</span>
+<span class="info">[2025-09-24 10:12:19] INFO: Email sent to support@company.com (Subject: Ticket #42 Update)</span>
+    </pre>
 </body>
 </html>

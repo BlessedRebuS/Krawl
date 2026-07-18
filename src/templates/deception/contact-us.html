@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acme Corp Intranet Dashboard</title>
+<style>
+    body {font-family: Arial, Helvetica, sans-serif; margin:0; padding:0; background:#f4f6f9; color:#333;}
+    header {background:#004080; color:#fff; padding:1rem; text-align:center;}
+    nav {background:#0066b3; overflow:hidden;}
+    nav a {float:left; display:block; color:#fff; text-align:center; padding:1rem 1.5rem; text-decoration:none;}
+    nav a:hover {background:#0080ff;}
+    .container {padding:2rem;}
+    .card {background:#fff; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin-bottom:1.5rem; padding:1.5rem;}
+    h2 {color:#004080; margin-top:0;}
+    .stats {display:flex; gap:1.5rem; flex-wrap:wrap;}
+    .stat {flex:1; min-width:150px; background:#e8f4fc; border-left:4px solid #0066b3; padding:1rem; border-radius:4px;}
+    .stat h3 {margin:0 0 .5rem 0; font-size:1rem; color:#0066b3;}
+    .stat p {font-size:1.8rem; margin:0; font-weight:bold;}
+    footer {background:#004080; color:#fff; text-align:center; padding:1rem; margin-top:2rem;}
+    .version {font-size:.9rem; opacity:.8;}
+</style>
+</head>
+<body>
+<header>
+    <h1>Acme Corp Intranet Portal</h1>
+    <div class="version">Apache/2.4.41 (Ubuntu) • PHP 7.4.3</div>
+</header>
+<nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/reports">Reports</a>
+    <a href="/users">User Management</a>
+    <a href="/settings">Settings</a>
+    <a href="/logout">Logout</a>
+</nav>
+<div class="container">
+    <section class="card">
+        <h2>Welcome back, <strong>jdoe</strong> (admin)</h2>
+        <p>Last login: 2025-11-02 08:14:23 from 10.0.0.45</p>
+    </section>
+
+    <section class="card">
+        <h2>System Overview</h2>
+        <div class="stats">
+            <div class="stat">
+                <h3>CPU Usage</h3>
+                <p>42%</p>
+            </div>
+            <div class="stat">
+                <h3>Memory</h3>
+                <p>3.8 / 7.9 GB</p>
+            </div>
+            <div class="stat">
+                <h3>Disk</h3>
+                <p>112 GB / 500 GB</p>
+            </div>
+            <div class="stat">
+                <h3>Uptime</h3>
+                <p>12 days, 4 hrs</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Recent Activity</h2>
+        <ul style="list-style:none; padding:0;">
+            <li style="padding:.5rem 0; border-bottom:1px solid #eee;"><strong>2025-11-02 07:58</strong> – Database backup completed for <code>acme_prod</code> on <code>10.0.0.22</code></li>
+            <li style="padding:.5rem 0; border-bottom:1px solid #eee;"><strong>2025-11-02 06:12</strong> – User <code>jsmith</code> changed password.</li>
+            <li style="padding:.5rem 0; border-bottom:1px solid #eee;"><strong>2025-11-01 22:03</strong> – Firewall rule updated: allow 10.0.10.0/24 to port 443.</li>
+            <li style="padding:.5rem 0; border-bottom:1px solid #eee;"><strong>2025-11-01 19:45</strong> – New version of internal tool deployed (v3.2.1).</li>
+        </ul>
+    </section>
+</div>
+<footer>
+    © 2025 Acme Corporation • Internal Use Only • <a href="/admin/login" style="color:#fff; text-decoration:underline;">Admin Login</a>
+</footer>
+</body>
+</html>

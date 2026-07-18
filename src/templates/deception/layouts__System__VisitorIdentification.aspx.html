@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CorpNet Internal Portal</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f4f6f9;color:#333}
+header{background:#003366;color:#fff;padding:1rem;text-align:center}
+header h1{margin:0;font-size:1.8rem}
+header p{margin:0.5rem 0 0;font-size:0.9rem;opacity:0.9}
+nav{background:#004080;color:#fff;padding:0.5rem}
+nav ul{list-style:none;margin:0;padding:0;display:flex;justify-content:center;gap:1.5rem}
+nav a{color:#fff;text-decoration:none;font-weight:bold}
+nav a:hover{text-decoration:underline}
+section{padding:2rem;max-width:800px;margin:auto}
+.status{font-weight:bold}
+.status.ok{color:#2e8b57}
+.status.error{color:#b22222}
+footer{background:#003366;color:#fff;text-align:center;padding:1rem;font-size:0.9rem;margin-top:2rem}
+#clock{font-family:monospace;font-size:1.1rem;margin-top:1rem}
+</style>
+</head>
+<body>
+<header>
+<h1>CorpNet Internal Portal</h1>
+<p>Version 2.4.1 (build 20240915)</p>
+</header>
+<nav>
+<ul>
+<li><a href="/dashboard">Dashboard</a></li>
+<li><a href="/reports">Reports</a></li>
+<li><a href="/admin/login">Admin</a></li>
+<li><a href="/logout">Logout</a></li>
+</ul>
+</nav>
+<section>
+<h2>Welcome, jdoe</h2>
+<p>Last login: 2025-09-24 08:12:03 from 10.0.0.57</p>
+<p>System status: <span class="status ok">Operational</span></p>
+<p>Internal IP: 10.0.0.12 | DB: corp_prod (PostgreSQL 13.7)</p>
+</section>
+<footer>
+<p>&copy; 2025 CorpNet Technologies. All rights reserved.</p>
+</footer>
+<script>
+function updateTime(){
+    const now=new Date();
+    document.getElementById('clock').textContent=now.toLocaleString();
+}
+setInterval(updateTime,1000);
+</script>
+<div id="clock"></div>
+</body>
+</html>

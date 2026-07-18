@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Login - CorpNet Intranet</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f2f2f2;margin:0;padding:0;display:flex;align-items:center;justify-content:center;height:100vh;}
+.login-box{background:#fff;padding:30px;border-radius:8px;box-shadow:0 2px 100px rgba(0,0,0,0.1);width:320px;}
+h2{margin-top:0;color:#333;text-align:center;}
+.input-group{margin-bottom:15px;}
+.input-group label{display:block;margin-bottom:5px;font-weight:bold;}
+.input-group input{width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box;}
+button{width:100%;padding:10px;background:#0066cc;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:16px;}
+button:hover{background:#004c99;}
+.footer{margin-top:20px;font-size:12px;color:#777;text-align:center;}
+</style>
+</head>
+<body>
+<div class="login-box">
+<h2>CorpNet Admin Portal</h2>
+<form method="POST" action="/admin/login">
+<div class="input-group">
+<label for="username">Username</label>
+<input type="text" id="username" name="username" placeholder="Enter username" required>
+</div>
+<div class="input-group">
+<label for="password">Password</label>
+<input type="password" id="password" name="password" placeholder="Enter password" required>
+</div>
+<button type="button" onclick="login()">Sign In</button>
+</form>
+<div class="footer">
+Version 2.4.1 • Build 20240915 • Internal IP: 10.0.5.23
+</div>
+</div>
+<script>
+function login(){
+var u=document.getElementById('username').value;
+var p=document.getElementById('password').value;
+if(u===''||p===''){
+alert('Please fill in both fields');
+return;
+}
+fetch('/admin/login',{
+method:'POST',
+headers:{'Content-Type':'application/x-www-form-urlencoded'},
+body:'username='+encodeURIComponent(u)+'&password='+encodeURIComponent(p)
+}).then(r=>r.json()).then(d=>{
+if(d.success){
+window.location.href='/admin/dashboard';
+}else{
+alert(d.message||'Login failed');
+}
+}).catch(e=>{alert('Error:'+e);});
+}
+</script>
+</body>
+</html>

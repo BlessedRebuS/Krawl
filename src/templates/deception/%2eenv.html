@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acme Corp – Innovative Solutions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body {font-family:Arial,Helvetica,sans-serif; margin:0; padding:0; background:#f4f6f9; color:#333;}
+    header {background:#004080; color:#fff; padding:1rem 2rem; display:flex; justify-content:space-between; align-items:center;}
+    header h1 {margin:0; font-size:1.8rem;}
+    nav a {color:#fff; margin-left:1.5rem; text-decoration:none; font-weight:500;}
+    nav a:hover {text-decoration:underline;}
+    .hero {background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="%23004080"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23fff" font-size="24">Acme</text></svg>') center/cover no-repeat; color:#fff; text-align:center; padding:4rem 1rem;}
+    .hero h2 {font-size:2.5rem; margin-bottom:0.5rem;}
+    .hero p {font-size:1.2rem; margin-bottom:1.5rem;}
+    .btn {display:inline-block; background:#ffcc00; color:#004080; padding:0.75rem 1.5rem; border-radius:4px; text-decoration:none; font-weight:bold;}
+    .section {padding:2rem; max-width:960px; margin:auto;}
+    .section h2 {color:#004080; border-bottom:2px solid #ffcc00; padding-bottom:0.3rem;}
+    .footer {background:#004080; color:#fff; text-align:center; padding:1rem; font-size:0.9rem;}
+</style>
+</head>
+<body>
+<header>
+    <h1>Acme Corp</h1>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/products">Products</a>
+        <a href="/solutions">Solutions</a>
+        <a href="/about">About</a>
+        <a href="/contact">Contact</a>
+        <a href="/admin">Admin Login</a>
+    </nav>
+</header>
+<section class="hero">
+    <h2>Driving Innovation Forward</h2>
+    <p>Empowering businesses with cutting‑edge technology and trusted support.</p>
+    <a href="/solutions" class="btn">Learn More</a>
+</section>
+<section class="section">
+    <h2>Our Solutions</h2>
+    <div style="display:flex; flex-wrap:wrap; gap:1.5rem;">
+        <div style="flex:1; min-width:260px; background:#fff; padding:1rem; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+            <h3>Cloud Infrastructure</h3>
+            <p>Scalable, secure cloud services built on enterprise‑grade hardware.</p>
+        </div>
+        <div style="flex:1; min-width:260px; background:#fff; padding:1rem; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+            <h3>AI‑Powered Analytics</h3>
+            <p>Turn data into actionable insights with our machine learning platform.</p>
+        </div>
+        <div style="flex:1; min-width:260px; background:#fff; padding:1rem; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+            <h3>Cybersecurity Suite</h3>
+            <p>Comprehensive threat detection and response for modern enterprises.</p>
+        </div>
+    </div>
+</section>
+<section class="section">
+    <h2>About Acme Corp</h2>
+    <p>Founded in 2008, Acme Corp delivers reliable technology solutions to Fortune 500 companies and growing startups alike. Our headquarters are located at <strong>192.168.10.45</strong> (internal network) and we maintain a global presence with data centers in New York, London, and Singapore.</p>
+    <p>Our platform runs on <strong>Acme CMS v2.3.1</strong>, backed by a PostgreSQL database named <strong>acme_prod</strong>.</p>
+</section>
+<footer class="footer">
+    © 2025 Acme Corp. All rights reserved. | Version 2.3.1 | Internal IP: 192.168.10.45
+</footer>
+<script>
+    // Simple mobile menu toggle (inline JS)
+    document.addEventListener('DOMContentLoaded', function () {
+        const nav = document.querySelector('nav');
+        const btn = document.createElement('div');
+        btn.style.display = 'none';
+        btn.innerHTML = '&#9776;';
+        btn.style.color = '#fff';
+        btn.style.fontSize = '1.5rem';
+        btn.style.cursor = 'pointer';
+        btn.style.padding = '0.5rem';
+        btn.onclick = function () {
+            nav.style.display = (nav.style.display === 'flex' ? 'none' : 'flex');
+        };
+        header.appendChild(btn);
+        // Show toggle on narrow screens
+        function checkWidth() {
+            if (window.innerWidth <= 768) {
+                btn.style.display = 'block';
+                nav.style.display = 'none';
+            } else {
+                btn.style.display = 'none';
+                nav.style.display = 'flex';
+            }
+        }
+        window.addEventListener('resize', checkWidth);
+        checkWidth();
+    });
+</script>
+</body>
+</body>
+</html>

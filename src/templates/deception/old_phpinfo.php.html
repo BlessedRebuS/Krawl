@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acme Corp Intranet Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body {font-family:Arial,sans-serif;margin:0;padding:0;background:#f4f6f9;color:#333;}
+    header {background:#003366;color:#fff;padding:1rem;text-align:center;}
+    nav {background:#004080;color:#fff;display:flex;justify-content:center;gap:1.5rem;padding:0.5rem;}
+    nav a {color:#fff;text-decoration:none;font-weight:bold;}
+    nav a:hover {text-decoration:underline;}
+    main {padding:2rem;}
+    .card {background:#fff;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1);margin-bottom:1.5rem;padding:1.5rem;}
+    h2 {color:#003366;margin-top:0;}
+    .meta {font-size:0.9rem;color:#555;margin-top:0.5rem;}
+    footer {background:#003366;color:#fff;text-align:center;padding:1rem;font-size:0.9rem;margin-top:2rem;}
+</style>
+</head>
+<body>
+<header>
+    <h1>Acme Corp Intranet Portal</h1>
+    <p>Internal tools and resources</p>
+</header>
+<nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/reports">Reports</a>
+    <a href="/docs">Documentation</a>
+    <a href="/admin/login">Admin</a>
+</nav>
+<main>
+    <section class="card">
+        <h2>Welcome, j.smith</h2>
+        <p class="meta">Last login: 2025-09-20 08:14:32 from 10.0.0.12</p>
+        <p>Welcome back to the Acme Corp intranet. Use the navigation above to access internal applications.</p>
+    </section>
+    <section class="card">
+        <h2>System Information</h2>
+        <p><strong>Server:</strong> Apache/2.4.41 (Ubuntu)</p>
+        <p><strong>PHP:</strong> 7.4.3</p>
+        <p><strong>MySQL:</strong> 5.7.33</p>
+        <p><strong>Database:</strong> acme_intranet</p>
+        <p><strong>Internal IP:</strong> 10.0.0.45</p>
+    </section>
+    <section class="card">
+        <h2>Announcements</h2>
+        <ul>
+            <li><strong>Sep 18, 2025:</strong> Maintenance window scheduled for Sep 25, 02:00-04:00 UTC.</li>
+            <li><strong>Sep 15, 2025:</strong> New version of the expense tracking tool released (v2.3.1).</li>
+            <li><strong>Sep 10, 2025:</strong> Security reminder: Do not share passwords via email.</li>
+        </ul>
+    </section>
+</main>
+<footer>
+    &copy; 2025 Acme Corp. All rights reserved.
+</footer>
+</body>
+</html>
