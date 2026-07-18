@@ -561,9 +561,11 @@ async def htmx_attacks(
             {
                 "ip": attack["ip"],
                 "path": attack["path"],
+                "method": attack.get("method", "GET"),
                 "attack_type": ", ".join(attack.get("attack_types", [])),
                 "user_agent": attack.get("user_agent", ""),
                 "timestamp": attack.get("timestamp"),
+                "request_size": attack.get("request_size", 0),
                 "log_id": attack.get("id"),
             }
         )

@@ -32,6 +32,13 @@
         <tr>
             <th>#</th>
             <th>IP Address</th>
+            <th>Method</th>
+            <th class="sortable {% if sort_by == 'request_size' %}{{ sort_order }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/attacks?page=1&sort_by=request_size&sort_order={% if sort_by == 'request_size' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ filter_qs }}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML">
+                Size
+            </th>
             <th>Path</th>
             <th>Attack Types</th>
             <th>User-Agent</th>
@@ -55,6 +62,11 @@
                 @click="toggleIpDetail($event)">
                 {{ attack.ip | e }}
             </td>
+            <td>
+                {% set method = attack.method | default('GET') | upper %}
+                <span class="method-badge method-{{ method | lower | e }}">{{ method | e }}</span>
+            </td>
+            <td>{{ attack.request_size | format_size }}</td>
             <td>
                 <div class="path-cell-container">
                     <span class="path-truncated">{{ attack.path | e }}</span>
@@ -88,14 +100,14 @@
             </td>
         </tr>
         <tr class="ip-stats-row" style="display: none;">
-            <td colspan="7" class="ip-stats-cell">
+            <td colspan="9" class="ip-stats-cell">
                 <div class="ip-stats-dropdown">
                     <div class="loading">Loading stats...</div>
                 </div>
             </td>
         </tr>
         {% else %}
-        <tr><td colspan="7" class="empty-state">No attacks detected</td></tr>
+        <tr><td colspan="9" class="empty-state">No attacks detected</td></tr>
         {% endfor %}
     </tbody>
 </table>

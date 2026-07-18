@@ -138,6 +138,25 @@ FAKE_USER_AGENTS = [
     "nikto/2.1.6",
 ]
 
+
+def _build_fake_raw_request(method: str, path: str, user_agent: str, large: bool = False, huge: bool = False) -> str:
+    """Build a fake raw HTTP request string matching build_raw_request format."""
+    raw = f"{method} {path} HTTP/1.1\r\n"
+    raw += "Host: example.com\r\n"
+    raw += f"User-Agent: {user_agent}\r\n"
+    raw += "Accept: */*\r\n"
+    raw += "Connection: keep-alive\r\n"
+    if method == "POST":
+        raw += "Content-Type: application/x-www-form-urlencoded\r\n"
+    if huge:
+        raw += "X-Padding: " + "B" * (2 * 1024 * 1024) + "\r\n"
+    elif large:
+        raw += "X-Padding: " + "A" * 1200 + "\r\n"
+    raw += "\r\n"
+    if method == "POST":
+        raw += "username=admin&password=secret"
+    return raw
+
 FAKE_CREDENTIALS = [
     ("admin", "admin"),
     ("admin", "password"),
@@ -338,14 +357,19 @@ def generate_fake_data(
                 num_attacks = random.randint(1, 3)
                 attack_types = random.sample(ATTACK_TYPES, num_attacks)
 
+            method = random.choice(["GET", "POST"])
+            r = random.random()
+            raw_request = _build_fake_raw_request(method, path, user_agent, large=r < 0.3, huge=r < 0.05)
+
             log_id = db_manager.persist_access(
                 ip=ip,
                 path=path,
                 user_agent=user_agent,
-                method=random.choice(["GET", "POST"]),
+                method=method,
                 is_suspicious=is_suspicious,
                 is_honeypot_trigger=is_honeypot,
                 attack_types=attack_types,
+                raw_request=raw_request,
             )
 
             if log_id:
@@ -377,7 +401,7 @@ def generate_fake_data(
 
         if geo_data:
             country_code, city, asn, asn_org = geo_data
-            db_manager.update_ip_rep_infos(
+            db_manager.ip_stats.update_ip_rep_infos(
                 ip=ip,
                 country_code=country_code,
                 asn=asn if asn else 12345,
@@ -404,7 +428,7 @@ def generate_fake_data(
             f"  ⟳ Analyzing behavior - Initial category: {initial_category}"
         )
 
-        db_manager.update_ip_stats_analysis(
+        db_manager.ip_stats.update_ip_stats_analysis(
             ip=ip,
             analyzed_metrics=generate_analyzed_metrics(),
             category=initial_category,
@@ -425,7 +449,7 @@ def generate_fake_data(
                 f"  ⟳ Behavior change detected: {initial_category} → {new_category}"
             )
 
-            db_manager.update_ip_stats_analysis(
+            db_manager.ip_stats.update_ip_stats_analysis(
                 ip=ip,
                 analyzed_metrics=generate_analyzed_metrics(),
                 category=new_category,
@@ -444,7 +468,7 @@ def generate_fake_data(
                 )
 
                 time.sleep(0.1)
-                db_manager.update_ip_stats_analysis(
+                db_manager.ip_stats.update_ip_stats_analysis(
                     ip=ip,
                     analyzed_metrics=generate_analyzed_metrics(),
                     category=final_category,
@@ -482,12 +506,13 @@ def generate_fake_data(
                 is_suspicious=False,
                 is_honeypot_trigger=False,
                 attack_types=None,
+                raw_request=_build_fake_raw_request("GET", "/robots.txt", "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"),
             )
 
             # Add geolocation if API fetch was successful
             if geo_data:
                 country_code, city, asn, asn_org = geo_data
-                db_manager.update_ip_rep_infos(
+                db_manager.ip_stats.update_ip_rep_infos(
                     ip=crawler_ip,
                     country_code=country_code,
                     asn=asn if asn else 12345,
@@ -502,7 +527,7 @@ def generate_fake_data(
                 app_logger.warning(f"  ⚠ Could not fetch geolocation for {crawler_ip}")
 
             # Set category to good_crawler - this sets manual_category=True to prevent re-analysis
-            db_manager.update_ip_stats_analysis(
+            db_manager.ip_stats.update_ip_stats_analysis(
                 ip=crawler_ip,
                 analyzed_metrics={
                     "request_frequency": 0.1,  # Very low frequency

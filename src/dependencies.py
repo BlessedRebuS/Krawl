@@ -33,6 +33,7 @@ def get_templates() -> Jinja2Templates:
             default=True,
         )
         _templates.env.filters["format_ts"] = _format_ts
+        _templates.env.filters["format_size"] = _format_size
     return _templates
 
 
@@ -50,6 +51,18 @@ def _format_ts(value, time_only=False):
     if value.date() == datetime.now().date():
         return value.strftime("%H:%M:%S")
     return value.strftime("%d/%m/%Y %H:%M:%S")
+
+
+def _format_size(value):
+    """Format byte count as B / KB / MB using 1024-based thresholds."""
+    if not value:
+        return "0 B"
+    value = int(value)
+    if value < 1024:
+        return f"{value} B"
+    if value < 1024 * 1024:
+        return f"{value / 1024:.1f} KB"
+    return f"{value / (1024 * 1024):.1f} MB"
 
 
 def get_tracker(request: Request) -> AccessTracker:
