@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Internal Portal</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:40px;}
+        .container {max-width:400px; margin:auto; padding:20px; border:1px solid #ccc;}
+        input {width:100%; padding:8px; margin:8px 0;}
+        button {background:#0066cc; color:#fff; padding:10px 15px; border:none; cursor:pointer;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Employee Login</h1>
+        <p>Please enter your credentials to access the internal portal.</p>
+        <form action="/login.php" method="POST">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Sign In</button>
+        </form>
+        <p><small>For internal use only. Unauthorized access is prohibited.</small></p>
+        <!-- Debug: SELECT * FROM users WHERE username='$username' AND password='$password' -->
+    </div>
+</body>
+</html>

@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from config import get_config
 from dashboard_cache import flush_all as flush_cache
 from dashboard_cache import initialize_cache
-from database import initialize_database
+from database import get_database, initialize_database
 from generators import random_server_header
 from logger import get_access_logger, get_app_logger, initialize_logging
 from routes.dashboard import KRAWL_VERSION
@@ -68,6 +68,17 @@ async def lifespan(app: FastAPI):
                 f"Database initialization failed: {e}. Continuing with in-memory only."
             )
 
+    # One-time startup cleanup: purge configured ignored IPs that predate the
+    # tracking guard and clear stale (fully expired) ban state.
+    try:
+        from database.startup import run_startup_cleanup
+
+        run_startup_cleanup(
+            get_database(), config.ban_duration_seconds, config.ignored_ips
+        )
+    except Exception as e:
+        app_logger.warning(f"Startup cleanup skipped: {e}")
+
     # Initialize cache backend (in-memory dict for standalone, Redis for scalable)
     try:
         if config.mode == "scalable":
@@ -108,7 +119,6 @@ async def lifespan(app: FastAPI):
     # recompute). In scalable mode only the first pod actually seeds.
     try:
         import metrics_counters
-        from database import get_database
 
         metrics_counters.bootstrap(get_database())
         app_logger.info("Metric counters seeded")
@@ -149,6 +159,16 @@ async def lifespan(app: FastAPI):
     # Initialize tracker
     tracker = AccessTracker(config.max_pages_limit, config.ban_duration_seconds)
     set_tracker(tracker)
+
+    # Initial banlist sync (before accepting traffic)
+    if config.banlist_sources:
+        try:
+            from banlist_sync import refresh_banlist_sources
+
+            refresh_banlist_sources()
+            app_logger.info("Initial banlist sync complete")
+        except Exception as e:
+            app_logger.warning(f"Initial banlist sync failed: {e}")
 
     # Store in app.state for dependency injection
     app.state.config = config
@@ -308,6 +328,20 @@ def create_app() -> FastAPI:
 
     # OpenAPI spec and Swagger UI served under the secret dashboard path
     _setup_openapi(application, dashboard_prefix)
+
+    # Public banlist route (before honeypot catch-all, after dashboard)
+    if config.banlist_export_path:
+        from routes.banlist import public_banlist_handler
+
+        banlist_path = config.banlist_export_path
+        if not banlist_path.startswith("/"):
+            banlist_path = "/" + banlist_path
+        application.add_api_route(
+            banlist_path,
+            public_banlist_handler,
+            methods=["GET"],
+            include_in_schema=False,
+        )
 
     # Honeypot routes (catch-all must be last)
     application.include_router(honeypot_router)

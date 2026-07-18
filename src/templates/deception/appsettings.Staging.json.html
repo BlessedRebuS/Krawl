@@ -1,0 +1,39 @@
+<html><body>{
+  "AppName": "MyApp.Staging",
+  "Version": "3.2.1.0",
+  "Database": {
+    "Name": "MyApp_Staging",
+    "Server": "10.1.2.3",
+    "User": "dbadmin",
+    "Password": "P@ssw0rd!2024"
+  },
+  "ConnectionStrings": {
+    "Default": "Server=10.1.2.3;Database=MyApp_Staging;User Id=dbadmin;Password=P@ssw0rd!2024;Encrypt=False;TrustServerCertificate=True"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Debug",
+      "Microsoft": "Warning",
+      "System": "Warning"
+    },
+    "LogPath": "/var/log/myapp/staging.log"
+  },
+  "FeatureFlags": {
+    "EnableBetaMode": true,
+    "EnableDeveloperTools": false,
+    "EnableTelemetry": true
+  },
+  "Auth": {
+    "JwtSecret": "supersecretkey123!@#$$%^&*()",
+    "Issuer": "MyApp.Staging",
+    "Audience": "MyAppClients"
+  },
+  "Cache": {
+    "RedisEndpoint": "10.1.2.4:6379",
+    "CacheTTLSeconds": 300
+  },
+  "AllowedHosts": [
+    "staging.myapp.internal",
+    "10.1.2.3"
+  ]
+}</body></html>

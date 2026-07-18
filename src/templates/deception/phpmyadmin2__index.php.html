@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Intranet Portal - Login</title>
+<style>
+    body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;display:flex;height:100vh;align-items:center;justify-content:center}
+    .card{background:#fff;padding:2rem;border-radius:8px;box-shadow:0 4px12px rgba(0,0,0,.15);width:320px}
+    h2{margin-top:0;color:#2c3e50;text-align:center}
+    .input-group{margin-bottom:1.5rem}
+    .input-group label{display:block;margin-bottom:.3rem;font-weight:600;color:#34495e}
+    .input-group input{width:100%;padding:.6rem;border:1px solid #bdc3c7;border-radius:4px;font-size:1rem}
+    .input-group input:focus{outline:none;border-color:#3498db}
+    .btn{width:100%;padding:.7rem;background:#2980b9;color:#fff;border:none;border-radius:4px;font-size:1rem;cursor:pointer}
+    .btn:hover{background:#3498db}
+    .footer{margin-top:1.5rem;font-size:.85rem;color:#7f8c8d;text-align:center}
+</style>
+</head>
+<body>
+<div class="card">
+    <h2>Intranet Portal</h2>
+    <div class="input-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Enter username" autocomplete="username">
+    </div>
+    <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter password" autocomplete="current-password">
+    </div>
+    <button class="btn" onclick="login()">Sign In</button>
+    <div class="footer">
+        Server: 192.168.10.45 &bull; Powered by MyCorp Intranet v2.3.1 &bull; DB: company_db
+    </div>
+</div>
+<script>
+function login(){
+    var u=document.getElementById('username').value;
+    var p=document.getElementById('password').value;
+    if(u==='' || p===''){
+        alert('Please fill in both fields');
+        return;
+    }
+    // Simulate login attempt
+    alert('Login attempted for user: '+u);
+    // In a real scenario this would submit to /auth
+}
+</script>
+</body>
+</html>

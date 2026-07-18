@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Debug Panel - SettingsPanel</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:20px; background:#f4f4f4;}
+        .container {max-width:800px; margin:auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1 {color:#333;}
+        table {width:100%; border-collapse:collapse; margin-top:20px;}
+        th, td {padding:10px; border:1px solid #ddd; text-align:left;}
+        th {background:#eaeaea;}
+        .btn {padding:6px 12px; background:#0066cc; color:#fff; border:none; cursor:pointer;}
+        .btn:hover {background:#004c99;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Debug Panel – SettingsPanel</h1>
+    <p>Use this interface to view and modify runtime configuration settings.</p>
+    <form action="/__debug__/render_panel" method="post">
+        <input type="hidden" name="panel_id" value="SettingsPanel">
+        <input type="hidden" name="csrf_token" value="a1b2c3d4e5f6g7h8i9j0">
+        <table>
+            <thead>
+                <tr>
+                    <th>Setting</th>
+                    <th>Current Value</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Site Title</td>
+                    <td><input type="text" name="site_title" value="My Awesome Site" style="width:100%;"></td>
+                    <td><button type="submit" name="action" value="update_site_title" class="btn">Save</button></td>
+                </tr>
+                <tr>
+                    <td>Cache Timeout (seconds)</td>
+                    <td><input type="number" name="cache_timeout" value="300" style="width:100%;"></td>
+                    <td><button type="submit" name="action" value="update_cache_timeout" class="btn">Save</button></td>
+                </tr>
+                <tr>
+                    <td>Debug Mode</td>
+                    <td><select name="debug_mode" style="width:100%;">
+                        <option value="true" selected>Enabled</option>
+                        <option value="false">Disabled</option>
+                    </select></td>
+                    <td><button type="submit" name="action" value="update_debug_mode" class="btn">Save</button></td>
+                </tr>
+                <tr>
+                    <td>Allowed IPs (comma‑separated)</td>
+                    <td><input type="text" name="allowed_ips" value="127.0.0.1,192.168.1.0/24" style="width:100%;"></td>
+                    <td><button type="submit" name="action" value="update_allowed_ips" class="btn">Save</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </form>
+    <hr>
+    <h2>Raw Debug Information</h2>
+    <pre>
+Environment:
+  APP_ENV=development
+  DEBUG=true
+  LOG_LEVEL=debug
+  DATABASE_URL=sqlite:///:memory:
+  SESSION_SECRET=*****
+Loaded Extensions:
+  - pdo_sqlite
+  - json
+  - mbstring
+  - openssl
+Recent Requests (last 5):
+  1. GET /api/users?_id=1' OR '1'='1
+  2. POST /login {"username":"admin","password":"' OR 1=1 --"}
+  3. GET /__debug__/render_panel?panel_id=SettingsPanel
+  4. GET /static/css/style.css
+  5. POST /contact {"name":"<script>alert('xss')</script>"}
+    </pre>
+</div>
+</body>
+</html>

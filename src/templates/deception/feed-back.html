@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acme Corp – Internal Portal</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f2f2f2;}
+header{background:#003366;color:#fff;padding:1rem;text-align:center;}
+nav{background:#004080;color:#fff;padding:0.5rem;}
+nav a{color:#fff;margin:0 1rem;text-decoration:none;}
+.container{max-width:960px;margin:2rem auto;background:#fff;padding:2rem;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+footer{text-align:center;padding:1rem;font-size:0.9rem;color:#666;}
+</style>
+</head>
+<body>
+<header>
+<h1>Acme Corp Internal Portal</h1>
+<p>Version 2.3.1 (Build 20240915)</p>
+</header>
+<nav>
+<a href="/dashboard">Dashboard</a>
+<a href="/reports">Reports</a>
+<a href="/admin/login">Admin Login</a>
+<a href="/contact">Contact</a>
+</nav>
+<div class="container">
+<h2>Welcome to the Acme Corp Intranet</h2>
+<p>This portal provides access to internal tools, reports, and administrative interfaces for authorized personnel.</p>
+<ul>
+<li><strong>Server:</strong> internal.acme.corp (10.0.0.45)</li>
+<li><strong>Database:</strong> acme_db (MySQL 5.7.33)</li>
+<li><strong>Platform:</strong> Apache/2.4.41 (Ubuntu) PHP/7.4.3</li>
+<li><strong>Last backup:</strong> 2025-08-30 02:14 UTC</li>
+</ul>
+<p>Use the navigation above to reach the desired section. For assistance, contact the IT helpdesk at <a href="mailto:it-support@acme.corp">it-support@acme.corp</a>.</p>
+</div>
+<footer>
+© 2025 Acme Corporation. All rights reserved.
+</footer>
+<script>
+function updateTime(){
+    var now = new Date();
+    document.getElementById('clock').textContent = now.toLocaleString();
+}
+setInterval(updateTime,1000);
+updateTime();
+</script>
+<div style="position:fixed;bottom:10px;right:10px;font-size:0.8rem;color:#555;">
+Server time: <span id="clock"></span>
+</div>
+</body>
+</html>

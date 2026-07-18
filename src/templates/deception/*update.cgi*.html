@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Acme Corp – Innovative Solutions</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {font-family:Arial,Helvetica,sans-serif;margin:0;padding:0;background:#f4f4f4;color:#333;}
+        header {background:#004080;color:#fff;padding:20px;text-align:center;}
+        nav {background:#e2e2e2;padding:10px;text-align:center;}
+        nav a {margin:0 15px;text-decoration:none;color:#004080;font-weight:bold;}
+        .container {max-width:960px;margin:20px auto;background:#fff;padding:20px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        footer {text-align:center;padding:10px;font-size:0.9em;color:#666;background:#e2e2e2;}
+        .btn {display:inline-block;background:#004080;color:#fff;padding:10px 20px;margin-top:15px;text-decoration:none;border-radius:4px;}
+        .features {display:flex;flex-wrap:wrap;gap:20px;}
+        .feature {flex:1 1 200px;background:#f9f9f9;padding:15px;border:1px solid #ddd;}
+    </style>
+</head>
+<body>
+<header>
+    <h1>Acme Corp</h1>
+    <p>Innovative Solutions for a Connected World</p>
+</header>
+<nav>
+    <a href="/">Home</a>
+    <a href="/about">About Us</a>
+    <a href="/services">Services</a>
+    <a href="/contact">Contact</a>
+    <a href="/admin">Admin Login</a>
+</nav>
+<div class="container">
+    <section>
+        <h2>Welcome to Acme Corp</h2>
+        <p>Founded in 2008, Acme Corp delivers cutting-edge software and hardware solutions to enterprises worldwide. Our flagship product, <strong>AcmeSuite v3.2.1</strong>, powers over 12,000 installations across finance, healthcare, and manufacturing sectors.</p>
+        <p>Our headquarters are located at <code>10.0.0.45</code> (internal network) with a public-facing IP of <code>203.0.113.78</code>. We maintain a PostgreSQL database named <code>acme_prod</code> on server <code>db01.acme.local</code> (PostgreSQL 13.4).</p>
+        <a href="/services" class="btn">Learn More</a>
+    </section>
+    <hr>
+    <section class="features">
+        <div class="feature">
+            <h3>Cloud Infrastructure</h3>
+            <p>Scalable VMs on OpenStack (release 2023.1) with automated backups.</p>
+        </div>
+        <div class="feature">
+            <h3>Security Suite</h3>
+            <p>Integrated IDS/IPS with Snort 3.1.2.0 and daily signature updates.</p>
+        </div>
+        <div class="feature">
+            <h3>API Gateway</h3>
+            <p>RESTful endpoints secured by OAuth 2.0, version 2.4.0.</p>
+        </div>
+    </section>
+</div>
+<footer>
+    &copy; 2024 Acme Corp. All rights reserved. <br>
+    Internal version: <code>web-2024.09.15</code>
+</footer>
+</body>
+</html>

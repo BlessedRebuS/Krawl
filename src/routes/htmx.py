@@ -29,6 +29,21 @@ def _dashboard_path(request: Request) -> str:
     return "/" + config.dashboard_secret_path.lstrip("/")
 
 
+def _format_bytes(size: int) -> str:
+    if size < 1024:
+        return f"{size} B"
+    if size < 1024 * 1024:
+        return f"{size / 1024:.1f} KB"
+    return f"{size / (1024 * 1024):.1f} MB"
+
+
+def _request_size(raw_request: str | None) -> str:
+    if not raw_request:
+        return "0 B"
+
+    return _format_bytes(len(raw_request.encode("utf-8")))
+
+
 # ── Honeypot Triggers ────────────────────────────────────────────────
 
 
@@ -560,6 +575,8 @@ async def htmx_attacks(
         items.append(
             {
                 "ip": attack["ip"],
+                "method": (attack.get("method") or "GET").upper(),
+                "request_size": _request_size(attack.get("raw_request")),
                 "path": attack["path"],
                 "method": attack.get("method", "GET"),
                 "attack_type": ", ".join(attack.get("attack_types", [])),
@@ -907,6 +924,8 @@ async def htmx_timedout_active(
     request: Request,
     page: int = Query(1),
     page_size: int = Query(25),
+    sort_by: str = Query("time_left"),
+    sort_order: str = Query("desc"),
 ):
     if not verify_auth(request):
         return HTMLResponse(
@@ -920,6 +939,8 @@ async def htmx_timedout_active(
         ban_duration_seconds=duration,
         page=max(1, page),
         page_size=page_size,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
     templates = get_templates()
     return templates.TemplateResponse(
@@ -929,6 +950,8 @@ async def htmx_timedout_active(
             "dashboard_path": _dashboard_path(request),
             "items": result["items"],
             "pagination": result["pagination"],
+            "sort_by": result["sort_by"],
+            "sort_order": result["sort_order"],
         },
     )
 

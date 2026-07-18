@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Acme Solutions - Secure Portal</title>
+<style>
+    body {font-family: Arial, Helvetica, sans-serif; margin:0; padding:0; background:#f4f6f9; color:#333;}
+    header {background:#003366; color:#fff; padding:1rem 2rem; display:flex; justify-content:space-between; align-items:center;}
+    header h1 {margin:0; font-size:1.8rem;}
+    nav a {color:#fff; margin-left:1.5rem; text-decoration:none; font-weight:bold;}
+    nav a:hover {text-decoration:underline;}
+    .hero {background:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22><rect width=%22200%22 height=%22200%22 fill=%22%23003366/%22></rect><circle cx=%22100%22 cy=%22100%22 r=%2280%22 fill=%22%230055aa/%22></circle></svg>') center/cover no-repeat; height:300px; display:flex; align-items:center; justify-content:center; color:#fff; text-align:center;}
+    .hero h2 {font-size:2.5rem; text-shadow:0 2px 4px rgba(0,0,0,0.5);}
+    .content {padding:2rem; max-width:960px; margin:auto;}
+    .card {background:#fff; border:1px solid #ddd; border-radius:8px; padding:1.5rem; margin-bottom:1.5rem; box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+    footer {background:#003366; color:#fff; text-align:center; padding:1rem; font-size:0.9rem;}
+</style>
+</head>
+<body>
+<header>
+    <h1>Acme Solutions</h1>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/products">Products</a>
+        <a href="/support">Support</a>
+        <a href="/admin">Admin Login</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h2>Secure Enterprise Solutions</h2>
+</section>
+
+<section class="content">
+    <div class="card">
+        <h3>About Us</h3>
+        <p>Acme Solutions provides cutting-edge security platforms for Fortune 500 enterprises. Our latest release <strong>v2.4.1 (build 2024-09-15)</strong> includes enhanced threat detection and compliance reporting.</p>
+        <p>Internal infrastructure: <code>10.0.0.42</code> (primary DB), <code>10.0.0.57</code> (web tier).</p>
+    </div>
+
+    <div class="card">
+        <h3>Featured Products</h3>
+        <ul>
+            <li>ThreatGuard IDS/IPS – Real‑time intrusion prevention.</li>
+            <li>DataVault DLP – Prevent data loss across endpoints.</li>
+            <li>ComplyGuard – Automated audit and reporting.</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h3>Contact</h3>
+        <p>Security Operations Center: <a href="mailto:soc@acmesolutions.local">soc@acmesolutions.local</a></p>
+        <p>Phone: +1 (555) 123-4567</p>
+        <p>Headquarters: 123 Cyber Plaza, Springfield, IL 62704</p>
+    </div>
+</section>
+
+<footer>
+    © 2024 Acme Solutions. All rights reserved. | Version: 2.4.1 | Build: 2024-09-15
+</footer>
+
+<script>
+    // Simple mobile menu toggle (demo)
+    document.addEventListener('DOMContentLoaded', function () {
+        const nav = document.querySelector('nav');
+        const btn = document.createElement('button');
+        btn.textContent = '☰';
+        btn.style.background = 'transparent';
+        btn.style.border = 'none';
+        btn.style.color = '#fff';
+        btn.style.fontSize = '1.5rem';
+        btn.style.cursor = 'pointer';
+        btn.style.display = 'none';
+        nav.parentNode.insertBefore(btn, nav);
+        btn.addEventListener('click', function () {
+            nav.classList.toggle('open');
+        });
+        // Show button on narrow screens
+        function updateMenu() {
+            if (window.innerWidth <= 768) {
+                btn.style.display = 'inline-block';
+                nav.style.display = 'none';
+            } else {
+                btn.style.display = 'none';
+                nav.style.display = 'flex';
+            }
+        }
+        window.addEventListener('resize', updateMenu);
+        updateMenu();
+    });
+</script>
+</body>
+</html>

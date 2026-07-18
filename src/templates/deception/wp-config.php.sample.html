@@ -1,170 +1,67 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <title>WordPress 配置示例 - wp-config.php.sample</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 2rem auto; padding: 0 1rem;}
-        h1 {color: #2c3e50;}
-        .box {background: #f8f9fa; border-left: 4px solid #3498db; padding: 404, we need to produce realistic but fake HTML page for /wp-config.php.sample as a honeypot.
-
-We need to output only HTML.
-
-Let's produce a plausible page that looks like a WordPress site showing a sample config file.
-
-We'll include fake data.
-
-We'll make it look like a settings page.
-
-We'll include some links.
-
-We'll ensure we have head, body.
-
-No explanations outside.
-
-Now produce final.
-
-
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <title>WordPress 配置示例 - wp-config.php.sample</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body{font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#222;max-width:800px;margin:2rem auto;padding:0 1rem;background:#fdfdfd}
-        h1,h2{color:#2c3e50}
-        .code{background:#f0f0f0;padding:123, etc. Provide fake content: sample config file with fake DB credentials. Should be HTML page (single file
-We need to output only HTML. Let's craft a plausible page that looks like a WordPress sample config page, with some fake data and links, maybe a form.
-
-We'll include a <pre> block with sample wp-config.php content (fake credentials). We'll also include some site links like "返回首页", "登录", etc.
-
-Let's write.
-
-Make sure no extra text outside HTML.
-
-Let's produce.
-
-
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<title>WordPress 配置示例 - wp-config.php.sample</title>
-<meta name="viewport" content="width=device-width, initial-scale=103)1">
-<style>
-body{font-family:Arial,Helvetica,sans-serif;line-height). The content should be plain raw HTML but we can embed a code block inside? They said do not include any file in html, generate everything needed in one single file. So we can embed the sample content as text within <pre> or <code>. Provide proper HTML with head and body. Must output only HTML, no markdown. Provide a plausible but fake config.
-
-We'll output HTML with a pre block containing sample config. Use maybe .txt inside <pre>. Provide proper HTML.
-
-Proceed.
-
-
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>wp-config.php.sample - WordPress Sample Configuration</title>
+    <title>Acme Corp - Internal Dashboard</title>
     <style>
-        body {font-family: monospace; background:#f8f9fa; color:#212529; padding:20px;}
-        pre {background:#fff; border:1px solid #ddd; padding:1rem; overflow:auto;}
-        .note {color:#6c757d; font-size:0.9em;}
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
+        header {background:#003366; color:#fff; padding:1rem; text-align:center;}
+        nav {background:#004080; color:#fff; display:flex; justify-content:center; gap:1.5rem; padding:0.5rem 0;}
+        nav a {color:#fff; text-decoration:none; font-weight:bold;}
+        nav a:hover {text-decoration:underline;}
+        .container {max-width:960px; margin:2rem auto; background:#fff; padding:2rem; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h2 {color:#003366;}
+        .stats {display:flex; gap:2rem; margin-top:1.5rem;}
+        .stat {flex:1; text-align:center; padding:1rem; background:#e8f0fe; border-radius:5px;}
+        .stat h3 {margin:0; font-size:1.2rem; color:#004080;}
+        .stat p {margin:0.5rem 0 0; font-size:1.5rem; font-weight:bold;}
+        footer {text-align:center; padding:1rem; font-size:0.9rem; color:#666; margin-top:2rem;}
     </style>
 </head>
 <body>
-    <h1>WordPress Sample Configuration File</h1>
-    <p class="note">This is a sample configuration file. Replace the placeholder values with your actual database credentials.</p>
-    <pre>
-<?php
-/**
- * The base configuration for WordPress
- *
- * The wp-config.php creation script uses this file during the
- * installation. You don't have to use the web site, you can
- * copy this file to "wp-config.php" and fill in the values.
- *
- * This file contains the following configurations:
- *
- * * MySQL settings
- * * Secret keys
- * <p>Database table prefix</p>
- * <p>WordPress ABSPATH</p>
- *
- * @package WordPress
- */
-
-/** The name of the database for WordPress */
-define('DB_NAME', 'example_db');
-
-/** MySQL database username */
-define('DB_USER', 'wp_user');
-
-/** MySQL database password */
-define('DB_PASSWORD', 's3cr3tP@ssw0rd!');
-
-/** MySQL hostname */
-define('DB_HOST', 'localhost');
-
-/** Database Charset to use in creating database tables. */
-define('DB_CHARSET', 'utf8mb4');
-
-/** The Database Collate type. Don't change this if in doubt. */
-define('DB_COLLATE', '');
-
-/**#@+
- * Authentication Unique Keys and Salts.
- *
- * Change these to different unique phrases!
- * You can generate these using the {@link https://api.wordpress.org/secret-key/1.1/salt/ WordPress.org secret-key service}
- * You can change these at any point in time to invalidate all existing cookies. This will force all users to have to log in again.
- *
- * @since 2.6.0
- */
-define('AUTH_KEY',         'put your unique phrase here');
-define('SECURE_AUTH_KEY',  'put your unique phrase here');
-define('LOGGED_IN_KEY',    'put your unique phrase here');
-define('NONCE_KEY',        'put your unique phrase here');
-define('AUTH_SALT',        'put your unique phrase here');
-define('SECURE_AUTH_SALT', 'put your unique phrase here');
-define('LOGGED_IN_SALT',   'put your unique phrase here');
-define('NONCE_SALT',       'put your unique phrase here');
-
-/**#@-*/
-
-/**
- * WordPress Database Table prefix.
- *
- * You can have multiple installations in one database if you give each
- * a unique prefix. Only numbers, letters, and underscores please!
- */
-$table_prefix = 'wp_';
-
-/**
- * For developers: WordPress debugging mode.
- *
- * Change this to true to enable the display of notices during development.
- * It is strongly recommended that plugin and theme developers use WP_DEBUG
- * in their development environments.
- *
- * For information on other constants that can be used for debugging,
- * visit the Codex.
- *
- * @link https://wordpress.org/support/article/debugging-in-wordpress/
- */
-define( 'WP_DEBUG', false );
-
-/* That's all, stop editing! Happy publishing. */
-
-/** Absolute path to the WordPress directory. */
-if ( ! defined( 'ABSPATH' ) ) {
-    define( 'ABSPATH', __DIR__ . '/' );
-}
-
-/** Sets up WordPress vars and included files. */
-require_once ABSPATH . 'wp-settings.php';
-?>
-    </pre>
-    <p class="note">This is a sample file. Replace the placeholder values with your actual database credentials before using it in a production environment.</p>
+    <header>
+        <h1>Acme Corp Internal Portal</h1>
+        <p>Version 2.3.1 - Build 20240915</p>
+    </header>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/reports">Reports</a>
+        <a href="/users">User Management</a>
+        <a href="/settings">Settings</a>
+        <a href="/help">Help</a>
+    </nav>
+    <div class="container">
+        <h2>Welcome, admin (ID: 1024)</h2>
+        <p>Last login: 2025-09-24 08:13:42 from 10.0.0.57</p>
+        <div class="stats">
+            <div class="stat">
+                <h3>Active Users</h3>
+                <p>1,243</p>
+            </div>
+            <div class="stat">
+                <h3>Open Tickets</h3>
+                <p>57</p>
+            </div>
+            <div class="stat">
+                <h3>System Load</h3>
+                <p>0.42</p>
+            </div>
+            <div class="stat">
+                <h3>Database</h3>
+                <p>acme_prod (MySQL 8.0.33)</p>
+            </div>
+        </div>
+        <hr>
+        <h2>Recent Activity</h2>
+        <ul>
+            <li>2025-09-24 07:58:11 - User jdoe executed query: SELECT * FROM orders WHERE status='pending'</li>
+            <li>2025-09-24 07:45:03 - Backup completed for /var/backups/db_acme_20250924.sql</li>
+            <li>2025-09-24 07:30:22 - API endpoint /api/v1/data accessed from 10.0.0.12</li>
+            <li>2025-09-24 07:12:05 - Security patch applied: CVE-2024-XXXX</li>
+        </ul>
+    </div>
+    <footer>
+        &copy; 2025 Acme Corp. Internal use only. Server: Apache/2.4.41 (Ubuntu) | PHP 8.2.12
+    </footer>
 </body>
 </html>

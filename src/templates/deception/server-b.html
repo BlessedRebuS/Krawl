@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Server-B Management Panel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:20px;color:#333}
+.container{max-width:800px;margin:auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
+h1{color:#2c3e50}
+.table{width:100%;border-collapse:collapse;margin-top:20px}
+.table th,.table td{border:1px solid #ccc;padding:10px;text-align:left}
+.table th{background:#eaeaea}
+.status-up{color:#27ae60;font-weight:bold}
+.status-down{color:#e74c3c;font-weight:bold}
+#footer{margin-top:40px;font-size:0.9em;color:#777;text-align:center}
+</style>
+<script>
+function updateClock(){
+document.getElementById('clock').textContent=new Date().toLocaleString();
+}
+setInterval(updateClock,1000);
+updateClock();
+</script>
+</head>
+<body>
+<div class="container">
+<h1>Server-B Management Panel</h1>
+<p>Welcome, <strong>admin_user</strong>. <span id="clock"></span></p>
+<div class="table">
+<table>
+<tr><th>Hostname</th><td>server-b.acme.local</td></tr>
+<tr><th>IP Address</th><td>10.0.0.5</td></tr>
+<tr><th>Operating System</th><td>Linux 5.15.0</td></tr>
+<tr><th>Uptime</th><td>12 days, 4 hours, 37 minutes</td></tr>
+<tr><th>CPU Load</th><td>0.45 (Average)</td></tr>
+<tr><th>Memory Usage</th><td>3.2 GB / 8.0 GB</td></tr>
+<tr><th>Database</th><td>acme_db (MySQL 8.0.33)</td></tr>
+<tr><th>Status</th><td class="status-up">Online</td></tr>
+</table>
+</div>
+<p>Last login from <strong>192.168.1.10</strong> at 14:23 UTC.</p>
+<div id="footer">Acme Corp - Internal Management Interface - Version 2.3.4</div>
+</div>
+</body>
+</html>
