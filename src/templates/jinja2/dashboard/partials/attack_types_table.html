@@ -32,7 +32,12 @@
         <tr>
             <th>#</th>
             <th>IP Address</th>
-            <th>Method</th>
+            <th class="sortable {% if sort_by == 'method' %}{{ sort_order }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/attacks?page=1&sort_by=method&sort_order={% if sort_by == 'method' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ filter_qs }}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML">
+                Method
+            </th>
             <th class="sortable {% if sort_by == 'request_size' %}{{ sort_order }}{% endif %}"
                 hx-get="{{ dashboard_path }}/htmx/attacks?page=1&sort_by=request_size&sort_order={% if sort_by == 'request_size' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
@@ -66,7 +71,7 @@
                 {% set method = attack.method | default('GET') | upper %}
                 <span class="method-badge method-{{ method | lower | e }}">{{ method | e }}</span>
             </td>
-            <td>{{ attack.request_size | format_size }}</td>
+            <td class="size-cell">{{ attack.request_size | format_size }}</td>
             <td>
                 <div class="path-cell-container">
                     <span class="path-truncated">{{ attack.path | e }}</span>

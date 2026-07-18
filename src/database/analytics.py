@@ -393,7 +393,7 @@ class AnalyticsRepo:
             offset = (page - 1) * page_size
 
             # Validate sort parameters
-            valid_sort_fields = {"timestamp", "ip", "attack_type", "request_size"}
+            valid_sort_fields = {"timestamp", "ip", "attack_type", "request_size", "method"}
             sort_by = sort_by if sort_by in valid_sort_fields else "timestamp"
             sort_order = (
                 sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
@@ -429,6 +429,8 @@ class AnalyticsRepo:
             # so the outer query can be ordered and limited directly.
             if sort_by == "ip":
                 order_col = AccessLog.ip
+            elif sort_by == "method":
+                order_col = AccessLog.method
             elif sort_by == "request_size":
                 order_col = func.length(AccessLog.raw_request)
             else:

@@ -29,20 +29,6 @@ def _dashboard_path(request: Request) -> str:
     return "/" + config.dashboard_secret_path.lstrip("/")
 
 
-def _format_bytes(size: int) -> str:
-    if size < 1024:
-        return f"{size} B"
-    if size < 1024 * 1024:
-        return f"{size / 1024:.1f} KB"
-    return f"{size / (1024 * 1024):.1f} MB"
-
-
-def _request_size(raw_request: str | None) -> str:
-    if not raw_request:
-        return "0 B"
-
-    return _format_bytes(len(raw_request.encode("utf-8")))
-
 
 # ── Honeypot Triggers ────────────────────────────────────────────────
 
@@ -576,7 +562,7 @@ async def htmx_attacks(
             {
                 "ip": attack["ip"],
                 "method": (attack.get("method") or "GET").upper(),
-                "request_size": _request_size(attack.get("raw_request")),
+                "request_size": len((attack.get("raw_request") or "").encode("utf-8")),
                 "path": attack["path"],
                 "attack_type": ", ".join(attack.get("attack_types", [])),
                 "user_agent": attack.get("user_agent", ""),

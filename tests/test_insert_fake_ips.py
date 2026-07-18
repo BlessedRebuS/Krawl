@@ -357,7 +357,7 @@ def generate_fake_data(
                 num_attacks = random.randint(1, 3)
                 attack_types = random.sample(ATTACK_TYPES, num_attacks)
 
-            method = random.choice(["GET", "POST"])
+            method = random.choice(["GET", "POST", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "QUERY"])
             r = random.random()
             raw_request = _build_fake_raw_request(method, path, user_agent, large=r < 0.3, huge=r < 0.05)
 
