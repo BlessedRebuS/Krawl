@@ -1265,6 +1265,49 @@ tbody {
     opacity: 1;
 }
 
+.raw-attachment-wrapper {
+    position: relative;
+}
+.raw-attachment-dropdown {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    right: 0;
+    min-width: 220px;
+    max-width: 320px;
+    max-height: 240px;
+    overflow-y: auto;
+    background: #1c2128;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.raw-attachment-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    padding: 8px 12px;
+    background: none;
+    border: none;
+    color: #e6edf3;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s;
+}
+.raw-attachment-item:hover {
+    background: #30363d;
+}
+.raw-attachment-name {
+    font-size: 13px;
+    font-weight: 500;
+    word-break: break-all;
+}
+.raw-attachment-meta {
+    font-size: 11px;
+    color: #8b949e;
+}
+
 /* Auth Modal */
 .auth-modal {
     position: fixed;

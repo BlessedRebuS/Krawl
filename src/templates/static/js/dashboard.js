@@ -108,7 +108,7 @@ document.addEventListener('alpine:init', () => {
         showBanlistSources: false,
 
         // Raw request modal
-        rawModal: { show: false, content: '', highlightedContent: '', logId: null },
+        rawModal: { show: false, content: '', highlightedContent: '', logId: null, attachments: [], attachmentsShow: false, hasAttachments: false },
 
         // Map state
         mapInitialized: false,
@@ -481,6 +481,17 @@ document.addEventListener('alpine:init', () => {
                 this.rawModal.content = data.raw_request || 'No content available';
                 this.rawModal.highlightedContent = this.highlightRawRequest(this.rawModal.content);
                 this.rawModal.logId = logId;
+                const ctMatch = this.rawModal.content.match(/content-type:\s*([^\r\n]+)/i);
+                if (ctMatch) {
+                    const ct = ctMatch[1].trim().toLowerCase();
+                    const nonFile = ['multipart/form-data', 'application/json', 'application/x-www-form-urlencoded', 'application/xml', 'application/xhtml+xml'];
+                    const nonFileText = ['text/html', 'text/plain', 'text/css', 'text/javascript'];
+                    const isText = ct.startsWith('text/');
+                    this.rawModal.hasAttachments = ct.startsWith('multipart/form-data')
+                        || (!nonFile.some(t => ct.startsWith(t)) && (!isText || !nonFileText.some(t => ct.startsWith(t))));
+                } else {
+                    this.rawModal.hasAttachments = false;
+                }
                 this.rawModal.show = true;
             } catch (err) {
                 krawlModal.error('Failed to load raw request');
@@ -525,6 +536,9 @@ document.addEventListener('alpine:init', () => {
             this.rawModal.content = '';
             this.rawModal.highlightedContent = '';
             this.rawModal.logId = null;
+            this.rawModal.attachments = [];
+            this.rawModal.attachmentsShow = false;
+            this.rawModal.hasAttachments = false;
         },
 
         async copyRawRequest(event) {
@@ -552,6 +566,40 @@ document.addEventListener('alpine:init', () => {
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+        },
+
+        async fetchAttachments() {
+            if (this.rawModal.attachmentsShow) {
+                this.rawModal.attachmentsShow = false;
+                return;
+            }
+            if (this.rawModal.attachments.length > 0) {
+                this.rawModal.attachmentsShow = true;
+                return;
+            }
+            if (!this.rawModal.logId) return;
+            try {
+                const resp = await fetch(
+                    `${this.dashboardPath}/api/attachments/${this.rawModal.logId}`,
+                    { cache: 'no-store' }
+                );
+                const data = await resp.json();
+                this.rawModal.attachments = data.attachments || [];
+                this.rawModal.attachmentsShow = true;
+            } catch (err) {
+                krawlModal.error('Failed to load attachments');
+            }
+        },
+
+        downloadAttachment(index, filename) {
+            if (!this.rawModal.logId) return;
+            const a = document.createElement('a');
+            a.href = `${this.dashboardPath}/api/attachments/${this.rawModal.logId}/download/${index}`;
+            a.download = filename || 'attachment';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            this.rawModal.attachmentsShow = false;
         },
 
         toggleIpDetail(event) {

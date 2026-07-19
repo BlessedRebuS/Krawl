@@ -8,11 +8,14 @@ All endpoints are prefixed with the secret dashboard path.
 
 import asyncio
 import base64
+import email
 import hmac
 import io
+import re
 import secrets
 import time
 import zipfile
+from email import policy
 
 from fastapi import APIRouter, Query, Request, Response
 from fastapi.responses import JSONResponse
@@ -630,6 +633,206 @@ async def raw_request(log_id: int, request: Request):
         return JSONResponse(content={"raw_request": raw}, headers=_no_cache_headers())
     except Exception as e:
         get_app_logger().error(f"Error fetching raw request: {e}")
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+# Content-Types that are NOT file uploads
+_NON_FILE_CONTENT_TYPES = (
+    "multipart/", "application/json", "application/x-www-form-urlencoded",
+    "application/xml", "application/xhtml+xml",
+)
+
+# text/* subtypes that are NOT file uploads (most text/x-* ARE files)
+_NON_FILE_TEXT_TYPES = (
+    "text/html", "text/plain", "text/css", "text/javascript",
+)
+
+
+def _extract_headers(raw_request: str) -> tuple[str, str, str, str]:
+    """Extract headers_text, body, content_type, and path from a raw request.
+
+    Returns (headers_text, body, content_type, path).
+    """
+    header_end = raw_request.find("\r\n\r\n")
+    if header_end == -1:
+        return "", "", "", ""
+    headers_text = raw_request[:header_end]
+    body = raw_request[header_end + 4:]
+
+    content_type = ""
+    path = "/"
+    lines = headers_text.split("\r\n")
+    if lines:
+        parts = lines[0].split(" ")
+        if len(parts) >= 2:
+            path = parts[1]
+    for line in lines[1:]:
+        if line.lower().startswith("content-type:"):
+            content_type = line.split(":", 1)[1].strip()
+            break
+
+    return headers_text, body, content_type, path
+
+
+def _is_file_content_type(content_type: str) -> bool:
+    """Return True if the Content-Type looks like a file (not a form/json/text type)."""
+    if not content_type:
+        return False
+    ct_lower = content_type.lower()
+    if any(ct_lower.startswith(p) for p in _NON_FILE_CONTENT_TYPES):
+        return False
+    if ct_lower.startswith("text/"):
+        return not any(ct_lower.startswith(p) for p in _NON_FILE_TEXT_TYPES)
+    return True
+
+
+def _path_to_filename(path: str) -> str:
+    """Derive a filename from a request path, e.g. /upload/shell.php -> shell.php."""
+    name = path.rsplit("/", 1)[-1] if "/" in path else path
+    return name or "attachment"
+
+
+def _parse_attachments(raw_request: str) -> list[dict]:
+    """Parse attachments from a raw HTTP request.
+
+    Handles both multipart/form-data and raw-body file uploads.
+    Returns a list of attachment metadata dicts.
+    """
+    try:
+        headers_text, body, content_type, path = _extract_headers(raw_request)
+        if not body:
+            return []
+
+        # Multipart/form-data: parse individual parts
+        if "multipart/form-data" in content_type:
+            ct_match = re.search(r"boundary=([^\s;]+)", content_type)
+            if not ct_match:
+                return []
+
+            if not body.endswith("\r\n"):
+                body += "\r\n"
+
+            raw_msg = f"Content-Type: {content_type}\r\n\r\n{body}"
+            msg = email.message_from_string(raw_msg, policy=policy.compat32)
+
+            attachments = []
+            part_index = 0
+            for part in msg.walk():
+                if part.get_content_maintype() == "multipart":
+                    continue
+                disp = part.get("Content-Disposition", "")
+                if "attachment" not in disp and "form-data" not in disp:
+                    continue
+                filename = part.get_filename() or ""
+                name = part.get_param("name", header="content-disposition") or ""
+                payload = part.get_payload(decode=False) or ""
+                attachments.append({
+                    "index": part_index,
+                    "name": name,
+                    "filename": filename,
+                    "content_type": part.get_content_type() or "application/octet-stream",
+                    "size": len(payload.encode("utf-8", errors="replace")),
+                })
+                part_index += 1
+            return attachments
+
+        # Raw body file upload: entire body is one file
+        if _is_file_content_type(content_type):
+            filename = _path_to_filename(path)
+            return [{
+                "index": 0,
+                "name": "",
+                "filename": filename,
+                "content_type": content_type.split(";")[0].strip(),
+                "size": len(body.encode("utf-8", errors="replace")),
+            }]
+
+        return []
+    except Exception as e:
+        get_app_logger().error(f"Attachment parse error: {e}")
+        return []
+
+
+def _get_attachment_content(raw_request: str, index: int) -> tuple[str, str, str] | None:
+    """Extract a single attachment's content from a raw HTTP request.
+
+    Returns (filename, content_type, content) or None.
+    """
+    try:
+        headers_text, body, content_type, path = _extract_headers(raw_request)
+        if not body:
+            return None
+
+        # Multipart/form-data: extract specific part
+        if "multipart/form-data" in content_type:
+            raw_msg = f"Content-Type: {content_type}\r\n\r\n{body}"
+            msg = email.message_from_string(raw_msg, policy=policy.compat32)
+
+            current_index = 0
+            for part in msg.walk():
+                if part.get_content_maintype() == "multipart":
+                    continue
+                disp = part.get("Content-Disposition", "")
+                if "attachment" not in disp and "form-data" not in disp:
+                    continue
+                if current_index == index:
+                    filename = part.get_filename() or "attachment"
+                    content = part.get_payload(decode=False) or ""
+                    return filename, part.get_content_type() or "application/octet-stream", content
+                current_index += 1
+            return None
+
+        # Raw body file upload: entire body is the file (only index 0)
+        if index == 0 and _is_file_content_type(content_type):
+            filename = _path_to_filename(path)
+            return filename, content_type.split(";")[0].strip(), body
+
+        return None
+    except Exception as e:
+        get_app_logger().error(f"Attachment extract error: {e}")
+        return None
+
+
+@router.get("/api/attachments/{log_id:int}")
+async def list_attachments(log_id: int, request: Request):
+    db = get_db()
+    try:
+        raw = await asyncio.to_thread(db.access_logs.get_raw_request_by_id, log_id)
+        if raw is None:
+            return JSONResponse(
+                content={"error": "Raw request not found"}, status_code=404
+            )
+        attachments = _parse_attachments(raw)
+        return JSONResponse(content={"attachments": attachments}, headers=_no_cache_headers())
+    except Exception as e:
+        get_app_logger().error(f"Error listing attachments: {e}")
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+@router.get("/api/attachments/{log_id:int}/download/{index:int}")
+async def download_attachment(log_id: int, index: int, request: Request):
+    db = get_db()
+    try:
+        raw = await asyncio.to_thread(db.access_logs.get_raw_request_by_id, log_id)
+        if raw is None:
+            return JSONResponse(
+                content={"error": "Raw request not found"}, status_code=404
+            )
+        result = _get_attachment_content(raw, index)
+        if result is None:
+            return JSONResponse(
+                content={"error": "Attachment not found"}, status_code=404
+            )
+        filename, content_type, content = result
+        return Response(
+            content=content.encode("utf-8", errors="replace"),
+            media_type=content_type,
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+            },
+        )
+    except Exception as e:
+        get_app_logger().error(f"Error downloading attachment: {e}")
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
