@@ -10,6 +10,7 @@ select = ["E4", "E7", "E9", "F", "B", "I", "UP", "S"]
 # These modules generate fake honeypot data; non-crypto randomness is intentional.
 "src/generators.py" = ["S311"]
 "src/routes/honeypot.py" = ["S311"]
+"tests/*" = ["S101", "S311"]
 
 [tool.ruff.format]
 quote-style = "double"
