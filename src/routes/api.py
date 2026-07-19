@@ -638,13 +638,19 @@ async def raw_request(log_id: int, request: Request):
 
 # Content-Types that are NOT file uploads
 _NON_FILE_CONTENT_TYPES = (
-    "multipart/", "application/json", "application/x-www-form-urlencoded",
-    "application/xml", "application/xhtml+xml",
+    "multipart/",
+    "application/json",
+    "application/x-www-form-urlencoded",
+    "application/xml",
+    "application/xhtml+xml",
 )
 
 # text/* subtypes that are NOT file uploads (most text/x-* ARE files)
 _NON_FILE_TEXT_TYPES = (
-    "text/html", "text/plain", "text/css", "text/javascript",
+    "text/html",
+    "text/plain",
+    "text/css",
+    "text/javascript",
 )
 
 
@@ -657,7 +663,7 @@ def _extract_headers(raw_request: str) -> tuple[str, str, str, str]:
     if header_end == -1:
         return "", "", "", ""
     headers_text = raw_request[:header_end]
-    body = raw_request[header_end + 4:]
+    body = raw_request[header_end + 4 :]
 
     content_type = ""
     path = "/"
@@ -726,26 +732,31 @@ def _parse_attachments(raw_request: str) -> list[dict]:
                 filename = part.get_filename() or ""
                 name = part.get_param("name", header="content-disposition") or ""
                 payload = part.get_payload(decode=False) or ""
-                attachments.append({
-                    "index": part_index,
-                    "name": name,
-                    "filename": filename,
-                    "content_type": part.get_content_type() or "application/octet-stream",
-                    "size": len(payload.encode("utf-8", errors="replace")),
-                })
+                attachments.append(
+                    {
+                        "index": part_index,
+                        "name": name,
+                        "filename": filename,
+                        "content_type": part.get_content_type()
+                        or "application/octet-stream",
+                        "size": len(payload.encode("utf-8", errors="replace")),
+                    }
+                )
                 part_index += 1
             return attachments
 
         # Raw body file upload: entire body is one file
         if _is_file_content_type(content_type):
             filename = _path_to_filename(path)
-            return [{
-                "index": 0,
-                "name": "",
-                "filename": filename,
-                "content_type": content_type.split(";")[0].strip(),
-                "size": len(body.encode("utf-8", errors="replace")),
-            }]
+            return [
+                {
+                    "index": 0,
+                    "name": "",
+                    "filename": filename,
+                    "content_type": content_type.split(";")[0].strip(),
+                    "size": len(body.encode("utf-8", errors="replace")),
+                }
+            ]
 
         return []
     except Exception as e:
@@ -753,7 +764,9 @@ def _parse_attachments(raw_request: str) -> list[dict]:
         return []
 
 
-def _get_attachment_content(raw_request: str, index: int) -> tuple[str, str, str] | None:
+def _get_attachment_content(
+    raw_request: str, index: int
+) -> tuple[str, str, str] | None:
     """Extract a single attachment's content from a raw HTTP request.
 
     Returns (filename, content_type, content) or None.
@@ -778,7 +791,11 @@ def _get_attachment_content(raw_request: str, index: int) -> tuple[str, str, str
                 if current_index == index:
                     filename = part.get_filename() or "attachment"
                     content = part.get_payload(decode=False) or ""
-                    return filename, part.get_content_type() or "application/octet-stream", content
+                    return (
+                        filename,
+                        part.get_content_type() or "application/octet-stream",
+                        content,
+                    )
                 current_index += 1
             return None
 
@@ -803,7 +820,9 @@ async def list_attachments(log_id: int, request: Request):
                 content={"error": "Raw request not found"}, status_code=404
             )
         attachments = _parse_attachments(raw)
-        return JSONResponse(content={"attachments": attachments}, headers=_no_cache_headers())
+        return JSONResponse(
+            content={"attachments": attachments}, headers=_no_cache_headers()
+        )
     except Exception as e:
         get_app_logger().error(f"Error listing attachments: {e}")
         return JSONResponse(content={"error": str(e)}, status_code=500)
