@@ -51,7 +51,7 @@
   - [Environment Variables](#configuration-via-environmental-variables)
 - [Ban Malicious IPs](#use-krawl-to-ban-malicious-ips)
 - [IP Reputation](#ip-reputation)
-- [Forward Server Header](#forward-server-header)
+- [Running Behind a Reverse Proxy or CDN](#running-behind-a-reverse-proxy-or-cdn)
 - [Metrics & Monitoring](#metrics--monitoring)
 - [Additional Documentation](#additional-documentation)
 - [Deception using AI](#ai-generated-deception-pages)
@@ -461,15 +461,9 @@ For detailed configuration and usage, see the [AI Generation documentation](docs
 
 You can also **contribute deception templates** by opening a PR, see [Contributing Deception Templates](docs/deception_pages.md#contributing-deception-templates-via-pr).
 
-## Forward server header
-If Krawl is deployed behind a proxy such as NGINX the **server header** should be forwarded using the following configuration in your proxy:
+## Running Behind a Reverse Proxy or CDN
 
-```bash
-location / {
-    proxy_pass https://your-krawl-instance;
-    proxy_pass_header Server;
-}
-```
+**NGINX, Traefik, and other proxies like CloudFlare** need header forwarding so Krawl can see the real IP. See the [Reverse Proxy documentation](docs/reverse-proxy.md) for configuration examples and the full header list.
 
 ## Metrics & Monitoring
 
