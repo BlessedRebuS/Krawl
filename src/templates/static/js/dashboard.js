@@ -125,7 +125,7 @@ document.addEventListener('alpine:init', () => {
         uploadModal: { show: false, path: '', fileName: '', fileContent: '', error: '', success: '', loading: false, dragging: false },
 
         // Expand overlay state
-        expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false },
+        expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false, method: '', attackType: '', attackTypes: [], ipFilter: '' },
 
         // Flag to prevent double-triggering during init
         _initializingHash: false,
@@ -1150,8 +1150,15 @@ window.openExpandOverlay = function(title, endpoint, pageSize) {
         show: true, title: title, endpoint: endpoint,
         pageSize: pageSize || 25, search: '',
         categories: [], honeypotOnly: false,
+        method: '', attackType: '', attackTypes: [],
+        ipFilter: '',
     });
     _reloadExpandOverlay();
+    // For attacks, lazily load the list of distinct attack types for the
+    // dropdown filter.
+    if (endpoint === 'attacks') {
+        _loadExpandAttackTypes();
+    }
 };
 
 window.triggerExpandSearch = function() {
@@ -1175,6 +1182,39 @@ window.toggleExpandHoneypot = function() {
     _reloadExpandOverlay();
 };
 
+window.toggleExpandMethod = function(method) {
+    const app = _getAlpineData();
+    if (!app) return;
+    app.expandOverlay.method = (app.expandOverlay.method === method) ? '' : method;
+    _reloadExpandOverlay();
+};
+
+window.clearExpandFilter = function(name) {
+    const app = _getAlpineData();
+    if (!app) return;
+    const ov = app.expandOverlay;
+    if (name === 'attackType') ov.attackType = '';
+    else if (name === 'method') ov.method = '';
+    else if (name === 'search') { ov.search = ''; const el = document.querySelector('.expand-overlay-search'); if (el) el.value = ''; }
+    else if (name === 'ipFilter') ov.ipFilter = '';
+    _reloadExpandOverlay();
+};
+
+function _loadExpandAttackTypes() {
+    const dashboardPath = window.__DASHBOARD_PATH__ || '';
+    fetch(`${dashboardPath}/htmx/attack-types-list`)
+        .then(r => r.ok ? r.json() : { attack_types: [] })
+        .then(data => {
+            const app = _getAlpineData();
+            if (!app) return;
+            app.expandOverlay.attackTypes = Array.isArray(data.attack_types) ? data.attack_types : [];
+        })
+        .catch(() => {
+            const app = _getAlpineData();
+            if (app) app.expandOverlay.attackTypes = [];
+        });
+}
+
 function _reloadExpandOverlay() {
     const app = _getAlpineData();
     if (!app) return;
@@ -1195,6 +1235,14 @@ function _reloadExpandOverlay() {
     }
     if (ov.endpoint === 'top-paths' && ov.honeypotOnly) {
         params.set('honeypot_only', '1');
+    }
+    if (ov.endpoint === 'attacks') {
+        if (ov.method) params.set('method_filter', ov.method);
+        if (ov.attackType) params.set('attack_type_filter', ov.attackType);
+        // Pull sort defaults from the currently displayed partial if present,
+        // otherwise default to timestamp desc.
+        if (!params.has('sort_by')) params.set('sort_by', 'timestamp');
+        if (!params.has('sort_order')) params.set('sort_order', 'desc');
     }
 
     const url = `${dashboardPath}/htmx/${ov.endpoint}?${params}`;

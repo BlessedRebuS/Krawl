@@ -65,8 +65,8 @@ spec:
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ include "krawl.fullname" . }}-postgres
-              key: postgres-password
+              name: {{ (include "krawl.postgres.secret" . | fromJson).name }}
+              key: {{ (include "krawl.postgres.secret" . | fromJson).key }}
         volumeMounts:
         - name: database
           mountPath: /app/data

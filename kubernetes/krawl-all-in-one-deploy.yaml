@@ -489,6 +489,29 @@ spec:
         env:
         - name: CONFIG_LOCATION
           value: "config.yaml"
+        # Optional: pull dashboard password from an externally-managed Secret
+        # (e.g. via ExternalSecrets / SealedSecrets / Vault). Uncomment and
+        # create the Secret under key `dashboard-password` to enable.
+        # - name: KRAWL_DASHBOARD_PASSWORD
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: krawl-dashboard
+        #       key: dashboard-password
+        # Optional: pull the dashboard secret path from an externally-managed
+        # Secret. When set, this overrides config.dashboard.secret_path at
+        # runtime, so the path no longer has to live in plaintext config.
+        # - name: KRAWL_DASHBOARD_SECRET_PATH
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: krawl-dashboard
+        #       key: dashboard-path
+        # Optional: pull Redis password from an externally-managed Secret. The
+        # bundled Redis ships with no password; uncomment to require one.
+        # - name: KRAWL_REDIS_PASSWORD
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: krawl-redis
+        #       key: redis-password
         - name: KRAWL_MODE
           value: "scalable"
         - name: KRAWL_POSTGRES_HOST

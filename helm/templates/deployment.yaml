@@ -66,12 +66,19 @@ spec:
         - name: TZ
           value: {{ .Values.timezone | quote }}
         {{- end }}
-        {{- if .Values.dashboardPassword }}
+        {{- if or .Values.dashboardPassword .Values.dashboardExistingSecret }}
         - name: KRAWL_DASHBOARD_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ include "krawl.fullname" . }}-dashboard
-              key: dashboard-password
+              name: {{ (include "krawl.dashboard.secret" . | fromJson).name }}
+              key: {{ (include "krawl.dashboard.secret" . | fromJson).key }}
+        {{- end }}
+        {{- if .Values.dashboardPathExistingSecret }}
+        - name: KRAWL_DASHBOARD_SECRET_PATH
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.dashboardPathExistingSecret }}
+              key: {{ .Values.dashboardPathExistingSecretKey | default "dashboard-path" }}
         {{- end }}
         {{- if .Values.config.ai.api_key }}
         - name: KRAWL_AI_API_KEY
@@ -96,8 +103,8 @@ spec:
         - name: KRAWL_POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ include "krawl.fullname" . }}-postgres
-              key: postgres-password
+              name: {{ (include "krawl.postgres.secret" . | fromJson).name }}
+              key: {{ (include "krawl.postgres.secret" . | fromJson).key }}
         - name: KRAWL_POSTGRES_DATABASE
           value: {{ .Values.postgres.database | quote }}
         - name: KRAWL_REDIS_HOST
@@ -106,12 +113,12 @@ spec:
           value: {{ .Values.redis.port | quote }}
         - name: KRAWL_REDIS_DB
           value: {{ .Values.redis.db | quote }}
-        {{- if .Values.redis.password }}
+        {{- if or .Values.redis.password .Values.redis.existingSecret }}
         - name: KRAWL_REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ include "krawl.fullname" . }}-redis
-              key: redis-password
+              name: {{ (include "krawl.redis.secret" . | fromJson).name }}
+              key: {{ (include "krawl.redis.secret" . | fromJson).key }}
         {{- end }}
         - name: KRAWL_REDIS_CACHE_TTL
           value: {{ .Values.redis.cache_ttl | default 600 | quote }}

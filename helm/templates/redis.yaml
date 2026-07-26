@@ -74,8 +74,8 @@ spec:
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ include "krawl.fullname" . }}-redis
-              key: redis-password
+              name: {{ (include "krawl.redis.secret" . | fromJson).name }}
+              key: {{ (include "krawl.redis.secret" . | fromJson).key }}
         {{- end }}
         {{- if .Values.redis.persistence.enabled }}
         volumeMounts:

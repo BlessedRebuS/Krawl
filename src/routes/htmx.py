@@ -531,14 +531,27 @@ async def htmx_credentials(
 async def htmx_attacks(
     request: Request,
     page: int = Query(1),
+    page_size: int = Query(15),
     sort_by: str = Query("timestamp"),
     sort_order: str = Query("desc"),
     ip_filter: str = Query(None),
     attack_type_filter: str = Query(None),
+    search: str = Query(""),
+    method_filter: str = Query(None),
 ):
     page = max(1, page)
-    cache_key = f"attacks:{page}:{sort_by}:{sort_order}:{ip_filter or ''}:{attack_type_filter or ''}"
-    cached = get_cached_table(cache_key)
+    page_size = max(1, min(int(page_size), 200))
+    search = search.strip() or None
+    method_filter = (method_filter or "").strip().upper() or None
+    # Validate page_size for the inline dashboard (must match the cached size to
+    # use cached results). When the expand overlay requests a different page
+    # size (e.g. 25), skip the cache so cached pages don't bleed across sizes.
+    use_cache = page_size == 15
+    cache_key = (
+        f"attacks:{page}:{sort_by}:{sort_order}:{ip_filter or ''}:"
+        f"{attack_type_filter or ''}:{search or ''}:{method_filter or ''}"
+    )
+    cached = get_cached_table(cache_key) if use_cache else None
     if cached:
         result = cached
     else:
@@ -546,13 +559,16 @@ async def htmx_attacks(
         result = await asyncio.to_thread(
             db.analytics.get_attack_types_paginated,
             page=page,
-            page_size=15,
+            page_size=page_size,
             sort_by=sort_by,
             sort_order=sort_order,
             ip_filter=ip_filter,
             attack_type_filter=attack_type_filter,
+            search=search,
+            method_filter=method_filter,
         )
-        set_cached_table(cache_key, result)
+        if use_cache:
+            set_cached_table(cache_key, result)
 
     # Transform attack data for template (join attack_types list, map id to log_id)
     items = []
@@ -582,8 +598,69 @@ async def htmx_attacks(
             "sort_order": sort_order,
             "ip_filter": ip_filter or "",
             "attack_type_filter": attack_type_filter or "",
+            "search": search or "",
+            "method_filter": method_filter or "",
         },
     )
+
+
+# ── Recent Suspicious Activity (paginated for expand overlay) ────────
+
+
+@router.get("/htmx/suspicious")
+async def htmx_suspicious(
+    request: Request,
+    page: int = Query(1),
+    page_size: int = Query(25),
+    search: str = Query(""),
+    sort_order: str = Query("desc"),
+):
+    page = max(1, page)
+    page_size = max(1, min(int(page_size), 200))
+    search = search.strip() or None
+
+    cache_key = f"suspicious:{page}:{page_size}:{sort_order}:{search or ''}"
+    cached = get_cached_table(cache_key)
+    if cached:
+        result = cached
+    else:
+        db = get_db()
+        result = await asyncio.to_thread(
+            db.access_logs.get_recent_suspicious_paginated,
+            page=page,
+            page_size=page_size,
+            search=search,
+            sort_order=sort_order,
+        )
+        set_cached_table(cache_key, result)
+
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/suspicious_expand_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "items": result["items"],
+            "pagination": result["pagination"],
+            "sort_order": sort_order,
+            "search": search or "",
+        },
+    )
+
+
+# ── Attack types list (for filter dropdown in expand overlay) ────────
+
+
+@router.get("/htmx/attack-types-list")
+async def htmx_attack_types_list(request: Request):
+    """Return the list of distinct attack types for the expand overlay filter.
+    Rendered as a JSON response for client-side consumption."""
+    db = get_db()
+    stats = await asyncio.to_thread(db.analytics.get_attack_types_stats, limit=100)
+    types = [item["type"] for item in stats.get("attack_types", []) if item.get("type")]
+    from fastapi.responses import JSONResponse
+
+    return JSONResponse({"attack_types": types})
 
 
 # ── Attack Patterns ──────────────────────────────────────────────────

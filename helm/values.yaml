@@ -84,6 +84,21 @@ affinity: {}
 # Dashboard password for protected panels
 # If empty, a random password will be auto-generated and printed in the logs
 dashboardPassword: ""
+# Reference an externally-managed Secret for the dashboard password instead of
+# the chart-managed Secret created from `dashboardPassword`. The Secret must
+# contain the password under the key set by `dashboardExistingSecretKey`
+# (default "dashboard-password").
+dashboardExistingSecret: ""
+dashboardExistingSecretKey: "dashboard-password"
+
+# Reference an externally-managed Secret for the dashboard secret path
+# (config.dashboard.secret_path). Set this when the secret path is provisioned
+# out-of-band, e.g. by ExternalSecrets / SealedSecrets / Vault. The Secret must
+# contain the path under `dashboardPathExistingSecretKey` (default
+# "dashboard-path"). When set, the env var KRAWL_DASHBOARD_SECRET_PATH is
+# injected from this Secret, overriding whatever is in config.dashboard.secret_path.
+dashboardPathExistingSecret: ""
+dashboardPathExistingSecretKey: "dashboard-path"
 
 # Application configuration (config.yaml structure)
 config:
@@ -220,9 +235,15 @@ postgres:
   user: "krawl"
   password: "krawl"
   database: "krawl"
-  # Use an existing secret for the PostgreSQL password instead of plaintext
-  # existingSecret: ""
-  # existingSecretKey: "postgres-password"
+  # Use an externally-managed Secret for the PostgreSQL password instead of the
+  # plaintext `password` field. The Secret must contain the password under the
+  # key set by `existingSecretKey` (default "postgres-password"). When set, the
+  # chart-managed Secret for postgres is not created and the PostgreSQL
+  # StatefulSet + Krawl Deployment + migration Job all read the password from
+  # this Secret. Combine with `postgres.enabled: false` to point at a fully
+  # external instance.
+  existingSecret: ""
+  existingSecretKey: "postgres-password"
   image:
     repository: postgres
     tag: "16-alpine"
@@ -252,9 +273,14 @@ redis:
   cache_ttl: 600    # Dashboard warmup data (default: 10 minutes)
   hot_ttl: 30       # Hot-path data like ban info (default: 30 seconds)
   table_ttl: 120    # Paginated dashboard tables (default: 2 minutes)
-  # Use an existing secret for the Redis password instead of plaintext
-  # existingSecret: ""
-  # existingSecretKey: "redis-password"
+  # Use an externally-managed Secret for the Redis password instead of the
+  # plaintext `password` field. The Secret must contain the password under the
+  # key set by `existingSecretKey` (default "redis-password"). When set, the
+  # chart-managed Secret for redis is not created and the Redis StatefulSet +
+  # Krawl Deployment both read the password from this Secret. Set
+  # `redis.enabled: false` to use a fully external Redis instance.
+  existingSecret: ""
+  existingSecretKey: "redis-password"
   image:
     repository: redis
     tag: "7-alpine"
