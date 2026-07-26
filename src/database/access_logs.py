@@ -7,7 +7,7 @@ as hot paths.
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import distinct, func
+from sqlalchemy import distinct, func, or_
 from sqlalchemy.orm import joinedload
 
 from logger import get_app_logger
@@ -235,6 +235,88 @@ class AccessLogRepo:
                 }
                 for log in logs
             ]
+        finally:
+            self._db.close_session()
+
+    def get_recent_suspicious_paginated(
+        self,
+        page: int = 1,
+        page_size: int = 25,
+        search: str | None = None,
+        sort_order: str = "desc",
+    ) -> dict[str, Any]:
+        """
+        Paginated recent suspicious access attempts (excludes local/private IPs and server IP).
+
+        Args:
+            page: Page number (1-indexed)
+            page_size: Number of results per page
+            search: Optional case-insensitive substring filter on IP/path/user-agent
+            sort_order: 'asc' or 'desc' (by timestamp)
+
+        Returns:
+            Dictionary with `items` list and `pagination` info.
+        """
+        session = self._db.session
+        try:
+            from config import get_config
+
+            config = get_config()
+            server_ip = config.get_server_ip()
+
+            sort_order = sort_order.lower()
+            if sort_order not in {"asc", "desc"}:
+                sort_order = "desc"
+            order = (
+                AccessLog.timestamp.asc()
+                if sort_order == "asc"
+                else AccessLog.timestamp.desc()
+            )
+
+            query = (
+                session.query(AccessLog)
+                .options(joinedload(AccessLog.attack_detections))
+                .filter(AccessLog.is_suspicious)
+                .order_by(order)
+            )
+            query = self._db._public_ip_filter(query, AccessLog.ip, server_ip)
+
+            if search:
+                like = f"%{search}%"
+                query = query.filter(
+                    or_(
+                        AccessLog.ip.ilike(like),
+                        AccessLog.path.ilike(like),
+                        AccessLog.user_agent.ilike(like),
+                    )
+                )
+
+            total = query.count()
+            offset = (page - 1) * page_size
+            logs = query.offset(offset).limit(page_size).all()
+            total_pages = (total + page_size - 1) // page_size
+
+            items = [
+                {
+                    "ip": log.ip,
+                    "path": log.path,
+                    "user_agent": log.user_agent,
+                    "method": log.method,
+                    "timestamp": log.timestamp.isoformat() if log.timestamp else None,
+                    "log_id": log.id,
+                    "attack_types": [d.attack_type for d in log.attack_detections],
+                }
+                for log in logs
+            ]
+            return {
+                "items": items,
+                "pagination": {
+                    "page": page,
+                    "page_size": page_size,
+                    "total": total,
+                    "total_pages": max(1, total_pages),
+                },
+            }
         finally:
             self._db.close_session()
 

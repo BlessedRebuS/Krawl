@@ -373,6 +373,8 @@ class AnalyticsRepo:
         sort_order: str = "desc",
         ip_filter: str | None = None,
         attack_type_filter: str | None = None,
+        search: str | None = None,
+        method_filter: str | None = None,
     ) -> dict[str, Any]:
         """
         Retrieve paginated list of detected attack types with access logs.
@@ -384,6 +386,8 @@ class AnalyticsRepo:
             sort_order: Sort order (asc or desc)
             ip_filter: Optional IP address to filter results
             attack_type_filter: Optional attack type to filter results
+            search: Optional case-insensitive substring filter across IP/path/user-agent
+            method_filter: Optional HTTP method filter (e.g. GET, POST)
 
         Returns:
             Dictionary with attacks list and pagination info
@@ -424,6 +428,19 @@ class AnalyticsRepo:
             match_filters = [detection_exists.exists()]
             if ip_filter:
                 match_filters.append(AccessLog.ip == ip_filter)
+            if method_filter:
+                match_filters.append(
+                    func.upper(AccessLog.method) == method_filter.upper()
+                )
+            if search:
+                like = f"%{search}%"
+                match_filters.append(
+                    or_(
+                        AccessLog.ip.ilike(like),
+                        AccessLog.path.ilike(like),
+                        AccessLog.user_agent.ilike(like),
+                    )
+                )
 
             # Count total matching access logs.
             total_attacks = (
