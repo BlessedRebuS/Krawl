@@ -255,6 +255,10 @@ The Krawl service already includes `externalTrafficPolicy: Local` by default to 
 |-----------|-------------|---------|
 | `config.dashboard.secret_path` | Secret dashboard path (auto-generated if null) | `null` |
 | `dashboardPassword` | Password for protected panels (injected via Secret as `KRAWL_DASHBOARD_PASSWORD` env, auto-generated if empty) | `""` |
+| `dashboardExistingSecret` | Use an externally-managed Secret for the dashboard password (key `dashboardExistingSecretKey`, default `dashboard-password`). When set, the chart-managed Secret is not created. | `""` |
+| `dashboardExistingSecretKey` | Key in `dashboardExistingSecret` holding the dashboard password | `dashboard-password` |
+| `dashboardPathExistingSecret` | Use an externally-managed Secret for the dashboard secret path (key `dashboardPathExistingSecretKey`, default `dashboard-path`). When set, `KRAWL_DASHBOARD_SECRET_PATH` is injected from this Secret and overrides `config.dashboard.secret_path` at runtime. | `""` |
+| `dashboardPathExistingSecretKey` | Key in `dashboardPathExistingSecret` holding the dashboard path | `dashboard-path` |
 
 ### API Configuration
 
@@ -286,8 +290,8 @@ The Krawl service already includes `externalTrafficPolicy: Local` by default to 
 | `postgres.user` | PostgreSQL username | `krawl` |
 | `postgres.password` | PostgreSQL password | `krawl` |
 | `postgres.database` | PostgreSQL database name | `krawl` |
-| `postgres.existingSecret` | Use an existing Secret for the password | `` |
-| `postgres.existingSecretKey` | Key in the existing Secret | `postgres-password` |
+| `postgres.existingSecret` | Use an externally-managed Secret for the PostgreSQL password (skips chart-managed Secret for Postgres, used by Krawl Deployment, bundled StatefulSet, and the migration Job) | `` |
+| `postgres.existingSecretKey` | Key in `postgres.existingSecret` holding the password | `postgres-password` |
 | `postgres.image.repository` | PostgreSQL image repository (bundled only) | `postgres` |
 
 | `postgres.image.tag` | PostgreSQL image tag | `16-alpine` |
@@ -307,8 +311,8 @@ The Krawl service already includes `externalTrafficPolicy: Local` by default to 
 | `redis.port` | Redis port | `6379` |
 | `redis.db` | Redis database number | `0` |
 | `redis.password` | Redis password | `` |
-| `redis.existingSecret` | Use an existing Secret for the password | `` |
-| `redis.existingSecretKey` | Key in the existing Secret | `redis-password` |
+| `redis.existingSecret` | Use an externally-managed Secret for the Redis password (skips chart-managed Secret for Redis, used by Krawl Deployment and bundled StatefulSet) | `` |
+| `redis.existingSecretKey` | Key in `redis.existingSecret` holding the password | `redis-password` |
 | `redis.image.repository` | Redis image repository (bundled only) | `redis` |
 | `redis.image.tag` | Redis image tag | `7-alpine` |
 | `redis.image.pullPolicy` | Image pull policy | `IfNotPresent` |
