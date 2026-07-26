@@ -20,7 +20,7 @@
         </div>
 
         {# Contextual filter bar - shown based on endpoint #}
-        <div x-show="expandOverlay.endpoint === 'top-ips' || expandOverlay.endpoint === 'top-paths'"
+        <div x-show="['top-ips', 'top-paths', 'attacks'].includes(expandOverlay.endpoint)"
              x-cloak
              style="padding: 8px 24px; border-bottom: 1px solid #30363d; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
 
@@ -71,6 +71,31 @@
                         <span class="map-legend-dot" style="background: #f85149;"></span>
                         <span class="map-legend-label">Honeypot Only</span>
                     </div>
+                </div>
+            </template>
+
+            {# Filters for Attacks #}
+            <template x-if="expandOverlay.endpoint === 'attacks'">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; width: 100%;">
+                    <span style="color: #8b949e; font-size: 0.8em;">Method</span>
+                    <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                        <template x-for="m in ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']" :key="m">
+                            <button class="map-limit-btn"
+                                    :class="{ active: expandOverlay.method === m }"
+                                    @click="toggleExpandMethod(m)"
+                                    x-text="m"
+                                    style="padding: 2px 8px; font-size: 0.8em;"></button>
+                        </template>
+                    </div>
+                    <span style="color: #8b949e; font-size: 0.8em; margin-left: 8px;">Attack type</span>
+                    <select x-model="expandOverlay.attackType"
+                            @change="triggerExpandSearch()"
+                            style="background: #0d1117; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; padding: 3px 8px; font-size: 0.85em; min-width: 160px; max-width: 280px;">
+                        <option value="">All attack types</option>
+                        <template x-for="t in expandOverlay.attackTypes" :key="t">
+                            <option :value="t" x-text="t"></option>
+                        </template>
+                    </select>
                 </div>
             </template>
         </div>
