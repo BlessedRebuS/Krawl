@@ -97,6 +97,149 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
+    Alpine.data('webhookManagement', () => ({
+        accountId: '',
+        authToken: '',
+        listName: 'krawl_banlist',
+        syncInterval: 30,
+        cfEnabled: false,
+        listId: null,
+        selectedCategories: ['attacker'],
+        lastSync: null,
+        lastSyncStatus: null,
+        lastSyncError: null,
+        saving: false,
+        syncing: false,
+        testResult: '',
+        testOk: false,
+        syncStatus: '',
+        syncOk: false,
+        allCategories: [
+            { value: 'attacker', label: 'Attackers' },
+            { value: 'bad_crawler', label: 'Bad Crawlers' },
+            { value: 'regular_user', label: 'Regular Users' },
+            { value: 'good_crawler', label: 'Good Crawlers' },
+            { value: 'timed_out', label: 'Timed Out' },
+        ],
+
+        async init() {
+            const dp = window.__DASHBOARD_PATH__ || '';
+            try {
+                const resp = await fetch(`${dp}/api/webhooks/status`, { credentials: 'same-origin' });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    const cf = data.cloudflare || {};
+                    this.accountId = cf.account_id || '';
+                    this.authToken = cf.auth_token || '';
+                    this.listName = cf.list_name || 'krawl_banlist';
+                    this.syncInterval = cf.sync_interval_minutes || 30;
+                    this.cfEnabled = cf.enabled || false;
+                    this.listId = cf.list_id || null;
+                    this.selectedCategories = cf.categories || ['attacker'];
+                    this.lastSync = cf.last_sync ? new Date(cf.last_sync).toLocaleString() : null;
+                    this.lastSyncStatus = cf.last_sync_status || null;
+                    this.lastSyncError = cf.last_sync_error || null;
+                }
+            } catch {}
+        },
+
+        async saveConfig() {
+            if (!this.accountId || !this.authToken) {
+                this.testResult = 'Account ID and API Token are required';
+                this.testOk = false;
+                return;
+            }
+            this.saving = true;
+            this.testResult = '';
+            this.syncStatus = '';
+            const dp = window.__DASHBOARD_PATH__ || '';
+            try {
+                const resp = await fetch(`${dp}/api/webhooks/cloudflare/save`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        account_id: this.accountId,
+                        auth_token: this.authToken,
+                        list_name: this.listName,
+                        sync_interval_minutes: this.syncInterval,
+                        categories: this.selectedCategories,
+                        enabled: this.cfEnabled,
+                    }),
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    this.listId = data.list_id;
+                    this.testResult = data.warning || ('Saved (' + (data.list_name || this.listName) + ')');
+                    this.testOk = !data.warning;
+                } else {
+                    this.testResult = data.error || 'Save failed';
+                    this.testOk = false;
+                }
+            } catch {
+                this.testResult = 'Request failed';
+                this.testOk = false;
+            }
+            this.saving = false;
+        },
+
+        async syncNow() {
+            this.syncing = true;
+            this.syncStatus = '';
+            const dp = window.__DASHBOARD_PATH__ || '';
+            try {
+                const resp = await fetch(`${dp}/api/webhooks/cloudflare/sync`, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    this.syncStatus = 'Synced ' + data.count + ' IPs to CloudFlare';
+                    this.syncOk = true;
+                    this.lastSync = new Date().toLocaleString();
+                    this.lastSyncStatus = 'ok';
+                    this.lastSyncError = null;
+                } else {
+                    this.syncStatus = data.error || 'Sync failed';
+                    this.syncOk = false;
+                    this.lastSyncStatus = 'error';
+                    this.lastSyncError = data.error;
+                }
+            } catch {
+                this.syncStatus = 'Request failed';
+                this.syncOk = false;
+            }
+            this.syncing = false;
+        },
+
+        async deleteConfig() {
+            const dp = window.__DASHBOARD_PATH__ || '';
+            try {
+                const resp = await fetch(`${dp}/api/webhooks/cloudflare/config`, {
+                    method: 'DELETE',
+                    credentials: 'same-origin',
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    this.accountId = '';
+                    this.authToken = '';
+                    this.listId = null;
+                    this.lastSync = null;
+                    this.lastSyncStatus = null;
+                    this.lastSyncError = null;
+                    this.testResult = 'Config deleted';
+                    this.testOk = true;
+                } else {
+                    this.testResult = data.error || 'Delete failed';
+                    this.testOk = false;
+                }
+            } catch {
+                this.testResult = 'Request failed';
+                this.testOk = false;
+            }
+        },
+    }));
+
     Alpine.data('dashboardApp', () => ({
         // State
         tab: 'overview',
@@ -169,6 +312,8 @@ document.addEventListener('alpine:init', () => {
                 this.switchToTrackedIps();
             } else if (hash === 'deception' && this.authenticated) {
                 this.switchToDeception();
+            } else if (hash === 'webhooks' && this.authenticated) {
+                this.switchToWebhooks();
             } else if (hash === 'overview' || !hash) {
                 this.switchToOverview();
             } else {
@@ -193,6 +338,8 @@ document.addEventListener('alpine:init', () => {
                         if (this.authenticated) this.switchToTrackedIps();
                     } else if (h === 'deception') {
                         if (this.authenticated) this.switchToDeception();
+                    } else if (h === 'webhooks') {
+                        if (this.authenticated) this.switchToWebhooks();
                     } else if (h !== 'ip-insight') {
                         if (this.tab !== 'ip-insight') {
                             this.switchToOverview();
@@ -291,6 +438,22 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
+        switchToWebhooks() {
+            if (!this.authenticated) return;
+            if (this.tab === 'webhooks') return;
+            this.tab = 'webhooks';
+            window.location.hash = '#webhooks';
+            this.$nextTick(() => {
+                const container = document.getElementById('webhooks-htmx-container');
+                if (container && typeof htmx !== 'undefined') {
+                    htmx.ajax('GET', `${this.dashboardPath}/htmx/webhooks`, {
+                        target: '#webhooks-htmx-container',
+                        swap: 'innerHTML'
+                    });
+                }
+            });
+        },
+
         async logout() {
             try {
                 await fetch(`${this.dashboardPath}/api/auth/logout`, {
@@ -299,7 +462,7 @@ document.addEventListener('alpine:init', () => {
                 });
             } catch {}
             this.authenticated = false;
-            if (this.tab === 'banlist' || this.tab === 'tracked-ips' || this.tab === 'deception' || this.tab === 'timedout') this.switchToOverview();
+            if (this.tab === 'banlist' || this.tab === 'tracked-ips' || this.tab === 'deception' || this.tab === 'timedout' || this.tab === 'webhooks') this.switchToOverview();
         },
 
         promptAuth() {

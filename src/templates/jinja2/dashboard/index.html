@@ -57,6 +57,7 @@
         <a class="tab-button" :class="{ active: tab === 'banlist' }" x-show="authenticated" x-cloak @click.prevent="switchToBanlist()" href="#banlist">IP Banlist</a>
         <a class="tab-button" :class="{ active: tab === 'timedout' }" x-show="authenticated" x-cloak @click.prevent="switchToTimedOut()" href="#timedout">Timed Out IPs</a>
         <a class="tab-button" :class="{ active: tab === 'deception' }" x-show="authenticated" x-cloak @click.prevent="switchToDeception()" href="#deception">Deception</a>
+        <a class="tab-button" :class="{ active: tab === 'webhooks' }" x-show="authenticated" x-cloak @click.prevent="switchToWebhooks()" href="#webhooks">Webhooks</a>
         {# Lock icon (not authenticated) #}
         <a class="tab-button tab-lock-btn" :class="{ 'tab-right': !authenticated }" @click.prevent="promptAuth()" x-show="!authenticated" href="#" title="Unlock protected panels">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
@@ -253,6 +254,11 @@
     {# ==================== DECEPTION TAB (protected, Generated templates) ==================== #}
     <div x-show="tab === 'deception'" x-cloak>
         <div id="deception-htmx-container"></div>
+    </div>
+
+    {# ==================== WEBHOOKS TAB (protected, webhook configs) ==================== #}
+    <div x-show="tab === 'webhooks'" x-cloak>
+        <div id="webhooks-htmx-container"></div>
     </div>
 
     {# Export IPs modal - Alpine.js #}
