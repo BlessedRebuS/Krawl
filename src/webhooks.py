@@ -8,7 +8,6 @@ Stores webhook configs in data/webhooks.json.
 import json
 import os
 import threading
-from datetime import datetime, timezone
 
 import requests
 
@@ -92,12 +91,17 @@ def _cf_headers(auth_token: str) -> dict:
     }
 
 
-def _cf_request(method: str, url: str, auth_token: str, json_body=None, timeout=30) -> dict:
+def _cf_request(
+    method: str, url: str, auth_token: str, json_body=None, timeout=30
+) -> dict:
     """Make a CF API request with robust error handling."""
     try:
         resp = requests.request(
-            method, url, headers=_cf_headers(auth_token),
-            json=json_body, timeout=timeout,
+            method,
+            url,
+            headers=_cf_headers(auth_token),
+            json=json_body,
+            timeout=timeout,
         )
         get_app_logger().debug(f"[CF API] {method} {url} -> {resp.status_code}")
         # Try JSON parse, fall back to raw text on non-JSON responses
@@ -107,7 +111,15 @@ def _cf_request(method: str, url: str, auth_token: str, json_body=None, timeout=
             get_app_logger().warning(
                 f"[CF API] Non-JSON response ({resp.status_code}): {resp.text[:500]}"
             )
-            return {"success": False, "errors": [{"code": 0, "message": f"Non-JSON response (HTTP {resp.status_code}): {resp.text[:200]}"}]}
+            return {
+                "success": False,
+                "errors": [
+                    {
+                        "code": 0,
+                        "message": f"Non-JSON response (HTTP {resp.status_code}): {resp.text[:200]}",
+                    }
+                ],
+            }
         if not data.get("success"):
             errors = data.get("errors", [])
             get_app_logger().warning(f"[CF API] Error: {errors}")
@@ -117,12 +129,21 @@ def _cf_request(method: str, url: str, auth_token: str, json_body=None, timeout=
         return {"success": False, "errors": [{"code": 0, "message": str(e)}]}
 
 
-def cf_create_list(account_id: str, auth_token: str, name: str, description: str) -> dict:
+def cf_create_list(
+    account_id: str, auth_token: str, name: str, description: str
+) -> dict:
     """Create a new CloudFlare IP List via POST."""
     url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/rules/lists"
-    return _cf_request("POST", url, auth_token, json_body={
-        "name": name, "kind": "ip", "description": description,
-    })
+    return _cf_request(
+        "POST",
+        url,
+        auth_token,
+        json_body={
+            "name": name,
+            "kind": "ip",
+            "description": description,
+        },
+    )
 
 
 def cf_list_items(account_id: str, auth_token: str, list_id: str) -> dict:
@@ -130,7 +151,9 @@ def cf_list_items(account_id: str, auth_token: str, list_id: str) -> dict:
     return _cf_request("GET", url, auth_token)
 
 
-def cf_replace_items(account_id: str, auth_token: str, list_id: str, ips: list[str]) -> dict:
+def cf_replace_items(
+    account_id: str, auth_token: str, list_id: str, ips: list[str]
+) -> dict:
     """Replace all items in a CF list with the given IPs (full replace via PUT)."""
     url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/rules/lists/{list_id}/items"
     payload = [{"ip": ip} for ip in ips]
@@ -171,6 +194,7 @@ def sync_banlist_to_cloudflare(cf_config: dict) -> dict:
     if real_cats:
         try:
             from database import get_database
+
             db = get_database()
             ip_set.update(db.ip_stats.get_ips_for_export(real_cats))
         except Exception as e:
@@ -179,6 +203,7 @@ def sync_banlist_to_cloudflare(cf_config: dict) -> dict:
     if "timed_out" in categories:
         try:
             from database import get_database
+
             db = get_database()
             ip_set.update(db.ip_stats.get_timedout_ips(config.ban_duration_seconds))
         except Exception as e:
@@ -192,7 +217,12 @@ def sync_banlist_to_cloudflare(cf_config: dict) -> dict:
 
     def _find_list_by_name():
         """Search existing lists for one matching the configured name."""
-        r = _cf_request("GET", f"https://api.cloudflare.com/client/v4/accounts/{account_id}/rules/lists", auth_token, timeout=15)
+        r = _cf_request(
+            "GET",
+            f"https://api.cloudflare.com/client/v4/accounts/{account_id}/rules/lists",
+            auth_token,
+            timeout=15,
+        )
         if not r.get("success"):
             return None
         name = cf_config.get("list_name", "krawl_banlist")
@@ -204,7 +234,9 @@ def sync_banlist_to_cloudflare(cf_config: dict) -> dict:
     def _create_list_and_save():
         cfg = load_config()
         name = cfg.get("cloudflare", {}).get("list_name", "krawl_banlist")
-        desc = cfg.get("cloudflare", {}).get("list_description", "IPs banned by Krawl honeypot")
+        desc = cfg.get("cloudflare", {}).get(
+            "list_description", "IPs banned by Krawl honeypot"
+        )
         r = cf_create_list(account_id, auth_token, name, desc)
         if not r.get("success"):
             return None, [e.get("message", str(e)) for e in r.get("errors", [])]
@@ -233,7 +265,9 @@ def sync_banlist_to_cloudflare(cf_config: dict) -> dict:
     if not result.get("success"):
         err_msgs = [e.get("message", str(e)) for e in result.get("errors", [])]
         if any("not_found" in m or "could not find" in m for m in err_msgs):
-            get_app_logger().info(f"[CF Sync] List {list_id} not found, searching by name")
+            get_app_logger().info(
+                f"[CF Sync] List {list_id} not found, searching by name"
+            )
             found_id = _find_list_by_name()
             if found_id:
                 list_id = found_id
@@ -244,13 +278,21 @@ def sync_banlist_to_cloudflare(cf_config: dict) -> dict:
             else:
                 list_id, err = _create_list_and_save()
                 if err:
-                    return {"status": "error", "error": f"List gone, no matching list found, and creation failed: {err}"}
+                    return {
+                        "status": "error",
+                        "error": f"List gone, no matching list found, and creation failed: {err}",
+                    }
             result = cf_replace_items(account_id, auth_token, list_id, public_ips)
             if not result.get("success"):
                 err_msgs = [e.get("message", str(e)) for e in result.get("errors", [])]
-                return {"status": "error", "error": f"Failed to replace items: {err_msgs}"}
+                return {
+                    "status": "error",
+                    "error": f"Failed to replace items: {err_msgs}",
+                }
         else:
             return {"status": "error", "error": f"Failed to replace items: {err_msgs}"}
 
-    get_app_logger().info(f"[CF Sync] Synced {len(public_ips)} IPs to CF list {list_id}")
+    get_app_logger().info(
+        f"[CF Sync] Synced {len(public_ips)} IPs to CF list {list_id}"
+    )
     return {"status": "ok", "count": len(public_ips), "list_id": list_id}
