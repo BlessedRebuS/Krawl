@@ -411,6 +411,8 @@ This enables automatic blocking of malicious traffic across various platforms:
 
 For full API parameters, examples, and adding custom firewall formats, see the [Firewall Exporters documentation](docs/firewall-exporters.md).
 
+Krawl can also push banned IPs directly to a Cloudflare Account IP List for use in WAF rules. The sync runs as a background task and updates the list by full replacement on a configurable interval. See the [Cloudflare Banlist Sync](docs/cloudflare_banlist.md) documentation.
+
 ## IP Reputation
 Krawl [uses tasks that analyze recent traffic to build and continuously update an IP reputation](src/tasks/analyze_ips.py) score. It runs periodically and evaluates each active IP address based on multiple behavioral indicators to classify it as an attacker, crawler, or regular user. Thresholds are fully customizable.
 
@@ -486,6 +488,7 @@ See the [Monitoring documentation](docs/monitoring.md) for the full metric list,
 | [Canary Token](docs/canary-token.md) | Set up external alert triggers via canarytokens.org |
 | [Wordlist](docs/wordlist.md) | Customize fake usernames, passwords, and directory listings |
 | [Architecture](docs/architecture.md) | Technical overview of the codebase, request pipeline, database schema, and background tasks |
+| [Cloudflare Banlist Sync](docs/cloudflare_banlist.md) | Pushes banned IPs from Krawl to a Cloudflare Account IP List for use in WAF rules. The sync runs as a background task and updates the list by full replacement. |
 | [Firewall Exporters](docs/firewall-exporters.md) | Export IP banlists in raw, iptables, or nftables format via REST API |
 | [Metrics & Monitoring](docs/monitoring.md) | Prometheus metrics endpoint, exposed metrics reference, Grafana dashboard, and ServiceMonitor scraping |
 

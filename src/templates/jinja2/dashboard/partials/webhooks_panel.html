@@ -1,0 +1,88 @@
+{# Webhooks management panel #}
+<div x-data="webhookManagement()" x-init="init()">
+
+    {# CloudFlare webhook config #}
+    <div class="table-container" style="margin-bottom: 20px;">
+        <h2>
+            CloudFlare IP List
+            <a href="https://developers.cloudflare.com/waf/tools/lists/create-dashboard/" target="_blank" rel="noopener" title="Cloudflare Lists docs" style="text-decoration: none; color: #8b949e; font-size: 14px; margin-left: 6px;">&#9432;</a>
+        </h2>
+        <p style="color: #8b949e; font-size: 14px; margin-bottom: 16px;">
+            Push banned IPs to a CloudFlare Custom List for use in WAF rules.
+        </p>
+
+        {# Connection status #}
+        <p x-show="testResult" x-text="testResult" :style="{ color: testOk ? '#3fb950' : '#f85149' }" style="margin-top: 10px; font-size: 13px;" x-cloak></p>
+
+        {# Sync status #}
+        <p x-show="syncStatus" x-text="syncStatus" :style="{ color: syncOk ? '#3fb950' : '#f85149' }" style="margin-top: 10px; font-size: 13px;" x-cloak></p>
+
+        {# Config form #}
+        <form @submit.prevent="saveConfig()">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
+                <div style="flex: 2; min-width: 200px;">
+                    <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 4px;">
+                        Account ID
+                        <a href="https://developers.cloudflare.com/fundamentals/account/find-account-and-zone-ids/" target="_blank" rel="noopener" title="Find your Account ID" style="text-decoration: none; color: #8b949e; font-size: 11px; margin-left: 3px;">&#9432;</a>
+                    </label>
+                    <input type="text" x-model="accountId" placeholder="32 hex characters" class="auth-modal-input" style="width: 100%;" />
+                </div>
+                <div style="flex: 2; min-width: 200px;">
+                    <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 4px;">
+                        API Token
+                        <a href="https://developers.cloudflare.com/fundamentals/api/get-started/create-token/" target="_blank" rel="noopener" title="Create an API token" style="text-decoration: none; color: #8b949e; font-size: 11px; margin-left: 3px;">&#9432;</a>
+                    </label>
+                    <input type="password" x-model="authToken" placeholder="Bearer token" class="auth-modal-input" style="width: 100%;" />
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-top: 10px;">
+                <div style="flex: 1; min-width: 150px;">
+                    <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 4px;">List Name</label>
+                    <input type="text" x-model="listName" placeholder="krawl_banlist" class="auth-modal-input" style="width: 100%;" />
+                </div>
+                <div style="flex: 0 0 120px;">
+                    <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 4px;">Interval (min)</label>
+                    <input type="number" x-model.number="syncInterval" min="1" max="1440" class="auth-modal-input" style="width: 100%;" />
+                </div>
+                <div style="flex: 2; min-width: 200px;">
+                    <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 4px;">IP Categories</label>
+                    <div style="display: flex; flex-wrap: nowrap; gap: 6px;">
+                        <template x-for="cat in allCategories" :key="cat.value">
+                            <label style="white-space: nowrap; display: flex; align-items: center; gap: 3px; color: #8b949e; font-size: 12px; cursor: pointer;">
+                                <input type="checkbox" :value="cat.value" x-model="selectedCategories" />
+                                <span x-text="cat.label"></span>
+                            </label>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 10px;">
+                <label style="display: flex; align-items: center; gap: 6px; color: #8b949e; font-size: 13px; cursor: pointer;">
+                    <input type="checkbox" x-model="cfEnabled" />
+                    <span>Enable</span>
+                </label>
+                <div style="display: flex; gap: 8px; margin-left: auto;">
+                    <button type="submit" :disabled="saving" style="padding: 6px 14px; background: #238636; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                        <span x-text="saving ? 'Saving...' : 'Save'"></span>
+                    </button>
+                    <button type="button" @click="syncNow()" :disabled="syncing" style="padding: 6px 14px; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                        <span x-text="syncing ? 'Syncing...' : 'Sync Config'"></span>
+                    </button>
+                    <button type="button" @click="deleteConfig()" style="padding: 6px 14px; background: transparent; color: #f85149; border: 1px solid #f85149; border-radius: 6px; cursor: pointer; font-size: 13px;">Delete</button>
+                </div>
+            </div>
+        </form>
+
+        {# Last sync info #}
+        <p x-show="lastSync" style="margin-top: 12px; font-size: 12px; color: #8b949e;" x-cloak>
+            Last sync: <span x-text="lastSync"></span>
+            <span x-show="lastSyncStatus === 'ok'" style="color: #3fb950; margin-left: 4px;">&#10003; OK</span>
+            <span x-show="lastSyncStatus !== 'ok' && lastSyncError" style="color: #f85149; margin-left: 4px;" x-text="lastSyncError"></span>
+        </p>
+
+        {# Config status #}
+        <p x-show="accountId" style="margin-top: 8px; font-size: 12px;" x-cloak>
+            <a :href="'https://dash.cloudflare.com/' + accountId + '/configurations/lists'" target="_blank" rel="noopener" style="color: #58a6ff; text-decoration: none;">Cloudflare Configured List &#8599;</a>
+        </p>
+    </div>
+</div>

@@ -1043,3 +1043,32 @@ async def htmx_timeout_exempt(
             "pagination": result["pagination"],
         },
     )
+
+
+# ── Protected Webhooks Panel ──────────────────────────────────────────
+
+
+@router.get("/htmx/webhooks")
+async def htmx_webhooks(request: Request):
+    if not verify_auth(request):
+        return HTMLResponse(
+            '<div class="table-container" style="text-align:center;padding:80px 20px;">'
+            '<h1 style="color:#f0883e;font-size:48px;margin:20px 0 10px;">Nice try bozo</h1>'
+            "<br>"
+            '<img src="https://media0.giphy.com/media/v1.Y2lkPTZjMDliOTUyaHQ3dHRuN2wyOW1kZndjaHdkY2dhYzJ6d2gzMDJkNm53ZnNrdnNlZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mOY97EXNisstZqJht9/200w.gif" alt="Diddy">'
+            "</div>",
+            status_code=200,
+        )
+
+    from webhooks import get_cloudflare_config
+
+    cf_config = get_cloudflare_config()
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/webhooks_panel.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "cf_config": cf_config,
+        },
+    )

@@ -15,11 +15,12 @@ import re
 import secrets
 import time
 import zipfile
+from datetime import UTC
 from email import policy
 
 from fastapi import APIRouter, Query, Request, Response
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 from config import get_config
 from dashboard_cache import (
@@ -1334,3 +1335,198 @@ async def upload_generated_pages_bulk(request: Request, body: UploadBulkPagesReq
         return JSONResponse(content={"error": "Internal server error"}, status_code=500)
     finally:
         db.close_session()
+
+
+# ── Webhooks API ──────────────────────────────────────────────────────
+
+
+class CloudflareSaveRequest(BaseModel):
+    account_id: str
+    auth_token: str
+    list_name: str = "krawl_banlist"
+    list_description: str = "IPs banned by Krawl honeypot"
+    sync_interval_minutes: int = 30
+    categories: list[str] = ["attacker"]
+    enabled: bool = False
+
+    @validator("account_id")
+    def validate_account_id(cls, v):
+        v = v.strip()
+        if not re.fullmatch(r"[0-9a-f]{32}", v):
+            raise ValueError(
+                "Account ID must be exactly 32 hex characters (e.g. 1a2b3c4d5e6f7890abcdef1234567890)"
+            )
+        return v
+
+
+@router.post("/api/webhooks/cloudflare/save")
+async def webhook_cloudflare_save(request: Request, body: CloudflareSaveRequest):
+    if not verify_auth(request):
+        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
+
+    from webhooks import (
+        cf_test_connection,
+        get_cloudflare_config,
+        save_cloudflare_config,
+    )
+
+    account_id = body.account_id.strip()
+    auth_token = body.auth_token.strip()
+
+    # Test the connection first — fail fast
+    test_result = cf_test_connection(account_id, auth_token)
+    if not test_result.get("success"):
+        errors = [e.get("message", str(e)) for e in test_result.get("errors", [])]
+        return JSONResponse(
+            content={"ok": False, "error": f"Connection failed: {errors}"},
+            status_code=400,
+        )
+
+    existing = get_cloudflare_config()
+
+    # Clear list_id if account_id changed — list from old account won't work
+    existing_account = existing.get("account_id", "")
+    list_id = existing.get("list_id") if existing_account == account_id else None
+
+    cf_config = {
+        "enabled": body.enabled,
+        "account_id": account_id,
+        "auth_token": auth_token,
+        "list_id": list_id,
+        "list_name": body.list_name.strip() or "krawl_banlist",
+        "list_description": body.list_description.strip()
+        or "IPs banned by Krawl honeypot",
+        "sync_interval_minutes": max(1, body.sync_interval_minutes),
+        "categories": body.categories or ["attacker"],
+        "last_sync": existing.get("last_sync"),
+        "last_sync_status": existing.get("last_sync_status"),
+        "last_sync_error": existing.get("last_sync_error"),
+    }
+
+    save_cloudflare_config(cf_config)
+    get_app_logger().info("[Webhooks] CloudFlare config saved")
+
+    # If no list_id yet, try to create the CF list
+    cf_list_error = None
+    if not cf_config["list_id"]:
+        from webhooks import cf_create_list
+
+        try:
+            result = cf_create_list(
+                account_id,
+                auth_token,
+                cf_config["list_name"],
+                cf_config["list_description"],
+            )
+            get_app_logger().info(
+                f"[Webhooks] CF create list response: success={result.get('success')} errors={result.get('errors', [])}"
+            )
+            if result.get("success"):
+                cf_config["list_id"] = result["result"]["id"]
+                save_cloudflare_config(cf_config)
+                get_app_logger().info(
+                    f"[Webhooks] Created CF list: {cf_config['list_id']}"
+                )
+            else:
+                errors = [e.get("message", str(e)) for e in result.get("errors", [])]
+                cf_list_error = f"Saved. Failed to create CF list: {errors}"
+                get_app_logger().warning(f"[Webhooks] {cf_list_error}")
+        except Exception as e:
+            cf_list_error = f"Saved. CF list creation error: {e}"
+            get_app_logger().error(f"[Webhooks] {cf_list_error}")
+
+    resp = {
+        "ok": True,
+        "list_id": cf_config["list_id"],
+        "list_name": cf_config["list_name"],
+    }
+    if cf_list_error:
+        resp["warning"] = cf_list_error
+    return JSONResponse(content=resp)
+
+
+@router.post("/api/webhooks/cloudflare/sync")
+async def webhook_cloudflare_sync(request: Request):
+    if not verify_auth(request):
+        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
+
+    from datetime import datetime
+
+    from webhooks import (
+        get_cloudflare_config,
+        save_cloudflare_config,
+        sync_banlist_to_cloudflare,
+    )
+
+    cf_config = get_cloudflare_config()
+    if not cf_config.get("account_id") or not cf_config.get("auth_token"):
+        return JSONResponse(
+            content={"error": "CloudFlare not configured"},
+            status_code=400,
+        )
+
+    result = sync_banlist_to_cloudflare(cf_config)
+
+    # Update last_sync info
+    cf_config["last_sync"] = datetime.now(UTC).isoformat()
+    cf_config["last_sync_status"] = result.get("status", "error")
+    cf_config["last_sync_error"] = result.get("error")
+    save_cloudflare_config(cf_config)
+
+    if result.get("status") == "ok":
+        return JSONResponse(
+            content={
+                "ok": True,
+                "count": result.get("count", 0),
+                "list_id": result.get("list_id"),
+            }
+        )
+    return JSONResponse(
+        content={"error": result.get("error", "Sync failed")},
+        status_code=400,
+    )
+
+
+@router.get("/api/webhooks/status")
+async def webhook_status(request: Request):
+    if not verify_auth(request):
+        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
+
+    from webhooks import get_cloudflare_config
+
+    cf = get_cloudflare_config()
+    return JSONResponse(
+        content={
+            "cloudflare": {
+                "enabled": cf.get("enabled", False),
+                "configured": bool(cf.get("account_id") and cf.get("auth_token")),
+                "account_id": cf.get("account_id", ""),
+                "auth_token": cf.get("auth_token", ""),
+                "list_id": cf.get("list_id"),
+                "list_name": cf.get("list_name", "krawl_banlist"),
+                "sync_interval_minutes": cf.get("sync_interval_minutes", 30),
+                "categories": cf.get("categories", ["attacker"]),
+                "last_sync": cf.get("last_sync"),
+                "last_sync_status": cf.get("last_sync_status"),
+                "last_sync_error": cf.get("last_sync_error"),
+            }
+        }
+    )
+
+
+@router.delete("/api/webhooks/cloudflare/config")
+async def webhook_cloudflare_delete(request: Request):
+    if not verify_auth(request):
+        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
+
+    from webhooks import load_config, save_config
+
+    cfg = load_config()
+    cfg["cloudflare"] = {
+        "enabled": False,
+        "account_id": "",
+        "auth_token": "",
+        "list_id": None,
+    }
+    save_config(cfg)
+    return JSONResponse(content={"ok": True})
