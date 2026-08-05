@@ -832,12 +832,11 @@ async def htmx_search(
 async def htmx_banlist(request: Request):
     if not verify_auth(request):
         return HTMLResponse(
-            '<div class="table-container" style="text-align:center;padding:80px 20px;">'
-            '<h1 style="color:#f0883e;font-size:48px;margin:20px 0 10px;">Nice try bozo</h1>'
-            "<br>"
-            '<img src="https://media0.giphy.com/media/v1.Y2lkPTZjMDliOTUyaHQ3dHRuN2wyOW1kZndjaHdkY2dhYzJ6d2gzMDJkNm53ZnNrdnNlZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mOY97EXNisstZqJht9/200w.gif" alt="Diddy">'
+            '<div class="table-container" style="text-align:center;padding:60px 20px;">'
+            '<h2 style="color:#c9d1d9;margin:0 0 8px;">401 Unauthorized</h2>'
+            '<p style="color:#8b949e;font-size:14px;margin:0;">Access denied. Please log in to view this panel.</p>'
             "</div>",
-            status_code=200,
+            status_code=401,
         )
     templates = get_templates()
     return templates.TemplateResponse(
@@ -886,12 +885,11 @@ async def htmx_ban_attackers(
 async def htmx_tracked_ips(request: Request):
     if not verify_auth(request):
         return HTMLResponse(
-            '<div class="table-container" style="text-align:center;padding:80px 20px;">'
-            '<h1 style="color:#f0883e;font-size:48px;margin:20px 0 10px;">Nice try bozo</h1>'
-            "<br>"
-            '<img src="https://media0.giphy.com/media/v1.Y2lkPTZjMDliOTUyaHQ3dHRuN2wyOW1kZndjaHdkY2dhYzJ6d2gzMDJkNm53ZnNrdnNlZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mOY97EXNisstZqJht9/200w.gif" alt="Diddy">'
+            '<div class="table-container" style="text-align:center;padding:60px 20px;">'
+            '<h2 style="color:#c9d1d9;margin:0 0 8px;">401 Unauthorized</h2>'
+            '<p style="color:#8b949e;font-size:14px;margin:0;">Access denied. Please log in to view this panel.</p>'
             "</div>",
-            status_code=200,
+            status_code=401,
         )
     templates = get_templates()
     return templates.TemplateResponse(
@@ -964,12 +962,11 @@ async def htmx_ban_overrides(
 async def htmx_timedout(request: Request):
     if not verify_auth(request):
         return HTMLResponse(
-            '<div class="table-container" style="text-align:center;padding:80px 20px;">'
-            '<h1 style="color:#f0883e;font-size:48px;margin:20px 0 10px;">Nice try bozo</h1>'
-            "<br>"
-            '<img src="https://media0.giphy.com/media/v1.Y2lkPTZjMDliOTUyaHQ3dHRuN2wyOW1kZndjaHdkY2dhYzJ6d2gzMDJkNm53ZnNrdnNlZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mOY97EXNisstZqJht9/200w.gif" alt="Diddy">'
+            '<div class="table-container" style="text-align:center;padding:60px 20px;">'
+            '<h2 style="color:#c9d1d9;margin:0 0 8px;">401 Unauthorized</h2>'
+            '<p style="color:#8b949e;font-size:14px;margin:0;">Access denied. Please log in to view this panel.</p>'
             "</div>",
-            status_code=200,
+            status_code=401,
         )
     templates = get_templates()
     return templates.TemplateResponse(
@@ -1052,12 +1049,11 @@ async def htmx_timeout_exempt(
 async def htmx_webhooks(request: Request):
     if not verify_auth(request):
         return HTMLResponse(
-            '<div class="table-container" style="text-align:center;padding:80px 20px;">'
-            '<h1 style="color:#f0883e;font-size:48px;margin:20px 0 10px;">Nice try bozo</h1>'
-            "<br>"
-            '<img src="https://media0.giphy.com/media/v1.Y2lkPTZjMDliOTUyaHQ3dHRuN2wyOW1kZndjaHdkY2dhYzJ6d2gzMDJkNm53ZnNrdnNlZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mOY97EXNisstZqJht9/200w.gif" alt="Diddy">'
+            '<div class="table-container" style="text-align:center;padding:60px 20px;">'
+            '<h2 style="color:#c9d1d9;margin:0 0 8px;">401 Unauthorized</h2>'
+            '<p style="color:#8b949e;font-size:14px;margin:0;">Access denied. Please log in to view this panel.</p>'
             "</div>",
-            status_code=200,
+            status_code=401,
         )
 
     from webhooks import get_cloudflare_config

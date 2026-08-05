@@ -17,6 +17,9 @@
         {# Sync status #}
         <p x-show="syncStatus" x-text="syncStatus" :style="{ color: syncOk ? '#3fb950' : '#f85149' }" style="margin-top: 10px; font-size: 13px;" x-cloak></p>
 
+        {# WAF rule status #}
+        <p x-show="wafRuleStatus" x-text="wafRuleStatus" :style="{ color: wafRuleOk ? '#3fb950' : '#f85149' }" style="margin-top: 10px; font-size: 13px;" x-cloak></p>
+
         {# Config form #}
         <form @submit.prevent="saveConfig()">
             <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
@@ -36,6 +39,23 @@
                 </div>
             </div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-top: 10px;">
+                <div style="flex: 2; min-width: 200px;">
+                    <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 4px;">
+                        Zone ID
+                        <a href="https://developers.cloudflare.com/fundamentals/account/find-account-and-zone-ids/" target="_blank" rel="noopener" title="Find your Zone ID" style="text-decoration: none; color: #8b949e; font-size: 11px; margin-left: 3px;">&#9432;</a>
+                    </label>
+                    <input type="text" x-model="zoneId" placeholder="32 hex characters (optional)" class="auth-modal-input" style="width: 100%;" />
+                </div>
+                <div style="flex: 1; min-width: 150px;">
+                    <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 4px;">Rule Action</label>
+                    <select x-model="ruleAction" class="auth-modal-input" style="width: 100%;">
+                        <option value="block">Block</option>
+                        <option value="managed_challenge">Managed Challenge</option>
+                        <option value="js_challenge">JS Challenge</option>
+                        <option value="challenge">Challenge</option>
+                        <option value="skip">Skip</option>
+                    </select>
+                </div>
                 <div style="flex: 1; min-width: 150px;">
                     <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 4px;">List Name</label>
                     <input type="text" x-model="listName" placeholder="krawl_banlist" class="auth-modal-input" style="width: 100%;" />
@@ -44,7 +64,9 @@
                     <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 4px;">Interval (min)</label>
                     <input type="number" x-model.number="syncInterval" min="1" max="1440" class="auth-modal-input" style="width: 100%;" />
                 </div>
-                <div style="flex: 2; min-width: 200px;">
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-top: 10px;">
+                <div style="flex: 3; min-width: 200px;">
                     <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 4px;">IP Categories</label>
                     <div style="display: flex; flex-wrap: nowrap; gap: 6px;">
                         <template x-for="cat in allCategories" :key="cat.value">
@@ -83,6 +105,7 @@
         {# Config status #}
         <p x-show="accountId" style="margin-top: 8px; font-size: 12px;" x-cloak>
             <a :href="'https://dash.cloudflare.com/' + accountId + '/configurations/lists'" target="_blank" rel="noopener" style="color: #58a6ff; text-decoration: none;">Cloudflare Configured List &#8599;</a>
+            <a x-show="zoneId" :href="'https://dash.cloudflare.com/' + accountId + '/' + (zoneName || zoneId) + '/security/security-rules'" target="_blank" rel="noopener" style="color: #58a6ff; text-decoration: none; margin-left: 16px;">Cloudflare Configured Rules &#8599;</a>
         </p>
     </div>
 </div>

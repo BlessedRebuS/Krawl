@@ -172,6 +172,70 @@ def cf_get_list(account_id: str, auth_token: str, list_id: str) -> dict:
     return _cf_request("GET", url, auth_token, timeout=15)
 
 
+def cf_get_zone(zone_id: str, auth_token: str) -> dict:
+    url = f"https://api.cloudflare.com/client/v4/zones/{zone_id}"
+    return _cf_request("GET", url, auth_token, timeout=15)
+
+
+def cf_get_custom_ruleset(zone_id: str, auth_token: str) -> dict:
+    """Fetch the custom rules (http_request_firewall_custom) phase entrypoint for a zone."""
+    url = f"https://api.cloudflare.com/client/v4/zones/{zone_id}/rulesets/phases/http_request_firewall_custom/entrypoint"
+    return _cf_request("GET", url, auth_token, timeout=15)
+
+
+def cf_ensure_custom_rule(
+    zone_id: str,
+    auth_token: str,
+    list_name: str,
+    action: str,
+    description: str = "Krawl banlist",
+) -> dict:
+    """Create a WAF custom rule referencing the banlist if one doesn't already exist."""
+    expr = f"ip.src in ${list_name}"
+    url = f"https://api.cloudflare.com/client/v4/zones/{zone_id}/rulesets/phases/http_request_firewall_custom/entrypoint"
+    ruleset = cf_get_custom_ruleset(zone_id, auth_token)
+    if not ruleset.get("success"):
+        errors = [e.get("message", str(e)) for e in ruleset.get("errors", [])]
+        return {"created": False, "error": f"Failed to fetch custom ruleset: {errors}"}
+
+    existing_rules = ruleset.get("result", {}).get("rules", [])
+    for rule in existing_rules:
+        if list_name in rule.get("expression", ""):
+            get_app_logger().info(f"[CF Sync] WAF rule already exists for ${list_name}")
+            return {"created": False, "exists": True}
+
+    # PUT replaces the whole ruleset, so carry over existing rules (POST/DELETE
+    # are not allowed for this auth scheme; entrypoint GET always succeeds).
+    new_rule = {
+        "description": description,
+        "expression": expr,
+        "action": action,
+        "enabled": True,
+    }
+    result = _cf_request(
+        "PUT",
+        url,
+        auth_token,
+        json_body={"rules": existing_rules + [new_rule]},
+        timeout=30,
+    )
+    if not result.get("success"):
+        errors = [e.get("message", str(e)) for e in result.get("errors", [])]
+        if any("not_found" in str(m) for m in errors):
+            return {
+                "created": False,
+                "error": (
+                    "Zone not found or not in this token's zone scope: "
+                    "check the Zone ID and that the token's Zone Resources "
+                    "include this zone (Zone > WAF > Edit permission required)"
+                ),
+            }
+        return {"created": False, "error": f"Failed to create WAF rule: {errors}"}
+
+    get_app_logger().info(f"[CF Sync] Created WAF rule: {expr} -> {action}")
+    return {"created": True}
+
+
 def sync_banlist_to_cloudflare(cf_config: dict) -> dict:
     """Sync the current banlist to CloudFlare. Returns status dict."""
     account_id = cf_config.get("account_id", "")

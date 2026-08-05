@@ -1348,6 +1348,8 @@ class CloudflareSaveRequest(BaseModel):
     sync_interval_minutes: int = 30
     categories: list[str] = ["attacker"]
     enabled: bool = False
+    zone_id: str = ""
+    rule_action: str = "block"
 
     @validator("account_id")
     def validate_account_id(cls, v):
@@ -1355,6 +1357,19 @@ class CloudflareSaveRequest(BaseModel):
         if not re.fullmatch(r"[0-9a-f]{32}", v):
             raise ValueError(
                 "Account ID must be exactly 32 hex characters (e.g. 1a2b3c4d5e6f7890abcdef1234567890)"
+            )
+        return v
+
+    @validator("zone_id")
+    def validate_zone_id(cls, v, values):
+        v = v.strip()
+        if v and not re.fullmatch(r"[0-9a-f]{32}", v):
+            raise ValueError(
+                "Zone ID must be exactly 32 hex characters (e.g. 1a2b3c4d5e6f7890abcdef1234567890)"
+            )
+        if v and v == values.get("account_id"):
+            raise ValueError(
+                "Zone ID cannot be the same as the Account ID - copy it from the zone's Overview page"
             )
         return v
 
@@ -1398,6 +1413,8 @@ async def webhook_cloudflare_save(request: Request, body: CloudflareSaveRequest)
         or "IPs banned by Krawl honeypot",
         "sync_interval_minutes": max(1, body.sync_interval_minutes),
         "categories": body.categories or ["attacker"],
+        "zone_id": body.zone_id.strip(),
+        "rule_action": body.rule_action,
         "last_sync": existing.get("last_sync"),
         "last_sync_status": existing.get("last_sync_status"),
         "last_sync_error": existing.get("last_sync_error"),
@@ -1440,6 +1457,35 @@ async def webhook_cloudflare_save(request: Request, body: CloudflareSaveRequest)
         "list_id": cf_config["list_id"],
         "list_name": cf_config["list_name"],
     }
+
+    # Create the WAF rule referencing the banlist if a zone_id is configured
+    if cf_config["zone_id"]:
+        from webhooks import cf_ensure_custom_rule, cf_get_zone
+
+        try:
+            zone_info = cf_get_zone(cf_config["zone_id"], auth_token)
+            if zone_info.get("success") and zone_info.get("result", {}).get("name"):
+                cf_config["zone_name"] = zone_info["result"]["name"]
+            rule_result = cf_ensure_custom_rule(
+                cf_config["zone_id"],
+                auth_token,
+                cf_config["list_name"],
+                cf_config["rule_action"],
+            )
+            resp["rule_created"] = rule_result.get("created", False)
+            resp["rule_exists"] = rule_result.get("exists", False)
+            cf_config["waf_rule_created"] = bool(
+                rule_result.get("created") or rule_result.get("exists")
+            )
+            resp["zone_name"] = cf_config.get("zone_name", "")
+            save_cloudflare_config(cf_config)
+            if rule_result.get("error"):
+                cf_list_error = cf_list_error or rule_result["error"]
+                get_app_logger().warning(f"[Webhooks] {rule_result['error']}")
+        except Exception as e:
+            cf_list_error = cf_list_error or f"WAF rule creation error: {e}"
+            get_app_logger().error(f"[Webhooks] {cf_list_error}")
+
     if cf_list_error:
         resp["warning"] = cf_list_error
     return JSONResponse(content=resp)
@@ -1492,9 +1538,20 @@ async def webhook_status(request: Request):
     if not verify_auth(request):
         return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
 
-    from webhooks import get_cloudflare_config
+    from webhooks import get_cloudflare_config, save_cloudflare_config
 
     cf = get_cloudflare_config()
+
+    # Backfill zone_name once so the dashboard link can use the zone domain
+    zone_id = cf.get("zone_id", "")
+    if zone_id and not cf.get("zone_name"):
+        from webhooks import cf_get_zone
+
+        zone_info = cf_get_zone(zone_id, cf.get("auth_token", ""))
+        if zone_info.get("success") and zone_info.get("result", {}).get("name"):
+            cf["zone_name"] = zone_info["result"]["name"]
+            save_cloudflare_config(cf)
+
     return JSONResponse(
         content={
             "cloudflare": {
@@ -1506,6 +1563,10 @@ async def webhook_status(request: Request):
                 "list_name": cf.get("list_name", "krawl_banlist"),
                 "sync_interval_minutes": cf.get("sync_interval_minutes", 30),
                 "categories": cf.get("categories", ["attacker"]),
+                "zone_id": zone_id,
+                "zone_name": cf.get("zone_name", ""),
+                "rule_action": cf.get("rule_action", "block"),
+                "waf_rule_created": cf.get("waf_rule_created", False),
                 "last_sync": cf.get("last_sync"),
                 "last_sync_status": cf.get("last_sync_status"),
                 "last_sync_error": cf.get("last_sync_error"),
