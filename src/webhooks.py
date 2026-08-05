@@ -184,10 +184,14 @@ def cf_get_custom_ruleset(zone_id: str, auth_token: str) -> dict:
 
 
 def cf_ensure_custom_rule(
-    zone_id: str, auth_token: str, list_name: str, action: str, description: str = "Krawl banlist"
+    zone_id: str,
+    auth_token: str,
+    list_name: str,
+    action: str,
+    description: str = "Krawl banlist",
 ) -> dict:
     """Create a WAF custom rule referencing the banlist if one doesn't already exist."""
-    expr = f'ip.src in ${list_name}'
+    expr = f"ip.src in ${list_name}"
     url = f"https://api.cloudflare.com/client/v4/zones/{zone_id}/rulesets/phases/http_request_firewall_custom/entrypoint"
     ruleset = cf_get_custom_ruleset(zone_id, auth_token)
     if not ruleset.get("success"):
@@ -209,7 +213,11 @@ def cf_ensure_custom_rule(
         "enabled": True,
     }
     result = _cf_request(
-        "PUT", url, auth_token, json_body={"rules": existing_rules + [new_rule]}, timeout=30
+        "PUT",
+        url,
+        auth_token,
+        json_body={"rules": existing_rules + [new_rule]},
+        timeout=30,
     )
     if not result.get("success"):
         errors = [e.get("message", str(e)) for e in result.get("errors", [])]
