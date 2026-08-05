@@ -102,6 +102,9 @@ document.addEventListener('alpine:init', () => {
         authToken: '',
         listName: 'krawl_banlist',
         syncInterval: 30,
+        zoneId: '',
+        zoneName: '',
+        ruleAction: 'block',
         cfEnabled: false,
         listId: null,
         selectedCategories: ['attacker'],
@@ -114,6 +117,8 @@ document.addEventListener('alpine:init', () => {
         testOk: false,
         syncStatus: '',
         syncOk: false,
+        wafRuleStatus: '',
+        wafRuleOk: false,
         allCategories: [
             { value: 'attacker', label: 'Attackers' },
             { value: 'bad_crawler', label: 'Bad Crawlers' },
@@ -133,7 +138,12 @@ document.addEventListener('alpine:init', () => {
                     this.authToken = cf.auth_token || '';
                     this.listName = cf.list_name || 'krawl_banlist';
                     this.syncInterval = cf.sync_interval_minutes || 30;
+                    this.zoneId = cf.zone_id || '';
+                    this.zoneName = cf.zone_name || '';
+                    this.ruleAction = cf.rule_action || 'block';
                     this.cfEnabled = cf.enabled || false;
+                    this.wafRuleStatus = (cf.zone_id && cf.waf_rule_created) ? 'WAF rule active' : '';
+                    this.wafRuleOk = !!(cf.zone_id && cf.waf_rule_created);
                     this.listId = cf.list_id || null;
                     this.selectedCategories = cf.categories || ['attacker'];
                     this.lastSync = cf.last_sync ? new Date(cf.last_sync).toLocaleString() : null;
@@ -165,11 +175,18 @@ document.addEventListener('alpine:init', () => {
                         sync_interval_minutes: this.syncInterval,
                         categories: this.selectedCategories,
                         enabled: this.cfEnabled,
+                        zone_id: this.zoneId,
+                        rule_action: this.ruleAction,
                     }),
                 });
                 const data = await resp.json();
                 if (resp.ok) {
                     this.listId = data.list_id;
+                    if (data.zone_name) this.zoneName = data.zone_name;
+                    this.wafRuleStatus = '';
+                    this.wafRuleOk = false;
+                    if (data.rule_created) { this.wafRuleStatus = 'WAF rule created'; this.wafRuleOk = true; }
+                    else if (data.rule_exists) { this.wafRuleStatus = 'WAF rule active'; this.wafRuleOk = true; }
                     this.testResult = data.warning || ('Saved (' + (data.list_name || this.listName) + ')');
                     this.testOk = !data.warning;
                 } else {
@@ -223,6 +240,11 @@ document.addEventListener('alpine:init', () => {
                 if (resp.ok) {
                     this.accountId = '';
                     this.authToken = '';
+                    this.zoneId = '';
+                    this.zoneName = '';
+                    this.ruleAction = 'block';
+                    this.wafRuleStatus = '';
+                    this.wafRuleOk = false;
                     this.listId = null;
                     this.lastSync = null;
                     this.lastSyncStatus = null;
