@@ -268,7 +268,7 @@ document.addEventListener('alpine:init', () => {
         dashboardPath: window.__DASHBOARD_PATH__ || '',
 
         // Export IPs modal
-        exportModal: { show: false, categories: ['attacker'], fwtype: 'raw', error: '', loading: false, mergeBanlists: false },
+        exportModal: { show: false, categories: ['attacker'], fwtype: 'raw', error: '', loading: false, mergeBanlists: false, excludeCdn: ['cloudflare', 'fastly', 'cloudfront', 'google', 'bunny'] },
         banlistSources: [],
         showBanlistSources: false,
 
@@ -509,6 +509,9 @@ document.addEventListener('alpine:init', () => {
             if (this.exportModal.mergeBanlists) {
                 params.set('merge_banlists', 'true');
             }
+            if (this.exportModal.excludeCdn.length > 0) {
+                params.set('exclude_cdn', this.exportModal.excludeCdn.slice().sort().join(','));
+            }
             return `${window.location.origin}${this.dashboardPath}/api/export-ips?${params}`;
         },
 
@@ -539,6 +542,9 @@ document.addEventListener('alpine:init', () => {
                 });
                 if (this.exportModal.mergeBanlists) {
                     params.set('merge_banlists', 'true');
+                }
+                if (this.exportModal.excludeCdn.length > 0) {
+                    params.set('exclude_cdn', this.exportModal.excludeCdn.join(','));
                 }
                 const resp = await fetch(`${this.dashboardPath}/api/export-ips?${params}`, {
                     credentials: 'same-origin',

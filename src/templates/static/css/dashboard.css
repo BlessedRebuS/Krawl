@@ -1330,6 +1330,9 @@ tbody {
     max-width: 90vw;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
     animation: authModalIn 0.2s ease-out;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
 }
 @keyframes authModalIn {
     from { opacity: 0; transform: scale(0.95) translateY(-10px); }
@@ -1367,6 +1370,45 @@ tbody {
 }
 .auth-modal-body {
     padding: 24px;
+    overflow-y: auto;
+}
+
+/* Export modal: compact checkbox sections */
+.export-group-label {
+    display: block;
+    color: #8b949e;
+    font-size: 12px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.export-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #c9d1d9;
+    font-size: 14px;
+    cursor: pointer;
+}
+.export-check input {
+    accent-color: #58a6ff;
+    flex-shrink: 0;
+}
+.export-check .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.export-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+}
+.export-hint {
+    color: #8b949e;
+    font-size: 12px;
+    margin: 8px 0 0;
 }
 .auth-modal-description {
     margin: 0 0 20px;
@@ -2611,6 +2653,9 @@ tbody {
     flex-direction: column;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
     animation: authModalIn 0.2s ease-out;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
 }
 .expand-overlay-header {
     padding: 16px 24px;
