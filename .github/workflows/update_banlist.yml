@@ -9,10 +9,10 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      workflows: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Fetch data from API
         run: |
           curl -sf \
@@ -22,6 +22,7 @@ jobs:
             echo "Error: API response is empty or request failed"
             exit 1
           fi
+
       - name: Check for changes
         id: diff
         run: |
@@ -31,6 +32,7 @@ jobs:
           else
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
+
       - name: Create Pull Request
         if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v8
