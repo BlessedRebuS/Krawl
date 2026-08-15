@@ -871,6 +871,7 @@ async def export_ips(
     categories: str = Query(...),
     fwtype: str = Query("raw"),
     merge_banlists: bool = Query(False),
+    exclude_cdn: str = Query(""),
 ):
     valid_categories = {
         "attacker",
@@ -922,9 +923,19 @@ async def export_ips(
 
         ips = list(ip_set)
 
-        from ip_utils import is_valid_public_ip
+        from ip_utils import get_cdn_networks, is_cdn_ip, is_valid_public_ip
 
         public_ips = [ip for ip in ips if is_valid_public_ip(ip, server_ip)]
+
+        providers = [p.strip() for p in exclude_cdn.split(",") if p.strip()]
+        if providers:
+            cdn_nets = await asyncio.to_thread(get_cdn_networks, providers)
+            before = len(public_ips)
+            public_ips = [ip for ip in public_ips if not is_cdn_ip(ip, cdn_nets)]
+            get_app_logger().debug(
+                f"[ExportIPs] Excluded {before - len(public_ips)} CDN IPs"
+            )
+
         content = fw.getBanlist(public_ips)
 
         cat_label = "_".join(sorted(cat_list))
