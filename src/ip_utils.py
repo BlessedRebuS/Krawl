@@ -74,3 +74,80 @@ def is_valid_public_ip(ip: str, server_ip: str | None = None) -> bool:
         True if the IP is a valid public IP to track, False otherwise.
     """
     return not is_ignored_ip(ip) and (server_ip is None or ip != server_ip)
+
+
+# Published CDN ranges per provider, fetched at export time (never stored).
+CDN_PROVIDER_URLS = {
+    "cloudflare": (
+        "https://www.cloudflare.com/ips-v4",
+        "https://www.cloudflare.com/ips-v6",
+    ),
+    "fastly": ("https://api.fastly.com/public-ip-list",),
+    "cloudfront": (
+        "https://d7uri8nf7uskq.cloudfront.net/tools/list-cloudfront-ips",
+    ),
+    "google": ("https://www.gstatic.com/ipranges/goog.json",),
+    "bunny": ("https://bunnycdn.com/api/system/edgeserverlist",),
+}
+
+
+def _cidrs_in(payload):
+    """Yield every CIDR-looking string in a text or JSON response body."""
+    if isinstance(payload, str):
+        yield from payload.split()
+    elif isinstance(payload, dict):
+        for v in payload.values():
+            yield from _cidrs_in(v)
+    elif isinstance(payload, list):
+        for v in payload:
+            yield from _cidrs_in(v)
+
+
+@lru_cache(maxsize=8)
+def _cdn_networks(provider: str, _hour_bucket: int) -> tuple:
+    """Fetch a provider's published ranges. Cached in memory for an hour.
+
+    Never persisted to disk; a fetch failure yields no networks for that URL
+    so export still works (just without that provider filtered out).
+    """
+    import requests
+
+    networks = []
+    for url in CDN_PROVIDER_URLS.get(provider, ()):
+        try:
+            resp = requests.get(url, timeout=10)
+            resp.raise_for_status()
+            try:
+                body = resp.json()
+            except ValueError:
+                body = resp.text
+            for entry in _cidrs_in(body):
+                try:
+                    networks.append(ipaddress.ip_network(entry.strip(), strict=False))
+                except ValueError:
+                    continue
+        except Exception as e:
+            get_app_logger().warning(f"Could not fetch CDN ranges from {url}: {e}")
+    return tuple(networks)
+
+
+def get_cdn_networks(providers) -> tuple:
+    """Published ranges for the given providers, refreshed at most once per hour."""
+    import time
+
+    bucket = int(time.time() // 3600)
+    return tuple(
+        net
+        for p in providers
+        if p in CDN_PROVIDER_URLS
+        for net in _cdn_networks(p, bucket)
+    )
+
+
+def is_cdn_ip(ip_str: str, networks: tuple) -> bool:
+    """True if the IP falls inside one of the given CDN ranges."""
+    try:
+        ip = ipaddress.ip_address(ip_str)
+    except ValueError:
+        return False
+    return any(ip.version == net.version and ip in net for net in networks)
