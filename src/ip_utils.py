@@ -83,9 +83,7 @@ CDN_PROVIDER_URLS = {
         "https://www.cloudflare.com/ips-v6",
     ),
     "fastly": ("https://api.fastly.com/public-ip-list",),
-    "cloudfront": (
-        "https://d7uri8nf7uskq.cloudfront.net/tools/list-cloudfront-ips",
-    ),
+    "cloudfront": ("https://d7uri8nf7uskq.cloudfront.net/tools/list-cloudfront-ips",),
     "google": ("https://www.gstatic.com/ipranges/goog.json",),
     "bunny": ("https://bunnycdn.com/api/system/edgeserverlist",),
 }
