@@ -16,56 +16,74 @@
             <span class="auth-modal-close" @click="exportModal.show = false">&times;</span>
         </div>
         <div class="auth-modal-body">
-            <p class="auth-modal-description">Select which IP categories to include and the export format.</p>
+            <p class="auth-modal-description">Choose what goes in the list and how it is formatted.</p>
+
+            {# Exclude published CDN ranges #}
+            <div class="auth-modal-input-group">
+                <label class="export-group-label">Skip CDN providers</label>
+                <div class="export-grid">
+                    <label class="export-check">
+                        <input type="checkbox" value="cloudflare" x-model="exportModal.excludeCdn" />
+                        <span>Cloudflare</span>
+                    </label>
+                    <label class="export-check">
+                        <input type="checkbox" value="fastly" x-model="exportModal.excludeCdn" />
+                        <span>Fastly</span>
+                    </label>
+                    <label class="export-check">
+                        <input type="checkbox" value="cloudfront" x-model="exportModal.excludeCdn" />
+                        <span>AWS CloudFront</span>
+                    </label>
+                    <label class="export-check">
+                        <input type="checkbox" value="google" x-model="exportModal.excludeCdn" />
+                        <span>Google</span>
+                    </label>
+                    <label class="export-check">
+                        <input type="checkbox" value="bunny" x-model="exportModal.excludeCdn" />
+                        <span>Bunny.net</span>
+                    </label>
+                </div>
+                <p class="export-hint">Drops IPs inside these providers' published ranges, fetched at export time.</p>
+            </div>
 
             {# Category checkboxes #}
             <div class="auth-modal-input-group">
-                <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Categories</label>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <label style="display: flex; align-items: center; gap: 8px; color: #c9d1d9; font-size: 14px; cursor: pointer;">
+                <label class="export-group-label">Categories</label>
+                <div class="export-grid">
+                    <label class="export-check">
                         <input type="checkbox" value="attacker" x-model="exportModal.categories" style="accent-color: #f85149;" />
-                        <span style="display: inline-flex; align-items: center; gap: 6px;">
-                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #f85149; display: inline-block;"></span>
-                            Attackers
-                        </span>
+                        <span class="dot" style="background: #f85149;"></span>
+                        <span>Attackers</span>
                     </label>
-                    <label style="display: flex; align-items: center; gap: 8px; color: #c9d1d9; font-size: 14px; cursor: pointer;">
+                    <label class="export-check">
                         <input type="checkbox" value="bad_crawler" x-model="exportModal.categories" style="accent-color: #d29922;" />
-                        <span style="display: inline-flex; align-items: center; gap: 6px;">
-                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #d29922; display: inline-block;"></span>
-                            Bad Crawlers
-                        </span>
+                        <span class="dot" style="background: #d29922;"></span>
+                        <span>Bad Crawlers</span>
                     </label>
-                    <label style="display: flex; align-items: center; gap: 8px; color: #c9d1d9; font-size: 14px; cursor: pointer;">
+                    <label class="export-check">
                         <input type="checkbox" value="regular_user" x-model="exportModal.categories" style="accent-color: #58a6ff;" />
-                        <span style="display: inline-flex; align-items: center; gap: 6px;">
-                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #58a6ff; display: inline-block;"></span>
-                            Regular Users
-                        </span>
+                        <span class="dot" style="background: #58a6ff;"></span>
+                        <span>Regular Users</span>
                     </label>
-                    <label style="display: flex; align-items: center; gap: 8px; color: #c9d1d9; font-size: 14px; cursor: pointer;">
+                    <label class="export-check">
                         <input type="checkbox" value="good_crawler" x-model="exportModal.categories" style="accent-color: #3fb950;" />
-                        <span style="display: inline-flex; align-items: center; gap: 6px;">
-                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #3fb950; display: inline-block;"></span>
-                            Good Crawlers
-                        </span>
+                        <span class="dot" style="background: #3fb950;"></span>
+                        <span>Good Crawlers</span>
                     </label>
-                    <label style="display: flex; align-items: center; gap: 8px; color: #c9d1d9; font-size: 14px; cursor: pointer;">
+                    <label class="export-check">
                         <input type="checkbox" value="timed_out" x-model="exportModal.categories" style="accent-color: #db61a2;" />
-                        <span style="display: inline-flex; align-items: center; gap: 6px;">
-                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #db61a2; display: inline-block;"></span>
-                            Timed Out IPs
-                        </span>
+                        <span class="dot" style="background: #db61a2;"></span>
+                        <span>Timed Out IPs</span>
                     </label>
                 </div>
             </div>
 
             {# Merge external banlists checkbox #}
-            <div class="auth-modal-input-group" style="margin-bottom: 0;">
-                <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">External Banlists</label>
+            <div class="auth-modal-input-group">
+                <label class="export-group-label">External banlists</label>
                 <div style="position: relative;">
-                    <label style="display: flex; align-items: center; gap: 8px; color: #c9d1d9; font-size: 14px; cursor: pointer;">
-                        <input type="checkbox" x-model="exportModal.mergeBanlists" style="accent-color: #58a6ff;" />
+                    <label class="export-check">
+                        <input type="checkbox" x-model="exportModal.mergeBanlists" />
                         <span>Merge banlists</span>
                         <span class="banlist-sources-hint"
                               x-show="banlistSources.length > 0"
@@ -109,28 +127,28 @@
             </div>
 
             {# Format radio buttons #}
-            <div class="auth-modal-input-group" style="margin-bottom: 0;">
-                <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Format</label>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <label style="display: flex; align-items: center; gap: 8px; color: #c9d1d9; font-size: 14px; cursor: pointer;">
+            <div class="auth-modal-input-group">
+                <label class="export-group-label">Format</label>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <label class="export-check">
                         <input type="radio" name="export-format" value="raw" x-model="exportModal.fwtype" />
-                        RAW IPs List
+                        <span>RAW list</span>
                     </label>
-                    <label style="display: flex; align-items: center; gap: 8px; color: #c9d1d9; font-size: 14px; cursor: pointer;">
+                    <label class="export-check">
                         <input type="radio" name="export-format" value="iptables" x-model="exportModal.fwtype" />
-                        IPTables Rules
+                        <span>IPTables</span>
                     </label>
-                    <label style="display: flex; align-items: center; gap: 8px; color: #c9d1d9; font-size: 14px; cursor: pointer;">
+                    <label class="export-check">
                         <input type="radio" name="export-format" value="nftables" x-model="exportModal.fwtype" />
-                        NFTables Rules
+                        <span>NFTables</span>
                     </label>
                 </div>
             </div>
 
             {# Direct download URL (for OPNsense and other external systems) #}
-            <div class="auth-modal-input-group" style="margin-top: 16px; margin-bottom: 0;" x-show="exportModal.categories.length > 0" x-cloak>
-                <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Direct URL</label>
-                <p style="color: #8b949e; font-size: 12px; margin: 0 0 8px;">Use this URL to fetch the list directly from OPNsense or other external systems.</p>
+            <div class="auth-modal-input-group" style="margin-bottom: 0;" x-show="exportModal.categories.length > 0" x-cloak>
+                <label class="export-group-label">Direct URL</label>
+                <p class="export-hint" style="margin: 0 0 8px;">Fetch the list directly from OPNsense or other external systems.</p>
                 <div style="display: flex; gap: 8px; align-items: stretch;">
                     <input type="text" readonly :value="exportUrl()"
                            @click="$event.target.select()"
