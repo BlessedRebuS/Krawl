@@ -255,10 +255,20 @@ The Krawl service already includes `externalTrafficPolicy: Local` by default to 
 |-----------|-------------|---------|
 | `config.dashboard.secret_path` | Secret dashboard path (auto-generated if null) | `null` |
 | `dashboardPassword` | Password for protected panels (injected via Secret as `KRAWL_DASHBOARD_PASSWORD` env, auto-generated if empty) | `""` |
-| `dashboardExistingSecret` | Use an externally-managed Secret for the dashboard password (key `dashboardExistingSecretKey`, default `dashboard-password`). When set, the chart-managed Secret is not created. | `""` |
-| `dashboardExistingSecretKey` | Key in `dashboardExistingSecret` holding the dashboard password | `dashboard-password` |
-| `dashboardPathExistingSecret` | Use an externally-managed Secret for the dashboard secret path (key `dashboardPathExistingSecretKey`, default `dashboard-path`). When set, `KRAWL_DASHBOARD_SECRET_PATH` is injected from this Secret and overrides `config.dashboard.secret_path` at runtime. | `""` |
-| `dashboardPathExistingSecretKey` | Key in `dashboardPathExistingSecret` holding the dashboard path | `dashboard-path` |
+| `dashboardExistingSecret.name` | Externally-managed Secret holding the dashboard password (and optionally the path). When set, the chart-managed Secret is not created. | `""` |
+| `dashboardExistingSecret.passwordKey` | Key holding the dashboard password | `dashboard-password` |
+| `dashboardExistingSecret.pathKey` | Key holding the dashboard secret path. When set, `KRAWL_DASHBOARD_SECRET_PATH` is injected from the Secret and overrides `config.dashboard.secret_path`. | `""` |
+| `aiExistingSecret.name` | Externally-managed Secret holding the AI/LLM API key. When set, the chart-managed AI Secret is not created. | `""` |
+| `aiExistingSecret.key` | Key holding the API key | `ai-api-key` |
+| `canaryTokenUrl` | Canary token URL. Stored in a chart-managed Secret and injected as `KRAWL_CANARY_TOKEN_URL`, keeping it out of the ConfigMap. | `""` |
+| `canaryExistingSecret.name` | Externally-managed Secret holding the canary token URL | `""` |
+| `canaryExistingSecret.key` | Key holding the URL | `canary-token-url` |
+| `cloudflare.enabled` | Enable CloudFlare WAF/banlist sync (`KRAWL_CLOUDFLARE_ENABLED`) | `false` |
+| `cloudflare.accountId` / `cloudflare.authToken` | CloudFlare credentials, stored in a chart-managed Secret. Injected as env, take precedence over `data/webhooks.json`, and are never written back to disk. | `""` |
+| `cloudflare.existingSecret.name` | Externally-managed Secret holding the CloudFlare credentials | `""` |
+| `cloudflare.existingSecret.accountIdKey` / `.authTokenKey` | Keys in that Secret | `cloudflare-account-id` / `cloudflare-auth-token` |
+| `extraEnv` | Extra env vars for the Krawl container (list of `name`/`value` or `valueFrom` entries) | `[]` |
+| `extraEnvFrom` | Extra `envFrom` sources (`secretRef` / `configMapRef`) — escape hatch for External Secrets Operator / Vault | `[]` |
 
 ### API Configuration
 
@@ -290,8 +300,12 @@ The Krawl service already includes `externalTrafficPolicy: Local` by default to 
 | `postgres.user` | PostgreSQL username | `krawl` |
 | `postgres.password` | PostgreSQL password | `krawl` |
 | `postgres.database` | PostgreSQL database name | `krawl` |
-| `postgres.existingSecret` | Use an externally-managed Secret for the PostgreSQL password (skips chart-managed Secret for Postgres, used by Krawl Deployment, bundled StatefulSet, and the migration Job) | `` |
-| `postgres.existingSecretKey` | Key in `postgres.existingSecret` holding the password | `postgres-password` |
+| `postgres.existingSecret.name` | Externally-managed Secret for the PostgreSQL credentials (skips the chart-managed Secret; used by the Krawl Deployment, bundled StatefulSet and migration Job) | `""` |
+| `postgres.existingSecret.passwordKey` | Key holding the password | `postgres-password` |
+| `postgres.existingSecret.userKey` | Key holding the username (empty = use `postgres.user`) | `""` |
+| `postgres.existingSecret.hostKey` | Key holding the host (empty = use `postgres.host`) | `""` |
+| `postgres.existingSecret.portKey` | Key holding the port (empty = use `postgres.port`) | `""` |
+| `postgres.existingSecret.databaseKey` | Key holding the database name (empty = use `postgres.database`) | `""` |
 | `postgres.image.repository` | PostgreSQL image repository (bundled only) | `postgres` |
 
 | `postgres.image.tag` | PostgreSQL image tag | `16-alpine` |
@@ -311,8 +325,10 @@ The Krawl service already includes `externalTrafficPolicy: Local` by default to 
 | `redis.port` | Redis port | `6379` |
 | `redis.db` | Redis database number | `0` |
 | `redis.password` | Redis password | `` |
-| `redis.existingSecret` | Use an externally-managed Secret for the Redis password (skips chart-managed Secret for Redis, used by Krawl Deployment and bundled StatefulSet) | `` |
-| `redis.existingSecretKey` | Key in `redis.existingSecret` holding the password | `redis-password` |
+| `redis.existingSecret.name` | Externally-managed Secret for the Redis credentials (skips the chart-managed Secret; used by the Krawl Deployment and bundled StatefulSet) | `""` |
+| `redis.existingSecret.passwordKey` | Key holding the password | `redis-password` |
+| `redis.existingSecret.hostKey` | Key holding the host (empty = use `redis.host`) | `""` |
+| `redis.existingSecret.portKey` | Key holding the port (empty = use `redis.port`) | `""` |
 | `redis.image.repository` | Redis image repository (bundled only) | `redis` |
 | `redis.image.tag` | Redis image tag | `7-alpine` |
 | `redis.image.pullPolicy` | Image pull policy | `IfNotPresent` |

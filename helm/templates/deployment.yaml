@@ -66,54 +66,121 @@ spec:
         - name: TZ
           value: {{ .Values.timezone | quote }}
         {{- end }}
-        {{- if or .Values.dashboardPassword .Values.dashboardExistingSecret }}
+        {{- if or .Values.dashboardPassword .Values.dashboardExistingSecret.name }}
         - name: KRAWL_DASHBOARD_PASSWORD
           valueFrom:
             secretKeyRef:
               name: {{ (include "krawl.dashboard.secret" . | fromJson).name }}
               key: {{ (include "krawl.dashboard.secret" . | fromJson).key }}
         {{- end }}
-        {{- if .Values.dashboardPathExistingSecret }}
+        {{- $dashPath := include "krawl.dashboardPath.secret" . | fromJson }}
+        {{- if $dashPath.name }}
         - name: KRAWL_DASHBOARD_SECRET_PATH
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.dashboardPathExistingSecret }}
-              key: {{ .Values.dashboardPathExistingSecretKey | default "dashboard-path" }}
+              name: {{ $dashPath.name }}
+              key: {{ $dashPath.key }}
         {{- end }}
-        {{- if .Values.config.ai.api_key }}
+        {{- if or .Values.config.ai.api_key .Values.aiExistingSecret.name }}
         - name: KRAWL_AI_API_KEY
           valueFrom:
             secretKeyRef:
-              name: {{ include "krawl.fullname" . }}-ai
-              key: ai-api-key
+              name: {{ (include "krawl.ai.secret" . | fromJson).name }}
+              key: {{ (include "krawl.ai.secret" . | fromJson).key }}
+        {{- end }}
+        {{- $canary := include "krawl.canary.secret" . | fromJson }}
+        {{- if $canary.name }}
+        - name: KRAWL_CANARY_TOKEN_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ $canary.name }}
+              key: {{ $canary.key }}
+        {{- end }}
+        {{- if or .Values.cloudflare.existingSecret.name .Values.cloudflare.accountId .Values.cloudflare.authToken }}
+        - name: KRAWL_CLOUDFLARE_ACCOUNT_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "krawl.cloudflare.secret" . }}
+              key: {{ .Values.cloudflare.existingSecret.accountIdKey | default "cloudflare-account-id" }}
+        - name: KRAWL_CLOUDFLARE_AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "krawl.cloudflare.secret" . }}
+              key: {{ .Values.cloudflare.existingSecret.authTokenKey | default "cloudflare-auth-token" }}
+        - name: KRAWL_CLOUDFLARE_ENABLED
+          value: {{ .Values.cloudflare.enabled | quote }}
         {{- end }}
         {{- if .Values.customTemplate.enabled }}
         - name: KRAWL_CUSTOM_TEMPLATE_PATH
           value: "/etc/krawl/templates/custom_page.html"
         {{- end }}
         {{- if eq .Values.mode "scalable" }}
+        {{- $pg := include "krawl.postgres.secret" . | fromJson }}
+        {{- $rd := include "krawl.redis.secret" . | fromJson }}
         - name: KRAWL_MODE
           value: "scalable"
         - name: KRAWL_POSTGRES_HOST
+          {{- if .Values.postgres.existingSecret.hostKey }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ $pg.name }}
+              key: {{ .Values.postgres.existingSecret.hostKey }}
+          {{- else }}
           value: {{ .Values.postgres.host | quote }}
+          {{- end }}
         - name: KRAWL_POSTGRES_PORT
+          {{- if .Values.postgres.existingSecret.portKey }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ $pg.name }}
+              key: {{ .Values.postgres.existingSecret.portKey }}
+          {{- else }}
           value: {{ .Values.postgres.port | quote }}
+          {{- end }}
         - name: KRAWL_POSTGRES_USER
+          {{- if .Values.postgres.existingSecret.userKey }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ $pg.name }}
+              key: {{ .Values.postgres.existingSecret.userKey }}
+          {{- else }}
           value: {{ .Values.postgres.user | quote }}
+          {{- end }}
         - name: KRAWL_POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
               name: {{ (include "krawl.postgres.secret" . | fromJson).name }}
               key: {{ (include "krawl.postgres.secret" . | fromJson).key }}
         - name: KRAWL_POSTGRES_DATABASE
+          {{- if .Values.postgres.existingSecret.databaseKey }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ $pg.name }}
+              key: {{ .Values.postgres.existingSecret.databaseKey }}
+          {{- else }}
           value: {{ .Values.postgres.database | quote }}
+          {{- end }}
         - name: KRAWL_REDIS_HOST
+          {{- if .Values.redis.existingSecret.hostKey }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ $rd.name }}
+              key: {{ .Values.redis.existingSecret.hostKey }}
+          {{- else }}
           value: {{ .Values.redis.host | quote }}
+          {{- end }}
         - name: KRAWL_REDIS_PORT
+          {{- if .Values.redis.existingSecret.portKey }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ $rd.name }}
+              key: {{ .Values.redis.existingSecret.portKey }}
+          {{- else }}
           value: {{ .Values.redis.port | quote }}
+          {{- end }}
         - name: KRAWL_REDIS_DB
           value: {{ .Values.redis.db | quote }}
-        {{- if or .Values.redis.password .Values.redis.existingSecret }}
+        {{- if or .Values.redis.password .Values.redis.existingSecret.name }}
         - name: KRAWL_REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -126,6 +193,13 @@ spec:
           value: {{ .Values.redis.hot_ttl | default 30 | quote }}
         - name: KRAWL_REDIS_TABLE_TTL
           value: {{ .Values.redis.table_ttl | default 120 | quote }}
+        {{- end }}
+        {{- with .Values.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.extraEnvFrom }}
+        envFrom:
+          {{- toYaml . | nindent 10 }}
         {{- end }}
         volumeMounts:
         - name: config
