@@ -84,21 +84,53 @@ affinity: {}
 # Dashboard password for protected panels
 # If empty, a random password will be auto-generated and printed in the logs
 dashboardPassword: ""
-# Reference an externally-managed Secret for the dashboard password instead of
-# the chart-managed Secret created from `dashboardPassword`. The Secret must
-# contain the password under the key set by `dashboardExistingSecretKey`
-# (default "dashboard-password").
-dashboardExistingSecret: ""
-dashboardExistingSecretKey: "dashboard-password"
+# Read the dashboard password and/or secret path from an externally-managed
+# Secret (ExternalSecrets / SealedSecrets / Vault) instead of the chart-managed
+# one. `name` empty = use the chart-managed Secret built from `dashboardPassword`.
+# `pathKey` empty = the secret path comes from config.dashboard.secret_path;
+# when set, KRAWL_DASHBOARD_SECRET_PATH is injected from the Secret instead.
+dashboardExistingSecret:
+  name: ""
+  passwordKey: "dashboard-password"
+  pathKey: ""
 
-# Reference an externally-managed Secret for the dashboard secret path
-# (config.dashboard.secret_path). Set this when the secret path is provisioned
-# out-of-band, e.g. by ExternalSecrets / SealedSecrets / Vault. The Secret must
-# contain the path under `dashboardPathExistingSecretKey` (default
-# "dashboard-path"). When set, the env var KRAWL_DASHBOARD_SECRET_PATH is
-# injected from this Secret, overriding whatever is in config.dashboard.secret_path.
-dashboardPathExistingSecret: ""
-dashboardPathExistingSecretKey: "dashboard-path"
+# AI/LLM API key from an externally-managed Secret instead of the chart-managed
+# one built from `config.ai.api_key`. `name` empty = chart-managed.
+aiExistingSecret:
+  name: ""
+  key: "ai-api-key"
+
+# Canary token URL. Setting `canaryTokenUrl` creates a chart-managed Secret and
+# injects KRAWL_CANARY_TOKEN_URL from it, keeping the URL out of the ConfigMap.
+# Set `canaryExistingSecret.name` to read it from an external Secret instead.
+canaryTokenUrl: ""
+canaryExistingSecret:
+  name: ""
+  key: "canary-token-url"
+
+# CloudFlare WAF/banlist sync credentials. Set them inline (chart-managed
+# Secret) or point `existingSecret.name` at an externally-managed one. Either
+# way they are injected as KRAWL_CLOUDFLARE_ACCOUNT_ID / KRAWL_CLOUDFLARE_AUTH_TOKEN
+# and take precedence over data/webhooks.json, so the sync survives restarts
+# without a persistent volume and the token is never written back to disk.
+cloudflare:
+  enabled: false
+  accountId: ""
+  authToken: ""
+  existingSecret:
+    name: ""
+    accountIdKey: "cloudflare-account-id"
+    authTokenKey: "cloudflare-auth-token"
+
+# Extra environment variables for the Krawl container, e.g. any KRAWL_* setting
+# this chart does not model yet. `extraEnvFrom` accepts secretRef/configMapRef
+# entries, which is the escape hatch for External Secrets Operator / Vault.
+extraEnv: []
+#  - name: KRAWL_LOG_LEVEL
+#    value: "INFO"
+extraEnvFrom: []
+#  - secretRef:
+#      name: krawl-external-secrets
 
 # Application configuration (config.yaml structure)
 config:
@@ -235,15 +267,19 @@ postgres:
   user: "krawl"
   password: "krawl"
   database: "krawl"
-  # Use an externally-managed Secret for the PostgreSQL password instead of the
-  # plaintext `password` field. The Secret must contain the password under the
-  # key set by `existingSecretKey` (default "postgres-password"). When set, the
-  # chart-managed Secret for postgres is not created and the PostgreSQL
-  # StatefulSet + Krawl Deployment + migration Job all read the password from
-  # this Secret. Combine with `postgres.enabled: false` to point at a fully
-  # external instance.
-  existingSecret: ""
-  existingSecretKey: "postgres-password"
+  # Read credentials from an externally-managed Secret. `name` empty = use the
+  # chart-managed Secret built from `password` above. Any connection key left
+  # empty falls back to the plaintext value above.
+  # Setting `name` skips the chart-managed postgres Secret; the Krawl
+  # Deployment, the bundled StatefulSet and the migration Job all read from it.
+  # Combine with `postgres.enabled: false` for a fully external instance.
+  existingSecret:
+    name: ""
+    passwordKey: "postgres-password"
+    userKey: ""
+    hostKey: ""
+    portKey: ""
+    databaseKey: ""
   image:
     repository: postgres
     tag: "16-alpine"
@@ -273,14 +309,17 @@ redis:
   cache_ttl: 600    # Dashboard warmup data (default: 10 minutes)
   hot_ttl: 30       # Hot-path data like ban info (default: 30 seconds)
   table_ttl: 120    # Paginated dashboard tables (default: 2 minutes)
-  # Use an externally-managed Secret for the Redis password instead of the
-  # plaintext `password` field. The Secret must contain the password under the
-  # key set by `existingSecretKey` (default "redis-password"). When set, the
-  # chart-managed Secret for redis is not created and the Redis StatefulSet +
-  # Krawl Deployment both read the password from this Secret. Set
-  # `redis.enabled: false` to use a fully external Redis instance.
-  existingSecret: ""
-  existingSecretKey: "redis-password"
+  # Read credentials from an externally-managed Secret. `name` empty = use the
+  # chart-managed Secret built from `password` above. Any connection key left
+  # empty falls back to the plaintext value above.
+  # Setting `name` skips the chart-managed redis Secret; the Krawl Deployment
+  # and the bundled StatefulSet both read from it. Combine with
+  # `redis.enabled: false` for a fully external instance.
+  existingSecret:
+    name: ""
+    passwordKey: "redis-password"
+    hostKey: ""
+    portKey: ""
   image:
     repository: redis
     tag: "7-alpine"

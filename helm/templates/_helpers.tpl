@@ -66,8 +66,8 @@ Secret. Returns the Secret name and key as a pair via a dict so templates can
 share the same resolution logic.
 */}}
 {{- define "krawl.postgres.secret" -}}
-{{- $name := .Values.postgres.existingSecret | default (printf "%s-postgres" (include "krawl.fullname" .)) }}
-{{- $key := .Values.postgres.existingSecretKey | default "postgres-password" }}
+{{- $name := .Values.postgres.existingSecret.name | default (printf "%s-postgres" (include "krawl.fullname" .)) }}
+{{- $key := .Values.postgres.existingSecret.passwordKey | default "postgres-password" }}
 {{- dict "name" $name "key" $key | toJson }}
 {{- end }}
 
@@ -75,8 +75,8 @@ share the same resolution logic.
 Resolve the Redis Secret name/key to reference for credentials.
 */}}
 {{- define "krawl.redis.secret" -}}
-{{- $name := .Values.redis.existingSecret | default (printf "%s-redis" (include "krawl.fullname" .)) }}
-{{- $key := .Values.redis.existingSecretKey | default "redis-password" }}
+{{- $name := .Values.redis.existingSecret.name | default (printf "%s-redis" (include "krawl.fullname" .)) }}
+{{- $key := .Values.redis.existingSecret.passwordKey | default "redis-password" }}
 {{- dict "name" $name "key" $key | toJson }}
 {{- end }}
 
@@ -84,8 +84,8 @@ Resolve the Redis Secret name/key to reference for credentials.
 Resolve the Dashboard password Secret name/key to reference.
 */}}
 {{- define "krawl.dashboard.secret" -}}
-{{- $name := .Values.dashboardExistingSecret | default (printf "%s-dashboard" (include "krawl.fullname" .)) }}
-{{- $key := .Values.dashboardExistingSecretKey | default "dashboard-password" }}
+{{- $name := .Values.dashboardExistingSecret.name | default (printf "%s-dashboard" (include "krawl.fullname" .)) }}
+{{- $key := .Values.dashboardExistingSecret.passwordKey | default "dashboard-password" }}
 {{- dict "name" $name "key" $key | toJson }}
 {{- end }}
 
@@ -94,7 +94,32 @@ Resolve the Dashboard secret path Secret name/key to reference.
 Empty when no external Secret is configured (path auto-generates from config).
 */}}
 {{- define "krawl.dashboardPath.secret" -}}
-{{- $name := .Values.dashboardPathExistingSecret | default "" }}
-{{- $key := .Values.dashboardPathExistingSecretKey | default "dashboard-path" }}
+{{- $name := ternary .Values.dashboardExistingSecret.name "" (not (empty .Values.dashboardExistingSecret.pathKey)) }}
+{{- $key := .Values.dashboardExistingSecret.pathKey | default "dashboard-path" }}
 {{- dict "name" $name "key" $key | toJson }}
+{{- end }}
+
+{{/*
+Resolve the AI API key Secret name/key to reference.
+*/}}
+{{- define "krawl.ai.secret" -}}
+{{- $name := .Values.aiExistingSecret.name | default (printf "%s-ai" (include "krawl.fullname" .)) }}
+{{- $key := .Values.aiExistingSecret.key | default "ai-api-key" }}
+{{- dict "name" $name "key" $key | toJson }}
+{{- end }}
+
+{{/*
+Resolve the canary token URL Secret name/key to reference.
+*/}}
+{{- define "krawl.canary.secret" -}}
+{{- $name := .Values.canaryExistingSecret.name | default (ternary (printf "%s-canary" (include "krawl.fullname" .)) "" (not (empty .Values.canaryTokenUrl))) }}
+{{- $key := .Values.canaryExistingSecret.key | default "canary-token-url" }}
+{{- dict "name" $name "key" $key | toJson }}
+{{- end }}
+
+{{/*
+Resolve the CloudFlare credentials Secret name to reference.
+*/}}
+{{- define "krawl.cloudflare.secret" -}}
+{{- .Values.cloudflare.existingSecret.name | default (printf "%s-cloudflare" (include "krawl.fullname" .)) }}
 {{- end }}
