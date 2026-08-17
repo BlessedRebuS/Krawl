@@ -44,11 +44,31 @@ def _default_config() -> dict:
     }
 
 
+# CloudFlare credentials may come from the environment (k8s Secrets) instead of
+# webhooks.json. Env always wins and is never written back to disk.
+_CF_ENV = {
+    "account_id": "KRAWL_CLOUDFLARE_ACCOUNT_ID",
+    "auth_token": "KRAWL_CLOUDFLARE_AUTH_TOKEN",
+}
+
+
+def _apply_cf_env(data: dict) -> dict:
+    cf = data.setdefault("cloudflare", {})
+    for key, env_var in _CF_ENV.items():
+        value = os.environ.get(env_var)
+        if value:
+            cf[key] = value
+    enabled = os.environ.get("KRAWL_CLOUDFLARE_ENABLED")
+    if enabled is not None:
+        cf["enabled"] = enabled.lower() in ("true", "yes", "1")
+    return data
+
+
 def load_config() -> dict:
     path = _get_config_path()
     with _lock:
         if not os.path.exists(path):
-            return _default_config()
+            return _apply_cf_env(_default_config())
         try:
             with open(path) as f:
                 data = json.load(f)
@@ -60,18 +80,23 @@ def load_config() -> dict:
                     for k2, v2 in val.items():
                         if k2 not in data[key]:
                             data[key][k2] = v2
-            return data
+            return _apply_cf_env(data)
         except (json.JSONDecodeError, OSError) as e:
             get_app_logger().warning(f"[Webhooks] Failed to load config: {e}")
-            return _default_config()
+            return _apply_cf_env(_default_config())
 
 
 def save_config(data: dict) -> None:
     path = _get_config_path()
     os.makedirs(os.path.dirname(path), exist_ok=True)
+    # Drop env-provided credentials so they stay only in the environment.
+    to_write = json.loads(json.dumps(data))
+    for key, env_var in _CF_ENV.items():
+        if os.environ.get(env_var):
+            to_write.get("cloudflare", {})[key] = ""
     with _lock:
         with open(path, "w") as f:
-            json.dump(data, f, indent=2)
+            json.dump(to_write, f, indent=2)
 
 
 def get_cloudflare_config() -> dict:
