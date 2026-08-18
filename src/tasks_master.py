@@ -1,31 +1,16 @@
 import datetime
 import functools
 import importlib
-import importlib.util
 import os
-import sys
-import threading
 
-from logger import (
-    get_app_logger,
-)
+from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
+
+from logger import get_app_logger
 
 app_logger = get_app_logger()
-
-try:
-    from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED
-    from apscheduler.schedulers.background import BackgroundScheduler
-    from apscheduler.triggers.cron import CronTrigger
-    from apscheduler.triggers.interval import IntervalTrigger
-except ModuleNotFoundError:
-    msg = (
-        "Required modules are not installed. "
-        "Can not continue with module / application loading.\n"
-        "Install it with: pip install -r requirements"
-    )
-    print(msg, file=sys.stderr)
-    app_logger.error(msg)
-    exit()
 
 
 # ---------- TASKSMASTER CLASS ----------
@@ -87,13 +72,9 @@ class TasksMaster:
             if not filename.endswith(".py") or filename.startswith("__"):
                 continue
 
-            path = os.path.join(folder_path, filename)
             module_name = filename[:-3]
-            spec = importlib.util.spec_from_file_location(f"tasks.{module_name}", path)
-            module = importlib.util.module_from_spec(spec)
             try:
-                spec.loader.exec_module(module)
-                sys.modules[f"tasks.{module_name}"] = module
+                module = importlib.import_module(f"tasks.{module_name}")
             except Exception as e:
                 app_logger.error(f"Failed to import {filename}: {e}")
                 continue
@@ -252,20 +233,6 @@ class TasksMaster:
         else:
             app_logger.info(f"Job {event.job_id} completed successfully.")
 
-    def list_jobs(self):
-        scheduled_jobs = self.scheduler.get_jobs()
-        jobs_list = []
-
-        for job in scheduled_jobs:
-            jobs_list.append(
-                {
-                    "id": job.id,
-                    "name": job.name,
-                    "next_run": job.next_run_time,
-                }
-            )
-        return jobs_list
-
     def run_scheduled_tasks(self):
         """
         Runs and schedules enabled tasks using the background scheduler.
@@ -288,44 +255,11 @@ class TasksMaster:
 
 
 # ---------- SINGLETON WRAPPER ----------
-T = type
-
-
-def singleton_loader(func):
-    """Decorator to ensure only one instance exists."""
-    cache: dict[str, T] = {}
-    lock = threading.Lock()
-
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs) -> T:
-        with lock:
-            if func.__name__ not in cache:
-                cache[func.__name__] = func(*args, **kwargs)
-            return cache[func.__name__]
-
-    return wrapper
-
-
-@singleton_loader
-def get_tasksmaster(scheduler: BackgroundScheduler | None = None) -> TasksMaster:
-    """
-    Returns the singleton TasksMaster instance.
-
-    - Automatically creates a BackgroundScheduler if none is provided.
-    - Automatically starts the scheduler when the singleton is created.
-
-    :param scheduler: Optional APScheduler instance. If None, a new BackgroundScheduler will be created.
-    """
-    if scheduler is None:
-        scheduler = BackgroundScheduler()
-
+@functools.cache
+def get_tasksmaster() -> TasksMaster:
+    """Return the singleton TasksMaster, with its scheduler started."""
+    scheduler = BackgroundScheduler()
     tm_instance = TasksMaster(scheduler)
-
-    # Auto-start scheduler if not already running
-    if not scheduler.running:
-        scheduler.start()
-        app_logger.info(
-            "TasksMaster scheduler started automatically with singleton creation."
-        )
-
+    scheduler.start()
+    app_logger.info("TasksMaster scheduler started.")
     return tm_instance
