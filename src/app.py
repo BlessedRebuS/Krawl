@@ -21,7 +21,7 @@ from generators import random_server_header
 from logger import get_access_logger, get_app_logger, initialize_logging
 from routes.dashboard import KRAWL_VERSION
 from tasks_master import get_tasksmaster
-from tracker import AccessTracker, set_tracker
+from tracker import AccessTracker
 
 
 @asynccontextmanager
@@ -158,7 +158,6 @@ async def lifespan(app: FastAPI):
 
     # Initialize tracker
     tracker = AccessTracker(config.max_pages_limit, config.ban_duration_seconds)
-    set_tracker(tracker)
 
     # Initial banlist sync (before accepting traffic)
     if config.banlist_sources:
