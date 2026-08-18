@@ -173,9 +173,6 @@ class DatabaseManager:
         Base.metadata.create_all(self._engine)
 
         # Run migrations (dialect-agnostic via SQLAlchemy Inspector)
-        if mode == "standalone":
-            self._run_migrations(database_path)
-
         from migrations.runner import run_migrations
 
         run_migrations(self._engine)
@@ -188,85 +185,6 @@ class DatabaseManager:
                 pass
 
         self._initialized = True
-
-    def _run_migrations(self, database_path: str) -> None:
-        """
-        Run legacy SQLite-specific auto-migrations for backward compatibility.
-        Only runs in standalone mode. Adds missing columns from older versions.
-
-        Args:
-            database_path: Path to the SQLite database file
-        """
-        if getattr(self, "_mode", "standalone") != "standalone":
-            return
-
-        import sqlite3
-
-        try:
-            conn = sqlite3.connect(database_path)
-            cursor = conn.cursor()
-
-            # Check if latitude/longitude columns exist
-            cursor.execute("PRAGMA table_info(ip_stats)")
-            columns = [row[1] for row in cursor.fetchall()]
-
-            migrations_run = []
-
-            # Add latitude column if missing
-            if "latitude" not in columns:
-                cursor.execute("ALTER TABLE ip_stats ADD COLUMN latitude REAL")
-                migrations_run.append("latitude")
-
-            # Add longitude column if missing
-            if "longitude" not in columns:
-                cursor.execute("ALTER TABLE ip_stats ADD COLUMN longitude REAL")
-                migrations_run.append("longitude")
-
-            # Add new geolocation columns
-            if "country" not in columns:
-                cursor.execute("ALTER TABLE ip_stats ADD COLUMN country VARCHAR(100)")
-                migrations_run.append("country")
-
-            if "region" not in columns:
-                cursor.execute("ALTER TABLE ip_stats ADD COLUMN region VARCHAR(2)")
-                migrations_run.append("region")
-
-            if "region_name" not in columns:
-                cursor.execute(
-                    "ALTER TABLE ip_stats ADD COLUMN region_name VARCHAR(100)"
-                )
-                migrations_run.append("region_name")
-
-            if "timezone" not in columns:
-                cursor.execute("ALTER TABLE ip_stats ADD COLUMN timezone VARCHAR(50)")
-                migrations_run.append("timezone")
-
-            if "isp" not in columns:
-                cursor.execute("ALTER TABLE ip_stats ADD COLUMN isp VARCHAR(100)")
-                migrations_run.append("isp")
-
-            if "is_proxy" not in columns:
-                cursor.execute("ALTER TABLE ip_stats ADD COLUMN is_proxy BOOLEAN")
-                migrations_run.append("is_proxy")
-
-            if "is_hosting" not in columns:
-                cursor.execute("ALTER TABLE ip_stats ADD COLUMN is_hosting BOOLEAN")
-                migrations_run.append("is_hosting")
-
-            if "reverse" not in columns:
-                cursor.execute("ALTER TABLE ip_stats ADD COLUMN reverse VARCHAR(255)")
-                migrations_run.append("reverse")
-
-            if migrations_run:
-                conn.commit()
-                applogger.info(
-                    f"Auto-migration: Added columns {', '.join(migrations_run)} to ip_stats table"
-                )
-
-            conn.close()
-        except Exception as e:
-            applogger.error(f"Auto-migration failed: {e}")
-            # Don't raise - allow app to continue even if migration fails
 
     @property
     def session(self) -> Session:
