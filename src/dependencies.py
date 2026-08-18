@@ -12,9 +12,7 @@ from fastapi import Request
 from fastapi.templating import Jinja2Templates
 from jinja2 import select_autoescape
 
-from config import Config
 from database import DatabaseManager, get_database
-from tracker import AccessTracker
 
 # Shared Jinja2 templates instance
 _templates = None
@@ -63,14 +61,6 @@ def _format_size(value):
     if value < 1024 * 1024:
         return f"{value / 1024:.1f} KB"
     return f"{value / (1024 * 1024):.1f} MB"
-
-
-def get_tracker(request: Request) -> AccessTracker:
-    return request.app.state.tracker
-
-
-def get_app_config(request: Request) -> Config:
-    return request.app.state.config
 
 
 def get_db() -> DatabaseManager:

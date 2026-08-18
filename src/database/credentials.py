@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import distinct, func
 
+from dashboard_cache import pagination
 from logger import get_app_logger
 from models import CredentialAttempt
 from sanitizer import sanitize_ip
@@ -119,7 +120,6 @@ class CredentialRepo:
                 )
 
             credentials = query.offset(offset).limit(page_size).all()
-            total_pages = (total_credentials + page_size - 1) // page_size
 
             return {
                 "credentials": [
@@ -132,12 +132,7 @@ class CredentialRepo:
                     }
                     for c in credentials
                 ],
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": total_credentials,
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, total_credentials),
             }
         finally:
             self._db.close_session()

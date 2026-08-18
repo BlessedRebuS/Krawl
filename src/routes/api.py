@@ -18,8 +18,9 @@ import zipfile
 from datetime import UTC
 from email import policy
 
-from fastapi import APIRouter, Query, Request, Response
+from fastapi import APIRouter, Depends, Query, Request, Response
 from fastapi.responses import JSONResponse
+from fastapi.security import APIKeyCookie
 from pydantic import BaseModel, validator
 
 from config import get_config
@@ -63,6 +64,25 @@ def verify_auth(request: Request) -> bool:
     """Check if the request has a valid auth session cookie."""
     token = request.cookies.get("krawl_auth")
     return token is not None and token in _auth_tokens
+
+
+class Unauthorized(Exception):
+    """Raised by require_auth; rendered as 401 JSON by the app handler."""
+
+
+# Declared as a security scheme so FastAPI documents the session cookie itself
+# (lock icons in /docs) instead of us post-processing the OpenAPI schema.
+_cookie_scheme = APIKeyCookie(
+    name="krawl_auth",
+    auto_error=False,
+    description="Session cookie obtained via POST /api/auth",
+)
+
+
+def require_auth(token: str | None = Depends(_cookie_scheme)) -> None:
+    """Route dependency: 401 JSON unless the session cookie is valid."""
+    if token is None or token not in _auth_tokens:
+        raise Unauthorized()
 
 
 @router.post("/api/auth")
@@ -162,11 +182,8 @@ class BanOverrideRequest(BaseModel):
     action: str  # "ban", "unban", or "reset"
 
 
-@router.post("/api/ban-override")
+@router.post("/api/ban-override", dependencies=[Depends(require_auth)])
 async def ban_override(request: Request, body: BanOverrideRequest):
-    if not verify_auth(request):
-        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
-
     db = get_db()
     action_map = {"ban": True, "unban": False, "reset": None}
     if body.action not in action_map:
@@ -196,11 +213,8 @@ class TimeoutExemptRequest(BaseModel):
     action: str  # "exempt" or "reset"
 
 
-@router.post("/api/timeout-exempt")
+@router.post("/api/timeout-exempt", dependencies=[Depends(require_auth)])
 async def timeout_exempt(request: Request, body: TimeoutExemptRequest):
-    if not verify_auth(request):
-        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
-
     action_map = {"exempt": True, "reset": False}
     if body.action not in action_map:
         return JSONResponse(
@@ -229,11 +243,8 @@ class TrackIpRequest(BaseModel):
     action: str  # "track" or "untrack"
 
 
-@router.post("/api/track-ip")
+@router.post("/api/track-ip", dependencies=[Depends(require_auth)])
 async def track_ip(request: Request, body: TrackIpRequest):
-    if not verify_auth(request):
-        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
-
     db = get_db()
     if body.action == "track":
         success = await asyncio.to_thread(db.ip_stats.track_ip, body.ip)
@@ -884,15 +895,12 @@ async def export_ips(
     if not cat_list or not all(c in valid_categories for c in cat_list):
         return JSONResponse(content={"error": "Invalid categories"}, status_code=400)
 
-    from firewall.fwtype import FWType
-    from firewall.iptables import Iptables  # noqa: F401 - register
-    from firewall.nftables import Nftables  # noqa: F401 - register
-    from firewall.raw import Raw  # noqa: F401 - register
+    from firewall import FORMATS, format_banlist
 
-    try:
-        fw = FWType.create(fwtype)
-    except ValueError as e:
-        return JSONResponse(content={"error": str(e)}, status_code=400)
+    if fwtype.lower() not in FORMATS:
+        return JSONResponse(
+            content={"error": f"Unknown firewall type: '{fwtype}'"}, status_code=400
+        )
 
     try:
         db = get_db()
@@ -936,7 +944,7 @@ async def export_ips(
                 f"[ExportIPs] Excluded {before - len(public_ips)} CDN IPs"
             )
 
-        content = fw.getBanlist(public_ips)
+        content = format_banlist(fwtype, public_ips)
 
         cat_label = "_".join(sorted(cat_list))
         filename = f"{fwtype}_{cat_label}_export.txt"
@@ -955,7 +963,7 @@ async def export_ips(
         return JSONResponse(content={"error": "Internal server error"}, status_code=500)
 
 
-@router.post("/api/delete-generated-pages")
+@router.post("/api/delete-generated-pages", dependencies=[Depends(require_auth)])
 async def delete_generated_pages(
     request: Request,
     before_date: str = Query(None),
@@ -969,12 +977,6 @@ async def delete_generated_pages(
     - Pages created before a specific date (before_date=YYYY-MM-DD)
     - Specific pages by ID (ids=id1,id2,id3)
     """
-    if not verify_auth(request):
-        return JSONResponse(
-            content={"error": "Unauthorized"},
-            status_code=401,
-        )
-
     db = get_db()
     deleted_count = 0
 
@@ -1038,15 +1040,12 @@ async def delete_generated_pages(
         )
 
 
-@router.get("/api/download-generated-page")
+@router.get("/api/download-generated-page", dependencies=[Depends(require_auth)])
 async def download_generated_page(
     request: Request,
     path: str = Query(...),
 ):
     """Download a generated deception page as an HTML file."""
-    if not verify_auth(request):
-        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
-
     import base64
 
     from models import GeneratedPage
@@ -1079,7 +1078,7 @@ async def download_generated_page(
         db.close_session()
 
 
-@router.post("/api/download-generated-pages-zip")
+@router.post("/api/download-generated-pages-zip", dependencies=[Depends(require_auth)])
 async def download_generated_pages_zip(
     request: Request,
     paths: str = Query(None),
@@ -1087,9 +1086,6 @@ async def download_generated_pages_zip(
     select_all: bool = Query(False),
 ):
     """Download multiple generated deception pages as a ZIP file."""
-    if not verify_auth(request):
-        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
-
     from models import GeneratedPage
 
     db = get_db()
@@ -1196,12 +1192,9 @@ class UploadBulkPagesRequest(BaseModel):
     pages: dict  # { path: content, ... }
 
 
-@router.post("/api/upload-generated-page")
+@router.post("/api/upload-generated-page", dependencies=[Depends(require_auth)])
 async def upload_generated_page(request: Request, body: UploadPageRequest):
     """Upload a custom page to serve as a deception page."""
-    if not verify_auth(request):
-        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
-
     import base64
     from datetime import datetime
 
@@ -1263,12 +1256,9 @@ async def upload_generated_page(request: Request, body: UploadPageRequest):
         db.close_session()
 
 
-@router.post("/api/upload-generated-pages-bulk")
+@router.post("/api/upload-generated-pages-bulk", dependencies=[Depends(require_auth)])
 async def upload_generated_pages_bulk(request: Request, body: UploadBulkPagesRequest):
     """Upload multiple deception pages from a ZIP file."""
-    if not verify_auth(request):
-        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
-
     import base64
     from datetime import datetime
 
@@ -1385,11 +1375,8 @@ class CloudflareSaveRequest(BaseModel):
         return v
 
 
-@router.post("/api/webhooks/cloudflare/save")
+@router.post("/api/webhooks/cloudflare/save", dependencies=[Depends(require_auth)])
 async def webhook_cloudflare_save(request: Request, body: CloudflareSaveRequest):
-    if not verify_auth(request):
-        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
-
     from webhooks import (
         cf_test_connection,
         get_cloudflare_config,
@@ -1502,11 +1489,8 @@ async def webhook_cloudflare_save(request: Request, body: CloudflareSaveRequest)
     return JSONResponse(content=resp)
 
 
-@router.post("/api/webhooks/cloudflare/sync")
+@router.post("/api/webhooks/cloudflare/sync", dependencies=[Depends(require_auth)])
 async def webhook_cloudflare_sync(request: Request):
-    if not verify_auth(request):
-        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
-
     from datetime import datetime
 
     from webhooks import (
@@ -1544,11 +1528,8 @@ async def webhook_cloudflare_sync(request: Request):
     )
 
 
-@router.get("/api/webhooks/status")
+@router.get("/api/webhooks/status", dependencies=[Depends(require_auth)])
 async def webhook_status(request: Request):
-    if not verify_auth(request):
-        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
-
     from webhooks import get_cloudflare_config, save_cloudflare_config
 
     cf = get_cloudflare_config()
@@ -1586,11 +1567,8 @@ async def webhook_status(request: Request):
     )
 
 
-@router.delete("/api/webhooks/cloudflare/config")
+@router.delete("/api/webhooks/cloudflare/config", dependencies=[Depends(require_auth)])
 async def webhook_cloudflare_delete(request: Request):
-    if not verify_auth(request):
-        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
-
     from webhooks import load_config, save_config
 
     cfg = load_config()

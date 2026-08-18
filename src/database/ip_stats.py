@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import and_, func, or_
 
+from dashboard_cache import pagination
 from logger import get_app_logger
 from models import CategoryHistory, IpStats, TrackedIp
 from sanitizer import sanitize_ip
@@ -303,7 +304,6 @@ class IpStatsRepo:
                 .scalar()
                 or 0
             )
-            total_pages = max(1, (total + page_size - 1) // page_size)
 
             results = (
                 base_query.order_by(IpStats.last_seen.desc())
@@ -328,12 +328,7 @@ class IpStatsRepo:
 
             return {
                 "overrides": overrides,
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": total,
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, total),
             }
         finally:
             self._db.close_session()
@@ -1007,8 +1002,6 @@ class IpStatsRepo:
             # Get paginated IPs
             rows = query.offset(offset).limit(page_size).all()
 
-            total_pages = (total_ips + page_size - 1) // page_size
-
             return {
                 "ips": [
                     {
@@ -1032,12 +1025,7 @@ class IpStatsRepo:
                     }
                     for row in rows
                 ],
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": total_ips,
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, total_ips),
             }
         finally:
             self._db.close_session()
@@ -1148,7 +1136,6 @@ class IpStatsRepo:
                 )
 
             total = len(all_items)
-            total_pages = max(1, (total + page_size - 1) // page_size)
             page = max(1, page)
             start = (page - 1) * page_size
             items = all_items[start : start + page_size]
@@ -1157,12 +1144,7 @@ class IpStatsRepo:
                 "items": items,
                 "sort_by": sort_by,
                 "sort_order": sort_order,
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": total,
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, total),
             }
         finally:
             self._db.close_session()
@@ -1310,7 +1292,6 @@ class IpStatsRepo:
         session = self._db.session
         try:
             total = session.query(func.count(TrackedIp.ip)).scalar() or 0
-            total_pages = max(1, (total + page_size - 1) // page_size)
 
             tracked_rows = (
                 session.query(TrackedIp)
@@ -1338,12 +1319,7 @@ class IpStatsRepo:
 
             return {
                 "tracked_ips": items,
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": total,
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, total),
             }
         finally:
             self._db.close_session()

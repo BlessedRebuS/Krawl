@@ -61,53 +61,22 @@ The same functionality is available from the dashboard via the **Export IPs Banl
 
 ## Architecture
 
-The firewall export feature uses a strategy pattern with an abstract class and subclasses for each firewall system:
-
-```mermaid
- classDiagram
- class FWType{
-        +getBanlist()
-}
-FWType <|-- Raw
-class Raw{ }
-FWType <|-- Iptables
-class Iptables{ }
-FWType <|-- Nftables
-class Nftables{ }
-note for Iptables "implements the getBanlist method for iptables rules"
-note for Nftables "implements the getBanlist method for nftables rules"
-```
+Each output format is a function in `src/firewall/__init__.py`, registered by name
+in the `FORMATS` dict. `format_banlist(fwtype, ips)` looks the name up and raises
+`ValueError` for an unknown format.
 
 ## Adding Firewall Exporters
 
-To add a firewall exporter, create a new Python class in `src/firewall` that implements `FWType`:
+Add a function that turns a list of IPs into rules, then register it:
 
 ```python
-from typing_extensions import override
-from firewall.fwtype import FWType
+def _yourfirewall(ips: list[str]) -> str:
+    """Generate firewall rules from a list of IP addresses."""
+    return "\n".join(f"block {ip}" for ip in ips)
 
-class Yourfirewall(FWType):
 
-    @override
-    def getBanlist(self, ips) -> str:
-        """
-        Generate firewall rules from a list of IP addresses.
-
-        Args:
-            ips: List of IP addresses to ban
-
-        Returns:
-            String containing firewall rules
-        """
-        if not ips:
-            return ""
-        # Add your implementation here
+FORMATS = {..., "yourfirewall": _yourfirewall}
 ```
 
-Then import it in `src/routes/api.py` (inside the `export_ips` handler):
-
-```python
-from firewall.yourfirewall import Yourfirewall
-```
-
-The class is automatically registered in the `FWType` factory via `__init_subclass__` and becomes available as a `fwtype` parameter in the Export API.
+The key becomes a valid `fwtype` parameter in the Export API immediately; empty
+IP lists are short-circuited to an empty response by `format_banlist`.

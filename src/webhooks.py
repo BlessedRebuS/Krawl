@@ -171,11 +171,6 @@ def cf_create_list(
     )
 
 
-def cf_list_items(account_id: str, auth_token: str, list_id: str) -> dict:
-    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/rules/lists/{list_id}/items"
-    return _cf_request("GET", url, auth_token)
-
-
 def cf_replace_items(
     account_id: str, auth_token: str, list_id: str, ips: list[str]
 ) -> dict:
@@ -189,11 +184,6 @@ def cf_replace_items(
 def cf_test_connection(account_id: str, auth_token: str) -> dict:
     """Test by listing all IP lists. Uses Lists:Read scope that sync actually needs."""
     url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/rules/lists"
-    return _cf_request("GET", url, auth_token, timeout=15)
-
-
-def cf_get_list(account_id: str, auth_token: str, list_id: str) -> dict:
-    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/rules/lists/{list_id}"
     return _cf_request("GET", url, auth_token, timeout=15)
 
 

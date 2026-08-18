@@ -1,231 +1,111 @@
 """
 Migration runner for Krawl.
-Checks the database schema and applies any pending migrations at startup.
-All checks are idempotent — safe to run on every boot.
-
-Uses SQLAlchemy Inspector for dialect-agnostic schema introspection,
-supporting both SQLite (standalone mode) and PostgreSQL (scalable mode).
+Applies pending ALTER-level schema changes at startup. All steps are idempotent
+and dialect-agnostic (SQLite in standalone mode, PostgreSQL in scalable mode).
 
 Note: table creation (e.g. category_history) is already handled by
 Base.metadata.create_all() in DatabaseManager.initialize() and is NOT
-duplicated here. This runner only covers ALTER-level changes that
-create_all() cannot apply to existing tables (new columns, new indexes).
+duplicated here.
 """
-
-import logging
 
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
 
-logger = logging.getLogger("krawl")
+from logger import get_app_logger
 
+logger = get_app_logger()
 
-def _column_exists(engine: Engine, table_name: str, column_name: str) -> bool:
-    """Check if a column exists in a table using SQLAlchemy Inspector."""
-    insp = inspect(engine)
-    columns = [c["name"] for c in insp.get_columns(table_name)]
-    return column_name in columns
+# (table, column, SQL type) — added if the column is missing.
+COLUMNS = [
+    ("access_logs", "raw_request", "TEXT"),
+    ("ip_stats", "need_reevaluation", "BOOLEAN DEFAULT false"),
+    ("ip_stats", "has_triggered_honeypot", "BOOLEAN DEFAULT false"),
+    ("ip_stats", "page_visit_count", "INTEGER DEFAULT 0"),
+    ("ip_stats", "ban_timestamp", "DATETIME"),
+    ("ip_stats", "total_violations", "INTEGER DEFAULT 0"),
+    ("ip_stats", "ban_multiplier", "INTEGER DEFAULT 1"),
+    ("ip_stats", "ban_override", "BOOLEAN DEFAULT NULL"),
+    ("ip_stats", "timeout_exempt", "BOOLEAN DEFAULT false"),
+    # Geolocation columns (previously applied by a separate sqlite3 migration).
+    ("ip_stats", "latitude", "REAL"),
+    ("ip_stats", "longitude", "REAL"),
+    ("ip_stats", "country", "VARCHAR(100)"),
+    ("ip_stats", "region", "VARCHAR(2)"),
+    ("ip_stats", "region_name", "VARCHAR(100)"),
+    ("ip_stats", "timezone", "VARCHAR(50)"),
+    ("ip_stats", "isp", "VARCHAR(100)"),
+    ("ip_stats", "is_proxy", "BOOLEAN"),
+    ("ip_stats", "is_hosting", "BOOLEAN"),
+    ("ip_stats", "reverse", "VARCHAR(255)"),
+]
 
-
-def _index_exists(engine: Engine, table_name: str, index_name: str) -> bool:
-    """Check if an index exists on a table using SQLAlchemy Inspector."""
-    insp = inspect(engine)
-    indexes = [idx["name"] for idx in insp.get_indexes(table_name)]
-    return index_name in indexes
-
-
-def _migrate_raw_request_column(engine: Engine) -> bool:
-    """Add raw_request column to access_logs if missing."""
-    if _column_exists(engine, "access_logs", "raw_request"):
-        return False
-    with engine.begin() as conn:
-        conn.execute(text("ALTER TABLE access_logs ADD COLUMN raw_request TEXT"))
-    return True
-
-
-def _migrate_need_reevaluation_column(engine: Engine) -> bool:
-    """Add need_reevaluation column to ip_stats if missing."""
-    if _column_exists(engine, "ip_stats", "need_reevaluation"):
-        return False
-    with engine.begin() as conn:
-        conn.execute(
-            text(
-                "ALTER TABLE ip_stats ADD COLUMN need_reevaluation BOOLEAN DEFAULT false"
-            )
-        )
-    return True
-
-
-def _migrate_has_triggered_honeypot_column(engine: Engine) -> bool:
-    """Add has_triggered_honeypot column to ip_stats if missing."""
-    if _column_exists(engine, "ip_stats", "has_triggered_honeypot"):
-        return False
-    with engine.begin() as conn:
-        conn.execute(
-            text(
-                "ALTER TABLE ip_stats ADD COLUMN has_triggered_honeypot "
-                "BOOLEAN DEFAULT false"
-            )
-        )
-    return True
-
-
-def _migrate_ban_state_columns(engine: Engine) -> list[str]:
-    """Add ban/rate-limit columns to ip_stats if missing."""
-    added = []
-    columns = {
-        "page_visit_count": "INTEGER DEFAULT 0",
-        "ban_timestamp": "DATETIME",
-        "total_violations": "INTEGER DEFAULT 0",
-        "ban_multiplier": "INTEGER DEFAULT 1",
-    }
-    for col_name, col_type in columns.items():
-        if not _column_exists(engine, "ip_stats", col_name):
-            with engine.begin() as conn:
-                conn.execute(
-                    text(f"ALTER TABLE ip_stats ADD COLUMN {col_name} {col_type}")
-                )
-            added.append(col_name)
-    return added
-
-
-def _migrate_performance_indexes(engine: Engine) -> list[str]:
-    """Add performance indexes to attack_detections if missing."""
-    added = []
-    if not _index_exists(
-        engine, "attack_detections", "ix_attack_detections_attack_type"
-    ):
-        with engine.begin() as conn:
-            conn.execute(
-                text(
-                    "CREATE INDEX ix_attack_detections_attack_type "
-                    "ON attack_detections(attack_type)"
-                )
-            )
-        added.append("ix_attack_detections_attack_type")
-
-    if not _index_exists(engine, "attack_detections", "ix_attack_detections_type_log"):
-        with engine.begin() as conn:
-            conn.execute(
-                text(
-                    "CREATE INDEX ix_attack_detections_type_log "
-                    "ON attack_detections(attack_type, access_log_id)"
-                )
-            )
-        added.append("ix_attack_detections_type_log")
-
-    return added
-
-
-def _migrate_scalable_indexes(engine: Engine) -> list[str]:
-    """Add indexes for query performance (benefits both SQLite and PostgreSQL)."""
-    added = []
-
-    # (index_name, table, column)
-    indexes = [
-        ("ix_access_logs_path", "access_logs", "path"),
-        ("ix_access_logs_user_agent", "access_logs", "user_agent"),
-        ("ix_access_logs_is_suspicious", "access_logs", "is_suspicious"),
-        ("ix_access_logs_is_honeypot_trigger", "access_logs", "is_honeypot_trigger"),
-        ("ix_ip_stats_category", "ip_stats", "category"),
-        ("ix_ip_stats_need_reevaluation", "ip_stats", "need_reevaluation"),
-        ("ix_ip_stats_total_requests", "ip_stats", "total_requests"),
-        # Sort columns for paginated attacker / all-IP views.
-        ("ix_ip_stats_last_seen", "ip_stats", "last_seen"),
-        ("ix_ip_stats_first_seen", "ip_stats", "first_seen"),
-        ("ix_ip_stats_reputation_score", "ip_stats", "reputation_score"),
-    ]
-    for idx_name, table, column in indexes:
-        if not _index_exists(engine, table, idx_name):
-            try:
-                with engine.begin() as conn:
-                    conn.execute(text(f"CREATE INDEX {idx_name} ON {table}({column})"))
-                added.append(idx_name)
-            except Exception as e:
-                logger.error(f"Failed to create index {idx_name}: {e}")
-    return added
-
-
-def _migrate_ban_override_column(engine: Engine) -> bool:
-    """Add ban_override column to ip_stats if missing."""
-    if _column_exists(engine, "ip_stats", "ban_override"):
-        return False
-    with engine.begin() as conn:
-        conn.execute(
-            text("ALTER TABLE ip_stats ADD COLUMN ban_override BOOLEAN DEFAULT NULL")
-        )
-    return True
-
-
-def _migrate_timeout_exempt_column(engine: Engine) -> bool:
-    """Add timeout_exempt column to ip_stats if missing."""
-    if _column_exists(engine, "ip_stats", "timeout_exempt"):
-        return False
-    with engine.begin() as conn:
-        conn.execute(
-            text("ALTER TABLE ip_stats ADD COLUMN timeout_exempt BOOLEAN DEFAULT false")
-        )
-    return True
+# (index name, table, column) — created if the index is missing.
+INDEXES = [
+    ("ix_attack_detections_attack_type", "attack_detections", "attack_type"),
+    (
+        "ix_attack_detections_type_log",
+        "attack_detections",
+        "attack_type, access_log_id",
+    ),
+    ("ix_access_logs_path", "access_logs", "path"),
+    ("ix_access_logs_user_agent", "access_logs", "user_agent"),
+    ("ix_access_logs_is_suspicious", "access_logs", "is_suspicious"),
+    ("ix_access_logs_is_honeypot_trigger", "access_logs", "is_honeypot_trigger"),
+    ("ix_ip_stats_category", "ip_stats", "category"),
+    ("ix_ip_stats_need_reevaluation", "ip_stats", "need_reevaluation"),
+    ("ix_ip_stats_total_requests", "ip_stats", "total_requests"),
+    # Sort columns for paginated attacker / all-IP views.
+    ("ix_ip_stats_last_seen", "ip_stats", "last_seen"),
+    ("ix_ip_stats_first_seen", "ip_stats", "first_seen"),
+    ("ix_ip_stats_reputation_score", "ip_stats", "reputation_score"),
+]
 
 
 def run_migrations(engine: Engine) -> None:
-    """
-    Check the database schema and apply any pending migrations.
+    """Apply any pending column/index migrations.
 
-    Only handles ALTER-level changes (columns, indexes) that
-    Base.metadata.create_all() cannot apply to existing tables.
-
-    Args:
-        engine: SQLAlchemy Engine instance (works with any dialect).
+    Each step runs in its own transaction and its own try/except so one failure
+    cannot leave the remaining steps unapplied.
     """
+    insp = inspect(engine)
     applied: list[str] = []
 
-    # Each migration runs in its own try/except so that one failure does not
-    # abort the rest of the chain (a single bad ALTER must not leave later
-    # columns/indexes unapplied).
-    def _step(label: str, fn):
+    def _existing(kind: str, table: str) -> set | None:
+        """Reflect current column/index names for a table (None if unreadable)."""
         try:
-            result = fn()
-            if isinstance(result, list):
-                for item in result:
-                    applied.append(f"add {item}")
-            elif result:
-                applied.append(label)
+            rows = (
+                insp.get_columns(table) if kind == "column" else insp.get_indexes(table)
+            )
+            return {r["name"] for r in rows}
+        except Exception as e:
+            logger.error(f"Migration error (inspect {table}): {e}")
+            return None
+
+    def _apply(label: str, sql: str) -> None:
+        try:
+            with engine.begin() as conn:
+                conn.execute(text(sql))
+            applied.append(label)
         except Exception as e:
             logger.error(f"Migration error ({label}): {e}")
 
-    _step(
-        "add raw_request column to access_logs",
-        lambda: _migrate_raw_request_column(engine),
-    )
-    _step(
-        "add need_reevaluation column to ip_stats",
-        lambda: _migrate_need_reevaluation_column(engine),
-    )
-    _step(
-        "add has_triggered_honeypot column to ip_stats",
-        lambda: _migrate_has_triggered_honeypot_column(engine),
-    )
-    _step(
-        "ban state columns on ip_stats",
-        lambda: [f"{c} column to ip_stats" for c in _migrate_ban_state_columns(engine)],
-    )
-    _step(
-        "add ban_override column to ip_stats",
-        lambda: _migrate_ban_override_column(engine),
-    )
-    _step(
-        "add timeout_exempt column to ip_stats",
-        lambda: _migrate_timeout_exempt_column(engine),
-    )
-    _step(
-        "performance indexes",
-        lambda: [f"index {i}" for i in _migrate_performance_indexes(engine)],
-    )
-    _step(
-        "scalable indexes",
-        lambda: [f"index {i}" for i in _migrate_scalable_indexes(engine)],
-    )
+    # Reflect everything up front: we only ever add, so a snapshot taken before
+    # the first ALTER stays accurate (and avoids stale Inspector cache reads).
+    columns = {t: _existing("column", t) for t in {t for t, _, _ in COLUMNS}}
+    indexes = {t: _existing("index", t) for t in {t for _, t, _ in INDEXES}}
+
+    for table, column, col_type in COLUMNS:
+        if columns[table] is None or column in columns[table]:
+            continue
+        _apply(
+            f"add {column} column to {table}",
+            f"ALTER TABLE {table} ADD COLUMN {column} {col_type}",
+        )
+
+    for idx_name, table, column in INDEXES:
+        if indexes[table] is None or idx_name in indexes[table]:
+            continue
+        _apply(f"add index {idx_name}", f"CREATE INDEX {idx_name} ON {table}({column})")
 
     if applied:
         for m in applied:

@@ -21,7 +21,7 @@ from generators import random_server_header
 from logger import get_access_logger, get_app_logger, initialize_logging
 from routes.dashboard import KRAWL_VERSION
 from tasks_master import get_tasksmaster
-from tracker import AccessTracker, set_tracker
+from tracker import AccessTracker
 
 
 @asynccontextmanager
@@ -158,7 +158,6 @@ async def lifespan(app: FastAPI):
 
     # Initialize tracker
     tracker = AccessTracker(config.max_pages_limit, config.ban_duration_seconds)
-    set_tracker(tracker)
 
     # Initial banlist sync (before accepting traffic)
     if config.banlist_sources:
@@ -233,12 +232,30 @@ DASHBOARD AVAILABLE AT
 
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
+    config = get_config()
+    secret = config.dashboard_secret_path.lstrip("/")
+    dashboard_prefix = f"/{secret}"
+
+    # Docs live under the secret dashboard path. Only the JSON API router is
+    # included in the schema (see include_in_schema=False below), so the spec
+    # stays limited to /api/* without post-processing it.
     application = FastAPI(
-        docs_url=None,
+        title="Krawl Dashboard API",
+        version=KRAWL_VERSION,
+        description="API endpoints for the Krawl honeypot dashboard.\n\n"
+        "Endpoints marked with a lock icon require authentication. "
+        "Authenticate via `POST /api/auth` to obtain a session cookie.",
+        docs_url=f"{dashboard_prefix}/docs",
         redoc_url=None,
-        openapi_url=None,
+        openapi_url=f"{dashboard_prefix}/openapi.json",
         lifespan=lifespan,
     )
+
+    from routes.api import Unauthorized
+
+    @application.exception_handler(Unauthorized)
+    async def unauthorized_handler(request: Request, exc: Unauthorized):
+        return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
 
     # Random server header middleware (innermost — runs last on request, first on response)
     @application.middleware("http")
@@ -295,8 +312,6 @@ def create_app() -> FastAPI:
         return response
 
     # Mount static files for the dashboard
-    config = get_config()
-    secret = config.dashboard_secret_path.lstrip("/")
     static_dir = os.path.join(os.path.dirname(__file__), "templates", "static")
 
     application.mount(
@@ -321,13 +336,13 @@ def create_app() -> FastAPI:
     from routes.htmx import router as htmx_router
 
     # Dashboard/API/HTMX routes (prefixed with secret path, before honeypot catch-all)
-    dashboard_prefix = f"/{secret}"
-    application.include_router(dashboard_router, prefix=dashboard_prefix)
+    application.include_router(
+        dashboard_router, prefix=dashboard_prefix, include_in_schema=False
+    )
     application.include_router(api_router, prefix=dashboard_prefix)
-    application.include_router(htmx_router, prefix=dashboard_prefix)
-
-    # OpenAPI spec and Swagger UI served under the secret dashboard path
-    _setup_openapi(application, dashboard_prefix)
+    application.include_router(
+        htmx_router, prefix=dashboard_prefix, include_in_schema=False
+    )
 
     # Public banlist route (before honeypot catch-all, after dashboard)
     if config.banlist_export_path:
@@ -343,79 +358,10 @@ def create_app() -> FastAPI:
             include_in_schema=False,
         )
 
-    # Honeypot routes (catch-all must be last)
-    application.include_router(honeypot_router)
+    # Honeypot routes (catch-all must be last, and never in the API schema)
+    application.include_router(honeypot_router, include_in_schema=False)
 
     return application
-
-
-def _setup_openapi(application: FastAPI, dashboard_prefix: str) -> None:
-    """Mount OpenAPI spec and Swagger UI under the secret dashboard path."""
-    from fastapi.openapi.utils import get_openapi
-    from fastapi.responses import HTMLResponse
-
-    openapi_url = f"{dashboard_prefix}/openapi.json"
-
-    # Endpoints that require authentication (cookie-based session)
-    protected_endpoints = {
-        "/api/ban-override",
-        "/api/track-ip",
-        "/api/delete-generated-pages",
-        "/api/download-generated-page",
-        "/api/download-generated-pages-zip",
-        "/api/upload-generated-page",
-        "/api/upload-generated-pages-bulk",
-    }
-
-    def custom_openapi():
-        if application.openapi_schema:
-            return application.openapi_schema
-        schema = get_openapi(
-            title="Krawl Dashboard API",
-            version=KRAWL_VERSION,
-            description="API endpoints for the Krawl honeypot dashboard.\n\n"
-            "Endpoints marked with a lock icon require authentication. "
-            "Authenticate via `POST /api/auth` to obtain a session cookie.",
-            routes=application.routes,
-        )
-        # Only keep routes under the dashboard prefix
-        filtered = {}
-        for path, methods in schema.get("paths", {}).items():
-            if path.startswith(dashboard_prefix + "/api/"):
-                # Mark protected endpoints
-                relative = path[len(dashboard_prefix) :]
-                if relative in protected_endpoints:
-                    for method_detail in methods.values():
-                        if isinstance(method_detail, dict):
-                            method_detail["security"] = [{"cookieAuth": []}]
-                filtered[path] = methods
-        schema["paths"] = filtered
-        schema.setdefault("components", {})["securitySchemes"] = {
-            "cookieAuth": {
-                "type": "apiKey",
-                "in": "cookie",
-                "name": "krawl_auth",
-                "description": "Session cookie obtained via POST /api/auth",
-            }
-        }
-        application.openapi_schema = schema
-        return schema
-
-    @application.get(openapi_url, include_in_schema=False)
-    async def get_openapi_schema():
-        return JSONResponse(custom_openapi())
-
-    @application.get(f"{dashboard_prefix}/docs", include_in_schema=False)
-    async def swagger_ui():
-        return HTMLResponse(f"""<!DOCTYPE html>
-<html><head>
-<title>Krawl API Docs</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
-</head><body>
-<div id="swagger-ui"></div>
-<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
-<script>SwaggerUIBundle({{url: "{openapi_url}", dom_id: "#swagger-ui"}})</script>
-</body></html>""")
 
 
 app = create_app()
