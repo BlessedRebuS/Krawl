@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import func, or_
 from sqlalchemy.orm import joinedload
 
+from dashboard_cache import pagination
 from logger import get_app_logger
 from models import (
     AccessLog,
@@ -179,8 +180,6 @@ class AnalyticsRepo:
 
             results = base_query.offset(offset).limit(page_size).all()
 
-            total_pages = max(1, (total_ips + page_size - 1) // page_size)
-
             return {
                 "ips": [
                     {
@@ -190,12 +189,7 @@ class AnalyticsRepo:
                     }
                     for row in results
                 ],
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": total_ips,
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, total_ips),
             }
         finally:
             self._db.close_session()
@@ -269,16 +263,10 @@ class AnalyticsRepo:
                 )
 
             results = query.order_by(order_expr).offset(offset).limit(page_size).all()
-            total_pages = max(1, (total_paths + page_size - 1) // page_size)
 
             return {
                 "paths": [{"path": row.path, "count": row.count} for row in results],
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": int(total_paths),
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, int(total_paths)),
             }
         finally:
             self._db.close_session()
@@ -348,19 +336,13 @@ class AnalyticsRepo:
                 order_expr = ua_expr.desc() if sort_order == "desc" else ua_expr.asc()
 
             results = query.order_by(order_expr).offset(offset).limit(page_size).all()
-            total_pages = max(1, (total_uas + page_size - 1) // page_size)
 
             return {
                 "user_agents": [
                     {"user_agent": row.user_agent, "count": row.count}
                     for row in results
                 ],
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": int(total_uas),
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, int(total_uas)),
             }
         finally:
             self._db.close_session()
@@ -497,16 +479,9 @@ class AnalyticsRepo:
                 for log in logs
             ]
 
-            total_pages = (total_attacks + page_size - 1) // page_size
-
             return {
                 "attacks": paginated,
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": total_attacks,
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, total_attacks),
             }
         finally:
             self._db.close_session()

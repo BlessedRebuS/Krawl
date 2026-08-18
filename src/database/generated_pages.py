@@ -3,6 +3,7 @@
 from datetime import date, datetime
 from typing import TYPE_CHECKING, Any
 
+from dashboard_cache import pagination
 from logger import get_app_logger
 from models import GeneratedPage
 
@@ -73,7 +74,6 @@ class GeneratedPageRepo:
                 )
 
             results = query.order_by(order_expr).offset(offset).limit(page_size).all()
-            total_pages = max(1, (total_pages_count + page_size - 1) // page_size)
 
             return {
                 "generated_pages": [
@@ -96,23 +96,13 @@ class GeneratedPageRepo:
                     }
                     for row in results
                 ],
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": total_pages_count,
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, total_pages_count),
             }
         except Exception as e:
             applogger.error(f"Error fetching generated pages: {e}")
             return {
                 "generated_pages": [],
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": 0,
-                    "total_pages": 0,
-                },
+                "pagination": pagination(page, page_size, 0),
             }
         finally:
             self._db.close_session()

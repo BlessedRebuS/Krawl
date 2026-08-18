@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import distinct, func, or_
 from sqlalchemy.orm import joinedload
 
+from dashboard_cache import pagination
 from logger import get_app_logger
 from models import AccessLog, AttackDetection, IpStats
 from sanitizer import sanitize_ip
@@ -401,16 +402,9 @@ class AccessLogRepo:
                         {"ip": row.ip, "paths": paths, "count": row.path_count}
                     )
 
-            total_pages = max(1, (total_honeypots + page_size - 1) // page_size)
-
             return {
                 "honeypots": honeypot_list,
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": total_honeypots,
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, total_honeypots),
             }
         finally:
             self._db.close_session()
