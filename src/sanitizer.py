@@ -5,7 +5,6 @@ Sanitization utilities for safe database storage and HTML output.
 Protects against SQL injection payloads, XSS, and storage exhaustion attacks.
 """
 
-import html
 import re
 
 # Field length limits for database storage
@@ -70,45 +69,6 @@ def sanitize_credential(value: str | None) -> str:
 def sanitize_attack_pattern(value: str | None) -> str:
     """Sanitize matched attack pattern for storage."""
     return sanitize_for_storage(value, MAX_ATTACK_PATTERN_LENGTH)
-
-
-def escape_html(value: str | None) -> str:
-    """
-    Escape HTML special characters for safe display in web pages.
-
-    Prevents stored XSS attacks when displaying user-controlled data
-    in the dashboard.
-
-    Args:
-        value: The string to escape
-
-    Returns:
-        HTML-escaped string, empty string if input is None/empty
-    """
-    if not value:
-        return ""
-    return html.escape(str(value))
-
-
-def escape_html_truncated(value: str | None, max_display_length: int) -> str:
-    """
-    Escape HTML and truncate for display.
-
-    Args:
-        value: The string to escape and truncate
-        max_display_length: Maximum display length (truncation happens before escaping)
-
-    Returns:
-        HTML-escaped and truncated string
-    """
-    if not value:
-        return ""
-
-    value_str = str(value)
-    if len(value_str) > max_display_length:
-        value_str = value_str[:max_display_length] + "..."
-
-    return html.escape(value_str)
 
 
 def sanitize_dict(value: dict[str, str] | None, max_display_length):

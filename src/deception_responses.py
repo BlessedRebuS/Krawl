@@ -603,30 +603,6 @@ def generate_server_error() -> tuple[str, str]:
     return (html, "text/html")
 
 
-def get_server_header(server_type: str = None) -> str:
-    """Get a fake server header string"""
-    wl = get_wordlists()
-    server_errors = wl.server_errors
-
-    if not server_errors:
-        return "nginx/1.18.0"
-
-    if not server_type:
-        server_type = secrets.choice(list(server_errors.keys()))
-
-    server_config = server_errors.get(server_type, {})
-    version = secrets.choice(server_config.get("versions", ["1.0"]))
-
-    server_headers = {
-        "nginx": f"nginx/{version}",
-        "apache": f"Apache/{version}",
-        "iis": f"Microsoft-IIS/{version}",
-        "tomcat": "Apache-Coyote/1.1",
-    }
-
-    return server_headers.get(server_type, "nginx/1.18.0")
-
-
 def detect_and_respond_deception(
     path: str, query: str = "", body: str = "", method: str = "GET"
 ) -> tuple[str, str, int] | None:

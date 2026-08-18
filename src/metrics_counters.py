@@ -30,13 +30,6 @@ def _key(metric: str, label: str = "") -> str:
     return f"{metric}|{label}" if label else metric
 
 
-def _split_key(key: str) -> tuple[str, str]:
-    if "|" in key:
-        metric, label = key.split("|", 1)
-        return metric, label
-    return key, ""
-
-
 def increment(metric: str, label: str = "", amount: int = 1) -> None:
     """Increment a counter by amount (default 1)."""
     if get_backend() == "scalable":

@@ -213,7 +213,6 @@ class Config:
         links = data.get("links", {})
         canary = data.get("canary", {})
         dashboard = data.get("dashboard", {})
-        data.get("api", {})
         backups = data.get("backups", {})
         database = data.get("database", {})
         behavior = data.get("behavior", {})
@@ -231,7 +230,6 @@ class Config:
         # If nested page_template is present and defines custom_template_path, prefer it
         if not custom_template_path and isinstance(page_template, dict):
             custom_template_path = page_template.get("custom_template_path", None)
-        metrics = data.get("metrics", {})
 
         # Handle dashboard_secret_path - auto-generate if null/not set
         dashboard_path = dashboard.get("secret_path")
