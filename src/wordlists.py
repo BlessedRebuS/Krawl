@@ -3,6 +3,11 @@
 """
 Wordlists loader - reads all wordlists from wordlists.json
 This allows easy customization without touching Python code.
+
+Accessor names map to a JSON path via _PATHS; unknown attributes raise
+AttributeError as usual. The file ships with the image (and is commonly
+mounted from a ConfigMap), so a missing or invalid file is a deployment
+error and fails loudly at startup.
 """
 
 import json
@@ -10,168 +15,83 @@ from pathlib import Path
 
 from logger import get_app_logger
 
+# Used only when wordlists.json is missing or invalid.
+_DEFAULTS = {
+    "proxy_headers": ["CF-Connecting-IP", "X-Forwarded-For", "X-Real-IP"],
+    "usernames": {
+        "prefixes": ["admin", "user", "root"],
+        "suffixes": ["", "_prod", "_dev"],
+    },
+    "passwords": {
+        "prefixes": ["P@ssw0rd", "Admin"],
+        "simple": ["test", "demo", "password"],
+    },
+    "emails": {"domains": ["example.com", "test.com"]},
+    "api_keys": {"prefixes": ["sk_live_", "api_", ""]},
+    "databases": {
+        "names": ["production", "main_db"],
+        "hosts": ["localhost", "db.internal"],
+    },
+    "applications": {"names": ["WebApp", "Dashboard"]},
+    "users": {"roles": ["Administrator", "User"]},
+    "server_headers": ["Apache/2.4.41 (Ubuntu)", "nginx/1.18.0"],
+}
+
+# accessor name -> (json key, nested key or None, default)
+_PATHS = {
+    "username_prefixes": ("usernames", "prefixes", []),
+    "username_suffixes": ("usernames", "suffixes", []),
+    "password_prefixes": ("passwords", "prefixes", []),
+    "simple_passwords": ("passwords", "simple", []),
+    "email_domains": ("emails", "domains", []),
+    "api_key_prefixes": ("api_keys", "prefixes", []),
+    "database_names": ("databases", "names", []),
+    "database_hosts": ("databases", "hosts", []),
+    "application_names": ("applications", "names", []),
+    "user_roles": ("users", "roles", []),
+    "directory_files": ("directory_listing", "files", []),
+    "directory_dirs": ("directory_listing", "directories", []),
+    "username_fields": ("credential_fields", "username_fields", []),
+    "password_fields": ("credential_fields", "password_fields", []),
+    "directory_listing": ("directory_listing", None, {}),
+    "fake_passwd": ("fake_passwd", None, {}),
+    "fake_shadow": ("fake_shadow", None, {}),
+    "xxe_responses": ("xxe_responses", None, {}),
+    "command_outputs": ("command_outputs", None, {}),
+    "sql_errors": ("sql_errors", None, {}),
+    "attack_patterns": ("attack_patterns", None, {}),
+    "server_errors": ("server_errors", None, {}),
+    "scoring_weights": ("scoring_weights", None, {}),
+    "error_codes": ("error_codes", None, []),
+    "server_headers": ("server_headers", None, []),
+    "suspicious_patterns": ("suspicious_patterns", None, []),
+    "proxy_headers": ("proxy_headers", None, []),
+}
+
 
 class Wordlists:
     """Loads and provides access to wordlists from wordlists.json"""
 
     def __init__(self):
-        self._data = self._load_config()
-
-    def _load_config(self):
-        """Load wordlists from JSON file"""
         config_path = Path(__file__).parent.parent / "wordlists.json"
-
         try:
             with open(config_path) as f:
-                return json.load(f)
-        except FileNotFoundError:
+                self._data = json.load(f)
+        except (OSError, json.JSONDecodeError) as e:
+            # Commonly mounted from a ConfigMap: a missing or malformed file must
+            # not stop the honeypot, so fall back to minimal built-in values.
             get_app_logger().warning(
-                f"Wordlists file {config_path} not found, using default values"
+                f"Could not load {config_path} ({e}), using default wordlists"
             )
-            return self._get_defaults()
-        except json.JSONDecodeError as e:
-            get_app_logger().warning(f"Invalid JSON in {config_path}: {e}")
-            return self._get_defaults()
+            self._data = _DEFAULTS
 
-    def _get_defaults(self):
-        """Fallback default wordlists if JSON file is missing or invalid"""
-        return {
-            "proxy_headers": [
-                "CF-Connecting-IP",
-                "X-Forwarded-For",
-                "X-Real-IP",
-            ],
-            "usernames": {
-                "prefixes": ["admin", "user", "root"],
-                "suffixes": ["", "_prod", "_dev"],
-            },
-            "passwords": {
-                "prefixes": ["P@ssw0rd", "Admin"],
-                "simple": ["test", "demo", "password"],
-            },
-            "emails": {"domains": ["example.com", "test.com"]},
-            "api_keys": {"prefixes": ["sk_live_", "api_", ""]},
-            "databases": {
-                "names": ["production", "main_db"],
-                "hosts": ["localhost", "db.internal"],
-            },
-            "applications": {"names": ["WebApp", "Dashboard"]},
-            "users": {"roles": ["Administrator", "User"]},
-            "server_headers": ["Apache/2.4.41 (Ubuntu)", "nginx/1.18.0"],
-        }
-
-    @property
-    def username_prefixes(self):
-        return self._data.get("usernames", {}).get("prefixes", [])
-
-    @property
-    def username_suffixes(self):
-        return self._data.get("usernames", {}).get("suffixes", [])
-
-    @property
-    def password_prefixes(self):
-        return self._data.get("passwords", {}).get("prefixes", [])
-
-    @property
-    def simple_passwords(self):
-        return self._data.get("passwords", {}).get("simple", [])
-
-    @property
-    def email_domains(self):
-        return self._data.get("emails", {}).get("domains", [])
-
-    @property
-    def api_key_prefixes(self):
-        return self._data.get("api_keys", {}).get("prefixes", [])
-
-    @property
-    def database_names(self):
-        return self._data.get("databases", {}).get("names", [])
-
-    @property
-    def database_hosts(self):
-        return self._data.get("databases", {}).get("hosts", [])
-
-    @property
-    def application_names(self):
-        return self._data.get("applications", {}).get("names", [])
-
-    @property
-    def user_roles(self):
-        return self._data.get("users", {}).get("roles", [])
-
-    @property
-    def directory_files(self):
-        return self._data.get("directory_listing", {}).get("files", [])
-
-    @property
-    def directory_dirs(self):
-        return self._data.get("directory_listing", {}).get("directories", [])
-
-    @property
-    def directory_listing(self):
-        return self._data.get("directory_listing", {})
-
-    @property
-    def fake_passwd(self):
-        return self._data.get("fake_passwd", {})
-
-    @property
-    def fake_shadow(self):
-        return self._data.get("fake_shadow", {})
-
-    @property
-    def xxe_responses(self):
-        return self._data.get("xxe_responses", {})
-
-    @property
-    def command_outputs(self):
-        return self._data.get("command_outputs", {})
-
-    @property
-    def error_codes(self):
-        return self._data.get("error_codes", [])
-
-    @property
-    def sql_errors(self):
-        return self._data.get("sql_errors", {})
-
-    @property
-    def attack_patterns(self):
-        return self._data.get("attack_patterns", {})
-
-    @property
-    def server_errors(self):
-        return self._data.get("server_errors", {})
-
-    @property
-    def server_headers(self):
-        return self._data.get("server_headers", [])
-
-    @property
-    def suspicious_patterns(self):
-        return self._data.get("suspicious_patterns", [])
-
-    @property
-    def username_fields(self):
-        return self._data.get("credential_fields", {}).get("username_fields", [])
-
-    @property
-    def password_fields(self):
-        return self._data.get("credential_fields", {}).get("password_fields", [])
-
-    @property
-    def proxy_headers(self):
-        return self._data.get("proxy_headers", [])
-
-    @property
-    def scoring_weights(self):
-        return self._data.get("scoring_weights", {})
-
-    @property
-    def attack_urls(self):
-        """Deprecated: use attack_patterns instead. Returns attack_patterns for backward compatibility."""
-        return self._data.get("attack_patterns", {})
+    def __getattr__(self, name):
+        try:
+            key, nested, default = _PATHS[name]
+        except KeyError:
+            raise AttributeError(name) from None
+        value = self._data.get(key, default if nested is None else {})
+        return value.get(nested, default) if nested else value
 
 
 _wordlists_instance = None
