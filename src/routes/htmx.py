@@ -23,6 +23,16 @@ from routes.api import verify_auth
 
 router = APIRouter()
 
+# Shared 401 bodies: full-panel notice, and the inline variant used inside
+# table containers (returned with 200 so HTMX still swaps it in).
+_PANEL_401 = (
+    '<div class="table-container" style="text-align:center;padding:60px 20px;">'
+    '<h2 style="color:#c9d1d9;margin:0 0 8px;">401 Unauthorized</h2>'
+    '<p style="color:#8b949e;font-size:14px;margin:0;">'
+    "Access denied. Please log in to view this panel.</p></div>"
+)
+_INLINE_401 = "<p style='color:#f85149;'>Unauthorized</p>"
+
 
 def _dashboard_path(request: Request) -> str:
     config = request.app.state.config
@@ -831,13 +841,7 @@ async def htmx_search(
 @router.get("/htmx/banlist")
 async def htmx_banlist(request: Request):
     if not verify_auth(request):
-        return HTMLResponse(
-            '<div class="table-container" style="text-align:center;padding:60px 20px;">'
-            '<h2 style="color:#c9d1d9;margin:0 0 8px;">401 Unauthorized</h2>'
-            '<p style="color:#8b949e;font-size:14px;margin:0;">Access denied. Please log in to view this panel.</p>'
-            "</div>",
-            status_code=401,
-        )
+        return HTMLResponse(_PANEL_401, status_code=401)
     templates = get_templates()
     return templates.TemplateResponse(
         request,
@@ -858,9 +862,7 @@ async def htmx_ban_attackers(
     page_size: int = Query(25),
 ):
     if not verify_auth(request):
-        return HTMLResponse(
-            "<p style='color:#f85149;'>Unauthorized</p>", status_code=200
-        )
+        return HTMLResponse(_INLINE_401, status_code=200)
 
     db = get_db()
     result = await asyncio.to_thread(
@@ -884,13 +886,7 @@ async def htmx_ban_attackers(
 @router.get("/htmx/tracked-ips")
 async def htmx_tracked_ips(request: Request):
     if not verify_auth(request):
-        return HTMLResponse(
-            '<div class="table-container" style="text-align:center;padding:60px 20px;">'
-            '<h2 style="color:#c9d1d9;margin:0 0 8px;">401 Unauthorized</h2>'
-            '<p style="color:#8b949e;font-size:14px;margin:0;">Access denied. Please log in to view this panel.</p>'
-            "</div>",
-            status_code=401,
-        )
+        return HTMLResponse(_PANEL_401, status_code=401)
     templates = get_templates()
     return templates.TemplateResponse(
         request,
@@ -908,9 +904,7 @@ async def htmx_tracked_ips_list(
     page_size: int = Query(25),
 ):
     if not verify_auth(request):
-        return HTMLResponse(
-            "<p style='color:#f85149;'>Unauthorized</p>", status_code=200
-        )
+        return HTMLResponse(_INLINE_401, status_code=200)
 
     db = get_db()
     result = await asyncio.to_thread(
@@ -935,9 +929,7 @@ async def htmx_ban_overrides(
     page_size: int = Query(25),
 ):
     if not verify_auth(request):
-        return HTMLResponse(
-            "<p style='color:#f85149;'>Unauthorized</p>", status_code=200
-        )
+        return HTMLResponse(_INLINE_401, status_code=200)
 
     db = get_db()
     result = await asyncio.to_thread(
@@ -961,13 +953,7 @@ async def htmx_ban_overrides(
 @router.get("/htmx/timedout")
 async def htmx_timedout(request: Request):
     if not verify_auth(request):
-        return HTMLResponse(
-            '<div class="table-container" style="text-align:center;padding:60px 20px;">'
-            '<h2 style="color:#c9d1d9;margin:0 0 8px;">401 Unauthorized</h2>'
-            '<p style="color:#8b949e;font-size:14px;margin:0;">Access denied. Please log in to view this panel.</p>'
-            "</div>",
-            status_code=401,
-        )
+        return HTMLResponse(_PANEL_401, status_code=401)
     templates = get_templates()
     return templates.TemplateResponse(
         request,
@@ -985,9 +971,7 @@ async def htmx_timedout_active(
     sort_order: str = Query("desc"),
 ):
     if not verify_auth(request):
-        return HTMLResponse(
-            "<p style='color:#f85149;'>Unauthorized</p>", status_code=200
-        )
+        return HTMLResponse(_INLINE_401, status_code=200)
 
     db = get_db()
     duration = get_config().ban_duration_seconds
@@ -1020,9 +1004,7 @@ async def htmx_timeout_exempt(
     page_size: int = Query(25),
 ):
     if not verify_auth(request):
-        return HTMLResponse(
-            "<p style='color:#f85149;'>Unauthorized</p>", status_code=200
-        )
+        return HTMLResponse(_INLINE_401, status_code=200)
 
     db = get_db()
     result = await asyncio.to_thread(
@@ -1048,13 +1030,7 @@ async def htmx_timeout_exempt(
 @router.get("/htmx/webhooks")
 async def htmx_webhooks(request: Request):
     if not verify_auth(request):
-        return HTMLResponse(
-            '<div class="table-container" style="text-align:center;padding:60px 20px;">'
-            '<h2 style="color:#c9d1d9;margin:0 0 8px;">401 Unauthorized</h2>'
-            '<p style="color:#8b949e;font-size:14px;margin:0;">Access denied. Please log in to view this panel.</p>'
-            "</div>",
-            status_code=401,
-        )
+        return HTMLResponse(_PANEL_401, status_code=401)
 
     from webhooks import get_cloudflare_config
 
