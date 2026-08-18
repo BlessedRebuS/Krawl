@@ -40,7 +40,7 @@ from generators import (
     users_json,
 )
 from logger import get_access_logger, get_app_logger, get_credential_logger
-from templates import html_templates
+from templates import load_template, main_page
 from wordlists import get_wordlists
 
 
@@ -220,7 +220,7 @@ async def credential_capture_post(request: Request, path: str):
             )
 
     await asyncio.sleep(1)
-    return HTMLResponse(content=html_templates.login_error(), status_code=200)
+    return HTMLResponse(content=load_template("login_error"), status_code=200)
 
 
 # --- GET special paths ---
@@ -228,7 +228,7 @@ async def credential_capture_post(request: Request, path: str):
 
 @router.get("/robots.txt")
 async def robots_txt():
-    return PlainTextResponse(html_templates.robots_txt())
+    return PlainTextResponse(load_template("robots.txt"))
 
 
 @router.get("/credentials.txt")
@@ -276,7 +276,7 @@ async def fake_users_json_content():
 @router.get("/admin/login")
 @router.get("/login")
 async def fake_login():
-    return HTMLResponse(html_templates.login_form())
+    return HTMLResponse(load_template("login_form"))
 
 
 @router.get("/users")
@@ -285,7 +285,7 @@ async def fake_login():
 @router.get("/db")
 @router.get("/search")
 async def fake_product_search():
-    return HTMLResponse(html_templates.product_search())
+    return HTMLResponse(load_template("generic_search"))
 
 
 @router.get("/info")
@@ -294,7 +294,7 @@ async def fake_product_search():
 @router.get("/feedback")
 @router.get("/comment")
 async def fake_input_form():
-    return HTMLResponse(html_templates.input_form())
+    return HTMLResponse(load_template("input_form"))
 
 
 @router.get("/server")
@@ -308,13 +308,13 @@ async def fake_server_error():
 @router.get("/wp-admin")
 @router.get("/wp-admin/")
 async def fake_wp_login():
-    return HTMLResponse(html_templates.wp_login())
+    return HTMLResponse(load_template("wp_login"))
 
 
 @router.get("/wp-content/{path:path}")
 @router.get("/wp-includes/{path:path}")
 async def fake_wordpress(path: str = ""):
-    return HTMLResponse(html_templates.wordpress())
+    return HTMLResponse(load_template("wordpress"))
 
 
 @router.get("/phpmyadmin")
@@ -324,7 +324,7 @@ async def fake_wordpress(path: str = ""):
 @router.get("/pma")
 @router.get("/pma/")
 async def fake_phpmyadmin(path: str = ""):
-    return HTMLResponse(html_templates.phpmyadmin())
+    return HTMLResponse(load_template("phpmyadmin"))
 
 
 @router.get("/.env")
@@ -407,7 +407,7 @@ async def trap_page(request: Request, path: str):
 
     # Check wordpress-like paths
     if "wordpress" in full_path.lower():
-        return HTMLResponse(html_templates.wordpress())
+        return HTMLResponse(load_template("wordpress"))
 
     is_suspicious = tracker.is_suspicious_user_agent(user_agent)
 
@@ -621,9 +621,7 @@ def _generate_page(config, tracker, client_ip, seed, page_visit_count, app) -> s
             should_apply_crawler_limit = True
 
     if should_apply_crawler_limit:
-        return html_templates.main_page(
-            app.state.counter, "<p>Crawl limit reached.</p>"
-        )
+        return main_page(app.state.counter, "<p>Crawl limit reached.</p>")
 
     num_pages = random.randint(*config.links_per_page_range)
     content = ""
@@ -665,4 +663,4 @@ def _generate_page(config, tracker, client_ip, seed, page_visit_count, app) -> s
         </div>
 """
 
-    return html_templates.main_page(app.state.counter, content)
+    return main_page(app.state.counter, content)

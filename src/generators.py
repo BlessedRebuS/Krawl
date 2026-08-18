@@ -9,7 +9,7 @@ import random
 import string
 
 from config import get_config
-from templates import html_templates
+from templates import directory_listing as render_directory_listing
 from wordlists import get_wordlists
 
 
@@ -229,4 +229,4 @@ def directory_listing(path: str) -> str:
         for f in random.sample(files, min(6, len(files)))
     ]
 
-    return html_templates.directory_listing(path, dirs, selected_files)
+    return render_directory_listing(path, dirs, selected_files)
