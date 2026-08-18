@@ -509,4 +509,4 @@ Contributions welcome! Please:
 > This is a deception/honeypot system. Deploy in isolated environments and monitor carefully for security events. Use responsibly and in compliance with applicable laws and regulations.
 
 ## Star History
-<img src="https://api.star-history.com/svg?repos=BlessedRebuS/Krawl&type=Date" width="600" alt="Star History Chart" />
+<img src="https://star-history.dera.page/svg?repos=BlessedRebuS/Krawl&type=Date" width="600" alt="Star History Chart" />
