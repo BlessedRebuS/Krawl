@@ -47,18 +47,13 @@ async def public_banlist_handler(request: Request):
         )
         ip_set.update(timedout)
 
-    from firewall.fwtype import FWType
-    from firewall.iptables import Iptables  # noqa: F401
-    from firewall.nftables import Nftables  # noqa: F401
-    from firewall.raw import Raw  # noqa: F401
-
-    try:
-        fw = FWType.create(fwtype_str)
-    except ValueError as e:
-        return PlainTextResponse(content=str(e), status_code=400)
+    from firewall import format_banlist
 
     public_ips = [ip for ip in ip_set if is_valid_public_ip(ip, server_ip)]
-    content = fw.getBanlist(public_ips)
+    try:
+        content = format_banlist(fwtype_str, public_ips)
+    except ValueError as e:
+        return PlainTextResponse(content=str(e), status_code=400)
 
     cat_label = "_".join(sorted(cat_list))
     filename = f"{fwtype_str}_{cat_label}_banlist.txt"

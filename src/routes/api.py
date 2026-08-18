@@ -884,15 +884,12 @@ async def export_ips(
     if not cat_list or not all(c in valid_categories for c in cat_list):
         return JSONResponse(content={"error": "Invalid categories"}, status_code=400)
 
-    from firewall.fwtype import FWType
-    from firewall.iptables import Iptables  # noqa: F401 - register
-    from firewall.nftables import Nftables  # noqa: F401 - register
-    from firewall.raw import Raw  # noqa: F401 - register
+    from firewall import FORMATS, format_banlist
 
-    try:
-        fw = FWType.create(fwtype)
-    except ValueError as e:
-        return JSONResponse(content={"error": str(e)}, status_code=400)
+    if fwtype.lower() not in FORMATS:
+        return JSONResponse(
+            content={"error": f"Unknown firewall type: '{fwtype}'"}, status_code=400
+        )
 
     try:
         db = get_db()
@@ -936,7 +933,7 @@ async def export_ips(
                 f"[ExportIPs] Excluded {before - len(public_ips)} CDN IPs"
             )
 
-        content = fw.getBanlist(public_ips)
+        content = format_banlist(fwtype, public_ips)
 
         cat_label = "_".join(sorted(cat_list))
         filename = f"{fwtype}_{cat_label}_export.txt"
