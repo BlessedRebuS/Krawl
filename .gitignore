@@ -86,3 +86,6 @@ personal-values.yaml
 
 # tmux config
 .tmux.conf
+
+# AI Coding Agents
+.claude/
