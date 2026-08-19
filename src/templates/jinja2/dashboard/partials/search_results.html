@@ -3,7 +3,7 @@
 
     <div class="search-results-header">
         <button type="button" class="search-summary-toggle" @click="toggleSearchCollapse()" title="Click to expand or collapse results">
-            <svg class="search-summary-caret" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M12.78 5.22a.749.749 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.06 0L3.22 6.28a.749.749 0 1 1 1.06-1.06L8 8.94l3.72-3.72a.749.749 0 0 1 1.06 0Z"/></svg>
+            <svg class="icon-sm" viewBox="0 0 16 16" aria-hidden="true"><path d="M12.78 5.22a.749.749 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.06 0L3.22 6.28a.749.749 0 1 1 1.06-1.06L8 8.94l3.72-3.72a.749.749 0 0 1 1.06 0Z"/></svg>
             <span class="search-results-summary">
                 Found <strong>{{ pagination.total_attacks }}</strong> attack{{ 's' if pagination.total_attacks != 1 else '' }},
                 <strong>{{ pagination.total_ips }}</strong> IP{{ 's' if pagination.total_ips != 1 else '' }},
@@ -27,7 +27,7 @@
                     <th>Created</th>
                     <th>Last Accessed</th>
                     {% if authenticated %}
-                    <th style="width: 40px;"></th>
+                    <th class="col-w-40"></th>
                     {% endif %}
                 </tr>
             </thead>
@@ -36,7 +36,7 @@
                 <tr>
                     <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
                     <td>
-                        <a href="{{ page.path | e }}" target="_blank" style="color: rgb(88, 166, 255); text-decoration: none; cursor: pointer; transition: color 0.2s;">
+                        <a href="{{ page.path | e }}" target="_blank" class="link-out">
                             <div class="path-cell-container">
                                 <span class="path-truncated">{{ page.path | e }}</span>
                                 {% if page.path | length > 30 %}
@@ -46,15 +46,15 @@
                         </a>
                     </td>
                     <td>{{ page.access_count }}</td>
-                    <td>{{ page.created_at | format_ts }}</td>
-                    <td>{{ page.last_accessed | format_ts }}</td>
+                    <td class="ts-cell">{{ page.created_at | format_ts }}</td>
+                    <td class="ts-cell">{{ page.last_accessed | format_ts }}</td>
                     {% if authenticated %}
-                    <td>
-                        <button class="ban-icon-btn" style="color: #f85149;" onclick="deleteSearchGeneratedPage(this, '{{ page.path | e }}')" title="Delete">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M11 1.75V0H5v1.75H1v1.5h1.5v10c0 .966.784 1.75 1.75 1.75h7.5A1.75 1.75 0 0 0 13.5 13.25v-10H15v-1.5Zm-7.5 0V1.5h9v.25ZM12 13.25a.25.25 0 0 1-.25.25h-7.5a.25.25 0 0 1-.25-.25v-10h8ZM6.5 5.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5a.75.75 0 0 1 .75-.75Zm3 0a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5a.75.75 0 0 1 .75-.75Z"/></svg>
+                    <td><div class="table-action-btns">
+                        <button class="ban-icon-btn text-danger" onclick="deleteSearchGeneratedPage(this, '{{ page.path | e }}')" title="Delete">
+                            <svg class="icon-sm" viewBox="0 0 16 16" aria-hidden="true"><path d="M11 1.75V0H5v1.75H1v1.5h1.5v10c0 .966.784 1.75 1.75 1.75h7.5A1.75 1.75 0 0 0 13.5 13.25v-10H15v-1.5Zm-7.5 0V1.5h9v.25ZM12 13.25a.25.25 0 0 1-.25.25h-7.5a.25.25 0 0 1-.25-.25v-10h8ZM6.5 5.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5a.75.75 0 0 1 .75-.75Zm3 0a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5a.75.75 0 0 1 .75-.75Z"/></svg>
                             <span class="ban-icon-tooltip">Delete</span>
                         </button>
-                    </td>
+                    </div></td>
                     {% endif %}
                 </tr>
                 {% endfor %}
@@ -77,7 +77,7 @@
                     <th>Location</th>
                     <th>ISP / ASN</th>
                     <th>Last Seen</th>
-                    <th style="width: 40px;"></th>
+                    <th class="col-w-40"></th>
                 </tr>
             </thead>
             <tbody>
@@ -99,12 +99,12 @@
                     </td>
                     <td>{{ ip.city | default('') | e }}{% if ip.city and ip.country_code %}, {% endif %}{{ ip.country_code | default('N/A') | e }}</td>
                     <td>{{ ip.isp | default(ip.asn_org | default('N/A')) | e }}</td>
-                    <td>{{ ip.last_seen | format_ts }}</td>
-                    <td>
+                    <td class="ts-cell">{{ ip.last_seen | format_ts }}</td>
+                    <td><div class="table-action-btns">
                         <button class="inspect-btn" @click="openIpInsight('{{ ip.ip | e }}')" title="Inspect IP">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
+                            <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
                         </button>
-                    </td>
+                    </div></td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -152,19 +152,19 @@
                             {% endif %}
                         </div>
                     </td>
-                    <td>{{ (attack.user_agent | default(''))[:50] | e }}</td>
-                    <td>{{ attack.timestamp | format_ts }}</td>
-                    <td>
+                    <td class="ua-cell">{{ (attack.user_agent | default(''))[:50] | e }}</td>
+                    <td class="ts-cell">{{ attack.timestamp | format_ts }}</td>
+                    <td><div class="table-action-btns">
                         <button class="inspect-btn" @click="openIpInsight('{{ attack.ip | e }}')" title="Inspect IP">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
+                            <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
                         </button>
                         {% if attack.log_id %}
                         <button class="view-btn" @click="viewRawRequest({{ attack.log_id }})" title="View Request">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6zm5.2 0L19.2 12l-4.6-4.6L16 6l6 6-6 6z"/></svg>
+                            <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m11.28 3.22 4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L13.94 8l-3.72-3.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215Zm-6.56 0a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L2.06 8l3.72 3.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L.47 8.53a.75.75 0 0 1 0-1.06Z"/></svg>
                             <span class="view-btn-tooltip">View Request</span>
                         </button>
                         {% endif %}
-                    </td>
+                    </div></td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -176,7 +176,7 @@
     {% if pagination.total_pages > 1 %}
     <div class="search-pagination">
         <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }}</span>
-        <div style="display: flex; gap: 8px;">
+        <div class="row">
             <button class="pagination-btn"
                     hx-get="{{ dashboard_path }}/htmx/search?q={{ query | urlencode }}&page={{ pagination.page - 1 }}"
                     hx-target="#search-results-container"

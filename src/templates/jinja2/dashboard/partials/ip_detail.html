@@ -58,7 +58,7 @@
     {% if stats.reputation_score is not none %}
     <div class="stat-row">
         <span class="stat-label-sm">Reputation Score:</span>
-        <span class="stat-value-sm" style="color: {% if stats.reputation_score <= 30 %}#f85149{% elif stats.reputation_score <= 60 %}#f0883e{% else %}#3fb950{% endif %}">
+        <span class="stat-value-sm" class="{% if stats.reputation_score <= 30 %}text-danger{% elif stats.reputation_score <= 60 %}text-warn{% else %}text-ok{% endif %}">
             {{ stats.reputation_score }}/100
         </span>
     </div>
@@ -87,8 +87,8 @@
                         <div class="timeline-marker {{ entry.new_category | default('unknown') | replace('_', '-') }}"></div>
                         <div>
                             <strong>{{ entry.new_category | default('unknown') | replace('_', ' ') | title }}</strong>
-                            {% if entry.old_category %}<span style="color: #8b949e;"> from {{ entry.old_category | replace('_', ' ') | title }}</span>{% endif %}
-                            <br><span style="color: #8b949e; font-size: 11px;">{{ entry.timestamp | format_ts }}</span>
+                            {% if entry.old_category %}<span class="muted"> from {{ entry.old_category | replace('_', ' ') | title }}</span>{% endif %}
+                            <br><span class="muted fs-2xs">{{ entry.timestamp | format_ts }}</span>
                         </div>
                     </div>
                     {% endfor %}

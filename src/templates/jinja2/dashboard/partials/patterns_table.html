@@ -1,7 +1,7 @@
 {# HTMX fragment: Attack Patterns table #}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+<div class="panel-header">
     <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} patterns</span>
-    <div style="display: flex; gap: 8px;">
+    <div class="row">
         <button class="pagination-btn"
                 hx-get="{{ dashboard_path }}/htmx/patterns?page={{ pagination.page - 1 }}"
                 hx-target="closest .htmx-container"

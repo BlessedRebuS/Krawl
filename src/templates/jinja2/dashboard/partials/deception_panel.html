@@ -1,27 +1,27 @@
 {# HTMX fragment: Deception / Generated Templates Management Panel #}
 
-<div style="display: flex; gap: 20px; margin-bottom: 20px; align-items: center; justify-content: space-between;">
-    <h2 style="color: #58a6ff; margin: 0; font-size: 1.4em;">Generated Deception Templates</h2>
+<div class="panel-header mb-5">
+    <h2 class="panel-title">Generated Deception Templates</h2>
 
     {# Delete controls section #}
-    <div style="display: flex; gap: 6px; align-items: center;">
+    <div class="row">
          <input type="date" id="deception-date-filter"
              class="deception-date-filter"
              onchange="toggleDeceptionBtnState()" />
         <button id="btn-delete-selected" class="deception-action-btn" onclick="deleteSelectedPages()">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M11 1.75V0H5v1.75H1v1.5h1.5v10c0 .966.784 1.75 1.75 1.75h7.5A1.75 1.75 0 0 0 13.5 13.25v-10H15v-1.5Zm-7.5 0V1.5h9v.25ZM12 13.25a.25.25 0 0 1-.25.25h-7.5a.25.25 0 0 1-.25-.25v-10h8Z"/></svg>
+            <svg class="icon-sm" viewBox="0 0 16 16" aria-hidden="true"><path d="M11 1.75V0H5v1.75H1v1.5h1.5v10c0 .966.784 1.75 1.75 1.75h7.5A1.75 1.75 0 0 0 13.5 13.25v-10H15v-1.5Zm-7.5 0V1.5h9v.25ZM12 13.25a.25.25 0 0 1-.25.25h-7.5a.25.25 0 0 1-.25-.25v-10h8Z"/></svg>
             Delete
         </button>
         <button class="deception-action-btn deception-action-btn-danger" onclick="deleteAllPages()">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M11 1.75V0H5v1.75H1v1.5h1.5v10c0 .966.784 1.75 1.75 1.75h7.5A1.75 1.75 0 0 0 13.5 13.25v-10H15v-1.5Zm-7.5 0V1.5h9v.25ZM12 13.25a.25.25 0 0 1-.25.25h-7.5a.25.25 0 0 1-.25-.25v-10h8Z"/></svg>
+            <svg class="icon-sm" viewBox="0 0 16 16" aria-hidden="true"><path d="M11 1.75V0H5v1.75H1v1.5h1.5v10c0 .966.784 1.75 1.75 1.75h7.5A1.75 1.75 0 0 0 13.5 13.25v-10H15v-1.5Zm-7.5 0V1.5h9v.25ZM12 13.25a.25.25 0 0 1-.25.25h-7.5a.25.25 0 0 1-.25-.25v-10h8Z"/></svg>
             Delete All
         </button>
         <button id="btn-download-selected" class="deception-action-btn" onclick="downloadSelectedPages()">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06Z"/></svg>
+            <svg class="icon-sm" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06Z"/></svg>
             Download
         </button>
-        <button class="deception-action-btn" onclick="openUploadModal()" style="color: #3fb950; border-color: #3fb95066;">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 1.75a.75.75 0 0 1 1.5 0V8.06l1.97-1.97a.749.749 0 1 1 1.06 1.06L8.53 10.4a.749.749 0 0 1-1.06 0L4.22 7.15a.749.749 0 1 1 1.06-1.06l1.97 1.97Z" transform="rotate(180 8 8)"/></svg>
+        <button class="deception-action-btn deception-action-btn-ok" onclick="openUploadModal()">
+            <svg class="icon-sm" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 1.75a.75.75 0 0 1 1.5 0V8.06l1.97-1.97a.749.749 0 1 1 1.06 1.06L8.53 10.4a.749.749 0 0 1-1.06 0L4.22 7.15a.749.749 0 1 1 1.06-1.06l1.97 1.97Z" transform="rotate(180 8 8)"/></svg>
             Upload
         </button>
     </div>
@@ -33,8 +33,8 @@
          hx-get="{{ dashboard_path }}/htmx/generated-pages?page=1&sort_by=created_at&sort_order=desc"
          hx-trigger="load"
          hx-swap="innerHTML">
-        <div style="text-align: center; padding: 40px; color: #8b949e;">
-            <span style="animation: spin 1s linear infinite;">⊙</span> Loading generated pages...
+        <div class="state">
+            <span class="spinner-glyph">⊙</span> Loading generated pages...
         </div>
     </div>
 </div>

@@ -1,17 +1,17 @@
 {# HTMX fragment: Generated Deception Templates table (READ-ONLY) #}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-    <span style="color: #8b949e; font-size: 0.9em;">Page {{ pagination.page }}/{{ pagination.total_pages }} — {{ pagination.total }} total</span>
-    <div style="display: flex; gap: 8px;">
-        <button style="padding: 6px 12px; background: transparent; border: 1px solid #30363d; color: #c9d1d9; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-size: 0.85em;"
+<div class="panel-header mb-4">
+    <span class="muted fs-sm">Page {{ pagination.page }}/{{ pagination.total_pages }} — {{ pagination.total }} total</span>
+    <div class="row">
+        <button class="page-btn"
                 hx-get="{{ dashboard_path }}/htmx/generated-pages/readonly?page={{ pagination.page - 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
-                {% if pagination.page <= 1 %}disabled style="opacity: 0.5; cursor: not-allowed;"{% else %}onmouseover="this.style.borderColor='#58a6ff'; this.style.color='#58a6ff';" onmouseout="this.style.borderColor='#30363d'; this.style.color='#c9d1d9';"{% endif %}>Prev</button>
-        <button style="padding: 6px 12px; background: transparent; border: 1px solid #30363d; color: #c9d1d9; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-size: 0.85em;"
+                {% if pagination.page <= 1 %}disabled class="is-disabled"{% else %}onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)';" onmouseout="this.style.borderColor='var(--line)'; this.style.color='var(--text)';"{% endif %}>Prev</button>
+        <button class="page-btn is-disabled"
                 hx-get="{{ dashboard_path }}/htmx/generated-pages/readonly?page={{ pagination.page + 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
-                {% if pagination.page >= pagination.total_pages %}disabled style="opacity: 0.5; cursor: not-allowed;"{% else %}onmouseover="this.style.borderColor='#58a6ff'; this.style.color='#58a6ff';" onmouseout="this.style.borderColor='#30363d'; this.style.color='#c9d1d9';"{% endif %}>Next</button>
+                {% if pagination.page >= pagination.total_pages %}disabled{% else %}onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)';" onmouseout="this.style.borderColor='var(--line)'; this.style.color='var(--text)';"{% endif %}>Next</button>
     </div>
 </div>
 
@@ -47,31 +47,31 @@
         </thead>
         <tbody>
             {% for item in items %}
-            <tr style="border-bottom: 1px solid #161b22;">
+            <tr class="row-line">
                 <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
-                <td style="padding: 12px 8px;">
+                <td class="cell-pad">
                     <a href="{{ item.path }}" target="_blank" 
-                       style="color: #58a6ff; text-decoration: none; cursor: pointer; transition: color 0.2s ease;"
-                       onmouseover="this.style.color='#79c0ff';"
-                       onmouseout="this.style.color='#58a6ff';">
+                       class="link-out"
+                       onmouseover="this.style.color='var(--accent-hi)';"
+                       onmouseout="this.style.color='var(--accent)';">
                         {{ item.path | e }}
                     </a>
                 </td>
-                <td style="padding: 12px 8px; color: #8b949e; font-size: 0.85em;">
+                <td class="cell-empty">
                     {% if item.created_at %}
                         {{ (item.created_at | replace('T', ' ') | replace('Z', ''))[:19] }}
                     {% endif %}
                 </td>
-                <td style="padding: 12px 8px; color: #8b949e; font-size: 0.85em;">
+                <td class="cell-empty">
                     {% if item.last_accessed %}
                         {{ (item.last_accessed | replace('T', ' ') | replace('Z', ''))[:19] }}
                     {% endif %}
                 </td>
-                <td style="padding: 12px 8px; color: #8b949e; font-size: 0.9em;">{{ item.access_count }}</td>
+                <td class="cell-empty">{{ item.access_count }}</td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="5" style="text-align: center; padding: 40px 8px; color: #8b949e; font-size: 0.9em;">No generated pages yet</td>
+                <td class="state" colspan="5">No generated pages yet</td>
             </tr>
             {% endfor %}
         </tbody>

@@ -1,11 +1,11 @@
 {# Map section with filter legend #}
 <div class="table-container">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-        <h2 style="margin: 0;">IP Origins Map</h2>
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="color: #8b949e; font-size: 0.8em;">Sort</span>
-                <div style="display: flex; gap: 4px;" id="map-sort-selector">
+    <div class="row-top mb-3">
+        <h2 class="m-0">IP Origins Map</h2>
+        <div class="row gap-3">
+            <div class="row">
+                <span class="muted fs-xs">Sort</span>
+                <div class="row gap-1" id="map-sort-selector">
                     <button class="map-limit-btn active" data-sort="last_seen"
                             onclick="document.querySelectorAll('#map-sort-selector .map-limit-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); if(typeof reloadMapWithSort==='function') reloadMapWithSort()">
                         Recent
@@ -16,9 +16,9 @@
                     </button>
                 </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="color: #8b949e; font-size: 0.8em;">Show</span>
-                <div style="display: flex; gap: 4px;" id="map-limit-selector">
+            <div class="row">
+                <span class="muted fs-xs">Show</span>
+                <div class="row gap-1" id="map-limit-selector">
                     {% set limits = [
                         ("1000", "1K"),
                         ("5000", "5K"),
@@ -35,25 +35,26 @@
                     </button>
                     {% endfor %}
                 </div>
-                <span style="color: #8b949e; font-size: 0.8em;">IPs</span>
+                <span class="muted fs-xs">IPs</span>
             </div>
         </div>
     </div>
-    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+    <div class="row row-wrap mb-3">
+        {# Colors come from the .cat-* tokens, not from here. #}
         {% set categories = [
-            ("attacker", "#f85149", "Attackers"),
-            ("bad_crawler", "#f0883e", "Bad Crawlers"),
-            ("good_crawler", "#3fb950", "Good Crawlers"),
-            ("regular_user", "#58a6ff", "Regular Users"),
-            ("unknown", "#8b949e", "Unknown"),
+            ("attacker", "Attackers"),
+            ("bad_crawler", "Bad Crawlers"),
+            ("good_crawler", "Good Crawlers"),
+            ("regular_user", "Regular Users"),
+            ("unknown", "Unknown"),
         ] %}
-        {% for cat_id, color, cat_label in categories %}
+        {% for cat_id, cat_label in categories %}
         <div class="map-legend-item active" data-category="{{ cat_id }}" onclick="this.classList.toggle('active'); this.querySelector('input').checked = this.classList.contains('active'); if(typeof updateMapFilters==='function') updateMapFilters()">
             <input type="checkbox" checked class="map-filter" data-category="{{ cat_id }}" style="display: none;">
-            <span class="map-legend-dot" style="background: {{ color }};"></span>
+            <span class="map-legend-dot cat-{{ cat_id }}"></span>
             <span class="map-legend-label">{{ cat_label }}</span>
         </div>
         {% endfor %}
     </div>
-    <div id="attacker-map" style="height: 450px; border-radius: 6px; border: 1px solid #30363d;"></div>
+    <div id="attacker-map" class="map-frame map-frame-lg"></div>
 </div>

@@ -2,26 +2,26 @@
 <div x-data="trackManagement()" x-init="init()">
 
     {# Track IP form #}
-    <div class="table-container" style="margin-bottom: 20px;">
+    <div class="table-container mb-5">
         <h2>Tracked IPs</h2>
-        <p style="color: #8b949e; font-size: 14px; margin-bottom: 16px;">
+        <p class="panel-note">
             Track an IP address to monitor its activity. You can also track IPs from the IP Insight page.
         </p>
-        <form @submit.prevent="trackIp()" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 200px;">
-                <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 4px;">IP Address</label>
+        <form class="form-row" @submit.prevent="trackIp()">
+            <div class="form-col-wide">
+                <label class="field-label">IP Address</label>
                 <input type="text"
                        x-model="newTrackIp"
                        placeholder="e.g. 192.168.1.100"
-                       class="auth-modal-input"
-                       style="width: 100%;" />
+                       class="auth-modal-input w-full"
+                       />
             </div>
             <button type="submit" class="track-form-btn" :disabled="!newTrackIp || trackLoading">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2c1.981 0 3.671.992 4.933 2.078 1.27 1.091 2.187 2.345 2.637 3.023a1.62 1.62 0 0 1 0 1.798c-.45.678-1.367 1.932-2.637 3.023C11.67 13.008 9.981 14 8 14c-1.981 0-3.671-.992-4.933-2.078C1.797 10.83.88 9.576.43 8.898a1.62 1.62 0 0 1 0-1.798c.45-.677 1.367-1.931 2.637-3.022C4.33 2.992 6.019 2 8 2ZM1.679 7.932a.12.12 0 0 0 0 .136c.411.622 1.241 1.75 2.366 2.717C5.176 11.758 6.527 12.5 8 12.5c1.473 0 2.825-.742 3.955-1.715 1.124-.967 1.954-2.096 2.366-2.717a.12.12 0 0 0 0-.136c-.412-.621-1.242-1.75-2.366-2.717C10.824 4.242 9.473 3.5 8 3.5c-1.473 0-2.825.742-3.955 1.715-1.124.967-1.954 2.096-2.366 2.717ZM8 10a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 10Z"/></svg>
                 <span x-text="trackLoading ? 'Tracking...' : 'Track IP'"></span>
             </button>
         </form>
-        <p x-show="trackMessage" x-text="trackMessage" :style="{ color: trackSuccess ? '#3fb950' : '#f85149' }" style="margin-top: 10px; font-size: 13px;" x-cloak></p>
+        <p class="form-status" x-show="trackMessage" x-text="trackMessage" :style="{ color: trackSuccess ? 'var(--ok)' : 'var(--danger)' }" x-cloak></p>
     </div>
 
     {# Tracked IPs list #}

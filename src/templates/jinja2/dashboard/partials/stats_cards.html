@@ -16,12 +16,12 @@
         <div class="stat-value alert">{{ stats.suspicious_accesses }}</div>
         <div class="stat-label">Suspicious Accesses</div>
     </div>
-    <div class="stat-card alert">
-        <div class="stat-value alert">{{ stats.honeypot_ips | default(0) }}</div>
+    <div class="stat-card honeypot">
+        <div class="stat-value honeypot">{{ stats.honeypot_ips | default(0) }}</div>
         <div class="stat-label">Honeypot Caught</div>
     </div>
-    <div class="stat-card alert">
-        <div class="stat-value alert">{{ stats.credential_count | default(0) }}</div>
+    <div class="stat-card honeypot">
+        <div class="stat-value honeypot">{{ stats.credential_count | default(0) }}</div>
         <div class="stat-label">Credentials Captured</div>
     </div>
     <div class="stat-card alert">
