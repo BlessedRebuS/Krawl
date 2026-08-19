@@ -20,7 +20,7 @@ function generateRadarChart(categoryScores, size, showLegend, legendPosition) {
     legendPosition = legendPosition || 'below';
 
     if (!categoryScores || Object.keys(categoryScores).length === 0) {
-        return '<div style="color: #8b949e; text-align: center; padding: 20px;">No category data available</div>';
+        return '<div style="color: var(--text-dim); text-align: center; padding: 20px;">No category data available</div>';
     }
 
     const scores = {
@@ -39,13 +39,7 @@ function generateRadarChart(categoryScores, size, showLegend, legendPosition) {
         normalizedScores[key] = minVisibleRadius + (scores[key] / maxScore) * (1 - minVisibleRadius);
     });
 
-    const colors = {
-        attacker: '#f85149',
-        good_crawler: '#3fb950',
-        bad_crawler: '#f0883e',
-        regular_user: '#58a6ff',
-        unknown: '#8b949e'
-    };
+    const colors = { ...krawlCategoryColors(), unknown: krawlToken('--text-dim') };
 
     const labels = {
         attacker: 'Attacker',
@@ -64,7 +58,7 @@ function generateRadarChart(categoryScores, size, showLegend, legendPosition) {
     // Draw concentric circles (grid)
     for (let i = 1; i <= 5; i++) {
         const r = (maxRadius / 5) * i;
-        html += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#30363d" stroke-width="0.5"/>`;
+        html += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--line)" stroke-width="0.5"/>`;
     }
 
     const angles = [0, 72, 144, 216, 288];
@@ -75,12 +69,12 @@ function generateRadarChart(categoryScores, size, showLegend, legendPosition) {
         const rad = (angle - 90) * Math.PI / 180;
         const x2 = cx + maxRadius * Math.cos(rad);
         const y2 = cy + maxRadius * Math.sin(rad);
-        html += `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#30363d" stroke-width="0.5"/>`;
+        html += `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="var(--line)" stroke-width="0.5"/>`;
 
         const labelDist = maxRadius + 35;
         const lx = cx + labelDist * Math.cos(rad);
         const ly = cy + labelDist * Math.sin(rad);
-        html += `<text x="${lx}" y="${ly}" fill="#8b949e" font-size="12" text-anchor="middle" dominant-baseline="middle">${labels[keys[i]]}</text>`;
+        html += `<text x="${lx}" y="${ly}" fill="var(--text-dim)" font-size="12" text-anchor="middle" dominant-baseline="middle">${labels[keys[i]]}</text>`;
     });
 
     // Calculate polygon points
@@ -108,7 +102,7 @@ function generateRadarChart(categoryScores, size, showLegend, legendPosition) {
         const r = normalizedScore * maxRadius;
         const x = cx + r * Math.cos(rad);
         const y = cy + r * Math.sin(rad);
-        html += `<circle cx="${x}" cy="${y}" r="4.5" fill="${colors[keys[i]]}" stroke="#0d1117" stroke-width="2"/>`;
+        html += `<circle cx="${x}" cy="${y}" r="4.5" fill="${colors[keys[i]]}" stroke="var(--bg)" stroke-width="2"/>`;
     });
 
     html += '</svg>';
@@ -119,7 +113,7 @@ function generateRadarChart(categoryScores, size, showLegend, legendPosition) {
         keys.forEach(key => {
             html += '<div class="radar-legend-item">';
             html += `<div class="radar-legend-color" style="background: ${colors[key]};"></div>`;
-            html += `<span style="color: #8b949e;">${labels[key]}: ${scores[key]} pt</span>`;
+            html += `<span style="color: var(--text-dim);">${labels[key]}: ${scores[key]} pt</span>`;
             html += '</div>';
         });
         html += '</div>';

@@ -1,9 +1,9 @@
 {# HTMX fragment: Top User-Agents table #}
 {% set ps = pagination.page_size %}
 {% set sq = search|default('', true) %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+<div class="panel-header">
     <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} total</span>
-    <div style="display: flex; gap: 8px;">
+    <div class="row">
         <button class="pagination-btn"
                 hx-get="{{ dashboard_path }}/htmx/top-ua?page={{ pagination.page - 1 }}&page_size={{ ps }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&search={{ sq }}"
                 hx-target="closest .htmx-container"
@@ -33,7 +33,7 @@
         {% for item in items %}
         <tr>
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
-            <td>{{ item.user_agent | e }}</td>
+            <td class="ua-cell">{{ item.user_agent | e }}</td>
             <td>{{ item.count }}</td>
         </tr>
         {% else %}
