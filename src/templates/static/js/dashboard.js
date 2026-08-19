@@ -518,12 +518,12 @@ document.addEventListener('alpine:init', () => {
         async copyExportUrl(event) {
             const btn = event.currentTarget;
             const originalHTML = btn.innerHTML;
-            const checkIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="#3fb950"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>';
+            const checkIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="icon" fill="var(--ok)"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>';
             try {
                 await navigator.clipboard.writeText(this.exportUrl());
                 btn.innerHTML = checkIcon;
             } catch {
-                btn.style.color = '#f85149';
+                btn.style.color = krawlToken('--danger');
             }
             setTimeout(() => { btn.innerHTML = originalHTML; btn.style.color = ''; }, 1500);
         },
@@ -736,12 +736,12 @@ document.addEventListener('alpine:init', () => {
             if (!this.rawModal.content) return;
             const btn = event.currentTarget;
             const originalHTML = btn.innerHTML;
-            const checkIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="#3fb950"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>';
+            const checkIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="icon" fill="var(--ok)"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>';
             try {
                 await navigator.clipboard.writeText(this.rawModal.content);
                 btn.innerHTML = checkIcon;
             } catch {
-                btn.style.color = '#f85149';
+                btn.style.color = krawlToken('--danger');
             }
             setTimeout(() => { btn.innerHTML = originalHTML; btn.style.color = ''; }, 1500);
         },
@@ -804,7 +804,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         colorizeUrl(url) {
-            const catColors = { attacker:'#f85149', bad_crawler:'#d29922', regular_user:'#58a6ff', good_crawler:'#3fb950', timed_out:'#db61a2' };
+            const catColors = krawlCategoryColors();
             const escaped = url.replace(/[&<>"']/g, function(m) {
                 return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
             });
@@ -1437,7 +1437,7 @@ function _reloadExpandOverlay() {
     }
 
     const url = `${dashboardPath}/htmx/${ov.endpoint}?${params}`;
-    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #8b949e;">Loading...</div>';
+    container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-dim);">Loading...</div>';
     htmx.ajax('GET', url, { target: container, swap: 'innerHTML' });
 }
 
@@ -1448,6 +1448,14 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
+// Icon set — inline Octicons on a 16 viewBox, sized and colored by CSS (.icon*).
+// Same system the templates use; no icon webfont.
+const KRAWL_ICONS = {
+    alert: '<svg class="icon-lg" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>',
+    check: '<svg class="icon-lg" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 16A8 8 0 1 1 8 0a8 8 0 0 1 0 16Zm3.78-9.72a.751.751 0 0 0-.018-1.042.751.751 0 0 0-1.042-.018L6.75 9.19 5.28 7.72a.751.751 0 0 0-1.042.018.751.751 0 0 0-.018 1.042l2 2a.75.75 0 0 0 1.06 0Z"/></svg>',
+    error: '<svg class="icon-lg" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.343 13.657A8 8 0 1 1 13.658 2.342 8 8 0 0 1 2.343 13.657ZM6.03 4.97a.751.751 0 0 0-1.042.018.751.751 0 0 0-.018 1.042L6.94 8 4.97 9.97a.749.749 0 0 0 .326 1.275.749.749 0 0 0 .734-.215L8 9.06l1.97 1.97a.749.749 0 0 0 1.275-.326.749.749 0 0 0-.215-.734L9.06 8l1.97-1.97a.749.749 0 0 0-.326-1.275.749.749 0 0 0-.734.215L8 6.94Z"/></svg>',
+};
+
 // Custom modal system (replaces native confirm/alert)
 window.krawlModal = {
     _create(icon, iconClass, message, buttons) {
@@ -1457,7 +1465,7 @@ window.krawlModal = {
             overlay.innerHTML = `
                 <div class="krawl-modal-box">
                     <div class="krawl-modal-icon ${iconClass}">
-                        <span class="material-symbols-outlined">${icon}</span>
+                        ${KRAWL_ICONS[icon]}
                     </div>
                     <div class="krawl-modal-message">${message}</div>
                     <div class="krawl-modal-actions" id="krawl-modal-actions"></div>
@@ -1477,13 +1485,13 @@ window.krawlModal = {
         });
     },
     confirm(message) {
-        return this._create('warning', 'krawl-modal-icon-warn', message, [
+        return this._create('alert', 'krawl-modal-icon-warn', message, [
             { label: 'Cancel', cls: 'auth-modal-btn-cancel', value: false },
             { label: 'Confirm', cls: 'auth-modal-btn-submit', value: true },
         ]);
     },
     success(message) {
-        return this._create('check_circle', 'krawl-modal-icon-success', message, [
+        return this._create('check', 'krawl-modal-icon-success', message, [
             { label: 'OK', cls: 'auth-modal-btn-submit', value: true },
         ]);
     },
