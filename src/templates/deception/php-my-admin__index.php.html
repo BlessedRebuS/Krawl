@@ -1,84 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Acme Corp - Internal Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {font-family: Arial, Helvetica, sans-serif; margin:0; padding:0; background:#f4f6f9; color:#333;}
-        header {background:#003366; color:#fff; padding:1rem; text-align:center;}
-        nav {background:#004080; color:#fff; display:flex; justify-content:center; gap:1.5rem; padding:0.5rem 0;}
-        nav a {color:#fff; text-decoration:none; font-weight:bold;}
-        nav a:hover {text-decoration:underline;}
-        .container {max-width:1200px; margin:2rem auto; padding:0 1rem;}
-        .card {background:#fff; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin-bottom:1.5rem; overflow:hidden;}
-        .card-header {background:#e6f0ff; padding:0.75rem 1rem; font-size:1.1rem; border-bottom:1px solid #cce0f5;}
-        .card-body {padding:1rem;}
-        table {width:100%; border-collapse:collapse;}
-        th, td {padding:0.75rem; text-align:left; border-bottom:1px solid #eee;}
-        th {background:#f0f8ff;}
-        tr:hover td {background:#f9fcff;}
-        .badge {display:inline-block; padding:0.2rem 0.5rem; border-radius:4px; font-size:0.85rem;}
-        .bg-green {background:#d4edda; color:#155724;}
-        .bg-yellow {background:#fff3cd; color:#856404;}
-        .bg-red {background:#f8d7da; color:#721c24;}
-        footer {text-align:center; padding:1rem; font-size:0.9rem; color:#666; background:#e9ecef; margin-top:2rem;}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administration — Caretrack</title>
+<style>
+:root{--bg:#eef4f4;--panel:#fff;--ink:#16303a;--muted:#5f7c86;
+--line:#d3e2e4;--brand:#0f7a76;--brand-dk:#0a5b58;--r:10px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 "Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#fff;color:#0f7a76;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#0f7a76}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#5f7c86;font-size:13px}
+header.top nav a.active{color:#0f7a76;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(16,48,58,.06)}
+h1{font-family:inherit;font-size:22px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <header>
-        <h1>Acme Corp Internal Portal</h1>
-        <p>Version 2.4.1 • Build 20240915</p>
-    </header>
-    <nav>
-        <a href="/">Dashboard</a>
-        <a href="/users">User Management</a>
-        <a href="/logs">System Logs</a>
-        <a href="/settings">Settings</a>
-        <a href="/help">Help</a>
-    </nav>
-    <div class="container">
-        <div class="card">
-            <div class="card-header">System Overview</div>
-            <div class="card-body">
-                <table>
-                    <tr><th>Metric</th><th>Value</th></tr>
-                    <tr><td>Server OS</td><td>Ubuntu 20.04.6 LTS (Focal Fossa)</td></tr>
-                    <tr><td>Web Server</td><td>Apache/2.4.41 (Ubuntu)</td></tr>
-                    <tr><td>PHP Version</td><td>7.4.33</td></tr>
-                    <tr><td>Database</td><td>MySQL 5.7.40-log</td></tr>
-                    <tr><td>Hostname</td><td>acme-internal01.acme.local</td></tr>
-                    <tr><td>Internal IP</td><td>10.0.0.5</td></tr>
-                    <tr><td>Uptime</td><td>12 days, 3 hours, 42 minutes</td></tr>
-                    <tr><td>Load Average</td><td>0.23, 0.18, 0.15</td></tr>
-                </table>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-header">Recent Activity</div>
-            <div class="card-body">
-                <table>
-                    <tr><th>Time</th><th>User</th><th>Action</th><th>Status</th></tr>
-                    <tr><td>2024-09-25 08:12:04</td><td>j.smith</td><td>Login</td><td><span class="badge bg-green">Success</span></td></tr>
-                    <tr><td>2024-09-25 07:58:19</td><td>m.lee</td><td>File Upload</td><td><span class="badge bg-green">Success</td></tr>
-                    <tr><td>2024-09-25 07:45:03</td><td>admin</td><td>Config Change</td><td><span class="badge bg-yellow">Warning</span></td></tr>
-                    <tr><td>2024-09-25 07:30:21</td><td>unknown (10.0.0.57)</td><td>Failed Login</td><td><span class="badge bg-red">Failed</span></td></tr>
-                </table>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-header">Notifications</div>
-            <div class="card-body">
-                <ul style="list-style:none; padding:0;">
-                    <li><strong>[INFO]</strong> Backup completed successfully at 02:00 AM.</li>
-                    <li><strong>[WARN]</strong> Disk usage on /var/log is 78% (threshold 80%).</li>
-                    <li><strong>[INFO]</strong> New patch Apache 2.4.46 available.</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-    <footer>
-        &copy; 2024 Acme Corporation • Internal Use Only • <a href="/logout" style="color:#003366;">Logout</a>
-    </footer>
+<header class="top"><span class="brand">Caretrack</span><nav><a href="/today">Today</a><a href="/appointments">Appointments</a><a href="/patients">Patients</a><a href="/clinicians">Clinicians</a><a href="/admin">Admin</a></nav></header>
+
+<div class="wrap">
+  <h1>Administration</h1>
+  <p class="sub">Signed in as <strong>e.whitfield</strong> (clinical lead) &middot;
+  last sign-in 13/08/2026 14:12 from 10.24.8.41</p>
+  <div class="grid">
+    <div class="kpi"><div class="n">5</div><div class="l"><a href="/admin/users">Users</a></div></div>
+    <div class="kpi"><div class="n">4</div><div class="l"><a href="/admin/roles">Roles &amp; permissions</a></div></div>
+    <div class="kpi"><div class="n">6</div><div class="l"><a href="/admin/integrations">Integrations</a></div></div>
+    <div class="kpi"><div class="n">641</div><div class="l"><a href="/admin/audit">Audit entries (7d)</a></div></div>
+  </div>
+  <div class="panel" style="margin-top:18px">
+    <h2>Latest audit events</h2>
+    <table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Source</th></tr></thead>
+    <tbody><tr><td>14/08 08:30</td><td>e.whitfield</td><td>Updated SMTP integration credentials</td><td>10.24.8.41</td></tr><tr><td>14/08 06:12</td><td>k.oyelaran</td><td>Generated API token <code>tok_cad7fdd946</code></td><td>10.24.9.16</td></tr><tr><td>14/08 00:12</td><td>system</td><td>Suspended account l.svensson (12 failed sign-ins)</td><td>&mdash;</td></tr><tr><td>13/08 09:12</td><td>t.ruane</td><td>Exported appointment report Q3-2026</td><td>10.24.8.77</td></tr></tbody></table>
+  </div>
+</div>
+
+<footer>Caretrack 9.4.0 &middot; &copy; 2026 Northbridge Health &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

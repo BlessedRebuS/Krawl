@@ -1,58 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>wp-config.php.txt</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; color:#222; margin:2rem;}
-        pre {background:#fff; padding:1rem; border:1px solid #ccc; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>wp-config.php.txt</h1>
-    <pre>
 <?php
 /**
- * WordPress Configuration File - Fake Example
- *
- * This file contains the configuration settings for connecting to the
- * database and setting up WordPress. It is for demonstration purposes only.
+ * WordPress base configuration — Halcyon Retail Group corporate site.
  */
 
-// ** MySQL settings - You can get this info from your web host ** //
-define('DB_NAME', 'example_wordpress');
-define('DB_USER', 'wp_admin');
-define('DB_PASSWORD', 's3cr3tP@ssw0rd!');
-define('DB_HOST', 'localhost:3306');
-define('DB_CHARSET', 'utf8mb4');
-define('DB_COLLATE', '');
+define( 'DB_NAME', 'halcyon_wp' );
+define( 'DB_USER', 'halcyon_wp_user' );
+define( 'DB_PASSWORD', 'fake-wp-password-791ff578d7' );
+define( 'DB_HOST', 'mysql-web-01.db.halcyon.internal' );
+define( 'DB_CHARSET', 'utf8mb4' );
+define( 'DB_COLLATE', '' );
 
-/** Authentication Unique Keys and Salts. **/
-define('AUTH_KEY',         'put your unique phrase here');
-define('SECURE_AUTH_KEY',  'put your unique phrase here');
-define('LOGGED_IN_KEY',    'put your unique phrase here');
-define('NONCE_KEY',        'put your unique phrase here');
-define('AUTH_SALT',        'put your unique phrase here');
-define('SECURE_AUTH_SALT', 'put your unique phrase here');
-define('LOGGED_IN_SALT',   'put your unique phrase here');
-define('NONCE_SALT',       'put your unique phrase here');
+define( 'AUTH_KEY',         '0g1ZIzLmCZXdWcifzfeNgwg/SKO5BaW+BO7X6Y/0iJikH1YE' );
+define( 'SECURE_AUTH_KEY',  'TYwguLqVLxmT2SIl8jYAW6ocaH6EzMTFHLBzYJmsMDOAk2TU' );
+define( 'LOGGED_IN_KEY',    'Z5lCEyboJQ1RY0IySyc3Cl3QZk5gtycd7mG9jAdWA+8aei+H' );
+define( 'NONCE_KEY',        'rKJsTUSNnMoK8WW/R/VqxM5ocOr+ya4VDGAXj/s0xDQrpbcK' );
+define( 'AUTH_SALT',        'If8wjqzrKpoEsV35Mu/3bbNf4BcbMox3qEXo2vZk6VVj6zNV' );
+define( 'SECURE_AUTH_SALT', 'hzyOhYveZ0+aMPz2RrlVpdh7qW08a3b1jJ5nvW5QSCEcYLU4' );
 
-/** WordPress Database Table prefix. */
 $table_prefix = 'wp_';
 
-/** For developers: WordPress debugging mode. */
-define('WP_DEBUG', false);
+define( 'WP_DEBUG', false );
+define( 'WP_MEMORY_LIMIT', '256M' );
+define( 'DISALLOW_FILE_EDIT', true );
+define( 'WP_HOME', 'https://www.halcyonretail.co.uk' );
+define( 'WP_SITEURL', 'https://www.halcyonretail.co.uk' );
 
-/* That's all, stop editing! Happy publishing. */
+define( 'SMTP_HOST', 'smtp.mail.halcyon.internal' );
+define( 'SMTP_USER', 'no-reply@halcyonretail.co.uk' );
+define( 'SMTP_PASS', 'fake-smtp-password-2dc62a20' );
 
-/** Absolute path to the WordPress directory. */
 if ( ! defined( 'ABSPATH' ) ) {
-	define( 'ABSPATH', __DIR__ . '/' );
+    define( 'ABSPATH', __DIR__ . '/' );
 }
 
-/** Sets up WordPress vars and included files. */
 require_once ABSPATH . 'wp-settings.php';
-?>
-    </pre>
-</body>
-</html>

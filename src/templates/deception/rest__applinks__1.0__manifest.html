@@ -1,43 +1,26 @@
-<html>
-<head>
-    <title>Application Links Manifest</title>
-    <meta charset="UTF-8">
-    <style>
-        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9; color:#333;}
-        h1 {color:#0052cc;}
-        pre {background:#fff; padding:15px; border:1px solid #ddd; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>Application Links Manifest</h1>
-    <p>This manifest describes the available application links for this instance.</p>
-    <pre>
 {
-  "id": "applinks-1.0",
-  "name": "Atlassian Application Links",
-  "version": "1.0",
-  "description": "Manifest for configuring application links between Jira, Confluence, Bitbucket and Bamboo.",
-  "links": [
-    {
-      "rel": "self",
-      "href": "/rest/applinks/1.0/manifest"
-    },
-    {
-      "rel": "alternate",
-      "href": "/rest/applinks/1.0/applications",
-      "type": "application/json"
-    },
-    {
-      "rel": "documentation",
-      "href": "https://confluence.example.com/display/DOC/Application+Links+REST+API"
-    }
-  ],
-  "properties": {
-    "maxLinks": 20,
-    "supportedProtocols": ["oauth", "trustedApplications"],
-    "defaultTimeout": 30000
-  }
+  "app": {
+    "name": "Halcyon Commerce",
+    "version": "6.0.3",
+    "env": "production",
+    "url": "https://portal.halcyonretail.co.uk"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.halcyon.internal",
+    "port": 5432,
+    "name": "halcyon_commerce",
+    "user": "hc_web",
+    "password": "fake-db-password-378b002b"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.halcyon.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-122ff326ebf800fd20b32af770c02e3f",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-04T17:12:01Z"
 }
-    </pre>
-</body>
-</html>

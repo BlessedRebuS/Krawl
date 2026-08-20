@@ -1,0 +1,47 @@
+# Caretrack — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
+
+app:
+  name: "Caretrack"
+  env: production
+  url: https://portal.northbridge-health.org
+  version: "9.4.0"
+
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
+
+database:
+  driver: postgresql
+  host: pg-prod-01.db.nbh.internal
+  port: 5432
+  name: caretrack
+  user: caretrack_svc
+  password: fake-db-password-e0200e4a
+  pool:
+    min: 4
+    max: 32
+
+redis:
+  host: redis-prod-01.cache.nbh.internal
+  port: 6379
+  password: fake-redis-password-c75b2c
+
+auth:
+  jwt_secret: fake-jwt-secret-7b2c2a0036fe76a3c8f50472aebd8f3b
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: caretrack-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-38725
+  secret_access_key: fake-secret-Ah35Syab0ptR1fjkNkyOdJMg
+
+logging:
+  level: warning
+  format: json
+  sentry_dsn: https://fake747686011cc81770@sentry.internal/17

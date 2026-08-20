@@ -1,0 +1,20 @@
+Grid Console
+============
+
+Internal operations portal for Volta Energia.
+
+Requirements
+------------
+  * PHP 8.2 / Node 20.11
+  * PostgreSQL 16
+  * Redis 7.2
+
+Setup
+-----
+  cp .env.example .env
+  composer install && npm ci
+  php artisan migrate --seed
+  npm run build
+
+Deployment is handled by CI on merge to main; see infra/README for the
+runbook and the on-call rota. Questions: platform@voltaenergia.es

@@ -1,40 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>LDLMS Users API</title>
-<style>
-body{font-family:Arial,sans-serif; margin:2em; background:#f9f9f9; color:#333;}
-h1{color:#2c3e50;}
-p{margin-bottom:1.5em;}
-pre{background:#ecf0f1; padding:1em; border:1px solid #bdc3c7; overflow:auto;}
-</style>
-</head>
-<body>
-<h1>LDLMS v2 Users</h1>
-<p>This endpoint returns a list of users in JSON format.</p>
-<pre>[
+[
   {
-    "id": 1,
-    "username": "admin",
-    "email": "admin@example.com",
-    "roles": ["administrator"],
-    "capabilities": {"edit_posts":true,"manage_options":true}
+    "id": 5,
+    "username": "c.mbeki",
+    "email": "c.mbeki@halcyonretail.co.uk",
+    "display_name": "Chloe Mbeki",
+    "role": "store_manager",
+    "status": "active",
+    "created_at": "2020-04-13T08:31:44Z",
+    "last_login_at": "2026-08-06T14:51:34Z",
+    "mfa_enabled": false
   },
   {
-    "id": 2,
-    "username": "editor",
-    "email": "editor@example.com",
-    "roles": ["editor"],
-    "capabilities": {"edit_posts":true,"publish_pages":true}
+    "id": 8,
+    "username": "r.duffy",
+    "email": "r.duffy@halcyonretail.co.uk",
+    "display_name": "Ronan Duffy",
+    "role": "administrator",
+    "status": "active",
+    "created_at": "2018-12-01T08:31:44Z",
+    "last_login_at": "2026-08-11T23:49:49Z",
+    "mfa_enabled": true
   },
   {
-    "id": 3,
-    "username": "subscriber",
-    "email": "subscriber@example.com",
-    "roles": ["subscriber"],
-    "capabilities": {"read":true}
+    "id": 16,
+    "username": "a.pashkov",
+    "email": "a.pashkov@halcyonretail.co.uk",
+    "display_name": "Anya Pashkov",
+    "role": "merchandiser",
+    "status": "active",
+    "created_at": "2022-02-24T08:31:44Z",
+    "last_login_at": "2026-08-09T20:39:33Z",
+    "mfa_enabled": false
+  },
+  {
+    "id": 19,
+    "username": "j.okonkwo",
+    "email": "j.okonkwo@halcyonretail.co.uk",
+    "display_name": "Jide Okonkwo",
+    "role": "fulfilment",
+    "status": "active",
+    "created_at": "2023-07-08T08:31:44Z",
+    "last_login_at": "2026-08-13T09:22:25Z",
+    "mfa_enabled": false
+  },
+  {
+    "id": 27,
+    "username": "h.lindqvist",
+    "email": "h.lindqvist@halcyonretail.co.uk",
+    "display_name": "Hanna Lindqvist",
+    "role": "customer_care",
+    "status": "active",
+    "created_at": "2024-11-05T08:31:44Z",
+    "last_login_at": "2026-08-07T18:00:18Z",
+    "mfa_enabled": false
   }
-]</pre>
-</body>
-</html>
+]

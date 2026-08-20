@@ -1,41 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Configuration - Internal</title>
-</head>
-<body>
-    <h1>Service Configuration</h1>
-    <p>This file defines the available services for the internal network.</p>
-    <pre>
-services:
-  web:
-    port: 8080
-    image: nginx:latest
-    environment:
-      - DEBUG=true
-      - API_KEY=sk_live_abc123xyz789
-    volumes:
-      - ./web:/usr/share/nginx/html
-  db:
-    port: 5432
-    image: postgres:13
-    environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=supersecretpassword123
-      - POSTGRES_DB=production
-    volumes:
-      - db_data:/var/lib/postgresql/data
-  cache:
-    port: 6379
-    image: redis:alpine
-    command: redis-server --requirepass redispass456
-volumes:
-  db_data:
-</pre>
-    <hr>
-    <p><em>Last updated: 2024-06-15 10:30:00 UTC</em></p>
-    <p>Access restricted to internal network only.</p>
-</body>
-</html>
+# Kestrel TMS — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
+
+app:
+  name: "Kestrel TMS"
+  env: production
+  url: https://portal.kestrelfreight.nl
+  version: "3.8"
+
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
+
+database:
+  driver: postgresql
+  host: pg-prod-01.db.kestrel.internal
+  port: 5432
+  name: kestrel_tms
+  user: tmsuser
+  password: fake-db-password-94370530
+  pool:
+    min: 4
+    max: 32
+
+redis:
+  host: redis-prod-01.cache.kestrel.internal
+  port: 6379
+  password: fake-redis-password-cca341
+
+auth:
+  jwt_secret: fake-jwt-secret-c1f101272b48e35c0a1eaefed5c73c74
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: kestrel-tms-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-0E342
+  secret_access_key: fake-secret-2+yB+Z4rLd7bni0KeFdrmu44
+
+logging:
+  level: warning
+  format: json
+  sentry_dsn: https://faked683ce4ef093f3be@sentry.internal/35

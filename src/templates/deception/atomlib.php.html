@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Volta Energia — distributed generation and grid balancing</title>
+<style>
+:root{--bg:#12161c;--panel:#1a2029;--ink:#dfe5ee;--muted:#8794a6;
+--line:#2a323e;--brand:#e8a33d;--brand-dk:#c9862a;--r:3px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 "IBM Plex Sans",Inter,Roboto,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#0c1015;color:#e8a33d;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#e8a33d}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#8794a6;font-size:13px}
+header.top nav a.active{color:#e8a33d;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:none}
+h1{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:17px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
+</head>
+<body>
+<header class="top"><span class="brand">Grid Console</span><nav><a href="/overview">Overview</a><a href="/sites">Sites</a><a href="/alarms">Alarms</a><a href="/telemetry">Telemetry</a><a href="/operators">Operators</a><a href="/logout">Sign out</a></nav></header>
+
+<div class="wrap">
+  <div class="panel">
+    <h1>Every inverter, meter and alarm on one console</h1>
+    <p class="sub">Volta Energia operates and monitors 2.1 GW of distributed generation across Iberia.</p>
+    <p><a class="btn" href="/contact-us" style="display:inline-block">Book a demo</a>
+       <a class="btn sec" href="/login" style="display:inline-block;margin-left:8px">Customer sign in</a></p>
+  </div>
+  <div class="grid"><div class="panel"><h2>Site telemetry</h2><p class="muted">Per-inverter readings at 5-second resolution with configurable alarm bands.</p><p><a href="/platform">Read more</a></p></div><div class="panel"><h2>Curtailment</h2><p class="muted">Respond to TSO setpoints automatically and log every dispatch instruction.</p><p><a href="/sites">Read more</a></p></div><div class="panel"><h2>Settlement</h2><p class="muted">Half-hourly meter data, export reconciliation and CSV drops for the settlement agent.</p><p><a href="/docs">Read more</a></p></div></div>
+  <div class="panel">
+    <h2>Latest updates</h2>
+    <p><a href="/blog/q3-platform-roadmap">Q3 platform roadmap</a>
+      <span class="muted">&middot; 08 August 2026</span><br>
+    <a href="/blog/release-2.11.6">What changed in Grid Console 2.11.6</a>
+      <span class="muted">&middot; 26 July 2026</span><br>
+    <a href="/blog/integration-notes">Integration notes for partners</a>
+      <span class="muted">&middot; 12 July 2026</span></p>
+  </div>
+  <div class="panel">
+    <p class="muted" style="font-size:12px">Volta Energia &middot; Calle Serrano 41, 28001 Madrid, Spain &middot;
+    company no. 8591025 &middot; <a href="/platform">Platform</a> &middot; <a href="/sites">Sites</a> &middot; <a href="/docs">Documentation</a> &middot; <a href="/about-us">Company</a> &middot; <a href="/contact-us">Contact</a></p>
+  </div>
+</div>
+
+<footer>Grid Console 2.11.6 &middot; &copy; 2026 Volta Energia &middot; <a href="/support">Support</a></footer>
+</body>
+</html>

@@ -1,0 +1,47 @@
+# Meridian Portal — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
+
+app:
+  name: "Meridian Portal"
+  env: production
+  url: https://portal.meridiansys.io
+  version: "4.2.1"
+
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
+
+database:
+  driver: postgresql
+  host: pg-prod-01.db.meridian.internal
+  port: 5432
+  name: meridian_portal
+  user: meridian_app
+  password: fake-db-password-e94e9bbc
+  pool:
+    min: 4
+    max: 32
+
+redis:
+  host: redis-prod-01.cache.meridian.internal
+  port: 6379
+  password: fake-redis-password-fb6111
+
+auth:
+  jwt_secret: fake-jwt-secret-52f9c1f51601fe22fc0f0772000bba60
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: meridian-portal-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-CCC54
+  secret_access_key: fake-secret-RgATGcVrTVNs9ufY59IN4szf
+
+logging:
+  level: warning
+  format: json
+  sentry_dsn: https://fake295ab568b6354511@sentry.internal/38

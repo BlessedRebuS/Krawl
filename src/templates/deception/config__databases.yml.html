@@ -1,36 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>databases.yml</title>
-<style>
-body{font-family:monospace;background:#f8f8f8;color:#333;padding:20px}
-pre{background:#fff;border:1px solid #ddd;padding:10px;overflow:auto}
-</style>
-</head>
-<body>
-<h1>databases.yml</h1>
-<pre>
-development:
-  adapter: postgresql
-  host: localhost
-  database: myapp_dev
-  username: dev_user
-  password: s3cr3tP@ss
+# Meridian Portal — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
 
-test:
-  adapter: postgresql
-  host: localhost
-  database: myapp_test
-  username: test_user
-  password: t3stP@ss
+app:
+  name: "Meridian Portal"
+  env: production
+  url: https://portal.meridiansys.io
+  version: "4.2.1"
 
-production:
-  adapter: postgresql
-  host: db-prod.example.com
-  database: myapp_prod
-  username: prod_user
-  password: pr0dP@ssw0rd!
-</pre>
-</body>
-</html>
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
+
+database:
+  driver: postgresql
+  host: pg-prod-01.db.meridian.internal
+  port: 5432
+  name: meridian_portal
+  user: meridian_app
+  password: fake-db-password-3bcf5882
+  pool:
+    min: 4
+    max: 32
+
+redis:
+  host: redis-prod-01.cache.meridian.internal
+  port: 6379
+  password: fake-redis-password-a9e501
+
+auth:
+  jwt_secret: fake-jwt-secret-3f03656681bb59cb1469b87f7182571c
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: meridian-portal-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-77F7D
+  secret_access_key: fake-secret-z/oDCPEluyPtewY56zmryoqF
+
+logging:
+  level: warning
+  format: json
+  sentry_dsn: https://fakebe2952118b67f2a0@sentry.internal/38

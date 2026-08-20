@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "internal-docs": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@meridian/docs-mcp"
+      ],
+      "env": {
+        "DOCS_TOKEN": "fake-token-55f4b04e7b204385138c6f3f"
+      }
+    },
+    "postgres": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-postgres"
+      ],
+      "env": {
+        "DATABASE_URL": "postgresql://grid_rw:fake-password@pg-prod-01.db.volta.internal:5432/volta_grid"
+      }
+    }
+  }
+}

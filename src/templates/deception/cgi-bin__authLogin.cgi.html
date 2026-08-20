@@ -1,40 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Authentication Login</title>
-    <style>
-        body {font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:20px;}
-        .container {max-width:400px; margin:auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
-        h2 {text-align:center; color:#333;}
-        .form-group {margin-bottom:15px;}
-        label {display:block; margin-bottom:5px; font-weight:bold;}
-        input[type="text"], input[type="password"] {width:100%; padding:8px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px;}
-        input[type="submit"] {background:#0066cc; color:#fff; border:none; padding:10px 15px; cursor:pointer; border-radius:4px; width:100%;}
-        input[type="submit"]:hover {background:#004c99;}
-        .msg {padding:10px; margin-bottom:15px; border-radius:4px;}
-        .error {background:#ffdddd; color:#a00; border:1px solid #f5c6c6;}
-        .info {background:#ddffdd; color:#060; border:1px solid #c6f5c6;}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grid Console :: authenticate</title>
+<style>
+:root{--bg:#12161c;--panel:#1a2029;--ink:#dfe5ee;--muted:#8794a6;
+--line:#2a323e;--brand:#e8a33d;--brand-dk:#c9862a;--r:3px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 "IBM Plex Sans",Inter,Roboto,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#0c1015;color:#e8a33d;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#e8a33d}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#8794a6;font-size:13px}
+header.top nav a.active{color:#e8a33d;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:none}
+h1{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:17px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-<div class="container">
-    <h2>Member Login</h2>
-    <!-- DEBUG: backend query -> SELECT * FROM users WHERE username='$user' AND password='$pass' -->
-    <form method="post" action="/cgi-bin/authLogin.cgi">
-        <div class="form-group">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required placeholder="Enter username">
-        </div>
-        <div class="form-group">
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required placeholder="Enter password">
-        </div>
-        <input type="submit" value="Login">
+
+
+<div class="login" style="max-width:420px">
+  <div class="panel">
+    <h1>Grid Console</h1>
+    <p class="sub">SCADA gateway 2.11.6 &middot; node <code>gw-mad-01</code></p>
+    <div class="err-box">AUTH_FAILED &mdash; operator credentials rejected (attempt 2 of 5)</div>
+    <form method="post" action="/login">
+      <input type="hidden" name="nonce" value="c6603ba6d1839fb0de15b51a">
+      <div class="field"><label for="u">Operator ID</label>
+        <input id="u" name="operator" type="text" autofocus></div>
+      <div class="field"><label for="p">Passphrase</label>
+        <input id="p" name="passphrase" type="password"></div>
+      <div class="field"><label for="r">Region</label>
+        <select id="r" name="region"><option>ES-CENTRO</option><option>ES-NORTE</option>
+        <option>ES-SUR</option><option>PT-LISBOA</option></select></div>
+      <button type="submit" style="width:100%">Authenticate</button>
     </form>
-    <div class="msg info">
-        Note: Forgot password? Contact admin@example.com
-    </div>
+    <p class="muted" style="font-size:11px;margin:18px 0 0">
+      Control actions on this system affect live plant. Unauthorised access is an offence
+      under Ley 8/2011 on critical infrastructure protection.</p>
+  </div>
 </div>
+
+<footer>Grid Console 2.11.6 &middot; &copy; 2026 Volta Energia &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

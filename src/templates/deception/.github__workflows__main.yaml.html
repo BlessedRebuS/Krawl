@@ -1,41 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>.github/workflows/main.yaml</title>
-    <style>
-        body {font-family: monospace; margin: 2em; background:#f9f9f9; color:#222;}
-        pre {background:#eee; padding:1em; border:1px solid #ccc; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>GitHub Actions Workflow</h1>
-    <p>Path: <code>/.github/workflows/main.yaml</code></p>
-    <pre>name: CI
+name: build-and-deploy
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: registry.meridiansys.io
+  IMAGE: meridian-portal/app
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  test:
+    runs-on: ubuntu-24.04
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "20.11"
+      - run: npm ci
+      - run: npm run lint && npm test
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm test
-</pre>
-</body>
-</html>
+  deploy:
+    needs: test
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to registry
+        run: echo "$REGISTRY_TOKEN" | docker login $REGISTRY -u ci-bot --password-stdin
+        env:
+          REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+      - name: Build and push
+        run: |
+          docker build -t $REGISTRY/$IMAGE:4.2.1 .
+          docker push $REGISTRY/$IMAGE:4.2.1
+      - name: Roll out
+        run: kubectl -n portal set image deploy/app app=$REGISTRY/$IMAGE:4.2.1

@@ -1,0 +1,45 @@
+# Meridian Portal — application environment
+# managed by ops, do not edit by hand (see infra/ansible/roles/app)
+# last sync: 2026-08-14 09:12 UTC
+
+APP_NAME="Meridian Portal"
+APP_ENV=production
+APP_KEY=base64:Sab4rmdfkQIo0Z1ZstxOtxyQ6wdiUWFpMgtUqflkbOH=
+APP_DEBUG=false
+APP_URL=https://portal.meridiansys.io
+LOG_CHANNEL=stack
+LOG_LEVEL=warning
+
+DB_CONNECTION=pgsql
+DB_HOST=pg-prod-01.db.meridian.internal
+DB_PORT=5432
+DB_DATABASE=meridian_portal
+DB_USERNAME=meridian_app
+DB_PASSWORD=fake-db-password-1fc5fda2
+
+REDIS_HOST=redis-prod-01.cache.meridian.internal
+REDIS_PORT=6379
+REDIS_PASSWORD=fake-redis-password-117a87
+CACHE_DRIVER=redis
+QUEUE_CONNECTION=redis
+SESSION_DRIVER=redis
+SESSION_LIFETIME=120
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mail.meridian.internal
+MAIL_PORT=587
+MAIL_USERNAME=no-reply@meridiansys.io
+MAIL_PASSWORD=fake-smtp-password-51433593
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=no-reply@meridiansys.io
+
+AWS_ACCESS_KEY_ID=AKIA-FAKE-7F881
+AWS_SECRET_ACCESS_KEY=fake-secret-wl+7L232SEyXH5cMhY/c0/NY
+AWS_DEFAULT_REGION=eu-west-1
+AWS_BUCKET=meridian-portal-production-assets
+
+JWT_SECRET=fake-jwt-secret-d4c82547cf1f432a4539d80fb02a26f5
+JWT_TTL=1440
+STRIPE_KEY=pk_test_FAKE-aa90345c2b7309e6
+STRIPE_SECRET=sk_test_FAKE-11d1cc363455f195
+SENTRY_LARAVEL_DSN=https://fake65f56dd25d302db8@sentry.internal/34

@@ -1,44 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Acme Corp - Internal Portal</title>
-<style>
-body{font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:20px;color:#333}
-.container{max-width:960px;margin:auto;background:#fff;padding:20px;box-shadow:0 0 10px rgba(0,0,0,.1)}
-header{background:#003366;color:#fff;padding:10px 20px;border-radius:4px}
-nav a{color:#fff;margin-right:15px;text-decoration:none}
-footer{margin-top:30px;font-size:.9em;color:#666}
-</style>
-</head>
-<body>
-<div class="container">
-<header>
-<h1>Acme Corp Internal Portal</h1>
-<nav>
-<a href="/">Home</a>
-<a href="/admin">Admin Login</a>
-<a href="/api/status">API Status</a>
-</nav>
-</header>
-<section>
-<h2>Welcome, operator</h2>
-<p>Last login: 2025-09-24 08:13:42 from <code>10.0.0.45</code></p>
-<p>Current version: <strong>v2.3.1</strong> (build 20250914)</p>
-<p>Connected to database: <code>acme_prod</code> on <code>db01.acme.local</code></p>
-</section>
-<section>
-<h2>System Overview</h2>
-<ul>
-<li>CPU Load: 23%</li>
-<li>Memory Usage: 4.2 GB / 16 GB</li>
-<li>Uptime: 12 days, 5:32</li>
-<li>Active Sessions: 7</li>
-</ul>
-</section>
-</div>
-<footer>
-&copy; 2025 Acme Corporation. All rights reserved.
-</footer>
-</body>
-</html>
+<?php
+/**
+ * Meridian Portal — database & service configuration
+ *
+ * @package  Meridian
+ * @version  4.2.1
+ */
+
+defined('MERIDIAN_ROOT') or define('MERIDIAN_ROOT', dirname(__DIR__));
+
+$config = [
+    'app' => [
+        'name'      => 'Meridian Portal',
+        'env'       => 'production',
+        'debug'     => false,
+        'url'       => 'https://portal.meridiansys.io',
+        'key'       => 'base64:f5icVLyRxV29a9w06w40BA1tHTlnp+8M1nhJ32bRzu5=',
+    ],
+
+    'db' => [
+        'driver'    => 'pgsql',
+        'host'      => 'pg-prod-01.db.meridian.internal',
+        'port'      => 5432,
+        'database'  => 'meridian_portal',
+        'username'  => 'meridian_app',
+        'password'  => 'fake-db-password-2d3d75e7',
+        'charset'   => 'utf8',
+        'prefix'    => 'mp_',
+    ],
+
+    'redis' => [
+        'host'      => 'redis-prod-01.cache.meridian.internal',
+        'port'      => 6379,
+        'password'  => 'fake-redis-password-00c0d2',
+    ],
+
+    'mail' => [
+        'host'      => 'smtp.mail.meridian.internal',
+        'port'      => 587,
+        'username'  => 'no-reply@meridiansys.io',
+        'password'  => 'fake-smtp-password-afa80df1',
+        'encryption'=> 'tls',
+    ],
+];
+
+/* Legacy globals — still read by the reporting cron, remove after MP-2841. */
+$db_host = $config['db']['host'];
+$db_user = $config['db']['username'];
+$db_pass = $config['db']['password'];
+$db_name = $config['db']['database'];
+
+define('AUTH_SALT', 'HChe54pfJF88pDc4E2blYzXZofNFTk2a');
+define('SECURE_AUTH_KEY', 'ywBaVX7W6Ft7UIqu5JHFwPgk3+z/O9kG');
+
+return $config;

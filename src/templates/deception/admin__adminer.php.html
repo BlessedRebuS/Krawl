@@ -1,98 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adminer - Database Management Tool</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; color: #333; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
-        .header h1 { margin: 0; font-size: 24px; }
-        .header p { margin: 5px 0 0; opacity: 0.9; font-size: 14px; }
-        .login-box { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 30px; max-width: 400px; margin: 0 auto; }
-        .login-box h2 { text-align: center; color: #1e3a8a; margin-bottom: 25px; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #374151; }
-        .form-group input { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 16px; box-sizing: border-box; transition: border-color 0.3s; }
-        .form-group input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-        .btn { width: 100%; padding: 12px; background-color: #1e3a8a; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background-color 0.3s; }
-        .btn:hover { background-color: #1d4ed8; }
-        .remember-me { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 14px; color: #6b7280; }
-        .forgot-link { text-align: right; margin-top: -10px; }
-        .forgot-link a { color: #3b82f6; text-decoration: none; font-size: 14px; }
-        .forgot-link a:hover { text-decoration: underline; }
-        .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
-        .footer a { color: #3b82f6; text-decoration: none; }
-        .footer a:hover { text-decoration: underline; }
-        .db-list { margin-top: 20px; padding: 15px; background-color: #f9fafb; border-radius: 4px; border: 1px solid #e5e7eb; }
-        .db-list h3 { color: #1e3a8a; margin-top: 0; }
-        .db-item { padding: 8px 0; border-bottom: 1px solid #eee; }
-        .db-item:last-child { border-bottom: none; }
-        .db-item span { font-weight: 500; }
-        .db-item small { color: #6b7280; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administration — Kestrel TMS</title>
+<style>
+:root{--bg:#dfe3e8;--panel:#fff;--ink:#20242a;--muted:#5b636e;
+--line:#9aa3ad;--brand:#26497a;--brand-dk:#1b3459;--r:0;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 Verdana,Tahoma,Geneva,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#26497a;color:#fff;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#fff}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#c3d0e2;font-size:13px}
+header.top nav a.active{color:#fff;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:none}
+h1{font-family:inherit;font-size:15px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-database"></i> Adminer</h1>
-            <p>Database management in a single PHP file</p>
-        </div>
-        
-        <div class="login-box">
-            <h2>Login to Adminer</h2>
-            <form method="post" action="">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" value="webapp01" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" placeholder="Enter password" required>
-                </div>
-                <div class="form-group">
-                    <label for="database">Database</label>
-                    <select id="database" name="database">
-                        <option value="">-- Select database --</option>
-                        <option value="webapp_db">webapp_db</option>
-                        <option value="users">users</option>
-                        <option value="logs">logs</option>
-                        <option value="analytics">analytics</option>
-                    </select>
-                </div>
-                <div class="remember-me">
-                    <input type="checkbox" id="remember" name="remember">
-                    <label for="remember">Remember me</label>
-                </div>
-                <div class="forgot-link">
-                    <a href="?forgot_password=1">Forgot password?</a>
-                </div>
-                <button type="submit" class="btn">Login</button>
-            </form>
-            
-            <div class="db-list">
-                <h3>Recently accessed databases</h3>
-                <div class="db-item">
-                    <span>webapp_db</span>
-                    <small>MySQL 8.0.33 • 127 tables • 2.4 GB</small>
-                </div>
-                <div class="db-item">
-                    <span>users</span>
-                    <small>PostgreSQL 15.2 • 45 tables • 890 MB</small>
-                </div>
-                <div class="db-item">
-                    <span>logs</span>
-                    <small>MongoDB 6.0 • 8 collections • 1.2 GB</small>
-                </div>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <p>Adminer version 4.8.1 &copy; 2007-2023 Jakub Vrana</p>
-            <p><a href="https://www.adminer.org">https://www.adminer.org</a></p>
-        </p>
-    </div>
+<table width="100%" cellpadding="4" cellspacing="0" border="0" style="background:#26497a;color:#fff;font-size:12px"><tr><td style="font-weight:bold;padding-left:10px">Kestrel TMS <span style="font-weight:normal;color:#c3d0e2">v3.8</span></td><td align="right">Logged in as <b>jdevries</b> | <a href="/logout" style="color:#fff">Log off</a></td></tr></table><table width="100%" cellpadding="3" cellspacing="1" border="0" style="background:#7f8c9b;font-size:11px"><tr style="background:#1b3459"><td><a href="/home" style="color:#fff;text-decoration:none;font-weight:normal">Home</a></td><td><a href="/consignments" style="color:#fff;text-decoration:none;font-weight:normal">Consignments</a></td><td><a href="/planning" style="color:#fff;text-decoration:none;font-weight:normal">Planning</a></td><td><a href="/invoicing" style="color:#fff;text-decoration:none;font-weight:normal">Invoicing</a></td><td><a href="/admin" style="color:#fff;text-decoration:none;font-weight:normal">Admin</a></td></tr></table>
+
+<div class="wrap">
+  <h1>Administration</h1>
+  <p class="sub">Signed in as <strong>jdevries</strong> (planner) &middot;
+  last sign-in 13/08/2026 14:12 from 10.24.8.41</p>
+  <div class="grid">
+    <div class="kpi"><div class="n">5</div><div class="l"><a href="/admin/users">Users</a></div></div>
+    <div class="kpi"><div class="n">12</div><div class="l"><a href="/admin/roles">Roles &amp; permissions</a></div></div>
+    <div class="kpi"><div class="n">5</div><div class="l"><a href="/admin/integrations">Integrations</a></div></div>
+    <div class="kpi"><div class="n">210</div><div class="l"><a href="/admin/audit">Audit entries (7d)</a></div></div>
+  </div>
+  <div class="panel" style="margin-top:18px">
+    <h2>Latest audit events</h2>
+    <table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Source</th></tr></thead>
+    <tbody><tr><td>14/08 08:30</td><td>jdevries</td><td>Updated SMTP integration credentials</td><td>10.24.8.41</td></tr><tr><td>14/08 06:12</td><td>tnakamura</td><td>Generated API token <code>tok_93c19f3021</code></td><td>10.24.9.16</td></tr><tr><td>14/08 00:12</td><td>system</td><td>Suspended account aelkhoury (12 failed sign-ins)</td><td>&mdash;</td></tr><tr><td>13/08 09:12</td><td>swozniak</td><td>Exported consignment report Q3-2026</td><td>10.24.8.77</td></tr></tbody></table>
+  </div>
+</div>
+
+<footer>Kestrel TMS 3.8 &middot; Kestrel Freight &middot; internal use only</footer>
 </body>
 </html>

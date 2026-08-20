@@ -1,28 +1,26 @@
-<html>
-<head>
-    <title>Vercel Project Configuration</title>
-    <style>
-        body { font-family: monospace; margin: 2rem; background:#f8f8f8; color:#222; }
-        pre { background:#fff; padding:1rem; border:1px solid #ddd; overflow:auto; }
-    </style>
-</head>
-<body>
-    <h1>Vercel Project Configuration</h1>
-    <p>Below is the project.json file for this Vercel deployment.</p>
-    <pre>{
-  "name": "my-vercel-app",
-  "version": "1.0.0",
-  "framework": "nextjs",
-  "builds": [
-    { "src": "package.json", "use": "@vercel/static-build" }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/(.*)", "dest": "/$1" }
-  ],
-  "env": {
-    "NEXT_PUBLIC_API_URL": "https://api.example.com"
-  }
-}</pre>
-</body>
-</html>
+{
+  "app": {
+    "name": "Orbit Cloud",
+    "version": "0.38.2",
+    "env": "production",
+    "url": "https://portal.orbitlabs.dev"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.orbit.internal",
+    "port": 5432,
+    "name": "orbit_cloud",
+    "user": "orbit",
+    "password": "fake-db-password-0e7161db"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.orbit.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-f43441a1a07e864ae6e39cde153d3ae2",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-07T06:59:16Z"
+}

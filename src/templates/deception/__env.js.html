@@ -1,24 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Environment Configuration</title>
-</head>
-<body>
-    <h1>Environment Variables (Debug)</h1>
-    <pre>
-// __env.js - Auto-generated configuration
-window._env_ = {
-    API_URL: "https://api.internal.example.com/v1",
-    AUTH_TOKEN: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    DATABASE_URL: "postgres://user:pass@db.internal:5432/app",
-    FEATURE_FLAGS: {
-        new_ui: true,
-        beta_features: false
-    },
-    DEBUG: true
-};
-    </pre>
-    <p>This file is intended for internal use only.</p>
-</body>
-</html>
+/*! Halcyon Commerce 6.0.3 | build 990ca7d | (c) Halcyon Retail Group */
+(function (window) {
+  'use strict';
+
+  var config = {
+    apiBase: 'https://api.halcyonretail.co.uk/v2',
+    wsBase: 'wss://api.halcyonretail.co.uk/socket',
+    sentryDsn: 'https://fake2aff5d1b42db8f9f@sentry.internal/8',
+    release: 'halcyon-commerce@6.0.3',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
+
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
+  }
+
+  window.Halcyon = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

@@ -1,1 +1,36 @@
-<html><body>(()=>{"use strict";var e={};function n(t){if(e[t])return e[t].exports;var r=e[t]={i:t,l:!1,exports:{}};return n[t].call(r.exports,r,r.exports,n),r.l=!0,r.exports}n.m={},n.c=e,n.d=function(e,t,r){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var o=Object.create(null);if(n.r(o),Object.defineProperty(o,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var u in e)n.d(o,u,t=>e[u]);return o},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="/_next/static/",n(0)}({0:[function(e,t,n){"use strict";n.r(t);n.d(t,{"default":function(){return o}});var r=n(1),i=n(2);function o(){console.log("Chunk 0 loaded");}],1:[function(e,t,n){"use strict";// fake module 1}],2:[function(e,t,n){"use strict";// fake module 2}],}));</body></html>
+/*! Grid Console 2.11.6 | build 3a616e0 | (c) Volta Energia */
+(function (window) {
+  'use strict';
+
+  var config = {
+    apiBase: 'https://api.voltaenergia.es/v2',
+    wsBase: 'wss://api.voltaenergia.es/socket',
+    sentryDsn: 'https://fake6e87167ed5465841@sentry.internal/5',
+    release: 'volta-grid@2.11.6',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
+
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
+  }
+
+  window.VoltaGrid = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

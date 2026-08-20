@@ -1,0 +1,55 @@
+<?php
+/**
+ * Meridian Portal — database & service configuration
+ *
+ * @package  Meridian
+ * @version  4.2.1
+ */
+
+defined('MERIDIAN_ROOT') or define('MERIDIAN_ROOT', dirname(__DIR__));
+
+$config = [
+    'app' => [
+        'name'      => 'Meridian Portal',
+        'env'       => 'production',
+        'debug'     => false,
+        'url'       => 'https://portal.meridiansys.io',
+        'key'       => 'base64:f6a8fKjiiInoDjDyYj9FTOjO8+xgTU4kuuDIWSFY+pK=',
+    ],
+
+    'db' => [
+        'driver'    => 'pgsql',
+        'host'      => 'pg-prod-01.db.meridian.internal',
+        'port'      => 5432,
+        'database'  => 'meridian_portal',
+        'username'  => 'meridian_app',
+        'password'  => 'fake-db-password-fa7e71d8',
+        'charset'   => 'utf8',
+        'prefix'    => 'mp_',
+    ],
+
+    'redis' => [
+        'host'      => 'redis-prod-01.cache.meridian.internal',
+        'port'      => 6379,
+        'password'  => 'fake-redis-password-c6e8f7',
+    ],
+
+    'mail' => [
+        'host'      => 'smtp.mail.meridian.internal',
+        'port'      => 587,
+        'username'  => 'no-reply@meridiansys.io',
+        'password'  => 'fake-smtp-password-14cb2366',
+        'encryption'=> 'tls',
+    ],
+];
+
+/* Legacy globals — still read by the reporting cron, remove after MP-2841. */
+$db_host = $config['db']['host'];
+$db_user = $config['db']['username'];
+$db_pass = $config['db']['password'];
+$db_name = $config['db']['database'];
+
+define('AUTH_SALT', 'IErUfpBgSCJaZU6qMgYCrcWYG7IQUE3b');
+define('SECURE_AUTH_KEY', 'Ad4E8w4k1376Sc5Ga2pw0UyDWwVZF0zD');
+
+return $config;

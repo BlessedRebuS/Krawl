@@ -1,38 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>hardhat.config.js</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; margin:0; padding:20px;}
-        pre {background:#eee; padding:10px; overflow:auto; border:1px solid #ccc;}
-    </style>
-</head>
-<body>
-    <h1>hardhat.config.js</h1>
-    <p>Hardhat configuration file for the project.</p>
-    <pre>
-module.exports = {
-  solidity: "0.8.20",
-  networks: {
-    localhost: {
-      url: "http://127.0.0.1:8545"
-    },
-    sepolia: {
-      url: "https://sepolia.infura.io/v3/YOUR_INFURA_KEY",
-      accounts: [process.env.PRIVATE_KEY]
-    }
-  },
-  paths: {
-    sources: "./contracts",
-    tests: "./test",
-    cache: "./cache",
-    artifacts: "./artifacts"
-  },
-  mocha: {
-    timeout: 20000
+/*! Caretrack 9.4.0 | build 9646402 | (c) Northbridge Health */
+(function (window) {
+  'use strict';
+
+  var config = {
+    apiBase: 'https://api.northbridge-health.org/v2',
+    wsBase: 'wss://api.northbridge-health.org/socket',
+    sentryDsn: 'https://fakeba3d6337da0c5867@sentry.internal/36',
+    release: 'caretrack@9.4.0',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
+
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
   }
-};
-    </pre>
-</body>
-</html>
+
+  window.Caretrack = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

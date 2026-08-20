@@ -1,51 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Acme Intranet - Login</title>
-<style>
-    body {font-family: Arial, Helvetica, sans-serif; background:#f2f2f2; margin:0; display:flex; align-items:center; justify-content:center; height:100vh;}
-    .login-box {background:#fff; padding:30px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); width:320px;}
-    h2 {text-align:center; color:#333; margin-bottom:20px;}
-    .input-group {margin-bottom:15px;}
-    .input-group label {display:block; margin-bottom:5px; font-weight:bold; color:#555;}
-    .input-group input {width:100%; padding:10px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;}
-    .btn {width:100%; padding:10px; background:#0066cc; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:16px;}
-    .btn:hover {background:#004c99;}
-    .footer {margin-top:20px; font-size:12px; color:#777; text-align:center;}
-</style>
-</head>
-<body>
-<div class="login-box">
-    <h2>Acme Intranet</h2>
-    <form id="loginForm">
-        <div class="input-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" placeholder="Enter username" required>
-        </div>
-        <div class="input-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="Enter password" required>
-        </div>
-        <button type="submit" class="btn">Sign In</button>
-    </form>
-    <div class="footer">
-        Acme Intranet v2.4.1 (Build 20240915) &nbsp;|&nbsp; Server: 10.0.0.42
-    </div>
-</div>
-<script>
-    document.getElementById('loginForm').addEventListener('submit', function(e){
-        e.preventDefault();
-        var user = document.getElementById('username').value.trim();
-        var pass = document.getElementById('password').value;
-        if(user === '' || pass === ''){
-            alert('Please fill in all fields');
-            return;
-        }
-        // Simulate login attempt
-        alert('Login attempted for user: ' + user);
-        // In a real scenario this would send credentials to /auth endpoint
-    });
-</script>
-</body>
-</html>
+{
+  "app": {
+    "name": "Grid Console",
+    "version": "2.11.6",
+    "env": "production",
+    "url": "https://portal.voltaenergia.es"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.volta.internal",
+    "port": 5432,
+    "name": "volta_grid",
+    "user": "grid_rw",
+    "password": "fake-db-password-181e8019"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.volta.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-2d03ebae0dd3740892a34a166b81b233",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-04T21:29:39Z"
+}

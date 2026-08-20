@@ -1,6 +1,26 @@
-<html><body>{
-  "api_key": "a1b2c3d4e5f6g7h8i9j0",
-  "secret_key": "xYz!@#$%^&*()_+",
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
-  "database_url": "postgres://user:pass@db.example.com:5432/appdb"
-}</body></html>
+{
+  "app": {
+    "name": "Orbit Cloud",
+    "version": "0.38.2",
+    "env": "production",
+    "url": "https://portal.orbitlabs.dev"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.orbit.internal",
+    "port": 5432,
+    "name": "orbit_cloud",
+    "user": "orbit",
+    "password": "fake-db-password-472166a6"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.orbit.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-1ff63b82484c8f68a4d7c6449e5bcb78",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-10T09:33:22Z"
+}

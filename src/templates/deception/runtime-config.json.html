@@ -1,0 +1,26 @@
+{
+  "app": {
+    "name": "Halcyon Commerce",
+    "version": "6.0.3",
+    "env": "production",
+    "url": "https://portal.halcyonretail.co.uk"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.halcyon.internal",
+    "port": 5432,
+    "name": "halcyon_commerce",
+    "user": "hc_web",
+    "password": "fake-db-password-f36de37c"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.halcyon.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-5ea7d710ba1083a0b61b666661ecdaec",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-04T23:03:02Z"
+}

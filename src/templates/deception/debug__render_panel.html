@@ -1,82 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Debug Panel - SettingsPanel</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin:0; padding:20px; background:#f4f4f4;}
-        .container {max-width:800px; margin:auto; background:#fff; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
-        h1 {color:#333;}
-        table {width:100%; border-collapse:collapse; margin-top:20px;}
-        th, td {padding:10px; border:1px solid #ddd; text-align:left;}
-        th {background:#eaeaea;}
-        .btn {padding:6px 12px; background:#0066cc; color:#fff; border:none; cursor:pointer;}
-        .btn:hover {background:#004c99;}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whoops, looks like something went wrong — Caretrack</title>
+<style>
+:root{--bg:#eef4f4;--panel:#fff;--ink:#16303a;--muted:#5f7c86;
+--line:#d3e2e4;--brand:#0f7a76;--brand-dk:#0a5b58;--r:10px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 "Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#fff;color:#0f7a76;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#0f7a76}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#5f7c86;font-size:13px}
+header.top nav a.active{color:#0f7a76;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(16,48,58,.06)}
+h1{font-family:inherit;font-size:22px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-<div class="container">
-    <h1>Debug Panel – SettingsPanel</h1>
-    <p>Use this interface to view and modify runtime configuration settings.</p>
-    <form action="/__debug__/render_panel" method="post">
-        <input type="hidden" name="panel_id" value="SettingsPanel">
-        <input type="hidden" name="csrf_token" value="a1b2c3d4e5f6g7h8i9j0">
-        <table>
-            <thead>
-                <tr>
-                    <th>Setting</th>
-                    <th>Current Value</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Site Title</td>
-                    <td><input type="text" name="site_title" value="My Awesome Site" style="width:100%;"></td>
-                    <td><button type="submit" name="action" value="update_site_title" class="btn">Save</button></td>
-                </tr>
-                <tr>
-                    <td>Cache Timeout (seconds)</td>
-                    <td><input type="number" name="cache_timeout" value="300" style="width:100%;"></td>
-                    <td><button type="submit" name="action" value="update_cache_timeout" class="btn">Save</button></td>
-                </tr>
-                <tr>
-                    <td>Debug Mode</td>
-                    <td><select name="debug_mode" style="width:100%;">
-                        <option value="true" selected>Enabled</option>
-                        <option value="false">Disabled</option>
-                    </select></td>
-                    <td><button type="submit" name="action" value="update_debug_mode" class="btn">Save</button></td>
-                </tr>
-                <tr>
-                    <td>Allowed IPs (comma‑separated)</td>
-                    <td><input type="text" name="allowed_ips" value="127.0.0.1,192.168.1.0/24" style="width:100%;"></td>
-                    <td><button type="submit" name="action" value="update_allowed_ips" class="btn">Save</button></td>
-                </tr>
-            </tbody>
-        </table>
-    </form>
-    <hr>
-    <h2>Raw Debug Information</h2>
-    <pre>
-Environment:
-  APP_ENV=development
-  DEBUG=true
-  LOG_LEVEL=debug
-  DATABASE_URL=sqlite:///:memory:
-  SESSION_SECRET=*****
-Loaded Extensions:
-  - pdo_sqlite
-  - json
-  - mbstring
-  - openssl
-Recent Requests (last 5):
-  1. GET /api/users?_id=1' OR '1'='1
-  2. POST /login {"username":"admin","password":"' OR 1=1 --"}
-  3. GET /__debug__/render_panel?panel_id=SettingsPanel
-  4. GET /static/css/style.css
-  5. POST /contact {"name":"<script>alert('xss')</script>"}
-    </pre>
+
+
+<div class="wrap">
+  <h1>ErrorException</h1>
+  <p class="sub">Undefined array key "warehouse_id" &middot; app/Services/Inventory/SyncService.php:184</p>
+  <div class="panel">
+    <pre>#0 /var/www/portal/app/Services/Inventory/SyncService.php(184): Illuminate\Foundation\Bootstrap\HandleExceptions-&gt;handleError()
+#1 /var/www/portal/app/Http/Controllers/InventoryController.php(62): App\Services\Inventory\SyncService-&gt;pull()
+#2 /var/www/portal/vendor/laravel/framework/src/Illuminate/Routing/Controller.php(54): App\Http\Controllers\InventoryController-&gt;sync()
+#3 /var/www/portal/vendor/laravel/framework/src/Illuminate/Routing/Route.php(261): Illuminate\Routing\ControllerDispatcher-&gt;dispatch()
+#4 /var/www/portal/public/index.php(51): Illuminate\Foundation\Http\Kernel-&gt;handle()</pre>
+  </div>
+  <div class="panel">
+    <h2>Request</h2>
+    <table><tbody>
+      <tr><td class="muted">URI</td><td><code>/debug/render_panel</code></td></tr>
+      <tr><td class="muted">Method</td><td>GET</td></tr>
+      <tr><td class="muted">Controller</td><td><code>App\Http\Controllers\InventoryController@sync</code></td></tr>
+      <tr><td class="muted">Middleware</td><td>web, auth, verified</td></tr>
+      <tr><td class="muted">Request ID</td><td><code>5d5a1bf9ac689c92</code></td></tr>
+    </tbody></table>
+  </div>
+  <div class="panel">
+    <h2>Environment</h2>
+    <table><tbody>
+      <tr><td class="muted">APP_ENV</td><td>production</td></tr>
+      <tr><td class="muted">APP_DEBUG</td><td>true</td></tr>
+      <tr><td class="muted">DB_CONNECTION</td><td>pgsql &middot; pg-prod-01.db.nbh.internal:5432</td></tr>
+      <tr><td class="muted">PHP</td><td>8.2.24</td></tr>
+      <tr><td class="muted">Laravel</td><td>11.9.2</td></tr>
+    </tbody></table>
+  </div>
 </div>
+
+<footer>Caretrack 9.4.0 &middot; &copy; 2026 Northbridge Health &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

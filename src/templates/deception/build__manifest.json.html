@@ -1,50 +1,26 @@
-<html><body>{
-  "name": "DemoApp",
-  "short_name": "Demo",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3f51b5",
-  "icons": [
-    {
-      "src": "/static/icons/icon-72x72.png",
-      "sizes": "72x72",
-      "type": "image/png"
-    },
-    {
-      "src": "/static/icons/icon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png"
-    },
-    {
-      "src": "/static/icons/icon-128x128.png",
-      "sizes": "128x128",
-      "type": "image/png"
-    },
-    {
-      "src": "/static/icons/icon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png"
-    },
-    {
-      "src": "/static/icons/icon-152x152.png",
-      "sizes": "152x152",
-      "type": "image/png"
-    },
-    {
-      "src": "/static/icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/static/icons/icon-384x384.png",
-      "sizes": "384x384",
-      "type": "image/png"
-    },
-    {
-      "src": "/static/icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
-}</body></html>
+{
+  "app": {
+    "name": "Caretrack",
+    "version": "9.4.0",
+    "env": "production",
+    "url": "https://portal.northbridge-health.org"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.nbh.internal",
+    "port": 5432,
+    "name": "caretrack",
+    "user": "caretrack_svc",
+    "password": "fake-db-password-a0d24695"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.nbh.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-7f1dc8c07920c1901acdf99bb61bf63d",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-12T19:01:50Z"
+}

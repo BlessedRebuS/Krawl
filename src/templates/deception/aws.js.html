@@ -1,40 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AWS SDK Initialization Script</title>
-</head>
-<body>
-    <h1>AWS JavaScript SDK</h1>
-    <p>This file initializes the AWS SDK for client-side interactions with Amazon Web Services.</p>
-    <pre>
-        // Fake AWS SDK configuration - for demonstration only
-        const AWS = require('aws-sdk');
-        
-        AWS.config.update({
-            accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
-            secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
-            region: 'us-east-1'
-        });
-        
-        const s3 = new AWS.S3();
-        const ec2 = new AWS.EC2();
-        
-        // Simulate listing buckets (fake data)
-        s3.listBuckets(function(err, data) {
-            if (err) {
-                console.log("Error", err.stack);
-            } else {
-                console.log("Buckets:", data.Buckets.map(b => b.Name));
-            }
-        });
-        
-        // Expose for external use
-        module.exports = { AWS, s3, ec2 };
-    </pre>
-    <hr>
-    <p><small>Last updated: 2024-06-15 | Version: 2.1200.0</small></p>
-    <a href="/">Return to Home</a>
-</body>
-</html>
+/*! Grid Console 2.11.6 | build 64fb6e2 | (c) Volta Energia */
+(function (window) {
+  'use strict';
+
+  var config = {
+    apiBase: 'https://api.voltaenergia.es/v2',
+    wsBase: 'wss://api.voltaenergia.es/socket',
+    sentryDsn: 'https://fakee9d00807516b574c@sentry.internal/22',
+    release: 'volta-grid@2.11.6',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
+
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
+  }
+
+  window.VoltaGrid = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

@@ -1,0 +1,29 @@
+-- Meridian Portal database dump
+-- host: pg-prod-01.db.meridian.internal    database: meridian_portal
+-- server version 16.3    dumped on 2026-08-14 09:12:07
+
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+
+DROP TABLE IF EXISTS mp_users;
+CREATE TABLE mp_users (
+    id            integer NOT NULL,
+    username      varchar(64) NOT NULL,
+    email         varchar(190) NOT NULL,
+    password_hash varchar(255) NOT NULL,
+    role          varchar(32) NOT NULL DEFAULT 'support',
+    created_at    timestamp NOT NULL
+);
+
+INSERT INTO mp_users (id, username, email, password_hash, role, created_at) VALUES
+(1, 'j.halloran', 'j.halloran@meridiansys.io', '$2y$12$+xF96E4YFrEd5Pk5iyZcOLhDifkhh7WM9gv39by2+4GdBpcNIDlIQ', 'administrator', '2019-03-11 08:31:44'),
+(4, 's.okafor', 's.okafor@meridiansys.io', '$2y$12$q07SJrjQIYhz4FUq7aWdW1SayrvgiBhI2Qjsa8Pwcf1NDnkNwjDxD', 'editor', '2020-07-22 08:31:44'),
+(7, 'd.mercier', 'd.mercier@meridiansys.io', '$2y$12$SjzBQ3jQBkHsVHusCzF1rsY39xSxFMYKLvWBy2Qk23HDbhSOg1xhF', 'operations', '2021-01-14 08:31:44'),
+(12, 'r.bianchi', 'r.bianchi@meridiansys.io', '$2y$12$1XCu9iozV0mwi4WmJD+U4/m6BayVD48QP5DlL23YW0GgUX47qq/wC', 'support', '2022-05-03 08:31:44'),
+(18, 'a.novak', 'a.novak@meridiansys.io', '$2y$12$mRoo4RY6CsnBP05BeAIgrxW83bzq4hWe4rZx8wl2fvNkUPyrjRooQ', 'developer', '2023-02-27 08:31:44'),
+(23, 'm.thorne', 'm.thorne@meridiansys.io', '$2y$12$6Lqwam4IYLhoJ7pNMJPNkfRrIMfbrCmmMLzEiS/zdMLMU73bETwxT', 'analyst', '2024-09-16 08:31:44');
+
+ALTER TABLE ONLY mp_users ADD CONSTRAINT mp_users_pkey PRIMARY KEY (id);
+CREATE UNIQUE INDEX mp_users_email_idx ON mp_users USING btree (email);
+
+-- dump completed

@@ -1,42 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Acme Corp Intranet Portal</title>
-<style>
-body {font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:0;color:#333;}
-.container {max-width:800px;margin:40px auto;background:#fff;padding:30px;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.1);}
-h1 {color:#2c3e50;}
-.login-box {border-top:1px solid #ddd;padding-top:20px;margin-top:30px;}
-.input-group {margin-bottom:15px;}
-.input-group label {display:block;margin-bottom:5px;font-weight:bold;}
-.input-group input {width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;}
-.btn {background:#3498db;color:#fff;border:none;padding:10px 20px;border-radius:4px;cursor:pointer;}
-.btn:hover {background:#2980b9;}
-.footer {margin-top:40px;font-size:0.9em;color:#777;text-align:center;}
-</style>
-</head>
-<body>
-<div class="container">
-<h1>Acme Corp Intranet Portal</h1>
-<p>Welcome to the internal network. Please log in to access resources.</p>
-<div class="login-box">
-<form action="/auth/login" method="post">
-<div class="input-group">
-<label for="username">Username:</label>
-<input type="text" id="username" name="username" placeholder="Enter username" required>
-</div>
-<div class="input-group">
-<label for="password">Password:</label>
-<input type="password" id="password" name="password" placeholder="Enter password" required>
-</div>
-<button type="submit" class="btn">Log In</button>
-</form>
-</div>
-<p><small>Server: 10.0.0.5 • PHP 7.4.3 • MySQL 5.7.33 • AcmeDB v2.4.1</small></p>
-</div>
-<div class="footer">
-&copy; 2025 Acme Corporation. All rights reserved.
-</div>
-</body>
-</html>
+{
+  "app": {
+    "name": "Halcyon Commerce",
+    "version": "6.0.3",
+    "env": "production",
+    "url": "https://portal.halcyonretail.co.uk"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.halcyon.internal",
+    "port": 5432,
+    "name": "halcyon_commerce",
+    "user": "hc_web",
+    "password": "fake-db-password-b83a5e30"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.halcyon.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-98b38005d123cf7bea5eed27dff51e72",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-14T02:14:39Z"
+}

@@ -1,55 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>azure-pipelines.yml</title>
-    <style>
-        body {font-family: monospace; margin: 2rem; background:#f8f8f8; color:#222;}
-        pre {background:#fff; padding:1rem; border:1px solid #ddd; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>azure-pipelines.yml</h1>
-    <p>Repository: <code>example/my-app</code></p>
-    <pre>
-trigger:
-- main
+# Halcyon Commerce — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
 
-pr:
-- main
+app:
+  name: "Halcyon Commerce"
+  env: production
+  url: https://portal.halcyonretail.co.uk
+  version: "6.0.3"
 
-pool:
-  vmImage: 'ubuntu-latest'
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
 
-variables:
-  buildConfiguration: 'Release'
+database:
+  driver: postgresql
+  host: pg-prod-01.db.halcyon.internal
+  port: 5432
+  name: halcyon_commerce
+  user: hc_web
+  password: fake-db-password-981e1ae2
+  pool:
+    min: 4
+    max: 32
 
-steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '3.9'
-    addToPath: true
+redis:
+  host: redis-prod-01.cache.halcyon.internal
+  port: 6379
+  password: fake-redis-password-e9f85c
 
-- script: |
-    python -m pip install --upgrade pip
-    pip install -r requirements.txt
-  displayName: 'Install dependencies'
+auth:
+  jwt_secret: fake-jwt-secret-e29c2a8b4391aace84723bd2a4bba549
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
 
-- script: |
-    pytest tests/ --junitxml=test-results.xml
-  displayName: 'Run tests'
+storage:
+  provider: s3
+  bucket: halcyon-commerce-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-BC902
+  secret_access_key: fake-secret-OWDuDD8ZIVbqY8w4B8cplwSL
 
-- task: PublishTestResults@2
-  inputs:
-    testResultsFiles: '**/test-results.xml'
-    testRunTitle: 'Publish Test Results'
-
-- task: AzureWebApp@1
-  inputs:
-    azureSubscription: 'my-azure-subscription'
-    appName: 'my-demo-webapp'
-    package: '$(System.DefaultWorkingDirectory)/**/*.zip'
-    deploymentMethod: 'zipDeploy'
-    </pre>
-</body>
-</html>
+logging:
+  level: warning
+  format: json
+  sentry_dsn: https://fake29e4cded68f6e20f@sentry.internal/16

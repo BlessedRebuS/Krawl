@@ -1,37 +1,26 @@
-<html><body>{
-  "server": {
-    "hostname": "web01.internal.example.com",
-    "ip": "10.0.5.23",
-    "port": 8080,
-    "document_root": "/var/www/html",
-    "log_path": "/var/log/web01_access.log"
-  },
-  "security": {
-    "auth_mechanism": "basic",
-    "allowed_ips": [
-      "10.0.5.5",
-      "10.0.5.6"
-    ],
-    "session_secret": "a1b2c3d4e5f6g7h8i9j0"
+{
+  "app": {
+    "name": "Orbit Cloud",
+    "version": "0.38.2",
+    "env": "production",
+    "url": "https://portal.orbitlabs.dev"
   },
   "database": {
-    "type": "mysql",
-    "host": "db01.internal.example.com",
-    "port": 3306,
-    "name": "prod_db",
-    "user": "app_user",
-    "password": "s3cr3tP@ssw0rd!",
-    "prefix": "tbl_"
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.orbit.internal",
+    "port": 5432,
+    "name": "orbit_cloud",
+    "user": "orbit",
+    "password": "fake-db-password-a8f940ba"
   },
-  "features": {
-    "debug_mode": false,
-    "maintenance_mode": false,
-    "cache_enabled": true,
-    "cdn_endpoint": "https://cdn.internal.example.com"
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.orbit.internal",
+    "port": 6379
   },
-  "versions": {
-    "framework": "v4.2.1",
-    "php": "7.4.33",
-    "openssl": "1.1.1n"
-  }
-}</body></html>
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-3bdd890e4c4f103bda694790c3ba27db",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-09T08:14:36Z"
+}

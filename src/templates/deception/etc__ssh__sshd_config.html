@@ -1,0 +1,15 @@
+Port 22
+AddressFamily inet
+ListenAddress 10.24.1.7
+
+PermitRootLogin no
+PubkeyAuthentication yes
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+UsePAM yes
+X11Forwarding no
+ClientAliveInterval 300
+ClientAliveCountMax 2
+AllowGroups sshusers deploy
+
+Subsystem sftp /usr/lib/openssh/sftp-server

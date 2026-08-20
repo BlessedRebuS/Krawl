@@ -1,23 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Server Debug Info</title>
-<style>
-body{font-family:Arial,sans-serif;margin:20px;background:#f9f9f9;color:#333}
-h1{color:#2c3e50}
-.info{background:#fff;padding:15px;border:1px solid #ddd;margin-top:20px}
-</style>
-</head>
-<body>
-<h1>Debug Information</h1>
-<div class="info">
-<p><strong>Server IP:</strong> 203.0.113.57</p>
-<p><strong>Hostname:</strong> web01.example.com</p>
-<p><strong>OS:</strong> Linux 5.4.0-104-generic #118-Ubuntu SMP</p>
-<p><strong>Kernel:</strong> #118-Ubuntu SMP Tue Jun 15 16:07:20 UTC 2022</p>
-<p><strong>Python Version:</strong> 3.9.18 (main, Aug  7 2023, 12:15:42) [GCC 11.2.0]</p>
-<p><strong>Server Time:</strong> 2025-09-26 14:32:10 UTC</p>
-</div>
-</body>
-</html>
+<html><head><title>Apache Status</title></head><body>
+<h1>Apache Server Status for web-01.voltaenergia.es (via 10.24.1.7)</h1>
+<dl><dt>Server Version: Apache/2.4.58 (Ubuntu) OpenSSL/3.0.13</dt>
+<dt>Server MPM: event</dt>
+<dt>Server Built: 2025-07-24T11:02:19</dt></dl><hr>
+<dl>
+<dt>Current Time: Friday, 14-Aug-2026 09:12:07 UTC</dt>
+<dt>Restart Time: Sunday, 10-Aug-2026 04:15:02 UTC</dt>
+<dt>Parent Server Config. Generation: 3</dt>
+<dt>Server uptime: 4 days 5 hours 57 minutes</dt>
+<dt>Total accesses: 2114429 - Total Traffic: 85.5 GB</dt>
+<dt>2.8 requests/sec - 42 kB/second</dt>
+<dt>11 requests currently being processed, 24 idle workers</dt>
+</dl>
+<pre>__W_K_W__RW__K_.._W_KK___W_.................................
+............................................................</pre>
+<p>Scoreboard Key:<br>
+"<b><code>_</code></b>" Waiting for Connection,
+"<b><code>W</code></b>" Sending Reply,
+"<b><code>K</code></b>" Keepalive (read),
+"<b><code>.</code></b>" Open slot with no current process</p>
+<table border="0"><tr><th>Srv</th><th>PID</th><th>Acc</th><th>M</th><th>CPU</th><th>SS</th><th>Req</th><th>VHost</th><th>Request</th></tr>
+<tr><td>0-0</td><td>1219</td><td>0/122/8841</td><td>W</td><td>0.41</td><td>0</td><td>312</td><td>portal.voltaenergia.es</td><td>GET /api/v2/orders?page=3 HTTP/1.1</td></tr>
+<tr><td>1-0</td><td>6462</td><td>0/98/7712</td><td>K</td><td>0.29</td><td>2</td><td>88</td><td>portal.voltaenergia.es</td><td>GET /static/app.85ad592.js HTTP/1.1</td></tr>
+<tr><td>2-0</td><td>3012</td><td>0/45/3390</td><td>_</td><td>0.11</td><td>6</td><td>0</td><td>portal.voltaenergia.es</td><td>POST /api/v2/auth/refresh HTTP/1.1</td></tr>
+</table><hr><address>Apache/2.4.58 (Ubuntu) Server at web-01.voltaenergia.es Port 443</address>
+</body></html>

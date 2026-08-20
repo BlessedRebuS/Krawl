@@ -1,18 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>robots.txt - Example Site</title>
-</head>
-<body>
-    <pre>
 User-agent: *
 Disallow: /admin/
-Disallow: /private/
-Disallow: /backup/
+Disallow: /internal/
+Disallow: /api/v2/private/
+Disallow: /exports/
 Disallow: /tmp/
 Allow: /
-Sitemap: https://example.com/sitemap.xml
-    </pre>
-</body>
-</html>
+
+User-agent: GPTBot
+Disallow: /
+
+Sitemap: https://www.northbridge-health.org/sitemap.xml

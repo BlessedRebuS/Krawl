@@ -1,17 +1,26 @@
-<html><body>{
-  "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "public" }
-    }
-  ],
-  "routes": [
-    { "src": "/(.*)", "dest": "/index.html" }
-  ],
-  "env": {
-    "API_KEY": "fake_key_12345",
-    "DATABASE_URL": "postgres://user:pass@localhost:5432/db"
-  }
-}</body></html>
+{
+  "app": {
+    "name": "Orbit Cloud",
+    "version": "0.38.2",
+    "env": "production",
+    "url": "https://portal.orbitlabs.dev"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.orbit.internal",
+    "port": 5432,
+    "name": "orbit_cloud",
+    "user": "orbit",
+    "password": "fake-db-password-af5a3533"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.orbit.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-45a4a6eb1111250fc5bbad0d99320e6e",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-07T17:19:10Z"
+}

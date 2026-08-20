@@ -1,30 +1,26 @@
-<html><body>{
-  "auth_version": "1.3.2",
-  "server": "nginx/1.21.6",
-  "application": "CodexAuth",
-  "ip": "192.168.10.42",
-  "db_name": "codex_db",
-  "users": [
-    {
-      "username": "admin",
-      "email": "admin@codex.local",
-      "roles": [
-        "admin",
-        "audit"
-      ]
-    },
-    {
-      "username": "viewer",
-      "email": "viewer@codex.local",
-      "roles": [
-        "viewer"
-      ]
-    }
-  ],
-  "tokens": {
-    "access_token_TTL": 3600,
-    "refresh_token_TTL": 86400
+{
+  "app": {
+    "name": "Caretrack",
+    "version": "9.4.0",
+    "env": "production",
+    "url": "https://portal.northbridge-health.org"
   },
-  "secret_key": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6",
-  "last_update": "2025-10-28T14:32:10Z"
-}</body></html>
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.nbh.internal",
+    "port": 5432,
+    "name": "caretrack",
+    "user": "caretrack_svc",
+    "password": "fake-db-password-a007e191"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.nbh.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-cf133787e36afa44dcc32302affa32b0",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-06T17:03:58Z"
+}

@@ -1,115 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Upload - Livewire</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #333; text-align: center; }
-        .upload-area { border: 2px dashed #ccc; border-radius: 8px; padding: 40px; text-align: center; margin: 20px 0; background-color: #fafafa; }
-        .upload-area:hover { border-color: #999; background-color: #f0f0f0; }
-        button { background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        button:hover { background-color: #0056b3; }
-        .file-info { margin-top: 15px; font-size: 14px; color: #666; }
-        .note { font-size: 13px; color: #888; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Document upload — Meridian Portal</title>
+<style>
+:root{--bg:#f5f6f8;--panel:#fff;--ink:#1f2733;--muted:#6b7688;
+--line:#dde2e9;--brand:#1d4f91;--brand-dk:#163c6e;--r:4px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:var(--brand);color:#fff;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#fff}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#dbe6f5;font-size:13px}
+header.top nav a.active{color:#fff;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:none}
+h1{font-family:inherit;font-size:20px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Livewire File Upload</h1>
-        <p>Upload your files securely using our Livewire-powered interface.</p>
-        
-        <div class="upload-area" id="uploadArea">
-            <p>Drag and drop files here</p>
-            <p>or</p>
-            <button type="button" id="browseBtn">Browse Files</button>
-            <input type="file" id="fileInput" style="display: none;" multiple>
-        </div>
-        
-        <div class="file-info" id="fileInfo">
-            <!-- File info will appear here via Livewire -->
-        </div>
-        
-        <div style="text-align: center; margin-top: 20px;">
-            <button type="button" id="uploadBtn" disabled>Upload Files</button>
-        </div>
-        
-        <div class="note">
-            <p>Note: Maximum file size is 10MB. Supported formats: JPG, PNG, PDF, DOC, DOCX.</p>
-            <p>All uploads are scanned for viruses and malware before processing.</p>
-        </div>
-    </div>
+<header class="top"><span class="brand">Meridian Portal</span><nav><a href="/dashboard">Dashboard</a><a href="/orders">Orders</a><a href="/directory">Directory</a><a href="/reports">Reports</a><a href="/settings">Settings</a></nav></header>
 
-    <script>
-        // Simulate Livewire-like behavior for demo purposes
-        document.addEventListener('DOMContentLoaded', function() {
-            const uploadArea = document.getElementById('uploadArea');
-            const fileInput = document.getElementById('fileInput');
-            const browseBtn = document.getElementById('browseBtn');
-            const uploadBtn = document.getElementById('uploadBtn');
-            const fileInfo = document.getElementById('fileInfo');
-            
-            browseBtn.addEventListener('click', () => fileInput.click());
-            
-            fileInput.addEventListener('change', function(e) {
-                const files = Array.from(e.target.files);
-                if (files.length === 0) return;
-                
-                fileInfo.innerHTML = `
-                    <strong>${files.length} file(s) selected:</strong><br>
-                    ${files.map(f => `• ${f.name} (${Math.round(f.size / 1024)} KB)`).join('<br>')}
-                `;
-                uploadBtn.disabled = false;
-            });
-            
-            // Drag and drop
-            uploadArea.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                uploadArea.style.borderColor = '#007bff';
-                uploadArea.style.backgroundColor = '#e7f3ff';
-            });
-            
-            uploadArea.addEventListener('dragleave', function(e) {
-                e.preventDefault();
-                uploadArea.style.borderColor = '#ccc';
-                uploadArea.style.backgroundColor = '#fafafa';
-            });
-            
-            uploadArea.addEventListener('drop', function(e) {
-                e.preventDefault();
-                uploadArea.style.borderColor = '#ccc';
-                uploadArea.style.backgroundColor = '#fafafa';
-                
-                const files = Array.from(e.dataTransfer.files);
-                if (files.length === 0) return;
-                
-                fileInput.files = e.dataTransfer.files;
-                fileInfo.innerHTML = `
-                    <strong>${files.length} file(s) selected:</strong><br>
-                    ${files.map(f => `• ${f.name} (${Math.round(f.size / 1024)} KB)`).join('<br>')}
-                `;
-                uploadBtn.disabled = false;
-            });
-            
-            uploadBtn.addEventListener('click', function() {
-                const files = fileInput.files;
-                if (files.length === 0) return;
-                
-                uploadBtn.disabled = true;
-                uploadBtn.textContent = 'Uploading...';
-                
-                // Simulate upload delay
-                setTimeout(() => {
-                    alert('Files uploaded successfully! (Simulated response)');
-                    uploadBtn.textContent = 'Upload Files';
-                    uploadBtn.disabled = false;
-                    fileInput.value = '';
-                    fileInfo.innerHTML = '';
-                }, 1500);
-            });
-        });
-    </script>
+<div class="wrap">
+  <div class="breadcrumb"><a href="/dashboard">Dashboard</a> / Documents / Upload</div>
+  <h1>Upload documents</h1>
+  <p class="sub">Attach delivery notes, commercial invoices or customs declarations
+  to a order record.</p>
+  <div class="panel" style="max-width:620px">
+    <form method="post" action="/upload" enctype="multipart/form-data">
+      <input type="hidden" name="_token" value="D1EpgOCbBx81AhJthY3hUAM40z8a/+rud/Qjop4K">
+      <div class="field"><label for="ref">Order reference</label>
+        <input id="ref" name="reference" type="text" placeholder="OR-11483"></div>
+      <div class="field"><label for="type">Document type</label>
+        <select id="type" name="doc_type"><option>Delivery note</option><option>Commercial invoice</option><option>Packing list</option><option>Customs declaration</option></select></div>
+      <div class="field"><label for="f">File</label>
+        <input id="f" name="file" type="file"></div>
+      <p class="muted" style="font-size:12px">Accepted: PDF, PNG, JPG, XLSX. Maximum 25 MB per file.</p>
+      <button type="submit">Upload</button>
+      <a class="btn sec" href="/documents" style="display:inline-block;margin-left:8px">Cancel</a>
+    </form>
+  </div>
+  <div class="panel" style="max-width:620px">
+    <h2>Recently uploaded</h2>
+    <table><tbody>
+      <tr><td>delivery-note-OR-11483.pdf</td><td class="muted">1.2 MB</td>
+          <td class="muted">14/08 04:12</td></tr>
+      <tr><td>commercial-invoice-2026-08-0442.pdf</td><td class="muted">318 kB</td>
+          <td class="muted">13/08 09:12</td></tr>
+    </tbody></table>
+  </div>
+</div>
+
+<footer>Meridian Portal 4.2.1 &middot; &copy; 2026 Meridian Systems &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

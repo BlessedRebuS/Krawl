@@ -1,96 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>WebLanguage SDK - Documentation</title>
-    <style>
-        body {font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; background:#f5f5f5; color:#333;}
-        header {background:#004080; color:#fff; padding:20px; text-align:center;}
-        nav {background:#e0e0e0; padding:10px;}
-        nav a {margin:0 15px; text-decoration:none; color:#004080; font-weight:bold;}
-        main {padding:20px; max-width:960px; margin:auto; background:#fff; box-shadow:0 0 10px rgba(0,0,0,0.1);}
-        h1, h2 {color:#004080;}
-        code {background:#f0f0f0; padding:2px 4px; border-radius:3px;}
-        pre {background:#f8f8f8; padding:10px; overflow:auto; border:1px solid #ddd;}
-        .section {margin-bottom:30px;}
-        footer {text-align:center; padding:15px; font-size:0.9em; color:#666; margin-top:30px;}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meridian Systems — industrial telemetry and logistics software</title>
+<style>
+:root{--bg:#f5f6f8;--panel:#fff;--ink:#1f2733;--muted:#6b7688;
+--line:#dde2e9;--brand:#1d4f91;--brand-dk:#163c6e;--r:4px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:var(--brand);color:#fff;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#fff}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#dbe6f5;font-size:13px}
+header.top nav a.active{color:#fff;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:none}
+h1{font-family:inherit;font-size:20px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <header>
-        <h1>WebLanguage SDK</h1>
-        <p>Official documentation for integrating WebLanguage into your applications</p>
-    </header>
-    <nav>
-        <a href="/SDK/webLanguage">Home</a>
-        <a href="/SDK/webLanguage/getting-started">Getting Started</a>
-        <a href="/SDK/webLanguage/api-reference">API Reference</a>
-        <a href="/SDK/webLanguage/examples">Examples</a>
-        <a href="/SDK/webLanguage/download">Download</a>
-    </nav>
-    <main>
-        <section class="section">
-            <h2>Overview</h2>
-            <p>The WebLanguage SDK provides a simple interface for developers to add multilingual support to web applications. It includes utilities for language detection, translation lookup, and dynamic content switching.</p>
-        </section>
+<header class="top"><span class="brand">Meridian Portal</span><nav><a href="/dashboard">Dashboard</a><a href="/orders">Orders</a><a href="/directory">Directory</a><a href="/reports">Reports</a><a href="/settings">Settings</a></nav></header>
 
-        <section class="section">
-            <h2>Installation</h2>
-            <p>Include the SDK via a script tag or install via npm:</p>
-            <pre><code>&lt;script src="https://cdn.example.com/weblanguage-sdk/v1.0.0/weblanguage.min.js"&gt;&lt;/script&gt;</code></pre>
-            <p>Or using npm:</p>
-            <pre><code>npm install @example/weblanguage-sdk</code></pre>
-        </section>
+<div class="wrap">
+  <div class="panel">
+    <h1>Track every shipment, sensor and service call in one place</h1>
+    <p class="sub">Meridian Systems builds the dispatch, telemetry and reporting platform used by freight operators and field-service teams in 14 European countries.</p>
+    <p><a class="btn" href="/contact-us" style="display:inline-block">Book a demo</a>
+       <a class="btn sec" href="/login" style="display:inline-block;margin-left:8px">Customer sign in</a></p>
+  </div>
+  <div class="grid"><div class="panel"><h2>Fleet telemetry</h2><p class="muted">Live position, temperature and door-state from MK-II sensors, with alerting on excursion thresholds.</p><p><a href="/products">Read more</a></p></div><div class="panel"><h2>Dispatch &amp; orders</h2><p class="muted">Plan routes, split partial shipments and push updates straight into your WMS or ERP.</p><p><a href="/solutions/logistics">Read more</a></p></div><div class="panel"><h2>Reporting</h2><p class="muted">Scheduled exports, SLA dashboards and a v2 REST API for everything the interface can show.</p><p><a href="/support">Read more</a></p></div></div>
+  <div class="panel">
+    <h2>Latest updates</h2>
+    <p><a href="/blog/q3-platform-roadmap">Q3 platform roadmap</a>
+      <span class="muted">&middot; 08 August 2026</span><br>
+    <a href="/blog/release-4.2.1">What changed in Meridian Portal 4.2.1</a>
+      <span class="muted">&middot; 26 July 2026</span><br>
+    <a href="/blog/integration-notes">Integration notes for partners</a>
+      <span class="muted">&middot; 12 July 2026</span></p>
+  </div>
+  <div class="panel">
+    <p class="muted" style="font-size:12px">Meridian Systems &middot; Via Bergognone 27, 20144 Milano, Italy &middot;
+    company no. 6198304 &middot; <a href="/products">Products</a> &middot; <a href="/solutions/logistics">Logistics</a> &middot; <a href="/support">Support</a> &middot; <a href="/about-us">About us</a> &middot; <a href="/contact-us">Contact</a></p>
+  </div>
+</div>
 
-        <section class="section">
-            <h2>Basic Usage</h2>
-            <p>Initialize the SDK with your default language and a translation map:</p>
-            <pre><code>// Initialize SDK
-WL.init({
-    defaultLang: 'en',
-    translations: {
-        en: { greeting: 'Hello', farewell: 'Goodbye' },
-        es: { greeting: 'Hola', farewell: 'Adiós' }
-    }
-});
-
-// Detect user language
-const lang = WL.detectLanguage() || WL.options.defaultLang;
-
-// Get translated string
-const greeting = WL.t('greeting', lang);
-console.log(greeting); // Outputs based on detected language
-</code></pre>
-        </section>
-
-        <section class="section">
-            <h2>API Reference</h2>
-            <h3>WL.init(options)</h3>
-            <p>Initializes the SDK.</p>
-            <ul>
-                <li><strong>defaultLang</strong> (string): Language code to use when no match is found.</li>
-                <li><strong>translations</strong> (object): Mapping of language codes to key/value translation objects.</li>
-            </ul>
-
-            <h3>WL.detectLanguage()</h3>
-            <p>Returns the user's preferred language based on <code>navigator.language</code> or returns <code>null</code> if undetectable.</p>
-
-            <h3>WL.t(key, lang)</h3>
-            <p>Retrieves the translated string for <code>key</code> in the specified <code>lang</code>. Falls back to <code>defaultLang</code> if missing.</p>
-        </section>
-
-        <section class="section">
-            <h2>Changelog</h2>
-            <ul>
-                <li><strong>1.0.0</strong> – Initial release.</li>
-                <li><strong>1.1.0</strong> – Added language detection fallback.</li>
-                <li><strong>1.2.0</strong> – Improved bundle size.</li>
-            </ul>
-        </section>
-    </main>
-
-    <footer>
-        © 2025 Example Corp. All rights reserved.
-    </footer>
+<footer>Meridian Portal 4.2.1 &middot; &copy; 2026 Meridian Systems &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

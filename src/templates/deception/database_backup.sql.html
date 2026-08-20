@@ -1,0 +1,28 @@
+-- Caretrack database dump
+-- host: pg-prod-01.db.nbh.internal    database: caretrack
+-- server version 16.3    dumped on 2026-08-14 09:12:07
+
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+
+DROP TABLE IF EXISTS mp_users;
+CREATE TABLE mp_users (
+    id            integer NOT NULL,
+    username      varchar(64) NOT NULL,
+    email         varchar(190) NOT NULL,
+    password_hash varchar(255) NOT NULL,
+    role          varchar(32) NOT NULL DEFAULT 'support',
+    created_at    timestamp NOT NULL
+);
+
+INSERT INTO mp_users (id, username, email, password_hash, role, created_at) VALUES
+(3, 'e.whitfield', 'e.whitfield@northbridge-health.org', '$2y$12$0ie1wa0hc7FWKJp1qb8AEX/xg9vYKdXDKeTkmS8XxHIW0OGYt9r+a', 'clinical_lead', '2017-09-04 08:31:44'),
+(9, 'p.adeyemi', 'p.adeyemi@northbridge-health.org', '$2y$12$Z/ar+foA+MD9ETaa8DJw7P4aFs2Z3fbIcGaK2zvj1HibiXsWw5Asb', 'scheduler', '2019-11-18 08:31:44'),
+(14, 't.ruane', 't.ruane@northbridge-health.org', '$2y$12$YIgACcnX7wimfwc3aDbpy9mOxpW3+uyKBZHf5Cg5pgQzApHkrWQw/', 'administrator', '2020-02-06 08:31:44'),
+(21, 'l.svensson', 'l.svensson@northbridge-health.org', '$2y$12$oDwwQM1zUSObUHNwBhn1lUd1awcZaLfkTLQcmXe68YQf5kKZBSF7i', 'nurse', '2021-08-30 08:31:44'),
+(28, 'k.oyelaran', 'k.oyelaran@northbridge-health.org', '$2y$12$oV03N+3ZS2a5o6JEylNe3KsLVdicv4JL3Qn/RdrcUOPSp6YjiX1Zj', 'records', '2023-04-11 08:31:44');
+
+ALTER TABLE ONLY mp_users ADD CONSTRAINT mp_users_pkey PRIMARY KEY (id);
+CREATE UNIQUE INDEX mp_users_email_idx ON mp_users USING btree (email);
+
+-- dump completed

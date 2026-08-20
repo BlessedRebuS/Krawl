@@ -1,28 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Login - Secure Portal</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 40px;}
-        .container {max-width: 400px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px;}
-        label {display: block; margin-top: 10px;}
-        input[type=text], input[type=password] {width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;}
-        button {margin-top: 20px; padding: 10px 20px; background:#0066cc; color:#fff; border:none; cursor:pointer;}
-        button:hover {background:#004c99;}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>Employee Login</h2>
-        <form action="/cgi-bin/login.sh" method="POST">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            <button type="submit">Sign In</button>
-        </form>
-        <p>If you forgot your credentials, contact <a href="mailto:it-support@example.com">IT Support</a>.</p>
-    </div>
-</body>
-</html>
+#!/usr/bin/env bash
+# Grid Console — deployment helper. Invoked by CI, not intended for manual use.
+set -euo pipefail
+
+APP_DIR="/var/www/portal"
+RELEASE="${1:-2.11.6}"
+REGISTRY="registry.voltaenergia.es"
+
+export PGHOST="pg-prod-01.db.volta.internal"
+export PGUSER="grid_rw"
+export PGPASSWORD="fake-db-password-6a377d0b"
+export AWS_ACCESS_KEY_ID="AKIA-FAKE-191B5"
+export AWS_SECRET_ACCESS_KEY="fake-secret-xXUAkKWBbTW5in8vyd4hzPoI"
+
+echo "[deploy] pulling ${REGISTRY}/volta-grid/app:${RELEASE}"
+docker pull "${REGISTRY}/volta-grid/app:${RELEASE}"
+
+echo "[deploy] running migrations"
+docker run --rm --env-file "${APP_DIR}/.env" \
+  "${REGISTRY}/volta-grid/app:${RELEASE}" php artisan migrate --force
+
+echo "[deploy] restarting service"
+systemctl restart volta-grid
+curl -fsS https://portal.voltaenergia.es/_health > /dev/null && echo "[deploy] ok"

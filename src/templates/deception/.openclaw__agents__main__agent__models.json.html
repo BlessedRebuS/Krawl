@@ -1,31 +1,26 @@
-<html><body>{
-  "models": [
-    {
-      "id": "model-001",
-      "name": "GPT-NeoX-20B",
-      "version": "1.2.3",
-      "parameters": 20000000000,
-      "architecture": "Transformer",
-      "training_data": "webtext2023",
-      "license": "MIT"
-    },
-    {
-      "id": "model-002",
-      "name": "BERT-Large",
-      "version": "2.0.0",
-      "parameters": 340000000,
-      "architecture": "Transformer",
-      "training_data": "wiki+books",
-      "license": "Apache 2.0"
-    },
-    {
-      "id": "model-003",
-      "name": "T5-XL",
-      "version": "3.1.0",
-      "parameters": 1100000000,
-      "architecture": "Encoder-Decoder Transformer",
-      "training_data": "C4 + web scrape",
-      "license": "Apache 2.0"
-    }
-  ]
-}</body></html>
+{
+  "app": {
+    "name": "Meridian Portal",
+    "version": "4.2.1",
+    "env": "production",
+    "url": "https://portal.meridiansys.io"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.meridian.internal",
+    "port": 5432,
+    "name": "meridian_portal",
+    "user": "meridian_app",
+    "password": "fake-db-password-20ebef64"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.meridian.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-2d5ac88e06a263494f5e5054ea6ab52d",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-09T02:40:02Z"
+}

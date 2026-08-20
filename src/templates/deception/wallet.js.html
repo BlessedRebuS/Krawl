@@ -1,0 +1,36 @@
+/*! Orbit Cloud 0.38.2 | build a03c8e1 | (c) Orbit Labs */
+(function (window) {
+  'use strict';
+
+  var config = {
+    apiBase: 'https://api.orbitlabs.dev/v2',
+    wsBase: 'wss://api.orbitlabs.dev/socket',
+    sentryDsn: 'https://fake65f922c40f0aad93@sentry.internal/13',
+    release: 'orbit-cloud@0.38.2',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
+
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
+  }
+
+  window.Orbit = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

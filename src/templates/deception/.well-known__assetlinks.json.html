@@ -1,22 +1,26 @@
-<html><body>{
-  "version": "1.0.0",
-  "statements": [
-    {
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "web",
-        "site": "https://example.com"
-      }
-    },
-    {
-      "relation": ["delegate_permission/common.get_login_creds"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "com.example.app",
-        "sha256_cert_fingerprints": [
-          "A1:B2:C3:D4:E5:F6:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78"
-        ]
-      }
-    }
-  ]
-}</body></html>
+{
+  "app": {
+    "name": "Caretrack",
+    "version": "9.4.0",
+    "env": "production",
+    "url": "https://portal.northbridge-health.org"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.nbh.internal",
+    "port": 5432,
+    "name": "caretrack",
+    "user": "caretrack_svc",
+    "password": "fake-db-password-40ffbd7b"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.nbh.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-ef3129ce46b237356382e740fece7f38",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-05T17:51:51Z"
+}

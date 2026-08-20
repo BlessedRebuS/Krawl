@@ -1,65 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Application Configuration</title>
-    <style>
-        body{font-family:monospace;background:#f8f8f8;color:#333;padding:20px;}
-        pre{background:#eee;padding:10px;border:1px solid #ddd;overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>config/app.php</h1>
-    <pre>&lt;?php
+<?php
 /**
- * Application Configuration
- * This file contains settings for the application.
+ * Meridian Portal — database & service configuration
+ *
+ * @package  Meridian
+ * @version  4.2.1
  */
-return [
 
-    // Database configuration
+defined('MERIDIAN_ROOT') or define('MERIDIAN_ROOT', dirname(__DIR__));
+
+$config = [
+    'app' => [
+        'name'      => 'Meridian Portal',
+        'env'       => 'production',
+        'debug'     => false,
+        'url'       => 'https://portal.meridiansys.io',
+        'key'       => 'base64:gcaLhRznavMugb8PWpTp/HYQnRUpdIFTdtPD9CbF64/=',
+    ],
+
     'db' => [
-        'host'     => 'localhost',
-        'port'     => 3306,
-        'name'     => 'myapp',
-        'user'     => 'admin',
-        'password' => 'S3cr3t!2024',
-        'charset'  => 'utf8mb4',
-        'collation'=> 'utf8mb4_unicode_ci',
+        'driver'    => 'pgsql',
+        'host'      => 'pg-prod-01.db.meridian.internal',
+        'port'      => 5432,
+        'database'  => 'meridian_portal',
+        'username'  => 'meridian_app',
+        'password'  => 'fake-db-password-4400a809',
+        'charset'   => 'utf8',
+        'prefix'    => 'mp_',
     ],
 
-    // Cache settings
-    'cache' => [
-        'driver' => 'redis',
-        'host'   => '127.0.0.1',
-        'port'   => 6379,
-        'password'=> null,
+    'redis' => [
+        'host'      => 'redis-prod-01.cache.meridian.internal',
+        'port'      => 6379,
+        'password'  => 'fake-redis-password-f54923',
     ],
 
-    // Application key (should be kept secret)
-    'app_key' => base64_encode(random_bytes(32)),
-
-    // Debug mode
-    'debug' => env('APP_DEBUG', false),
-
-    // Mail settings
     'mail' => [
-        'driver' => 'smtp',
-        'host'   => 'smtp.example.com',
-        'port'   => 587,
-        'username'=> 'smtp_user',
-        'password'=> 'smtp_pass',
+        'host'      => 'smtp.mail.meridian.internal',
+        'port'      => 587,
+        'username'  => 'no-reply@meridiansys.io',
+        'password'  => 'fake-smtp-password-0933c288',
         'encryption'=> 'tls',
     ],
-
-    // Logging
-    'log' => [
-        'channel' => 'stack',
-        'path'    => storage_path('logs/laravel.log'),
-        'level'   => 'debug',
-    ],
 ];
-?&gt;
-</pre>
-</body>
-</html>
+
+/* Legacy globals — still read by the reporting cron, remove after MP-2841. */
+$db_host = $config['db']['host'];
+$db_user = $config['db']['username'];
+$db_pass = $config['db']['password'];
+$db_name = $config['db']['database'];
+
+define('AUTH_SALT', 'r7R85PkgVeX1AHgwdbqlV3QPnInFtPia');
+define('SECURE_AUTH_KEY', '7Lg5iKvphJB7gmoW7nRXwpbZw3b6LegH');
+
+return $config;

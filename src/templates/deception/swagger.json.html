@@ -1,188 +1,26 @@
-<html><body>{
-  "swagger": "2.0",
-  "info": {
-    "title": "User Management API",
-    "version": "1.0.0",
-    "description": "API for managing user accounts and permissions",
-    "contact": {
-      "name": "Dev Team",
-      "email": "devteam@example.com"
-    }
+{
+  "app": {
+    "name": "Grid Console",
+    "version": "2.11.6",
+    "env": "production",
+    "url": "https://portal.voltaenergia.es"
   },
-  "host": "api.example.com",
-  "basePath": "/api/v1",
-  "schemes": [
-    "https"
-  ],
-  "paths": {
-    "/users": {
-      "get": {
-        "summary": "Retrieve list of users",
-        "description": "Returns a paginated list of all users in the system",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Maximum number of users to return",
-            "required": false,
-            "type": "integer",
-            "default": 10
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "description": "Number of users to skip",
-            "required": false,
-            "type": "integer",
-            "default": 0
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "users": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/User"
-                  }
-                },
-                "total": {
-                  "type": "integer"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "summary": "Create a new user",
-        "description": "Creates a new user account",
-        "parameters": [
-          {
-            "name": "user",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/User"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "User created successfully"
-          },
-          "400": {
-            "description": "Invalid input"
-          }
-        }
-      }
-    },
-    "/users/{id}": {
-      "get": {
-        "summary": "Get user by ID",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "User details",
-            "schema": {
-              "$ref": "#/definitions/User"
-            }
-          },
-          "404": {
-            "description": "User not found"
-          }
-        }
-      },
-      "put": {
-        "summary": "Update user",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "user",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/User"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "User updated"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "404": {
-            "description": "User not found"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete user",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "User deleted"
-          },
-          "404": {
-            "description": "User not found"
-          }
-        }
-      }
-    }
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.volta.internal",
+    "port": 5432,
+    "name": "volta_grid",
+    "user": "grid_rw",
+    "password": "fake-db-password-afa44453"
   },
-  "definitions": {
-    "User": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "example": "507f1f77bcf86cd799439011"
-        },
-        "username": {
-          "type": "string",
-          "example": "johndoe"
-        },
-        "email": {
-          "type": "string",
-          "format": "email",
-          "example": "johndoe@example.com"
-        },
-        "role": {
-          "type": "string",
-          "enum": ["admin", "user", "moderator"],
-          "example": "user"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "example": "2023-05-15T10:30:00Z"
-        }
-      },
-      "required": ["username", "email"]
-    }
-  }
-}</body></html>
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.volta.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-960c22f9bea77794f2ed6ea090364afb",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-13T08:46:55Z"
+}

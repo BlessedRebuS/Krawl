@@ -1,40 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Static JS - main.b7f3a9c2.js</title>
-</head>
-<body>
-    <h1>JavaScript Resource</h1>
-    <p>This file contains the main application logic for the site.</p>
-    <script>
-        // Fake main.b7f3a9c2.js content
-        (function() {
-            console.log('Application initialized');
+/*! Caretrack 9.4.0 | build 21c28e6 | (c) Northbridge Health */
+(function (window) {
+  'use strict';
 
-            // Simulated vulnerable AJAX function
-            function loadUserData(id) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', '/api/user?id=' + id, true);
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState === 4 && xhr.status === 200) {
-                        var data = JSON.parse(xhr.responseText);
-                        displayUser(data);
-                    }
-                };
-                xhr.send();
-            }
+  var config = {
+    apiBase: 'https://api.northbridge-health.org/v2',
+    wsBase: 'wss://api.northbridge-health.org/socket',
+    sentryDsn: 'https://fake492a1725dcb78f78@sentry.internal/31',
+    release: 'caretrack@9.4.0',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
 
-            function displayUser(data) {
-                var container = document.getElementById('user-info');
-                if (container) {
-                    container.innerHTML = '<p>Name: ' + data.name + '</p><p>Email: ' + data.email + '</p>';
-                }
-            }
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
+  }
 
-            // Expose to global for debugging (intentionally vulnerable)
-            window.loadUserData = loadUserData;
-        })();
-    </script>
-</body>
-</html>
+  window.Caretrack = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

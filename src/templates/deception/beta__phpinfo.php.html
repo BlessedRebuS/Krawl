@@ -1,51 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Admin Login - Intranet Portal</title>
-<style>
-body{font-family:Arial,sans-serif;background:#f4f4f4;margin:0;display:flex;align-items:center;justify-content:center;height:100vh}
-.login-box{background:#fff;padding:30px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.1);width:320px}
-h2{margin-top:0;color:#333}
-.input-group{margin-bottom:15px}
-.input-group label{display:block;margin-bottom:5px;font-weight:bold}
-.input-group input{width:100%;padding:8px;border:1px solid #ccc;border-radius:4px}
-.btn{width:100%;padding:10px;background:#0066cc;color:#fff;border:none;border-radius:4px;cursor:pointer}
-.btn:hover{background:#004c99}
-.footer{margin-top:20px;font-size:12px;color:#777;text-align:center}
-</style>
-</head>
-<body>
-<div class="login-box">
-<h2>Admin Login</h2>
-<form id="loginForm" action="/admin/login" method="POST">
-<div class="input-group">
-<label for="username">Username:</label>
-<input type="text" id="username" name="username" placeholder="Enter username" required>
-</div>
-<div class="input-group">
-<label for="password">Password:</label>
-<input type="password" id="password" name="password" placeholder="Enter password" required>
-</div>
-<button type="submit" class="btn">Sign In</button>
-</form>
-<div class="footer">
-Version 2.4.1 • Build 20240915 • Internal IP 10.0.0.42
-</div>
-</div>
-<script>
-document.getElementById('loginForm').addEventListener('submit', function(e){
-var u = document.getElementById('username').value.trim();
-var p = document.getElementById('password').value;
-if(u.length < 3){
-alert('Username must be at least 3 characters');
-e.preventDefault();
-}
-if(p.length < 6){
-alert('Password must be at least 6 characters');
-e.preventDefault();
-}
-});
-</script>
-</body>
-</html>
+<html><head><title>phpinfo()</title><style>
+body{background:#fff;color:#222;font-family:sans-serif;font-size:13px}
+table{border-collapse:collapse;width:600px;margin:1em auto}
+td,th{border:1px solid #666;padding:4px 6px;vertical-align:baseline}
+h1{text-align:center;font-size:20px}h2{text-align:center;font-size:16px;background:#9999cc;width:600px;margin:1em auto;padding:4px}
+.e{background:#ccccff;font-weight:bold;width:300px}.v{background:#cccccc;word-break:break-all}
+.h th{background:#9999cc}.center{text-align:center}
+</style></head><body>
+<h1>PHP Version 8.2.24</h1>
+<table>
+<tr><td class="e">System</td><td class="v">Linux web-01 6.8.0-45-generic #45-Ubuntu SMP x86_64</td></tr>
+<tr><td class="e">Build Date</td><td class="v">Sep 26 2025 14:11:03</td></tr>
+<tr><td class="e">Server API</td><td class="v">FPM/FastCGI</td></tr>
+<tr><td class="e">Loaded Configuration File</td><td class="v">/etc/php/8.2/fpm/php.ini</td></tr>
+<tr><td class="e">Scan this dir for additional .ini files</td><td class="v">/etc/php/8.2/fpm/conf.d</td></tr>
+<tr><td class="e">PHP API</td><td class="v">20220829</td></tr>
+<tr><td class="e">Debug Build</td><td class="v">no</td></tr>
+<tr><td class="e">Thread Safety</td><td class="v">disabled</td></tr>
+<tr><td class="e">Registered PHP Streams</td><td class="v">https, ftps, compress.zlib, php, file, glob, data, http, ftp, phar</td></tr>
+</table>
+<h2>Core</h2>
+<table>
+<tr class="h"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class="e">display_errors</td><td class="v">Off</td><td class="v">Off</td></tr>
+<tr><td class="e">memory_limit</td><td class="v">256M</td><td class="v">256M</td></tr>
+<tr><td class="e">max_execution_time</td><td class="v">60</td><td class="v">30</td></tr>
+<tr><td class="e">upload_max_filesize</td><td class="v">25M</td><td class="v">25M</td></tr>
+<tr><td class="e">open_basedir</td><td class="v">/var/www/portal:/tmp</td><td class="v">no value</td></tr>
+<tr><td class="e">disable_functions</td><td class="v">exec,passthru,shell_exec,system,proc_open,popen</td><td class="v">exec,passthru,shell_exec,system,proc_open,popen</td></tr>
+</table>
+<h2>Environment</h2>
+<table>
+<tr class="h"><th>Variable</th><th>Value</th></tr>
+<tr><td class="e">APP_ENV</td><td class="v">production</td></tr>
+<tr><td class="e">DB_HOST</td><td class="v">pg-prod-01.db.kestrel.internal</td></tr>
+<tr><td class="e">DB_USERNAME</td><td class="v">tmsuser</td></tr>
+<tr><td class="e">DB_PASSWORD</td><td class="v">fake-db-password-ced82785</td></tr>
+<tr><td class="e">DOCUMENT_ROOT</td><td class="v">/var/www/portal/public</td></tr>
+</table>
+<h2>PHP Variables</h2>
+<table>
+<tr class="h"><th>Variable</th><th>Value</th></tr>
+<tr><td class="e">_SERVER["HTTP_HOST"]</td><td class="v">portal.kestrelfreight.nl</td></tr>
+<tr><td class="e">_SERVER["SERVER_SOFTWARE"]</td><td class="v">nginx/1.24.0</td></tr>
+<tr><td class="e">_SERVER["REQUEST_URI"]</td><td class="v">/beta/phpinfo.php</td></tr>
+</table>
+<p class="center">PHP Group &middot; Zend Engine v4.2.24</p>
+</body></html>

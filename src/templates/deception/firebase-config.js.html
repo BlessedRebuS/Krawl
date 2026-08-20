@@ -1,12 +1,36 @@
-<html><body>// Firebase configuration
-var firebaseConfig = {
-    apiKey: "AIzaSyDummyKey1234567890abcdef",
-    authDomain: "myapp-12345.firebaseapp.com",
-    projectId: "myapp-12345",
-    storageBucket: "myapp-12345.appspot.com",
-    messagingSenderId: "123456789012",
-    appId: "1:123456789012:web:abcdef1234567890",
-    measurementId: "G-ABCDEF1234"
-};
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);</body></html>
+/*! Grid Console 2.11.6 | build f4f5676 | (c) Volta Energia */
+(function (window) {
+  'use strict';
+
+  var config = {
+    apiBase: 'https://api.voltaenergia.es/v2',
+    wsBase: 'wss://api.voltaenergia.es/socket',
+    sentryDsn: 'https://fakeee3fc2cbbf90981e@sentry.internal/17',
+    release: 'volta-grid@2.11.6',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
+
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
+  }
+
+  window.VoltaGrid = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

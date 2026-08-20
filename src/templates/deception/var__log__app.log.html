@@ -1,26 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>app.log - Application Log</title>
-    <style>
-        body { font-family: monospace; white-space: pre; margin: 2em; }
-        .info { color: #006400; }
-        .debug { color: #000080; }
-        .warn  { color: #B8860B; }
-        .error { color: #8B0000; }
-    </style>
-</head>
-<body>
-<span class="info">2025-09-24 10:12:34 INFO Starting application...</span>
-<span class="debug">2025-09-24 10:12:35 DEBUG Loading configuration from /etc/app/config.yaml</span>
-<span class="warn">2025-09-24 10:12:36 WARN Deprecated setting 'legacy_mode' found</span>
-<span class="error">2025-09-24 10:12:38 ERROR Failed to connect to database: Connection refused</span>
-<span class="info">2025-09-24 10:12:39 INFO Retrying DB connection...</span>
-<span class="info">2025-09-24 10:12:40 INFO Database connection established</span>
-<span class="debug">2025-09-24 10:12:41 DEBUG Query: SELECT * FROM users WHERE id = 1</span>
-<span class="info">2025-09-24 10:12:42 INFO User login: admin (IP: 192.168.1.10)</span>
-<span class="warn">2025-09-24 10:12:45 WARN High memory usage detected: 85%</span>
-<span class="info">2025-09-24 10:12:50 INFO Shutdown signal received</span>
-</body>
-</html>
+[2026-08-13 01:51:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.meridian.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"6674513c3cc9943d"}
+[2026-08-13 11:01:07] production.ERROR: SMTP connect() failed on smtp.mail.meridian.internal:587 {"request_id":"df1ca5cbaf86f23d"}
+[2026-08-13 17:12:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"4d2c627d89dffc53"}
+[2026-08-12 12:19:07] production.ERROR: SMTP connect() failed on smtp.mail.meridian.internal:587 {"request_id":"6be6711cc91ba7f6"}
+[2026-08-13 12:21:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.meridian.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"612cc0011b737d92"}
+[2026-08-14 08:56:07] production.INFO: scheduled task inventory:sync finished, 4525 rows {"request_id":"cbd077ecfedbd8e6"}
+[2026-08-13 16:24:07] production.ERROR: SMTP connect() failed on smtp.mail.meridian.internal:587 {"request_id":"6e0f891bd9bd59b8"}
+[2026-08-13 21:19:07] production.ERROR: SMTP connect() failed on smtp.mail.meridian.internal:587 {"request_id":"be7013826ffbcee4"}
+[2026-08-12 10:55:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"85cd21017afc914a"}
+[2026-08-12 00:12:07] production.ERROR: SMTP connect() failed on smtp.mail.meridian.internal:587 {"request_id":"772f9820be067110"}
+[2026-08-11 15:35:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.meridian.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"5a1ef4839cd7cebf"}
+[2026-08-14 01:43:07] production.INFO: scheduled task inventory:sync finished, 8243 rows {"request_id":"80af5baa6c3094dd"}
+[2026-08-12 11:04:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=180 user_id=7 {"request_id":"95e7fa504f3f3b6a"}
+[2026-08-12 03:48:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"d84359af9f1fd984"}
+[2026-08-12 01:56:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"031ed853753213a0"}
+[2026-08-12 09:47:07] production.INFO: scheduled task inventory:sync finished, 7654 rows {"request_id":"fa54a27c68852d7d"}

@@ -1,50 +1,47 @@
-<html><body>application:
-  name: SecureApp
-  version: 3.2.1
-  debug: true
-  secret_key: a1b2c3d4e5f67890abcdef1234567890
+# Kestrel TMS — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
+
+app:
+  name: "Kestrel TMS"
+  env: production
+  url: https://portal.kestrelfreight.nl
+  version: "3.8"
+
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
+
 database:
-  host: 10.0.2.15
+  driver: postgresql
+  host: pg-prod-01.db.kestrel.internal
   port: 5432
-  name: secure_db
-  user: admin
-  password: supersecretpassword
-  pool_size: 10
-cache:
-  redis_host: 10.0.2.16
-  redis_port: 6379
-  ttl: 3600
-logging:
-  level: INFO
-  file: /var/log/secureapp.log
-security:
-  csrf_enabled: true
-  xss_filter: true
-  allowed_ips:
-    - 127.0.0.1
-    - 10.0.2.15
-    - 10.0.2.16
+  name: kestrel_tms
+  user: tmsuser
+  password: fake-db-password-56b1c358
+  pool:
+    min: 4
+    max: 32
+
+redis:
+  host: redis-prod-01.cache.kestrel.internal
+  port: 6379
+  password: fake-redis-password-c432e3
+
 auth:
-  provider: ldap
-  server: ldap://ad.internal.local
-  bind_dn: cn=appuser,ou=service,dc=internal,dc=local
-  bind_password: ldappass123
-  user_base_dn: ou=users,dc=internal,dc=local
-features:
-  enable_metrics: true
-  enable_notifications: false
-  max_upload_size_mb: 50
-  allowed_mime_types:
-    - image/png
-    - image/jpeg
-    - application/pdf
-  rate_limit:
-    window_seconds: 300
-    limit: 60
-environment:
-  node_env: production
-  api_endpoint: https://api.internal.local/v1
-  smtp_host: smtp.internal.local
-  smtp_port: 25
-  smtp_user: noreply@internal.local
-  smtp_pass: smtppass123</body></html>
+  jwt_secret: fake-jwt-secret-858f0592847abf550594dec02c28e186
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: kestrel-tms-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-65D9C
+  secret_access_key: fake-secret-szc41K0u2xUaM4uPVDwul+ZV
+
+logging:
+  level: warning
+  format: json
+  sentry_dsn: https://fake58cf038ca77b873d@sentry.internal/30

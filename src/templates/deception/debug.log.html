@@ -1,30 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Debug Log</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; color:#222; padding:20px;}
-        pre {background:#eee; padding:10px; border:1px solid #ccc; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>Server Debug Log</h1>
-    <p>Generated on: 2025-09-24 14:32:10 UTC</p>
-    <pre>
-[2025-09-24 14:30:01] INFO: Application started.
-[2025-09-24 14:30:05] DEBUG: Loading configuration from /etc/app/config.yaml.
-[2025-09-24 14:30:07] INFO: Database connection established (mysql://user:***@db.internal:3306/app).
-[2025-09-24 14:30:12] WARN: Slow query detected: SELECT * FROM users WHERE email = 'admin@example.com' AND password = '' OR '1'='1';
-[2025-09-24 14:30:15] ERROR: Failed to send email to admin@example.com: SMTP authentication failure.
-[2025-09-24 14:30:20] INFO: User agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
-[2025-09-24 14:30:22] DEBUG: Session ID: s3cr3t-s3ss10n-id-abc123
-[2025-09-24 14:30:25] INFO: Request to /login.php processed in 120ms.
-[2025-09-24 14:31:00] INFO: Cron job backup started.
-[2025-09-24 14:31:05] INFO: Backup completed successfully, size 2.3GB.
-[2025-09-24 14:31:10] WARN: Disk usage at 78% on /var/log.
-[2025-09-24 14:31:45] ERROR: PHP Notice: Undefined variable: $user_input in /var/www/html/search.php on line 42
-[2025-09-24 14:32:00] INFO: Stopping graceful shutdown.
-    </pre>
-</body>
-</html>
+[2026-08-11 20:23:07] production.ERROR: SMTP connect() failed on smtp.mail.kestrel.internal:587 {"request_id":"c7e241f4cec33d67"}
+[2026-08-13 09:14:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"96100db8f2bbb43a"}
+[2026-08-14 02:37:07] production.INFO: scheduled task inventory:sync finished, 3826 rows {"request_id":"7cdfc516df751afe"}
+[2026-08-11 20:46:07] production.ERROR: SMTP connect() failed on smtp.mail.kestrel.internal:587 {"request_id":"0064b90772841f64"}
+[2026-08-14 07:07:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=308 user_id=118 {"request_id":"1404f55022c7ecae"}
+[2026-08-14 04:34:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.kestrel.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"f83b235e112298f3"}
+[2026-08-12 12:17:07] production.ERROR: SMTP connect() failed on smtp.mail.kestrel.internal:587 {"request_id":"70fec84dac93d985"}
+[2026-08-13 07:45:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=39 user_id=101 {"request_id":"78664cf14c4a9129"}
+[2026-08-12 15:31:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.kestrel.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"a8f7a927a198302f"}
+[2026-08-12 00:30:07] production.ERROR: SMTP connect() failed on smtp.mail.kestrel.internal:587 {"request_id":"187061cd693d85e1"}
+[2026-08-14 01:41:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.kestrel.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"328bd3bb4a1f3894"}
+[2026-08-13 10:54:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.kestrel.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"7e9f61add765e33c"}
+[2026-08-12 17:50:07] production.ERROR: SMTP connect() failed on smtp.mail.kestrel.internal:587 {"request_id":"990ad6a278743e23"}
+[2026-08-14 02:04:07] production.ERROR: SMTP connect() failed on smtp.mail.kestrel.internal:587 {"request_id":"02b6f866af18f179"}
+[2026-08-11 20:40:07] production.INFO: scheduled task inventory:sync finished, 1376 rows {"request_id":"e3c3bc3342f21b61"}
+[2026-08-12 02:16:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=327 user_id=101 {"request_id":"313ff8584defff17"}

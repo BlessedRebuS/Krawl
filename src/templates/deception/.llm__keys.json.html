@@ -1,2 +1,26 @@
-<html><body>{
- 4246bY!</body></html>
+{
+  "app": {
+    "name": "Halcyon Commerce",
+    "version": "6.0.3",
+    "env": "production",
+    "url": "https://portal.halcyonretail.co.uk"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.halcyon.internal",
+    "port": 5432,
+    "name": "halcyon_commerce",
+    "user": "hc_web",
+    "password": "fake-db-password-2d7adaff"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.halcyon.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-5968249294a0875920c82f54f0d9f023",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-12T21:14:21Z"
+}

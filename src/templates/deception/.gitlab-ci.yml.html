@@ -1,59 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>.gitlab-ci.yml</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; color:#333; margin:2rem;}
-        pre {background:#fff; padding:1rem; border:1px solid #ddd; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>.gitlab-ci.yml</h1>
-    <p>GitLab CI configuration for the project.</p>
-    <pre>
-stages:
-  - build
-  - test
-  - deploy
+name: build-and-deploy
 
-variables:
-  DOCKER_DRIVER: overlay2
-  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
 
-build_job:
-  stage: build
-  image: docker:latest
-  services:
-    - docker:dind
-  script:
-    - docker build -t myapp:$IMAGE_TAG .
-    - docker push myapp:$IMAGE_TAG
-  only:
-    - branches
+env:
+  REGISTRY: registry.halcyonretail.co.uk
+  IMAGE: halcyon-commerce/app
 
-test_job:
-  stage: test
-  image: python:3.9
-  script:
-    - pip install -r requirements.txt
-    - pytest tests/
-  artifacts:
-    reports:
-      junit: report.xml
-  only:
-    - merge_requests
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.11"
+      - run: npm ci
+      - run: npm run lint && npm test
 
-deploy_job:
-  stage: deploy
-  image: alpine/k8s:1.18.0
-  script:
-    - kubectl set image deployment/myapp myapp=myapp:$IMAGE_TAG --namespace=production
-  environment:
-    name: production
-    url: https://example.com
-  only:
-    - main
-    </pre>
-</body>
-</html>
+  deploy:
+    needs: test
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to registry
+        run: echo "$REGISTRY_TOKEN" | docker login $REGISTRY -u ci-bot --password-stdin
+        env:
+          REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+      - name: Build and push
+        run: |
+          docker build -t $REGISTRY/$IMAGE:6.0.3 .
+          docker push $REGISTRY/$IMAGE:6.0.3
+      - name: Roll out
+        run: kubectl -n portal set image deploy/app app=$REGISTRY/$IMAGE:6.0.3

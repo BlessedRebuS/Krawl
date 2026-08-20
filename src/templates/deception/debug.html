@@ -1,67 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Debug Console - Internal Tool</title>
-    <style>
-        body { font-family: monospace; background-color: #1e1e1e; color: #d4d4d4; margin: 0; padding: 20px; }
-        h1 { color: #569cd6; }
-        .container { max-width: 800px; margin: 0 auto; }
-        .log-entry { margin: 10px 0; padding: 8px; background-color: #252526; border-left: 3px solid #3c3c3c; }
-        .log-info { color: #9cdcfe; }
-        .log-warn { color: #dcdcaa; }
-        .log-error { color: #f44747; }
-        .log-debug { color: #ce9178; }
-        .btn { background-color: #0e639c; color: white; border: none; padding: 8px 16px; cursor: pointer; margin: 5px; }
-        .btn:hover { background-color: #1177bb; }
-        pre { background-color: #252526; padding: 10px; overflow-x: auto; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whoops, looks like something went wrong — Caretrack</title>
+<style>
+:root{--bg:#eef4f4;--panel:#fff;--ink:#16303a;--muted:#5f7c86;
+--line:#d3e2e4;--brand:#0f7a76;--brand-dk:#0a5b58;--r:10px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 "Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#fff;color:#0f7a76;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#0f7a76}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#5f7c86;font-size:13px}
+header.top nav a.active{color:#0f7a76;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(16,48,58,.06)}
+h1{font-family:inherit;font-size:22px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Internal Debug Console</h1>
-        <p>Access restricted to 127.0.0.1 ::1</p>
-        <div>
-            <button class="btn" onclick="fetchLogs()">Refresh Logs</button>
-            <button class="btn" onclick="clearLogs()">Clear Logs</button>
-            <button class="btn" onclick="dumpEnv()">Dump Env</button>
-        </div>
-        <div id="logs">
-            <div class="log-entry log-info">[INFO] Server started at 2024-06-15T08:30:22Z</div>
-            <div class="log-entry log-debug">[DEBUG] Loading configuration from /etc/app/config.yaml</div>
-            <div class="log-entry log-warn">[WARN] Deprecated API endpoint accessed: /legacy/user?id=123</div>
-            <div class="log-entry log-error">[ERROR] Failed to connect to redis:6379 - Connection refused</div>
-            <div class="log-entry log-info">[INFO] Health check passed: OK</div>
-            <div class="log-entry log-debug">[DEBUG] GET /api/users?limit=100&offset=0 - 200 OK (45ms)</div>
-            <div class="log-entry log-warn">[WARN] Slow query detected: SELECT * FROM logs WHERE timestamp > NOW() - INTERVAL '1 hour' took 2.3s</div>
-            <div class="log-entry log-info">[INFO] User admin@internal logged in from 10.0.0.5</div>
-        </div>
-        <div style="margin-top: 20px;">
-            <h2>Environment Variables (Filtered)</h2>
-            <pre>APP_ENV=production
-LOG_LEVEL=info
-PORT=8080
-DATABASE_URL=postgres://user:***@db.internal:5432/app
-REDIS_URL=redis://redis.internal:6379
-SECRET_KEY=***REDACTED***
-API_KEY=***REDACTED***
-</pre>
-        </div>
-    </div>
-    <script>
-        function fetchLogs() {
-            // Simulate AJAX call - in reality this would hit /api/debug/logs
-            alert('Fetching latest logs... (simulated)');
-        }
-        function clearLogs() {
-            if (confirm('Clear all debug logs? This action cannot be undone.')) {
-                alert('Logs cleared. (simulated)');
-            }
-        }
-        function dumpEnv() {
-            alert('Dumping environment variables... (simulated - see below)');
-        }
-    </script>
+
+
+<div class="wrap">
+  <h1>ErrorException</h1>
+  <p class="sub">Undefined array key "warehouse_id" &middot; app/Services/Inventory/SyncService.php:184</p>
+  <div class="panel">
+    <pre>#0 /var/www/portal/app/Services/Inventory/SyncService.php(184): Illuminate\Foundation\Bootstrap\HandleExceptions-&gt;handleError()
+#1 /var/www/portal/app/Http/Controllers/InventoryController.php(62): App\Services\Inventory\SyncService-&gt;pull()
+#2 /var/www/portal/vendor/laravel/framework/src/Illuminate/Routing/Controller.php(54): App\Http\Controllers\InventoryController-&gt;sync()
+#3 /var/www/portal/vendor/laravel/framework/src/Illuminate/Routing/Route.php(261): Illuminate\Routing\ControllerDispatcher-&gt;dispatch()
+#4 /var/www/portal/public/index.php(51): Illuminate\Foundation\Http\Kernel-&gt;handle()</pre>
+  </div>
+  <div class="panel">
+    <h2>Request</h2>
+    <table><tbody>
+      <tr><td class="muted">URI</td><td><code>/debug</code></td></tr>
+      <tr><td class="muted">Method</td><td>GET</td></tr>
+      <tr><td class="muted">Controller</td><td><code>App\Http\Controllers\InventoryController@sync</code></td></tr>
+      <tr><td class="muted">Middleware</td><td>web, auth, verified</td></tr>
+      <tr><td class="muted">Request ID</td><td><code>8709818ad94f4e13</code></td></tr>
+    </tbody></table>
+  </div>
+  <div class="panel">
+    <h2>Environment</h2>
+    <table><tbody>
+      <tr><td class="muted">APP_ENV</td><td>production</td></tr>
+      <tr><td class="muted">APP_DEBUG</td><td>true</td></tr>
+      <tr><td class="muted">DB_CONNECTION</td><td>pgsql &middot; pg-prod-01.db.nbh.internal:5432</td></tr>
+      <tr><td class="muted">PHP</td><td>8.2.24</td></tr>
+      <tr><td class="muted">Laravel</td><td>11.9.2</td></tr>
+    </tbody></table>
+  </div>
+</div>
+
+<footer>Caretrack 9.4.0 &middot; &copy; 2026 Northbridge Health &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

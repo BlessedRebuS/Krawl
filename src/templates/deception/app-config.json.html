@@ -1,21 +1,26 @@
-<html><body>{
+{
+  "app": {
+    "name": "Meridian Portal",
+    "version": "4.2.1",
+    "env": "production",
+    "url": "https://portal.meridiansys.io"
+  },
   "database": {
-    "host": "db.internal.example.com",
-    "port": 3306,
-    "user": "app_user",
-    "password": "SuperSecretPass123!",
-    "name": "app_db"
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.meridian.internal",
+    "port": 5432,
+    "name": "meridian_portal",
+    "user": "meridian_app",
+    "password": "fake-db-password-6b9bfb84"
   },
-  "api": {
-    "endpoint": "https://api.example.com/v1",
-    "key": "abcdef1234567890abcdef1234567890",
-    "timeout": 30
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.meridian.internal",
+    "port": 6379
   },
-  "features": {
-    "debug": true,
-    "logging": {
-      "level": "info",
-      "file": "/var/log/app.log"
-    }
-  }
-}</body></html>
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-648ddf808bfb10c832602edadb5084fe",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-12T00:00:53Z"
+}

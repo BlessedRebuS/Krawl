@@ -1,33 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Index of /</title>
-    <style>
-        body { font-family: monospace; margin: 2em; background: #f8f8f8; color: #333; }
-        pre { background: #eee; padding: 1em; border: 1px solid #ccc; overflow-x: auto; }
-        a { color: #0066cc; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        h1 { color: #222; }
-    </style>
-</head>
-<body>
-    <h1>Index of /</h1>
-    <pre>
-Name                                            Last modified      Size
-================================================================================
-../                                               2024-05-10 08:30     -
-index.html                                        2024-05-10 09:15    2.1K
-wp-config.php                                     2024-05-10 09:20    3.8K
-wp-config.php.bak                                 2024-05-10 09:21    3.8K
-wp-config.php.swp                                 2024-05-10 09:22    4.0K
-readme.html                                       2024-05-10 09:05    2.5K
-license.txt                                       2024-05-10 09:00    1.8K
-wp-admin/                                         2024-05-10 09:25     -
-wp-includes/                                      2024-05-10 09:25     -
-wp-content/                                       2024-05-10 09:25     -
-    </pre>
-    <hr>
-    <address>Apache/2.4.41 (Ubuntu) Server at example.com Port 80</address>
-</body>
-</html>
+<?php
+/**
+ * WordPress base configuration — Halcyon Retail Group corporate site.
+ */
+
+define( 'DB_NAME', 'halcyon_wp' );
+define( 'DB_USER', 'halcyon_wp_user' );
+define( 'DB_PASSWORD', 'fake-wp-password-3d7611f910' );
+define( 'DB_HOST', 'mysql-web-01.db.halcyon.internal' );
+define( 'DB_CHARSET', 'utf8mb4' );
+define( 'DB_COLLATE', '' );
+
+define( 'AUTH_KEY',         'teQQBwO4/OiJ5M+Bm/1IYajXOPPejPIXvK0cXDxRQICALUxU' );
+define( 'SECURE_AUTH_KEY',  'qCLLXVvLbOnWthGZA21uyFuwEgQ1sWvors6LSrnDg/wPrF0C' );
+define( 'LOGGED_IN_KEY',    'XY3GcZgfwB14f/F5br9SyEePj1wehQYASCD7bqQoiYxd0a+4' );
+define( 'NONCE_KEY',        'r+eh7+dQD1J6ZCgHcXgezUDeKp/ieuE8SdvhZMKDSMyX8RMN' );
+define( 'AUTH_SALT',        'GoXJud8W9oni6yIWkSMuQNMe2q8hwRp8/D2hSKIwX9oFytzl' );
+define( 'SECURE_AUTH_SALT', 'xhpa1gPaPK+LOMKYezCwyMfyWo9yJGn3RQ5hLjs7LNq4PHHl' );
+
+$table_prefix = 'wp_';
+
+define( 'WP_DEBUG', false );
+define( 'WP_MEMORY_LIMIT', '256M' );
+define( 'DISALLOW_FILE_EDIT', true );
+define( 'WP_HOME', 'https://www.halcyonretail.co.uk' );
+define( 'WP_SITEURL', 'https://www.halcyonretail.co.uk' );
+
+define( 'SMTP_HOST', 'smtp.mail.halcyon.internal' );
+define( 'SMTP_USER', 'no-reply@halcyonretail.co.uk' );
+define( 'SMTP_PASS', 'fake-smtp-password-37563fd3' );
+
+if ( ! defined( 'ABSPATH' ) ) {
+    define( 'ABSPATH', __DIR__ . '/' );
+}
+
+require_once ABSPATH . 'wp-settings.php';

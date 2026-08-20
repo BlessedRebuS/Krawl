@@ -1,54 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Spring Boot Actuator - Environment</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 2rem; background:#f9f9f9;}
-        h1 {color:#2c3e50;}
-        pre {background:#ecf0f1; padding:1rem; border:1px solid #bdc3c7; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>Environment</h1>
-    <pre>
-{
-  "activeProfiles": ["dev"],
-  "propertySources": [
-    {
-      "name": "server.ports",
-      "properties": {
-        "local.server.port": {"value": "8080"},
-        "management.server.port": {"value": "8081"}
-      }
-    },
-    {
-      "name": "applicationConfig: [classpath:/application.yml]",
-      "properties": {
-        "spring.application.name": {"value": "demo-app"},
-        "spring.datasource.url": {"value": "jdbc:mysql://localhost:3306/demo"},
-        "spring.datasource.username": {"value": "demo_user"},
-        "spring.datasource.password": {"value": "********"}
-      }
-    },
-    {
-      "name": "systemProperties",
-      "properties": {
-        "java.version": {"value": "11.0.12"},
-        "user.home": {"value": "/home/demo"},
-        "user.timezone": {"value": "UTC"}
-      }
-    },
-    {
-      "name": "systemEnvironment",
-      "properties": {
-        "PATH": {"value": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"},
-        "HOME": {"value": "/home/demo"},
-        "JAVA_HOME": {"value": "/usr/lib/jvm/java-11-openjdk-amd64"}
-      }
-    }
-  ]
-}
-</pre>
-</body>
-</html>
+# Kestrel TMS — application environment
+# managed by ops, do not edit by hand (see infra/ansible/roles/app)
+# last sync: 2026-08-14 09:12 UTC
+
+APP_NAME="Kestrel TMS"
+APP_ENV=production
+APP_KEY=base64:GaklSUEWY0zYTvoASkkeR/gFcSSISVgfV8THA9QpXaA=
+APP_DEBUG=false
+APP_URL=https://portal.kestrelfreight.nl
+LOG_CHANNEL=stack
+LOG_LEVEL=warning
+
+DB_CONNECTION=pgsql
+DB_HOST=pg-prod-01.db.kestrel.internal
+DB_PORT=5432
+DB_DATABASE=kestrel_tms
+DB_USERNAME=kestrel_app
+DB_PASSWORD=fake-db-password-53478e1f
+
+REDIS_HOST=redis-prod-01.cache.kestrel.internal
+REDIS_PORT=6379
+REDIS_PASSWORD=fake-redis-password-e0962c
+CACHE_DRIVER=redis
+QUEUE_CONNECTION=redis
+SESSION_DRIVER=redis
+SESSION_LIFETIME=120
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mail.kestrel.internal
+MAIL_PORT=587
+MAIL_USERNAME=no-reply@kestrelfreight.nl
+MAIL_PASSWORD=fake-smtp-password-24345bfe
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=no-reply@kestrelfreight.nl
+
+AWS_ACCESS_KEY_ID=AKIA-FAKE-0DC85
+AWS_SECRET_ACCESS_KEY=fake-secret-nOnE/MV1g0E2B1agXTw6DZ5N
+AWS_DEFAULT_REGION=eu-west-1
+AWS_BUCKET=kestrel-tms-production-assets
+
+JWT_SECRET=fake-jwt-secret-7a4311dd555359167e5ddf7d7c78b909
+JWT_TTL=1440
+STRIPE_KEY=pk_test_FAKE-876c239a5d9bdb61
+STRIPE_SECRET=sk_test_FAKE-8003d3e63c668745
+SENTRY_LARAVEL_DSN=https://faked4d3b2938b738e80@sentry.internal/33

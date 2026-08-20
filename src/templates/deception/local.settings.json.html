@@ -1,24 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>local.settings.json</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; color:#333; padding:20px;}
-        pre {background:#eee; padding:10px; border:1px solid #ccc;}
-    </style>
-</head>
-<body>
-    <h1>local.settings.json</h1>
-    <pre>
 {
-  "IsEncrypted": false,
-  "Values": {
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-    "MyConnectionString": "Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;"
+  "title": "Caretrack",
+  "url": "https://portal.northbridge-health.org",
+  "timezone_string": "Europe/Rome",
+  "date_format": "d/m/Y",
+  "language": "en_GB",
+  "default_role": "support",
+  "users_can_register": false,
+  "start_of_week": 1,
+  "smtp": {
+    "host": "smtp.mail.nbh.internal",
+    "port": 587,
+    "encryption": "tls",
+    "username": "no-reply@northbridge-health.org",
+    "password": "fake-smtp-password-9044644f"
   }
 }
-</pre>
-</body>
-</html>

@@ -1,142 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>PHP Info</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9;}
-        h1 {color: #2c3e50;}
-        table {border-collapse: collapse; width: 100%; max-width: 800px;}
-        th, td {border: 1px solid #ddd; padding: 8px; text-align: left;}
-        th {background-color: #ecf0f1;}
-        tr:nth-child(even) {background-color: #f2f2f2;}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Northbridge Health — clinical scheduling and patient records</title>
+<style>
+:root{--bg:#eef4f4;--panel:#fff;--ink:#16303a;--muted:#5f7c86;
+--line:#d3e2e4;--brand:#0f7a76;--brand-dk:#0a5b58;--r:10px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 "Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#fff;color:#0f7a76;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#0f7a76}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#5f7c86;font-size:13px}
+header.top nav a.active{color:#0f7a76;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(16,48,58,.06)}
+h1{font-family:inherit;font-size:22px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <h1>PHP Configuration</h1>
-    <p>PHP Version => 7.4.33</p>
-    <table>
-        <tr><th>Directive</th><th>Value</th></tr>
-        <tr><td>System</td><td>Linux server01 5.4.0-122-generic #138-Ubuntu SMP Wed Jun 29 16:30:54 UTC 2022 x86_64</td></tr>
-        <tr><td>Build Date</td><td>Nov  3 2021 09:15:27</td></tr>
-        <tr><td>Configure Command</td><td>./configure '--with-apxs2=/usr/bin/apxs2' '--enable-mbstring' '--with-curl' '--with-openssl' '--with-zlib'</td></tr>
-        <tr><td>Server API</td><td>Apache 2.4 Handler</td></tr>
-        <tr><td>Virtual Directory Support</td><td>enabled</td></tr>
-        <tr><td>Configuration File (php.ini) Path</td><td>/etc/php/7.4/apache2</td></tr>
-        <tr><td>Loaded Configuration File</td><td>/etc/php/7.4/apache2/php.ini</td></tr>
-        <tr><td>Scan this dir for additional .ini files</td><td>/etc/php/7.4/apache2/conf.d</td></tr>
-        <tr><td>Additional .ini files parsed</td><td>/etc/php/7.4/apache2/conf.d/00-opcache.ini, /etc/php/7.4/apache2/conf.d/10-mysqlnd.ini, /etc/php/7.4/apache2/conf.d/10-pdo.ini, /etc/php/7.4/apache2/conf.d/15-xml.ini, /etc/php/7.4/apache2/conf.d/20-gd.ini</td></tr>
-        <tr><td>PHP API</td><td>20190902</td></tr>
-        <tr><td>PHP Extension</td><td>20190902</td></tr>
-        <tr><td>Zend Extension</td><td>320190902</td></tr>
-        <tr><td>Zend Extension Build</td><td>API320190902,NTS</td></tr>
-        <tr><td>PHP Extension Build</td><td>API20190902,NTS</td></tr>
-        <tr><td>Debug Build</td><td>no</td></tr>
-        <tr><td>Thread Safety</td><td>disabled</td></tr>
-        <tr><td>Zend Signal Handling</td><td>enabled</td></tr>
-        <tr><td>Zend Memory Manager</td><td>enabled</td></tr>
-        <tr><td>Zend Multibyte Support</td><td>provided by mbstring</td></tr>
-        <tr><td>IPv6 Support</td><td>enabled</td></tr>
-        <tr><td>DTrace Support</td><td>available, disabled</td></tr>
-        <tr><td>Registered PHP Streams</td><td>https, ftps, compress.zlib, php, file, glob, data, http, ftp, phar, zip</td></tr>
-        <tr><td>Registered Stream Socket Transports</td><td>tcp, udp, unix, udg, ssl, tls, tlsv1.0, tlsv1.1, tlsv1.2, tlsv1.3</td></tr>
-        <tr><td>Registered Stream Filters</td><td>zlib.*, convert.iconv.*, string.rot13, string.toupper, string.tolower, string.strip_tags, convert.*, consumed, dechunk</td></tr>
-    </table>
-    <h2>Core</h2>
-    <table>
-        <tr><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
-        <tr><td>allow_url_fopen</td><td>On</td><td>On</td></tr>
-        <tr><td>allow_url_include</td><td>Off</td><td>Off</td></tr>
-        <tr><td>arg_separator.input</td><td>&amp;</td><td>&amp;</td></tr>
-        <tr><td>arg_separator.output</td><td>&amp;</td><td>&amp;</td></tr>
-        <tr><td>auto_append_file</td><td>no value</td><td>no value</td></tr>
-        <tr><td>auto_globals_jit</td><td>On</td><td>On</td></tr>
-        <tr><td>auto_prepend_file</td><td>no value</td><td>no value</td></tr>
-        <tr><td>browscap</td><td>no value</td><td>no value</td></tr>
-        <tr><td>default_charset</td><td>UTF-8</td><td>UTF-8</td></tr>
-        <tr><td>default_mimetype</td><td>text/html</td><td>text/html</td></tr>
-        <tr><td>disable_classes</td><td>no value</td><td>no value</td></tr>
-        <tr><td>disable_functions</td><td>no value</td><td>no value</td></tr>
-        <tr><td>display_errors</td><td>Off</td><td>Off</td></tr>
-        <tr><td>display_startup_errors</td><td>Off</td><td>Off</td></tr>
-        <tr><td>doc_root</td><td>no value</td><td>no value</td></tr>
-        <tr><td>docref_ext</td><td>no value</td><td>no value</td></tr>
-        <tr><td>docref_root</td><td>no value</td><td>no value</td></tr>
-        <tr><td>enable_dl</td><td>On</td><td>On</td></tr>
-        <tr><td>enable_post_data_reading</td><td>On</td><td>On</td></tr>
-        <tr><td>error_append_string</td><td>no value</td><td>no value</td></tr>
-        <tr><td>error_log</td><td>no value</td><td>no value</td></tr>
-        <tr><td>error_prepend_string</td><td>no value</td><td>no value</td></tr>
-        <tr><td>error_reporting</td><td>22527</td><td>22527</td></tr>
-        <tr><td>expose_php</td><td>On</td><td>On</td></tr>
-        <tr><td>extension_dir</td><td>/usr/lib/php/20190902</td><td>/usr/lib/php/20190902</td></tr>
-        <tr><td>file_uploads</td><td>On</td><td>On</td></tr>
-        <tr><td>hard_timeout</td><td>2</td><td>2</td></tr>
-        <tr><td>highlight.comment</td><td><font style="color: #FF8000">#FF8000</font></td><td><font style="color: #FF8000">#FF8000</font></td></tr>
-        <tr><td>highlight.default</td><td><font style="color: #0000BB">#0000BB</font></td><td><font style="color: #0000BB">#0000BB</font></td></tr>
-        <tr><td>highlight.html</td><td><font style="color: #000000">#000000</font></td><td><font style="color: #000000">#000000</font></td></tr>
-        <tr><td>highlight.keyword</td><td><font style="color: #007700">#007700</font></td><td><font style="color: #007700">#007700</font></td></tr>
-        <tr><td>highlight.string</td><td><font style="color: #DD0000">#DD0000</font></td><td><font style="color: #DD0000">#DD0000</font></td></tr>
-        <tr><td>html_errors</td><td>Off</td><td>Off</td></tr>
-        <tr><td>ignore_repeated_errors</td><td>Off</td><td>Off</td></tr>
-        <tr><td>ignore_repeated_source</td><td>Off</td><td>Off</td></tr>
-        <tr><td>ignore_user_abort</td><td>Off</td><td>Off</td></tr>
-        <tr><td>implicit_flush</td><td>Off</td><td>Off</td></tr>
-        <tr><td>include_path</td><td>.:/usr/share/php</td><td>.:/usr/share/php</td></tr>
-        <tr><td>input_encoding</td><td>no value</td><td>no value</td></tr>
-        <tr><td>internal_encoding</td><td>no value</td><td>no value</td></tr>
-        <tr><td>log_errors</td><td>On</td><td>On</td></tr>
-        <tr><td>log_errors_max_len</td><td>1024</td><td>1024</td></tr>
-        <tr><td>mail.add_x_header</td><td>Off</td><td>Off</td></tr>
-        <tr><td>mail.force_extra_parameters</td><td>no value</td><td>no value</td></tr>
-        <tr><td>mail.log</td><td>no value</td><td>no value</td></tr>
-        <tr><td>max_execution_time</td><td>30</td><td>30</td></tr>
-        <tr><td>max_file_uploads</td><td>20</td><td>20</td></tr>
-        <tr><td>max_input_nesting_level</td><td>64</td><td>64</td></tr>
-        <tr><td>max_input_time</td><td>-1</td><td>-1</td></tr>
-        <tr><td>max_input_vars</td><td>1000</td><td>1000</td></tr>
-        <tr><td>memory_limit</td><td>128M</td><td>128M</td></tr>
-        <tr><td>open_basedir</td><td>no value</td><td>no value</td></tr>
-        <tr><td>output_buffering</td><td>4096</td><td>4096</td></tr>
-        <tr><td>output_encoding</td><td>no value</td><td>no value</td></tr>
-        <tr><td>output_handler</td><td>no value</td><td>no value</td></tr>
-        <tr><td>post_max_size</td><td>8M</td><td>8M</td></tr>
-        <tr><td>precision</td><td>14</td><td>14</td></tr>
-        <tr><td>realpath_cache_size</td><td>4096K</td><td>4096K</td></tr>
-        <tr><td>realpath_cache_ttl</td><td>120</td><td>120</td></tr>
-        <tr><td>register_argc_argv</td><td>Off</td><td>Off</td></tr>
-        <tr><td>report_memleaks</td><td>On</td><td>On</td></tr>
-        <tr><td>report_zend_debug</td><td>Off</td><td>Off</td></tr>
-        <tr><td>request_order</td><td>GP</td><td>GP</td></tr>
-        <tr><td>sendmail_from</td><td>no value</td><td>no value</td></tr>
-        <tr><td>sendmail_path</td><td>/usr/sbin/sendmail -t -i</td><td>/usr/sbin/sendmail -t -i</td></tr>
-        <tr><td>serialize_precision</td><td>-1</td><td>-1</td></tr>
-        <tr><td>short_open_tag</td><td>Off</td><td>Off</td></tr>
-        <tr><td>SMTP</td><td>localhost</td><td>localhost</td></tr>
-        <tr><td>smtp_port</td><td>25</td><td>25</td></tr>
-        <tr><td>sys_temp_dir</td><td>/tmp</td><td>/tmp</td></tr>
-        <tr><td>syslog.facility</td><td>LOG_USER</td><td>LOG_USER</td></tr>
-        <tr><td>syslog.filter</td><td>no-ctrl</td><td>no-ctrl</td></tr>
-        <tr><td>syslog.ident</td><td>php</td><td>php</td></tr>
-        <tr><td>track_errors</td><td>Off</td><td>Off</td></tr>
-        <tr><td>unserialize_callback_func</td><td>no value</td><td>no value</td></tr>
-        <tr><td>upload_max_filesize</td><td>2M</td><td>2M</td></tr>
-        <tr><td>upload_tmp_dir</td><td>no value</td><td>no value</td></tr>
-        <tr><td>user_dir</td><td>no value</td><td>no value</td></tr>
-        <tr><td>user_ini.cache_ttl</td><td>300</td><td>300</td></tr>
-        <tr><td>user_ini.filename</td><td>.user.ini</td><td>.user.ini</td></tr>
-        <tr><td>variables_order</td><td>GPCS</td><td>GPCS</td></tr>
-        <tr><td>xmlrpc_error_number</td><td>0</td><td>0</td></tr>
-        <tr><td>xmlrpc_errors</td><td>Off</td><td>Off</td></tr>
-        <tr><td>zend.assertions</td><td>-1</td><td>-1</td></tr>
-        <tr><td>zend.detect_unicode</td><td>On</td><td>On</td></tr>
-        <tr><td>zend.enable_gc</td><td>On</td><td>On</td></tr>
-        <tr><td>zend.exception_ignore_args</td><td>Off</td><td>Off</td></tr>
-        <tr><td>zend.multibyte</td><td>Off</td><td>Off</td></tr>
-        <tr><td>zend.script_encoding</td><td>no value</td><td>no value</td></tr>
-        <tr><td>zend.signal_check</td><td>Off</td><td>Off</td></tr>
-    </table>
-    <hr>
-    <p><em>This is a simulated phpinfo() page for demonstration purposes only.</em></p>
+<header class="top"><span class="brand">Caretrack</span><nav><a href="/today">Today</a><a href="/appointments">Appointments</a><a href="/patients">Patients</a><a href="/clinicians">Clinicians</a><a href="/admin">Admin</a></nav></header>
+
+<div class="wrap">
+  <div class="panel">
+    <h1>Clinic scheduling, referrals and records in one record system</h1>
+    <p class="sub">Northbridge Health supports 9 sites and 340 clinicians with scheduling, referral triage and reporting.</p>
+    <p><a class="btn" href="/contact-us" style="display:inline-block">Request a demo</a>
+       <a class="btn sec" href="/login" style="display:inline-block;margin-left:8px">Staff sign in</a></p>
+  </div>
+  <div class="grid"><div class="panel"><h2>Clinic lists</h2><p class="muted">Build and publish clinic lists, handle overbooking rules and track DNAs across every site.</p><p><a href="/services">Read more</a></p></div><div class="panel"><h2>Referrals</h2><p class="muted">Triage inbound referrals, attach correspondence and route to the right clinician in one queue.</p><p><a href="/clinicians">Read more</a></p></div><div class="panel"><h2>Reporting</h2><p class="muted">18-week RTT tracking, activity returns and a FHIR-shaped export for the data warehouse.</p><p><a href="/patients">Read more</a></p></div></div>
+  <div class="panel">
+    <h2>Latest updates</h2>
+    <p><a href="/blog/q3-platform-roadmap">Q3 platform roadmap</a>
+      <span class="muted">&middot; 08 August 2026</span><br>
+    <a href="/blog/release-9.4.0">What changed in Caretrack 9.4.0</a>
+      <span class="muted">&middot; 26 July 2026</span><br>
+    <a href="/blog/integration-notes">Integration notes for partners</a>
+      <span class="muted">&middot; 12 July 2026</span></p>
+  </div>
+  <div class="panel">
+    <p class="muted" style="font-size:12px">Northbridge Health &middot; Kingsway House, 108 Kingsway, London WC2B 6AA &middot;
+    company no. 3395050 &middot; <a href="/services">Services</a> &middot; <a href="/clinicians">For clinicians</a> &middot; <a href="/patients">Patient information</a> &middot; <a href="/about-us">About us</a> &middot; <a href="/contact-us">Contact</a></p>
+  </div>
+</div>
+
+<footer>Caretrack 9.4.0 &middot; &copy; 2026 Northbridge Health &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

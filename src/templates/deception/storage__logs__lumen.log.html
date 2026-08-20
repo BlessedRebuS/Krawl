@@ -1,35 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Lumen Log - storage/logs/lumen.log</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; color:#333; margin:40px;}
-        h1 {color:#2c3e50;}
-        pre {background:#fff; padding:15px; border:1px solid #ddd; overflow:auto; max-height:400px;}
-        .path {color:#7f8c8d; font-size:0.9em;}
-        footer {margin-top:30px; font-size:0.8em; color:#95a5a6;}
-    </style>
-</head>
-<body>
-    <h1>Lumen Log File</h1>
-    <div class="path">Path: /storage/logs/lumen.log</div>
-    <pre>
-[2025-09-25 08:05:12] local.INFO: Application started (Lumen v8.2.2) (Environment: local)
-[2025-09-25 08:05:15] local.DEBUG: Loaded configuration from /var/www/html/.env
-[2025-09-25 08:05:18] local.INFO: Booting service providers...
-[2025-09-25 08:05:22] local.DEBUG: Route GET /api/products accessed, IP: 192.168.1.45
-[2025-09-25 08:05:27] local.DEBUG: Query: SELECT * FROM `products` WHERE `active` = 1 LIMIT 20
-[2025-09-25 08:05:31] local.WARNING: Missing header "Authorization" on request to /api/orders
-[2025-09-25 08:05:40] local.ERROR: Exception: PDOException with message 'SQLSTATE[42S02]: Base table or view not found: 1146 Table 'orders' doesn't exist' at /var/www/html/vendor/laravel/framework/src/Illuminate/Database/Connection.php:678
-[2025-09-25 08:05:45] local.INFO: Cache cleared for key: laravel_resolver
-[2025-09-25 08:06:02] local.DEBUG: Route POST /api/auth/login accessed, IP: 203.0.113.78
-[2025-09-25 08:06:05] local.DEBUG: Auth attempt failed for user: admin@example.com
-[2025-09-25 08:06:10] local.NOTICE: Rate limit exceeded for IP: 203.0.113.78 (5 requests in 10 seconds)
-[2025-09-25 08:06:20] local.INFO: Queued job App\Jobs\SendWelcomeEmail processed successfully
-[2025-09-25 08:07:00] local.DEBUG: GET /healthcheck returned 200
-[2025-09-25 08:07:15] local.INFO: Application shutting down...
-    </pre>
-    <footer>Generated for demonstration purposes only.</footer>
-</body>
-</html>
+[2026-08-12 21:52:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=181 user_id=12 {"request_id":"1ca6c6c5bae62709"}
+[2026-08-12 16:15:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=39 user_id=23 {"request_id":"1c7b0418e1d8e6e1"}
+[2026-08-14 08:13:07] production.ERROR: SMTP connect() failed on smtp.mail.meridian.internal:587 {"request_id":"8515202b875b4c3a"}
+[2026-08-12 14:18:07] production.ERROR: SMTP connect() failed on smtp.mail.meridian.internal:587 {"request_id":"f564b1b4d485deb6"}
+[2026-08-13 17:58:07] production.INFO: scheduled task inventory:sync finished, 359 rows {"request_id":"dc5288c1fa7ce153"}
+[2026-08-11 23:26:07] production.INFO: scheduled task inventory:sync finished, 6911 rows {"request_id":"9773133d7a578677"}
+[2026-08-11 16:18:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"624a77a9bfbae4ee"}
+[2026-08-12 17:49:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=379 user_id=23 {"request_id":"e1efef1db64d8bce"}
+[2026-08-13 05:25:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=53 user_id=4 {"request_id":"270b721415639266"}
+[2026-08-13 04:28:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=228 user_id=1 {"request_id":"42f00ed0c734ff51"}
+[2026-08-12 05:21:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"d402e9d407f6d483"}
+[2026-08-14 08:27:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"3f478e27118f55ca"}
+[2026-08-12 03:40:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=244 user_id=18 {"request_id":"fa7df2c3753a8ceb"}
+[2026-08-12 08:46:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"20bce640eda0f464"}
+[2026-08-12 06:58:07] production.ERROR: SMTP connect() failed on smtp.mail.meridian.internal:587 {"request_id":"6e87d1b620c13ce6"}
+[2026-08-13 03:22:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.meridian.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"bd9ad74e1c04845f"}

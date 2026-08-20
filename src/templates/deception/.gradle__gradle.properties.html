@@ -1,0 +1,25 @@
+# Grid Console — Spring Boot configuration
+spring.application.name=volta-grid
+server.port=8080
+server.servlet.context-path=/
+
+spring.datasource.url=jdbc:postgresql://pg-prod-01.db.volta.internal:5432/volta_grid
+spring.datasource.username=grid_rw
+spring.datasource.password=fake-db-password-c7a42acb
+spring.datasource.hikari.maximum-pool-size=32
+
+spring.data.redis.host=redis-prod-01.cache.volta.internal
+spring.data.redis.port=6379
+spring.data.redis.password=fake-redis-password-b863c4
+
+spring.mail.host=smtp.mail.volta.internal
+spring.mail.port=587
+spring.mail.username=no-reply@voltaenergia.es
+spring.mail.password=fake-smtp-password-9a36eb87
+
+management.endpoints.web.exposure.include=health,info,metrics
+management.endpoint.health.show-details=when-authorized
+
+meridian.jwt.secret=fake-jwt-secret-5b82b81d0de20e5449a046de04504322
+meridian.jwt.ttl-minutes=1440
+logging.level.root=WARN

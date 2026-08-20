@@ -1,46 +1,26 @@
-<html><body>{
-  "continues": [
-    {
-      "name": "Continue AI Assistant",
-      "version": "0.1.0",
-      "description": "An open-source AI coding assistant for VS Code and JetBrains",
-      "providers": [
-        {
-          "name": "openai",
-          "apiKey": "sk-fake1234567890abcdef1234567890ab",
-          "model": "gpt-4o"
-        },
-        {
-          "name": "anthropic",
-          "apiKey": "sk-ant-fake0987654321fedcba0987654321fedc",
-          "model": "claude-3-opus-20240229"
-        }
-      ],
-      "customModels": [],
-      "slashCommands": [
-        {
-          "name": "edit",
-          "description": "Edit selected code with AI"
-        },
-        {
-          "name": "comment",
-          "description": "Generate comments for selected code"
-        },
-        {
-          "name": "explain",
-          "description": "Explain how code works"
-        }
-      ],
-      "tabAutocomplete": true,
-      "contextProviders": [
-        "buffer",
-        "recentChanges",
-        "similarFiles",
-        "codebase"
-      ],
-      "telemetry": {
-        "enabled": false
-      }
-    }
-  ]
-}</body></html>
+{
+  "app": {
+    "name": "Halcyon Commerce",
+    "version": "6.0.3",
+    "env": "production",
+    "url": "https://portal.halcyonretail.co.uk"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.halcyon.internal",
+    "port": 5432,
+    "name": "halcyon_commerce",
+    "user": "hc_web",
+    "password": "fake-db-password-491bba90"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.halcyon.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-22ccf942cbf6247e25b7e1278c2ceb96",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-09T17:01:00Z"
+}

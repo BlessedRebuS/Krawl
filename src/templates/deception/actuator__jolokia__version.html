@@ -1,44 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Acme Corp - Internal Dashboard</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; color:#333;}
-        header {background:#004080; color:#fff; padding:1rem; text-align:center;}
-        nav {background:#e2e2e2; padding:0.5rem; text-align:center;}
-        nav a {margin:0 1rem; text-decoration:none; color:#004080; font-weight:bold;}
-        .container {max-width:960px; margin:2rem auto; background:#fff; padding:2rem; box-shadow:0 0 10px rgba(0,0,0,0.1);}
-        h1 {color:#004080;}
-        .footer {text-align:center; font-size:0.8rem; color:#777; margin-top:2rem;}
-    </style>
-</head>
-<body>
-    <header>
-        <h1>Acme Corp Internal Dashboard</h1>
-        <p>Version 2.4.1 (build 20240915)</p>
-    </header>
-    <nav>
-        <a href="/">Home</a>
-        <a href="/admin">Admin Panel</a>
-        <a href="/reports">Reports</a>
-        <a href="/docs">Documentation</a>
-    </nav>
-    <div class="container">
-        <h2>Welcome, j.smith (ID: 1024)</h2>
-        <p>Last login: 2025-09-24 08:13:42 from 10.0.0.57</p>
-        <p>Internal IP: 10.0.0.12 | DB: acme_prod (MySQL 5.7.34)</p>
-        <p>System status: <span style="color:green;">Online</span></p>
-        <hr>
-        <h3>Recent Activity</h3>
-        <ul>
-            <li>09/24 07:58 - Backup job completed (size: 4.2 GB)</li>
-            <li>09/24 06:45 - Security patch applied (CVE-2024-12345)</li>
-            <li>09/23 22:12 - User 'j.smith' accessed /admin/config.php</li>
-        </ul>
-    </div>
-    <footer class="footer">
-        &copy; 2025 Acme Corp. All rights reserved. | Internal use only.
-    </footer>
-</body>
-</html>
+{
+  "app": {
+    "name": "Grid Console",
+    "version": "2.11.6",
+    "env": "production",
+    "url": "https://portal.voltaenergia.es"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.volta.internal",
+    "port": 5432,
+    "name": "volta_grid",
+    "user": "grid_rw",
+    "password": "fake-db-password-8ca87c19"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.volta.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-d0f55c91ecc1b3abae3b94dd2d791a1f",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-04T21:21:09Z"
+}

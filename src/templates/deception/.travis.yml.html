@@ -1,0 +1,47 @@
+# Halcyon Commerce — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
+
+app:
+  name: "Halcyon Commerce"
+  env: production
+  url: https://portal.halcyonretail.co.uk
+  version: "6.0.3"
+
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
+
+database:
+  driver: postgresql
+  host: pg-prod-01.db.halcyon.internal
+  port: 5432
+  name: halcyon_commerce
+  user: hc_web
+  password: fake-db-password-7849dc99
+  pool:
+    min: 4
+    max: 32
+
+redis:
+  host: redis-prod-01.cache.halcyon.internal
+  port: 6379
+  password: fake-redis-password-d179d2
+
+auth:
+  jwt_secret: fake-jwt-secret-b89ba9497d66031455ed8fbd06507259
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: halcyon-commerce-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-A9244
+  secret_access_key: fake-secret-vhvVDHCP+4qK5wwmonNPfzhR
+
+logging:
+  level: warning
+  format: json
+  sentry_dsn: https://fake4cfa33e889bf8e32@sentry.internal/16

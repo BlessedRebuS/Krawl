@@ -1,47 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>bitbucket-pipelines.yml</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; color:#222; padding:20px;}
-        pre {background:#eee; padding:10px; border:1px solid #ddd;}
-    </style>
-</head>
-<body>
-    <h1>bitbucket-pipelines.yml</h1>
-    <pre>
-# Bitbucket Pipelines configuration
-image: node:14
+# Kestrel TMS — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
 
-pipelines:
-  default:
-    - step:
-        name: Install dependencies
-        script:
-          - npm install
-    - step:
-        name: Run tests
-        script:
-          - npm test
-    - step:
-        name: Deploy to staging
-        script:
-          - echo "Deploying..."
-          - curl -X POST -H "Authorization: Bearer $DEPLOY_TOKEN" https://staging.example.com/deploy
-  branches:
-    feature/*:
-      - step:
-          name: Build feature
-          script:
-            - npm run build
-    # Debug endpoint - potential information leak
-    debug:
-      - step:
-          name: Expose secrets
-          script:
-            - echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID"
-            - echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
-    </pre>
-</body>
-</html>
+app:
+  name: "Kestrel TMS"
+  env: production
+  url: https://portal.kestrelfreight.nl
+  version: "3.8"
+
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
+
+database:
+  driver: postgresql
+  host: pg-prod-01.db.kestrel.internal
+  port: 5432
+  name: kestrel_tms
+  user: tmsuser
+  password: fake-db-password-23463d3f
+  pool:
+    min: 4
+    max: 32
+
+redis:
+  host: redis-prod-01.cache.kestrel.internal
+  port: 6379
+  password: fake-redis-password-727918
+
+auth:
+  jwt_secret: fake-jwt-secret-10d8bdbe7416bf0b49a11a2d4b2d32a0
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: kestrel-tms-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-DCDE4
+  secret_access_key: fake-secret-CFDVDNF4mM57orveJyPwOVlz
+
+logging:
+  level: warning
+  format: json
+  sentry_dsn: https://fakef4690efb71054f6d@sentry.internal/8

@@ -1,34 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Vite Manifest</title>
-</head>
-<body>
-<pre>
 {
-  "index.html": {
-    "file": "index.html",
-    "src": "index.html",
-    "isEntry": true,
-    "css": [],
-    "assets": []
+  "app": {
+    "name": "Meridian Portal",
+    "version": "4.2.1",
+    "env": "production",
+    "url": "https://portal.meridiansys.io"
   },
-  "src/main.js": {
-    "file": "assets/main.a1b2c3.js",
-    "src": "src/main.js",
-    "isEntry": true,
-    "css": ["assets/main.d4e5f6.css"],
-    "assets": ["assets/logo.png"]
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.meridian.internal",
+    "port": 5432,
+    "name": "meridian_portal",
+    "user": "meridian_app",
+    "password": "fake-db-password-299d5462"
   },
-  "src/style.css": {
-    "file": "assets/style.g7h8i9.css",
-    "src": "src/style.css",
-    "isEntry": false,
-    "css": [],
-    "assets": []
-  }
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.meridian.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-9b87fea66a4714059363c5a9e7333285",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-03T23:25:12Z"
 }
-</pre>
-</body>
-</html>

@@ -1,40 +1,13 @@
-<?xml version="1.0"?>
-<config>
-    <global>
-        <install>
-            <date><![CDATA[2023-04-12 10:30:00]]></date>
-        </install>
-        <crypt>
-            <key><![CDATA[fakeencryptionkey12345]]></key>
-        </crypt>
-        <disable_local_modules>false</disable_local_modules>
-        <resources>
-            <db>
-                <table_prefix><![CDATA[]]></table_prefix>
-            </db>
-            <default_setup>
-                <connection>
-                    <host><![CDATA[localhost]]></host>
-                    <username><![CDATA[magento_user]]></username>
-                    <password><![CDATA[supersecretpassword]]></password>
-                    <dbname><![CDATA[magento]]></dbname>
-                    <initStatements><![CDATA[SET NAMES utf8]]></initStatements>
-                    <model><![CDATA[mysql4]]></model>
-                    <type><![CDATA[pdo_mysql]]></type>
-                    <pdoType><![CDATA[]]></pdoType>
-                    <active>1</active>
-                </connection>
-            </default_setup>
-        </resources>
-        <session_save><![CDATA[db]]></session_save>
-    </global>
-    <admin>
-        <routers>
-            <adminhtml>
-                <args>
-                    <frontName><![CDATA[admin]]></frontName>
-                </args>
-            </adminhtml>
-        </routers>
-    </admin>
-</config>
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration version="6.0.3" generated="2026-08-14T09:12:07Z">
+  <application name="Halcyon Commerce" environment="production"/>
+  <datasource>
+    <host>pg-prod-01.db.halcyon.internal</host>
+    <port>5432</port>
+    <database>halcyon_commerce</database>
+    <username>hc_web</username>
+    <password>fake-db-password-ab175a57</password>
+  </datasource>
+  <mail host="smtp.mail.halcyon.internal" port="587" user="no-reply@halcyonretail.co.uk"
+        password="fake-smtp-password-bdba4218"/>
+</configuration>

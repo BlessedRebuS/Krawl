@@ -1,20 +1,26 @@
-<html><body>{
-  "users": [
-    { "id": 1, "username": "admin", "password": "admin123" },
-    { "id": 2, "username": "guest", "password": "guest123" },
-    { "id": 3, "username": "dev", "password": "dev2025" }
-  ],
-  "settings": {
-    "debug": true,
-    "show_errors": true,
-    "db_host": "127.0.0.1",
-    "db_name": "intranet",
-    "db_user": "root",
-    "db_pass": ""
+{
+  "app": {
+    "name": "Orbit Cloud",
+    "version": "0.38.2",
+    "env": "production",
+    "url": "https://portal.orbitlabs.dev"
   },
-  "logs": [
-    { "timestamp": "2025-11-02T08:15:42Z", "level": "INFO", "message": "User admin logged in" },
-    { "timestamp": "2025-11-02T08:16:07Z", "level": "WARN", "message": "Failed login attempt for user root" },
-    { "timestamp": "2025-11-02T08:16:30Z", "level": "ERROR", "message": "SQL syntax error near 'SELECT * FROM users WHERE id='''"}
-  ]
-}</body></html>
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.orbit.internal",
+    "port": 5432,
+    "name": "orbit_cloud",
+    "user": "orbit",
+    "password": "fake-db-password-b091f176"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.orbit.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-bf210e4109ebc8a3749df2a04749a305",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-11T16:17:30Z"
+}

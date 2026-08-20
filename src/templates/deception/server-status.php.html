@@ -1,36 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Apache Server Status</title>
-<style>
- body{font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:20px}
- h1{color:#333}
- table{width:100%;border-collapse:collapse;background:#fff}
- th,td{border:1px solid #ddd;padding:8px;text-align:left}
- th{background:#e2e2e2}
- tr:nth-child(even){background:#f9f9f9}
-</style>
-</head>
-<body>
-<h1>Apache Server Status for localhost</h1>
-<p><em>Server Version: Apache/2.4.41 (Ubuntu)</em></p>
-<table>
-<tr><th>Metric</th><th>Value</th></tr>
-<tr><td>Server Built</td><td>2020-04-08 12:34:56</td></tr>
-<tr><td>Current Time</td><td>2025-09-26 14:32:10</td></tr>
-<tr><td>Restart Time</td><td>2025-09-26 08:15:00</td></tr>
-<tr><td>Parent Server Generation</td><td>2</td></tr>
-<tr><td>Server Uptime</td><td>6 hours 17 minutes 10 seconds</td></tr>
-<tr><td>Total Accesses</td><td>12458</td></tr>
-<tr><td>Total Traffic</td><td>1.2 GB</td></tr>
-<tr><td>CPU Usage</td><td>U<em>ser</em> 12.3%, <em>system</em> 4.5%</td></tr>
-<tr><td>.req/sec</td><td>0.57</td></tr>
-<tr><td>Traffic MB/sec</td><td>0.03</td></tr>
-<tr><td>Idle Workers</td><td>15</td></tr>
-<tr><td>Busy Workers</td><td>5</td></tr>
-<tr><td>Scoreboard</td><td>____...._....__.._...._....__.._...._....__.._...._....__.._....</td></tr>
-</table>
-<p><em>Note: This is a simulated status page for demonstration purposes.</em></p>
-</body>
-</html>
+<html><head><title>Apache Status</title></head><body>
+<h1>Apache Server Status for web-01.meridiansys.io (via 10.24.1.7)</h1>
+<dl><dt>Server Version: Apache/2.4.58 (Ubuntu) OpenSSL/3.0.13</dt>
+<dt>Server MPM: event</dt>
+<dt>Server Built: 2025-07-24T11:02:19</dt></dl><hr>
+<dl>
+<dt>Current Time: Friday, 14-Aug-2026 09:12:07 UTC</dt>
+<dt>Restart Time: Sunday, 10-Aug-2026 04:15:02 UTC</dt>
+<dt>Parent Server Config. Generation: 3</dt>
+<dt>Server uptime: 4 days 5 hours 57 minutes</dt>
+<dt>Total accesses: 2177453 - Total Traffic: 65.8 GB</dt>
+<dt>2.1 requests/sec - 232 kB/second</dt>
+<dt>4 requests currently being processed, 29 idle workers</dt>
+</dl>
+<pre>__W_K_W__RW__K_.._W_KK___W_.................................
+............................................................</pre>
+<p>Scoreboard Key:<br>
+"<b><code>_</code></b>" Waiting for Connection,
+"<b><code>W</code></b>" Sending Reply,
+"<b><code>K</code></b>" Keepalive (read),
+"<b><code>.</code></b>" Open slot with no current process</p>
+<table border="0"><tr><th>Srv</th><th>PID</th><th>Acc</th><th>M</th><th>CPU</th><th>SS</th><th>Req</th><th>VHost</th><th>Request</th></tr>
+<tr><td>0-0</td><td>7627</td><td>0/122/8841</td><td>W</td><td>0.41</td><td>0</td><td>312</td><td>portal.meridiansys.io</td><td>GET /api/v2/orders?page=3 HTTP/1.1</td></tr>
+<tr><td>1-0</td><td>4021</td><td>0/98/7712</td><td>K</td><td>0.29</td><td>2</td><td>88</td><td>portal.meridiansys.io</td><td>GET /static/app.7e129b3.js HTTP/1.1</td></tr>
+<tr><td>2-0</td><td>5662</td><td>0/45/3390</td><td>_</td><td>0.11</td><td>6</td><td>0</td><td>portal.meridiansys.io</td><td>POST /api/v2/auth/refresh HTTP/1.1</td></tr>
+</table><hr><address>Apache/2.4.58 (Ubuntu) Server at web-01.meridiansys.io Port 443</address>
+</body></html>

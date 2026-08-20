@@ -1,42 +1,36 @@
-<html>
-<head>
-    <title>old-wp-config.php</title>
-    <style>
-        body { font-family: monospace; background:#f8f8f8; color:#222; padding:20px; }
-        pre { background:#fff; padding:15px; border:1px solid #ddd; overflow:auto; }
-    </style>
-</head>
-<body>
-<h1>old-wp-config.php</h1>
-<pre>
 <?php
 /**
- * WordPress Configuration File
+ * WordPress base configuration — Northbridge Health corporate site.
  */
-define('DB_NAME', 'wordpress_db');
-define('DB_USER', 'wp_user');
-define('DB_PASSWORD', 'SuperSecretPassword123!');
-define('DB_HOST', 'localhost');
-define('DB_CHARSET', 'utf8');
-define('DB_COLLATE', '');
 
-define('AUTH_KEY',         'put your unique phrase here');
-define('SECURE_AUTH_KEY',  'put your unique phrase here');
-define('LOGGED_IN_KEY',    'put your unique phrase here');
-define('NONCE_KEY',        'put your unique phrase here');
-define('AUTH_SALT',        'put your unique phrase here');
-define('SECURE_AUTH_SALT', 'put your unique phrase here');
-define('LOGGED_IN_SALT',   'put your unique phrase here');
-define('NONCE_SALT',       'put your unique phrase here');
+define( 'DB_NAME', 'nbh_wp' );
+define( 'DB_USER', 'nbh_wp_user' );
+define( 'DB_PASSWORD', 'fake-wp-password-b6620ffc64' );
+define( 'DB_HOST', 'mysql-web-01.db.nbh.internal' );
+define( 'DB_CHARSET', 'utf8mb4' );
+define( 'DB_COLLATE', '' );
+
+define( 'AUTH_KEY',         'nZjeSYJy4Z9VNwWYTR93vHUcoaVQvruKQcbh7Am/1gQDnY2r' );
+define( 'SECURE_AUTH_KEY',  'M3uWkq5wirLfYXuIPLP+ghAYI8id3Cs1K1HU7yEC7eU7DVlZ' );
+define( 'LOGGED_IN_KEY',    'FZOP+dq8IVQLzne+bzK0Y6/jtZZOZZPICsp6pedXKXhgO34X' );
+define( 'NONCE_KEY',        'C3L62AbQbJZKELi1qcKV5qaVeSs28wH/JeFsnXz5F1YTnQ72' );
+define( 'AUTH_SALT',        'uDQMNNZR4sQEUop1JytY+s0+6KQGWyJTajVFNDL6+CZOgtBM' );
+define( 'SECURE_AUTH_SALT', 'cbb9k7Oj5iH0AkKGJRP9DeChy7rqzMEwRBfftN3hg1QcUFPD' );
 
 $table_prefix = 'wp_';
 
-define('WP_DEBUG', false);
+define( 'WP_DEBUG', false );
+define( 'WP_MEMORY_LIMIT', '256M' );
+define( 'DISALLOW_FILE_EDIT', true );
+define( 'WP_HOME', 'https://www.northbridge-health.org' );
+define( 'WP_SITEURL', 'https://www.northbridge-health.org' );
 
-/* That's all, stop editing! Happy publishing. */
+define( 'SMTP_HOST', 'smtp.mail.nbh.internal' );
+define( 'SMTP_USER', 'no-reply@northbridge-health.org' );
+define( 'SMTP_PASS', 'fake-smtp-password-fa52877c' );
 
-require_once(ABSPATH . 'wp-settings.php');
-?>
-</pre>
-</body>
-</html>
+if ( ! defined( 'ABSPATH' ) ) {
+    define( 'ABSPATH', __DIR__ . '/' );
+}
+
+require_once ABSPATH . 'wp-settings.php';

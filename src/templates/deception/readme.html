@@ -1,69 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>README - Internal Dashboard</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 40px; line-height: 1.6;}
-        h1, h2 {color: #2c3e50;}
-        .section {margin-bottom: 30px;}
-        code {background: #f4f4f4; padding: 2px 4px; border-radius: 3px;}
-        .note {color: #7f8c8d; font-size: 0.9em;}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API reference — Kestrel TMS</title>
+<style>
+:root{--bg:#dfe3e8;--panel:#fff;--ink:#20242a;--muted:#5b636e;
+--line:#9aa3ad;--brand:#26497a;--brand-dk:#1b3459;--r:0;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 Verdana,Tahoma,Geneva,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#26497a;color:#fff;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#fff}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#c3d0e2;font-size:13px}
+header.top nav a.active{color:#fff;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:none}
+h1{font-family:inherit;font-size:15px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <h1>Internal Dashboard - README</h1>
-    <div class="section">
-        <h2>Overview</h2>
-        <p>This page documents the internal tools used by the ExampleCorp IT department. It includes links to various utilities, configuration files, and troubleshooting guides.</p>
-    </div>
-    <div class="section">
-        <h2>Quick Links</h2>
-        <ul>
-            <li><a href="/admin/login.php">Admin Login</a></li>
-            <li><a href="/api/v1/users.json">User API (JSON)</a></li>
-            <li><a href="/config/settings.xml">Configuration Settings</a></li>
-            <li><a href="/logs/access.log">Access Log (plain text)</a></li>
-        </ul>
-    </div>
-    <div class="section">
-        <h2>How to Use the Dashboard</h2>
-        <ol>
-            <li>Log in using your corporate credentials at <code>/admin/login.php</a>.</li>
-            <li>Navigate to the desired module via the sidebar.</li>
-            <li>For API interactions, refer to <code>/api/v1/</code> endpoints.</li>
-        </ol>
-    </div>
-    <div class="section">
-        <h2>Common Issues</h2>
-        <ul>
-            <li><strong>Login fails:</strong> Ensure your password is not expired. Contact <a href="mailto:it-support@example.com">IT Support</a>.</li>
-            <li><strong>API returns 500:</strong> Check the <code>debug</code> flag in <code>/config/settings.xml</code>.</li>
-            <li><strong>Dashboard appears blank:</strong> Clear your browser cache or try a different browser.</li>
-        </ul>
-    </div>
-    <div class="section">
-        <h2>Feedback</h2>
-        <form action="/submit-feedback.php" method="post">
-            <label for="name">Name:</label><br>
-            <input type="text" id="name" name="name" required><br><br>
-            <label for="email">Email:</label><br>
-            <input type="email" id="email" name="email" required><br><br>
-            <label for="message">Message:</label><br>
-            <textarea id="message" name="message" rows="4" cols="50" required></textarea><br><br>
-            <input type="submit" value="Send Feedback">
-        </form>
-        <p class="note">All feedback is reviewed internally. Please do not share sensitive information.</p>
-    </div>
-    <div class="section">
-        <h2>Security Note</h2>
-        <p class="note">This is an internal system. Unauthorized access is prohibited. For security testing, contact the security team at <a href="mailto:sec@example.com">sec@example.com</a>.</p>
-        <!-- TODO: Implement proper input sanitization to prevent XSS (e.g., <script>alert('xss')</script>) -->
-        <!-- TODO: Use prepared statements to avoid SQL injection (e.g., SELECT * FROM users WHERE id = '$id') -->
-    </div>
-    <hr>
-    <footer>
-        <p>&copy; 2025 ExampleCorp. All rights reserved.</p>
-    </footer>
+<table width="100%" cellpadding="4" cellspacing="0" border="0" style="background:#26497a;color:#fff;font-size:12px"><tr><td style="font-weight:bold;padding-left:10px">Kestrel TMS <span style="font-weight:normal;color:#c3d0e2">v3.8</span></td><td align="right">Logged in as <b>jdevries</b> | <a href="/logout" style="color:#fff">Log off</a></td></tr></table><table width="100%" cellpadding="3" cellspacing="1" border="0" style="background:#7f8c9b;font-size:11px"><tr style="background:#1b3459"><td><a href="/home" style="color:#fff;text-decoration:none;font-weight:normal">Home</a></td><td><a href="/consignments" style="color:#fff;text-decoration:none;font-weight:normal">Consignments</a></td><td><a href="/planning" style="color:#fff;text-decoration:none;font-weight:normal">Planning</a></td><td><a href="/invoicing" style="color:#fff;text-decoration:none;font-weight:normal">Invoicing</a></td><td><a href="/admin" style="color:#fff;text-decoration:none;font-weight:normal">Admin</a></td></tr></table>
+
+<div class="wrap">
+  <h1>Kestrel TMS API v2</h1>
+  <p class="sub">OpenAPI 3.1 &middot; base URL <code>https://api.kestrelfreight.nl/v2</code> &middot; <a href="/openapi.json">openapi.json</a></p>
+  <div class="panel">
+    <h2>Authentication</h2>
+    <p class="muted">All endpoints require a bearer token issued by <code>POST /auth/token</code>. Tokens expire after 24 hours.</p>
+    <pre>curl -H "Authorization: Bearer &lt;token&gt;" \
+     https://api.kestrelfreight.nl/v2/orders?status=open&amp;page=1</pre>
+  </div>
+  <div class="panel">
+    <h2>Endpoints</h2>
+    <table><thead><tr><th>Method</th><th>Path</th><th>Description</th><th>Scope</th></tr></thead><tbody>
+      <tr><td>POST</td><td><code>/auth/token</code></td><td>Exchange credentials for a bearer token</td><td>&mdash;</td></tr>
+      <tr><td>GET</td><td><code>/orders</code></td><td>List orders, filtered and paginated</td><td>orders:read</td></tr>
+      <tr><td>POST</td><td><code>/orders</code></td><td>Create an order</td><td>orders:write</td></tr>
+      <tr><td>GET</td><td><code>/orders/{id}</code></td><td>Retrieve a single order</td><td>orders:read</td></tr>
+      <tr><td>GET</td><td><code>/customers</code></td><td>List customer accounts</td><td>customers:read</td></tr>
+      <tr><td>GET</td><td><code>/users/me</code></td><td>Current token holder</td><td>profile</td></tr>
+      <tr><td>POST</td><td><code>/exports</code></td><td>Queue a report export</td><td>reports:write</td></tr>
+    </tbody></table>
+  </div>
+  <div class="panel">
+    <h2>Errors</h2>
+    <pre>{
+  "error": "invalid_token",
+  "message": "The access token is expired or has been revoked.",
+  "request_id": "aa3e2482db4f70c3",
+  "status": 401
+}</pre>
+  </div>
+</div>
+
+<footer>Kestrel TMS 3.8 &middot; Kestrel Freight &middot; internal use only</footer>
 </body>
 </html>

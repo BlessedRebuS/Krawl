@@ -1,41 +1,36 @@
-<script>
-    // Simulated client-side validation (intentionally flawed)
-    function validateInput() {
-        const userInput = document.getElementById("userInput").value;
-        if (userInput.includes("'")) {
-            alert("Invalid character detected!");
-            return false;
-        }
-        // Fake SQL injection vulnerability simulation
-        if (userInput.includes("SELECT") || userInput.includes("UNION")) {
-            // Intentionally bypassed for "demo" purposes - attackers might think they can exploit
-            console.log("Suspicious input detected but allowed for testing:", userInput);
-        }
-        return true;
-    }
+/*! Halcyon Commerce 6.0.3 | build 4244b85 | (c) Halcyon Retail Group */
+(function (window) {
+  'use strict';
 
-    // Fake API call simulation
-    function fetchData() {
-        const endpoint = "/api/data?id=" + document.getElementById("userInput").value;
-        // Simulate XSS vulnerability via innerHTML
-        const resultDiv = document.getElementById("result");
-        resultDiv.innerHTML = "<strong>Loading...</strong>";
-        setTimeout(() => {
-            // Fake response that reflects user input without sanitization
-            resultDiv.innerHTML = `<p>Results for: ${document.getElementById("userInput").value}</p>`;
-            // Intentional XSS vector: if user enters <script>alert(1)</script>, it executes
-        }, 1000);
-    }
+  var config = {
+    apiBase: 'https://api.halcyonretail.co.uk/v2',
+    wsBase: 'wss://api.halcyonretail.co.uk/socket',
+    sentryDsn: 'https://fake472ff4966bee4ac9@sentry.internal/18',
+    release: 'halcyon-commerce@6.0.3',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
 
-    // Fake cookie manipulation (for session hijacking illusion)
-    function setFakeCookie() {
-        document.cookie = "session_id=fake123; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT";
-        console.log("Fake session cookie set");
-    }
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
+  }
 
-    // Initialize on load
-    window.onload = function() {
-        setFakeCookie();
-        document.getElementById("userInput").focus();
-    };
-</script>
+  window.Halcyon = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

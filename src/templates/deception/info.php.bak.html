@@ -1,50 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Acme Corp Admin Console</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {font-family: Arial, sans-serif; background:#f4f6f9; margin:0; display:flex; align-items:center; justify-content:center; height:100vh;}
-        .login-box {background:#fff; padding:30px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); width:320px;}
-        h2 {margin-top:0; color:#2c3e50;}
-        .input-group {margin-bottom:15px;}
-        label {display:block; margin-bottom:5px; font-weight:bold; color:#34495e;}
-        input[type="text"], input[type="password"] {width:100%; padding:10px; border:1px solid #bdc3c7; border-radius:4px; box-sizing:border-box;}
-        button {width:100%; padding:10px; background:#2980b9; border:none; color:#fff; border-radius:4px; cursor:pointer; font-size:16px;}
-        button:hover {background:#3498db;}
-        .footer {margin-top:20px; font-size:12px; color:#7f8c8d; text-align:center;}
-    </style>
-    <script>
-        function validateForm() {
-            var u = document.forms["login"]["username"].value.trim();
-            var p = document.forms["login"]["password"].value;
-            if (u == "" || p == "") {
-                alert("Username and password are required.");
-                return false;
-            }
-            return true;
-        }
-    </script>
-</head>
-<body>
-    <div class="login-box">
-        <h2>Admin Login</h2>
-        <form name="login" action="/admin/auth" method="POST" onsubmit="return validateForm()">
-            <div class="input-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" placeholder="Enter username" required>
-            </div>
-            <div class="input-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter password" required>
-            </div>
-            <button type="sign in">Sign In</button>
-        </form>
-        <div class="footer">
-            Acme Corp Admin Console v2.3.1 &copy; 2025<br>
-            Server: 10.0.0.45 &middot; DB: acme_admin
-        </div>
-    </div>
-</body>
-</html>
+<?php
+/**
+ * Grid Console — database & service configuration
+ *
+ * @package  VoltaGrid
+ * @version  2.11.6
+ */
+
+defined('MERIDIAN_ROOT') or define('MERIDIAN_ROOT', dirname(__DIR__));
+
+$config = [
+    'app' => [
+        'name'      => 'Grid Console',
+        'env'       => 'production',
+        'debug'     => false,
+        'url'       => 'https://portal.voltaenergia.es',
+        'key'       => 'base64:G57vxcVUmWV+b3kLRnlOxhe07rqsd4cLKTj0s7JEZ3e=',
+    ],
+
+    'db' => [
+        'driver'    => 'pgsql',
+        'host'      => 'pg-prod-01.db.volta.internal',
+        'port'      => 5432,
+        'database'  => 'volta_grid',
+        'username'  => 'grid_rw',
+        'password'  => 'fake-db-password-4c709f2c',
+        'charset'   => 'utf8',
+        'prefix'    => 'mp_',
+    ],
+
+    'redis' => [
+        'host'      => 'redis-prod-01.cache.volta.internal',
+        'port'      => 6379,
+        'password'  => 'fake-redis-password-cd6bce',
+    ],
+
+    'mail' => [
+        'host'      => 'smtp.mail.volta.internal',
+        'port'      => 587,
+        'username'  => 'no-reply@voltaenergia.es',
+        'password'  => 'fake-smtp-password-040fc292',
+        'encryption'=> 'tls',
+    ],
+];
+
+/* Legacy globals — still read by the reporting cron, remove after MP-2841. */
+$db_host = $config['db']['host'];
+$db_user = $config['db']['username'];
+$db_pass = $config['db']['password'];
+$db_name = $config['db']['database'];
+
+define('AUTH_SALT', '4EOrMRKFO5mBEXCn5WQe9AiPNwR5IMqd');
+define('SECURE_AUTH_KEY', 'EvO/9byLqAhCvgFpxjnB+0xJOl8CLhFG');
+
+return $config;

@@ -1,35 +1,28 @@
-<html><body>-- Fake database dump for demonstration purposes
-CREATE TABLE IF NOT EXISTS `users` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+-- Orbit Cloud database dump
+-- host: pg-prod-01.db.orbit.internal    database: orbit_cloud
+-- server version 16.3    dumped on 2026-08-14 09:12:07
 
-INSERT INTO `users` (`id`, `username`, `password`, `email`, `created_at`) VALUES
-(1, 'admin', '5f4dcc3b5aa765d61d8327deb882cf99', 'admin@example.com', '2024-01-15 08:30:00'),
-(2, 'john_doe', 'e10adc3949ba59abbe56e057f20f883e', 'john.doe@example.com', '2024-02-03 14:22:10'),
-(3, 'jane_smith', '8cb2237d0679ca88db6464eac60da963', 'jane.smith@example.com', '2024-02-20 09:05:45'),
-(4, 'test_user', 'd033e22ae348aeb5660fc2140aec35850c4da997', 'test@example.com', '2024-03-05 11:12:33'),
-(5, 'guest', 'a87ff679a2f3e71d9181a67b7542122c', 'guest@example.com', '2024-03-12 16:40:05');
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
 
--- Additional tables for demo
-CREATE TABLE IF NOT EXISTS `logs` (
-  `log_id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) DEFAULT NULL,
-  `action` varchar(100) NOT NULL,
-  `ip_address` varchar(45) DEFAULT NULL,
-  `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`log_id`),
-  KEY `user_id` (`user_id`),
-  CONSTRAINT `logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+DROP TABLE IF EXISTS mp_users;
+CREATE TABLE mp_users (
+    id            integer NOT NULL,
+    username      varchar(64) NOT NULL,
+    email         varchar(190) NOT NULL,
+    password_hash varchar(255) NOT NULL,
+    role          varchar(32) NOT NULL DEFAULT 'support',
+    created_at    timestamp NOT NULL
+);
 
-INSERT INTO `logs` (`log_id`, `user_id`, `action`, `ip_address`, `timestamp`) VALUES
-(1, 1, 'login successful', '203.0.113.5', '2024-04-01 07:12:00'),
-(2, 2, 'failed login', '198.51.100.22', '2024-04-01 07:13:45'),
-(3, NULL, 'admin panel access', '203.0.113.5', '2024-04-01 08:00:10'),
-(4, 3, 'profile update', '203.0.113.5', '2024-04-01 09:22:30');</body></html>
+INSERT INTO mp_users (id, username, email, password_hash, role, created_at) VALUES
+(10, 'nsauter', 'nsauter@orbitlabs.dev', '$2y$12$AXwHbh6an6FixaSPe94gJV54L++bv+rTozGAOGDK7XWsE/RSX2cqr', 'owner', '2021-03-02 08:31:44'),
+(13, 'bkovacs', 'bkovacs@orbitlabs.dev', '$2y$12$0hiqNjp2ljmAmW6Hd3c+a+fXCyI/TfmSun8aumeiMu+M2MdIxxApB', 'maintainer', '2021-09-27 08:31:44'),
+(22, 'dmoreau', 'dmoreau@orbitlabs.dev', '$2y$12$EdbwaQIlGs8FsviNpwIIHTCIKOwXT9SUzajwf77zYz536ZljiP9Em', 'developer', '2022-06-14 08:31:44'),
+(31, 'iyilmaz', 'iyilmaz@orbitlabs.dev', '$2y$12$BuxkjWFILlG/t+qXJNKMIYMs43WX+EsTQ9caAlab1Uk4uRy06C9zj', 'developer', '2023-10-30 08:31:44'),
+(37, 'pnwosu', 'pnwosu@orbitlabs.dev', '$2y$12$OGbKK61dCNs2xJBf5in+BphqQdEEAjUmrXEJipHEuVSdxynzXIPaQ', 'billing', '2025-01-20 08:31:44');
+
+ALTER TABLE ONLY mp_users ADD CONSTRAINT mp_users_pkey PRIMARY KEY (id);
+CREATE UNIQUE INDEX mp_users_email_idx ON mp_users USING btree (email);
+
+-- dump completed

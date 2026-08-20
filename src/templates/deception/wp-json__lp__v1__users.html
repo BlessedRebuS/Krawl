@@ -1,88 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>WordPress REST API – Users</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 2em; background:#f9f9f9; color:#333;}
-        h1 {color:#2c3e50;}
-        pre {background:#ecf0f1; padding:1em; overflow:auto; border-radius:4px;}
-        a {color:#2980b9; text-decoration:none;}
-        a:hover {text-decoration:underline;}
-        .note {font-size:0.9em; color:#555;}
-    </style>
-</head>
-<body>
-    <h1>WP REST API Users Endpoint</h1>
-    <p class="note">This is a simulated response for the <code>/wp-json/lp/v1/users</code> route.</p>
-    <pre>[
+[
   {
-    "id": 1,
-    "name": "Administrator",
-    "slug": "administrator",
-    "url": "https://example.com/",
-    "description": "",
-    "link": "https://example.com/",
-    "avatar_urls": {
-      "24": "https://secure.gravatar.com/avatar/1a2b3c4d5e6f7g8h9i0j?s=24&amp;d=mm&amp;r=g",
-      "48": "https://secure.gravatar.com/avatar/1a2b3c4d5e6f7g8h9i0j?s=48&amp;d=mm&amp;r=g",
-      "96": "https://secure.gravatar.com/avatar/1a2b3c4d5e6f7g8h9i0j?s=96&amp;d=mm&amp;r=g"
-    },
-    "meta": [],
-    "capabilities": {
-      "administrator": true
-    },
-    "extra_capabilities": {
-      "moderate_comments": true,
-      "manage_options": true
-    }
+    "id": 5,
+    "username": "c.mbeki",
+    "email": "c.mbeki@halcyonretail.co.uk",
+    "display_name": "Chloe Mbeki",
+    "role": "store_manager",
+    "status": "active",
+    "created_at": "2020-04-13T08:31:44Z",
+    "last_login_at": "2026-08-09T04:56:40Z",
+    "mfa_enabled": false
   },
   {
-    "id": 2,
-    "name": "Editor",
-    "slug": "editor",
-    "url": "https://example.com/",
-    "description": "",
-    "link": "https://example.com/",
-    "avatar_urls": {
-      "24": "https://secure.gravatar.com/avatar/2b3c4d5e6f7g8h9i0j1k?s=24&amp;d=mm&amp;r=g",
-      "48": "https://secure.gravatar.com/avatar/2b3c4d5e6f7g8h9i0j1k?s=48&amp;d=mm&amp;r=g",
-      "96": "https://secure.gravatar.com/avatar/2b3c4d5e6f7g8h9i0j1k?s=96&amp;d=mm&amp;r=g"
-    },
-    "meta": [],
-    "capabilities": {
-      "editor": true
-    },
-    "extra_capabilities": {
-      "moderate_comments": true,
-      "edit_others_posts": true,
-      "publish_pages": true
-    }
+    "id": 8,
+    "username": "r.duffy",
+    "email": "r.duffy@halcyonretail.co.uk",
+    "display_name": "Ronan Duffy",
+    "role": "administrator",
+    "status": "active",
+    "created_at": "2018-12-01T08:31:44Z",
+    "last_login_at": "2026-08-08T18:34:15Z",
+    "mfa_enabled": true
   },
   {
-    "id": 3,
-    "name": "Contributor",
-    "slug": "contributor",
-    "url": "https://example.com/",
-    "description": "",
-    "link": "https://example.com/",
-    "avatar_urls": {
-      "24": "https://secure.gravatar.com/avatar/3c4d5e6f7g8h9i0j1k2l?s=24&amp;d=mm&amp;r=g",
-      "48": "https://secure.gravatar.com/avatar/3c4d5e6f7g8h9i0j1k2l?s=48&amp;d=mm&amp;r=g",
-      "96": "https://secure.gravatar.com/avatar/3c4d5e6f7g8h9i0j1k2l?s=96&amp;d=mm&amp;r=g"
-    },
-    "meta": [],
-    "capabilities": {
-      "contributor": true
-    },
-    "extra_capabilities": {
-      "edit_posts": true,
-      "delete_posts": false
-    }
+    "id": 16,
+    "username": "a.pashkov",
+    "email": "a.pashkov@halcyonretail.co.uk",
+    "display_name": "Anya Pashkov",
+    "role": "merchandiser",
+    "status": "active",
+    "created_at": "2022-02-24T08:31:44Z",
+    "last_login_at": "2026-08-04T02:40:15Z",
+    "mfa_enabled": false
+  },
+  {
+    "id": 19,
+    "username": "j.okonkwo",
+    "email": "j.okonkwo@halcyonretail.co.uk",
+    "display_name": "Jide Okonkwo",
+    "role": "fulfilment",
+    "status": "active",
+    "created_at": "2023-07-08T08:31:44Z",
+    "last_login_at": "2026-08-11T03:30:46Z",
+    "mfa_enabled": false
+  },
+  {
+    "id": 27,
+    "username": "h.lindqvist",
+    "email": "h.lindqvist@halcyonretail.co.uk",
+    "display_name": "Hanna Lindqvist",
+    "role": "customer_care",
+    "status": "active",
+    "created_at": "2024-11-05T08:31:44Z",
+    "last_login_at": "2026-08-05T07:02:59Z",
+    "mfa_enabled": false
   }
-]</pre>
-    <p>For more information, visit the <a href="/wp-json/">REST API root</a> or check the <a href="https://developer.wordpress.org/rest-api/">official documentation</a>.</p>
-    <hr>
-    <p class="note">Generated response – this is a honeypot page intended to waste attacker time.</p>
-</body>
-</html>
+]

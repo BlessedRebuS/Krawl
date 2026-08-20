@@ -1,83 +1,47 @@
-<html>
-<head>
-    <title>serverless.yaml</title>
-    <style>
-        body {font-family: monospace; margin: 2em; background:#f8f8f8; color:#222;}
-        h1 {color:#0066cc;}
-        pre {background:#eee; padding:1em; border:1px solid #ccc; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>serverless.yaml</h1>
-    <pre>
-service: my-vulnerable-app
+# Grid Console — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
 
-provider:
-  name: aws
-  runtime: nodejs14.x
-  region: us-east-1
-  # Intentionally overly permissive IAM role
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - "*"
-      Resource: "*"
-  # Hardcoded credentials for demonstration
-  environment:
-    AWS_ACCESS_KEY_ID: AKIAIOSFODNN7EXAMPLE
-    AWS_SECRET_ACCESS_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-    DB_PASSWORD: superSecret123!
+app:
+  name: "Grid Console"
+  env: production
+  url: https://portal.voltaenergia.es
+  version: "2.11.6"
 
-functions:
-  hello:
-    handler: handler.hello
-    events:
-      - http:
-          path: hello
-          method: get
-          cors: true
-          # Open to all origins
-          authorizer: none
-  upload:
-    handler: handler.upload
-    events:
-      - s3:
-          bucket: user-uploads
-          event: s3:ObjectCreated:*
-          # No validation on file type or size
-          existing: true
-  admin:
-    handler: handler.admin
-    events:
-      - http:
-          path: admin/{action}
-          method: '*'
-          # No authentication required
-          private: false
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
 
-resources:
-  Resources:
-    UserUploadsBucket:
-      Type: AWS::S3::Bucket
-      Properties:
-        BucketName: user-uploads-bucket
-        AccessControl: PublicRead   # Intentionally public
-        VersioningConfiguration:
-          Status: Enabled
-    VulnerableTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: users
-        AttributeDefinitions:
-          - AttributeName: userId
-            AttributeType: S
-        KeySchema:
-          - AttributeName: userId
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
-        # No encryption at rest
-        SSESpecification:
-          Enabled: false
-</pre>
-</body>
-</html>
+database:
+  driver: postgresql
+  host: pg-prod-01.db.volta.internal
+  port: 5432
+  name: volta_grid
+  user: grid_rw
+  password: fake-db-password-de525722
+  pool:
+    min: 4
+    max: 32
+
+redis:
+  host: redis-prod-01.cache.volta.internal
+  port: 6379
+  password: fake-redis-password-b17209
+
+auth:
+  jwt_secret: fake-jwt-secret-38ab577e9f64d0f8fe1bd8444f6b57b7
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: volta-grid-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-10F7C
+  secret_access_key: fake-secret-6JqDo+WCX3FcgYTKa/bcF4uk
+
+logging:
+  level: warning
+  format: json
+  sentry_dsn: https://fake5730d4b933617345@sentry.internal/28

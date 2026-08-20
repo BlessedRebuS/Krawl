@@ -1,81 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Server Information</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; color: #333; }
-        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        .info-section { background: #f8f9fa; padding: 20px; margin: 20px 0; border-left: 4px solid #3498db; }
-        .info-item { margin: 10px 0; }
-        .label { font-weight: bold; color: #2c3e50; }
-        .value { color: #27ae60; }
-        footer { margin-top: 40px; font-size: 0.9em; color: #7f8c8d; text-align: center; border-top: 1px solid #eee; padding-top: 20px; }
-    </style>
-</head>
-<body>
-    <h1>Server Information Panel</h1>
-    <p>This page displays diagnostic information for administrative purposes. Access is restricted to authorized personnel.</p>
-
-    <div class="info-section">
-        <h2>System Overview</h2>
-        <div class="info-item"><span class="label">Hostname:</span> <span class="value">web01.prod.internal</span></div>
-        <div class="info-item"><span class="label">OS:</span> <span class="value">Ubuntu 22.04.3 LTS (GNU/Linux 5.15.0-78-generic x86_64)</span></div>
-        <div class="info-item"><span class="label">Kernel:</span> <span class="value">Linux web01 5.15.0-78-generic #86-Ubuntu SMP Thu Jan 4 13:41:29 UTC 2024 x86_64 x86_64 x86_64 GNU/Linux</span></div>
-        <div class="info-item"><span class="label">Uptime:</span> <span class="value">14 days, 3 hours, 22 minutes</span></div>
-        <div class="info-item"><span class="label">Server Time:</span> <span class="value">2024-05-15 09:30:45 UTC</span></div>
-    </div>
-
-    <div class="info-section">
-        <h2>Web Server Details</h2>
-        <div class="info-item"><span class="label">Software:</span> <span class="value">Apache/2.4.52 (Ubuntu)</span></div>
-        <div class="info-item"><span class="label">Built:</span> <span class="value">Jan 18 2023 17:27:45</span></div>
-        <div class="info-item"><span class="label">MPM:</span> <span class="value">prefork</span></div>
-        <div class="info-item"><span class="label">Server Built with SSL:</span> <span class="value">OpenSSL/3.0.2 15 Mar 2022</span></div>
-    </div>
-
-    <div class="info-section">
-        <h2>PHP Configuration</h2>
-        <div class="info-item"><span class="label">Version:</span> <span class="value">8.1.2-1ubuntu2.14</span></div>
-        <div class="info-item"><span class="label">Loaded Configuration File:</span> <span class="value">/etc/php/8.1/apache2/php.ini</span></div>
-        <div class="info-item"><span class="label">Scan this dir for additional .ini files:</span> <span class="value">/etc/php/8.1/apache2/conf.d</span></div>
-        <div class="info-item"><span class="label">Additional .ini files parsed:</span> <span class="value">/etc/php/8.1/apache2/conf.d/10-opcache.ini, /etc/php/8.1/apache2/conf.d/10-pdo.ini, ...</span></div>
-    </div>
-
-    <div class="info-section">
-        <h2>Database Connections</h2>
-        <div class="info-item"><span class="label">MySQLi Support:</span> <span class="value">enabled</span></div>
-        <div class="info-item"><span class="label">Client API library version:</span> <span class="value">mysqlnd 8.0.31</span></div>
-        <div class="info-item"><span class="label">Active Persistent Links:</span> <span class="value">0</span></div>
-        <div class="info-item"><span class="label">Active Links:</span> <span class="value">0</span></div>
-        <div class="info-item"><span class="label">Default Host:</span> <span class="value">localhost</span></div>
-        <div class="info-item"><span class="label">Default User:</span> <span class="value">dbadmin</span></div>
-        <div class="info-item"><span class="label">Default Password:</span> <span class="value">[REDACTED]</span></div>
-    </div>
-
-    <div class="info-section">
-        <h2>Loaded Modules</h2>
-        <div class="info-item"><span class="label">Apache Modules:</span> <span class="value">core mod_so mod_watchdog http_core mod_log_config mod_logio mod_version mod_unixd mod_access_compat mod_alias mod_auth_basic mod_authn_file mod_authz_core mod_authz_host mod_authz_user mod_autoindex mod_dir mod_env mod_setenvif mod_mime mod_status mod_autoindex mod_info mod_negotiation mod_dir mod_actions mod_userdir mod_alias mod_rewrite mod_deflate mod_headers mod_mime mod_setenvif mod_ssl</span></div>
-        <div class="info-item"><span class="label">PHP Modules:</span> <span class="value">Core date libxml openssl pcre sqlite3 zlib filter hash pcntl readline Reflection SPL standard mysqlnd PDO pdo_mysql pdo_sqlite Phar posix sysvmsg sysvsem sysvshm tokenizer xml xmlreader xmlwriter json ctype dom</span></div>
-    </div>
-
-    <div class="info-section">
-        <h2>Environment Variables</h2>
-        <div class="info-item"><span class="label">DOCUMENT_ROOT:</span> <span class="value">/var/www/html</span></div>
-        <div class="info-item"><span class="label">SERVER_ADMIN:</span> <span class="value">admin@example.com</span></div>
-        <div class="info-item"><span class="label">SERVER_NAME:</span> <span class="value">web01.prod.internal</span></div>
-        <div class="info-item"><span class="label">SERVER_ADDR:</span> <span class="value">10.0.5.15</span></div>
-        <div class="info-item"><span class="label">SERVER_PORT:</span> <span class="value">80</span></div>
-        <div class="info-item"><span class="label">REMOTE_ADDR:</span> <span class="value">203.0.113.42</span></div>
-        <div class="info-item"><span class="label">REQUEST_METHOD:</span> <span class="value">GET</span></div>
-        <div class="info-item"><span class="label">REQUEST_URI:</span> <span class="value">/server-info</span></div>
-        <div class="info-item"><span class="label">SCRIPT_FILENAME:</span> <span class="value">/var/www/html/server-info.php</span></div>
-    </div>
-
-    <footer>
-        <p>© 2024 Internal Systems. This information is for authorized use only. Unauthorized access is prohibited and monitored.</p>
-        <p>Page generated in 0.024 seconds | Memory usage: 2.1 MB</p>
-    </footer>
-</body>
-</html>
+<html><head><title>Apache Status</title></head><body>
+<h1>Apache Server Status for web-01.kestrelfreight.nl (via 10.24.1.7)</h1>
+<dl><dt>Server Version: Apache/2.4.58 (Ubuntu) OpenSSL/3.0.13</dt>
+<dt>Server MPM: event</dt>
+<dt>Server Built: 2025-07-24T11:02:19</dt></dl><hr>
+<dl>
+<dt>Current Time: Friday, 14-Aug-2026 09:12:07 UTC</dt>
+<dt>Restart Time: Sunday, 10-Aug-2026 04:15:02 UTC</dt>
+<dt>Parent Server Config. Generation: 3</dt>
+<dt>Server uptime: 4 days 5 hours 57 minutes</dt>
+<dt>Total accesses: 2102470 - Total Traffic: 48.4 GB</dt>
+<dt>4.6 requests/sec - 78 kB/second</dt>
+<dt>11 requests currently being processed, 26 idle workers</dt>
+</dl>
+<pre>__W_K_W__RW__K_.._W_KK___W_.................................
+............................................................</pre>
+<p>Scoreboard Key:<br>
+"<b><code>_</code></b>" Waiting for Connection,
+"<b><code>W</code></b>" Sending Reply,
+"<b><code>K</code></b>" Keepalive (read),
+"<b><code>.</code></b>" Open slot with no current process</p>
+<table border="0"><tr><th>Srv</th><th>PID</th><th>Acc</th><th>M</th><th>CPU</th><th>SS</th><th>Req</th><th>VHost</th><th>Request</th></tr>
+<tr><td>0-0</td><td>8086</td><td>0/122/8841</td><td>W</td><td>0.41</td><td>0</td><td>312</td><td>portal.kestrelfreight.nl</td><td>GET /api/v2/orders?page=3 HTTP/1.1</td></tr>
+<tr><td>1-0</td><td>7080</td><td>0/98/7712</td><td>K</td><td>0.29</td><td>2</td><td>88</td><td>portal.kestrelfreight.nl</td><td>GET /static/app.d6e7317.js HTTP/1.1</td></tr>
+<tr><td>2-0</td><td>3195</td><td>0/45/3390</td><td>_</td><td>0.11</td><td>6</td><td>0</td><td>portal.kestrelfreight.nl</td><td>POST /api/v2/auth/refresh HTTP/1.1</td></tr>
+</table><hr><address>Apache/2.4.58 (Ubuntu) Server at web-01.kestrelfreight.nl Port 443</address>
+</body></html>

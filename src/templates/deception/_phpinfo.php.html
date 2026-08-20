@@ -1,44 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Intranet Portal - Acme Corp</title>
-<style>
-body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f4f4f4;color:#333}
-header{background:#003366;color:#fff;padding:20px;text-align:center}
-nav{background:#004080;color:#fff;padding:10px;text-align:center}
-nav a{color:#fff;margin:0 15px;text-decoration:none}
-.container{max-width:960px;margin:20px auto;background:#fff;padding:20px;box-shadow:0 0 10px rgba(0,0,0,0.1)}
-.footer{text-align:center;padding:10px;font-size:0.9em;color:#666;margin-top:20px}
-</style>
-</head>
-<body>
-<header>
-<h1>Acme Corp Intranet</h1>
-<p>Internal Employee Portal</p>
-</header>
-<nav>
-<a href="/dashboard">Dashboard</a>
-<a href="/reports">Reports</a>
-<a href="/hr">HR</a>
-<a href="/it">IT</a>
-<a href="/admin">Admin</a>
-</nav>
-<div class="container">
-<h2>Welcome, jdoe</h2>
-<p>Last login: 2025-09-24 08:12:34 from 10.0.5.23</p>
-<p>Your department: <strong>Finance</strong></p>
-<p>Current system version: <em>Intranet v3.2.1 (build 20250915)</em></p>
-<hr>
-<h3>Announcements</h3>
-<ul>
-<li>System maintenance scheduled for 2025-10-02 02:00 AM UTC.</li>
-<li>New expense reporting tool now live.</li>
-<li>Reminder: Complete security training by 2025-09-30.</li>
-</ul>
-</div>
-<footer class="footer">
-&copy; 2025 Acme Corp. All rights reserved. Internal IP: 10.0.0.5 | Server: Apache/2.4.59 (Unix)
-</footer>
-</body>
-</html>
+<html><head><title>phpinfo()</title><style>
+body{background:#fff;color:#222;font-family:sans-serif;font-size:13px}
+table{border-collapse:collapse;width:600px;margin:1em auto}
+td,th{border:1px solid #666;padding:4px 6px;vertical-align:baseline}
+h1{text-align:center;font-size:20px}h2{text-align:center;font-size:16px;background:#9999cc;width:600px;margin:1em auto;padding:4px}
+.e{background:#ccccff;font-weight:bold;width:300px}.v{background:#cccccc;word-break:break-all}
+.h th{background:#9999cc}.center{text-align:center}
+</style></head><body>
+<h1>PHP Version 8.2.24</h1>
+<table>
+<tr><td class="e">System</td><td class="v">Linux web-01 6.8.0-45-generic #45-Ubuntu SMP x86_64</td></tr>
+<tr><td class="e">Build Date</td><td class="v">Sep 26 2025 14:11:03</td></tr>
+<tr><td class="e">Server API</td><td class="v">FPM/FastCGI</td></tr>
+<tr><td class="e">Loaded Configuration File</td><td class="v">/etc/php/8.2/fpm/php.ini</td></tr>
+<tr><td class="e">Scan this dir for additional .ini files</td><td class="v">/etc/php/8.2/fpm/conf.d</td></tr>
+<tr><td class="e">PHP API</td><td class="v">20220829</td></tr>
+<tr><td class="e">Debug Build</td><td class="v">no</td></tr>
+<tr><td class="e">Thread Safety</td><td class="v">disabled</td></tr>
+<tr><td class="e">Registered PHP Streams</td><td class="v">https, ftps, compress.zlib, php, file, glob, data, http, ftp, phar</td></tr>
+</table>
+<h2>Core</h2>
+<table>
+<tr class="h"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class="e">display_errors</td><td class="v">Off</td><td class="v">Off</td></tr>
+<tr><td class="e">memory_limit</td><td class="v">256M</td><td class="v">256M</td></tr>
+<tr><td class="e">max_execution_time</td><td class="v">60</td><td class="v">30</td></tr>
+<tr><td class="e">upload_max_filesize</td><td class="v">25M</td><td class="v">25M</td></tr>
+<tr><td class="e">open_basedir</td><td class="v">/var/www/portal:/tmp</td><td class="v">no value</td></tr>
+<tr><td class="e">disable_functions</td><td class="v">exec,passthru,shell_exec,system,proc_open,popen</td><td class="v">exec,passthru,shell_exec,system,proc_open,popen</td></tr>
+</table>
+<h2>Environment</h2>
+<table>
+<tr class="h"><th>Variable</th><th>Value</th></tr>
+<tr><td class="e">APP_ENV</td><td class="v">production</td></tr>
+<tr><td class="e">DB_HOST</td><td class="v">pg-prod-01.db.halcyon.internal</td></tr>
+<tr><td class="e">DB_USERNAME</td><td class="v">hc_web</td></tr>
+<tr><td class="e">DB_PASSWORD</td><td class="v">fake-db-password-5d09ba0b</td></tr>
+<tr><td class="e">DOCUMENT_ROOT</td><td class="v">/var/www/portal/public</td></tr>
+</table>
+<h2>PHP Variables</h2>
+<table>
+<tr class="h"><th>Variable</th><th>Value</th></tr>
+<tr><td class="e">_SERVER["HTTP_HOST"]</td><td class="v">portal.halcyonretail.co.uk</td></tr>
+<tr><td class="e">_SERVER["SERVER_SOFTWARE"]</td><td class="v">nginx/1.24.0</td></tr>
+<tr><td class="e">_SERVER["REQUEST_URI"]</td><td class="v">/_phpinfo.php</td></tr>
+</table>
+<p class="center">PHP Group &middot; Zend Engine v4.2.24</p>
+</body></html>

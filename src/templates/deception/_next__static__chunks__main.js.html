@@ -1,56 +1,36 @@
-<html><body>(() => {
-  "use strict";
-  var t = {
-    123: (e, n, r) => {
-      e.exports = r(456);
-    },
-    456: (e, n, r) => {
-      "use strict";
-      r.d(n, {
-        Z: () => i
-      });
-      var o = r(789),
-          a = r.n(o);
-      function i() {
-        return (0, a.createElement)("div", null, "Welcome to Fake App");
-      }
-    },
-    789: (e, n) => {
-      "use strict";
-      e.exports = require("react");
-    }
+/*! Grid Console 2.11.6 | build 84d3a11 | (c) Volta Energia */
+(function (window) {
+  'use strict';
+
+  var config = {
+    apiBase: 'https://api.voltaenergia.es/v2',
+    wsBase: 'wss://api.voltaenergia.es/socket',
+    sentryDsn: 'https://fakef6ea7d8037922257@sentry.internal/13',
+    release: 'volta-grid@2.11.6',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
   };
-  var n = {};
-  function __webpack_require__(t) {
-    if (n[t]) return n[t].exports;
-    var r = n[t] = { i: t, l: !1, exports: {} };
-    return e[t].call(r.exports, r, r.exports, __webpack_require__), r.l = !0, r.exports;
+
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
   }
-  __webpack_require__.n = e => {
-    var n = e && e.__esModule ? () => e.default : () => e;
-    return __webpack_require__.d(n, { a: n }), n;
+
+  window.VoltaGrid = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
   };
-  __webpack_require__.d = (e, n) => {
-    for (var r in n) __webpack_require__.o(n, r) && !__webpack_require__.o(e, r) && Object.defineProperty(e, r, { enumerable: !0, get: n[r] });
-  };
-  __webpack_require__.o = (e, n) => Object.prototype.hasOwnProperty.call(e, n);
-  __webpack_require__.r = e => {
-    "undefined" != typeof Symbol && Symbol.toStringTag && Object.defineProperty(e, Symbol.toStringTag, { value: "Module" }),
-    Object.defineProperty(e, "__esModule", { value: !0 });
-  };
-  var r = __webpack_require__(123);
-  /* fake vulnerable code */
-  (function() {
-    var apiKey = "AKIAxxxxxxxxxxxxxxxx"; // fake AWS key
-    var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // fake JWT
-    // Simulate an eval injection point
-    var userInput = location.hash.slice(1) || "";
-    try {
-      eval(userInput); // intentional vuln
-    } catch (e) {}
-  })();
-  /* export default component */
-  var __webpack_exports__ = r;
-  /* harmony export */ __webpack_require__.d(__webpack_exports__, { "default": () => __webpack_exports__ });
-  /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_exports__);
-})();</body></html>
+})(window);

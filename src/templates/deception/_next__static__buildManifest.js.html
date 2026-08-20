@@ -1,23 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Next.js Build Manifest</title>
-</head>
-<body>
-<h1>Next.js Build Manifest</h1>
-<p>This is the automatically generated build manifest for the Next.js application.</p>
-<script>
-// Fake buildManifest.js content
-self.__next_buildManifest = {
-  "lowPriorityFiles": [],
-  "pages": {
-    "/_app": ["static/runtime/main.js", "static/runtime/webpack.js", "static/runtime/react-dev-overlay.js", "static/chunks/pages/_app.js", "static/chunks/framework.js", "static/chunks/main.js", "static/chunks/pages/_error.js"],
-    "/": ["static/runtime/main.js", "static/runtime/webpack.js", "static/runtime/react-dev-overlay.js", "static/chunks/pages/index.js", "static/chunks/framework.js", "static/chunks/main.js", "static/chunks/pages/_app.js", "static/chunks/pages/_error.js"],
-    "/about": ["static/runtime/main.js", "static/runtime/webpack.js", "static/runtime/react-dev-overlay.js", "static/chunks/pages/about.js", "static/chunks/framework.js", "static/chunks/main.js", "static/chunks/pages/_app.js", "static/chunks/pages/_error.js"],
-    "/contact": ["static/runtime/main.js", "static/runtime/webpack.js", "static/runtime/react-dev-overlay.js", "static/chunks/pages/contact.js", "static/chunks/framework.js", "static/chunks/main.js", "static/chunks/pages/_app.js", "static/chunks/pages/_error.js"]
+/*! Grid Console 2.11.6 | build 6f8a39c | (c) Volta Energia */
+(function (window) {
+  'use strict';
+
+  var config = {
+    apiBase: 'https://api.voltaenergia.es/v2',
+    wsBase: 'wss://api.voltaenergia.es/socket',
+    sentryDsn: 'https://fake5e3ad77c5bbd979f@sentry.internal/11',
+    release: 'volta-grid@2.11.6',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
+
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
   }
-};
-</script>
-</body>
-</html>
+
+  window.VoltaGrid = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

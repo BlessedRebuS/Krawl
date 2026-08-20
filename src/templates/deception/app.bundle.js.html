@@ -1,14 +1,36 @@
-<html><body>(function(){ 
-  var VERSION = "3.2.1";
-  var LOG = function(msg){ console.log("[MyApp] " + msg); };
-  LOG("Initialized");
-  var config = { apiEndpoint: "http://10.0.5.23/api", authToken: "Bearer abc123xyz", dbName: "prod_db" };
-  function init(){ 
-    LOG("Starting up...");
-    var banner = document.createElement('div');
-    banner.textContent = "MyApp - Secure Bundle";
-    document.body.appendChild(banner);
+/*! Grid Console 2.11.6 | build 3a787f1 | (c) Volta Energia */
+(function (window) {
+  'use strict';
+
+  var config = {
+    apiBase: 'https://api.voltaenergia.es/v2',
+    wsBase: 'wss://api.voltaenergia.es/socket',
+    sentryDsn: 'https://fake8620d2e91e3355b0@sentry.internal/3',
+    release: 'volta-grid@2.11.6',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
+
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
   }
-  return { init: init };
-})();
-app.init();</body></html>
+
+  window.VoltaGrid = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

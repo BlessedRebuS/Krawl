@@ -1,175 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Admin Panel</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .login-container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        h2 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 25px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        input[type="text"]:focus,
-        input[type="password"]:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
-        }
-        .btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .btn:hover {
-            background-color: #0056b3;
-        }
-        .alert {
-            padding: 12px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-            display: none;
-        }
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .links {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 14px;
-            color: #666;
-        }
-        .links a {
-            color: #007bff;
-            text-decoration: none;
-        }
-        .links a:hover {
-            text-decoration: underline;
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kestrel TMS - Logon</title>
+<style>
+:root{--bg:#dfe3e8;--panel:#fff;--ink:#20242a;--muted:#5b636e;
+--line:#9aa3ad;--brand:#26497a;--brand-dk:#1b3459;--r:0;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 Verdana,Tahoma,Geneva,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#26497a;color:#fff;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#fff}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#c3d0e2;font-size:13px}
+header.top nav a.active{color:#fff;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:none}
+h1{font-family:inherit;font-size:15px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <div class="login-container">
-        <h2>Admin Login</h2>
-        <div id="error-alert" class="alert alert-danger">
-            Invalid username or password. Please try again.
-        </div>
-        <form id="login-form" action="/admin/login/" method="POST">
-            <input type="hidden" name="csrfmiddlewaretoken" value="fake_token_abc123xyz789">
-            <input type="hidden" name="next" value="/admin/">
-            
-            <div class="form-group">
-                <label for="id_username">Username:</label>
-                <input type="text" id="id_username" name="username" required autocomplete="username">
-            </div>
-            
-            <div class="form-group">
-                <label for="id_password">Password:</label>
-                <input type="password" id="id_password" name="password" required autocomplete="current-password">
-            </div>
-            
-            <button type="submit" class="btn">Log In</button>
-        </form>
-        
-        <div class="links">
-            <p>Forgot your <a href="/admin/password_reset/">password?</a></p>
-            <p>Return to <a href="/">site homepage</a></p>
-        </div>
-    </div>
 
-    <script>
-        // Simulate vulnerable client-side validation that could be bypassed
-        document.getElementById('login-form').addEventListener('submit', function(e) {
-            const username = document.getElementById('id_username').value;
-            const password = document.getElementById('id_password').value;
-            
-            // Fake validation that appears to check for SQLi/XSS but is easily bypassed
-            const sqlPatterns = [/['";]/, /--/, /union/i, /select/i, /drop/i];
-            const xssPatterns = [/<script/, /javascript:/i, /onerror/i, /onload/i];
-            
-            // This is intentionally weak - only blocks obvious patterns, allows sophisticated bypasses
-            for (let pattern of sqlPatterns) {
-                if (pattern.test(username) || pattern.test(password)) {
-                    e.preventDefault();
-                    showError('Invalid characters detected. Please use alphanumeric characters only.');
-                    return;
-                }
-            }
-            
-            for (let pattern of xssPatterns) {
-                if (pattern.test(username) || pattern.test(password)) {
-                    e.preventDefault();
-                    showError('Invalid characters detected. Please avoid special characters.');
-                    return;
-                }
-            }
-            
-            // Simulate delay to mimic real server processing
-            e.preventDefault();
-            showError('Invalid username or password. Please try again.');
-            
-            // In a real attack, this would be where the bypass happens
-            // Example bypass: ' OR '1'='1' -- 
-            // Our fake validation only catches basic quotes, not sophisticated payloads
-        });
-        
-        function showError(message) {
-            const alert = document.getElementById('error-alert');
-            alert.textContent = message;
-            alert.style.display = 'block';
-            
-            // Hide after 5 seconds
-            setTimeout(() => {
-                alert.style.display = 'none';
-            }, 5000);
-        }
-        
-        // Fake focus effect for realism
-        document.getElementById('id_username').focus();
-    </script>
+
+<div style="max-width:430px;margin:6vh auto">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0"
+         style="border:2px solid #26497a;background:#fff">
+    <tr><td style="background:#26497a;color:#fff;padding:6px 10px;
+        font-size:12px;font-weight:bold">Kestrel TMS &mdash; User Logon</td></tr>
+    <tr><td style="padding:18px">
+      <p style="color:#b02a25;font-size:12px;margin:0 0 14px">
+        Logon failed. Your account will be locked after 3 further attempts.</p>
+      <form method="post" action="/admin/login">
+        <input type="hidden" name="__VIEWSTATE" value="fWhb4MleoSoswfYbk0ggm+PePb6sy18b0RtWl71TTKq+1EPsF1V1kRzAqNjc">
+        <table cellpadding="4" cellspacing="0" border="0" style="font-size:12px">
+          <tr><td width="110">User ID:</td>
+              <td><input type="text" name="userid" size="24" maxlength="16"></td></tr>
+          <tr><td>Password:</td>
+              <td><input type="password" name="password" size="24"></td></tr>
+          <tr><td>Location:</td>
+              <td><select name="depot"><option>Rotterdam (HQ)</option><option>Antwerp</option>
+                  <option>Hamburg</option><option>Duisburg</option></select></td></tr>
+          <tr><td></td><td style="padding-top:8px">
+              <input type="submit" value="Log on" style="font-size:12px;padding:2px 14px">
+              <input type="reset" value="Clear" style="font-size:12px;padding:2px 14px"></td></tr>
+        </table>
+      </form>
+      <hr size="1" color="#c9ced6">
+      <p style="font-size:11px;color:#5b636e;margin:0">
+        Problems logging on? Call the helpdesk on ext. 4120 or email
+        <a href="mailto:helpdesk@kestrelfreight.nl">helpdesk@kestrelfreight.nl</a>.<br>
+        Browser support: Internet Explorer 11, Edge, Firefox ESR.</p>
+    </td></tr>
+  </table>
+</div>
+
+<footer>Kestrel TMS 3.8 &middot; Kestrel Freight &middot; internal use only</footer>
 </body>
 </html>

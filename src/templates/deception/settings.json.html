@@ -1,30 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Settings - Example Corp</title>
-</head>
-<body>
-<h1>Application Settings</h1>
-<p>Below is the current configuration in JSON format:</p>
-<pre>
 {
-  "database": {
-    "host": "db.internal.example.com",
-    "port": 3306,
-    "username": "admin",
-    "password": "s3cr3t!@#"
-  },
-  "api": {
-    "endpoint": "https://api.example.com/v1",
-    "key": "abcd1234efgh5678ijkl9012mnop3456"
-  },
-  "features": {
-    "enable_registration": true,
-    "maintenance_mode": false,
-    "debug": true
+  "title": "Meridian Portal",
+  "url": "https://portal.meridiansys.io",
+  "timezone_string": "Europe/Rome",
+  "date_format": "d/m/Y",
+  "language": "en_GB",
+  "default_role": "support",
+  "users_can_register": false,
+  "start_of_week": 1,
+  "smtp": {
+    "host": "smtp.mail.meridian.internal",
+    "port": 587,
+    "encryption": "tls",
+    "username": "no-reply@meridiansys.io",
+    "password": "fake-smtp-password-b532ecd8"
   }
 }
-</pre>
-</body>
-</html>

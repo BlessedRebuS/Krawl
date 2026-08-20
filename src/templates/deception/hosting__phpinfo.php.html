@@ -1,76 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>NovaTech Solutions – Innovating IT Infrastructure</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f6f9; color:#333;}
-        header {background:#003366; color:#fff; padding:1rem 2rem; text-align:center;}
-        header h1 {margin:0; font-size:2rem;}
-        nav {background:#004080; overflow:hidden;}
-        nav a {float:left; display:block; color:#fff; text-align:center; padding:1rem 1.5rem; text-decoration:none;}
-        nav a:hover {background:#0055a5;}
-        .hero {background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="%23e0eafc"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23003366" font-size="24">NovaTech</text></svg>') center/cover no-repeat; color:#fff; text-align:center; padding:4rem 1rem; position:relative;}
-        .hero::after {content:""; position:absolute; inset:0; background:rgba(0,0,0,0.4);}
-        .hero-content {position:relative; z-index:1;}
-        .hero h2 {font-size:2.5rem; margin-bottom:0.5rem;}
-        .hero p {font-size:1.2rem; margin-bottom:2rem;}
-        .btn {background:#ffcc00; color:#003366; padding:0.8rem 1.5rem; border:none; border-radius:4px; cursor:pointer; font-weight:bold;}
-        .btn:hover {background:#e6b800;}
-        section {padding:2rem; max-width:960px; margin:auto;}
-        .features {display:flex; flex-wrap:wrap; gap:1.5rem;}
-        .feature {flex:1 1 250px; background:#fff; padding:1.5rem; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-        .feature h3 {color:#003366;}
-        footer {background:#003366; color:#fff; text-align:center; padding:1rem; font-size:0.9rem;}
-        footer a {color:#ffcc00; text-decoration:none;}
-        footer a:hover {text-decoration:underline;}
-    </style>
-</head>
-<body>
-<header>
-    <h1>NovaTech Solutions</h1>
-    <p>Empowering Enterprises with Secure, Scalable IT</p>
-</header>
-<nav>
-    <a href="/">Home</a>
-    <a href="/about">About Us</a>
-    <a href="/services">Services</a>
-    <a href="/contact">Contact</a>
-    <a href="/admin/login">Admin Portal</a>
-</nav>
-<section class="hero">
-    <div class="hero-content">
-        <h2>Transform Your Business</h2>
-        <p>From cloud migration to cybersecurity, we deliver end‑to‑end solutions tailored to your needs.</p>
-        <button class="btn" onclick="alert('Request a free consultation – our team will contact you shortly.')">Get Started</button>
-    </div>
-</section>
-<section>
-    <h2 style="text-align:center; color:#003366;">Our Core Services</h2>
-    <div class="features">
-        <div class="feature">
-            <h3>Cloud Infrastructure</h3>
-            <p>Deploy, manage, and optimize AWS, Azure, and private cloud environments with 99.9% SLA.</p>
-        </div>
-        <div class="feature">
-            <h3>Cybersecurity</h3>
-            <p>Threat detection, penetration testing, and compliance (ISO 27001, GDPR) services.</p>
-        </div>
-        <div class="feature">
-            <h3>DevOps Automation</h3>
-            <p>CI/CD pipelines, Kubernetes orchestration, and IaC using Terraform and Ansible.</p>
-        </div>
-        <div class="feature">
-            <h3>Data Analytics</h3>
-            <p>Real‑time dashboards, ETL pipelines, and AI‑driven insights powered by PostgreSQL and Spark.</p>
-        </div>
-    </div>
-</section>
-<footer>
-    <p>&copy; 2025 NovaTech Solutions. All rights reserved.</p>
-    <p>Server: 10.0.0.5 | Apache/2.4.41 (Ubuntu) | PHP/7.4.3 | MySQL 5.7.33-0ubuntu0.18.04.1</p>
-    <p><a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Service</a></p>
-</footer>
-</body>
-</html>
+<html><head><title>phpinfo()</title><style>
+body{background:#fff;color:#222;font-family:sans-serif;font-size:13px}
+table{border-collapse:collapse;width:600px;margin:1em auto}
+td,th{border:1px solid #666;padding:4px 6px;vertical-align:baseline}
+h1{text-align:center;font-size:20px}h2{text-align:center;font-size:16px;background:#9999cc;width:600px;margin:1em auto;padding:4px}
+.e{background:#ccccff;font-weight:bold;width:300px}.v{background:#cccccc;word-break:break-all}
+.h th{background:#9999cc}.center{text-align:center}
+</style></head><body>
+<h1>PHP Version 8.2.24</h1>
+<table>
+<tr><td class="e">System</td><td class="v">Linux web-01 6.8.0-45-generic #45-Ubuntu SMP x86_64</td></tr>
+<tr><td class="e">Build Date</td><td class="v">Sep 26 2025 14:11:03</td></tr>
+<tr><td class="e">Server API</td><td class="v">FPM/FastCGI</td></tr>
+<tr><td class="e">Loaded Configuration File</td><td class="v">/etc/php/8.2/fpm/php.ini</td></tr>
+<tr><td class="e">Scan this dir for additional .ini files</td><td class="v">/etc/php/8.2/fpm/conf.d</td></tr>
+<tr><td class="e">PHP API</td><td class="v">20220829</td></tr>
+<tr><td class="e">Debug Build</td><td class="v">no</td></tr>
+<tr><td class="e">Thread Safety</td><td class="v">disabled</td></tr>
+<tr><td class="e">Registered PHP Streams</td><td class="v">https, ftps, compress.zlib, php, file, glob, data, http, ftp, phar</td></tr>
+</table>
+<h2>Core</h2>
+<table>
+<tr class="h"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class="e">display_errors</td><td class="v">Off</td><td class="v">Off</td></tr>
+<tr><td class="e">memory_limit</td><td class="v">256M</td><td class="v">256M</td></tr>
+<tr><td class="e">max_execution_time</td><td class="v">60</td><td class="v">30</td></tr>
+<tr><td class="e">upload_max_filesize</td><td class="v">25M</td><td class="v">25M</td></tr>
+<tr><td class="e">open_basedir</td><td class="v">/var/www/portal:/tmp</td><td class="v">no value</td></tr>
+<tr><td class="e">disable_functions</td><td class="v">exec,passthru,shell_exec,system,proc_open,popen</td><td class="v">exec,passthru,shell_exec,system,proc_open,popen</td></tr>
+</table>
+<h2>Environment</h2>
+<table>
+<tr class="h"><th>Variable</th><th>Value</th></tr>
+<tr><td class="e">APP_ENV</td><td class="v">production</td></tr>
+<tr><td class="e">DB_HOST</td><td class="v">pg-prod-01.db.orbit.internal</td></tr>
+<tr><td class="e">DB_USERNAME</td><td class="v">orbit</td></tr>
+<tr><td class="e">DB_PASSWORD</td><td class="v">fake-db-password-cbb90bbf</td></tr>
+<tr><td class="e">DOCUMENT_ROOT</td><td class="v">/var/www/portal/public</td></tr>
+</table>
+<h2>PHP Variables</h2>
+<table>
+<tr class="h"><th>Variable</th><th>Value</th></tr>
+<tr><td class="e">_SERVER["HTTP_HOST"]</td><td class="v">portal.orbitlabs.dev</td></tr>
+<tr><td class="e">_SERVER["SERVER_SOFTWARE"]</td><td class="v">nginx/1.24.0</td></tr>
+<tr><td class="e">_SERVER["REQUEST_URI"]</td><td class="v">/hosting/phpinfo.php</td></tr>
+</table>
+<p class="center">PHP Group &middot; Zend Engine v4.2.24</p>
+</body></html>

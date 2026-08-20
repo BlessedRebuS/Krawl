@@ -1,91 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Admin Configuration - Internal</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 20px; background:#f4f4f4;}
-        h1 {color:#2c3e50;}
-        table {width:100%; border-collapse:collapse; margin-top:20px; background:#fff;}
-        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
-        th {background:#ecf0f1;}
-        .section {margin-bottom:30px; padding:15px; background:#fff; border-radius:5px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-        input[type=text], input[type=password] {padding:5px; width:250px;}
-        .btn {background:#3498db; color:#fff; border:none; padding:6px 12px; cursor:pointer;}
-        .btn:hover {background:#2980b9;}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administration — Kestrel TMS</title>
+<style>
+:root{--bg:#dfe3e8;--panel:#fff;--ink:#20242a;--muted:#5b636e;
+--line:#9aa3ad;--brand:#26497a;--brand-dk:#1b3459;--r:0;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 Verdana,Tahoma,Geneva,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#26497a;color:#fff;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#fff}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#c3d0e2;font-size:13px}
+header.top nav a.active{color:#fff;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:none}
+h1{font-family:inherit;font-size:15px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <h1>Server Administration – Configuration Overview</h1>
-    <div class="section">
-        <h2>Database Settings</h2>
-        <table>
-            <tr><th>Parameter</th><th>Value</th></tr>
-            <tr><td>Host</td><td>127.0.0.1</td></tr>
-            <tr><td>Port</td><td>3306</td></tr>
-            <tr><td>Username</td><td>admin_user</td></tr>
-            <tr><td>Password</td><td><input type="password" value="s3cr3tP@ssw0rd!" readonly></td></tr>
-            <tr><td>Database</td><td>main_app</td></tr>
-            <tr><td>Charset</td><td>utf8mb4</td></tr>
-        </table>
-    </div>
+<table width="100%" cellpadding="4" cellspacing="0" border="0" style="background:#26497a;color:#fff;font-size:12px"><tr><td style="font-weight:bold;padding-left:10px">Kestrel TMS <span style="font-weight:normal;color:#c3d0e2">v3.8</span></td><td align="right">Logged in as <b>jdevries</b> | <a href="/logout" style="color:#fff">Log off</a></td></tr></table><table width="100%" cellpadding="3" cellspacing="1" border="0" style="background:#7f8c9b;font-size:11px"><tr style="background:#1b3459"><td><a href="/home" style="color:#fff;text-decoration:none;font-weight:normal">Home</a></td><td><a href="/consignments" style="color:#fff;text-decoration:none;font-weight:normal">Consignments</a></td><td><a href="/planning" style="color:#fff;text-decoration:none;font-weight:normal">Planning</a></td><td><a href="/invoicing" style="color:#fff;text-decoration:none;font-weight:normal">Invoicing</a></td><td><a href="/admin" style="color:#fff;text-decoration:none;font-weight:normal">Admin</a></td></tr></table>
 
-    <div class="section">
-        <h2>Application Settings</h2>
-        <table>
-            <tr><th>Parameter</th><th>Value</th></tr>
-            <tr><td>Site Name</td><td>Corporate Portal</td></tr>
-            <tr><td>Maintenance Mode</td><td><select><option selected>Disabled</option><option>Enabled</option></select></td></tr>
-            <tr><td>Debug Level</td><td><input type="text" value="2"></td></tr>
-            <tr><td>Session Timeout (seconds)</td><td><input type="text" value="1800"></td></tr>
-            <tr><td>Allowed IPs</td><td>127.0.0.1, 192.168.1.0/24</td></tr>
-        </table>
-    </div>
+<div class="wrap">
+  <h1>Administration</h1>
+  <p class="sub">Signed in as <strong>jdevries</strong> (planner) &middot;
+  last sign-in 13/08/2026 14:12 from 10.24.8.41</p>
+  <div class="grid">
+    <div class="kpi"><div class="n">5</div><div class="l"><a href="/admin/users">Users</a></div></div>
+    <div class="kpi"><div class="n">7</div><div class="l"><a href="/admin/roles">Roles &amp; permissions</a></div></div>
+    <div class="kpi"><div class="n">1</div><div class="l"><a href="/admin/integrations">Integrations</a></div></div>
+    <div class="kpi"><div class="n">876</div><div class="l"><a href="/admin/audit">Audit entries (7d)</a></div></div>
+  </div>
+  <div class="panel" style="margin-top:18px">
+    <h2>Latest audit events</h2>
+    <table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Source</th></tr></thead>
+    <tbody><tr><td>14/08 08:30</td><td>jdevries</td><td>Updated SMTP integration credentials</td><td>10.24.8.41</td></tr><tr><td>14/08 06:12</td><td>tnakamura</td><td>Generated API token <code>tok_677f9096cd</code></td><td>10.24.9.16</td></tr><tr><td>14/08 00:12</td><td>system</td><td>Suspended account aelkhoury (12 failed sign-ins)</td><td>&mdash;</td></tr><tr><td>13/08 09:12</td><td>swozniak</td><td>Exported consignment report Q3-2026</td><td>10.24.8.77</td></tr></tbody></table>
+  </div>
+</div>
 
-    <div class="section">
-        <h2>Mail Server Configuration</h2>
-        <table>
-            <tr><th>Parameter</th><th>Value</th></tr>
-            <tr><td>SMTP Host</td><td>smtp.internal.example.com</td></tr>
-            <tr><td>SMTP Port</td><td>587</td></tr>
-            <tr><td>SMTP User</td><td>notify@example.com</td></tr>
-            <tr><td>SMTP Pass</td><td><input type="password" value="MailP@ss2025!" readonly></td></tr>
-            <tr><td>From Address</td><td>no-reply@example.com</td></tr>
-        </table>
-    </div>
-
-    <div class="section">
-        <h2>Edit Configuration</h2>
-        <form action="/admin/config/update" method="post">
-            <label for="debug">Debug Level:</label>
-            <input type="text" id="debug" name="debug" value="2"><br><br>
-            <label for="session">Session Timeout (s):</label>
-            <input type="text" id="session" name="session" value="1800"><br><br>
-            <label for="mailsmtp">SMTP Password:</label>
-            <input type="password" id="mailsmtp" name="smtp_pass" value="MailP@ss2025!"><br><br>
-            <input type="submit" class="btn" value="Save Changes">
-            <input type="reset" class="btn" value="Reset">
-        </form>
-    </div>
-
-    <div class="section">
-        <h2>Logs (last 10 entries)</h2>
-        <pre>
-[2025-11-02 08:12:03] INFO  User admin logged in from 192.168.1.45
-[2025-11-02 08:10:17] WARN  Failed login attempt for user root from 10.0.0.22
-[2025-11-02 08:09:05] DEBUG DB query: SELECT * FROM users WHERE id = 1
-[2025-11-02 08:07:58] INFO  Cache cleared
-[2025-11-02 08:05:12] ERROR Connection to SMTP timed out
-[2025-11-02 08:03:44] INFO  Backup completed successfully
-[2025-11-02 08:02:10] WARN  Disk usage at 78%
-[2025-11-02 08:01:05] INFO  Service restarted
-[2025-11-02 07:59:58] DEBUG XSS attempt detected: <script>alert(1)</script>
-[2025-11-02 07:58:30] INFO  SQL injection attempt blocked: ' OR '1'='1
-        </pre>
-    </div>
-
-    <footer style="margin-top:40px; font-size:0.9em; color:#7f8c8d;">
-        &copy; 2025 Internal Systems – Administration Panel
-    </footer>
+<footer>Kestrel TMS 3.8 &middot; Kestrel Freight &middot; internal use only</footer>
 </body>
 </html>
