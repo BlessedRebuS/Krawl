@@ -19,7 +19,6 @@ Two families of metrics:
 """
 
 import re
-import time
 
 from prometheus_client import REGISTRY, Gauge
 from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
@@ -105,6 +104,24 @@ class KrawlMetricsCollector:
         except Exception as e:
             app_logger.error(f"collect clients_total failed: {e}")
         yield clients
+
+        # Rising depth means the flush task is behind — visible as RSS growth
+        # long before anything else. Alert on krawl_write_buffer_rows > 10000.
+        try:
+            from database import get_dropped_rows, get_write_buffer_size
+
+            yield GaugeMetricFamily(
+                "krawl_write_buffer_rows",
+                "Access-log rows waiting to be flushed to the database",
+                value=get_write_buffer_size(),
+            )
+            yield CounterMetricFamily(
+                "krawl_write_buffer_dropped",
+                "Access-log rows dropped because the write buffer was full",
+                value=get_dropped_rows(),
+            )
+        except Exception as e:
+            app_logger.error(f"collect write buffer metrics failed: {e}")
 
         timed_out = GaugeMetricFamily(
             "krawl_timed_out_ips",
@@ -194,15 +211,9 @@ def refresh_system(db) -> None:
         app_logger.error(f"refresh_system: unenriched_ips failed: {e}")
 
     try:
-        from routes.api import _auth_attempts
+        from auth_store import count_locked
 
-        now = time.time()
-        locked = sum(
-            1
-            for record in _auth_attempts.values()
-            if record.get("locked_until", 0) > now
-        )
-        auth_locked_ips.set(locked)
+        auth_locked_ips.set(count_locked())
     except Exception as e:
         app_logger.error(f"refresh_system: auth_locked_ips failed: {e}")
 

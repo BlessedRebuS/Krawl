@@ -83,8 +83,24 @@ def get_client_ip(request: Request) -> str:
     return "0.0.0.0"  # noqa: S104 — sentinel for unknown client, not a socket bind
 
 
+# Keep the request line, headers and start of body; never a whole upload.
+MAX_RAW_REQUEST = 16 * 1024
+
+# Starlette caches request.body() for the middleware and the route to share;
+# refusing early on content-length keeps that shared copy small.
+MAX_BODY_BYTES = 64 * 1024
+
+
+def body_too_large(request: Request) -> bool:
+    """True when the declared body exceeds what we are willing to buffer."""
+    try:
+        return int(request.headers.get("content-length") or 0) > MAX_BODY_BYTES
+    except ValueError:
+        return False
+
+
 def build_raw_request(request: Request, body: str = "") -> str:
-    """Build raw HTTP request string for forensic analysis."""
+    """Build raw HTTP request string for forensic analysis (capped)."""
     try:
         raw = f"{request.method} {request.url.path}"
         if request.url.query:
@@ -99,6 +115,6 @@ def build_raw_request(request: Request, body: str = "") -> str:
         if body:
             raw += body
 
-        return raw
+        return raw[:MAX_RAW_REQUEST]
     except Exception as e:
         return f"{request.method} {request.url.path} (error building full request: {str(e)})"
