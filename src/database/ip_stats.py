@@ -393,6 +393,26 @@ class IpStatsRepo:
         finally:
             self._db.close_session()
 
+    def mark_analysed(self, ip: str, when: datetime) -> None:
+        """Clear the reevaluation flag without changing the category.
+
+        For IPs with no access logs left in the analysis window: there is
+        nothing to score, but the flag has to clear or the IP is re-read on
+        every run forever.
+        """
+        session = self._db.session
+        try:
+            session.query(IpStats).filter(IpStats.ip == sanitize_ip(ip)).update(
+                {IpStats.last_analysis: when, IpStats.need_reevaluation: False},
+                synchronize_session=False,
+            )
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            applogger.error(f"Error marking {ip} analysed: {e}")
+        finally:
+            self._db.close_session()
+
     def manual_update_category(self, ip: str, category: str) -> None:
         """
         Update IP category as a result of a manual intervention by an admin
@@ -660,8 +680,10 @@ class IpStatsRepo:
                 .filter(
                     IpStats.last_seen >= last_seen_cutoff,
                     IpStats.last_analysis <= last_analysis_cutoff,
-                    not IpStats.need_reevaluation,
-                    not IpStats.manual_category,
+                    # `not <column>` is Python truthiness: it collapsed to False,
+                    # so this update matched nothing and never flagged an IP.
+                    IpStats.need_reevaluation.isnot(True),
+                    IpStats.manual_category.isnot(True),
                 )
                 .update(
                     {IpStats.need_reevaluation: True},
@@ -689,8 +711,8 @@ class IpStatsRepo:
             count = (
                 session.query(IpStats)
                 .filter(
-                    not IpStats.need_reevaluation,
-                    not IpStats.manual_category,
+                    IpStats.need_reevaluation.isnot(True),
+                    IpStats.manual_category.isnot(True),
                 )
                 .update(
                     {IpStats.need_reevaluation: True},
