@@ -12,7 +12,7 @@ import threading
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, insert
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from database.access_logs import AccessLogRepo
@@ -56,21 +56,35 @@ def _ban_multiplier_for(total_violations: int) -> int:
 # buffered in memory and flushed in bulk every few seconds by a background task.
 # IP stats counters are still updated synchronously (needed for ban checks).
 
-_write_buffer: collections.deque = collections.deque()
-_write_lock = threading.Lock()
+# Statement size, not a per-flush ceiling: the flush loops until drained.
 _FLUSH_BATCH_SIZE = 200
+# ~60 MiB at 1.2 KB/entry. Hitting it means the flush task is behind; the
+# oldest rows are dropped and counted rather than growing until OOM.
+_MAX_BUFFER_ROWS = 50_000
+
+_write_buffer: collections.deque = collections.deque(maxlen=_MAX_BUFFER_ROWS)
+_write_lock = threading.Lock()
+_dropped_rows = 0
 
 
 def _buffer_access_log_entry(**kwargs) -> None:
     """Append an access-log entry to the in-memory write buffer."""
+    global _dropped_rows
     kwargs["_buffered_at"] = datetime.now()
     with _write_lock:
+        if len(_write_buffer) == _MAX_BUFFER_ROWS:
+            _dropped_rows += 1  # maxlen evicts from the left on append
         _write_buffer.append(kwargs)
 
 
 def get_write_buffer_size() -> int:
     """Return current buffer depth (for monitoring)."""
     return len(_write_buffer)
+
+
+def get_dropped_rows() -> int:
+    """Access-log rows dropped because the buffer was full (for monitoring)."""
+    return _dropped_rows
 
 
 class DatabaseManager:
@@ -328,54 +342,85 @@ class DatabaseManager:
         finally:
             self.close_session()
 
-    def flush_access_log_buffer(self) -> int:
+    def _pop_batch(self, n: int) -> list[dict]:
+        """Remove up to n entries from the front of the write buffer."""
+        with _write_lock:
+            return [_write_buffer.popleft() for _ in range(min(len(_write_buffer), n))]
+
+    def flush_access_log_buffer(self, max_rows: int = 50_000) -> int:
         """
         Bulk-insert buffered access log entries into the database.
 
-        Called periodically by a background task in scalable mode.
+        Drains in _FLUSH_BATCH_SIZE statements until empty, so the flush rate
+        follows arrival rate. max_rows caps the work one run may do.
+
         Returns the number of entries flushed.
         """
-        entries = []
-        with _write_lock:
-            for _ in range(min(len(_write_buffer), _FLUSH_BATCH_SIZE)):
-                entries.append(_write_buffer.popleft())
+        total = 0
+        while total < max_rows:
+            entries = self._pop_batch(_FLUSH_BATCH_SIZE)
+            if not entries:
+                break
+            inserted = self._insert_access_log_batch(entries)
+            if inserted == 0:
+                break  # batch failed and was re-queued; stop to avoid spinning
+            total += inserted
+        return total
 
-        if not entries:
-            return 0
-
+    def _insert_access_log_batch(self, entries: list[dict]) -> int:
+        """Insert one batch of buffered entries: two statements, not two per row."""
         session = self.session
         try:
+            logs, attacks_per_entry = [], []
             for entry in entries:
                 ts = entry.pop("_buffered_at", datetime.now())
-                attack_types = entry.pop("attack_types", None)
-                matched_patterns = entry.pop("matched_patterns", None) or {}
-
-                access_log = AccessLog(
-                    ip=sanitize_ip(entry["ip"]),
-                    path=sanitize_path(entry["path"]),
-                    user_agent=sanitize_user_agent(entry.get("user_agent", "")),
-                    method=(entry.get("method", "GET"))[:10],
-                    is_suspicious=entry.get("is_suspicious", False),
-                    is_honeypot_trigger=entry.get("is_honeypot_trigger", False),
-                    timestamp=ts,
-                    raw_request=entry.get("raw_request"),
+                attacks_per_entry.append(
+                    (
+                        entry.pop("attack_types", None),
+                        entry.pop("matched_patterns", None) or {},
+                    )
                 )
-                session.add(access_log)
+                logs.append(
+                    {
+                        "ip": sanitize_ip(entry["ip"]),
+                        "path": sanitize_path(entry["path"]),
+                        "user_agent": sanitize_user_agent(entry.get("user_agent", "")),
+                        "method": (entry.get("method", "GET"))[:10],
+                        "is_suspicious": entry.get("is_suspicious", False),
+                        "is_honeypot_trigger": entry.get("is_honeypot_trigger", False),
+                        "timestamp": ts,
+                        "raw_request": entry.get("raw_request"),
+                    }
+                )
 
-                if attack_types:
-                    session.flush()
-                    for attack_type in attack_types:
-                        detection = AttackDetection(
-                            access_log_id=access_log.id,
-                            attack_type=attack_type[:50],
-                            matched_pattern=sanitize_attack_pattern(
-                                matched_patterns.get(attack_type, "")
-                            ),
-                        )
-                        session.add(detection)
+            # sort_by_parameter_order: without it RETURNING order is undefined
+            # and detections attach to the wrong rows.
+            log_ids = session.scalars(
+                insert(AccessLog).returning(
+                    AccessLog.id, sort_by_parameter_order=True
+                ),
+                logs,
+            ).all()
+
+            detections = [
+                {
+                    "access_log_id": log_id,
+                    "attack_type": attack_type[:50],
+                    "matched_pattern": sanitize_attack_pattern(
+                        patterns.get(attack_type, "")
+                    ),
+                }
+                for log_id, (types, patterns) in zip(
+                    log_ids, attacks_per_entry, strict=True
+                )
+                if types
+                for attack_type in types
+            ]
+            if detections:
+                session.execute(insert(AttackDetection), detections)
 
             session.commit()
-            return len(entries)
+            return len(logs)
 
         except Exception as e:
             session.rollback()
