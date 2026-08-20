@@ -396,9 +396,7 @@ class DatabaseManager:
             # sort_by_parameter_order: without it RETURNING order is undefined
             # and detections attach to the wrong rows.
             log_ids = session.scalars(
-                insert(AccessLog).returning(
-                    AccessLog.id, sort_by_parameter_order=True
-                ),
+                insert(AccessLog).returning(AccessLog.id, sort_by_parameter_order=True),
                 logs,
             ).all()
 
