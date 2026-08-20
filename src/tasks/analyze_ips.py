@@ -21,6 +21,12 @@ TASK_CONFIG = {
     "run_when_loaded": True,
 }
 
+# Upper bound on IPs analysed per run; the remainder is picked up next minute.
+# Sized from the real workload: the vast majority of flagged IPs have under 100
+# rows to read, so 2000 fits comfortably inside the one-minute window while
+# still capping the worst case at 2000 x 10,000 rows.
+MAX_IPS_PER_RUN = 2000
+
 
 def main():
     config = get_config()
@@ -123,6 +129,16 @@ def main():
         )
         return
 
+    # flag-stale-ips flags every stale IP at once (daily), and each IP costs a
+    # 10,000-row read. Take a slice per run; the task fires every minute.
+    pending = len(ips_to_analyze)
+    if pending > MAX_IPS_PER_RUN:
+        ips_to_analyze = set(sorted(ips_to_analyze)[:MAX_IPS_PER_RUN])
+        app_logger.info(
+            f"[Background Task] analyze-ips: {pending} IPs pending, "
+            f"analysing {MAX_IPS_PER_RUN} this run"
+        )
+
     for ip in ips_to_analyze:
         # Get full history for this IP to perform accurate analysis
         ip_accesses = db_manager.access_logs.get_list(
@@ -130,6 +146,9 @@ def main():
         )  # look back up to 30 days of history for better accuracy
         total_accesses_count = len(ip_accesses)
         if total_accesses_count <= 0:
+            # No history left in the window (logs aged out or were purged).
+            # Clear the flag anyway, or this IP is re-read on every run forever.
+            db_manager.ip_stats.mark_analysed(ip, datetime.now())
             continue
 
         # --------------------- HTTP Methods ---------------------
