@@ -23,6 +23,14 @@ from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyCookie
 from pydantic import BaseModel, validator
 
+from auth_store import (
+    clear_attempts,
+    create_session,
+    destroy_session,
+    get_attempts,
+    is_valid_session,
+    save_attempts,
+)
 from config import get_config
 from dashboard_cache import (
     get_cached,
@@ -35,12 +43,8 @@ from dashboard_cache import (
 from dependencies import get_client_ip, get_db
 from logger import get_app_logger
 
-# Server-side session token store (valid tokens for authenticated sessions)
-_auth_tokens: set = set()
-
-# Bruteforce protection: tracks failed attempts per IP
-# { ip: { "attempts": int, "locked_until": float } }
-_auth_attempts: dict = {}
+# Sessions and bruteforce counters live in auth_store: Redis in scalable mode
+# so they are shared by every replica, a local dict in standalone.
 _AUTH_MAX_ATTEMPTS = 5
 _AUTH_BASE_LOCKOUT = 30  # seconds, doubles on each lockout
 
@@ -62,8 +66,7 @@ class AuthRequest(BaseModel):
 
 def verify_auth(request: Request) -> bool:
     """Check if the request has a valid auth session cookie."""
-    token = request.cookies.get("krawl_auth")
-    return token is not None and token in _auth_tokens
+    return is_valid_session(request.cookies.get("krawl_auth"))
 
 
 class Unauthorized(Exception):
@@ -81,7 +84,7 @@ _cookie_scheme = APIKeyCookie(
 
 def require_auth(token: str | None = Depends(_cookie_scheme)) -> None:
     """Route dependency: 401 JSON unless the session cookie is valid."""
-    if token is None or token not in _auth_tokens:
+    if not is_valid_session(token):
         raise Unauthorized()
 
 
@@ -90,7 +93,7 @@ async def authenticate(request: Request, body: AuthRequest):
     ip = get_client_ip(request)
 
     # Check if IP is currently locked out
-    record = _auth_attempts.get(ip)
+    record = get_attempts(ip)
     if record and record["locked_until"] > time.time():
         remaining = int(record["locked_until"] - time.time())
         return JSONResponse(
@@ -107,10 +110,10 @@ async def authenticate(request: Request, body: AuthRequest):
     expected = config.dashboard_password.strip()
     if hmac.compare_digest(body.password, expected):
         # Success — clear failed attempts
-        _auth_attempts.pop(ip, None)
+        clear_attempts(ip)
         get_app_logger().info(f"[AUTH] Successful login from {ip}")
         token = secrets.token_hex(32)
-        _auth_tokens.add(token)
+        create_session(token)
         response = JSONResponse(content={"authenticated": True})
         response.set_cookie(
             key="krawl_auth",
@@ -124,7 +127,6 @@ async def authenticate(request: Request, body: AuthRequest):
     get_app_logger().warning(f"[AUTH] Failed login attempt from {ip}")
     if not record:
         record = {"attempts": 0, "locked_until": 0, "lockouts": 0}
-        _auth_attempts[ip] = record
     record["attempts"] += 1
 
     if record["attempts"] >= _AUTH_MAX_ATTEMPTS:
@@ -132,6 +134,7 @@ async def authenticate(request: Request, body: AuthRequest):
         record["locked_until"] = time.time() + lockout
         record["lockouts"] += 1
         record["attempts"] = 0
+        save_attempts(ip, record)
         get_app_logger().warning(
             f"Auth bruteforce: IP {ip} locked out for {lockout}s "
             f"(lockout #{record['lockouts']})"
@@ -146,6 +149,7 @@ async def authenticate(request: Request, body: AuthRequest):
             status_code=429,
         )
 
+    save_attempts(ip, record)
     remaining_attempts = _AUTH_MAX_ATTEMPTS - record["attempts"]
     return JSONResponse(
         content={
@@ -158,9 +162,7 @@ async def authenticate(request: Request, body: AuthRequest):
 
 @router.post("/api/auth/logout")
 async def logout(request: Request):
-    token = request.cookies.get("krawl_auth")
-    if token and token in _auth_tokens:
-        _auth_tokens.discard(token)
+    destroy_session(request.cookies.get("krawl_auth"))
     response = JSONResponse(content={"authenticated": False})
     response.delete_cookie(key="krawl_auth")
     return response
