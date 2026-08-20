@@ -53,10 +53,9 @@ class BanCheckMiddleware(BaseHTTPMiddleware):
 
         # Check global banlist (external maintainer sources)
         if config.banlist_export_path or config.banlist_sources:
-            from banlist_sync import get_global_banlist
+            from banlist_sync import is_globally_banned
 
-            global_bans = get_global_banlist()
-            if client_ip in global_bans:
+            if is_globally_banned(client_ip):
                 get_access_logger().info(
                     f"[GLOBAL-BANNED] [{request.method}] {client_ip} - {request.url.path}"
                 )
