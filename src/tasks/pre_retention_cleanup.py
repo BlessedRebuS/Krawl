@@ -163,7 +163,9 @@ def main():
                 .filter(
                     AccessLog.timestamp < cutoff,
                     AccessLog.is_suspicious,
-                    not AccessLog.is_honeypot_trigger,
+                    # `not <column>` is Python truthiness: it collapsed to False
+                    # and this query matched nothing.
+                    AccessLog.is_honeypot_trigger.is_(False),
                 )
                 .limit(BATCH_SIZE)
                 .all()
