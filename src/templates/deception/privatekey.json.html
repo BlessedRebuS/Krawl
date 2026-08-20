@@ -1,0 +1,26 @@
+{
+  "app": {
+    "name": "Orbit Cloud",
+    "version": "0.38.2",
+    "env": "production",
+    "url": "https://portal.orbitlabs.dev"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.orbit.internal",
+    "port": 5432,
+    "name": "orbit_cloud",
+    "user": "orbit",
+    "password": "fake-db-password-0f96800f"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.orbit.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-76bf371c40aa393543376c28b3f73705",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-12T22:20:47Z"
+}

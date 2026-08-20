@@ -1,101 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Database Export</title>
-    <style>
-        body {font-family: monospace; margin: 2rem; background:#fafafa; color:#222;}
-        pre {background:#eee; padding:1rem; overflow:auto; border:1px solid #ccc;}
-    </style>
-</head>
-<body>
-    <h1>Database Export</h1>
-    <p>Generated on 2025-11-03 14:22:07</p>
-    <pre>
--- MySQL dump 10.13  Distrib 8.0.33, for Linux (x86_64)
---
--- Host: localhost    Database: company_db
--- ------------------------------------------------------
--- Server version	8.0.33-0ubuntu0.20.04.1
+-- Grid Console database dump
+-- host: pg-prod-01.db.volta.internal    database: volta_grid
+-- server version 16.3    dumped on 2026-08-14 09:12:07
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
 
---
--- Table structure for table `users`
---
+DROP TABLE IF EXISTS mp_users;
+CREATE TABLE mp_users (
+    id            integer NOT NULL,
+    username      varchar(64) NOT NULL,
+    email         varchar(190) NOT NULL,
+    password_hash varchar(255) NOT NULL,
+    role          varchar(32) NOT NULL DEFAULT 'support',
+    created_at    timestamp NOT NULL
+);
 
-DROP TABLE IF EXISTS `users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `users` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) NOT NULL,
-  `email` varchar(100) DEFAULT NULL,
-  `password_hash` varchar(255) NOT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+INSERT INTO mp_users (id, username, email, password_hash, role, created_at) VALUES
+(2, 'm.arrieta', 'm.arrieta@voltaenergia.es', '$2y$12$jouSPjNJLzubug9RH64Zsx7CCw9aMDkxSJwStYxFTu7C+n2zgmkxt', 'grid_operator', '2018-05-21 08:31:44'),
+(6, 'f.castells', 'f.castells@voltaenergia.es', '$2y$12$sZXMzziWDpDC1nnqrc7dQeRNLhYcPRwHJENKhBRIU3aKJ0FADFAd6', 'administrator', '2019-01-09 08:31:44'),
+(11, 'y.benali', 'y.benali@voltaenergia.es', '$2y$12$DZuNvWFSUNYVn049VLYblOzqWQTE68GvWFm8PAj2W1C5MFPHidGIM', 'field_engineer', '2021-06-15 08:31:44'),
+(17, 'g.ferreira', 'g.ferreira@voltaenergia.es', '$2y$12$52KSal6zM0vIPl6cVMO+YV6Yc4zvuIAg3F/jaJ78+BYO6oADhZ9G+', 'analyst', '2022-10-02 08:31:44'),
+(25, 's.dukic', 's.dukic@voltaenergia.es', '$2y$12$IE8aAI7ifFizeAvL2bS3GSBGPMZ62PAU7eMIni1WzpQv/6XWuXONq', 'scada_support', '2024-03-19 08:31:44');
 
---
--- Dumping data for table `users`
---
+ALTER TABLE ONLY mp_users ADD CONSTRAINT mp_users_pkey PRIMARY KEY (id);
+CREATE UNIQUE INDEX mp_users_email_idx ON mp_users USING btree (email);
 
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'admin','admin@example.com','5f4dcc3b5aa765d61d8327deb882cf99','2023-01-15 08:30:00'),(2,'jdoe','jdoe@example.com','e10adc3949ba59abbe56e057f20f883e','2023-02-20 12:45:12'),(3,'asmith','asmith@example.com','d8578edf8458ce06fbc5bb76a58c5ca4','2023-03-10 09:15:00'),(4,'ljackson','ljackson@example.com','8cb2237d0679ca88db6464eac60da963','2023-04-05 14:22:33');
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `orders`
---
-
-DROP TABLE IF EXISTS `orders`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `orders` (
-  `order_id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int NOT NULL,
-  `product` varchar(100) NOT NULL,
-  `quantity` int NOT NULL,
-  `order_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`order_id`),
-  KEY `fk_user` (`user_id`),
-  CONSTRAINT `fk_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `orders`
---
-
-LOCK TABLES `orders` WRITE;
-/*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (1,1,'Widget A',2,'2023-05-01 10:00:00'),(2,2,'Widget B',5,'2023-05-03 14:22:11'),(3,3,'Widget C',1,'2023-05-04 09:05:00'),(4,1,'Widget A',3,'2023-05-05 16:30:00'),(5,4,'Widget D',10,'2023-05-06 11:15:00'),(6,2,'Widget E',1,'2023-05-07 08:45:00');
-/*!40000 ALTER TABLE `orders` ENABLE KEYS */;
-UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2025-11-03 14:22:07
-    </pre>
-</body>
-</html>
+-- dump completed

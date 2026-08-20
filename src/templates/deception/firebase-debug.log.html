@@ -1,31 +1,16 @@
-<html>
-<head>
-    <title>Firebase Debug Log</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; color:#222; margin:2em;}
-        pre {background:#fff; padding:1em; border:1px solid #ddd; overflow:auto;}
-    </style>
-</head>
-<body>
-<pre>
-[2025-11-02 08:12:03.145] INFO  FirebaseApp: Initializing FirebaseApp com.example.myapp
-[2025-11-02 08:12:03.147] DEBUG FirebaseOptions: projectId = my-awesome-project, apiKey = AIzaSyDummyKey1234567890abcdef
-[2025-11-02 08:12:03.149] INFO  FirebaseAuth: Auth state change listener registered
-[2025-11-02 08:12:03.152] WARN  FirebaseMessaging: No default notification channel set, using fallback
-[2025-11-02 08:12:03.158] INFO  FirebaseDatabase: Persistence enabled, cache size set to 10 MB
-[2025-11-02 08:12:03.162] DEBUG FirebaseFirestore: Using offline persistence with index auto-generation enabled
-[2025-11-02 08:12:03.167] INFO  FirebaseCrashlytics: Crashlytics reporter initialized with version 18.3.0
-[2025-11-02 08:12:03.170] ERROR FirebaseRemoteConfig: Fetch failed: config not found (will use defaults)
-[2025-11-02 08:12:03.175] INFO  FirebaseAnalytics: Analytics collection enabled
-[2025-11-02 08:12:03.180] DEBUG FirebaseApp: All Firebase services initialized successfully
-[2025-11-02 08:12:04.001] INFO  FirebaseAuth: User signed in: uid=abc123def456, email=test@example.com
-[2025-11-02 08:12:04.005] DEBUG FirebaseFirestore: Listening to collection 'users' document abc123def456
-[2025-11-02 08:12:04.010] INFO  FirebaseMessaging: Received token: eXAMPLE_TOkEn_TokenString12345!@#$
-[2025-11-02 08:12:04.015] WARN  FirebaseStorage: Upload task for profile.png resumed after network change
-[2025-11-02 08:12:05.123] INFO  FirebasePerformance: Trace started: app_startup
-[2025-11-02 08:12:05.456] INFO  FirebasePerformance: Trace stopped: app_startup (duration 333 ms)
-[2025-11-02 08:12:06.000] DEBUG FirebaseApp: Flushing pending analytics events
-[2025-11-02 08:12:06.005] INFO  FirebaseApp: Firebase initialization complete
-</pre>
-</body>
-</html>
+[2026-08-11 18:49:07] production.ERROR: SMTP connect() failed on smtp.mail.halcyon.internal:587 {"request_id":"f98583d639ad66be"}
+[2026-08-12 06:41:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.halcyon.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"1fcd61ce153d9a7e"}
+[2026-08-13 18:16:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.halcyon.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"ff904dcbee75fd3f"}
+[2026-08-13 13:39:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=27 user_id=16 {"request_id":"ec7276447d928148"}
+[2026-08-13 23:19:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=127 user_id=19 {"request_id":"d29a837690383d7a"}
+[2026-08-13 08:00:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"cd1a7a3c1f1471f8"}
+[2026-08-14 00:11:07] production.INFO: scheduled task inventory:sync finished, 2568 rows {"request_id":"36faad02cbd566fe"}
+[2026-08-13 22:25:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.halcyon.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"4b36f5887097e953"}
+[2026-08-14 07:17:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=192 user_id=19 {"request_id":"16b880f834912352"}
+[2026-08-13 01:00:07] production.ERROR: SMTP connect() failed on smtp.mail.halcyon.internal:587 {"request_id":"51c3738d95dafc18"}
+[2026-08-13 09:19:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=47 user_id=5 {"request_id":"be2f9425020e110e"}
+[2026-08-12 13:45:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.halcyon.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"9afb408fef17813c"}
+[2026-08-11 14:58:07] production.INFO: scheduled task inventory:sync finished, 8888 rows {"request_id":"1b2a9bdb0ce59c91"}
+[2026-08-12 17:01:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=366 user_id=5 {"request_id":"0b32a12ec8675d55"}
+[2026-08-11 18:56:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"548e69b69d201faa"}
+[2026-08-11 19:38:07] production.ERROR: SMTP connect() failed on smtp.mail.halcyon.internal:587 {"request_id":"594a103f0db87484"}

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kestrel Freight — road freight and customs brokerage</title>
+<style>
+:root{--bg:#dfe3e8;--panel:#fff;--ink:#20242a;--muted:#5b636e;
+--line:#9aa3ad;--brand:#26497a;--brand-dk:#1b3459;--r:0;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 Verdana,Tahoma,Geneva,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#26497a;color:#fff;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#fff}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#c3d0e2;font-size:13px}
+header.top nav a.active{color:#fff;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:none}
+h1{font-family:inherit;font-size:15px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
+</head>
+<body>
+<table width="100%" cellpadding="4" cellspacing="0" border="0" style="background:#26497a;color:#fff;font-size:12px"><tr><td style="font-weight:bold;padding-left:10px">Kestrel TMS <span style="font-weight:normal;color:#c3d0e2">v3.8</span></td><td align="right">Logged in as <b>jdevries</b> | <a href="/logout" style="color:#fff">Log off</a></td></tr></table><table width="100%" cellpadding="3" cellspacing="1" border="0" style="background:#7f8c9b;font-size:11px"><tr style="background:#1b3459"><td><a href="/home" style="color:#fff;text-decoration:none;font-weight:normal">Home</a></td><td><a href="/consignments" style="color:#fff;text-decoration:none;font-weight:normal">Consignments</a></td><td><a href="/planning" style="color:#fff;text-decoration:none;font-weight:normal">Planning</a></td><td><a href="/invoicing" style="color:#fff;text-decoration:none;font-weight:normal">Invoicing</a></td><td><a href="/admin" style="color:#fff;text-decoration:none;font-weight:normal">Admin</a></td></tr></table>
+
+<div class="wrap">
+  <div class="panel">
+    <h1>Road freight and customs, planned on one screen</h1>
+    <p class="sub">Kestrel Freight moves 4 200 consignments a week between the Benelux, Germany and southern Europe.</p>
+    <p><a class="btn" href="/contact-us" style="display:inline-block">Book a demo</a>
+       <a class="btn sec" href="/login" style="display:inline-block;margin-left:8px">Customer sign in</a></p>
+  </div>
+  <div class="grid"><div class="panel"><h2>Planning</h2><p class="muted">Assign loads to tractors and drivers, with tachograph hours checked before dispatch.</p><p><a href="/services">Read more</a></p></div><div class="panel"><h2>Customs</h2><p class="muted">NCTS and AES declarations raised from the consignment record, no rekeying.</p><p><a href="/network">Read more</a></p></div><div class="panel"><h2>Invoicing</h2><p class="muted">Rate cards, fuel surcharge and self-billing runs against the same consignment data.</p><p><a href="/track">Read more</a></p></div></div>
+  <div class="panel">
+    <h2>Latest updates</h2>
+    <p><a href="/blog/q3-platform-roadmap">Q3 platform roadmap</a>
+      <span class="muted">&middot; 08 August 2026</span><br>
+    <a href="/blog/release-3.8">What changed in Kestrel TMS 3.8</a>
+      <span class="muted">&middot; 26 July 2026</span><br>
+    <a href="/blog/integration-notes">Integration notes for partners</a>
+      <span class="muted">&middot; 12 July 2026</span></p>
+  </div>
+  <div class="panel">
+    <p class="muted" style="font-size:12px">Kestrel Freight &middot; Waalhaven Oostzijde 81, 3087 BM Rotterdam, Netherlands &middot;
+    company no. 7484939 &middot; <a href="/services">Services</a> &middot; <a href="/network">Network</a> &middot; <a href="/track">Track a consignment</a> &middot; <a href="/about-us">About us</a> &middot; <a href="/contact-us">Contact</a></p>
+  </div>
+</div>
+
+<footer>Kestrel TMS 3.8 &middot; Kestrel Freight &middot; internal use only</footer>
+</body>
+</html>

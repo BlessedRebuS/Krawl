@@ -1,0 +1,26 @@
+{
+  "app": {
+    "name": "Grid Console",
+    "version": "2.11.6",
+    "env": "production",
+    "url": "https://portal.voltaenergia.es"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.volta.internal",
+    "port": 5432,
+    "name": "volta_grid",
+    "user": "grid_rw",
+    "password": "fake-db-password-3cddce90"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.volta.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-19b4f1696831fd4e296f22f7c8284029",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-08T19:17:10Z"
+}

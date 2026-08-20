@@ -1,60 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Acme Corp - Internal Portal</title>
-<style>
-body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f4f4f4;color:#333}
-header{background:#003366;color:#fff;padding:1rem;text-align:center}
-nav{background:#004080;color:#fff;padding:.5rem;text-align:center}
-nav a{color:#fff;margin:0 1rem;text-decoration:none}
-nav a:hover{text-decoration:underline}
-main{padding:2rem}
-.card{background:#fff;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1);margin-bottom:1.5rem;padding:1.5rem}
-.card h2{margin-top:0;color:#003366}
-footer{background:#003366;color:#fff;text-align:center;padding:1rem;font-size:.9rem}
-</style>
-</head>
-<body>
-<header>
-<h1>Acme Corp Internal Portal</h1>
-<p>Secure Access to Internal Services</p>
-</header>
-<nav>
-<a href="/">Home</a>
-<a href="/admin">Admin Panel</a>
-<a href="/api/status">API Status</a>
-<a href="/contact">Contact</a>
-</nav>
-<main>
-<div class="card">
-<h2>Welcome, j.smith</h2>
-<p>Last login: 2025-09-24 08:12:34 from 10.0.0.57</p>
-<p>Your role: <strong>Systems Administrator</strong></p>
-</div>
-<div class="card">
-<h2>System Overview</h2>
-<ul>
-<li>Server: <code>web01.acme.local</code> (10.0.0.12)</li>
-<li>OS: Ubuntu 20.04.5 LTS</li>
-<li>Web Server: Apache/2.4.41 (Ubuntu)</li>
-<li>Application: AcmeCMS v2.3.1</li>
-<li>Database: MySQL 5.7.33 - <code>acme_prod</code></li>
-<li>Internal IP Range: 10.0.0.0/24</li>
-</ul>
-</div>
-<div class="card">
-<h2>Quick Links</h2>
-<ul>
-<li><a href="/admin/login.php">Admin Login</a></li>
-<li><a href="/api/v1/users.json">User API (JSON)</a></li>
-<li><a href="/config/app.ini">Application Config (INI)</a></li>
-<li><a href="/logs/access.log">Access Log (TXT)</a></li>
-</ul>
-</div>
-</main>
-<footer>
-© 2025 Acme Corporation &bull; Internal Use Only &bull; Build 2025.09.24.01
-</footer>
-</body>
-</html>
+<html><head><title>phpinfo()</title><style>
+body{background:#fff;color:#222;font-family:sans-serif;font-size:13px}
+table{border-collapse:collapse;width:600px;margin:1em auto}
+td,th{border:1px solid #666;padding:4px 6px;vertical-align:baseline}
+h1{text-align:center;font-size:20px}h2{text-align:center;font-size:16px;background:#9999cc;width:600px;margin:1em auto;padding:4px}
+.e{background:#ccccff;font-weight:bold;width:300px}.v{background:#cccccc;word-break:break-all}
+.h th{background:#9999cc}.center{text-align:center}
+</style></head><body>
+<h1>PHP Version 8.2.24</h1>
+<table>
+<tr><td class="e">System</td><td class="v">Linux web-01 6.8.0-45-generic #45-Ubuntu SMP x86_64</td></tr>
+<tr><td class="e">Build Date</td><td class="v">Sep 26 2025 14:11:03</td></tr>
+<tr><td class="e">Server API</td><td class="v">FPM/FastCGI</td></tr>
+<tr><td class="e">Loaded Configuration File</td><td class="v">/etc/php/8.2/fpm/php.ini</td></tr>
+<tr><td class="e">Scan this dir for additional .ini files</td><td class="v">/etc/php/8.2/fpm/conf.d</td></tr>
+<tr><td class="e">PHP API</td><td class="v">20220829</td></tr>
+<tr><td class="e">Debug Build</td><td class="v">no</td></tr>
+<tr><td class="e">Thread Safety</td><td class="v">disabled</td></tr>
+<tr><td class="e">Registered PHP Streams</td><td class="v">https, ftps, compress.zlib, php, file, glob, data, http, ftp, phar</td></tr>
+</table>
+<h2>Core</h2>
+<table>
+<tr class="h"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class="e">display_errors</td><td class="v">Off</td><td class="v">Off</td></tr>
+<tr><td class="e">memory_limit</td><td class="v">256M</td><td class="v">256M</td></tr>
+<tr><td class="e">max_execution_time</td><td class="v">60</td><td class="v">30</td></tr>
+<tr><td class="e">upload_max_filesize</td><td class="v">25M</td><td class="v">25M</td></tr>
+<tr><td class="e">open_basedir</td><td class="v">/var/www/portal:/tmp</td><td class="v">no value</td></tr>
+<tr><td class="e">disable_functions</td><td class="v">exec,passthru,shell_exec,system,proc_open,popen</td><td class="v">exec,passthru,shell_exec,system,proc_open,popen</td></tr>
+</table>
+<h2>Environment</h2>
+<table>
+<tr class="h"><th>Variable</th><th>Value</th></tr>
+<tr><td class="e">APP_ENV</td><td class="v">production</td></tr>
+<tr><td class="e">DB_HOST</td><td class="v">pg-prod-01.db.kestrel.internal</td></tr>
+<tr><td class="e">DB_USERNAME</td><td class="v">tmsuser</td></tr>
+<tr><td class="e">DB_PASSWORD</td><td class="v">fake-db-password-1f34f659</td></tr>
+<tr><td class="e">DOCUMENT_ROOT</td><td class="v">/var/www/portal/public</td></tr>
+</table>
+<h2>PHP Variables</h2>
+<table>
+<tr class="h"><th>Variable</th><th>Value</th></tr>
+<tr><td class="e">_SERVER["HTTP_HOST"]</td><td class="v">portal.kestrelfreight.nl</td></tr>
+<tr><td class="e">_SERVER["SERVER_SOFTWARE"]</td><td class="v">nginx/1.24.0</td></tr>
+<tr><td class="e">_SERVER["REQUEST_URI"]</td><td class="v">/tmp/phpinfo.php</td></tr>
+</table>
+<p class="center">PHP Group &middot; Zend Engine v4.2.24</p>
+</body></html>

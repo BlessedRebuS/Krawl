@@ -1,0 +1,23 @@
+# HELP http_requests_total Total HTTP requests handled.
+# TYPE http_requests_total counter
+http_requests_total{method="GET",status="200",route="/api/v2/orders"} 797357
+http_requests_total{method="GET",status="404",route="/api/v2/orders"} 3068
+http_requests_total{method="POST",status="201",route="/api/v2/orders"} 37144
+http_requests_total{method="POST",status="500",route="/api/v2/exports"} 96
+# HELP http_request_duration_seconds Request latency.
+# TYPE http_request_duration_seconds histogram
+http_request_duration_seconds_bucket{le="0.05"} 201388
+http_request_duration_seconds_bucket{le="0.25"} 471487
+http_request_duration_seconds_bucket{le="1"} 853683
+http_request_duration_seconds_bucket{le="+Inf"} 921166
+# HELP process_resident_memory_bytes Resident memory size in bytes.
+# TYPE process_resident_memory_bytes gauge
+process_resident_memory_bytes 795869184
+# HELP pg_pool_connections Active database pool connections.
+# TYPE pg_pool_connections gauge
+pg_pool_connections{state="active"} 26
+pg_pool_connections{state="idle"} 9
+# HELP queue_depth Pending jobs per queue.
+# TYPE queue_depth gauge
+queue_depth{queue="default"} 5
+queue_depth{queue="mail"} 5

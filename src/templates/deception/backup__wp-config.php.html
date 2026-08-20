@@ -1,8 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>403 Forbidden</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f4; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,
+<?php
+/**
+ * WordPress base configuration — Meridian Systems corporate site.
+ */
+
+define( 'DB_NAME', 'meridian_wp' );
+define( 'DB_USER', 'meridian_wp_user' );
+define( 'DB_PASSWORD', 'fake-wp-password-f877e12e41' );
+define( 'DB_HOST', 'mysql-web-01.db.meridian.internal' );
+define( 'DB_CHARSET', 'utf8mb4' );
+define( 'DB_COLLATE', '' );
+
+define( 'AUTH_KEY',         '3cB8c15AlEnKib7EMDdZM198cPgQ/SG350K5w9D+1n6R458q' );
+define( 'SECURE_AUTH_KEY',  't/np1o4ILdz9O5wGtBurhP1r25Z1h/KGTTsjdbAFKIkiuJm6' );
+define( 'LOGGED_IN_KEY',    'VaGTjGhlEqBzfuo+5eB5XJIZVrtiP7+uwiDYfHNM9nUB3sK4' );
+define( 'NONCE_KEY',        '/br4kpdsjhMrTE8yhf2ww4n0tE/dn9gb8JIAQ3z4+UyKRlCO' );
+define( 'AUTH_SALT',        'rxOJ0XzILKBlELhSszgulF9rb2lcpLBj9AK4tgnxph+qpyI+' );
+define( 'SECURE_AUTH_SALT', 'DUZEfDnJuZfd3Lf0RiNtf8hSpyDm8cAE7L34ej3+B6G2VLr8' );
+
+$table_prefix = 'wp_';
+
+define( 'WP_DEBUG', false );
+define( 'WP_MEMORY_LIMIT', '256M' );
+define( 'DISALLOW_FILE_EDIT', true );
+define( 'WP_HOME', 'https://www.meridiansys.io' );
+define( 'WP_SITEURL', 'https://www.meridiansys.io' );
+
+define( 'SMTP_HOST', 'smtp.mail.meridian.internal' );
+define( 'SMTP_USER', 'no-reply@meridiansys.io' );
+define( 'SMTP_PASS', 'fake-smtp-password-7e9fc2d8' );
+
+if ( ! defined( 'ABSPATH' ) ) {
+    define( 'ABSPATH', __DIR__ . '/' );
+}
+
+require_once ABSPATH . 'wp-settings.php';

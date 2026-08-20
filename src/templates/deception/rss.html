@@ -1,100 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Latest News Feed - Company Blog</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f9f9f9; color: #333; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        .post { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
-        .post h2 { color: #3498db; margin-top: 0; }
-        .post-date { color: #7f8c8d; font-size: 0.9em; margin-bottom: 10px; }
-        .post-content { line-height: 1.6; }
-        .read-more { color: #e74c3c; text-decoration: none; font-weight: bold; }
-        .read-more:hover { text-decoration: underline; }
-        footer { margin-top: 30px; text-align: center; color: #95a5a6; font-size: 0.9em; }
-        .feed-icon { display: inline-block; width: 24px; height: 24px; margin-right: 8px; vertical-align: middle; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23e67e22"><path d="M6 18c-3.31 0-6-2.69-6-6s2.69-6 6-6v3c-2.21 0-4 1.79-4 4s1.79 4 4 4v3zm0-12c-2.21 0-4 1.79-4 4s1.79 4 4 4v3c3.31 0 6-2.69 6-6s-2.69-6-6-6zm10 10c-3.31 0-6-2.69-6-6s2.69-6 6-6v3c-2.21 0-4 1.79-4 4s1.79 4 4 4v3zm0-12c-2.21 0-4 1.79-4 4s1.79 4 4 4v3c3.31 0 6-2.69 6-6s-2.69-6-6-6z"/></svg>') no-repeat center; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1><span class="feed-icon"></span>Latest News Feed</h1>
-        <p>Stay updated with our latest announcements, product releases, and company insights.</p>
-        
-        <div class="post">
-            <h2>Q3 2024 Financial Results Released</h2>
-            <p class="post-date">Published: November 15, 2024 | 10:30 AM EST</p>
-            <div class="post-content">
-                <p>We're pleased to announce our Q3 2024 financial results, showing strong growth across all key metrics. Revenue increased 22% year-over-year to $485M, driven by robust demand in our cloud services division.</p>
-                <p>Key highlights include:</p>
-                <ul>
-                    <li>Cloud revenue up 35% YoY</li>
-                    <li>Operating margin expanded to 28%</li>
-                    <li>Free cash flow of $120M</li>
-                    <li>Dividend increased to $0.42 per share</li>
-                </ul>
-                <p>Full details are available in our investor relations section.</p>
-            </div>
-            <a href="/investor-relations/q3-2024-results.html" class="read-more">Read full report →</a>
-        </div>
-
-        <div class="post">
-            <h2>New Security Feature: Advanced Threat Detection</h2>
-            <p class="post-date">Published: November 12, 2024 | 02:15 PM EST</p>
-            <div class="post-content">
-                <p>Today we launched our newest security enhancement: Advanced Threat Detection (ATD) powered by machine learning. This feature analyzes network traffic patterns in real-time to identify and neutralize sophisticated threats before they can cause damage.</p>
-                <p>ATD is now available as part of our Enterprise Security Suite and includes:</p>
-                <ul>
-                    <li>Behavioral anomaly detection</li>
-                    <li>Zero-day exploit prevention</li>
-                    <li>Automated incident response</li>
-                    <li>Integration with SIEM platforms</li>
-                </ul>
-                <p>Existing customers can enable ATD through their admin console starting today.</p>
-            </div>
-            <a href="/security/advanced-threat-detection.html" class="read-more">Learn more →</a>
-        </div>
-
-        <div class="post">
-            <h2>Holiday Schedule Update</h2>
-            <p class="post-date">Published: November 8, 2024 | 09:00 AM EST</p>
-            <div class="post-content">
-                <p>Please note our holiday operating schedule for the upcoming season:</p>
-                <ul>
-                    <li><strong>Thanksgiving:</strong> Closed November 28-29</li>
-                    <li><strong>Christmas Eve:</strong> Closed December 24</li>
-                    <li><strong>Christmas Day:</strong> Closed December 25</li>
-                    <li><strong>New Year's Eve:</strong> Close at 3:00 PM EST December 31</li>
-                    <li><strong>New Year's Day:</strong> Closed January 1</li>
-                </ul>
-                <p>Our 24/7 support portal remains available for urgent issues. Normal operations resume January 2, 2025.</p>
-            </div>
-            <a href="/support/holiday-schedule.html" class="read-more">View full schedule →</a>
-        </div>
-
-        <div class="post">
-            <h2>Employee Spotlight: Maria Garcia, Lead UX Designer</h2>
-            <p class="post-date">Published: November 5, 2024 | 11:45 AM EST</p>
-            <div class="post-content">
-                <p>This month we're featuring Maria Garcia, who has been with our design team for 5 years and recently led the redesign of our customer portal.</p>
-                <p>Maria shares her approach to user-centered design:</p>
-                <blockquote>
-                    "Great design isn't just about making things look good—it's about solving real problems for real people. I spend time with our users every week to understand their workflows and pain points before putting pen to paper."
-                </blockquote>
-                <p>Under Maria's leadership, the portal redesign reduced task completion time by 40% and increased customer satisfaction scores by 25%.</p>
-            </div>
-            <a href="/about/team/maria-garcia.html" class="read-more">Read full interview →</a>
-        </div>
-
-        <p style="text-align: center; margin-top: 30px;">
-            <a href="/rss.xml" style="background-color: #e67e22; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">Subscribe to RSS Feed</a>
-        </p>
-    </div>
-
-    <footer>
-        &copy; 2024 Company Name. All rights reserved. | <a href="/privacy.html">Privacy Policy</a> | <a href="/terms.html">Terms of Service</a>
-    </footer>
-</body>
-</html>
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Orbit Labs — News</title>
+    <link>https://www.orbitlabs.dev/blog</link>
+    <description>Product and platform updates from Orbit Labs.</description>
+    <language>en-gb</language>
+    <item>
+      <title>Q3 platform roadmap</title>
+      <link>https://www.orbitlabs.dev/blog/q3-platform-roadmap</link>
+      <guid isPermaLink="false">1962859b9a8a535c</guid>
+      <pubDate>Fri, 14 Aug 2026 09:12:07 +0000</pubDate>
+      <description>What ships in the portal this quarter.</description>
+    </item>
+    <item>
+      <title>Field sensor firmware 2.4</title>
+      <link>https://www.orbitlabs.dev/blog/field-sensor-firmware-2-4</link>
+      <guid isPermaLink="false">193d1765ad5d4f4b</guid>
+      <pubDate>Sun, 09 Aug 2026 09:12:07 +0000</pubDate>
+      <description>Bug fixes and a new calibration routine.</description>
+    </item>
+    <item>
+      <title>Warehouse integration notes</title>
+      <link>https://www.orbitlabs.dev/blog/warehouse-integration-notes</link>
+      <guid isPermaLink="false">9d1cc7be4d16f6dc</guid>
+      <pubDate>Tue, 04 Aug 2026 09:12:07 +0000</pubDate>
+      <description>How the WMS bridge handles partial shipments.</description>
+    </item>
+  </channel>
+</rss>

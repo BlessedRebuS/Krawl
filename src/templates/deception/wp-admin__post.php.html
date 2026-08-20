@@ -1,100 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Edit Post &#8249; My Site &#8250; WordPress</title>
-    <meta name="robots" content="noindex,nofollow">
-    <style>
-        body{background:#f1f1f1;color:#32373c;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen-Sans,Ubuntu,Cantarell,'Helvetica Neue',sans-serif;margin:0}
-        .wrap{background:#fff;margin:2em auto;width:90%;max-width:960px;padding:1em 2em;box-shadow:0 2px 6px rgba(0,0,0,.1)}
-        h1{font-size:1.5em;margin-bottom:.5em}
-        .postbox{background:#fff;border:1px solid #dfdfdf;margin-bottom:1.5em;padding:1em;border-radius:3px}
-        .postbox h3{margin:0 0 .5em;font-size:1em}
-        textarea,input[type=text]{width:100%;box-sizing:border-box;padding:.5em;margin-top:.3em;border:1px solid #ccc;border-radius:3px}
-        .submit{background:#007cba;color:#fff;border:none;padding:.6em 1.2em;margin-top:1em;border-radius:3px;cursor:pointer}
-        .submit:hover{background:#006293}
-        .hidden{display:none}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administration — Halcyon Commerce</title>
+<style>
+:root{--bg:#faf7f3;--panel:#fff;--ink:#2b2320;--muted:#8a7d74;
+--line:#e7ded4;--brand:#9c4221;--brand-dk:#7a3319;--r:2px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 "Helvetica Neue",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#2b2320;color:#faf7f3;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#faf7f3}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#cbbdb1;font-size:13px}
+header.top nav a.active{color:#faf7f3;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:none}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:26px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:Georgia,"Times New Roman",serif;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
+<header class="top"><span class="brand">Halcyon Commerce</span><nav><a href="/">Home</a><a href="/orders">Orders</a><a href="/catalogue">Catalogue</a><a href="/customers">Customers</a><a href="/admin">Store admin</a></nav></header>
+
 <div class="wrap">
-    <h1>Edit Post</h1>
-    <form name="post" id="post" method="post" action="post.php">
-        <input type="hidden" name="post_ID" value="1">
-        <input type="hidden" name="action" value="editpost">
-        <input type="hidden" name="meta-box-loader" value="1">
-        <input type="hidden" name="_wpnonce" value="a1b2c3d4e5f6">
-        <input type="hidden" name="_wp_http_referer" value="/wp-admin/post.php?post=1&amp;action=edit">
-
-        <div id="poststuff" class="metabox-holder has-right-sidebar">
-            <div id="side-sortables" class="meta-box-sortables ui-sortable">
-                <div class="postbox" id="submitdiv">
-                    <h3><span>Publish</span></h3>
-                    <div class="inside">
-                        <div id="minor-publishing">
-                            <span id="timestamp">Published on: <strong>November 2, 2025</strong></span><br>
-                            <a href="#" class="edit-timestamp">Edit</a>
-                        </div>
-                        <div id="major-publishing-actions">
-                            <input name="save" type="submit" class="button button-primary button-large" value="Update">
-                            <span class="spinner"></span>
-                        </div>
-                        <div class="clear"></div>
-                    </div>
-                </div>
-                <div class="postbox" id="categorydiv">
-                    <h3><span>Categories</span></h3>
-                    <div class="inside">
-                        <ul id="categorychecklist" class="list:category categorychecklist form-no-clear">
-                            <li><label class="selectit"><input value="3" type="checkbox" name="post_category[]" id="in-category-3"> News</label></li>
-                            <li><label class="selectit"><input value="5" type="checkbox" name="post_category[]" id="in-category-5"> Updates</label></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div id="normal-sortables" class="meta-box-sortables ui-sortable">
-                <div class="postbox" id="titlediv">
-                    <h3><span>Title</span></h3>
-                    <div class="inside">
-                        <input type="text" size="30" tabindex="1" value="Sample Post" name="post_title" id="title" autocomplete="off" placeholder="Enter title here">
-                    </div>
-                </div>
-                <div class="postbox" id="postexcerpt">
-                    <h3><span>Excerpt</span></h3>
-                    <div class="inside">
-                        <textarea rows="1" cols="40" name="excerpt" id="excerpt"></textarea>
-                        <p>A short summary of your post.</p>
-                    </div>
-                </div>
-                <div class="postbox" id="postcustom">
-                    <h3><span>Custom Fields</span></h3>
-                    <div class="inside">
-                        <table id="list-table" style="width:100%">
-                            <thead><tr><th>Name</th><th>Value</th><th></th></tr></thead>
-                            <tbody id="the-list">
-                                <tr><td><input type="text" name="meta[0][key]" value="fake_key" class="widefat"></td><td><input type="text" name="meta[0][value]" value="injected_value" class="widefat"></td><td><a href="#" class="button">Delete</a></td></tr>
-                            </tbody>
-                        </table>
-                        <p><a href="#" class="button">Enter new</a></p>
-                    </div>
-                </div>
-                <div class="postbox" id="commentstatusdiv">
-                    <h3><span>Discussion</span></h3>
-                    <div class="inside">
-                        <label><input type="checkbox" name="comment_status" value="open" checked> Allow comments</label><br>
-                        <label><input type="checkbox" name="ping_status" value="open" checked> Allow trackbacks and pingbacks on this page</label>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="postbox" id="postdivrich">
-            <h3><span>Content</span></h3>
-            <div class="inside">
-                <textarea name="content" id="content" rows="20" cols="40" style="width:100%;height:300px;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</textarea>
-            </div>
-        </div>
-    </form>
+  <h1>Administration</h1>
+  <p class="sub">Signed in as <strong>c.mbeki</strong> (store manager) &middot;
+  last sign-in 13/08/2026 14:12 from 10.24.8.41</p>
+  <div class="grid">
+    <div class="kpi"><div class="n">5</div><div class="l"><a href="/admin/users">Users</a></div></div>
+    <div class="kpi"><div class="n">10</div><div class="l"><a href="/admin/roles">Roles &amp; permissions</a></div></div>
+    <div class="kpi"><div class="n">4</div><div class="l"><a href="/admin/integrations">Integrations</a></div></div>
+    <div class="kpi"><div class="n">651</div><div class="l"><a href="/admin/audit">Audit entries (7d)</a></div></div>
+  </div>
+  <div class="panel" style="margin-top:18px">
+    <h2>Latest audit events</h2>
+    <table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Source</th></tr></thead>
+    <tbody><tr><td>14/08 08:30</td><td>c.mbeki</td><td>Updated SMTP integration credentials</td><td>10.24.8.41</td></tr><tr><td>14/08 06:12</td><td>h.lindqvist</td><td>Generated API token <code>tok_bce86f42a0</code></td><td>10.24.9.16</td></tr><tr><td>14/08 00:12</td><td>system</td><td>Suspended account j.okonkwo (12 failed sign-ins)</td><td>&mdash;</td></tr><tr><td>13/08 09:12</td><td>a.pashkov</td><td>Exported order report Q3-2026</td><td>10.24.8.77</td></tr></tbody></table>
+  </div>
 </div>
+
+<footer>Halcyon Commerce 6.0.3 &middot; &copy; 2026 Halcyon Retail Group &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

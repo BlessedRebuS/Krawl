@@ -1,15 +1,25 @@
-<html><body>[build]
-  publish = "dist"
-  command = "npm run build"
+# Orbit Cloud service configuration
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+[app]
+name = "Orbit Cloud"
+env = "production"
+url = "https://portal.orbitlabs.dev"
+version = "0.38.2"
 
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
-    Content-Security-Policy = "default-src 'self'"</body></html>
+[database]
+url = "postgresql://orbit:fake-db-password-24ad66bb@pg-prod-01.db.orbit.internal:5432/orbit_cloud"
+pool_size = 32
+statement_timeout_ms = 15000
+
+[redis]
+url = "redis://:fake-redis-password-71e281@redis-prod-01.cache.orbit.internal:6379/0"
+
+[auth]
+jwt_secret = "fake-jwt-secret-682940c77485c492c61d5e883bc844f8"
+token_ttl_minutes = 1440
+
+[storage]
+bucket = "orbit-cloud-prod-assets"
+region = "eu-west-1"
+access_key_id = "AKIA-FAKE-E0513"
+secret_access_key = "fake-secret-48/WhLAmt9bUun84xIx3ducw"

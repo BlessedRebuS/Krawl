@@ -1,48 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Acme Corp - Internal Portal</title>
-<style>
-body{font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:20px;}
-.container{max-width:800px;margin:auto;background:#fff;padding:20px;box-shadow:0 0 10px rgba(0,0,0,.1);}
-.header{text-align:center;margin-bottom:30px;}
-.header h1{color:#2c3e50;}
-.nav{background:#ecf0f1;padding:10px;border-radius:4px;margin-bottom:20px;}
-.nav a{margin-right:15px;text-decoration:none;color:#2980b9;}
-.nav a:hover{text-decoration:underline;}
-.content h2{color:#34495e;}
-.footer{margin-top:30px;font-size:0.9em;color:#7f8c8d;text-align:center;}
-</style>
-</head>
-<body>
-<div class="container">
-<div class="header">
-<h1>Acme Corp Internal Portal</h1>
-<p>Version 2.3.1 (Build 20240915)</p>
-</div>
-<div class="nav">
-<a href="/dashboard">Dashboard</a>
-<a href="/reports">Reports</a>
-<a href="/admin">Admin</a>
-<a href="/logout">Logout</a>
-</div>
-<div class="content">
-<h2>Welcome, jdoe (IT Administrator)</h2>
-<p>Last login: 2025-09-23 08:14:22 from 10.0.0.45</p>
-<p>System status: <span style="color:#27ae60;">Online</span></p>
-<h3>Quick Stats</h3>
-<ul>
-<li>CPU Load: 23%</li>
-<li>Memory Usage: 4.2 GB / 7.8 GB</li>
-<li>Disk Space: 120 GB / 200 GB</li>
-<li>Database: MySQL 5.7.33 - acme_db</li>
-</ul>
-</div>
-<div class="footer">
-&copy; 2025 Acme Corp. All rights reserved.<br>
-Server: Apache/2.4.41 (Ubuntu) - Internal IP: 10.0.0.45
-</div>
-</div>
-</body>
-</html>
+.env
+.env.*
+!.env.example
+node_modules/
+vendor/
+storage/logs/*.log
+public/build/
+*.sql
+*.tar.gz
+.idea/
+.DS_Store
+infra/secrets/

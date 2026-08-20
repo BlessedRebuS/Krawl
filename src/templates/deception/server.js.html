@@ -1,36 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>ExampleCorp - Internal Portal</title>
-<style>
-body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f4f4f4;color:#333;}
-header{background:#003366;color:#fff;padding:1rem;text-align:center;}
-nav{background:#004080;color:#fff;padding:0.5rem;}
-nav a{color:#fff;margin:0 1rem;text-decoration:none;}
-section{padding:2rem;max-width:800px;margin:auto;background:#fff;}
-footer{background:#003366;color:#fff;text-align:center;padding:1rem;margin-top:2rem;}
-</style>
-</head>
-<body>
-<header>
-<h1>ExampleCorp Internal Portal</h1>
-<p>Version 2.3.1 • Build 2024-09-15</p>
-</header>
-<nav>
-<a href="/dashboard">Dashboard</a>
-<a href="/reports">Reports</a>
-<a href="/admin">Admin</a>
-<a href="/logout">Logout</a>
-</nav>
-<section>
-<h2>Welcome, j.smith</h2>
-<p>Last login: 2024-09-24 08:42:17 from <strong>10.0.5.23</strong></p>
-<p>Current session ID: <code>s3s9a2f1b8c7d6e5</code></p>
-<p>Assigned database: <strong>corpdb</strong> (PostgreSQL 13.4)</p>
-<p>System status: <span style="color:green;">Operational</span></p>
-</section>
-<footer>
-&copy; 2024 ExampleCorp. All rights reserved.</footer>
-</body>
-</html>
+/*! Caretrack 9.4.0 | build b6e68e1 | (c) Northbridge Health */
+(function (window) {
+  'use strict';
+
+  var config = {
+    apiBase: 'https://api.northbridge-health.org/v2',
+    wsBase: 'wss://api.northbridge-health.org/socket',
+    sentryDsn: 'https://fakecf5ea239c8b2a07d@sentry.internal/26',
+    release: 'caretrack@9.4.0',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
+
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
+  }
+
+  window.Caretrack = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

@@ -1,0 +1,12 @@
+import Config
+
+config :portal, Portal.Repo,
+  username: "meridian_app",
+  password: "fake-db-password-40acba88",
+  hostname: "pg-prod-01.db.meridian.internal",
+  database: "meridian_portal",
+  pool_size: 32
+
+config :portal, PortalWeb.Endpoint,
+  url: [host: "portal.meridiansys.io", port: 443, scheme: "https"],
+  secret_key_base: "fake-secret-key-base-EPhOMLC7UL9AbsmYfuLVKGRk8shPaBZsDw+uFi9Mmh6HvMvv"

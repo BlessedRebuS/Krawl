@@ -1,37 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Admin Login - CorpPortal</title>
-<style>
-body{font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:0;display:flex;justify-content:center;align-items:center;height:100vh;}
-.login-box{background:#fff;padding:30px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.1);width:320px;}
-h2{margin-top:0;color:#333;text-align:center;}
-.input-group{margin-bottom:15px;}
-.input-group label{display:block;margin-bottom:5px;font-weight:bold;}
-.input-group input{width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box;}
-.btn{width:100%;padding:10px;background:#0066cc;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:16px;}
-.btn:hover{background:#004c99;}
-.footer{margin-top:20px;font-size:12px;color:#777;text-align:center;}
-</style>
-</head>
-<body>
-<div class="login-box">
-<h2>Admin Portal</h2>
-<form action="/admin/login" method="post">
-<div class="input-group">
-<label for="username">Username</label>
-<input type="text" id="username" name="username" placeholder="Enter username" required>
-</div>
-<div class="input-group">
-<label for="password">Password</label>
-<input type="password" id="password" name="password" placeholder="Enter password" required>
-</div>
-<button type="submit" class="btn">Sign In</button>
-</form>
-<div class="footer">
-&copy; 2025 CorpPortal v3.2.1 • Internal IP: 10.0.0.45
-</div>
-</div>
-</body>
-</html>
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	url = https://ci-bot:fake-token-fc3c3773a290ddb8c4a6@git.northbridge-health.org/platform/caretrack.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+	remote = origin
+	merge = refs/heads/main
+[user]
+	name = CI Bot
+	email = ci-bot@northbridge-health.org

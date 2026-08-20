@@ -1,41 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<FileZilla3>
-    <Servers>
-        <Server>
-            <Host>ftp.example.com</Host>
-            <Port>21</Port>
-            <Protocol>0</Protocol>
-            <Type>0</Type>
-            <User>admin</User>
-            <Pass>QmFzZTY0RXh0cmFjdG9y</Pass>
-            <Logontype>1</Logontype>
-            <TimezoneOffset>0</TimezoneOffset>
-            <PasvMode>MODE_DEFAULT</PasvMode>
-            <MaximumMultipleConnections>0</MaximumMultipleConnections>
-            <EncodingType>Auto</EncodingType>
-            <BypassProxy>0</BypassProxy>
-            <Name>Example FTP</Name>
-            <Comments>Test server</Comments>
-            <LocalDir>C:\</LocalDir>
-            <RemoteDir>/</RemoteDir>
-        </Server>
-        <Server>
-            <Host>backup.storage.net</Host>
-            <Port>22</Port>
-            <Protocol>2</Protocol>
-            <Type>0</Type>
-            <User>backup</User>
-            <Pass>U2VjdXJlUGFzc3dvcmQxMjM=</Pass>
-            <Logontype>2</Logontype>
-            <TimezoneOffset>-5</TimezoneOffset>
-            <PasvMode>MODE_DEFAULT</PasvMode>
-            <MaximumMultipleConnections>2</MaximumMultipleConnections>
-            <EncodingType>UTF8</EncodingType>
-            <BypassProxy>1</BypassProxy>
-            <Name>Secure SFTP</Name>
-            <Comments>Encrypted backup</Comments>
-            <LocalDir>/home/backup</LocalDir>
-            <RemoteDir>/data</RemoteDir>
-        </Server>
-    </Servers>
-</FileZilla3>
+<configuration version="9.4.0" generated="2026-08-14T09:12:07Z">
+  <application name="Caretrack" environment="production"/>
+  <datasource>
+    <host>pg-prod-01.db.nbh.internal</host>
+    <port>5432</port>
+    <database>caretrack</database>
+    <username>caretrack_svc</username>
+    <password>fake-db-password-b88cb12f</password>
+  </datasource>
+  <mail host="smtp.mail.nbh.internal" port="587" user="no-reply@northbridge-health.org"
+        password="fake-smtp-password-ab55f4aa"/>
+</configuration>

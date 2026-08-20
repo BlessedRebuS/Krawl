@@ -1,19 +1,26 @@
-<html>
-<head>
-    <title>manifest.json</title>
-    <meta charset="utf-8">
-</head>
-<body>
-<pre>
 {
-  "version": "1.0.0",
-  "files": {
-    "index.html": "assets/index.abc123.html",
-    "app.js": "assets/app.def456.js",
-    "style.css": "assets/style.ghi789.css"
+  "app": {
+    "name": "Meridian Portal",
+    "version": "4.2.1",
+    "env": "production",
+    "url": "https://portal.meridiansys.io"
   },
-  "entrypoints": ["app.js"]
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.meridian.internal",
+    "port": 5432,
+    "name": "meridian_portal",
+    "user": "meridian_app",
+    "password": "fake-db-password-dd32e92c"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.meridian.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-f3300f8c35825301f6b80bd8297fab54",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-08T18:03:53Z"
 }
-</pre>
-</body>
-</html>

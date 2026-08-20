@@ -1,26 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Runtime Main JS</title>
-</head>
-<body>
-    <script>
-        // Fake runtime-main.js content
-        // This is a simulated webpack runtime
-        (function() {
-            var modules = {};
-            function __webpack_require__(moduleId) {
-                // fake vulnerable code: eval of user input
-                if (moduleId === 'user') {
-                    var payload = location.hash.slice(1); // pretend to get user input
-                    eval(payload); // intentional XSS/eval vuln
-                }
-                return modules[moduleId] || {};
-            }
-            // expose
-            window.__webpack_require__ = __webpack_require__;
-        })();
-    </script>
-</body>
-</html>
+/*! Caretrack 9.4.0 | build df58fac | (c) Northbridge Health */
+(function (window) {
+  'use strict';
+
+  var config = {
+    apiBase: 'https://api.northbridge-health.org/v2',
+    wsBase: 'wss://api.northbridge-health.org/socket',
+    sentryDsn: 'https://fake0ccc895e46d44f34@sentry.internal/16',
+    release: 'caretrack@9.4.0',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
+
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
+  }
+
+  window.Caretrack = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

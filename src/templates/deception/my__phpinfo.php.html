@@ -1,44 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>PHP Version 7.4.33</title>
-<style>
-body{font-family:Arial,sans-serif;background:#f8f8f8;color:#222;margin:0;padding:20px;}
-h1{color:#0066cc;}
-table{width:800px;border-collapse:collapse;margin-top:20px;}
-td.e{background:#eee;color:#000;padding:8px 12px;font-weight:bold;width:30%;border:1px solid #ccc;}
-td.v{background:#fff;padding:8px 12px;border:1px solid #ccc;}
-</style>
-</head>
-<body>
-<h1>PHP Version 7.4.33</h1>
-<table class="layout">
-<tr><td class="e">PHP Version</td><td class="v">7.4.33</td></tr>
-<tr><td class="e">System</td><td class="v">Linux server01 5.4.0-150-generic #160-Ubuntu SMP Thu Sep 7 19:09:14 UTC 2023 x86_64</td></tr>
-<tr><td class="e">Build Date</td><td class="v">Oct  5 2023 12:34:56</td></tr>
-<tr><td class="e">Server API</td><td class="v">Apache 2.4 Handler</td></tr>
-<tr><td class="e">Virtual Directory Support</td><td class="v">disabled</td></tr>
-<tr><td class="e">Configuration File (php.ini) Path</td><td class="v">/etc/php/7.4/apache2</td></tr>
-<tr><td class="e">Loaded Configuration File</td><td class="v">/etc/php/7.4/apache2/php.ini</td></tr>
-<tr><td class="e">Scan this dir for additional .ini files</td><td class="v">/etc/php/7.4/apache2/conf.d</td></tr>
-<tr><td class="e">Additional .ini files parsed</td><td class="v">/etc/php/7.4/apache2/conf.d/00-opcache.ini,/etc/php/7.4/apache2/conf.d/user.ini</td></tr>
-<tr><td class="e">PHP API</td><td class="v">20190902</td></tr>
-<tr><td class="e">PHP Extension</td><td class="v">20190902</td></tr>
-<tr><td class="e">Zend Extension</td><td class="v">320190902</td></tr>
-<tr><td class="e">Zend Extension Build</td><td class="v">API320190902,NTS</td></tr>
-<tr><td class="e">PHP Extension Build</td><td class="v">API20190902,NTS</td></tr>
+<html><head><title>phpinfo()</title><style>
+body{background:#fff;color:#222;font-family:sans-serif;font-size:13px}
+table{border-collapse:collapse;width:600px;margin:1em auto}
+td,th{border:1px solid #666;padding:4px 6px;vertical-align:baseline}
+h1{text-align:center;font-size:20px}h2{text-align:center;font-size:16px;background:#9999cc;width:600px;margin:1em auto;padding:4px}
+.e{background:#ccccff;font-weight:bold;width:300px}.v{background:#cccccc;word-break:break-all}
+.h th{background:#9999cc}.center{text-align:center}
+</style></head><body>
+<h1>PHP Version 8.2.24</h1>
+<table>
+<tr><td class="e">System</td><td class="v">Linux web-01 6.8.0-45-generic #45-Ubuntu SMP x86_64</td></tr>
+<tr><td class="e">Build Date</td><td class="v">Sep 26 2025 14:11:03</td></tr>
+<tr><td class="e">Server API</td><td class="v">FPM/FastCGI</td></tr>
+<tr><td class="e">Loaded Configuration File</td><td class="v">/etc/php/8.2/fpm/php.ini</td></tr>
+<tr><td class="e">Scan this dir for additional .ini files</td><td class="v">/etc/php/8.2/fpm/conf.d</td></tr>
+<tr><td class="e">PHP API</td><td class="v">20220829</td></tr>
 <tr><td class="e">Debug Build</td><td class="v">no</td></tr>
 <tr><td class="e">Thread Safety</td><td class="v">disabled</td></tr>
-<tr><td class="e">Zend Signal Handling</td><td class="v">enabled</td></tr>
-<tr><td class="e">Zend Memory Manager</td><td class="v">enabled</td></tr>
-<tr><td class="e">Zend Multibyte Support</td><td class="v">provided by mbstring</td></tr>
-<tr><td class="e">IPv6 Support</td><td class="v">enabled</td></tr>
-<tr><td class="e">DTrace Support</td><td class="v">available, disabled</td></tr>
-<tr><td class="e">Registered PHP Streams</td><td class="v">https, ftps, compress.zlib, php, file, glob, data, http, ftp, phar, zip</td></tr>
-<tr><td class="e">Registered Stream Socket Transports</td><td class="v">tcp, udp, unix, udg, ssl, tls, tlsv1.0, tlsv1.1, tlsv1.2</td></tr>
-<tr><td class="e">Registered Stream Filters</td><td class="v">zlib.*, convert.iconv.*, string.rot13, string.toupper, string.tolower, string.strip_tags, convert.*, consumed, dechunk</td></tr>
-<tr><td class="e">This program makes use of the Zend Scripting Language Engine:</td><td class="v">Zend Engine v3.4.0, Copyright (c) Zend Technologies</td></tr>
+<tr><td class="e">Registered PHP Streams</td><td class="v">https, ftps, compress.zlib, php, file, glob, data, http, ftp, phar</td></tr>
 </table>
-</body>
-</html>
+<h2>Core</h2>
+<table>
+<tr class="h"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class="e">display_errors</td><td class="v">Off</td><td class="v">Off</td></tr>
+<tr><td class="e">memory_limit</td><td class="v">256M</td><td class="v">256M</td></tr>
+<tr><td class="e">max_execution_time</td><td class="v">60</td><td class="v">30</td></tr>
+<tr><td class="e">upload_max_filesize</td><td class="v">25M</td><td class="v">25M</td></tr>
+<tr><td class="e">open_basedir</td><td class="v">/var/www/portal:/tmp</td><td class="v">no value</td></tr>
+<tr><td class="e">disable_functions</td><td class="v">exec,passthru,shell_exec,system,proc_open,popen</td><td class="v">exec,passthru,shell_exec,system,proc_open,popen</td></tr>
+</table>
+<h2>Environment</h2>
+<table>
+<tr class="h"><th>Variable</th><th>Value</th></tr>
+<tr><td class="e">APP_ENV</td><td class="v">production</td></tr>
+<tr><td class="e">DB_HOST</td><td class="v">pg-prod-01.db.halcyon.internal</td></tr>
+<tr><td class="e">DB_USERNAME</td><td class="v">hc_web</td></tr>
+<tr><td class="e">DB_PASSWORD</td><td class="v">fake-db-password-9a258b9b</td></tr>
+<tr><td class="e">DOCUMENT_ROOT</td><td class="v">/var/www/portal/public</td></tr>
+</table>
+<h2>PHP Variables</h2>
+<table>
+<tr class="h"><th>Variable</th><th>Value</th></tr>
+<tr><td class="e">_SERVER["HTTP_HOST"]</td><td class="v">portal.halcyonretail.co.uk</td></tr>
+<tr><td class="e">_SERVER["SERVER_SOFTWARE"]</td><td class="v">nginx/1.24.0</td></tr>
+<tr><td class="e">_SERVER["REQUEST_URI"]</td><td class="v">/my/phpinfo.php</td></tr>
+</table>
+<p class="center">PHP Group &middot; Zend Engine v4.2.24</p>
+</body></html>

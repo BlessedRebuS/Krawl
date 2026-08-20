@@ -1,13 +1,26 @@
-<html><body>{
-  "id": 9876,
-  "username": "alice_smith",
-  "email": "alice.smith@example.com",
-  "balance": 12450.50,
-  "created_at": "2022-11-03T14:22:07Z",
-  "status": "active",
-  "roles": ["user", "admin"],
-  "preferences": {
-    "theme": "dark",
-    "notifications": true
-  }
-}</body></html>
+{
+  "app": {
+    "name": "Meridian Portal",
+    "version": "4.2.1",
+    "env": "production",
+    "url": "https://portal.meridiansys.io"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.meridian.internal",
+    "port": 5432,
+    "name": "meridian_portal",
+    "user": "meridian_app",
+    "password": "fake-db-password-284da1ad"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.meridian.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-9d0703ca88bec291c8925219d0163b02",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-12T20:31:59Z"
+}

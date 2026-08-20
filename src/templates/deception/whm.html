@@ -1,40 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>WHM Login - WebHost Manager</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body{font-family:Arial,sans-serif;background:#f0f2f5;margin:0;padding:0;display:flex;align-items:center;justify-content:center;height:100vh;}
-        .container{background:#fff;padding:30px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.1);width:340px;}
-        .logo{text-align:center;margin-bottom:20px;}
-        .logo img{max-width:150px;}
-        h2{margin-top:0;color:#333;text-align:center;}
-        label{display:block;margin-top:15px;font-weight:bold;}
-        input[type=text],
-        input[type=password]{width:100%;padding:10px;margin-top:5px;border:1px solid #ccc;border-radius:4px;box-sizing:border-box;}
-        button{width:100%;padding:10px;background:#0066cc;color:#fff;border:none;border-radius:4px;margin-top:20px;font-size:1em;cursor:pointer;}
-        button:hover{background:#004c99;}
-        .footer{margin-top:20px;font-size:.85em;color:#777;text-align:center;}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administration — Meridian Portal</title>
+<style>
+:root{--bg:#f5f6f8;--panel:#fff;--ink:#1f2733;--muted:#6b7688;
+--line:#dde2e9;--brand:#1d4f91;--brand-dk:#163c6e;--r:4px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:var(--brand);color:#fff;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#fff}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#dbe6f5;font-size:13px}
+header.top nav a.active{color:#fff;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:none}
+h1{font-family:inherit;font-size:20px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">
-            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjUwIiB2aWV3Qm94PSIwIDAgMTUwIDUwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0xMi41IDIwQzEyLjUgMTUuNTIgMTYuMDIgMTEgMjAuNSAxMUgzMi41QzM3LjA4IDExIDQwLjUgMTUuNTIgNDAuNSAyMFMzNy4wOCAzMyAyOS41IDMzSDIwLjVDMTYuMDIgMzMgMTIuNSAyOS41NyAxMi41IDIwWiIgZmlsbD0iI0ZGRiIvPjxwYXRoIGQ9Ik01NS41IDIwQzU1LjUgMTUuNTIgNTkuMDIgMTEgNjMuNSAxMUg4Mi41Qzg3LjA4IDExIDkwLjUgMTUuNTIgOTAuNSAyMFM4Ny4wOCAzMyA3OS41IDMzSDEyLjVDOC4wMiAzMyA0LjUgMjkuNTcgNC41IDIwUzguMDIgNyA4LjUgN0g2MS41QzY2LjA4IDcgNjkuNSAxMS40MiA2OS41IDE2TzY5LjUgMjBINC41QzQuNSAyMi41IDAgMjYuOTIgMCAzM1Y0Mi41QzAgNDguMDggNC41IDUyLjUgOS41IDUyLjVIMjAuNUMyNS4wOCA1Mi41IDI4LjUgNDguMDggMjguNSA0Mi41VjMzSDEyLjVDMTIuNSAyOS41NyA4LjUgMjYuMDIgOC41IDIyVjEzQzguNSA5LjQyIDEyLjA4IDggMTYuNSA4SDI4LjVDMzIuNTggOCAzNi40MiAxMS40MiAzNi40MiAxNkgzOS41QzM5LjUgMjAuNTggMzUuNSAyNC41IDMxLjUgMjQuNUgxOC41QzE0LjUgMjQuNSAxMC41IDIwLjUgMTAuNSAxNi41VjIzLjVDMTAuNSAyNy41IDE0LjUgMzEuNSAxOC41IDMxLjVIMjMuNUMyNy41IDMxLjUgMzEgMjcuNSAzMSAyMy41VjE4LjVDMzEgMTQuNSAyNy41IDEwLjUgMjMuNSAxMC41VjEyLjVDMjMuNSA4LjQyIDI3LjkyIDQgMzMuNSA0SDEyLjVDMTcuNTIgNCAyMi41IDguNDIgMjIuNSAxMy41VjE4LjVDMjIuNSAyMy41IDI3LjUgMjcuNSAzMi41IDI3LjVIMTcuNUwxMy41IDMxLjVIMjAuNUwxNi41IDI3LjVIMTQuNUwxMi41IDIzLjVIMTkuNUwxNS41IDI4LjVIMjAuNUwxNi41IDI0LjVIMjIuNUwxOC41IDI5LjVIMjQuNUwyMS41IDI0LjVIMjMuNUwyNC41IDI5LjVINjAuNUw1Ni41IDM0LjVINjAuNUw1Ni41IDM5LjVINjIuNUw1OC41IDQ0LjVINjQuNUw2MC41IDQ5LjVINzAuNWsxLjUgMi41IDMuNSAyLjVINDh6IiBmaWxsPSIjMDA2N2NjIi8+PC9zdmc+" alt="WHM Logo">
-        </div>
-        <h2>Login to WHM</h2>
-        <form action="/login2" method="post">
-            <label for="user">Username</label>
-            <input type="text" id="user" name="user" required autocomplete="username">
-            <label for="pass">Password</label>
-            <input type="password" id="pass" name="pass" required autocomplete="current-password">
-            <button type="submit">Log in</button>
-        </form>
-        <div class="footer">
-            © 2025 cPanel, L.L.C. All rights reserved.<br>
-            WebHost Manager® is a registered trademark of cPanel, L.L.C.
-        </div>
-    </div>
+<header class="top"><span class="brand">Meridian Portal</span><nav><a href="/dashboard">Dashboard</a><a href="/orders">Orders</a><a href="/directory">Directory</a><a href="/reports">Reports</a><a href="/settings" class="active">Settings</a></nav></header>
+
+<div class="wrap">
+  <h1>Administration</h1>
+  <p class="sub">Signed in as <strong>j.halloran</strong> (administrator) &middot;
+  last sign-in 13/08/2026 14:12 from 10.24.8.41</p>
+  <div class="grid">
+    <div class="kpi"><div class="n">6</div><div class="l"><a href="/admin/users">Users</a></div></div>
+    <div class="kpi"><div class="n">13</div><div class="l"><a href="/admin/roles">Roles &amp; permissions</a></div></div>
+    <div class="kpi"><div class="n">7</div><div class="l"><a href="/admin/integrations">Integrations</a></div></div>
+    <div class="kpi"><div class="n">834</div><div class="l"><a href="/admin/audit">Audit entries (7d)</a></div></div>
+  </div>
+  <div class="panel" style="margin-top:18px">
+    <h2>Latest audit events</h2>
+    <table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Source</th></tr></thead>
+    <tbody><tr><td>14/08 08:30</td><td>j.halloran</td><td>Updated SMTP integration credentials</td><td>10.24.8.41</td></tr><tr><td>14/08 06:12</td><td>m.thorne</td><td>Generated API token <code>tok_7984a2c491</code></td><td>10.24.9.16</td></tr><tr><td>14/08 00:12</td><td>system</td><td>Suspended account a.novak (12 failed sign-ins)</td><td>&mdash;</td></tr><tr><td>13/08 09:12</td><td>d.mercier</td><td>Exported order report Q3-2026</td><td>10.24.8.77</td></tr></tbody></table>
+  </div>
+</div>
+
+<footer>Meridian Portal 4.2.1 &middot; &copy; 2026 Meridian Systems &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

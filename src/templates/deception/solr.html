@@ -1,63 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Apache Solr Admin</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 20px; background:#f4f4f4;}
-        h1 {color:#2c3e50;}
-        table {border-collapse:collapse; width:100%; max-width:800px; background:#fff;}
-        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
-        th {background:#ecf0f1;}
-        .link {color:#2980b9; text-decoration:none;}
-        .link:hover {text-decoration:underline;}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solr — Volta Energia</title>
+<style>
+:root{--bg:#12161c;--panel:#1a2029;--ink:#dfe5ee;--muted:#8794a6;
+--line:#2a323e;--brand:#e8a33d;--brand-dk:#c9862a;--r:3px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 "IBM Plex Sans",Inter,Roboto,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#0c1015;color:#e8a33d;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#e8a33d}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#8794a6;font-size:13px}
+header.top nav a.active{color:#e8a33d;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:none}
+h1{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:17px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <h1>Apache Solr Admin Interface</h1>
-    <p>Welcome to the Solr administration console. Use the links below to manage cores, view logs, and monitor performance.</p>
-    <table>
-        <thead>
-            <tr>
-                <th>Core Name</th>
-                <th>Status</th>
-                <th>Documents</th>
-                <th>Size (MB)</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>collection1</td>
-                <td>Active</td>
-                <td>1,245,789</td>
-                <td>312.4</td>
-                <td><a href="/solr/collection1/" class="link">Overview</a> | <a href="/solr/collection1/query" class="link">Query</a></td>
-            </tr>
-            <tr>
-                <td>products</td>
-                <td>Active</td>
-                <td>987,321</td>
-                <td>215.7</td>
-                <td><a href="/solr/products/" class="link">Overview</a> | <a href="/solr/products/update" class="link">Update</a></td>
-            </tr>
-            <tr>
-                <td>logs</td>
-                <td>Active</td>
-                <td>4,560,112</td>
-                <td>578.9</td>
-                <td><a href="/solr/logs/" class="link">Overview</a> | <a href="/solr/logs/schema" class="link">Schema</a></td>
-            </tr>
-            <tr>
-                <td>test_core</td>
-                <td>Inactive</td>
-                <td>0</td>
-                <td>0.0</td>
-                <td><a href="/solr/test_core/" class="link">Overview</a> | <a href="/solr/test_core/admin" class="link">Admin</a></td>
-            </tr>
-        </tbody>
-    </table>
-    <hr>
-    <p><small>Generated by Solr 8.11.0 (fake)</small></p>
+<header class="top"><span class="brand">Grid Console</span><nav><a href="/overview">Overview</a><a href="/sites">Sites</a><a href="/alarms">Alarms</a><a href="/telemetry">Telemetry</a><a href="/operators">Operators</a><a href="/logout">Sign out</a></nav></header>
+
+<div class="wrap">
+  <div class="breadcrumb"><a href="/">Home</a> / Solr</div>
+  <h1>Solr</h1>
+  <p class="sub">Volta Energia &middot; distributed generation and grid balancing</p>
+  <div class="panel">
+    <p>Volta Energia operates and monitors 2.1 GW of distributed generation across Iberia. This section of the site is maintained by the
+    operations team; content was last reviewed on 08 July 2026.</p>
+    <p>If you reached this page from an internal link that no longer works, please raise a
+    ticket with the <a href="/support">IT service desk</a> quoting reference
+    <code>WEB-2485</code>.</p>
+  </div>
+  <div class="panel">
+    <h2>Related</h2>
+    <p><a href="/platform">Platform</a> &middot; <a href="/sites">Sites</a> &middot; <a href="/docs">Documentation</a> &middot; <a href="/about-us">Company</a> &middot; <a href="/contact-us">Contact</a></p>
+  </div>
+</div>
+
+<footer>Grid Console 2.11.6 &middot; &copy; 2026 Volta Energia &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

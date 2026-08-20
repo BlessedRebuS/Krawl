@@ -1,135 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>services.php – Service Configuration</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9; color:#333;}
-        h1 {color:#2c3e50;}
-        pre {background:#272822; color:#f8f8f2; padding:15px; overflow:auto; border-radius:5px;}
-        .keyword{color:#f92672;}
-        .string{color:#ae81ff;}
-        .comment{color:#75715e; font-style:italic;}
-        .variable{color:#66d9ef;}
-        .number{color:#ae81ff;}
-        table {width:80%; border-collapse:collapse; margin-top:20px;}
-        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
-        th {background:#ecf0f1;}
-        tr:nth-child(even) {background:#f2f2f2;}
-    </style>
-</head>
-<body>
-    <h1>Service Configuration – <code>services.php</code></h1>
-    <p>This file contains the default service definitions used by the application. Edit with caution.</p>
-    <pre><code>
-&lt;?php
+<?php
 /**
- * Service configuration file
- * Defines available services and their connection parameters.
+ * Meridian Portal — database & service configuration
+ *
+ * @package  Meridian
+ * @version  4.2.1
  */
 
-/**
- * Database service
- */
-$services['db'] = array(
-    'host'     => 'db.internal.example.com',
-    'port'     => 3306,
-    'username' => 'app_user',
-    'password' => 'S3cr3tP@ssw0rd!',
-    'database' => 'maindb',
-    'charset'  => 'utf8mb4'
-);
+defined('MERIDIAN_ROOT') or define('MERIDIAN_ROOT', dirname(__DIR__));
 
-/**
- * Cache service (Redis)
- */
-$services['cache'] = array(
-    'host' => 'cache.example.com',
-    'port' => 6379,
-    'password' => 'Red1sPass!23',
-    'timeout' => 2.5
-);
+$config = [
+    'app' => [
+        'name'      => 'Meridian Portal',
+        'env'       => 'production',
+        'debug'     => false,
+        'url'       => 'https://portal.meridiansys.io',
+        'key'       => 'base64:nF//hd6d5YmVIFoy+jGkLfW3d5gfB2WPfMP5pW30iyT=',
+    ],
 
-/**
- * External API service
- */
-$services['api'] = array(
-    'base_url' => 'https://api.partner.com/v2/',
-    'api_key'  => 'a1b2c3d4e5f6g7h8i9j0',
-    'timeout'  => 10,
-    'retries'  => 3
-);
+    'db' => [
+        'driver'    => 'pgsql',
+        'host'      => 'pg-prod-01.db.meridian.internal',
+        'port'      => 5432,
+        'database'  => 'meridian_portal',
+        'username'  => 'meridian_app',
+        'password'  => 'fake-db-password-00a7f9e9',
+        'charset'   => 'utf8',
+        'prefix'    => 'mp_',
+    ],
 
-/**
- * Mail service (SMTP)
- */
-$services['mail'] = array(
-    'host' => 'smtp.example.com',
-    'port' => 587,
-    'username' => 'no-reply@example.com',
-    'password' => 'MailPass!2025',
-    'encryption' => 'tls'
-);
+    'redis' => [
+        'host'      => 'redis-prod-01.cache.meridian.internal',
+        'port'      => 6379,
+        'password'  => 'fake-redis-password-500999',
+    ],
 
-/**
- * Logging service
- */
-$services['log'] = array(
-    'path' => '/var/log/app/',
-    'level' => 'debug',
-    'max_size' => '10MB',
-    'rotate' => 7
-);
+    'mail' => [
+        'host'      => 'smtp.mail.meridian.internal',
+        'port'      => 587,
+        'username'  => 'no-reply@meridiansys.io',
+        'password'  => 'fake-smtp-password-f9ad064d',
+        'encryption'=> 'tls',
+    ],
+];
 
-/* End of file services.php */
-?&gt;
-    </code></pre>
+/* Legacy globals — still read by the reporting cron, remove after MP-2841. */
+$db_host = $config['db']['host'];
+$db_user = $config['db']['username'];
+$db_pass = $config['db']['password'];
+$db_name = $config['db']['database'];
 
-    <h2>Service Overview</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Service</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Notes</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Database</td>
-                <td>MySQL</td>
-                <td>Active</td>
-                <td>Primary DB for user data</td>
-            </tr>
-            <tr>
-                <td>Cache</td>
-                <td>Redis</td>
-                <td>Active</td>
-                <td>Session storage</td>
-            </tr>
-            <tr>
-                <td>API</td>
-                <td>REST</td>
-                <td>Active</td>
-                <td>Partner integration</td>
-            </tr>
-            <tr>
-                <td>Mail</td>
-                <td>SMTP</td>
-                <td>Active</td>
-                <td>Transactional emails</td>
-            </tr>
-            <tr>
-                <td>Log</td>
-                <td>File</td>
-                <td>Active</td>
-                <td>Debug level enabled</td>
-            </tr>
-        </tbody>
-    </table>
+define('AUTH_SALT', 'cWAsdGH3lZwKQU1ssuBNrm+AQK+UU/Y1');
+define('SECURE_AUTH_KEY', 'uYakMF0NlVn95Pp7Z2Irt5o6UeuKk8PY');
 
-    <hr>
-    <p><small>Generated by internal configuration manager – <em>do not modify unless you know what you are doing</em>.</small></p>
-</body>
-</html>
+return $config;

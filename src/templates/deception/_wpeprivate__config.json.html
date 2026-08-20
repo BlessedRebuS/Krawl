@@ -1,45 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>WP Engine Private Config</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; margin:0; padding:20px;}
-        h1 {color:#333;}
-        pre {background:#eee; padding:10px; border:1px solid #ccc; overflow:auto;}
-        a {color:#0066cc;}
-    </style>
-</head>
-<body>
-    <h1>WP Engine Private Configuration</h1>
-    <p>This file contains internal configuration settings.</p>
-    <pre>
 {
-  "database": {
-    "host": "db.internal.wpengine.com",
-    "user": "wp_user",
-    "password": "SuperSecretPass123!",
-    "name": "wp_prod"
+  "app": {
+    "name": "Kestrel TMS",
+    "version": "3.8",
+    "env": "production",
+    "url": "https://portal.kestrelfreight.nl"
   },
-  "api": {
-    "endpoint": "https://api.wpengine.com/v1",
-    "key": "abcdef1234567890abcdef1234567890"
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.kestrel.internal",
+    "port": 5432,
+    "name": "kestrel_tms",
+    "user": "tmsuser",
+    "password": "fake-db-password-0e8280a9"
   },
   "cache": {
-    "redis": {
-      "host": "cache.internal.wpengine.com",
-      "port": 6379,
-      "auth": "redis_auth_token"
-    }
+    "driver": "redis",
+    "host": "redis-prod-01.cache.kestrel.internal",
+    "port": 6379
   },
-  "debug": true,
-  "features": {
-    "auto_update": true,
-    "enable_xmlrpc": false
-  }
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-7ea1e6d9a927ceb6d81e60f11960acdc",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-08T00:26:23Z"
 }
-    </pre>
-    <p>For support, contact <a href="mailto:support@wpengine.com">support@wpengine.com</a></p>
-</body>
-</body>
-</html>

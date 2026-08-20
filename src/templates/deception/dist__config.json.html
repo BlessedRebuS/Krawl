@@ -1,54 +1,26 @@
-<html><body>{
-  "server": {
-    "name": "dist-server-01",
-    "version": "1.2.3",
-    "environment": "production",
-    "debug": false
+{
+  "app": {
+    "name": "Halcyon Commerce",
+    "version": "6.0.3",
+    "env": "production",
+    "url": "https://portal.halcyonretail.co.uk"
   },
   "database": {
-    "host": "db.internal.corp",
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.halcyon.internal",
     "port": 5432,
-    "name": "app_prod",
-    "user": "svc_app",
-    "password": "s3cr3t_p@ssw0rd_2024!",
-    "ssl": true,
-    "pool": {
-      "min": 5,
-      "max": 20
-    }
-  },
-  "api": {
-    "base_url": "https://api.internal.corp/v1",
-    "timeout": 30000,
-    "retries": 3,
-    "key": "sk_live_abc123xyz789",
-    "endpoints": {
-      "auth": "/auth/login",
-      "users": "/users",
-      "orders": "/orders",
-      "payments": "/payments"
-    }
+    "name": "halcyon_commerce",
+    "user": "hc_web",
+    "password": "fake-db-password-c48156fb"
   },
   "cache": {
-    "type": "redis",
-    "host": "redis.internal.corp",
-    "port": 6379,
-    "password": "cache_pass_456",
-    "db": 0
+    "driver": "redis",
+    "host": "redis-prod-01.cache.halcyon.internal",
+    "port": 6379
   },
-  "logging": {
-    "level": "info",
-    "file": "/var/log/app.log",
-    "max_size": "100MB",
-    "backup_count": 5
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-53caa124fee9c7a3f5aff3db506d081c",
+    "token_ttl": 1440
   },
-  "features": {
-    "new_ui": true,
-    "beta_access": false,
-    "maintenance_mode": false,
-    "rate_limiting": {
-      "enabled": true,
-      "requests_per_minute": 100
-    }
-  }
-}</body></html>
+  "generated_at": "2026-08-12T11:51:39Z"
+}

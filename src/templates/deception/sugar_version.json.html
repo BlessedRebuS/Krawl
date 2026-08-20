@@ -1,33 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Sugar Version JSON</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 2rem;}
-        pre {background:#f4f4f4; padding:1rem; border:1px solid #ddd; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>Sugar Version Information</h1>
-    <p>The following JSON represents the current version details for the Sugar application.</p>
-    <pre>
 {
-  "application": "SugarCRM",
-  "version": "10.2.3",
-  "build": "20240915",
-  "release_date": "2024-09-01",
-  "dependencies": {
-    "php": ">=7.4",
-    "mysql": "5.7+",
-    "apache": "2.4+"
+  "app": {
+    "name": "Kestrel TMS",
+    "version": "3.8",
+    "env": "production",
+    "url": "https://portal.kestrelfreight.nl"
   },
-  "features": [
-    "Enhanced security",
-    "Improved UI",
-    "API v2 support"
-  ]
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.kestrel.internal",
+    "port": 5432,
+    "name": "kestrel_tms",
+    "user": "tmsuser",
+    "password": "fake-db-password-a7f5fbf9"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.kestrel.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-344cbfe0ccdce7a8855f6960bfaded52",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-05T15:51:59Z"
 }
-    </pre>
-</body>
-</html>

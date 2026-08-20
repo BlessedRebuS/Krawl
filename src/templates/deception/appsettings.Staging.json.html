@@ -1,39 +1,17 @@
-<html><body>{
-  "AppName": "MyApp.Staging",
-  "Version": "3.2.1.0",
-  "Database": {
-    "Name": "MyApp_Staging",
-    "Server": "10.1.2.3",
-    "User": "dbadmin",
-    "Password": "P@ssw0rd!2024"
-  },
-  "ConnectionStrings": {
-    "Default": "Server=10.1.2.3;Database=MyApp_Staging;User Id=dbadmin;Password=P@ssw0rd!2024;Encrypt=False;TrustServerCertificate=True"
-  },
-  "Logging": {
-    "LogLevel": {
-      "Default": "Debug",
-      "Microsoft": "Warning",
-      "System": "Warning"
-    },
-    "LogPath": "/var/log/myapp/staging.log"
-  },
-  "FeatureFlags": {
-    "EnableBetaMode": true,
-    "EnableDeveloperTools": false,
-    "EnableTelemetry": true
-  },
-  "Auth": {
-    "JwtSecret": "supersecretkey123!@#$$%^&*()",
-    "Issuer": "MyApp.Staging",
-    "Audience": "MyAppClients"
-  },
-  "Cache": {
-    "RedisEndpoint": "10.1.2.4:6379",
-    "CacheTTLSeconds": 300
-  },
-  "AllowedHosts": [
-    "staging.myapp.internal",
-    "10.1.2.3"
-  ]
-}</body></html>
+{
+  "title": "Grid Console",
+  "url": "https://portal.voltaenergia.es",
+  "timezone_string": "Europe/Rome",
+  "date_format": "d/m/Y",
+  "language": "en_GB",
+  "default_role": "support",
+  "users_can_register": false,
+  "start_of_week": 1,
+  "smtp": {
+    "host": "smtp.mail.volta.internal",
+    "port": 587,
+    "encryption": "tls",
+    "username": "no-reply@voltaenergia.es",
+    "password": "fake-smtp-password-86e0ffbd"
+  }
+}

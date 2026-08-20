@@ -1,38 +1,26 @@
-<html><body>{
+{
+  "app": {
+    "name": "Kestrel TMS",
+    "version": "3.8",
+    "env": "production",
+    "url": "https://portal.kestrelfreight.nl"
+  },
   "database": {
-    "host": "localhost",
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.kestrel.internal",
     "port": 5432,
-    "name": "app_dev",
-    "user": "dev_user",
-    "password": "dev_pass_123!",
-    "ssl": false
+    "name": "kestrel_tms",
+    "user": "tmsuser",
+    "password": "fake-db-password-87f67d74"
   },
-  "api": {
-    "base_url": "http://localhost:3000/api",
-    "timeout": 5000,
-    "retries": 3
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.kestrel.internal",
+    "port": 6379
   },
-  "features": {
-    "debug_mode": true,
-    "log_level": "debug",
-    "enable_swagger": true,
-    "cors_origin": "*"
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-5e7584f5f2cb6d853995ac4424a592d7",
+    "token_ttl": 1440
   },
-  "email": {
-    "smtp_host": "smtp.dev.local",
-    "smtp_port": 587,
-    "smtp_user": "no-reply@dev.local",
-    "smtp_pass": "smtp_dev_pass",
-    "from": "Dev Team <no-reply@dev.local>"
-  },
-  "jwt": {
-    "secret": "super_secret_dev_key_change_in_prod",
-    "expires_in": "2h"
-  },
-  "logging": {
-    "file": "./logs/dev.log",
-    "level": "debug",
-    "max_size": "10m",
-    "backup_count": 5
-  }
-}</body></html>
+  "generated_at": "2026-08-09T20:23:46Z"
+}

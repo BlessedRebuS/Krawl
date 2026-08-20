@@ -1,29 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>.env2 File</title>
-    <style>
-        body {font-family: monospace; margin: 2rem; background:#fafafa; color:#333;}
-        h1 {color:#2c3e50;}
-        pre {background:#fff; border:1px solid #ddd; padding:1rem; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>.env2 Configuration</h1>
-    <pre>
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=s3cr3tP@ssw0rd!
-DB_NAME=app_db
-API_KEY=AKIAIOSFODNN7EXAMPLE
-SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-MAIL_DRIVER=smtp
-MAIL_HOST=smtp.mailtrap.io
-MAIL_PORT=2525
-MAIL_USERNAME=null
-MAIL_PASSWORD=null
-MAIL_ENCRYPTION=null
-    </pre>
-</body>
-</html>
+# Orbit Cloud — application environment
+# managed by ops, do not edit by hand (see infra/ansible/roles/app)
+# last sync: 2026-08-14 09:12 UTC
+
+APP_NAME="Orbit Cloud"
+APP_ENV=production
+APP_KEY=base64:GSlSktk5rumbM/JVE659zLFckduDZfx+W9f8Qtnbf44=
+APP_DEBUG=false
+APP_URL=https://portal.orbitlabs.dev
+LOG_CHANNEL=stack
+LOG_LEVEL=warning
+
+DB_CONNECTION=pgsql
+DB_HOST=pg-prod-01.db.orbit.internal
+DB_PORT=5432
+DB_DATABASE=orbit_cloud
+DB_USERNAME=orbit_app
+DB_PASSWORD=fake-db-password-80222d2c
+
+REDIS_HOST=redis-prod-01.cache.orbit.internal
+REDIS_PORT=6379
+REDIS_PASSWORD=fake-redis-password-1f474b
+CACHE_DRIVER=redis
+QUEUE_CONNECTION=redis
+SESSION_DRIVER=redis
+SESSION_LIFETIME=120
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mail.orbit.internal
+MAIL_PORT=587
+MAIL_USERNAME=no-reply@orbitlabs.dev
+MAIL_PASSWORD=fake-smtp-password-f68a74ca
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=no-reply@orbitlabs.dev
+
+AWS_ACCESS_KEY_ID=AKIA-FAKE-C47F8
+AWS_SECRET_ACCESS_KEY=fake-secret-erMx/8UWOBDT7SuLRqqIfoG2
+AWS_DEFAULT_REGION=eu-west-1
+AWS_BUCKET=orbit-cloud-production-assets
+
+JWT_SECRET=fake-jwt-secret-5b7b5bdbfbed2e3ad7d6f26495f2ba61
+JWT_TTL=1440
+STRIPE_KEY=pk_test_FAKE-9bbfa2871132843f
+STRIPE_SECRET=sk_test_FAKE-1402543b6d3f4844
+SENTRY_LARAVEL_DSN=https://fake0be92be373432f38@sentry.internal/22

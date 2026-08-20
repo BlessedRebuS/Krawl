@@ -1,46 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>API v1 - Internal Service</title>
-<style>
-body{font-family:Arial,sans-serif;margin:40px;background:#f9f9f9;}
-.container{max-width:800px;margin:auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,.1);}
-h1{color:#2c3e50;}
-.endpoint{background:#ecf0f1;padding:10px;margin:10px 0;border-left:4px solid #3498db;}
-form{margin-top:20px;}
-input[type=text]{padding:8px;width:250px;}
-input[type=submit]{padding:8px 12px;background:#3498db;color:#fff;border:none;cursor:pointer;}
-</style>
-</head>
-<body>
-<div class="container">
-<h1>Internal API v1 Documentation</h1>
-<p>Welcome to the internal API version 1. Use the following endpoints to interact with the service.</p>
-
-<div class="endpoint">
-<strong>GET /v1/users</strong><br>
-Retrieve a list of users. Supports <code>search</code> query parameter.
-</div>
-
-<div class="endpoint">
-<strong>POST /v1/login</strong><br>
-Authenticate a user. Expects JSON body with <code>username</code> and <code>password</code>.
-</div>
-
-<div class="endpoint">
-<strong>GET /v1/data?id=</strong><br>
-Fetch a record by ID. Vulnerable to SQL injection if <code>id</code> is not sanitized.
-</div>
-
-<form action="/v1/users" method="get">
-<label for="search">Search Users:</label>
-<input type="text" id="search" name="search" placeholder="Enter username">
-<input type="submit" value="Search">
-</form>
-
-<hr>
-<p><small>© 2025 Internal Services. For authorized use only.</small></p>
-</div>
-</body>
-</html>
+{
+  "app": {
+    "name": "Meridian Portal",
+    "version": "4.2.1",
+    "env": "production",
+    "url": "https://portal.meridiansys.io"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.meridian.internal",
+    "port": 5432,
+    "name": "meridian_portal",
+    "user": "meridian_app",
+    "password": "fake-db-password-a90aea99"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.meridian.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-91acfab7806d6d4d5ecba1a8c4c71c4e",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-06T23:02:28Z"
+}

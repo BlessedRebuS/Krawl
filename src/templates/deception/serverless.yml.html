@@ -1,59 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>serverless.yml</title>
-<style>
-body{font-family:monospace;background:#f8f8f8;color:#222;padding:20px;}
-pre{background:#eee;padding:10px;border:1px solid #ccc;overflow:auto;}
-a{color:#0066cc;}
-</style>
-</head>
-<body>
-<h1>serverless.yml</h1>
-<p>This is the Serverless Framework configuration for the demo application.</p>
-<pre>
-service: demo-app
+# Meridian Portal — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
 
-provider:
-  name: aws
-  runtime: nodejs14.x
-  region: us-east-1
-  stage: dev
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:*
-      Resource: "*"
+app:
+  name: "Meridian Portal"
+  env: production
+  url: https://portal.meridiansys.io
+  version: "4.2.1"
 
-functions:
-  hello:
-    handler: handler.hello
-    events:
-      - http:
-          path: hello
-          method: get
-          cors: true
-  process:
-    handler: handler.process
-    events:
-      - schedule: rate(5 minutes)
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
 
-resources:
-  Resources:
-    DemoTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: demo-table
-        AttributeDefinitions:
-          - AttributeName: id
-            AttributeType: S
-        KeySchema:
-          - AttributeName: id
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
-</pre>
-<hr>
-<p><a href="/">Go back to homepage</a></p>
-</body>
-</html>
+database:
+  driver: postgresql
+  host: pg-prod-01.db.meridian.internal
+  port: 5432
+  name: meridian_portal
+  user: meridian_app
+  password: fake-db-password-4d32a9ae
+  pool:
+    min: 4
+    max: 32
+
+redis:
+  host: redis-prod-01.cache.meridian.internal
+  port: 6379
+  password: fake-redis-password-c095e4
+
+auth:
+  jwt_secret: fake-jwt-secret-8879f50242ab5b1c84eecf09912499ef
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: meridian-portal-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-93F8E
+  secret_access_key: fake-secret-2uJN50k/8ds1Gb4PGtcLJD8u
+
+logging:
+  level: warning
+  format: json
+  sentry_dsn: https://fake9ecfc1a4656915cf@sentry.internal/8

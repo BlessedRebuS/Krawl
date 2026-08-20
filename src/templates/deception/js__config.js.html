@@ -1,67 +1,36 @@
-<html><body>/*
- * Application configuration file
- * (Intentionally contains fake sensitive data and vulnerable patterns for demonstration)
- */
-var config = {
-    // Base URL for the API
-    apiBaseUrl: "https://api.internal.example.com/v1",
+/*! Meridian Portal 4.2.1 | build 8cc3f50 | (c) Meridian Systems */
+(function (window) {
+  'use strict';
 
-    // Database connection settings (fake credentials)
-    database: {
-        host: "db.internal.example.com",
-        port: 3306,
-        name: "app_db",
-        username: "app_user",
-        password: "s3cr3t!P@ssw0rd",
-        charset: "utf8mb4"
-    },
+  var config = {
+    apiBase: 'https://api.meridiansys.io/v2',
+    wsBase: 'wss://api.meridiansys.io/socket',
+    sentryDsn: 'https://fakef587a373b8c10331@sentry.internal/6',
+    release: 'meridian-portal@4.2.1',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
 
-    // Authentication tokens (fake)
-    auth: {
-        jwtSecret: "fake_jwt_secret_key_12345",
-        tokenExpiry: "2h",
-        refreshTokenExpiry: "7d"
-    },
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
+  }
 
-    // Feature flags
-    features: {
-        enableDebug: true,
-        enableMetrics: false,
-        enableExperimentalUI: true
-    },
-
-    // Logging configuration
-    logger: {
-        level: "debug",
-        output: "console",
-        format: "[{{timestamp}}] {{level}}: {{message}}"
-    },
-
-    // Example of a vulnerable pattern: direct concatenation of user input into SQL (fake)
-    // NOTE: This is only for illustration; never do this in real code.
-    vulnerableSqlTemplate: function (username, password) {
-        return "SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'";
-    },
-
-    // Example of a potential XSS sink (fake)
-    // This function would incorrectly insert raw HTML into the DOM.
-    unsafeHtmlInject: function (userInput) {
-        // In a real vulnerable app, this might be: element.innerHTML = userInput;
-        return "<div>" + userInput + "</div>";
-    },
-
-    // Miscellaneous settings
-    misc: {
-        sessionCookieName: "APPSESSID",
-        sessionCookieSecure: false,   // intentionally insecure for demo
-        sessionCookieHttpOnly: false, // intentionally insecure for demo
-        csrfTokenLength: 32
-    }
-};
-
-/* Export for Node.js environments */
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = config;
-}
-
-/* End of config.js */</body></html>
+  window.Meridian = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

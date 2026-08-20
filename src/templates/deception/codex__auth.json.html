@@ -1,23 +1,26 @@
-<html><body>{
-  "auth_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjMiLCJleHAiOjE3MTIzNDU2NzgsInVzZXMiOltiYWNrZW5kIl19.YOURBASE64TOKENHERE",
-  "expires_in": 3600,
-  "user": {
-    "id": 12345,
-    "username": "admin",
-    "email": "admin@codex.local",
-    "role": "administrator",
-    "permissions": ["read", "write", "delete", "manage_users"]
-  },
-  "server": {
-    "software": "nginx/1.25.3",
-    "version": "codex-auth-v2.4.1",
-    "internal_ip": "10.0.1.42"
+{
+  "app": {
+    "name": "Orbit Cloud",
+    "version": "0.38.2",
+    "env": "production",
+    "url": "https://portal.orbitlabs.dev"
   },
   "database": {
-    "name": "codex_db",
-    "host": "10.0.0.15",
-    "port": 3306,
-    "driver": "mysql"
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.orbit.internal",
+    "port": 5432,
+    "name": "orbit_cloud",
+    "user": "orbit",
+    "password": "fake-db-password-afc6b812"
   },
-  "csrf_token": "c5e7b2a9d4f1c3b6e8a7d9c0b2e5f1a3"
-}</body></html>
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.orbit.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-b551a4fdcb3417bb5715684df1904d7c",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-06T16:13:33Z"
+}

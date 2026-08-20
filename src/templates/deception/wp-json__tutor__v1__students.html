@@ -1,57 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Tutor LMS - Students API</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 2em; background:#f9f9f9; color:#333;}
-        pre {background:#eee; padding:1em; border:1px solid #ccc; overflow:auto;}
-        a {color:#0066cc;}
-    </style>
-</head>
-<body>
-    <h1>Tutor LMS REST API</h1>
-    <p>Endpoint: <code>/wp-json/tutor/v1/students</code></p>
-    <p>Returns a list of students enrolled in courses.</p>
-    <hr>
-    <h2>Sample Response (JSON)</h2>
-    <pre>
 [
-    {
-        "id": 1024,
-        "name": "Alice Johnson",
-        "email": "alice.j@example.com",
-        "registered": "2023-05-12",
-        "courses": [
-            {"id": 5, "title": "Introduction to PHP"},
-            {"id": 12, "title": "MySQL Basics"}
-        ]
-    },
-    {
-        "id": 1025,
-        "name": "Bob Smith",
-        "email": "bob.smith@example.com",
-        "registered": "2023-07-03",
-        "courses": [
-            {"id": 5, "title": "Introduction to PHP"},
-            {"id": 9, "title": "JavaScript Essentials"}
-        ]
-    },
-    {
-        "id": 1026,
-        "name": "Carol Lee",
-        "email": "carol.lee@example.com",
-        "registered": "2023-08-19",
-        "courses": [
-            {"id": 7, "title": "HTML5 & CSS3"},
-            {"id": 15, "title": "Responsive Design"}
-        ]
-    }
+  {
+    "id": 5,
+    "username": "c.mbeki",
+    "email": "c.mbeki@halcyonretail.co.uk",
+    "display_name": "Chloe Mbeki",
+    "role": "store_manager",
+    "status": "active",
+    "created_at": "2020-04-13T08:31:44Z",
+    "last_login_at": "2026-08-07T10:19:13Z",
+    "mfa_enabled": false
+  },
+  {
+    "id": 8,
+    "username": "r.duffy",
+    "email": "r.duffy@halcyonretail.co.uk",
+    "display_name": "Ronan Duffy",
+    "role": "administrator",
+    "status": "active",
+    "created_at": "2018-12-01T08:31:44Z",
+    "last_login_at": "2026-08-12T17:06:10Z",
+    "mfa_enabled": true
+  },
+  {
+    "id": 16,
+    "username": "a.pashkov",
+    "email": "a.pashkov@halcyonretail.co.uk",
+    "display_name": "Anya Pashkov",
+    "role": "merchandiser",
+    "status": "active",
+    "created_at": "2022-02-24T08:31:44Z",
+    "last_login_at": "2026-08-13T21:39:08Z",
+    "mfa_enabled": false
+  },
+  {
+    "id": 19,
+    "username": "j.okonkwo",
+    "email": "j.okonkwo@halcyonretail.co.uk",
+    "display_name": "Jide Okonkwo",
+    "role": "fulfilment",
+    "status": "active",
+    "created_at": "2023-07-08T08:31:44Z",
+    "last_login_at": "2026-08-06T19:08:50Z",
+    "mfa_enabled": false
+  },
+  {
+    "id": 27,
+    "username": "h.lindqvist",
+    "email": "h.lindqvist@halcyonretail.co.uk",
+    "display_name": "Hanna Lindqvist",
+    "role": "customer_care",
+    "status": "active",
+    "created_at": "2024-11-05T08:31:44Z",
+    "last_login_at": "2026-08-06T14:11:35Z",
+    "mfa_enabled": false
+  }
 ]
-    </pre>
-    <p>Note: This is a simulated response for demonstration purposes.</p>
-    <footer>
-        <p><a href="/wp-admin/">Return to WordPress Dashboard</a> | <a href="/">Home</a></p>
-    </footer>
-</body>
-</html>

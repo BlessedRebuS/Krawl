@@ -1,171 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>News Feed - Daily Updates</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f9f9f9;
-        }
-        header {
-            background-color: #2c3e50;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            border-radius: 5px;
-            margin-bottom: 30px;
-        }
-        .article {
-            background: white;
-            margin-bottom: 25px;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .article h2 {
-            color: #2c3e50;
-            margin-top: 0;
-        }
-        .article .meta {
-            color: #7f8c8d;
-            font-size: 0.9em;
-            margin-bottom: 15px;
-        }
-        .article p {
-            margin-bottom: 15px;
-        }
-        .read-more {
-            display: inline-block;
-            padding: 8px 16px;
-            background-color: #3498db;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            font-size: 0.9em;
-        }
-        .read-more:hover {
-            background-color: #2980b9;
-        }
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            color: #95a5a6;
-            font-size: 0.9em;
-        }
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #7f8c8d;
-            font-style: italic;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>Daily News Feed</h1>
-        <p>Stay informed with the latest updates</p>
-    </header>
-
-    <div id="feed-container">
-        <div class="article">
-            <h2>Breaking: Major Tech Company Announces New Product Line</h2>
-            <div class="meta">Posted by <a href="/author/jsmith">John Smith</a> | April 5, 2025 | <span class="category">Technology</span></div>
-            <p>A leading technology corporation unveiled its highly anticipated product lineup today, featuring innovations in artificial intelligence and sustainable materials. The announcement, made during a live-streamed event, has generated significant buzz across industry circles.</p>
-            <p>Analysts predict the new offerings could reshape market dynamics in the coming quarters, particularly in the enterprise and consumer electronics sectors. The company emphasized its commitment to eco-friendly manufacturing processes throughout the presentation.</p>
-            <a href="/article/tech-announcement-april2025" class="read-more">Read Full Story</a>
-        </div>
-
-        <div class="article">
-            <h2>Local Elections See Record Voter Turnout</h2>
-            <div class="meta">Posted by <a href="/author/mgarcia">Maria Garcia</a> | April 4, 2025 | <span class="category">Politics</span></div>
-            <p>Municipal elections across several regions reported unprecedented participation rates this week, with preliminary figures showing turnout exceeding historical averages by nearly 15 percentage points in some districts.</p>
-            <p>Officials attributed the increased engagement to heightened awareness of local issues and expanded access to voting options, including extended early voting periods and additional polling locations. Results from key races are expected to be finalized by Friday.</p>
-            <a href="/article/local-elections-april2025" class="read-more">Read Full Story</a>
-        </div>
-
-        <div class="article">
-            <h2>Scientists Discover New Species in Remote Rainforest</h2>
-            <div class="meta">Posted by <a href="/author/ldavis">Dr. Laura Davis</a> | April 3, 2025 | <span class="category">Science</span></div>
-            <p>An international research team has documented a previously unknown species of amphibian during an expedition to a biodiverse region in the Amazon basin. The finding highlights the ongoing importance of conservation efforts in preserving Earth's biological diversity.</p>
-            <p>The newly identified creature exhibits unique adaptations to its microhabitat, including specialized skin secretions and distinctive vocalizations. Researchers plan to return to the area later this year to study the species' behavior and ecological role in greater detail.</p>
-            <a href="/article/new-species-discovery" class="read-more">Read Full Story</a>
-        </div>
-
-        <div class="article">
-            <h2>Global Markets React to Economic Policy Shifts</h2>
-            <div class="meta">Posted by <a href="/author/tchen">Tomás Chen</a> | April 2, 2025 | <span class="category">Business</span></div>
-            <p>Financial markets worldwide experienced notable volatility following announcements of monetary policy adjustments by several major central banks. Investors reacted to signals indicating a potential shift in interest rate trajectories amid ongoing inflation concerns.</p>
-            <p>Currency fluctuations and commodity price movements were particularly pronounced in emerging markets, while equity indices showed mixed performance across different regions. Market analysts suggest the coming weeks will be critical for assessing the full impact of these policy developments.</p>
-            <a href="/article/global-markets-april2025" class="read-more">Read Full Story</a>
-        </div>
-
-        <div class="article">
-            <h2>Cultural Festival Celebrates Heritage Through Art and Music</h2>
-            <div class="meta">Posted by <a href="/author/akhan">Aisha Khan</a> | April 1, 2025 | <span class="category">Culture</span></div>
-            <p>This weekend's annual heritage festival drew thousands of visitors to the city's downtown district, showcasing traditional crafts, performances, and culinary traditions from various cultural communities. The event featured live music, dance exhibitions, and interactive workshops for attendees of all ages.</p>
-            <p>Organizers emphasized the festival's role in fostering cross-cultural understanding and preserving intangible heritage. Proceeds from vendor sales and donations will support local arts education programs in underserved neighborhoods.</p>
-            <a href="/article/heritage-festival-april2025" class="read-more">Read Full Story</a>
-        </div>
-    </div>
-
-    <div id="loading-indicator" class="loading" style="display:none;">
-        Loading more articles...
-    </div>
-
-    <footer>
-        <p>&copy; 2025 Daily News Feed. All rights reserved.</p>
-        <p><a href="/about">About Us</a> | <a href="/privacy">Privacy Policy</a> | <a href="/contact">Contact</a></p>
-    </footer>
-
-    <script>
-        // Simulate lazy loading behavior for realism
-        document.addEventListener('DOMContentLoaded', function() {
-            const feedContainer = document.getElementById('feed-container');
-            const loadingIndicator = document.getElementById('loading-indicator');
-            
-            // Simulate loading more content on scroll (common in real feeds)
-            let isLoading = false;
-            
-            window.addEventListener('scroll', function() {
-                if (isLoading) return;
-                
-                const scrollPosition = window.innerHeight + window.scrollY;
-                const pageHeight = document.body.offsetHeight;
-                
-                if (scrollPosition > pageHeight - 300) {
-                    isLoading = true;
-                    loadingIndicator.style.display = 'block';
-                    
-                    // Simulate network delay
-                    setTimeout(function() {
-                        // In a real attack scenario, this might be where malicious payloads are injected
-                        // But here we just add more fake content to maintain plausibility
-                        const newArticle = document.createElement('div');
-                        newArticle.className = 'article';
-                        newArticle.innerHTML = `
-                            <h2>Additional Update: Weather Patterns Shift Across Regions</h2>
-                            <div class="meta">Posted by <a href="/author/rwilson">Robert Wilson</a> | April 5, 2025 | <span class="category">Environment</span></div>
-                            <p>Meteorological services report unusual atmospheric conditions developing across multiple continents, with shifts in jet stream patterns contributing to unseasonable temperature variations.</p>
-                            <p>While not indicative of long-term climate trends alone, these short-term fluctuations are prompting increased monitoring by weather agencies worldwide. Farmers and agricultural planners are advised to stay updated on localized forecasts.</p>
-                            <a href="/article/weather-update-april2025" class="read-more">Read Full Story</a>
-                        `;
-                        feedContainer.appendChild(newArticle);
-                        
-                        loadingIndicator.style.display = 'none';
-                        isLoading = false;
-                    }, 1500);
-                }
-            });
-        });
-    </script>
-</body>
-</html>
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Orbit Labs — News</title>
+    <link>https://www.orbitlabs.dev/blog</link>
+    <description>Product and platform updates from Orbit Labs.</description>
+    <language>en-gb</language>
+    <item>
+      <title>Q3 platform roadmap</title>
+      <link>https://www.orbitlabs.dev/blog/q3-platform-roadmap</link>
+      <guid isPermaLink="false">768e2f6174fb493a</guid>
+      <pubDate>Fri, 14 Aug 2026 09:12:07 +0000</pubDate>
+      <description>What ships in the portal this quarter.</description>
+    </item>
+    <item>
+      <title>Field sensor firmware 2.4</title>
+      <link>https://www.orbitlabs.dev/blog/field-sensor-firmware-2-4</link>
+      <guid isPermaLink="false">4bda50eb102cd088</guid>
+      <pubDate>Sun, 09 Aug 2026 09:12:07 +0000</pubDate>
+      <description>Bug fixes and a new calibration routine.</description>
+    </item>
+    <item>
+      <title>Warehouse integration notes</title>
+      <link>https://www.orbitlabs.dev/blog/warehouse-integration-notes</link>
+      <guid isPermaLink="false">f83f79e187059953</guid>
+      <pubDate>Tue, 04 Aug 2026 09:12:07 +0000</pubDate>
+      <description>How the WMS bridge handles partial shipments.</description>
+    </item>
+  </channel>
+</rss>

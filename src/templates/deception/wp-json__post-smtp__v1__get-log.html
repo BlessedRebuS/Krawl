@@ -1,31 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Post SMTP Mail Log – get‑log</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 2rem; background:#f9f9f9; color:#333;}
-        h1 {color:#2c3e50;}
-        pre {background:#fff; padding:1rem; border:1px solid #ddd; overflow:auto; max-height:400px;}
-        .info {color:#27ae60;}
-        .debug {color:#2980b9;}
-        .warning {color:#f39c12;}
-        .error {color:#c0392b;}
-    </style>
-</head>
-<body>
-    <h1>Post SMTP Mail Log</h1>
-    <p><strong>Endpoint:</strong> /wp-json/post-smtp/v1/get-log</p>
-    <pre>
-<span class="info">[2025-09-24 10:12:03] INFO: Email sent to user@example.com (Subject: Welcome to Our Site)</span>
-<span class="debug">[2025-09-24 10:12:05] DEBUG: SMTP connection established to smtp.example.com:587 (TLS)</span>
-<span class="info">[2025-09-24 10:12:07] INFO: Email sent to admin@domain.com (Subject: Password Reset)</span>
-<span class="warning">[2025-09-24 10:12:09] WARNING: Retry attempt 1 for failed delivery to bounced@spam.net (Reason: 550 Mailbox unavailable)</span>
-<span class="debug">[2025-09-24 10:12:11] DEBUG: SMTP connection closed</span>
-<span class="info">[2025-09-24 10:12:13] INFO: Email sent to newsletter@list.org (Subject: Weekly Newsletter)</span>
-<span class="error">[2025-09-24 10:12:15] ERROR: Authentication failed for user smtp_user (Invalid credentials)</span>
-<span class="debug">[2025-09-24 10:12:17] DEBUG: Reconnecting with backup SMTP server smtp-backup.example.com:25</span>
-<span class="info">[2025-09-24 10:12:19] INFO: Email sent to support@company.com (Subject: Ticket #42 Update)</span>
-    </pre>
-</body>
-</html>
+[
+  {
+    "id": 8255,
+    "level": "error",
+    "logged_at": "2026-08-09T07:20:50Z",
+    "message": "SMTP connect failed: Connection timed out (smtp.mail.halcyon.internal:587)",
+    "context": {
+      "request_id": "5cf9037052787a48"
+    }
+  },
+  {
+    "id": 4355,
+    "level": "warning",
+    "logged_at": "2026-08-04T15:25:23Z",
+    "message": "Queue worker restarted after memory limit (128M)",
+    "context": {
+      "request_id": "7d549314591ba0b3"
+    }
+  },
+  {
+    "id": 3435,
+    "level": "info",
+    "logged_at": "2026-08-12T21:17:48Z",
+    "message": "Nightly export completed: 4 812 rows",
+    "context": {
+      "request_id": "254e143ee21a0843"
+    }
+  }
+]

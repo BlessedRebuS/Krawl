@@ -1,0 +1,36 @@
+{
+  "version": 4,
+  "terraform_version": "1.9.5",
+  "serial": 558,
+  "lineage": "2d7a801a-182d-222f-4bda-f4f406b21318",
+  "outputs": {
+    "db_endpoint": {
+      "value": "pg-prod-01.db.volta.internal:5432",
+      "type": "string"
+    },
+    "bucket": {
+      "value": "volta-grid-prod-assets",
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "mode": "managed",
+      "type": "aws_db_instance",
+      "name": "primary",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "attributes": {
+            "identifier": "volta-grid-prod",
+            "engine": "postgres",
+            "engine_version": "16.3",
+            "instance_class": "db.m6g.large",
+            "username": "grid_rw",
+            "password": "fake-db-password-2c997ec6"
+          }
+        }
+      ]
+    }
+  ]
+}

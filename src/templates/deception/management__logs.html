@@ -1,91 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Management - Logs</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
-        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        .log-entry { border-left: 3px solid #3498db; padding-left: 15px; margin: 15px 0; }
-        .log-timestamp { color: #7f8c8d; font-size: 0.9em; }
-        .log-level { font-weight: bold; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; }
-        .log-level-info { background: #d4edda; color: #155724; }
-        .log-level-warn { background: #fff3cd; color: #856404; }
-        .log-level-error { background: #f8d7da; color: #721c24; }
-        .log-message { margin-top: 5px; }
-        .filter-section { margin: 20px 0; }
-        .filter-section label { margin-right: 10px; }
-        .filter-section select, .filter-section input { padding: 5px; margin: 0 5px; }
-        .refresh-btn { background: #3498db; color: white; border: none; padding: 8px 15px; cursor: pointer; border-radius: 4px; }
-        .refresh-btn:hover { background: #2980b9; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administration — Caretrack</title>
+<style>
+:root{--bg:#eef4f4;--panel:#fff;--ink:#16303a;--muted:#5f7c86;
+--line:#d3e2e4;--brand:#0f7a76;--brand-dk:#0a5b58;--r:10px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 "Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#fff;color:#0f7a76;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#0f7a76}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#5f7c86;font-size:13px}
+header.top nav a.active{color:#0f7a76;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(16,48,58,.06)}
+h1{font-family:inherit;font-size:22px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>System Management - Application Logs</h1>
-        <div class="filter-section">
-            <label for="level-filter">Log Level:</label>
-            <select id="level-filter">
-                <option value="all">All Levels</option>
-                <option value="info">Info</option>
-                <option value="warn">Warning</option>
-                <option value="error">Error</option>
-            </select>
-            <label for="time-filter">Time Range:</label>
-            <select id="time-filter">
-                <option value="last-hour">Last Hour</option>
-                <option value="last-24h" selected>Last 24 Hours</option>
-                <option value="last-7d">Last 7 Days</option>
-                <option value="custom">Custom Range</option>
-            </select>
-            <button class="refresh-btn" onclick="refreshLogs()">Refresh Logs</button>
-        </div>
-        
-        <div id="logs-container">
-            <div class="log-entry">
-                <span class="log-timestamp">2024-01-15 14:23:18</span>
-                <span class="log-level log-level-info">INFO</span>
-                <div class="log-message">User admin logged in from 192.168.1.100</div>
-            </div>
-            <div class="log-entry">
-                <span class="log-timestamp">2024-01-15 14:22:05</span>
-                <span class="log-level log-level-warn">WARN</span>
-                <div class="log-message">Failed login attempt for user 'admin' from 203.0.113.45</div>
-            </div>
-            <div class="log-entry">
-                <span class="log-timestamp">2024-01-15 14:20:33</span>
-                <span class="log-level log-level-error">ERROR</span>
-                <div class="log-message">Database connection timeout - retrying...</div>
-            </div>
-            <div class="log-entry">
-                <span class="log-timestamp">2024-01-15 14:19:45</span>
-                <span class="log-level log-level-info">INFO</span>
-                <div class="log-message">Backup job completed successfully</div>
-            </div>
-            <div class="log-entry">
-                <span class="log-timestamp">2024-01-15 14:18:22</span>
-                <span class="log-level log-level-warn">WARN</span>
-                <div class="log-message">High memory usage detected: 85%</div>
-            </div>
-        </div>
-        
-        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; color: #7f8c8d; font-size: 0.9em;">
-            Log retention: 30 days | Total entries: 1,247 | Last updated: 2024-01-15 14:23:18
-        </div>
-    </div>
-    
-    <script>
-        function refreshLogs() {
-            // Simulate async log refresh
-            setTimeout(() => {
-                alert('Logs refreshed successfully');
-            }, 500);
-        }
-        
-        // Auto-refresh every 30 seconds
-        setInterval(refreshLogs, 30000);
-    </script>
+<header class="top"><span class="brand">Caretrack</span><nav><a href="/today">Today</a><a href="/appointments">Appointments</a><a href="/patients">Patients</a><a href="/clinicians">Clinicians</a><a href="/admin">Admin</a></nav></header>
+
+<div class="wrap">
+  <h1>Administration</h1>
+  <p class="sub">Signed in as <strong>e.whitfield</strong> (clinical lead) &middot;
+  last sign-in 13/08/2026 14:12 from 10.24.8.41</p>
+  <div class="grid">
+    <div class="kpi"><div class="n">5</div><div class="l"><a href="/admin/users">Users</a></div></div>
+    <div class="kpi"><div class="n">10</div><div class="l"><a href="/admin/roles">Roles &amp; permissions</a></div></div>
+    <div class="kpi"><div class="n">4</div><div class="l"><a href="/admin/integrations">Integrations</a></div></div>
+    <div class="kpi"><div class="n">850</div><div class="l"><a href="/admin/audit">Audit entries (7d)</a></div></div>
+  </div>
+  <div class="panel" style="margin-top:18px">
+    <h2>Latest audit events</h2>
+    <table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Source</th></tr></thead>
+    <tbody><tr><td>14/08 08:30</td><td>e.whitfield</td><td>Updated SMTP integration credentials</td><td>10.24.8.41</td></tr><tr><td>14/08 06:12</td><td>k.oyelaran</td><td>Generated API token <code>tok_7ac913a6d1</code></td><td>10.24.9.16</td></tr><tr><td>14/08 00:12</td><td>system</td><td>Suspended account l.svensson (12 failed sign-ins)</td><td>&mdash;</td></tr><tr><td>13/08 09:12</td><td>t.ruane</td><td>Exported appointment report Q3-2026</td><td>10.24.8.77</td></tr></tbody></table>
+  </div>
+</div>
+
+<footer>Caretrack 9.4.0 &middot; &copy; 2026 Northbridge Health &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

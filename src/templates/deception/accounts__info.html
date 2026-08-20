@@ -1,65 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Account Information - MyApp</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f9; color:#333;}
-        header {background:#004080; color:#fff; padding:1rem; text-align:center;}
-        nav {background:#e2e8f0; padding:0.5rem; text-align:center;}
-        nav a {margin:0 1rem; text-decoration:none; color:#004080; font-weight:bold;}
-        nav a:hover {text-decoration:underline;}
-        main {max-width:800px; margin:2rem auto; padding:1rem; background:#fff; box-shadow:0 0 8px rgba(0,0,0,0.1);}
-        h1 {color:#004080;}
-        table {width:100%; border-collapse:collapse; margin-top:1rem;}
-        th, td {padding:0.75rem; border:1px solid #ddd; text-align:left;}
-        th {background:#f0f8ff;}
-        tr:nth-child(even) {background:#f9f9f9;}
-        .btn {display:inline-block; background:#004080; color:#fff; padding:0.5rem 1rem; border:none; cursor:pointer; text-decoration:none; margin-top:1rem;}
-        .btn:hover {background:#003060;}
-        footer {text-align:center; padding:1rem; font-size:0.9rem; color:#666; margin-top:2rem;}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accounts Info — Orbit Labs</title>
+<style>
+:root{--bg:#0f1117;--panel:#171a21;--ink:#e6e8ee;--muted:#8b90a0;
+--line:#262a34;--brand:#7c6cf5;--brand-dk:#6354e0;--r:8px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#0f1117;color:#e6e8ee;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#e6e8ee}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#8b90a0;font-size:13px}
+header.top nav a.active{color:#e6e8ee;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:0 0 0 1px rgba(255,255,255,.03)}
+h1{font-family:inherit;font-size:19px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-<header>
-    <h1>MyApp - Account Information</h1>
-</header>
-<nav>
-    <a href="/">Home</a>
-    <a href="/dashboard/">Dashboard</a>
-    <a href="/accounts/settings/">Settings</a>
-    <a href="/accounts/logout/">Logout</a>
-</header>
-<main>
-    <h2>Welcome, <em>john_doe</em>!</h2>
-    <p>Below are your current account details. You can update your information using the form at the bottom.</p>
-    <table>
-        <tr><th>Field</th><th>Value</th></tr>
-        <tr><td>Username</td><td>john_doe</td></tr>
-        <tr><td>Email</td><td>john.doe@example.com</td></tr>
-        <tr><td>Full Name</td><td>John Doe</td></tr>
-        <tr><td>Phone Number</td><td>+1-555-123-4567</td></tr>
-        <tr><td>Account Status</td><td>Active</td></tr>
-        <tr><td>Last Login</td><td>2025-09-24 08:14:22 UTC</td></tr>
-        <tr><td>Created At</td><td>2023-04-15 12:03:07 UTC</td></tr>
-    </table>
+<header class="top"><span class="brand">Orbit Cloud</span><nav><a href="/projects">Projects</a><a href="/deployments">Deployments</a><a href="/builds">Builds</a><a href="/registry">Registry</a><a href="/team">Team</a></nav></header>
 
-    <h3>Update Profile</h3>
-    <form action="/accounts/info/update/" method="post">
-        <label for="email">Email:</label><br>
-        <input type="email" id="email" name="email" value="john.doe@example.com" required><br><br>
-        <label for="fullname">Full Name:</label><br>
-        <input type="text" id="fullname" name="fullname" value="John Doe" required><br><br>
-        <label for="phone">Phone:</label><br>
-        <input type="tel" id="phone" name="phone" value="+1-555-123-4567"><br><br>
-        <input type="submit" value="Save Changes" class="btn">
-    </form>
+<div class="wrap">
+  <div class="breadcrumb"><a href="/">Home</a> / Accounts Info</div>
+  <h1>Accounts Info</h1>
+  <p class="sub">Orbit Labs &middot; container hosting and build pipelines</p>
+  <div class="panel">
+    <p>Orbit Labs hosts containers and build pipelines for 1 800 engineering teams. This section of the site is maintained by the
+    operations team; content was last reviewed on 07 August 2026.</p>
+    <p>If you reached this page from an internal link that no longer works, please raise a
+    ticket with the <a href="/support">IT service desk</a> quoting reference
+    <code>WEB-6517</code>.</p>
+  </div>
+  <div class="panel">
+    <h2>Related</h2>
+    <p><a href="/product">Product</a> &middot; <a href="/pricing">Pricing</a> &middot; <a href="/docs">Docs</a> &middot; <a href="/changelog">Changelog</a> &middot; <a href="/contact-us">Contact</a></p>
+  </div>
+</div>
 
-    <p><em>Note: For demonstration purposes, this page reflects sample data only.</em></p>
-</main>
-<footer>
-    © 2025 MyApp. All rights reserved.
-</footer>
+<footer><a href="/docs">Docs</a> &middot; <a href="/status">Status</a> &middot; <a href="/support">Support</a> &middot; Orbit Labs</footer>
 </body>
 </html>

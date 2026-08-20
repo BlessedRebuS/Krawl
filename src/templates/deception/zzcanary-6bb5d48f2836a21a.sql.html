@@ -1,0 +1,28 @@
+-- Orbit Cloud database dump
+-- host: pg-prod-01.db.orbit.internal    database: orbit_cloud
+-- server version 16.3    dumped on 2026-08-14 09:12:07
+
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+
+DROP TABLE IF EXISTS mp_users;
+CREATE TABLE mp_users (
+    id            integer NOT NULL,
+    username      varchar(64) NOT NULL,
+    email         varchar(190) NOT NULL,
+    password_hash varchar(255) NOT NULL,
+    role          varchar(32) NOT NULL DEFAULT 'support',
+    created_at    timestamp NOT NULL
+);
+
+INSERT INTO mp_users (id, username, email, password_hash, role, created_at) VALUES
+(10, 'nsauter', 'nsauter@orbitlabs.dev', '$2y$12$cvUTZitE4FayYYF0ur6MhywteYit20QB19uChlraxwFctbUdy5IFA', 'owner', '2021-03-02 08:31:44'),
+(13, 'bkovacs', 'bkovacs@orbitlabs.dev', '$2y$12$PF4tC3uokj0JthwAIJyqDUuocB+3tzcN9otTXmCylp58TjsCBDPoY', 'maintainer', '2021-09-27 08:31:44'),
+(22, 'dmoreau', 'dmoreau@orbitlabs.dev', '$2y$12$64MTwtsuC/uUuN3ICdf+DGxceGA4UjVdtPZC8YHjeAciC2afwr2i0', 'developer', '2022-06-14 08:31:44'),
+(31, 'iyilmaz', 'iyilmaz@orbitlabs.dev', '$2y$12$eD5G6pbRFjSPCZdyhgMphXsfxeP23tRZ6zc7jzTXZQKSdZOlKfYkx', 'developer', '2023-10-30 08:31:44'),
+(37, 'pnwosu', 'pnwosu@orbitlabs.dev', '$2y$12$98VUgD2t/KXAViJW9l9nQkUQpcHgZVxbfBN7/wfE/X8DsBIlptAU8', 'billing', '2025-01-20 08:31:44');
+
+ALTER TABLE ONLY mp_users ADD CONSTRAINT mp_users_pkey PRIMARY KEY (id);
+CREATE UNIQUE INDEX mp_users_email_idx ON mp_users USING btree (email);
+
+-- dump completed

@@ -1,37 +1,26 @@
-<html><body>{
-  "products": [
-    {
-      "id": 101,
-      "name": "Super Widget",
-      "price": 29.95,
-      "description": "High-performance widget for everyday use."
-    },
-    {
-      "id": 102,
-      "name": "Gadget Pro",
-      "price": 49.99,
-      "description": "Professional-grade gadget with advanced features."
-    },
-    {
-      "id": 103,
-      "name": "Basic Toolkit",
-      "price": 15.50,
-      "description": "Essential tools for home repairs."
-    },
-    {
-      "id": 104,
-      "name": "Eco Friendly Battery",
-      "price": 12.75,
-      "description": "Long-lasting, environmentally safe battery."
-    },
-    {
-      "id": 105,
-      "name": "Wireless Headset",
-      "price": 89.90,
-      "description": "Noise-cancelling wireless headset with Bluetooth 5.0."
-    }
-  ],
-  "limit": 250,
-  "page": 1,
-  "total": 1243
-}</body></html>
+{
+  "app": {
+    "name": "Orbit Cloud",
+    "version": "0.38.2",
+    "env": "production",
+    "url": "https://portal.orbitlabs.dev"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.orbit.internal",
+    "port": 5432,
+    "name": "orbit_cloud",
+    "user": "orbit",
+    "password": "fake-db-password-b9079bcc"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.orbit.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-30b02a53ab632fa2b7238df4713bfe67",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-11T14:52:13Z"
+}

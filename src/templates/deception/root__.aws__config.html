@@ -1,0 +1,16 @@
+[default]
+region = eu-west-1
+output = json
+cli_pager =
+
+[profile deploy]
+region = eu-west-1
+output = json
+role_arn = arn:aws:iam::405512874390:role/orbit-cloud-deploy
+source_profile = default
+
+[profile backup-readonly]
+region = eu-central-1
+output = table
+role_arn = arn:aws:iam::405512874390:role/orbit-backup-ro
+source_profile = default

@@ -1,23 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>application-production.properties</title>
-    <style>body{font-family:monospace;}</style>
-</head>
-<body>
-<h1>application-production.properties</h1>
-<pre>
-# Spring Boot production configuration
+# Orbit Cloud — Spring Boot configuration
+spring.application.name=orbit-cloud
 server.port=8080
-spring.datasource.url=jdbc:mysql://db-prod.example.com:3306/proddb
-spring.datasource.username=prod_user
-spring.datasource.password=SuperSecretPassword123!
-spring.jpa.hibernate.ddl-auto=update
-spring.mail.host=smtp.example.com
+server.servlet.context-path=/
+
+spring.datasource.url=jdbc:postgresql://pg-prod-01.db.orbit.internal:5432/orbit_cloud
+spring.datasource.username=orbit
+spring.datasource.password=fake-db-password-c27f6166
+spring.datasource.hikari.maximum-pool-size=32
+
+spring.data.redis.host=redis-prod-01.cache.orbit.internal
+spring.data.redis.port=6379
+spring.data.redis.password=fake-redis-password-be9c27
+
+spring.mail.host=smtp.mail.orbit.internal
 spring.mail.port=587
-spring.mail.username=no-reply@example.com
-spring.mail.password=mailpass!@#
-</pre>
-</body>
-</html>
+spring.mail.username=no-reply@orbitlabs.dev
+spring.mail.password=fake-smtp-password-7e279649
+
+management.endpoints.web.exposure.include=health,info,metrics
+management.endpoint.health.show-details=when-authorized
+
+meridian.jwt.secret=fake-jwt-secret-a2007d1670540205ce086e9f28c931a6
+meridian.jwt.ttl-minutes=1440
+logging.level.root=WARN

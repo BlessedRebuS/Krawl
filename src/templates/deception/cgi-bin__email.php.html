@@ -1,35 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Email Sender - Internal Tool</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9;}
-        h2 {color:#333;}
-        form {background:#fff; padding:20px; border:1px solid #ddd; border-radius:5px; max-width:500px;}
-        label {display:block; margin-top:10px;}
-        input[type=email], input[type=text], textarea {width:100%; padding:8px; margin-top:5px; box-sizing:border-box;}
-        input[type=submit] {margin-top:15px; padding:10px 20px; background:#0066cc; color:#fff; border:none; cursor:pointer;}
-        input[type=submit]:hover {background:#004c99;}
-        .note {font-size:0.9em; color:#555; margin-top:20px;}
-    </style>
-</head>
-<body>
-    <h2>Internal Email Sender</h2>
-    <p>Use this tool to send notifications to team members.</p>
-    <form method="post" action="email.php">
-        <label for="to">To:</label>
-        <input type="email" id="to" name="to" required placeholder="user@example.com"><br>
-        <label for="subject">Subject:</label>
-        <input type="text" id="subject" name="subject" required placeholder="Meeting Reminder"><br>
-        <label for="message">Message:</label>
-        <textarea id="message" name="message" rows="5" required placeholder="Please attend the meeting at 10 AM."></textarea><br>
-        <input type="submit" value="Send Email">
-    </form>
-    <div class="note">
-        <strong>Note:</strong> All emails are logged internally for audit purposes.
-    </div>
-    <hr>
-    <p><small>© 2025 CorpIT Services – Internal Use Only</small></p>
-</body>
-</html>
+<?php
+/**
+ * Grid Console — database & service configuration
+ *
+ * @package  VoltaGrid
+ * @version  2.11.6
+ */
+
+defined('MERIDIAN_ROOT') or define('MERIDIAN_ROOT', dirname(__DIR__));
+
+$config = [
+    'app' => [
+        'name'      => 'Grid Console',
+        'env'       => 'production',
+        'debug'     => false,
+        'url'       => 'https://portal.voltaenergia.es',
+        'key'       => 'base64:vG2KZJPT0vCB1eXzaZ26MEAzKa4AR4W6UsV5n+0Vm8b=',
+    ],
+
+    'db' => [
+        'driver'    => 'pgsql',
+        'host'      => 'pg-prod-01.db.volta.internal',
+        'port'      => 5432,
+        'database'  => 'volta_grid',
+        'username'  => 'grid_rw',
+        'password'  => 'fake-db-password-bfe6aa9f',
+        'charset'   => 'utf8',
+        'prefix'    => 'mp_',
+    ],
+
+    'redis' => [
+        'host'      => 'redis-prod-01.cache.volta.internal',
+        'port'      => 6379,
+        'password'  => 'fake-redis-password-fb3d3e',
+    ],
+
+    'mail' => [
+        'host'      => 'smtp.mail.volta.internal',
+        'port'      => 587,
+        'username'  => 'no-reply@voltaenergia.es',
+        'password'  => 'fake-smtp-password-b744086d',
+        'encryption'=> 'tls',
+    ],
+];
+
+/* Legacy globals — still read by the reporting cron, remove after MP-2841. */
+$db_host = $config['db']['host'];
+$db_user = $config['db']['username'];
+$db_pass = $config['db']['password'];
+$db_name = $config['db']['database'];
+
+define('AUTH_SALT', 'usx57AXuHw3uroOBWrepH4VHu46FvQqd');
+define('SECURE_AUTH_KEY', 'jsXR2dTZuQAIOM08DvG9W+ZXwEADhbMV');
+
+return $config;

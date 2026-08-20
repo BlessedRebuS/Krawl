@@ -1,37 +1,23 @@
-<html><body>{
-  "mcp": {
-    "version": "0.1.0",
-    "server": {
-      "name": "cursor-internal-mcp",
-      "description": "Internal Model Context Protocol service for Cursor IDE integration",
-      "endpoints": [
-        {
-          "path": "/mcp/context",
-          "method": "POST",
-          "description": "Receive contextual prompts from editor",
-          "auth": "bearer"
-        },
-        {
-          "path": "/mcp/tools",
-          "method": "GET",
-          "description": "List available agent tools",
-          "auth": "none"
-        }
+{
+  "mcpServers": {
+    "internal-docs": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@meridian/docs-mcp"
       ],
-      "capabilities": [
-        "code-generation",
-        "debug-assist",
-        "refactor-suggestions",
-        "test-generation"
+      "env": {
+        "DOCS_TOKEN": "fake-token-e474c7b4dca665ed456ee400"
+      }
+    },
+    "postgres": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-postgres"
       ],
-      "security": {
-        "rateLimit": "100/hour",
-        "cors": ["https://*.cursor.sh", "http://localhost:*"],
-        "headers": {
-          "X-MCP-Version": "0.1.0",
-          "X-Internal-Use-Only": "true"
-        }
+      "env": {
+        "DATABASE_URL": "postgresql://tmsuser:fake-password@pg-prod-01.db.kestrel.internal:5432/kestrel_tms"
       }
     }
   }
-}</body></html>
+}

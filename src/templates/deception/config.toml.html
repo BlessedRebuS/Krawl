@@ -1,0 +1,25 @@
+# Halcyon Commerce service configuration
+
+[app]
+name = "Halcyon Commerce"
+env = "production"
+url = "https://portal.halcyonretail.co.uk"
+version = "6.0.3"
+
+[database]
+url = "postgresql://hc_web:fake-db-password-fea6e9a0@pg-prod-01.db.halcyon.internal:5432/halcyon_commerce"
+pool_size = 32
+statement_timeout_ms = 15000
+
+[redis]
+url = "redis://:fake-redis-password-e02099@redis-prod-01.cache.halcyon.internal:6379/0"
+
+[auth]
+jwt_secret = "fake-jwt-secret-59236211846aef9a76c98c0cf9de6080"
+token_ttl_minutes = 1440
+
+[storage]
+bucket = "halcyon-commerce-prod-assets"
+region = "eu-west-1"
+access_key_id = "AKIA-FAKE-0F0D5"
+secret_access_key = "fake-secret-hNAfVdCjEN8RdD6+9Q7szbPa"

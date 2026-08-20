@@ -1,182 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Snippets Explorer - DevHub</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; color: #333; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        header { background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; }
-        header h1 { margin: 0; font-size: 2.2rem; }
-        header p { margin: 10px 0 0; opacity: 0.9; }
-        .search-box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 30px; }
-        .search-box input { width: 70%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; }
-        .search-box button { padding: 12px 25px; background: #2a5298; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; margin-left: 10px; }
-        .search-box button:hover { background: #1e3c72; }
-        .snippets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .snippet-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); transition: transform 0.2s; }
-        .snippet-card:hover { transform: translateY(-5px); }
-        .snippet-card h3 { color: #2a5298; margin-top: 0; }
-        .snippet-card .tags { margin: 15px 0; }
-        .snippet-card .tags span { display: inline-block; background: #e3f2fd; color: #1976d2; padding: 3px 8px; border-radius: 12px; font-size: 0.85rem; margin-right: 8px; }
-        .snippet-card pre { background: #f8f9fa; padding: 12px; border-radius: 5px; overflow-x: auto; font-size: 0.9rem; }
-        .snippet-card .actions { margin-top: 15px; display: flex; gap: 10px; }
-        .snippet-card button { flex: 1; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
-        .snippet-card .copy { background: #28a745; color: white; }
-        .snippet-card .like { background: #ffc107; color: #212529; }
-        .snippet-card .share { background: #dc3545; color: white; }
-        footer { text-align: center; padding: 30px; color: #666; font-size: 0.9rem; margin-top: 40px; border-top: 1px solid #eee; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explore Snippets — Northbridge Health</title>
+<style>
+:root{--bg:#eef4f4;--panel:#fff;--ink:#16303a;--muted:#5f7c86;
+--line:#d3e2e4;--brand:#0f7a76;--brand-dk:#0a5b58;--r:10px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 "Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#fff;color:#0f7a76;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#0f7a76}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#5f7c86;font-size:13px}
+header.top nav a.active{color:#0f7a76;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(16,48,58,.06)}
+h1{font-family:inherit;font-size:22px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-code"></i> Code Snippets Explorer</h1>
-            <p>Browse, search, and share useful code snippets for developers</p>
-        </header>
+<header class="top"><span class="brand">Caretrack</span><nav><a href="/today">Today</a><a href="/appointments">Appointments</a><a href="/patients">Patients</a><a href="/clinicians">Clinicians</a><a href="/admin">Admin</a></nav></header>
 
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Search snippets by language, tag, or keyword...">
-            <button onclick="searchSnippets()"><i class="fas fa-search"></i> Search</button>
-        </div>
+<div class="wrap">
+  <div class="breadcrumb"><a href="/">Home</a> / Explore Snippets</div>
+  <h1>Explore Snippets</h1>
+  <p class="sub">Northbridge Health &middot; clinical scheduling and patient records</p>
+  <div class="panel">
+    <p>Northbridge Health supports 9 sites and 340 clinicians with scheduling, referral triage and reporting. This section of the site is maintained by the
+    operations team; content was last reviewed on 18 June 2026.</p>
+    <p>If you reached this page from an internal link that no longer works, please raise a
+    ticket with the <a href="/support">IT service desk</a> quoting reference
+    <code>WEB-5991</code>.</p>
+  </div>
+  <div class="panel">
+    <h2>Related</h2>
+    <p><a href="/services">Services</a> &middot; <a href="/clinicians">For clinicians</a> &middot; <a href="/patients">Patient information</a> &middot; <a href="/about-us">About us</a> &middot; <a href="/contact-us">Contact</a></p>
+  </div>
+</div>
 
-        <div class="snippets-grid" id="snippetsContainer">
-            <div class="snippet-card">
-                <h3>PHP MySQL Connection</h3>
-                <p class="tags"><span>php</span><span>mysql</span><span>database</span></p>
-                <pre>&lt;?php
-$host = 'localhost';
-$db   = 'test_db';
-$user = 'root';
-$pass = '';
-$charset = 'utf8mb4';
-
-$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-$options = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES   => false,
-];
-
-try {
-     $pdo = new PDO($dsn, $user, $pass, $options);
-} catch (\PDOException $e) {
-     throw new \PDOException($e->getMessage(), (int)$e->getCode());
-}
-?&gt;</pre>
-                <div class="actions">
-                    <button class="copy" onclick="copyToClipboard(this.parentElement.parentElement.querySelector('pre').textContent)"><i class="fas fa-copy"></i> Copy</button>
-                    <button class="like"><i class="fas fa-heart"></i> 124</button>
-                    <button class="share"><i class="fas fa-share"></i> Share</button>
-                </div>
-            </div>
-
-            <div class="snippet-card">
-                <h3>JavaScript XSS Payload (for testing)</h3>
-                <p class="tags"><span>javascript</span><span>xss</span><span>security</span></p>
-                <pre>&lt;img src=x onerror=alert('XSS')&gt;</pre>
-                <div class="actions">
-                    <button class="copy" onclick="copyToClipboard(this.parentElement.parentElement.querySelector('pre').textContent)"><i class="fas fa-copy"></i> Copy</button>
-                    <button class="like"><i class="fas fa-heart"></i> 87</button>
-                    <button class="share"><i class="fas fa-share"></i> Share</button>
-                </div>
-            </div>
-
-            <div class="snippet-card">
-                <h3>SQL Injection Example</h3>
-                <p class="tags"><span>sql</span><span>injection</span><span>vulnerability</span></p>
-                <pre>SELECT * FROM users WHERE username = '$username' AND password = '$password'</pre>
-                <div class="actions">
-                    <button class="copy" onclick="copyToClipboard(this.parentElement.parentElement.querySelector('pre').textContent)"><i class="fas fa-copy"></i> Copy</button>
-                    <button class="like"><i class="fas fa-heart"></i> 63</button>
-                    <button class="share"><i class="fas fa-share"></i> Share</button>
-                </div>
-            </div>
-
-            <div class="snippet-card">
-                <h3>Python Flask Route</h3>
-                <p class="tags"><span>python</span><span>flask</span><span>web</span></p>
-                <pre>@app.route('/user/&lt;username&gt;')
-def show_user_profile(username):
-    # Vulnerable to path traversal if not validated
-    return f'User {username}'
-</pre>
-                <div class="actions">
-                    <button class="copy" onclick="copyToClipboard(this.parentElement.parentElement.querySelector('pre').textContent)"><i class="fas fa-copy"></i> Copy</button>
-                    <button class="like"><i class="fas fa-heart"></i> 156</button>
-                    <button class="share"><i class="fas fa-share"></i> Share</button>
-                </div>
-            </div>
-
-            <div class="snippet-card">
-                <h3>HTML Form with Potential SQLi</h3>
-                <p class="tags"><span>html</span><span>form</span><span>security</span></p>
-                <pre>&lt;form action="/login" method="POST"&gt;
-    &lt;input type="text" name="username" placeholder="Username"&gt;
-    &lt;input type="password" name="password" placeholder="Password"&gt;
-    &lt;button type="submit"&gt;Login&lt;/button&gt;
-&lt;/form&gt;</pre>
-                <div class="actions">
-                    <button class="copy" onclick="copyToClipboard(this.parentElement.parentElement.querySelector('pre').textContent)"><i class="fas fa-copy"></i> Copy</button>
-                    <button class="like"><i class="fas fa-heart"></i> 42</button>
-                    <button class="share"><i class="fas fa-share"></i> Share</button>
-                </div>
-            </div>
-
-            <div class="snippet-card">
-                <h3>Java Servlet DoGet Method</h3>
-                <p class="tags"><span>java</span><span>servlet</span><span>http</span></p>
-                <pre>@Override
-protected void doGet(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-    String userInput = request.getParameter("input");  // Direct use without validation
-    response.getWriter().write("You entered: " + userInput);
-}</pre>
-                <div class="actions">
-                    <button class="copy" onclick="copyToClipboard(this.parentElement.parentElement.querySelector('pre').textContent)"><i class="fas fa-copy"></i> Copy</button>
-                    <button class="like"><i class="fas fa-heart"></i> 31</button>
-                    <button class="share"><i class="fas fa-share"></i> Share</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <footer>
-        <p>&copy; 2024 DevHub Code Snippets. All snippets are for educational purposes only.</p>
-        <p>Total snippets: 1,247 | Active users: 8,932</p>
-    </footer>
-
-    <script>
-        function searchSnippets() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const cards = document.querySelectorAll('.snippet-card');
-            
-            cards.forEach(card => {
-                const text = card.textContent.toLowerCase();
-                if (text.includes(query) || query === '') {
-                    card.style.display = '';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        }
-
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Copied to clipboard!');
-            }).catch(err => {
-                alert('Failed to copy: ' + err);
-            });
-        }
-
-        // Allow Enter key to trigger search
-        document.getElementById('searchInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchSnippets();
-            }
-        });
-    </script>
+<footer>Caretrack 9.4.0 &middot; &copy; 2026 Northbridge Health &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

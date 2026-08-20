@@ -1,0 +1,55 @@
+<?php
+/**
+ * Orbit Cloud — database & service configuration
+ *
+ * @package  Orbit
+ * @version  0.38.2
+ */
+
+defined('MERIDIAN_ROOT') or define('MERIDIAN_ROOT', dirname(__DIR__));
+
+$config = [
+    'app' => [
+        'name'      => 'Orbit Cloud',
+        'env'       => 'production',
+        'debug'     => false,
+        'url'       => 'https://portal.orbitlabs.dev',
+        'key'       => 'base64:Hz8Cv6gEyarFzjiGHxzB9g2zNwJmN0kM4MUGoQDPmhw=',
+    ],
+
+    'db' => [
+        'driver'    => 'pgsql',
+        'host'      => 'pg-prod-01.db.orbit.internal',
+        'port'      => 5432,
+        'database'  => 'orbit_cloud',
+        'username'  => 'orbit',
+        'password'  => 'fake-db-password-a24621ed',
+        'charset'   => 'utf8',
+        'prefix'    => 'mp_',
+    ],
+
+    'redis' => [
+        'host'      => 'redis-prod-01.cache.orbit.internal',
+        'port'      => 6379,
+        'password'  => 'fake-redis-password-b3a44c',
+    ],
+
+    'mail' => [
+        'host'      => 'smtp.mail.orbit.internal',
+        'port'      => 587,
+        'username'  => 'no-reply@orbitlabs.dev',
+        'password'  => 'fake-smtp-password-b509067a',
+        'encryption'=> 'tls',
+    ],
+];
+
+/* Legacy globals — still read by the reporting cron, remove after MP-2841. */
+$db_host = $config['db']['host'];
+$db_user = $config['db']['username'];
+$db_pass = $config['db']['password'];
+$db_name = $config['db']['database'];
+
+define('AUTH_SALT', '+I+MOEE3rNvb9sCvz9c4WVJLHqWWB37C');
+define('SECURE_AUTH_KEY', 'xkJseCR7d83L2RTCPzJGRJXO4EWHVtoI');
+
+return $config;

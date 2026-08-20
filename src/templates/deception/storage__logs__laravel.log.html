@@ -1,26 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Laravel Log - storage/logs/laravel.log</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; color:#111; padding:20px;}
-        pre {background:#fff; padding:10px; border:1px solid #ddd; overflow:auto;}
-    </style>
-</head>
-<body>
-<h1>Laravel Application Log</h1>
-<p>Path: /storage/logs/laravel.log</p>
-<pre>
-[2025-09-25 08:12:03] local.INFO: Application startup completed. {"env":"local","debug":true,"app_url":"http://localhost"}
-[2025-09-25 08:12:07] local.DEBUG: Route matched: GET /api/users {"route":"api.users","action":"App\\Http\\Controllers\\Api\\UserController@index"}
-[2025-09-25 08:12:10] local.WARNING: Mass assignment for model App\\User ["email"] 
-[2025-09-25 08:12:15] local.ERROR: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'laravel.failed_jobs' doesn't exist {"exception":"[object] (Illuminate\\Database\\QueryException(code: 42S02): SQLSTATE[42S02]: Base table or view not found: 1146 Table 'laravel.failed_jobs' doesn't exist at /var/www/html/vendor/laravel/framework/src/Illuminate/Database/Connection.php:692)"}
-[2025-09-25 08:12:20] local.INFO: Queued job processed: App\\Jobs\\SendWelcomeEmail {"job":"Illuminate\\Queue\\CallQueuedHandler@call","attempts":1}
-[2025-09-25 08:12:25] local.NOTICE: Cache store [file] set on key: laravel_cache_resolver_12345
-[2025-09-25 08:12:30] local.DEBUG: Incoming request: POST /login {"ip":"192.168.1.42","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-[2025-09-25 08:12:35] local.ERROR: Attempted to call method "getAuthIdentifier" on null. {"exception":"[object] (BadMethodCallException(code: 0): Attempted to call method \"getAuthIdentifier\" on null at /var/www/html/app/Http/Controllers/Auth/LoginController.php:78)"}
-[2025-09-25 08:12:40] local.INFO: Queue worker stopping due to SIGTERM.
-</pre>
-</body>
-</html>
+[2026-08-14 01:52:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"926ef9b5aa1edf71"}
+[2026-08-14 00:33:07] production.ERROR: SMTP connect() failed on smtp.mail.meridian.internal:587 {"request_id":"93c8a7b70ee22ec7"}
+[2026-08-13 03:32:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.meridian.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"70762fd976800a60"}
+[2026-08-12 00:35:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=35 user_id=12 {"request_id":"a99d4b7f55a815d2"}
+[2026-08-12 13:39:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"72abc3313adfd639"}
+[2026-08-13 15:48:07] production.ERROR: SMTP connect() failed on smtp.mail.meridian.internal:587 {"request_id":"9543212454a45de6"}
+[2026-08-12 00:21:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=168 user_id=23 {"request_id":"ca77eab760133309"}
+[2026-08-12 16:50:07] production.ERROR: SMTP connect() failed on smtp.mail.meridian.internal:587 {"request_id":"716c57d61733a4bf"}
+[2026-08-13 18:40:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.meridian.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"f2a7e57da2d6dea8"}
+[2026-08-12 21:48:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"2d8e3e200057a5be"}
+[2026-08-12 14:12:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"053138d587535b3a"}
+[2026-08-13 00:54:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"36481d3401d10199"}
+[2026-08-13 20:35:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.meridian.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"bf6eab80f6754de6"}
+[2026-08-12 18:08:07] production.ERROR: SMTP connect() failed on smtp.mail.meridian.internal:587 {"request_id":"aa2c5c0644a598ae"}
+[2026-08-13 06:00:07] production.INFO: scheduled task inventory:sync finished, 4739 rows {"request_id":"3ccbeb6c081d8674"}
+[2026-08-13 11:53:07] production.ERROR: SMTP connect() failed on smtp.mail.meridian.internal:587 {"request_id":"d3a618256e7d933b"}

@@ -1,43 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Post SMTP v2 Log</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 2rem; line-height: 1.5;}
-        h1 {color: #2c3e50;}
-        pre {background: #f8f9fa; padding: 1rem; border: 1px solid #ddd; overflow-x: auto;}
-    </style>
-</head>
-<body>
-    <h1>Post SMTP v2 Log</h1>
-    <p>Recent log entries from the Post SMTP plugin:</p>
-    <pre>[
+[
   {
-    "id": 101,
-    "timestamp": "2025-11-02T14:23:11Z",
-    "status": "success",
-    "recipient": "alice@example.org",
-    "subject": "Your order #98765 is confirmed",
-    "message_id": "<20251102142311.98765@example.org>"
+    "id": 1902,
+    "level": "error",
+    "logged_at": "2026-08-11T00:16:00Z",
+    "message": "SMTP connect failed: Connection timed out (smtp.mail.halcyon.internal:587)",
+    "context": {
+      "request_id": "f69d4e168fc47960"
+    }
   },
   {
-    "id": 102,
-    "timestamp": "2025-11-02T14:24:05Z",
-    "status": "failed",
-    "recipient": "bob@test.net",
-    "subject": "Password reset request",
-    "error": "SMTP error: 535 5.7.8 Username and Password not accepted"
+    "id": 9664,
+    "level": "warning",
+    "logged_at": "2026-08-10T02:58:44Z",
+    "message": "Queue worker restarted after memory limit (128M)",
+    "context": {
+      "request_id": "b60c9cc363b85cce"
+    }
   },
   {
-    "id": 103,
-    "timestamp": "2025-11-02T14:25:12Z",
-    "status": "success",
-    "recipient": "carol@domain.com",
-    "subject": "Newsletter: November updates",
-    "message_id": "<20251102142512.newsletter@domain.com>"
+    "id": 9660,
+    "level": "info",
+    "logged_at": "2026-08-08T08:22:39Z",
+    "message": "Nightly export completed: 4 812 rows",
+    "context": {
+      "request_id": "fd7f494b01c34b4e"
+    }
   }
-]</pre>
-    <p>Endpoint: <code>/wp-json/post-smtp/v2/log</code> (simulated)</p>
-</body>
-</html>
+]

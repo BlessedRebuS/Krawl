@@ -1,53 +1,36 @@
-<html><body>// assets/index.js
-(function() {
-    var config = {
-        apiEndpoint: '/api/v1/products',
-        token: 'a1b2c3d4e5f6g7h8i9j0',
-        debug: true,
-        version: '2.3.1'
-    };
+/*! Meridian Portal 4.2.1 | build aadeadb | (c) Meridian Systems */
+(function (window) {
+  'use strict';
 
-    function fetchProducts() {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', config.apiEndpoint + '?limit=100', true);
-        xhr.setRequestHeader('Authorization', 'Bearer ' + config.token);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
-                    try {
-                        var resp = JSON.parse(xhr.responseText);
-                        renderProducts(resp.items);
-                    } catch (e) {
-                        if (config.debug) console.error('JSON parse error:', e);
-                    }
-                } else {
-                    if (config.debug) console.warn('Request failed with status:', xhr.status);
-                }
-            }
-        };
-        xhr.send();
-    }
+  var config = {
+    apiBase: 'https://api.meridiansys.io/v2',
+    wsBase: 'wss://api.meridiansys.io/socket',
+    sentryDsn: 'https://fakeeb2bad5b1c5c78a7@sentry.internal/14',
+    release: 'meridian-portal@4.2.1',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
 
-    function renderProducts(items) {
-        var container = document.getElementById('product-list');
-        if (!container) return;
-        container.innerHTML = '';
-        items.forEach(function(item) {
-            var div = document.createElement('div');
-            div.className = 'product-item';
-            div.innerHTML = '<h3>' + item.name + '</h3><p>Price: $' + item.price + '</p>';
-            container.appendChild(div);
-        });
-    }
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
+  }
 
-    // Expose for debugging
-    window._productConfig = config;
-    window.fetchProducts = fetchProducts;
-
-    // Auto-initialize if DOM ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', fetchProducts);
-    } else {
-        fetchProducts();
-    }
-})();</body></html>
+  window.Meridian = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

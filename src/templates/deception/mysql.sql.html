@@ -1,60 +1,28 @@
-<html><body>-- phpMyAdmin SQL Dump
--- version 5.1.0
--- https://www.phpmyadmin.net/
---
--- Host: localhost
--- Generation Time: Sep 26, 2025 at 03:15 PM
--- Server version: 5.7.33
--- PHP Version: 7.4.3
+-- Caretrack database dump
+-- host: pg-prod-01.db.nbh.internal    database: caretrack
+-- server version 16.3    dumped on 2026-08-14 09:12:07
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
+DROP TABLE IF EXISTS mp_users;
+CREATE TABLE mp_users (
+    id            integer NOT NULL,
+    username      varchar(64) NOT NULL,
+    email         varchar(190) NOT NULL,
+    password_hash varchar(255) NOT NULL,
+    role          varchar(32) NOT NULL DEFAULT 'support',
+    created_at    timestamp NOT NULL
+);
 
---
--- Database: `company`
---
+INSERT INTO mp_users (id, username, email, password_hash, role, created_at) VALUES
+(3, 'e.whitfield', 'e.whitfield@northbridge-health.org', '$2y$12$qKvVVXUNNoIcDEVFMRZtU3jjgtcVlpfj5oBOnm3vz0jDPFLQzqn/Q', 'clinical_lead', '2017-09-04 08:31:44'),
+(9, 'p.adeyemi', 'p.adeyemi@northbridge-health.org', '$2y$12$8aPBWs3+wKW0nljUJaQ/nO5sDRFTEHPd5W63KWTS3uO90pg3esuhs', 'scheduler', '2019-11-18 08:31:44'),
+(14, 't.ruane', 't.ruane@northbridge-health.org', '$2y$12$Kojxpo7yHIJ3livBekZL4M9FOmpe98h3WQ2xOvgfJ/QY1/xelxUw2', 'administrator', '2020-02-06 08:31:44'),
+(21, 'l.svensson', 'l.svensson@northbridge-health.org', '$2y$12$yZzs21F/gYAW1AXWziIE11mpK76djr/KoKl7wlpP9lYPK+eeXBWQu', 'nurse', '2021-08-30 08:31:44'),
+(28, 'k.oyelaran', 'k.oyelaran@northbridge-health.org', '$2y$12$MdmCYWrzYxm01tKAe6FHMp5zdKByQNBrwkTUScwA4pg/bhDP/GwDp', 'records', '2023-04-11 08:31:44');
 
--- --------------------------------------------------------
+ALTER TABLE ONLY mp_users ADD CONSTRAINT mp_users_pkey PRIMARY KEY (id);
+CREATE UNIQUE INDEX mp_users_email_idx ON mp_users USING btree (email);
 
---
--- Table structure for table `users`
---
-
-CREATE TABLE `users` (
-  `id` int(11) NOT NULL,
-  `username` varchar(50) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `email` varchar(100) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
---
--- Dumping data for table `users`
---
-
-INSERT INTO `users` (`id`, `username`, `password`, `email`, `created_at`) VALUES
-(1, 'admin', 'e10adc3949ba59abbe56e057f20f883e', 'admin@example.com', '2025-09-01 08:00:00'),
-(2, 'john_doe', 'password123', 'john@example.com', '2025-09-05 12:30:00'),
-(3, 'alice', 'alicepass', 'alice@example.com', '2025-09-10 14:45:00');
-
--- Indexes for dumped tables
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;</body></html>
+-- dump completed

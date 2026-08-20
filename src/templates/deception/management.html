@@ -1,110 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Management Portal - Internal Dashboard</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
-        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        .nav { background: #ecf0f1; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-        .nav a { margin-right: 15px; text-decoration: none; color: #3498db; font-weight: bold; }
-        .nav a:hover { text-decoration: underline; }
-        .card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: #fafafa; }
-        .card h3 { color: #2c3e50; margin-top: 0; }
-        .btn { display: inline-block; background: #3498db; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; margin-right: 10px; }
-        .btn:hover { background: #2980b9; }
-        .status-ok { color: #27ae60; font-weight: bold; }
-        .status-warning { color: #f39c12; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #3498db; color: white; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administration — Caretrack</title>
+<style>
+:root{--bg:#eef4f4;--panel:#fff;--ink:#16303a;--muted:#5f7c86;
+--line:#d3e2e4;--brand:#0f7a76;--brand-dk:#0a5b58;--r:10px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 "Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#fff;color:#0f7a76;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#0f7a76}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#5f7c86;font-size:13px}
+header.top nav a.active{color:#0f7a76;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(16,48,58,.06)}
+h1{font-family:inherit;font-size:22px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Internal Management Portal</h1>
-        <p>Welcome to the corporate management interface. Access restricted to authorized personnel only.</p>
-        
-        <div class="nav">
-            <a href="/management/">Dashboard</a>
-            <a href="/management/users">User Management</a>
-            <a href="/management/config">System Configuration</a>
-            <a href="/management/logs">Audit Logs</a>
-            <a href="/management/reports">Generate Reports</a>
-            <a href="/management/backup">Backup & Recovery</a>
-        </div>
+<header class="top"><span class="brand">Caretrack</span><nav><a href="/today">Today</a><a href="/appointments">Appointments</a><a href="/patients">Patients</a><a href="/clinicians">Clinicians</a><a href="/admin">Admin</a></nav></header>
 
-        <div class="card">
-            <h2>System Status Overview</h2>
-            <p><span class="status-ok">●</span> All systems operational</p>
-            <p><span class="status-warning">●</span> Database connection pool at 78% capacity</p>
-            <p><span class="status-ok">●</span> Last backup completed: 2024-06-15 02:30:00 UTC</p>
-            <p><span class="status-ok">●</span> Active sessions: 12</p>
-        </div>
+<div class="wrap">
+  <h1>Administration</h1>
+  <p class="sub">Signed in as <strong>e.whitfield</strong> (clinical lead) &middot;
+  last sign-in 13/08/2026 14:12 from 10.24.8.41</p>
+  <div class="grid">
+    <div class="kpi"><div class="n">5</div><div class="l"><a href="/admin/users">Users</a></div></div>
+    <div class="kpi"><div class="n">11</div><div class="l"><a href="/admin/roles">Roles &amp; permissions</a></div></div>
+    <div class="kpi"><div class="n">1</div><div class="l"><a href="/admin/integrations">Integrations</a></div></div>
+    <div class="kpi"><div class="n">708</div><div class="l"><a href="/admin/audit">Audit entries (7d)</a></div></div>
+  </div>
+  <div class="panel" style="margin-top:18px">
+    <h2>Latest audit events</h2>
+    <table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Source</th></tr></thead>
+    <tbody><tr><td>14/08 08:30</td><td>e.whitfield</td><td>Updated SMTP integration credentials</td><td>10.24.8.41</td></tr><tr><td>14/08 06:12</td><td>k.oyelaran</td><td>Generated API token <code>tok_1299311266</code></td><td>10.24.9.16</td></tr><tr><td>14/08 00:12</td><td>system</td><td>Suspended account l.svensson (12 failed sign-ins)</td><td>&mdash;</td></tr><tr><td>13/08 09:12</td><td>t.ruane</td><td>Exported appointment report Q3-2026</td><td>10.24.8.77</td></tr></tbody></table>
+  </div>
+</div>
 
-        <div class="card">
-            <h2>Recent Administrative Actions</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Timestamp</th>
-                        <th>User</th>
-                        <th>Action</th>
-                        <th>Resource</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>2024-06-15 14:22:10</td>
-                        <td>admin@corp.local</td>
-                        <td>CREATE_USER</td>
-                        <td>j.smith@corp.local</td>
-                        <td>SUCCESS</td>
-                    </tr>
-                    <tr>
-                        <td>2024-06-15 14:15:03</td>
-                        <td>admin@corp.local</td>
-                        <td>MODIFY_CONFIG</td>
-                        <td>authentication_timeout</td>
-                        <td>SUCCESS</td>
-                    </tr>
-                    <tr>
-                        <td>2024-06-15 14:08:45</td>
-                        <td>svc_account</td>
-                        <td>EXPORT_DATA</td>
-                        <td>employee_records</td>
-                        <td>SUCCESS</td>
-                    </tr>
-                    <tr>
-                        <td>2024-06-15 13:55:22</td>
-                        <td>admin@corp.local</td>
-                        <td>DELETE_LOG</td>
-                        <td>app_debug_20240614.log</td>
-                        <td>SUCCESS</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="card">
-            <h2>Quick Actions</h2>
-            <a href="/management/users/create" class="btn">Create New User</a>
-            <a href="/management/config/edit" class="btn">Edit System Config</a>
-            <a href="/management/logs/view" class="btn">View Recent Logs</a>
-            <a href="/management/backup/now" class="btn">Trigger Backup Now</a>
-            <a href="/management/reports/generate" class="btn">Generate Security Report</a>
-        </div>
-
-        <div class="card">
-            <h2>Configuration Notes</h2>
-            <p><strong>Important:</strong> The management interface uses legacy authentication mechanisms for backward compatibility. Direct database access is available through the admin console at <code>/management/dbconsole</code> (requires special privileges).</p>
-            <p>For troubleshooting, check the application logs at <code>/var/log/management/</code> or enable debug mode by setting <code>DEBUG=true</code> in the configuration file.</p>
-            <p>Default credentials for emergency access: <code>admin:/tmp/admin123!</code> (changed from default on deployment)</p>
-        </div>
-    </div>
+<footer>Caretrack 9.4.0 &middot; &copy; 2026 Northbridge Health &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

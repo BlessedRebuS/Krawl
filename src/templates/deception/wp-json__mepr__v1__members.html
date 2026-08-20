@@ -1,50 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>MemberPress API - Members</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 2em; background:#f9f9f9;}
-        h1 {color:#2c3e50;}
-        pre {background:#ecf0f1; padding:1em; border:1px solid #bdc3c7; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>MemberPress REST API – Members Endpoint</h1>
-    <p>This is a simulated response from the <code>/wp-json/mepr/v1/members</code> endpoint.</p>
-    <pre>{
-  "members": [
-    {
-      "id": 101,
-      "name": "Alice Johnson",
-      "email": "alice.j@example.com",
-      "status": "active",
-      "membership_level": "Gold",
-      "joined": "2023-04-12T08:30:00Z"
-    },
-    {
-      "id": 102,
-      "name": "Bob Smith",
-      "email": "bob.s@example.com",
-      "status": "active",
-      "membership_level": "Silver",
-      "joined": "2022-11-05T14:15:00Z"
-    },
-    {
-      "id": 103,
-      "name": "Carol Lee",
-      "email": "carol.lee@example.com",
-      "status": "inactive",
-      "membership_level": "Bronze",
-      "joined": "2021-07-19T09:45:00Z",
-      "expires": "2022-07-19T09:45:00Z"
-    }
-  ],
-  "total": 3,
-  "page": 1,
-  "per_page": 10
-}</pre>
-    <hr>
-    <p><small>Note: This is a decoy response intended for security testing purposes.</small></p>
-</body>
-</html>
+[
+  {
+    "id": 5,
+    "username": "c.mbeki",
+    "email": "c.mbeki@halcyonretail.co.uk",
+    "display_name": "Chloe Mbeki",
+    "role": "store_manager",
+    "status": "active",
+    "created_at": "2020-04-13T08:31:44Z",
+    "last_login_at": "2026-08-13T23:04:52Z",
+    "mfa_enabled": false
+  },
+  {
+    "id": 8,
+    "username": "r.duffy",
+    "email": "r.duffy@halcyonretail.co.uk",
+    "display_name": "Ronan Duffy",
+    "role": "administrator",
+    "status": "active",
+    "created_at": "2018-12-01T08:31:44Z",
+    "last_login_at": "2026-08-06T09:07:49Z",
+    "mfa_enabled": true
+  },
+  {
+    "id": 16,
+    "username": "a.pashkov",
+    "email": "a.pashkov@halcyonretail.co.uk",
+    "display_name": "Anya Pashkov",
+    "role": "merchandiser",
+    "status": "active",
+    "created_at": "2022-02-24T08:31:44Z",
+    "last_login_at": "2026-08-09T07:12:54Z",
+    "mfa_enabled": false
+  },
+  {
+    "id": 19,
+    "username": "j.okonkwo",
+    "email": "j.okonkwo@halcyonretail.co.uk",
+    "display_name": "Jide Okonkwo",
+    "role": "fulfilment",
+    "status": "active",
+    "created_at": "2023-07-08T08:31:44Z",
+    "last_login_at": "2026-08-10T14:38:49Z",
+    "mfa_enabled": false
+  },
+  {
+    "id": 27,
+    "username": "h.lindqvist",
+    "email": "h.lindqvist@halcyonretail.co.uk",
+    "display_name": "Hanna Lindqvist",
+    "role": "customer_care",
+    "status": "active",
+    "created_at": "2024-11-05T08:31:44Z",
+    "last_login_at": "2026-08-12T04:50:01Z",
+    "mfa_enabled": false
+  }
+]

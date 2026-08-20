@@ -1,18 +1,36 @@
-<html><body>/* NewWindow_2_all.js - Utility for opening new windows */
-function openNewWindow(url, features) {
-    // Vulnerable: directly uses user input in eval
-    var win = window.open('', '_blank', features);
-    if (!win) {
-        alert('Popup blocked');
-        return;
-    }
-    win.document.write('<html><head><title>Loading...</title></head><body>');
-    win.document.write('<script>var userInput = "' + url + '"; eval(userInput);</script>');
-    win.document.write('</body></html>');
-    win.document.close();
-}
+/*! Meridian Portal 4.2.1 | build 4508789 | (c) Meridian Systems */
+(function (window) {
+  'use strict';
 
-// Exported for use
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { openNewWindow };
-}</body></html>
+  var config = {
+    apiBase: 'https://api.meridiansys.io/v2',
+    wsBase: 'wss://api.meridiansys.io/socket',
+    sentryDsn: 'https://fakebd34f7e2cd87b832@sentry.internal/32',
+    release: 'meridian-portal@4.2.1',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
+
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
+  }
+
+  window.Meridian = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

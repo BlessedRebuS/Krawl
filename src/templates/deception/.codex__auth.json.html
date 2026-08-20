@@ -1,23 +1,26 @@
-<html><body>{
-  "users": [
-    {
-      "username": "admin",
-      "password_hash": "5f4dcc3b5aa765d61d8327deb882cf99",
-      "role": "administrator",
-      "last_login": "2024-10-15T12:34:56Z",
-      "api_key": "7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e"
-    },
-    {
-      "username": "guest",
-      "password_hash": "2475c9e8d87f6b5e1c3d4e5f6a7b8c9d",
-      "role": "guest",
-      "last_login": "2024-10-14T09:11:22Z"
-    }
-  ],
-  "system": {
-    "version": "1.3.7",
-    "environment": "production",
-    "database": "codex_db",
-    "host": "10.0.2.15"
-  }
-}</body></html>
+{
+  "app": {
+    "name": "Orbit Cloud",
+    "version": "0.38.2",
+    "env": "production",
+    "url": "https://portal.orbitlabs.dev"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.orbit.internal",
+    "port": 5432,
+    "name": "orbit_cloud",
+    "user": "orbit",
+    "password": "fake-db-password-a4b34505"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.orbit.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-228de94423531d6c2a436a0c4f13edd8",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-05T22:14:30Z"
+}

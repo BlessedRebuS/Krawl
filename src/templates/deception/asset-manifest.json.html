@@ -1,12 +1,26 @@
-<html><body>{
-  "files": {
-    "main.js": "/static/js/main.a1b2c3.js",
-    "main.css": "/static/css/main.d4e5f6.css",
-    "runtime~main.js": "/static/js/runtime-main.g7h8i9.js"
+{
+  "app": {
+    "name": "Caretrack",
+    "version": "9.4.0",
+    "env": "production",
+    "url": "https://portal.northbridge-health.org"
   },
-  "entrypoints": [
-    "static/js/runtime-main.g7h8i9.js",
-    "static/js/main.a1b2c3.js",
-    "static/css/main.d4e5f6.css"
-  ]
-}</body></html>
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.nbh.internal",
+    "port": 5432,
+    "name": "caretrack",
+    "user": "caretrack_svc",
+    "password": "fake-db-password-50738c79"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.nbh.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-400be7418eddaaa4c439cb7ffb33eedf",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-13T12:41:14Z"
+}

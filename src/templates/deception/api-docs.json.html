@@ -1,0 +1,26 @@
+{
+  "app": {
+    "name": "Meridian Portal",
+    "version": "4.2.1",
+    "env": "production",
+    "url": "https://portal.meridiansys.io"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.meridian.internal",
+    "port": 5432,
+    "name": "meridian_portal",
+    "user": "meridian_app",
+    "password": "fake-db-password-c84a86ee"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.meridian.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-c33c6b91a9b20ea1aeefc12a6b73b9f1",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-08T03:54:36Z"
+}

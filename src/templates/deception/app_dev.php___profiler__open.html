@@ -1,90 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Symfony Profiler - Configuration</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 20px; background-color: #f8f9fa; color: #333; }
-        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        h2 { color: #34495e; margin-top: 30px; }
-        pre { background-color: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; border: 1px solid #e9ecef; font-family: 'Courier New', monospace; }
-        .parameter { margin: 10px 0; padding: 10px; background: #ecf0f1; border-left: 4px solid #3498db; }
-        .param-key { font-weight: bold; color: #2c3e50; }
-        .param-value { color: #27ae60; font-family: 'Courier New', monospace; }
-        .info-box { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0; }
-        .warning { color: #856404; }
-        .footer { margin-top: 40px; text-align: center; color: #6c757d; font-size: 0.9em; }
-        a { color: #3498db; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whoops, looks like something went wrong — Orbit Cloud</title>
+<style>
+:root{--bg:#0f1117;--panel:#171a21;--ink:#e6e8ee;--muted:#8b90a0;
+--line:#262a34;--brand:#7c6cf5;--brand-dk:#6354e0;--r:8px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#0f1117;color:#e6e8ee;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#e6e8ee}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#8b90a0;font-size:13px}
+header.top nav a.active{color:#e6e8ee;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:0 0 0 1px rgba(255,255,255,.03)}
+h1{font-family:inherit;font-size:19px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Symfony Profiler - Configuration Parameters</h1>
-        <div class="info-box">
-            <p><strong>Note:</strong> This is a debug interface intended for development environments only. Exposing this in production may lead to security vulnerabilities.</p>
-        </div>
 
-        <h2>Application Configuration (app/config/parameters.yml)</h2>
-        <p>Loaded parameters from the application configuration file:</p>
 
-        <div class="parameter">
-            <span class="param-key">database_host:</span><span class="param-value"> localhost</span>
-        </div>
-        <div class="parameter">
-            <span class="param-key">database_port:</span><span class="param-value"> 3306</span>
-        </div>
-        <div class="parameter">
-            <span class="param-key">database_name:</span><span class="param-value"> symfony</span>
-        </div>
-        <div class="parameter">
-            <span class="param-key">database_user:</span><span class="param-value"> symfony</span>
-        </div>
-        <div class="parameter">
-            <span class="param-key">database_password:</span><span class="param-value"> s3cr3t_p@ssw0rd!</span>
-        </div>
-        <div class="parameter">
-            <span class="param-key">mailer_transport:</span><span class="param-value"> smtp</span>
-        </div>
-        <div class="parameter">
-            <span class="param-key">mailer_host:</span><span class="param-value"> 127.0.0.1</span>
-        </div>
-        <div class="parameter">
-            <span class="param-key">mailer_user:</span><span class="param-value"> null</span>
-        </div>
-        <div class="parameter">
-            <span class="param-key">mailer_password:</span><span class="param-value"> null</span>
-        </div>
-        <div class="parameter">
-            <span class="param-key">secret:</span><span class="param-value"> a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6</span>
-        </div>
-        <div class="parameter">
-            <span class="param-key">locale:</span><span class="param-value"> en</span>
-        </div>
-        <div class="parameter">
-            <span class="param-key">debug:</span><span class="param-value"> true</span>
-        </div>
-        <div class="parameter">
-            <span class="param-key">redis_dsn:</span><span class="param-value"> redis://localhost:6379</span>
-        </div>
-        <div class="parameter">
-            <span class="param-key">elasticsearch_dsn:</span><span class="param-value"> http://localhost:9200</span>
-        </div>
+<div class="wrap">
+  <h1>ErrorException</h1>
+  <p class="sub">Undefined array key "warehouse_id" &middot; app/Services/Inventory/SyncService.php:184</p>
+  <div class="panel">
+    <pre>#0 /var/www/portal/app/Services/Inventory/SyncService.php(184): Illuminate\Foundation\Bootstrap\HandleExceptions-&gt;handleError()
+#1 /var/www/portal/app/Http/Controllers/InventoryController.php(62): App\Services\Inventory\SyncService-&gt;pull()
+#2 /var/www/portal/vendor/laravel/framework/src/Illuminate/Routing/Controller.php(54): App\Http\Controllers\InventoryController-&gt;sync()
+#3 /var/www/portal/vendor/laravel/framework/src/Illuminate/Routing/Route.php(261): Illuminate\Routing\ControllerDispatcher-&gt;dispatch()
+#4 /var/www/portal/public/index.php(51): Illuminate\Foundation\Http\Kernel-&gt;handle()</pre>
+  </div>
+  <div class="panel">
+    <h2>Request</h2>
+    <table><tbody>
+      <tr><td class="muted">URI</td><td><code>/app_dev.php/_profiler/open</code></td></tr>
+      <tr><td class="muted">Method</td><td>GET</td></tr>
+      <tr><td class="muted">Controller</td><td><code>App\Http\Controllers\InventoryController@sync</code></td></tr>
+      <tr><td class="muted">Middleware</td><td>web, auth, verified</td></tr>
+      <tr><td class="muted">Request ID</td><td><code>fbc5a7426bc34d4b</code></td></tr>
+    </tbody></table>
+  </div>
+  <div class="panel">
+    <h2>Environment</h2>
+    <table><tbody>
+      <tr><td class="muted">APP_ENV</td><td>production</td></tr>
+      <tr><td class="muted">APP_DEBUG</td><td>true</td></tr>
+      <tr><td class="muted">DB_CONNECTION</td><td>pgsql &middot; pg-prod-01.db.orbit.internal:5432</td></tr>
+      <tr><td class="muted">PHP</td><td>8.2.24</td></tr>
+      <tr><td class="muted">Laravel</td><td>11.9.2</td></tr>
+    </tbody></table>
+  </div>
+</div>
 
-        <h2>Environment Variables Override</h2>
-        <p>The following parameters may be overridden by environment variables:</p>
-        <ul>
-            <li><strong>DATABASE_URL:</strong> mysql://symfony:s3cr3t_p@ssw0rd!@127.0.0.1:3306/symfony</li>
-            <li><strong>MAILER_URL:</strong> smtp://localhost:25</li>
-            <li><strong>SECRET:</strong> Override via env var for production</li>
-        </ul>
-
-        <div class="footer">
-            <p>Symfony Profiler v5.4.0 | Debug Mode: ON | Environment: dev</p>
-            <p><a href="/app_dev.php/_profiler/">Back to Profiler Search</a> | <a href="/app_dev.php/">Application Home</a></p>
-        </div>
-    </div>
+<footer><a href="/docs">Docs</a> &middot; <a href="/status">Status</a> &middot; <a href="/support">Support</a> &middot; Orbit Labs</footer>
 </body>
 </html>

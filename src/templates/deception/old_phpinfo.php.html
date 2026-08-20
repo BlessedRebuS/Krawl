@@ -1,58 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Acme Corp Intranet Portal</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-    body {font-family:Arial,sans-serif;margin:0;padding:0;background:#f4f6f9;color:#333;}
-    header {background:#003366;color:#fff;padding:1rem;text-align:center;}
-    nav {background:#004080;color:#fff;display:flex;justify-content:center;gap:1.5rem;padding:0.5rem;}
-    nav a {color:#fff;text-decoration:none;font-weight:bold;}
-    nav a:hover {text-decoration:underline;}
-    main {padding:2rem;}
-    .card {background:#fff;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.1);margin-bottom:1.5rem;padding:1.5rem;}
-    h2 {color:#003366;margin-top:0;}
-    .meta {font-size:0.9rem;color:#555;margin-top:0.5rem;}
-    footer {background:#003366;color:#fff;text-align:center;padding:1rem;font-size:0.9rem;margin-top:2rem;}
-</style>
-</head>
-<body>
-<header>
-    <h1>Acme Corp Intranet Portal</h1>
-    <p>Internal tools and resources</p>
-</header>
-<nav>
-    <a href="/dashboard">Dashboard</a>
-    <a href="/reports">Reports</a>
-    <a href="/docs">Documentation</a>
-    <a href="/admin/login">Admin</a>
-</nav>
-<main>
-    <section class="card">
-        <h2>Welcome, j.smith</h2>
-        <p class="meta">Last login: 2025-09-20 08:14:32 from 10.0.0.12</p>
-        <p>Welcome back to the Acme Corp intranet. Use the navigation above to access internal applications.</p>
-    </section>
-    <section class="card">
-        <h2>System Information</h2>
-        <p><strong>Server:</strong> Apache/2.4.41 (Ubuntu)</p>
-        <p><strong>PHP:</strong> 7.4.3</p>
-        <p><strong>MySQL:</strong> 5.7.33</p>
-        <p><strong>Database:</strong> acme_intranet</p>
-        <p><strong>Internal IP:</strong> 10.0.0.45</p>
-    </section>
-    <section class="card">
-        <h2>Announcements</h2>
-        <ul>
-            <li><strong>Sep 18, 2025:</strong> Maintenance window scheduled for Sep 25, 02:00-04:00 UTC.</li>
-            <li><strong>Sep 15, 2025:</strong> New version of the expense tracking tool released (v2.3.1).</li>
-            <li><strong>Sep 10, 2025:</strong> Security reminder: Do not share passwords via email.</li>
-        </ul>
-    </section>
-</main>
-<footer>
-    &copy; 2025 Acme Corp. All rights reserved.
-</footer>
-</body>
-</html>
+<html><head><title>phpinfo()</title><style>
+body{background:#fff;color:#222;font-family:sans-serif;font-size:13px}
+table{border-collapse:collapse;width:600px;margin:1em auto}
+td,th{border:1px solid #666;padding:4px 6px;vertical-align:baseline}
+h1{text-align:center;font-size:20px}h2{text-align:center;font-size:16px;background:#9999cc;width:600px;margin:1em auto;padding:4px}
+.e{background:#ccccff;font-weight:bold;width:300px}.v{background:#cccccc;word-break:break-all}
+.h th{background:#9999cc}.center{text-align:center}
+</style></head><body>
+<h1>PHP Version 8.2.24</h1>
+<table>
+<tr><td class="e">System</td><td class="v">Linux web-01 6.8.0-45-generic #45-Ubuntu SMP x86_64</td></tr>
+<tr><td class="e">Build Date</td><td class="v">Sep 26 2025 14:11:03</td></tr>
+<tr><td class="e">Server API</td><td class="v">FPM/FastCGI</td></tr>
+<tr><td class="e">Loaded Configuration File</td><td class="v">/etc/php/8.2/fpm/php.ini</td></tr>
+<tr><td class="e">Scan this dir for additional .ini files</td><td class="v">/etc/php/8.2/fpm/conf.d</td></tr>
+<tr><td class="e">PHP API</td><td class="v">20220829</td></tr>
+<tr><td class="e">Debug Build</td><td class="v">no</td></tr>
+<tr><td class="e">Thread Safety</td><td class="v">disabled</td></tr>
+<tr><td class="e">Registered PHP Streams</td><td class="v">https, ftps, compress.zlib, php, file, glob, data, http, ftp, phar</td></tr>
+</table>
+<h2>Core</h2>
+<table>
+<tr class="h"><th>Directive</th><th>Local Value</th><th>Master Value</th></tr>
+<tr><td class="e">display_errors</td><td class="v">Off</td><td class="v">Off</td></tr>
+<tr><td class="e">memory_limit</td><td class="v">256M</td><td class="v">256M</td></tr>
+<tr><td class="e">max_execution_time</td><td class="v">60</td><td class="v">30</td></tr>
+<tr><td class="e">upload_max_filesize</td><td class="v">25M</td><td class="v">25M</td></tr>
+<tr><td class="e">open_basedir</td><td class="v">/var/www/portal:/tmp</td><td class="v">no value</td></tr>
+<tr><td class="e">disable_functions</td><td class="v">exec,passthru,shell_exec,system,proc_open,popen</td><td class="v">exec,passthru,shell_exec,system,proc_open,popen</td></tr>
+</table>
+<h2>Environment</h2>
+<table>
+<tr class="h"><th>Variable</th><th>Value</th></tr>
+<tr><td class="e">APP_ENV</td><td class="v">production</td></tr>
+<tr><td class="e">DB_HOST</td><td class="v">pg-prod-01.db.kestrel.internal</td></tr>
+<tr><td class="e">DB_USERNAME</td><td class="v">tmsuser</td></tr>
+<tr><td class="e">DB_PASSWORD</td><td class="v">fake-db-password-582acc73</td></tr>
+<tr><td class="e">DOCUMENT_ROOT</td><td class="v">/var/www/portal/public</td></tr>
+</table>
+<h2>PHP Variables</h2>
+<table>
+<tr class="h"><th>Variable</th><th>Value</th></tr>
+<tr><td class="e">_SERVER["HTTP_HOST"]</td><td class="v">portal.kestrelfreight.nl</td></tr>
+<tr><td class="e">_SERVER["SERVER_SOFTWARE"]</td><td class="v">nginx/1.24.0</td></tr>
+<tr><td class="e">_SERVER["REQUEST_URI"]</td><td class="v">/old_phpinfo.php</td></tr>
+</table>
+<p class="center">PHP Group &middot; Zend Engine v4.2.24</p>
+</body></html>

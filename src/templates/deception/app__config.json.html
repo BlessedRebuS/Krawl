@@ -1,42 +1,26 @@
-<html><body>{
-  "app_name": "CorpApp",
-  "version": "1.4.2",
-  "environment": "production",
+{
+  "app": {
+    "name": "Halcyon Commerce",
+    "version": "6.0.3",
+    "env": "production",
+    "url": "https://portal.halcyonretail.co.uk"
+  },
   "database": {
-    "host": "db.internal.corp",
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.halcyon.internal",
     "port": 5432,
-    "name": "app_db",
-    "user": "app_user",
-    "password": "s3cr3t_p@ssw0rd!2024",
-    "ssl": true
+    "name": "halcyon_commerce",
+    "user": "hc_web",
+    "password": "fake-db-password-04e77d10"
   },
-  "api": {
-    "endpoint": "https://api.corp.internal/v1",
-    "timeout": 30000,
-    "retries": 3,
-    "key": "sk_live_51HbKxL2Jv9zZ7Y6X5W4V3U2T1S0R9Q8P7O6N5M4L3K2J1H0G9F8E7D6C5B4A3Z2Y1X0W"
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.halcyon.internal",
+    "port": 6379
   },
-  "logging": {
-    "level": "info",
-    "file": "/var/log/app/app.log",
-    "max_size": "100MB",
-    "backup_count": 5
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-12c56b496e6c2609e8da294beed9afb3",
+    "token_ttl": 1440
   },
-  "features": {
-    "enable_analytics": true,
-    "enable_debug_mode": false,
-    "allow_remote_admin": true,
-    "session_timeout": 3600
-  },
-  "external_services": {
-    "payment_gateway": {
-      "provider": "stripe",
-      "publishable_key": "pk_test_51HbKxL2Jv9zZ7Y6X5W4V3U2T1S0R9Q8P7O6N5M4L3K2J1H0G9F8E7D6C5B4A3Z2Y1X0W",
-      "secret_key": "sk_test_51HbKxL2Jv9zZ7Y6X5W4V3U2T1S0R9Q8P7O6N5M4L3K2J1H0G9F8E7D6C5B4A3Z2Y1X0W"
-    },
-    "email_service": {
-      "provider": "sendgrid",
-      "api_key": "SG.xxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-    }
-  }
-}</body></html>
+  "generated_at": "2026-08-04T11:08:58Z"
+}

@@ -1,46 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>terraform.tfstate.backup</title>
-<style>
-body{font-family:monospace;background:#f8f8f8;margin:0;padding:20px;}
-h1{color:#333;}
-pre{background:#fff;border:1px solid #ddd;padding:15px;overflow:auto;max-height:80vh;}
-</style>
-</head>
-<body>
-<h1>terraform.tfstate.backup</h1>
-<pre>
 {
   "version": 4,
-  "terraform_version": "1.0.0",
-  "serial": 123,
-  "lineage": ["abcde12345"],
-  "outputs": {},
+  "terraform_version": "1.9.5",
+  "serial": 333,
+  "lineage": "b1315202-53fe-cabc-0a36-1cf414566f27",
+  "outputs": {
+    "db_endpoint": {
+      "value": "pg-prod-01.db.meridian.internal:5432",
+      "type": "string"
+    },
+    "bucket": {
+      "value": "meridian-portal-prod-assets",
+      "type": "string"
+    }
+  },
   "resources": [
     {
       "mode": "managed",
-      "type": "aws_instance",
-      "name": "example",
+      "type": "aws_db_instance",
+      "name": "primary",
       "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
       "instances": [
         {
-          "index_key": null,
-          "schema_version": 0,
           "attributes": {
-            "id": "i-0abcd1234efgh5678",
-            "ami": "ami-0abcdef1234567890",
-            "instance_type": "t2.micro",
-            "tags": {
-              "Name": "example"
-            }
+            "identifier": "meridian-portal-prod",
+            "engine": "postgres",
+            "engine_version": "16.3",
+            "instance_class": "db.m6g.large",
+            "username": "meridian_app",
+            "password": "fake-db-password-77c12c66"
           }
         }
       ]
     }
   ]
 }
-</pre>
-</body>
-</html>

@@ -1,14 +1,26 @@
-<html><body>{
-  "http-basic": {
-    "repo.packagist.org": {
-      "username": "devuser",
-      "password": "s3cr3tP@ss"
-    }
+{
+  "app": {
+    "name": "Meridian Portal",
+    "version": "4.2.1",
+    "env": "production",
+    "url": "https://portal.meridiansys.io"
   },
-  "github-oauth": {
-    "github.com": "ghp_abcdef1234567890"
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.meridian.internal",
+    "port": 5432,
+    "name": "meridian_portal",
+    "user": "meridian_app",
+    "password": "fake-db-password-95f64f40"
   },
-  "gitlab-token": {
-    "gitlab.com": "glpat-xyz123"
-  }
-}</body></html>
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.meridian.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-4ea49dc896b7b49447675ce328614231",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-08T04:38:38Z"
+}

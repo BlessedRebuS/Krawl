@@ -1,166 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Internal Tools</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
-        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        .nav { background: #ecf0f1; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-        .nav a { margin-right: 15px; text-decoration: none; color: #3498db; font-weight: bold; }
-        .nav a:hover { text-decoration: underline; }
-        .card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 20px; background: #fafafa; }
-        .card h3 { margin-top: 0; color: #2c3e50; }
-        .stats { display: flex; gap: 20px; flex-wrap: wrap; }
-        .stat { flex: 1; min-width: 150px; text-align: center; padding: 15px; background: #e8f4f8; border-radius: 5px; }
-        .stat-number { font-size: 2em; font-weight: bold; color: #2980b9; display: block; }
-        .stat-label { color: #7f8c8d; font-size: 0.9em; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #3498db; color: white; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
-        .btn { background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
-        .btn:hover { background: #2980b9; }
-        .alert { padding: 12px; margin: 15px 0; border-radius: 4px; }
-        .alert-info { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home — Kestrel TMS</title>
+<style>
+:root{--bg:#dfe3e8;--panel:#fff;--ink:#20242a;--muted:#5b636e;
+--line:#9aa3ad;--brand:#26497a;--brand-dk:#1b3459;--r:0;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 Verdana,Tahoma,Geneva,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#26497a;color:#fff;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#fff}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#c3d0e2;font-size:13px}
+header.top nav a.active{color:#fff;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:none}
+h1{font-family:inherit;font-size:15px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Internal Admin Dashboard</h1>
-        <p>Welcome back, administrator. Last login: 2024-05-15 08:32:17 UTC</p>
-        
-        <div class="nav">
-            <a href="/dashboard/">Overview</a>
-            <a href="/dashboard/users">User Management</a>
-            <a href="/dashboard/logs">System Logs</a>
-            <a href="/dashboard/config">Configuration</a>
-            <a href="/dashboard/reports">Reports</a>
-            <a href="/admin/phpinfo.php">System Info</a>
-            <a href="/logout.php">Logout</a>
-        </div>
-        
-        <div class="alert alert-info">
-            <strong>System Status:</strong> All services operational. Database connection stable. <a href="#" id="refresh-status">Refresh</a>
-        </div>
-        
-        <div class="stats">
-            <div class="stat">
-                <span class="stat-number">1,247</span>
-                <span class="stat-label">Active Users</span>
-            </div>
-            <div class="stat">
-                <span class="stat-number">89</span>
-                <span class="stat-label">Pending Approvals</span>
-            </div>
-            <div class="stat">
-                <span class="stat-number">4.2%</span>
-                <span class="stat-label">CPU Usage</span>
-            </div>
-            <div class="stat">
-                <span class="stat-number">67%</span>
-                <span class="stat-label">Memory Usage</span>
-            </div>
-            <div class="stat">
-                <span class="stat-number">12 GB</span>
-                <span class="stat-label">Disk Space Used</span>
-            </div>
-        </div>
-        
-        <div class="card">
-            <h3>Recent System Activity</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Timestamp</th>
-                        <th>User</th>
-                        <th>Action</th>
-                        <th>IP Address</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>2024-05-15 08:30:22</td>
-                        <td>admin</td>
-                        <td>Login Successful</td>
-                        <td>192.168.1.105</td>
-                        <td><span style="color: green;">Success</span></td>
-                    </tr>
-                    <tr>
-                        <td>2024-05-15 08:25:11</td>
-                        <td>j.smith</td>
-                        <td>File Upload: report_Q1.pdf</td>
-                        <td>10.0.0.45</td>
-                        <td><span style="color: green;">Success</span></td>
-                    </tr>
-                    <tr>
-                        <td>2024-05-15 08:20:05</td>
-                        <td>system</td>
-                        <td>Backup Completed</td>
-                        <td>127.0.0.1</td>
-                        <td><span style="color: green;">Success</span></td>
-                    </tr>
-                    <tr>
-                        <td>2024-05-15 08:15:33</td>
-                        <td>attacker_</td>
-                        <td>SQL Injection Attempt</td>
-                        <td>185.199.108.153</td>
-                        <td><span style="color: red;">Blocked</span></td>
-                    </tr>
-                    <tr>
-                        <td>2024-05-15 08:10:18</td>
-                        <td>guest</td>
-                        <td>Page Access: /admin/login.php</td>
-                        <td>203.0.113.42</td>
-                        <td><span style="color: orange;">Warning</span></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="card">
-            <h3>Quick Actions</h3>
-            <form action="/dashboard/action.php" method="POST">
-                <div style="margin-bottom: 10px;">
-                    <label for="action-select">Select Action:</label>
-                    <select name="action" id="action-select" style="padding: 8px;">
-                        <option value="">-- Choose an action --</option>
-                        <option value="backup_now">Run Immediate Backup</option>
-                        <option value="clear_cache">Clear System Cache</option>
-                        <option value="restart_service">Restart Web Service</option>
-                        <option value="update_defs">Update Security Definitions</option>
-                        <option value="generate_report">Generate Monthly Report</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn">Execute Action</button>
-            </form>
-            
-            <p style="margin-top: 15px; font-size: 0.9em; color: #7f8c8d;">
-                Note: All actions are logged and require two-factor authentication for execution.
-            </p>
-        </div>
-        
-        <div class="alert alert-warning">
-            <strong>Security Notice:</strong> Unusual activity detected from IP 185.199.108.153. Multiple SQL injection patterns observed in User-Agent strings. <a href="/dashboard/logs?filter=sqli&ip=185.199.108.153" style="color: #856404;">View Details</a>
-        </div>
-        
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #95a5a6; font-size: 0.9em;">
-            Internal Dashboard v2.1.4 &copy; 2024 Corporate Systems Inc. | 
-            <a href="/help/" style="color: #3498db; text-decoration: none;">Help</a> | 
-            <a href="/privacy/" style="color: #3498db; text-decoration: none;">Privacy</a> | 
-            <a href="/terms/" style="color: #3498db; text-decoration: none;">Terms</a>
-        </div>
-    </div>
-    
-    <script>
-        document.getElementById('refresh-status').addEventListener('click', function(e) {
-            e.preventDefault();
-            alert('Status refreshed: All systems nominal. Last update: ' + new Date().toLocaleString());
-        });
-    </script>
+<table width="100%" cellpadding="4" cellspacing="0" border="0" style="background:#26497a;color:#fff;font-size:12px"><tr><td style="font-weight:bold;padding-left:10px">Kestrel TMS <span style="font-weight:normal;color:#c3d0e2">v3.8</span></td><td align="right">Logged in as <b>jdevries</b> | <a href="/logout" style="color:#fff">Log off</a></td></tr></table><table width="100%" cellpadding="3" cellspacing="1" border="0" style="background:#7f8c9b;font-size:11px"><tr style="background:#1b3459"><td><a href="/home" style="color:#fff;text-decoration:none;font-weight:bold">Home</a></td><td><a href="/consignments" style="color:#fff;text-decoration:none;font-weight:normal">Consignments</a></td><td><a href="/planning" style="color:#fff;text-decoration:none;font-weight:normal">Planning</a></td><td><a href="/invoicing" style="color:#fff;text-decoration:none;font-weight:normal">Invoicing</a></td><td><a href="/admin" style="color:#fff;text-decoration:none;font-weight:normal">Admin</a></td></tr></table>
+
+<div class="wrap">
+  <h1>Welcome, J. de Vries</h1>
+  <p class="sub">Overview for the week beginning 10 August 2026.</p>
+  <div class="grid" style="margin-bottom:18px"><div class="kpi"><div class="n">627</div><div class="l">Open consignments</div></div><div class="kpi"><div class="n">18</div><div class="l">Customs holds</div></div><div class="kpi"><div class="n">140</div><div class="l">Trucks in transit</div></div><div class="kpi"><div class="n">&euro;382k</div><div class="l">Unbilled</div></div></div>
+  <div class="panel">
+    <h2>Recent consignments</h2>
+    <table><thead><tr><th>Reference</th><th>Consignee</th><th>Date</th>
+    <th>Value</th>
+    <th>Status</th></tr></thead><tbody>
+      <tr><td><a href="/consignments/11400">CO-11400</a></td>
+      <td>KF-884120 / Antwerp–Lyon</td><td>14/08/2026</td>
+      <td>1 840.00</td>
+      <td><span class="pill ok">In transit</span></td></tr>
+      <tr><td><a href="/consignments/11401">CO-11401</a></td>
+      <td>KF-884131 / Rotterdam–Praha</td><td>13/08/2026</td>
+      <td>2 610.00</td>
+      <td><span class="pill warn">Customs hold</span></td></tr>
+      <tr><td><a href="/consignments/11402">CO-11402</a></td>
+      <td>KF-884142 / Hamburg–Milano</td><td>12/08/2026</td>
+      <td>3 025.00</td>
+      <td><span class="pill ok">Delivered</span></td></tr>
+      <tr><td><a href="/consignments/11403">CO-11403</a></td>
+      <td>KF-884155 / Zeebrugge–Madrid</td><td>11/08/2026</td>
+      <td>1 190.00</td>
+      <td><span class="pill err">Failed delivery</span></td></tr>
+      <tr><td><a href="/consignments/11404">CO-11404</a></td>
+      <td>KF-884163 / Rotterdam–Wien</td><td>10/08/2026</td>
+      <td>2 240.00</td>
+      <td><span class="pill ok">In transit</span></td></tr></tbody></table>
+  </div>
+  <div class="panel"><h2>System notices</h2><p class="muted">EDI batch 884-C completed with 2 rejected messages. Customs interface will be unavailable Saturday 22:00-23:30 for scheduled maintenance.</p></div>
+</div>
+
+<footer>Kestrel TMS 3.8 &middot; Kestrel Freight &middot; internal use only</footer>
 </body>
 </html>

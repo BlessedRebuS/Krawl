@@ -1,71 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>API SQL</title>
-<style>
-body {font-family: monospace; background:#fafafa; color:#222; margin:20px;}
-h1 {color:#0066cc;}
-pre {background:#fff; border:1px solid #ddd; padding:15px; overflow:auto;}
-</style>
-</head>
-<body>
-<h1>Database Backup</h1>
-<pre>
--- MySQL dump 10.13  Distrib 8.0.33, for Linux (x86_64)
---
--- Host: localhost    Database: users_db
--- ------------------------------------------------------
--- Server version	8.0.33-0ubuntu0.22.04.1
+-- Halcyon Commerce database dump
+-- host: pg-prod-01.db.halcyon.internal    database: halcyon_commerce
+-- server version 16.3    dumped on 2026-08-14 09:12:07
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
 
---
--- Table structure for table `users`
---
+DROP TABLE IF EXISTS mp_users;
+CREATE TABLE mp_users (
+    id            integer NOT NULL,
+    username      varchar(64) NOT NULL,
+    email         varchar(190) NOT NULL,
+    password_hash varchar(255) NOT NULL,
+    role          varchar(32) NOT NULL DEFAULT 'support',
+    created_at    timestamp NOT NULL
+);
 
-DROP TABLE IF EXISTS `users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `users` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `password_hash` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+INSERT INTO mp_users (id, username, email, password_hash, role, created_at) VALUES
+(5, 'c.mbeki', 'c.mbeki@halcyonretail.co.uk', '$2y$12$1nvZ1iyqc2p6pAudqY3nQ+Aq8Cs4MVcdJYJQlaQ86eSRCndqB9/mI', 'store_manager', '2020-04-13 08:31:44'),
+(8, 'r.duffy', 'r.duffy@halcyonretail.co.uk', '$2y$12$QS6lik58xN+2WNVJKugNIwcVG4Df9ZfZFJzxfiX3bg1xhvcuckHOD', 'administrator', '2018-12-01 08:31:44'),
+(16, 'a.pashkov', 'a.pashkov@halcyonretail.co.uk', '$2y$12$zu/D1gFIS02U7Z5h01I2b0g8y137vuxbZZygj+mBXsjq1Vq+oUKAh', 'merchandiser', '2022-02-24 08:31:44'),
+(19, 'j.okonkwo', 'j.okonkwo@halcyonretail.co.uk', '$2y$12$7WRwYovRAVHpN+aJDpSjbMEfdMvMKyRIQwZH+hKINuzWmp/DSPQZx', 'fulfilment', '2023-07-08 08:31:44'),
+(27, 'h.lindqvist', 'h.lindqvist@halcyonretail.co.uk', '$2y$12$L55JPrJgCaatb+oAOfw6Id9Q19+y/oBy/3xwV2nqV/ioorLZdOCHT', 'customer_care', '2024-11-05 08:31:44');
 
---
--- Dumping data for table `users`
---
+ALTER TABLE ONLY mp_users ADD CONSTRAINT mp_users_pkey PRIMARY KEY (id);
+CREATE UNIQUE INDEX mp_users_email_idx ON mp_users USING btree (email);
 
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'admin','admin@example.com','5f4dcc3b5aa765d61d8327deb882cf99'),(2,'john_doe','john@example.com','e10adc3949ba59abbe56e057f20f883e'),(3,'jane_smith','jane@example.com','d8578edf8458ce06fbc5bb76a58c5ca4'),(4,'test_user','test@example.com','password123');
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
-UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2025-11-03 12:34:56
-</pre>
-</body>
-</html>
+-- dump completed

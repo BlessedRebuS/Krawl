@@ -1,88 +1,36 @@
-<html>
-<head>
-    <title>wp-config.php.bak2</title>
-    <meta charset="UTF-8">
-</head>
-<body>
-<pre>
 <?php
 /**
- * WordPress Configuration Backup File
- *
- * This file contains the configuration settings for a WordPress installation.
- * It is intentionally exposed for demonstration purposes.
+ * WordPress base configuration — Halcyon Retail Group corporate site.
  */
 
-/** The name of the database for WordPress */
-define('DB_NAME', 'wordpress_db');
+define( 'DB_NAME', 'halcyon_wp' );
+define( 'DB_USER', 'halcyon_wp_user' );
+define( 'DB_PASSWORD', 'fake-wp-password-0434bcdf26' );
+define( 'DB_HOST', 'mysql-web-01.db.halcyon.internal' );
+define( 'DB_CHARSET', 'utf8mb4' );
+define( 'DB_COLLATE', '' );
 
-/** MySQL database username */
-define('DB_USER', 'wp_user');
+define( 'AUTH_KEY',         'r/xWH2Lw7JO5uK/cUXYwPvo7oPucom38E5bFM9zN1j01YLG4' );
+define( 'SECURE_AUTH_KEY',  'Yuc8xp+NWhttBY1v2HrmKMgU5YryhYZ9S06yG+w/nHXHfzw6' );
+define( 'LOGGED_IN_KEY',    '7cJ9eQNjSilFbrZmN9rAWONkBl6jqQtBT58TnWxbd5unSzuI' );
+define( 'NONCE_KEY',        'QkQfdXSMVtC372Pv+aO66DbT0wAoWglUvdRJUltsQOhtyg78' );
+define( 'AUTH_SALT',        'ITKk+1qUpX4DXdcfChFpYOiR9Z1SofW0iHPw/yGxpXh23C9C' );
+define( 'SECURE_AUTH_SALT', 'G6XjwxqNXyb7U241UaROXTao9+SvqMHdaMWy0ctuc8UYs4cF' );
 
-/** MySQL database password */
-define('DB_PASSWORD', 'S3cureP@ssw0rd!2024');
-
-/** MySQL hostname */
-define('DB_HOST', 'localhost:3306');
-
-/** Database Charset to use in creating database tables. */
-define('DB_CHARSET', 'utf8mb4');
-
-/** The Database Collate type. Don't change this if in doubt. */
-define('DB_COLLATE', '');
-
-/**#@+
- * Authentication Unique Keys and Salts.
- *
- * Change these to different unique phrases!
- * You can generate these using the {@link https://api.wordpress.org/secret-key/1.1/salt/ WordPress.org secret-key service}
- * You can change these at any point in time to invalidate all existing cookies. This will force all users to have to log in again.
- *
- * @since 2.6.0
- */
-define('AUTH_KEY',         'Put your unique phrase here');
-define('SECURE_AUTH_KEY',  'Put your unique phrase here');
-define('LOGGED_IN_KEY',    'Put your unique phrase here');
-define('NONCE_KEY',        'Put your unique phrase here');
-define('AUTH_SALT',        'Put your unique phrase here');
-define('SECURE_AUTH_SALT', 'Put your unique phrase here');
-define('LOGGED_IN_SALT',   'Put your unique phrase here');
-define('NONCE_SALT',       'Put your unique phrase here');
-
-/**#@-*/
-
-/**
- * WordPress Database Table prefix.
- *
- * You can have multiple installations in one database if you give each
- * a unique prefix. Only numbers, letters, and underscores please!
- */
 $table_prefix = 'wp_';
 
-/**
- * For developers: WordPress debugging mode.
- *
- * Change this to true to enable the display of notices during development.
- * It is strongly recommended that plugin and theme developers use WP_DEBUG
- * in their development environments.
- *
- * For information on other constants that can be used for debugging,
- * visit the Codex.
- *
- * @link https://wordpress.org/support/article/debugging-in-wordpress/
- */
-define('WP_DEBUG', false);
+define( 'WP_DEBUG', false );
+define( 'WP_MEMORY_LIMIT', '256M' );
+define( 'DISALLOW_FILE_EDIT', true );
+define( 'WP_HOME', 'https://www.halcyonretail.co.uk' );
+define( 'WP_SITEURL', 'https://www.halcyonretail.co.uk' );
 
-/* That's all, stop editing! Happy publishing. */
+define( 'SMTP_HOST', 'smtp.mail.halcyon.internal' );
+define( 'SMTP_USER', 'no-reply@halcyonretail.co.uk' );
+define( 'SMTP_PASS', 'fake-smtp-password-8b43785e' );
 
-/** Absolute path to the WordPress directory. */
 if ( ! defined( 'ABSPATH' ) ) {
-	define( 'ABSPATH', __DIR__ . '/' );
+    define( 'ABSPATH', __DIR__ . '/' );
 }
 
-/** Sets up WordPress vars and included files. */
 require_once ABSPATH . 'wp-settings.php';
-?>
-</pre>
-</body>
-</html>

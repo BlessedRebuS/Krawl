@@ -1,33 +1,36 @@
 <?php
 /**
- * WordPress Configuration Backup File
- * This file contains database credentials and security keys.
- * WARNING: Do not expose this file publicly.
+ * WordPress base configuration — Halcyon Retail Group corporate site.
  */
 
-define('DB_NAME', 'wordpress_db');
-define('DB_USER', 'wp_admin');
-define('DB_PASSWORD', 's3cr3t_p@ssw0rd!2024');
-define('DB_HOST', 'localhost');
-define('DB_CHARSET', 'utf8');
-define('DB_COLLATE', '');
+define( 'DB_NAME', 'halcyon_wp' );
+define( 'DB_USER', 'halcyon_wp_user' );
+define( 'DB_PASSWORD', 'fake-wp-password-eadcfcd949' );
+define( 'DB_HOST', 'mysql-web-01.db.halcyon.internal' );
+define( 'DB_CHARSET', 'utf8mb4' );
+define( 'DB_COLLATE', '' );
 
-/** Authentication Unique Keys and Salts. */
-define('AUTH_KEY',         'put your unique phrase here');
-define('SECURE_AUTH_KEY',  'put your unique phrase here');
-define('LOGGED_IN_KEY',    'put your unique phrase here');
-define('NONCE_KEY',        'put your unique phrase here');
-define('AUTH_SALT',        'put your unique phrase here');
-define('SECURE_AUTH_SALT', 'put your unique phrase here');
-define('LOGGED_IN_SALT',   'put your unique phrase here');
-define('NONCE_SALT',       'put your unique phrase here');
+define( 'AUTH_KEY',         'oayH4UfaUFwsrOX13ShX14LLFfWBCkgmfkdHdQNJhSAcYwy2' );
+define( 'SECURE_AUTH_KEY',  '4FqtEcJ1INPgQ//2laMpCyPDulad2SZQaf57ZsDviSOWMpYX' );
+define( 'LOGGED_IN_KEY',    'LaJOf05MbPSayfBatlc9hb0MkajvacYZpG06dyscANkpasIj' );
+define( 'NONCE_KEY',        'RaVMjtMaZnTZPuVFYhlUy6eh24Hveu3k2HE9PVQiIVRj5r7C' );
+define( 'AUTH_SALT',        'VM94GpOPM7PziAMleR9VwjLSIKXWlf1MzcLvaADn6RJ0oO2/' );
+define( 'SECURE_AUTH_SALT', 'hc/ZWtjAgzKv+2qkEf8z/AXzhdu5txOdw34+wb5+gUMTj1fQ' );
 
-$table_prefix  = 'wp_';
+$table_prefix = 'wp_';
 
-define('WP_DEBUG', false);
+define( 'WP_DEBUG', false );
+define( 'WP_MEMORY_LIMIT', '256M' );
+define( 'DISALLOW_FILE_EDIT', true );
+define( 'WP_HOME', 'https://www.halcyonretail.co.uk' );
+define( 'WP_SITEURL', 'https://www.halcyonretail.co.uk' );
 
-if ( !defined('ABSPATH') )
-	define('ABSPATH', dirname(__FILE__) . '/');
+define( 'SMTP_HOST', 'smtp.mail.halcyon.internal' );
+define( 'SMTP_USER', 'no-reply@halcyonretail.co.uk' );
+define( 'SMTP_PASS', 'fake-smtp-password-4a8d3435' );
 
-require_once(ABSPATH . 'wp-settings.php');
-?>
+if ( ! defined( 'ABSPATH' ) ) {
+    define( 'ABSPATH', __DIR__ . '/' );
+}
+
+require_once ABSPATH . 'wp-settings.php';

@@ -1,88 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configuration - src/config.js</title>
-    <style>
-        body { font-family: 'Courier New', monospace; background-color: #f4f4f4; color: #333; line-height: 1.6; padding: 20px; }
-        pre { background-color: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 4px; overflow-x: auto; }
-        .header { border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-bottom: 20px; }
-        .meta { color: #666; font-size: 0.9em; margin-top: 5px; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>src/config.js</h1>
-        <div class="meta">Last modified: Mon, 03 Jun 2024 14:22:10 GMT | Size: 2.1 KB</div>
-    </div>
-    <pre>
-// Application Configuration - DO NOT COMMIT SECRETS
-// Environment: development
+/*! Kestrel TMS 3.8 | build 67af1bd | (c) Kestrel Freight */
+(function (window) {
+  'use strict';
 
-const config = {
-    // Database configuration
-    db: {
-        host: 'localhost',
-        port: 5432,
-        name: 'app_dev',
-        user: 'dev_user',
-        password: 'dev_pass_123!', // FAKE - for honeypot only
-        ssl: false
-    },
+  var config = {
+    apiBase: 'https://api.kestrelfreight.nl/v2',
+    wsBase: 'wss://api.kestrelfreight.nl/socket',
+    sentryDsn: 'https://fake846e278b4f51cbc3@sentry.internal/35',
+    release: 'kestrel-tms@3.8',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
 
-    // API keys - FAKE VALUES FOR DEMO
-    apiKeys: {
-        googleMaps: 'AIzaSyFakeKey1234567890abcdef',
-        stripe: 'sk_test_fake_stripe_key_1234567890abcdef',
-        sendgrid: 'SG.fake_sendgrid_key.abcdef123456',
-        aws: {
-            accessKeyId: 'AKIAFAKEKEY123456',
-            secretAccessKey: 'fakeSecretAccessKey1234567890abcdef'
-        }
-    },
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
+  }
 
-    // JWT settings
-    jwt: {
-        secret: 'supersecretdevelopmentkey123',
-        expiresIn: '24h'
-    },
-
-    // Email configuration
-    email: {
-        service: 'gmail',
-        auth: {
-            user: 'dev@example.com',
-            pass: 'devemailpass123' // FAKE
-        }
-    },
-
-    // Feature flags
-    features: {
-        enableRegistration: true,
-        enableTwoFactor: false,
-        maintenanceMode: false,
-        debug: true
-    },
-
-    // File upload settings
-    upload: {
-        maxSize: 10 * 1024 * 1024, // 10MB
-        allowedTypes: ['image/jpeg', 'image/png', 'application/pdf'],
-        uploadDir: './uploads/'
-    }
-};
-
-// Export for Node.js
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = config;
-}
-
-// Export for browsers (if bundled)
-if (typeof window !== 'undefined') {
-    window.config = config;
-}
-</pre>
-    <div class="meta">Note: This is a development configuration file. Production uses environment variables.</div>
-</body>
-</html>
+  window.KestrelTMS = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

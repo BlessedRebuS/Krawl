@@ -1,70 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Admin Environment Variables</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9;}
-        h1 {color:#333;}
-        table {border-collapse:collapse; width:80%; background:#fff;}
-        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
-        th {background-color:#f2f2f2;}
-        tr:nth-child(even) {background-color:#fafafa;}
-        .filter {margin-bottom:15px;}
-        input[type=text] {padding:5px; width:200px;}
-    </style>
-</head>
-<body>
-    <h1>Server Environment Variables</h1>
-    <div class="filter">
-        Filter: <input type="text" id="filterInput" placeholder="Search variable name..." onkeyup="filterTable()">
-    </div>
-    <table id="envTable">
-        <thead>
-            <tr>
-                <th>Variable</th>
-                <th>Value</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr><td>APP_ENV</td><td>production</td></tr>
-            <tr><td>DEBUG</td><td>false</td></tr>
-            <tr><td>DATABASE_URL</td><td>mysql://admin:secret123@db.internal:3306/appdb</td></tr>
-            <tr><td>REDIS_HOST</td><td>cache.internal</td></tr>
-            <tr><td>REDIS_PORT</td><td>6379</td></tr>
-            <tr><td>SECRET_KEY</td><td>a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6</td></tr>
-            <tr><td>MAIL_SMTP_HOST</td><td>smtp.mailprovider.com</td></tr>
-            <tr><td>MAIL_SMTP_PORT</td><td>587</td></tr>
-            <tr><td>MAIL_SMTP_USER</td><td>no-reply@app.com</td></tr>
-            <tr><td>MAIL_SMTP_PASS</td><td>mailPass!2025</td></tr>
-            <tr><td>AWS_ACCESS_KEY_ID</td><td>AKIAEXAMPLEFAKEKEY</td></tr>
-            <tr><td>AWS_SECRET_ACCESS_KEY</td><td>wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</td></tr>
-            <tr><td>CACHE_TTL</td><td>300</td></tr>
-            <tr><td>SESSION_COOKIE_NAME</td><td>app_session</td></tr>
-            <tr><td>LOG_LEVEL</td><td>info</td></tr>
-            <tr><td>ENABLE_METRICS</td><td>true</td></tr>
-            <tr><td>METRICS_ENDPOINT</td><td>/metrics</td></tr>
-        </tbody>
-    </table>
+# Kestrel TMS — application environment
+# managed by ops, do not edit by hand (see infra/ansible/roles/app)
+# last sync: 2026-08-14 09:12 UTC
 
-    <script>
-        function filterTable() {
-            const input = document.getElementById('filterInput');
-            const filter = input.value.toUpperCase();
-            const table = document.getElementById('envTable');
-            const rows = table.getElementsByTagName('tr');
-            for (let i = 0; i < rows.length; i++) {
-                const cells = rows[i].getElementsByTagName('td');
-                if (cells.length > 0) {
-                    const txt = cells[0].textContent || cells[0].innerText;
-                    if (txt.toUpperCase().indexOf(filter) > -1) {
-                        rows[i].style.display = '';
-                    } else {
-                        rows[i].style.display = 'none';
-                    }
-                }
-            }
-        }
-    </script>
-</body>
-</html>
+APP_NAME="Kestrel TMS"
+APP_ENV=production
+APP_KEY=base64:COVi31il4qoMD9rI4j6KCdV2ciNwH3xO9OEUPmCPCdU=
+APP_DEBUG=false
+APP_URL=https://portal.kestrelfreight.nl
+LOG_CHANNEL=stack
+LOG_LEVEL=warning
+
+DB_CONNECTION=pgsql
+DB_HOST=pg-prod-01.db.kestrel.internal
+DB_PORT=5432
+DB_DATABASE=kestrel_tms
+DB_USERNAME=kestrel_app
+DB_PASSWORD=fake-db-password-9dc90daf
+
+REDIS_HOST=redis-prod-01.cache.kestrel.internal
+REDIS_PORT=6379
+REDIS_PASSWORD=fake-redis-password-924d3a
+CACHE_DRIVER=redis
+QUEUE_CONNECTION=redis
+SESSION_DRIVER=redis
+SESSION_LIFETIME=120
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mail.kestrel.internal
+MAIL_PORT=587
+MAIL_USERNAME=no-reply@kestrelfreight.nl
+MAIL_PASSWORD=fake-smtp-password-d64006bc
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=no-reply@kestrelfreight.nl
+
+AWS_ACCESS_KEY_ID=AKIA-FAKE-205A4
+AWS_SECRET_ACCESS_KEY=fake-secret-/y+i23jdB5j/aoKSHcgpQzWO
+AWS_DEFAULT_REGION=eu-west-1
+AWS_BUCKET=kestrel-tms-production-assets
+
+JWT_SECRET=fake-jwt-secret-f9ba58b57e9ce29231fe467532e77fce
+JWT_TTL=1440
+STRIPE_KEY=pk_test_FAKE-eec01bbb2f28104d
+STRIPE_SECRET=sk_test_FAKE-153164047eacae44
+SENTRY_LARAVEL_DSN=https://fake5dfa3d9436e5c61c@sentry.internal/37

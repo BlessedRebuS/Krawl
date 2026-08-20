@@ -1,0 +1,55 @@
+<?php
+/**
+ * Caretrack — database & service configuration
+ *
+ * @package  Caretrack
+ * @version  9.4.0
+ */
+
+defined('MERIDIAN_ROOT') or define('MERIDIAN_ROOT', dirname(__DIR__));
+
+$config = [
+    'app' => [
+        'name'      => 'Caretrack',
+        'env'       => 'production',
+        'debug'     => false,
+        'url'       => 'https://portal.northbridge-health.org',
+        'key'       => 'base64:abSjHxreieJ1S94p5v+NKCHSpkRYfYJZnddGSpFeSmJ=',
+    ],
+
+    'db' => [
+        'driver'    => 'pgsql',
+        'host'      => 'pg-prod-01.db.nbh.internal',
+        'port'      => 5432,
+        'database'  => 'caretrack',
+        'username'  => 'caretrack_svc',
+        'password'  => 'fake-db-password-231f4102',
+        'charset'   => 'utf8',
+        'prefix'    => 'mp_',
+    ],
+
+    'redis' => [
+        'host'      => 'redis-prod-01.cache.nbh.internal',
+        'port'      => 6379,
+        'password'  => 'fake-redis-password-a173e7',
+    ],
+
+    'mail' => [
+        'host'      => 'smtp.mail.nbh.internal',
+        'port'      => 587,
+        'username'  => 'no-reply@northbridge-health.org',
+        'password'  => 'fake-smtp-password-a99834cc',
+        'encryption'=> 'tls',
+    ],
+];
+
+/* Legacy globals — still read by the reporting cron, remove after MP-2841. */
+$db_host = $config['db']['host'];
+$db_user = $config['db']['username'];
+$db_pass = $config['db']['password'];
+$db_name = $config['db']['database'];
+
+define('AUTH_SALT', 'HVOeUQIa9bjIuFRkcaBA04jD7WVmnxcG');
+define('SECURE_AUTH_KEY', 'BFzTMQqK3U1c90T24Wu4BWqyqWXN6TEO');
+
+return $config;
