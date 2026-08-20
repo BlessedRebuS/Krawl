@@ -18,6 +18,10 @@ from logger import get_app_logger
 # TASK CONFIG
 # ----------------------
 
+# Rows per delete transaction; the first run after the is_(False) fix has a
+# large backlog to clear.
+DELETE_BATCH_SIZE = 10_000
+
 TASK_CONFIG = {
     "name": "db-retention",
     "cron": "0 3 * * *",  # Run daily at 3 AM
@@ -52,28 +56,42 @@ def main():
 
         cutoff = datetime.now() - timedelta(days=retention_days)
 
-        # Delete attack detections linked to old NON-suspicious access logs (FK constraint)
-        old_nonsuspicious_log_ids = session.query(AccessLog.id).filter(
+        # `not <column>` is Python truthiness, not SQL NOT: it collapses to the
+        # literal False and the whole predicate becomes "AND false", so these
+        # two deletes matched nothing. Use is_(False) — NULL-safe and explicit.
+        purgeable = (
             AccessLog.timestamp < cutoff,
-            not AccessLog.is_suspicious,
-            not AccessLog.is_honeypot_trigger,
-        )
-        detections_deleted = (
-            session.query(AttackDetection)
-            .filter(AttackDetection.access_log_id.in_(old_nonsuspicious_log_ids))
-            .delete(synchronize_session=False)
+            AccessLog.is_suspicious.is_(False),
+            AccessLog.is_honeypot_trigger.is_(False),
         )
 
-        # Delete old non-suspicious access logs (keep suspicious ones)
-        logs_deleted = (
-            session.query(AccessLog)
-            .filter(
-                AccessLog.timestamp < cutoff,
-                not AccessLog.is_suspicious,
-                not AccessLog.is_honeypot_trigger,
+        # Delete in batches: the first run after this fix has a large backlog to
+        # clear, and one statement over millions of rows is a long lock and a
+        # large WAL write.
+        detections_deleted = 0
+        logs_deleted = 0
+        while True:
+            batch_ids = [
+                row[0]
+                for row in session.query(AccessLog.id)
+                .filter(*purgeable)
+                .limit(DELETE_BATCH_SIZE)
+                .all()
+            ]
+            if not batch_ids:
+                break
+
+            detections_deleted += (
+                session.query(AttackDetection)
+                .filter(AttackDetection.access_log_id.in_(batch_ids))
+                .delete(synchronize_session=False)
             )
-            .delete(synchronize_session=False)
-        )
+            logs_deleted += (
+                session.query(AccessLog)
+                .filter(AccessLog.id.in_(batch_ids))
+                .delete(synchronize_session=False)
+            )
+            session.commit()
 
         # IPs to preserve: those with any suspicious access logs
         preserved_ips = (

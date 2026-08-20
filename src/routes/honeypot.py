@@ -22,6 +22,7 @@ from deception_responses import (
     get_sql_response_with_data,
 )
 from dependencies import (
+    body_too_large,
     build_raw_request,
     get_client_ip,
 )
@@ -45,8 +46,10 @@ from wordlists import get_wordlists
 
 
 async def _safe_body(request: Request) -> str:
-    """Read request body, returning empty string on client disconnect."""
+    """Read the request body, bounded, empty on client disconnect."""
     try:
+        if body_too_large(request):
+            return ""
         body_bytes = await request.body()
         return body_bytes.decode("utf-8", errors="replace")
     except Exception:

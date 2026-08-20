@@ -10,7 +10,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from deception_responses import detect_and_respond_deception
-from dependencies import build_raw_request, get_client_ip
+from dependencies import body_too_large, build_raw_request, get_client_ip
 from logger import get_access_logger, get_app_logger
 
 
@@ -32,8 +32,11 @@ class DeceptionMiddleware(BaseHTTPMiddleware):
         body = ""
         if method == "POST":
             try:
-                body_bytes = await request.body()
-                body = body_bytes.decode("utf-8", errors="replace")
+                if body_too_large(request):
+                    body = ""
+                else:
+                    body_bytes = await request.body()
+                    body = body_bytes.decode("utf-8", errors="replace")
             except Exception:
                 # Client disconnected before body was fully sent
                 body = ""
