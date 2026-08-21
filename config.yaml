@@ -174,7 +174,7 @@ ai:
     Path: {path}{query_part}
 
 banlist:
-  export_path:  # Public banlist download path, e.g. "/public_banlist.txt". This supports ublic endpoint at banlist_export_path already supports ?categories= and ?fwtype= as the main banlist API. Empty = disabled.
+  export_path:  # Public banlist download path, e.g. "/public_banlist.txt". Unauthenticated, and supports the same ?categories= and ?fwtype= parameters as the main banlist API. Empty = disabled.
   sources:
     - "https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw" # Upstream banlist URLs to fetch, e.g. ["https://krawl.example.com/public_banlist.txt"]. You can add an array of URLs here. Even external "".txt" banlists are supported.
   refresh_interval: 3600  # Seconds between fetches
