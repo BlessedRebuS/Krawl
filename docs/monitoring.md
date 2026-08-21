@@ -43,6 +43,7 @@ These are "total ever observed" values backed by the shared cache counter store,
 | `krawl_honeypot_ips_total` | Distinct IPs that have triggered a honeypot path at least once |
 | `krawl_credentials_captured_total` | Total captured credential login attempts |
 | `krawl_attack_detections_total` | Attack detections, labeled by `attack_type` |
+| `krawl_write_buffer_dropped_total` | Access-log rows dropped because the write buffer was full — silent data loss, investigate any increase |
 
 ### Current-state gauges
 
@@ -57,7 +58,6 @@ Point-in-time values. `krawl_clients_total` is recomputed live at scrape time; t
 | `krawl_auth_locked_ips` | IPs currently locked out from dashboard authentication |
 | `krawl_timed_out_ips` | IPs currently serving an automatic rate-limit time-ban |
 | `krawl_write_buffer_rows` | Access-log rows waiting to be flushed to the database. Rising depth means the flush task is behind — alert above 10000 |
-| `krawl_write_buffer_dropped` | Access-log rows dropped because the write buffer was full (counter) |
 | `krawl_dashboard_warmup_duration_seconds` | Last observed duration of each dashboard warmup sub-step, labeled by `step` |
 
 ## Grafana Dashboard
@@ -72,6 +72,60 @@ To import it:
 1. In Grafana, go to **Dashboards → New → Import**.
 2. Upload `grafana-dashboard.json` (or paste its contents).
 3. Select your Prometheus data source when prompted.
+
+### Panels
+
+| Row | What it shows |
+|-----|---------------|
+| **Overview** | Activity within the selected time range (accesses, honeypot triggers, credentials, attack detections), then lifetime totals (unique IPs and paths, honeypot IPs, AI pages today) |
+| **Traffic & Attacks** | Access rate and attack detection rate per minute, honeypot vs credential capture rate, and attack types ranked over the selected range |
+| **Classification** | Reputation categories stacked over time, their current split, plus timed-out and auth-locked IP counts |
+| **System health** | Write buffer depth per pod, dashboard warmup step durations, dropped rows, enrichment and reevaluation backlogs |
+
+Panels titled **(selected range)** follow the time picker. Panels titled **(all time)**
+are lifetime totals and deliberately ignore it.
+
+Two variables sit at the top: **Datasource**, and **Job** — set the latter when one
+Prometheus scrapes more than one Krawl deployment, otherwise their series are merged
+into a single number with nothing to indicate it.
+
+### Aggregation
+
+The dashboard collapses replicas with `max()`, not `sum()`: in scalable mode the
+counters live in Redis, so every replica reports the same shared value and summing them
+would multiply by the pod count.
+
+The write buffer metrics are the exception — that buffer is process-local, so
+`krawl_write_buffer_rows` is graphed **per pod** (one line each, so a single replica
+falling behind stays visible) and `krawl_write_buffer_dropped_total` is summed across
+them.
+
+### Deploying it in Kubernetes
+
+The chart can ship the dashboard as a ConfigMap for the Grafana sidecar to discover:
+
+```yaml
+grafanaDashboard:
+  enabled: true
+  label: grafana_dashboard      # what your sidecar watches
+  labelValue: "1"
+  namespace: ""                 # e.g. cattle-monitoring-system; empty = release namespace
+```
+
+### Editing the dashboard
+
+Both `grafana-dashboard.json` and the copy the chart embeds at
+`helm/files/grafana-dashboard.json` are generated from [`scripts/build_grafana_dashboard.py`](../scripts/build_grafana_dashboard.py).
+Edit the script and re-run it rather than editing the JSON:
+
+```bash
+python3 scripts/build_grafana_dashboard.py
+```
+
+If you tuned a dashboard inside Grafana instead, export it (**Share → Export → Save to
+file**), port the changes into the script, and re-run it — then both stay in step.
+Set `"id": null` on anything you paste in; Grafana exports carry a local database id
+that is meaningless elsewhere.
 
 ## Scraping with Prometheus
 

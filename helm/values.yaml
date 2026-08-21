@@ -37,6 +37,19 @@ service:
 #   - config.metrics.enabled is true
 #   - config.dashboard.secret_path is set (the metrics path is
 #     /<secret_path>/metrics, so an auto-generated/blank path can't be scraped)
+# Grafana dashboard shipped as a ConfigMap for the Grafana sidecar to pick up.
+# The dashboard JSON is the one at the repository root; the sidecar discovers the
+# ConfigMap by label, so set `label`/`labelValue` to whatever your Grafana watches
+# (grafana_dashboard: "1" for the kube-prometheus-stack / Rancher sidecar).
+grafanaDashboard:
+  enabled: false
+  label: grafana_dashboard
+  labelValue: "1"
+  # Namespace the sidecar watches, when it is not the release namespace
+  # (e.g. cattle-monitoring-system on Rancher). Empty = release namespace.
+  namespace: ""
+  annotations: {}
+
 serviceMonitor:
   enabled: false
   interval: 30s

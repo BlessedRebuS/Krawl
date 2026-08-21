@@ -418,6 +418,10 @@ Publish this instance's banlist on an unauthenticated path and merge lists pulle
 | `serviceMonitor.interval` / `.scrapeTimeout` | Scrape interval and timeout | `30s` / `10s` |
 | `serviceMonitor.labels` | Extra labels so your Prometheus `serviceMonitorSelector` matches (e.g. `release: kube-prometheus-stack`) | `{}` |
 | `serviceMonitor.honorLabels` / `.relabelings` / `.metricRelabelings` | Passed through to the ServiceMonitor endpoint | `false` / `[]` / `[]` |
+| `grafanaDashboard.enabled` | Ship the Krawl Grafana dashboard as a ConfigMap for the Grafana sidecar to discover | `false` |
+| `grafanaDashboard.label` / `.labelValue` | Label the sidecar watches for | `grafana_dashboard` / `"1"` |
+| `grafanaDashboard.namespace` | Namespace the sidecar watches, when not the release namespace (e.g. `cattle-monitoring-system`) | `""` |
+| `grafanaDashboard.annotations` | Extra annotations on the dashboard ConfigMap | `{}` |
 
 ### Bundled Local LLM (optional)
 
@@ -546,6 +550,7 @@ kubectl logs -l app.kubernetes.io/name=krawl
 - `values.yaml` - Default configuration values
 - `values-minimal.yaml` - Minimal scalable mode example
 - `values-standalone.yaml` - Minimal standalone mode example
+- `files/grafana-dashboard.json` - Grafana dashboard embedded by the dashboard ConfigMap
 - `templates/` - Kubernetes resource templates
   - `deployment.yaml` - Krawl deployment (branches on `mode` for strategy, env vars, volumes)
   - `service.yaml` - Service configuration
@@ -563,6 +568,7 @@ kubectl logs -l app.kubernetes.io/name=krawl
   - `ingress.yaml` - Ingress configuration
   - `network-policy.yaml` - Network policies
   - `servicemonitor.yaml` - Prometheus Operator ServiceMonitor (`serviceMonitor.enabled`)
+  - `grafana-dashboard.yaml` - Grafana dashboard ConfigMap (`grafanaDashboard.enabled`), rendering `files/grafana-dashboard.json`
   - `custom-template-configmap.yaml` - Custom honeypot page template (`customTemplate.enabled`)
   - `llm.yaml` - Bundled Ollama / llama.cpp workloads (`llm.*.enabled`)
   - `_helpers.tpl` - Shared template helpers
