@@ -383,6 +383,53 @@ A one-shot Kubernetes Job that copies data from an existing SQLite PVC into Post
 |-----------|-------------|---------|
 | `config.ignored_ips` | List of IPs / CIDR ranges (IPv4/IPv6) never tracked, banned, exported, or persisted — and purged from the database on startup | loopback, RFC1918, link-local, CGNAT ranges |
 
+### Banlist Federation
+
+Publish this instance's banlist on an unauthenticated path and merge lists pulled from other Krawl instances (or any plain-text IP list).
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `config.banlist.export_path` | Public banlist download path, e.g. `/public_banlist.txt`. Supports the same `?categories=` / `?fwtype=` parameters as the main API. Empty = disabled | `""` |
+| `config.banlist.sources` | Upstream banlist URLs to fetch and merge | `[]` |
+| `config.banlist.refresh_interval` | Seconds between upstream fetches | `3600` |
+
+### Tarpit
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `config.tarpit.enabled` | Trap AI agents with slow responses and random text | `false` |
+| `config.tarpit.delay_seconds` | Extra delay added to each response when the tarpit is active | `5` |
+
+### Deception Pages
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `config.deception.import_pages` | Auto-import HTML deception pages from `src/templates/deception/` at startup | `true` |
+| `customTemplate.enabled` | Mount a custom honeypot page template at `/etc/krawl/templates/custom_page.html` | `false` |
+| `customTemplate.content` | Inline HTML for that template | Example page |
+
+### Metrics and Monitoring
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `config.metrics.enabled` | Expose Prometheus metrics at `/<dashboard.secret_path>/metrics` | `true` |
+| `config.logging.level` | Log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`) | `INFO` |
+| `serviceMonitor.enabled` | Create a Prometheus Operator `ServiceMonitor`. Requires `config.metrics.enabled` and an explicitly set `config.dashboard.secret_path` (the metrics path is derived from it) | `false` |
+| `serviceMonitor.interval` / `.scrapeTimeout` | Scrape interval and timeout | `30s` / `10s` |
+| `serviceMonitor.labels` | Extra labels so your Prometheus `serviceMonitorSelector` matches (e.g. `release: kube-prometheus-stack`) | `{}` |
+| `serviceMonitor.honorLabels` / `.relabelings` / `.metricRelabelings` | Passed through to the ServiceMonitor endpoint | `false` / `[]` / `[]` |
+
+### Bundled Local LLM (optional)
+
+Deploy Ollama and/or llama.cpp alongside Krawl for AI deception pages without an external provider. Point `config.ai.openai_base_url` at `http://<release-name>-ollama:8080/v1` or `http://<release-name>-llamacpp:8080/v1`.
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `llm.ollama.enabled` | Deploy Ollama | `false` |
+| `llm.ollama.model` / `.pullModel` | Model to serve and whether to pull it on startup | `qwen:1.8b` / `true` |
+| `llm.ollama.persistence.enabled` / `.size` | Persistent volume for downloaded models | `true` / `5Gi` |
+| `llm.llamaCpp.enabled` | Deploy llama.cpp | `false` |
+
 ### Resource Limits
 
 | Parameter | Description | Default |
@@ -506,12 +553,19 @@ kubectl logs -l app.kubernetes.io/name=krawl
   - `wordlists-configmap.yaml` - Wordlists configuration
   - `secret.yaml` - Dashboard password secret
   - `secret-scalable.yaml` - PostgreSQL and Redis password secrets (scalable mode only)
+  - `secret-ai.yaml` - AI/LLM API key secret (`aiExistingSecret` skips it)
+  - `secret-canary.yaml` - Canary token URL secret
+  - `secret-cloudflare.yaml` - CloudFlare account ID and auth token secret
   - `postgres.yaml` - Bundled PostgreSQL StatefulSet, Service, and PVC (scalable mode, `postgres.enabled`)
   - `redis.yaml` - Bundled Redis StatefulSet, Service, and PVC (scalable mode, `redis.enabled`)
   - `pvc.yaml` - Persistent volume claim (standalone mode only)
   - `migration-job.yaml` - SQLite to PostgreSQL migration Job
   - `ingress.yaml` - Ingress configuration
   - `network-policy.yaml` - Network policies
+  - `servicemonitor.yaml` - Prometheus Operator ServiceMonitor (`serviceMonitor.enabled`)
+  - `custom-template-configmap.yaml` - Custom honeypot page template (`customTemplate.enabled`)
+  - `llm.yaml` - Bundled Ollama / llama.cpp workloads (`llm.*.enabled`)
+  - `_helpers.tpl` - Shared template helpers
 
 ## Support
 

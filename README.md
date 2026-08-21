@@ -145,6 +145,27 @@ Krawl maintains a regularly updated [`banlist.txt`](banlist.txt) of IP addresses
 The banlist can also be fetched directly from:
 [https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw](https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw).
 
+### Sharing banlists between instances
+
+Krawl instances can federate their banlists: each one can publish its own list on an
+unauthenticated path and pull in lists from other instances (or any plain-text IP list).
+Fetched IPs are merged into the local ban decisions and shown in the dashboard.
+
+```yaml
+banlist:
+  # Public, unauthenticated download path for this instance's banlist.
+  # Supports the same ?categories= and ?fwtype= parameters as the main API.
+  # Empty = disabled.
+  export_path: "/public_banlist.txt"
+
+  # Upstream banlists to fetch and merge. Plain ".txt" lists work too.
+  sources:
+    - "https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw"
+    - "https://krawl.example.com/public_banlist.txt"
+
+  refresh_interval: 3600  # seconds between fetches
+```
+
 ## Quickstart
 
 ### Docker Run
@@ -256,7 +277,7 @@ To deploy, just run
 docker compose up -d
 ```
 
-Production-ready compose files are also available in the [`docker/`](docker/) directory. For **development** (builds from source with hot-reload), use the compose files at the project root.
+Production-ready compose files are also available in the [`docker/`](docker/) directory. For **development** (builds from source with hot-reload), use the compose files in [`docker/dev/`](docker/dev/).
 
 For more details on both modes, see [Deployment Modes](docs/deployment-modes.md).
 
@@ -319,6 +340,9 @@ You can use the [config.yaml](config.yaml) file for advanced configurations, suc
 | `KRAWL_DASHBOARD_WARMUP_AGGREGATION` | Pre-compute full top_paths/top_ua aggregations for zero-query serving | `false` |
 | `KRAWL_DASHBOARD_TOP_N_MIN_COUNT` | Minimum access count for top paths/user agents panels (set to 1 to disable) | `5` |
 | `KRAWL_PROBABILITY_ERROR_CODES` | Error response probability (0-100%) | `0` |
+| `KRAWL_METRICS_ENABLED` | Expose Prometheus metrics at `/<dashboard_path>/metrics` | `true` |
+| `KRAWL_LOG_LEVEL` | Application log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) | `INFO` |
+| `KRAWL_IGNORED_IPS` | Comma-separated IPs/CIDRs never tracked, banned or exported | Loopback, RFC1918, link-local, CGNAT |
 | `KRAWL_DATABASE_PATH` | Database file location | `data/krawl.db` |
 | `KRAWL_DATABASE_PERSIST_SUSPICIOUS_ONLY` | Only persist suspicious requests to the access log | `false` |
 | `KRAWL_BACKUPS_PATH` | Path where database dump are saved | `backups` |
@@ -344,6 +368,12 @@ You can use the [config.yaml](config.yaml) file for advanced configurations, suc
 | `KRAWL_AI_TIMEOUT` | Request timeout in seconds for AI API calls | `60` |
 | `KRAWL_AI_MAX_DAILY_REQUESTS` | Max number of AI-generated pages per day (0 = unlimited) | `0` |
 | `KRAWL_AI_PROMPT` | Custom prompt template for AI page generation | Default prompt |
+| `KRAWL_AI_REASONING_ENABLED` | Enable reasoning tokens (OpenRouter reasoning models only) | `false` |
+| `KRAWL_AI_REASONING_EFFORT` | Reasoning effort (`none`, `minimal`, `low`, `medium`, `high`, `xhigh`) | `"medium"` |
+| `KRAWL_DECEPTION_IMPORT_PAGES` | Auto-import deception pages from `src/templates/deception/` at startup | `true` |
+| `KRAWL_BANLIST_EXPORT_PATH` | Public banlist download path, e.g. `/public_banlist.txt` (empty = disabled) | `""` |
+| `KRAWL_BANLIST_SOURCES` | Comma-separated upstream banlist URLs to fetch and merge | Krawl community banlist |
+| `KRAWL_BANLIST_REFRESH_INTERVAL` | Seconds between upstream banlist fetches | `3600` |
 | `KRAWL_CUSTOM_TEMPLATE_PATH` | Path inside the container to a custom HTML template. Template must include `{counter}` and `{content}` placeholders. | `/templates/custom_page.html` |
 | **Scalable mode** | | |
 | `KRAWL_MODE` | Deployment mode (`standalone` or `scalable`) | `standalone` |
@@ -482,7 +512,8 @@ See the [Monitoring documentation](docs/monitoring.md) for the full metric list,
 | [Deployment Modes](docs/deployment-modes.md) | Standalone (SQLite) vs Scalable (PostgreSQL + Redis) mode, configuration, and data migration |
 | [Honeypot](docs/honeypot.md) | Full overview of honeypot pages: fake logins, directory listings, credential files, SQLi/XSS/XXE/command injection traps, and more |
 | [Dashboard](docs/dashboard.md) | Access and explore the real-time monitoring dashboard |
-| [API](docs/api.md) | External APIs used by Krawl for IP data, reputation, and geolocation |
+| [Dashboard API](docs/dashboard-api.md) | Krawl's own JSON API: endpoint reference, authentication, interactive OpenAPI docs, and attachment downloads |
+| [External APIs](docs/api.md) | Third-party APIs Krawl calls out to for IP data, reputation, and geolocation |
 | [Reverse Proxy](docs/reverse-proxy.md) | How to deploy Krawl behind NGINX or use decoy subdomains |
 | [Database Backups](docs/backups.md) | Enable and configure the automatic database dump job |
 | [Canary Token](docs/canary-token.md) | Set up external alert triggers via canarytokens.org |
@@ -490,6 +521,7 @@ See the [Monitoring documentation](docs/monitoring.md) for the full metric list,
 | [Architecture](docs/architecture.md) | Technical overview of the codebase, request pipeline, database schema, and background tasks |
 | [Cloudflare Banlist Sync](docs/cloudflare_banlist.md) | Pushes banned IPs from Krawl to a Cloudflare Account IP List for use in WAF rules. The sync runs as a background task and updates the list by full replacement. |
 | [Firewall Exporters](docs/firewall-exporters.md) | Export IP banlists in raw, iptables, or nftables format via REST API |
+| [Tarpit](docs/tarpit.md) | Slow down and poison AI crawlers with delayed, noise-padded responses |
 | [Metrics & Monitoring](docs/monitoring.md) | Prometheus metrics endpoint, exposed metrics reference, Grafana dashboard, and ServiceMonitor scraping |
 
 ## Contributing
