@@ -15,7 +15,7 @@ A Helm chart for deploying the Krawl honeypot application on Kubernetes.
 
 ```bash
 helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
-  --version 2.2.0 \
+  --version 2.3.0 \
   --namespace krawl-system \
   --create-namespace \
   -f values.yaml  # optional
@@ -62,7 +62,7 @@ This deploys PostgreSQL and Redis StatefulSets with Services in the same namespa
 
 Minimal `values-minimal.yaml` for scalable mode:
 
-> **Tip**: For production deployments, pin the image tag to a specific version (e.g., `tag: "2.2.0"`) instead of `latest` to ensure reproducible deployments.
+> **Tip**: For production deployments, pin the image tag to a specific version (e.g., `tag: "2.3.0"`) instead of `latest` to ensure reproducible deployments.
 
 ```yaml
 mode: scalable
@@ -179,7 +179,7 @@ The following table lists the main configuration parameters of the Krawl chart a
 | `mode` | Deployment mode (`standalone` or `scalable`) | `scalable` |
 | `replicaCount` | Number of pod replicas (>1 only in scalable mode) | `1` |
 | `image.repository` | Image repository | `ghcr.io/blessedrebus/krawl` |
-| `image.tag` | Image tag | `2.2.0` |
+| `image.tag` | Image tag | `2.3.0` |
 | `image.pullPolicy` | Image pull policy | `Always` |
 
 ### Service Configuration
@@ -255,6 +255,20 @@ The Krawl service already includes `externalTrafficPolicy: Local` by default to 
 |-----------|-------------|---------|
 | `config.dashboard.secret_path` | Secret dashboard path (auto-generated if null) | `null` |
 | `dashboardPassword` | Password for protected panels (injected via Secret as `KRAWL_DASHBOARD_PASSWORD` env, auto-generated if empty) | `""` |
+| `dashboardExistingSecret.name` | Externally-managed Secret holding the dashboard password (and optionally the path). When set, the chart-managed Secret is not created. | `""` |
+| `dashboardExistingSecret.passwordKey` | Key holding the dashboard password | `dashboard-password` |
+| `dashboardExistingSecret.pathKey` | Key holding the dashboard secret path. When set, `KRAWL_DASHBOARD_SECRET_PATH` is injected from the Secret and overrides `config.dashboard.secret_path`. | `""` |
+| `aiExistingSecret.name` | Externally-managed Secret holding the AI/LLM API key. When set, the chart-managed AI Secret is not created. | `""` |
+| `aiExistingSecret.key` | Key holding the API key | `ai-api-key` |
+| `canaryTokenUrl` | Canary token URL. Stored in a chart-managed Secret and injected as `KRAWL_CANARY_TOKEN_URL`, keeping it out of the ConfigMap. | `""` |
+| `canaryExistingSecret.name` | Externally-managed Secret holding the canary token URL | `""` |
+| `canaryExistingSecret.key` | Key holding the URL | `canary-token-url` |
+| `cloudflare.enabled` | Enable CloudFlare WAF/banlist sync (`KRAWL_CLOUDFLARE_ENABLED`) | `false` |
+| `cloudflare.accountId` / `cloudflare.authToken` | CloudFlare credentials, stored in a chart-managed Secret. Injected as env, take precedence over `data/webhooks.json`, and are never written back to disk. | `""` |
+| `cloudflare.existingSecret.name` | Externally-managed Secret holding the CloudFlare credentials | `""` |
+| `cloudflare.existingSecret.accountIdKey` / `.authTokenKey` | Keys in that Secret | `cloudflare-account-id` / `cloudflare-auth-token` |
+| `extraEnv` | Extra env vars for the Krawl container (list of `name`/`value` or `valueFrom` entries) | `[]` |
+| `extraEnvFrom` | Extra `envFrom` sources (`secretRef` / `configMapRef`) — escape hatch for External Secrets Operator / Vault | `[]` |
 
 ### API Configuration
 
@@ -286,8 +300,12 @@ The Krawl service already includes `externalTrafficPolicy: Local` by default to 
 | `postgres.user` | PostgreSQL username | `krawl` |
 | `postgres.password` | PostgreSQL password | `krawl` |
 | `postgres.database` | PostgreSQL database name | `krawl` |
-| `postgres.existingSecret` | Use an existing Secret for the password | `` |
-| `postgres.existingSecretKey` | Key in the existing Secret | `postgres-password` |
+| `postgres.existingSecret.name` | Externally-managed Secret for the PostgreSQL credentials (skips the chart-managed Secret; used by the Krawl Deployment, bundled StatefulSet and migration Job) | `""` |
+| `postgres.existingSecret.passwordKey` | Key holding the password | `postgres-password` |
+| `postgres.existingSecret.userKey` | Key holding the username (empty = use `postgres.user`) | `""` |
+| `postgres.existingSecret.hostKey` | Key holding the host (empty = use `postgres.host`) | `""` |
+| `postgres.existingSecret.portKey` | Key holding the port (empty = use `postgres.port`) | `""` |
+| `postgres.existingSecret.databaseKey` | Key holding the database name (empty = use `postgres.database`) | `""` |
 | `postgres.image.repository` | PostgreSQL image repository (bundled only) | `postgres` |
 
 | `postgres.image.tag` | PostgreSQL image tag | `16-alpine` |
@@ -307,8 +325,10 @@ The Krawl service already includes `externalTrafficPolicy: Local` by default to 
 | `redis.port` | Redis port | `6379` |
 | `redis.db` | Redis database number | `0` |
 | `redis.password` | Redis password | `` |
-| `redis.existingSecret` | Use an existing Secret for the password | `` |
-| `redis.existingSecretKey` | Key in the existing Secret | `redis-password` |
+| `redis.existingSecret.name` | Externally-managed Secret for the Redis credentials (skips the chart-managed Secret; used by the Krawl Deployment and bundled StatefulSet) | `""` |
+| `redis.existingSecret.passwordKey` | Key holding the password | `redis-password` |
+| `redis.existingSecret.hostKey` | Key holding the host (empty = use `redis.host`) | `""` |
+| `redis.existingSecret.portKey` | Key holding the port (empty = use `redis.port`) | `""` |
 | `redis.image.repository` | Redis image repository (bundled only) | `redis` |
 | `redis.image.tag` | Redis image tag | `7-alpine` |
 | `redis.image.pullPolicy` | Image pull policy | `IfNotPresent` |
@@ -357,6 +377,63 @@ A one-shot Kubernetes Job that copies data from an existing SQLite PVC into Post
 | `config.crawl.max_pages_limit` | Maximum pages limit for legitimate crawlers | `250` |
 | `config.crawl.ban_duration_seconds` | IP ban duration in seconds | `600` |
 
+### Ignored IPs
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `config.ignored_ips` | List of IPs / CIDR ranges (IPv4/IPv6) never tracked, banned, exported, or persisted — and purged from the database on startup | loopback, RFC1918, link-local, CGNAT ranges |
+
+### Banlist Federation
+
+Publish this instance's banlist on an unauthenticated path and merge lists pulled from other Krawl instances (or any plain-text IP list).
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `config.banlist.export_path` | Public banlist download path, e.g. `/public_banlist.txt`. Supports the same `?categories=` / `?fwtype=` parameters as the main API. Empty = disabled | `""` |
+| `config.banlist.sources` | Upstream banlist URLs to fetch and merge | `[]` |
+| `config.banlist.refresh_interval` | Seconds between upstream fetches | `3600` |
+
+### Tarpit
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `config.tarpit.enabled` | Trap AI agents with slow responses and random text | `false` |
+| `config.tarpit.delay_seconds` | Extra delay added to each response when the tarpit is active | `5` |
+
+### Deception Pages
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `config.deception.import_pages` | Auto-import HTML deception pages from `src/templates/deception/` at startup | `true` |
+| `customTemplate.enabled` | Mount a custom honeypot page template at `/etc/krawl/templates/custom_page.html` | `false` |
+| `customTemplate.content` | Inline HTML for that template | Example page |
+
+### Metrics and Monitoring
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `config.metrics.enabled` | Expose Prometheus metrics at `/<dashboard.secret_path>/metrics` | `true` |
+| `config.logging.level` | Log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`) | `INFO` |
+| `serviceMonitor.enabled` | Create a Prometheus Operator `ServiceMonitor`. Requires `config.metrics.enabled` and an explicitly set `config.dashboard.secret_path` (the metrics path is derived from it) | `false` |
+| `serviceMonitor.interval` / `.scrapeTimeout` | Scrape interval and timeout | `30s` / `10s` |
+| `serviceMonitor.labels` | Extra labels so your Prometheus `serviceMonitorSelector` matches (e.g. `release: kube-prometheus-stack`) | `{}` |
+| `serviceMonitor.honorLabels` / `.relabelings` / `.metricRelabelings` | Passed through to the ServiceMonitor endpoint | `false` / `[]` / `[]` |
+| `grafanaDashboard.enabled` | Ship the Krawl Grafana dashboard as a ConfigMap for the Grafana sidecar to discover | `false` |
+| `grafanaDashboard.label` / `.labelValue` | Label the sidecar watches for | `grafana_dashboard` / `"1"` |
+| `grafanaDashboard.namespace` | Namespace the sidecar watches, when not the release namespace (e.g. `cattle-monitoring-system`) | `""` |
+| `grafanaDashboard.annotations` | Extra annotations on the dashboard ConfigMap | `{}` |
+
+### Bundled Local LLM (optional)
+
+Deploy Ollama and/or llama.cpp alongside Krawl for AI deception pages without an external provider. Point `config.ai.openai_base_url` at `http://<release-name>-ollama:8080/v1` or `http://<release-name>-llamacpp:8080/v1`.
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `llm.ollama.enabled` | Deploy Ollama | `false` |
+| `llm.ollama.model` / `.pullModel` | Model to serve and whether to pull it on startup | `qwen:1.8b` / `true` |
+| `llm.ollama.persistence.enabled` / `.size` | Persistent volume for downloaded models | `true` / `5Gi` |
+| `llm.llamaCpp.enabled` | Deploy llama.cpp | `false` |
+
 ### Resource Limits
 
 | Parameter | Description | Default |
@@ -386,7 +463,7 @@ kubectl get secret krawl-server -n krawl-system \
 ### Scalable with bundled PostgreSQL and Redis (default)
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.2.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.0 \
   --set replicaCount=3 \
   --set postgres.password=your-password \
   --set redis.password=your-redis-password \
@@ -396,7 +473,7 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.2.0 \
 ### Scalable with external PostgreSQL and Redis
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.2.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.0 \
   --set replicaCount=3 \
   --set postgres.enabled=false \
   --set postgres.host=your-postgres-host \
@@ -410,7 +487,7 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.2.0 \
 ### Standalone with custom settings
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.2.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.0 \
   --set mode=standalone \
   --set postgres.enabled=false \
   --set redis.enabled=false \
@@ -432,7 +509,7 @@ helm upgrade krawl ./helm \
 ## Upgrading
 
 ```bash
-helm upgrade krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.2.0 -f values.yaml
+helm upgrade krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.0 -f values.yaml
 ```
 
 ## Uninstalling
@@ -473,6 +550,7 @@ kubectl logs -l app.kubernetes.io/name=krawl
 - `values.yaml` - Default configuration values
 - `values-minimal.yaml` - Minimal scalable mode example
 - `values-standalone.yaml` - Minimal standalone mode example
+- `files/grafana-dashboard.json` - Grafana dashboard embedded by the dashboard ConfigMap
 - `templates/` - Kubernetes resource templates
   - `deployment.yaml` - Krawl deployment (branches on `mode` for strategy, env vars, volumes)
   - `service.yaml` - Service configuration
@@ -480,12 +558,20 @@ kubectl logs -l app.kubernetes.io/name=krawl
   - `wordlists-configmap.yaml` - Wordlists configuration
   - `secret.yaml` - Dashboard password secret
   - `secret-scalable.yaml` - PostgreSQL and Redis password secrets (scalable mode only)
+  - `secret-ai.yaml` - AI/LLM API key secret (`aiExistingSecret` skips it)
+  - `secret-canary.yaml` - Canary token URL secret
+  - `secret-cloudflare.yaml` - CloudFlare account ID and auth token secret
   - `postgres.yaml` - Bundled PostgreSQL StatefulSet, Service, and PVC (scalable mode, `postgres.enabled`)
   - `redis.yaml` - Bundled Redis StatefulSet, Service, and PVC (scalable mode, `redis.enabled`)
   - `pvc.yaml` - Persistent volume claim (standalone mode only)
   - `migration-job.yaml` - SQLite to PostgreSQL migration Job
   - `ingress.yaml` - Ingress configuration
   - `network-policy.yaml` - Network policies
+  - `servicemonitor.yaml` - Prometheus Operator ServiceMonitor (`serviceMonitor.enabled`)
+  - `grafana-dashboard.yaml` - Grafana dashboard ConfigMap (`grafanaDashboard.enabled`), rendering `files/grafana-dashboard.json`
+  - `custom-template-configmap.yaml` - Custom honeypot page template (`customTemplate.enabled`)
+  - `llm.yaml` - Bundled Ollama / llama.cpp workloads (`llm.*.enabled`)
+  - `_helpers.tpl` - Shared template helpers
 
 ## Support
 

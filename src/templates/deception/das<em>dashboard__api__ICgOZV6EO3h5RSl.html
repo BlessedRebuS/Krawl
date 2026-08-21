@@ -1,0 +1,26 @@
+{
+  "app": {
+    "name": "Kestrel TMS",
+    "version": "3.8",
+    "env": "production",
+    "url": "https://portal.kestrelfreight.nl"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.kestrel.internal",
+    "port": 5432,
+    "name": "kestrel_tms",
+    "user": "tmsuser",
+    "password": "fake-db-password-0b5fb764"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.kestrel.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-7d41fc7ff9684cc52a358e0497e65164",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-07T11:10:54Z"
+}

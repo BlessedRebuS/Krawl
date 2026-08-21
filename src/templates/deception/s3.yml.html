@@ -1,0 +1,47 @@
+# Kestrel TMS — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
+
+app:
+  name: "Kestrel TMS"
+  env: production
+  url: https://portal.kestrelfreight.nl
+  version: "3.8"
+
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
+
+database:
+  driver: postgresql
+  host: pg-prod-01.db.kestrel.internal
+  port: 5432
+  name: kestrel_tms
+  user: tmsuser
+  password: fake-db-password-3f324a8e
+  pool:
+    min: 4
+    max: 32
+
+redis:
+  host: redis-prod-01.cache.kestrel.internal
+  port: 6379
+  password: fake-redis-password-2785ed
+
+auth:
+  jwt_secret: fake-jwt-secret-54b3a793a53e1e04459db4a384d9c6e4
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: kestrel-tms-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-93111
+  secret_access_key: fake-secret-kH7Y6i5THtwm3Sx03AwjjXY5
+
+logging:
+  level: warning
+  format: json
+  sentry_dsn: https://fake93d7f30a76a958f1@sentry.internal/9

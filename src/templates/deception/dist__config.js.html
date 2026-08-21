@@ -1,0 +1,36 @@
+/*! Halcyon Commerce 6.0.3 | build 3e6eebf | (c) Halcyon Retail Group */
+(function (window) {
+  'use strict';
+
+  var config = {
+    apiBase: 'https://api.halcyonretail.co.uk/v2',
+    wsBase: 'wss://api.halcyonretail.co.uk/socket',
+    sentryDsn: 'https://fakeba25f98f063034a4@sentry.internal/25',
+    release: 'halcyon-commerce@6.0.3',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
+
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
+  }
+
+  window.Halcyon = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

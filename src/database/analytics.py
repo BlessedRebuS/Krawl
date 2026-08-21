@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import func, or_
 from sqlalchemy.orm import joinedload
 
+from dashboard_cache import pagination
 from logger import get_app_logger
 from models import (
     AccessLog,
@@ -179,8 +180,6 @@ class AnalyticsRepo:
 
             results = base_query.offset(offset).limit(page_size).all()
 
-            total_pages = max(1, (total_ips + page_size - 1) // page_size)
-
             return {
                 "ips": [
                     {
@@ -190,12 +189,7 @@ class AnalyticsRepo:
                     }
                     for row in results
                 ],
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": total_ips,
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, total_ips),
             }
         finally:
             self._db.close_session()
@@ -269,16 +263,10 @@ class AnalyticsRepo:
                 )
 
             results = query.order_by(order_expr).offset(offset).limit(page_size).all()
-            total_pages = max(1, (total_paths + page_size - 1) // page_size)
 
             return {
                 "paths": [{"path": row.path, "count": row.count} for row in results],
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": int(total_paths),
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, int(total_paths)),
             }
         finally:
             self._db.close_session()
@@ -348,19 +336,13 @@ class AnalyticsRepo:
                 order_expr = ua_expr.desc() if sort_order == "desc" else ua_expr.asc()
 
             results = query.order_by(order_expr).offset(offset).limit(page_size).all()
-            total_pages = max(1, (total_uas + page_size - 1) // page_size)
 
             return {
                 "user_agents": [
                     {"user_agent": row.user_agent, "count": row.count}
                     for row in results
                 ],
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": int(total_uas),
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, int(total_uas)),
             }
         finally:
             self._db.close_session()
@@ -373,6 +355,8 @@ class AnalyticsRepo:
         sort_order: str = "desc",
         ip_filter: str | None = None,
         attack_type_filter: str | None = None,
+        search: str | None = None,
+        method_filter: str | None = None,
     ) -> dict[str, Any]:
         """
         Retrieve paginated list of detected attack types with access logs.
@@ -384,6 +368,8 @@ class AnalyticsRepo:
             sort_order: Sort order (asc or desc)
             ip_filter: Optional IP address to filter results
             attack_type_filter: Optional attack type to filter results
+            search: Optional case-insensitive substring filter across IP/path/user-agent
+            method_filter: Optional HTTP method filter (e.g. GET, POST)
 
         Returns:
             Dictionary with attacks list and pagination info
@@ -393,7 +379,13 @@ class AnalyticsRepo:
             offset = (page - 1) * page_size
 
             # Validate sort parameters
-            valid_sort_fields = {"timestamp", "ip", "attack_type"}
+            valid_sort_fields = {
+                "timestamp",
+                "ip",
+                "attack_type",
+                "request_size",
+                "method",
+            }
             sort_by = sort_by if sort_by in valid_sort_fields else "timestamp"
             sort_order = (
                 sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
@@ -418,6 +410,19 @@ class AnalyticsRepo:
             match_filters = [detection_exists.exists()]
             if ip_filter:
                 match_filters.append(AccessLog.ip == ip_filter)
+            if method_filter:
+                match_filters.append(
+                    func.upper(AccessLog.method) == method_filter.upper()
+                )
+            if search:
+                like = f"%{search}%"
+                match_filters.append(
+                    or_(
+                        AccessLog.ip.ilike(like),
+                        AccessLog.path.ilike(like),
+                        AccessLog.user_agent.ilike(like),
+                    )
+                )
 
             # Count total matching access logs.
             total_attacks = (
@@ -425,9 +430,16 @@ class AnalyticsRepo:
                 or 0
             )
 
-            # Order column lives on AccessLog (timestamp default; ip optional),
+            # Order column lives on AccessLog (timestamp default; ip/size optional),
             # so the outer query can be ordered and limited directly.
-            order_col = AccessLog.ip if sort_by == "ip" else AccessLog.timestamp
+            if sort_by == "ip":
+                order_col = AccessLog.ip
+            elif sort_by == "method":
+                order_col = AccessLog.method
+            elif sort_by == "request_size":
+                order_col = func.length(AccessLog.raw_request)
+            else:
+                order_col = AccessLog.timestamp
             order_expr = order_col.desc() if sort_order == "desc" else order_col.asc()
 
             # Two-step load: page the matching ids first (index-driven, no
@@ -456,25 +468,20 @@ class AnalyticsRepo:
                 {
                     "id": log.id,
                     "ip": log.ip,
+                    "method": log.method,
                     "path": log.path,
                     "user_agent": log.user_agent,
                     "timestamp": log.timestamp.isoformat() if log.timestamp else None,
                     "attack_types": [d.attack_type for d in log.attack_detections],
+                    "request_size": len(log.raw_request) if log.raw_request else 0,
                     "raw_request": log.raw_request,  # Keep for backward compatibility
                 }
                 for log in logs
             ]
 
-            total_pages = (total_attacks + page_size - 1) // page_size
-
             return {
                 "attacks": paginated,
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": total_attacks,
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, total_attacks),
             }
         finally:
             self._db.close_session()
@@ -743,6 +750,7 @@ class AnalyticsRepo:
                 {
                     "id": log.id,
                     "ip": log.ip,
+                    "method": log.method,
                     "path": log.path,
                     "user_agent": log.user_agent,
                     "timestamp": log.timestamp.isoformat() if log.timestamp else None,

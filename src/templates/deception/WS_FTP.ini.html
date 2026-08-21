@@ -1,40 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>WS_FTP.ini - Configuration File</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 40px;}
-        pre {background:#f4f4f4; padding:10px; border:1px solid #ccc;}
-    </style>
-</head>
-<body>
-    <h1>WS_FTP Configuration File</h1>
-    <p>Below is the content of the WS_FTP.ini file:</p>
-    <pre>
-[General]
-Version=2.0
-AutoConnect=0
+[_config_]
+version=12.9
+uid=f8d5282f
 
-[Site1]
-Host=ftp.example.com
-Port=21
-User=admin
-Password=Secret123!
-RemoteDir=/public_html
-LocalDir=C:\Users\Admin\Web
-PassiveMode=1
-Timeout=30
+[Meridian Systems Prod Web]
+HOST=web-01.meridiansys.io
+UID=deploy
+PWD=fake-encoded-X5VfSu9KV35+JjFk
+PORT=22
+PROTO=SFTP
+DIR=/var/www/portal
 
-[Site2]
-Host=backup.example.org
-Port=21
-User=backup
-Password=Backup456!
-RemoteDir=/backup
-LocalDir=D:\Backups
-PassiveMode=0
-Timeout=60
-    </pre>
-</body>
-</html>
+[Meridian Systems Backup]
+HOST=backup.meridian.internal
+UID=backupsvc
+PWD=fake-encoded-AlzKTgJyQpDmEHi0
+PORT=21
+PROTO=FTP
+DIR=/srv/backups/portal

@@ -1,38 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>src.sql - Source Code</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; margin:2em;}
-        pre {background:#eee; padding:1em; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>src.sql</h1>
-    <pre>
--- Database schema for example application
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    email VARCHAR(100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- Caretrack database dump
+-- host: pg-prod-01.db.nbh.internal    database: caretrack
+-- server version 16.3    dumped on 2026-08-14 09:12:07
+
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+
+DROP TABLE IF EXISTS mp_users;
+CREATE TABLE mp_users (
+    id            integer NOT NULL,
+    username      varchar(64) NOT NULL,
+    email         varchar(190) NOT NULL,
+    password_hash varchar(255) NOT NULL,
+    role          varchar(32) NOT NULL DEFAULT 'support',
+    created_at    timestamp NOT NULL
 );
 
-CREATE TABLE posts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    title VARCHAR(200) NOT NULL,
-    body TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
+INSERT INTO mp_users (id, username, email, password_hash, role, created_at) VALUES
+(3, 'e.whitfield', 'e.whitfield@northbridge-health.org', '$2y$12$t+LyUTlnGfKid4V4laFiV3uLK3TXhemtdaR8qdFzqKd0V+fFYx8ca', 'clinical_lead', '2017-09-04 08:31:44'),
+(9, 'p.adeyemi', 'p.adeyemi@northbridge-health.org', '$2y$12$xwFYFRwa+EIiBZUq8LLy+nz8EjsMYeY9mIagjV4e5cd8SjInGeZum', 'scheduler', '2019-11-18 08:31:44'),
+(14, 't.ruane', 't.ruane@northbridge-health.org', '$2y$12$Coc2F2zcnU8NDwU3Va5sxbkPoZ9ETb5rh/fwepwOm9za3S8NJwjER', 'administrator', '2020-02-06 08:31:44'),
+(21, 'l.svensson', 'l.svensson@northbridge-health.org', '$2y$12$IxT5xilCiAnU+wCAyrDLdiQteCr8hl99LlAW3Wf4f/emJzGLOTAjf', 'nurse', '2021-08-30 08:31:44'),
+(28, 'k.oyelaran', 'k.oyelaran@northbridge-health.org', '$2y$12$26J50hZXm1W+c/20ZRnw/avUzV4iZ5tJq3k6565+O5u675QnoSgFC', 'records', '2023-04-11 08:31:44');
 
--- Sample data
-INSERT INTO users (username, password, email) VALUES ('admin', '5f4dcc3b5aa765d61d8327deb882cf99', 'admin@example.com');
-INSERT INTO users (username, password, email) VALUES ('alice', 'e10adc3949ba59abbe56e057f20f883e', 'alice@example.com');
-INSERT INTO posts (user_id, title, body) VALUES (1, 'Welcome', 'This is the first post.');
-    </pre>
-</body>
-</html>
+ALTER TABLE ONLY mp_users ADD CONSTRAINT mp_users_pkey PRIMARY KEY (id);
+CREATE UNIQUE INDEX mp_users_email_idx ON mp_users USING btree (email);
+
+-- dump completed

@@ -1,27 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>application.properties - Configuration</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; margin:2em;}
-        pre {background:#fff; padding:1em; border:1px solid #ccc; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>application.properties</h1>
-    <pre>
-# Application Configuration
+# Meridian Portal — Spring Boot configuration
+spring.application.name=meridian-portal
 server.port=8080
-server.address=0.0.0.0
-spring.datasource.url=jdbc:mysql://db.example.com:3306/mydb
-spring.datasource.username=admin
-spring.datasource.password=SuperSecretPassword123!
-spring.jpa.hibernate.ddl-auto=update
-logging.level.root=INFO
-logging.level.org.springframework=DEBUG
-# Fake feature flag
-feature.experimental.enabled=true
-    </pre>
-</body>
-</html>
+server.servlet.context-path=/
+
+spring.datasource.url=jdbc:postgresql://pg-prod-01.db.meridian.internal:5432/meridian_portal
+spring.datasource.username=meridian_app
+spring.datasource.password=fake-db-password-4478d24f
+spring.datasource.hikari.maximum-pool-size=32
+
+spring.data.redis.host=redis-prod-01.cache.meridian.internal
+spring.data.redis.port=6379
+spring.data.redis.password=fake-redis-password-d1f493
+
+spring.mail.host=smtp.mail.meridian.internal
+spring.mail.port=587
+spring.mail.username=no-reply@meridiansys.io
+spring.mail.password=fake-smtp-password-33485dbc
+
+management.endpoints.web.exposure.include=health,info,metrics
+management.endpoint.health.show-details=when-authorized
+
+meridian.jwt.secret=fake-jwt-secret-1c3f1d01c65e8ccbe882fa21d040d244
+meridian.jwt.ttl-minutes=1440
+logging.level.root=WARN

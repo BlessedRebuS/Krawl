@@ -1,6 +1,13 @@
 ---
 # Scalable mode: Krawl + PostgreSQL + Redis
-# Usage: docker compose -f docker/docker-compose.scalable.yaml up -d
+#
+# Run from the repository root, where it picks up ./config.yaml and ./wordlists.json:
+#   docker compose up -d
+#
+# The same stack with paths relative to docker/ lives in
+# docker/docker-compose.scalable.yaml; standalone (SQLite, no external services) is
+# docker/docker-compose.standalone.yaml. Development stacks that build from source
+# with hot-reload are under docker/dev/.
 #
 # !! IMPORTANT: Change the default PostgreSQL and Redis passwords before deploying to production !!
 services:
@@ -36,19 +43,19 @@ services:
 
   ### Default LLM service using llama.cpp. You can switch to Ollama or another LLM server by commenting/uncommenting the relevant sections below.
   ### Make sure to select the GGUF model file using the repo and file parameters in the command section: https://github.com/ggml-org/llama.cpp/blob/master/docs/docker.md
-  # llama.cpp:
+  # llm:
   #   image: ghcr.io/ggml-org/llama.cpp:server
   #   container_name: krawl-llm
   #   ports:
   #     - "8080:8080"
-  #   # environment:
-  #   #  - HF_TOKEN=${HF_TOKEN:-}
+  #   environment:
+  #     - HF_TOKEN=${HF_TOKEN:-}
   #   volumes:
   #     - ./models:/models
   #     - llm_cache:/root/.cache
   #   restart: unless-stopped
   #   command: >
-  #     --hf-repo Qwen/Qwen1.5-1.8B-Chat-GGUF
+  #     --hf-repo Qwen/Qwen1.5-1.8B-Chat-GGUF # set your desired model here in the GGUF format
   #     --hf-file qwen1_5-1_8b-chat-q4_k_m.gguf
   #     --port 8080
   #     --host 0.0.0.0
@@ -62,31 +69,23 @@ services:
   ### ALTERNATIVE: Use Ollama instead of llama.cpp. Specify the model in the command section https://docs.ollama.com/docker#docker
   ### Remember to specify the "model" parameter also in the config.yaml file.
   # ollama:
-  #     image: ollama/ollama:latest
-  #     container_name: krawl-llm
-  #     ports:
-  #       - "8080:8080"
-  #     environment:
-  #       - OLLAMA_MODELS=/models
-  #       - OLLAMA_HOST=0.0.0.0:8080
-  #     volumes:
-  #       - ./models:/models
-  #       - llm_cache:/root/.ollama
-  #     restart: unless-stopped
-  #     entrypoint: >
-  #       sh -c "
-  #         /bin/ollama serve &
-  #         until /bin/ollama list > /dev/null 2>&1; do
-  #           sleep 2;
-  #         done;
-  #         /bin/ollama pull qwen:1.8b;
-  #         wait
-  #       "
-  #     healthcheck:
-  #       test: ["CMD", "/bin/ollama", "list"]
-  #       interval: 10s
-  #       timeout: 5s
-  #       retries: 5
+  #   image: ollama/ollama:latest
+  #   container_name: krawl-llm
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     - OLLAMA_MODELS=/models
+  #     - OLLAMA_HOST=0.0.0.0:8080
+  #   volumes:
+  #     - ./models:/models
+  #     - llm_cache:/root/.ollama
+  #   restart: unless-stopped
+  #   command: serve; ollama pull qwen1.5:1.8b; # set your desired model here
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8080/api/tags"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
   krawl:
     image: ghcr.io/blessedrebus/krawl:latest
@@ -110,6 +109,30 @@ services:
       # - KRAWL_DASHBOARD_PASSWORD=your-secret-password
       # Set this to change timezone
       # - TZ=Europe/Rome
+      #
+      # --- Banlist federation (docs/firewall-exporters.md) ---
+      # Publish this instance's banlist on an unauthenticated path, and merge
+      # lists pulled from other Krawl instances or any plain-text IP list.
+      # - KRAWL_BANLIST_EXPORT_PATH=/public_banlist.txt
+      # - KRAWL_BANLIST_SOURCES=https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw
+      # - KRAWL_BANLIST_REFRESH_INTERVAL=3600
+      #
+      # --- Tarpit (docs/tarpit.md) ---
+      # Delay and pad every honeypot response to make crawling expensive.
+      # Applies to all honeypot visitors, not only known-malicious IPs.
+      # - KRAWL_TARPIT_ENABLED=true
+      # - KRAWL_TARPIT_DELAY_SECONDS=5
+      #
+      # --- Cloudflare WAF sync (docs/cloudflare_banlist.md) ---
+      # - KRAWL_CLOUDFLARE_ENABLED=true
+      # - KRAWL_CLOUDFLARE_ACCOUNT_ID=your-account-id
+      # - KRAWL_CLOUDFLARE_AUTH_TOKEN=your-api-token
+      #
+      # Never tracked, banned, exported or persisted; purged at startup.
+      # Defaults cover loopback, RFC1918, link-local and CGNAT.
+      # - KRAWL_IGNORED_IPS=10.0.0.0/8,192.168.0.0/16
+      # - KRAWL_METRICS_ENABLED=true
+      # - KRAWL_LOG_LEVEL=INFO
     volumes:
       - ./wordlists.json:/app/wordlists.json:ro
       - ./config.yaml:/app/config.yaml:ro

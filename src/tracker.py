@@ -5,24 +5,10 @@ import re
 import urllib.parse
 
 from database import DatabaseManager, get_database
-from ip_utils import is_local_or_private_ip
+from ip_utils import is_ignored_ip
 from wordlists import get_wordlists
 
 logger = logging.getLogger("krawl")
-
-# Module-level singleton for background task access
-_tracker_instance: "AccessTracker | None" = None
-
-
-def get_tracker() -> "AccessTracker | None":
-    """Get the global AccessTracker singleton (set during app startup)."""
-    return _tracker_instance
-
-
-def set_tracker(tracker: "AccessTracker"):
-    """Store the AccessTracker singleton for background task access."""
-    global _tracker_instance
-    _tracker_instance = tracker
 
 
 class AccessTracker:
@@ -119,72 +105,16 @@ class AccessTracker:
         if not post_data:
             return None, None
 
-        username = None
-        password = None
+        parsed = urllib.parse.parse_qs(post_data)
+        wl = get_wordlists()
 
-        try:
-            # Parse URL-encoded form data
-            parsed = urllib.parse.parse_qs(post_data)
+        def first(fields):
+            for field in fields:
+                if parsed.get(field):
+                    return parsed[field][0]
+            return None
 
-            # Get credential field names from wordlists
-            wl = get_wordlists()
-            username_fields = wl.username_fields
-            password_fields = wl.password_fields
-
-            # Fallback if wordlists not loaded
-            if not username_fields:
-                username_fields = [
-                    "username",
-                    "user",
-                    "login",
-                    "email",
-                    "log",
-                    "userid",
-                    "account",
-                ]
-            if not password_fields:
-                password_fields = ["password", "pass", "passwd", "pwd", "passphrase"]
-
-            for field in username_fields:
-                if field in parsed and parsed[field]:
-                    username = parsed[field][0]
-                    break
-
-            for field in password_fields:
-                if field in parsed and parsed[field]:
-                    password = parsed[field][0]
-                    break
-
-        except Exception:
-            # If parsing fails, try simple regex patterns
-            wl = get_wordlists()
-            username_fields = wl.username_fields or [
-                "username",
-                "user",
-                "login",
-                "email",
-                "log",
-            ]
-            password_fields = wl.password_fields or [
-                "password",
-                "pass",
-                "passwd",
-                "pwd",
-            ]
-
-            # Build regex pattern from wordlist fields
-            username_pattern = "(?:" + "|".join(username_fields) + ")=([^&\\s]+)"
-            password_pattern = "(?:" + "|".join(password_fields) + ")=([^&\\s]+)"
-
-            username_match = re.search(username_pattern, post_data, re.IGNORECASE)
-            password_match = re.search(password_pattern, post_data, re.IGNORECASE)
-
-            if username_match:
-                username = urllib.parse.unquote_plus(username_match.group(1))
-            if password_match:
-                password = urllib.parse.unquote_plus(password_match.group(1))
-
-        return username, password
+        return first(wl.username_fields), first(wl.password_fields)
 
     def record_credential_attempt(
         self, ip: str, path: str, username: str, password: str
@@ -242,7 +172,7 @@ class AccessTracker:
         """
         # Private/local/reserved IPs (e.g. k8s health-check sources) are never
         # tracked, categorized, or banned.
-        if is_local_or_private_ip(ip):
+        if is_ignored_ip(ip):
             return 0
 
         # Skip if this is the server's own IP
@@ -403,7 +333,7 @@ class AccessTracker:
             The updated page visit count for this IP
         """
         # Private/local/reserved IPs are never tracked or banned.
-        if is_local_or_private_ip(client_ip):
+        if is_ignored_ip(client_ip):
             return 0
 
         from config import get_config

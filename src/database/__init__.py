@@ -8,6 +8,7 @@ exposed as attributes on DatabaseManager (db.access_logs, db.ip_stats, ...).
 from database.core import (
     DatabaseManager,
     get_database,
+    get_dropped_rows,
     get_write_buffer_size,
     initialize_database,
 )
@@ -15,6 +16,7 @@ from database.core import (
 __all__ = [
     "DatabaseManager",
     "get_database",
+    "get_dropped_rows",
     "get_write_buffer_size",
     "initialize_database",
 ]

@@ -1,159 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Profile - WordPress</title>
-    <link rel="stylesheet" href="/wp-admin/css/wp-admin.min.css?ver=6.5.2">
-    <link rel="stylesheet" href="/wp-admin/css/colors?ver=6.5.2">
-    <script src="/wp-admin/js/jquery.min.js?ver=3.7.1"></script>
-    <script src="/wp-admin/js/common.min.js?ver=6.5.2"></script>
-    <style>
-        .form-table { width: 100%; margin: 20px 0; }
-        .form-table th { width: 20%; padding: 10px; font-weight: bold; text-align: left; }
-        .form-table td { padding: 10px; }
-        .form-table input[type="text"], .form-table input[type="email"], .form-table textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-        .form-table textarea { height: 100px; resize: vertical; }
-        .submit { margin-top: 20px; }
-        .button-primary { background: #0073aa; border-color: #0073aa; color: white; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-size: 14px; }
-        .button-primary:hover { background: #005a87; }
-        .notice { padding: 10px; margin: 20px 0; border-left: 4px solid; }
-        .notice-success { background: #e6ffed; border-color: #28a745; color: #155724; }
-        .notice-error { background: #ffe6e6; border-color: #dc3545; color: #721c24; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administration — Halcyon Commerce</title>
+<style>
+:root{--bg:#faf7f3;--panel:#fff;--ink:#2b2320;--muted:#8a7d74;
+--line:#e7ded4;--brand:#9c4221;--brand-dk:#7a3319;--r:2px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 "Helvetica Neue",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#2b2320;color:#faf7f3;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#faf7f3}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#cbbdb1;font-size:13px}
+header.top nav a.active{color:#faf7f3;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:none}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:26px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:Georgia,"Times New Roman",serif;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
-<body class="wp-admin wp-core-ui no-js">
-    <div id="wpwrap">
-        <div id="adminmenuwrap">
-            <div id="adminmenu">
-                <ul>
-                    <li id="menu-dashboard" class="menu-top menu-icon-dashboard"><a href="/wp-admin/index.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Dashboard</div></a></li>
-                    <li id="menu-posts" class="menu-top menu-icon-post"><a href="/wp-admin/edit.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Posts</div></a></li>
-                    <li id="menu-media" class="menu-top menu-icon-media"><a href="/wp-admin/upload.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Media</div></a></li>
-                    <li id="menu-pages" class="menu-top menu-icon-page"><a href="/wp-admin/edit.php?post_type=page"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Pages</div></a></li>
-                    <li id="menu-comments" class="menu-top menu-icon-comment"><a href="/wp-admin/edit-comments.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Comments</div></a></li>
-                    <li id="menu-appearance" class="menu-top menu-icon-appearance"><a href="/wp-admin/themes.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Appearance</div></a></li>
-                    <li id="menu-plugins" class="menu-top menu-icon-plugins"><a href="/wp-admin/plugins.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Plugins</div></a></li>
-                    <li id="menu-users" class="menu-top menu-icon-users"><a href="/wp-admin/users.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Users</div></a></li>
-                    <li id="menu-tools" class="menu-top menu-icon-tools"><a href="/wp-admin/tools.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Tools</div></a></li>
-                    <li id="menu-settings" class="menu-top menu-icon-settings"><a href="/wp-admin/options-general.php"><div class="wp-menu-image"><img src="/wp-admin/images/menu-icons.svg?ver=6.5.2" alt="" /></div><div>Settings</div></a></li>
-                </ul>
-            </div>
-        </div>
-        <div id="wpcontent">
-            <div id="wpbody">
-                <div id="wpbody-content">
-                    <div class="wrap">
-                        <h1>Your Profile</h1>
-                        
-                        <?php if (isset($_GET['updated']) && $_GET['updated'] == 'true'): ?>
-                            <div class="notice notice-success is-dismissible">
-                                <p>Profile updated.</p>
-                                <button type="button" class="notice-dismiss"><span class="screen-reader-text">Dismiss this notice.</span></button>
-                            </div>
-                        <?php endif; ?>
+<body>
+<header class="top"><span class="brand">Halcyon Commerce</span><nav><a href="/">Home</a><a href="/orders">Orders</a><a href="/catalogue">Catalogue</a><a href="/customers">Customers</a><a href="/admin">Store admin</a></nav></header>
 
-                        <?php if (isset($_GET['error']) && $_GET['error'] == 'invalid_email'): ?>
-                            <div class="notice notice-error is-dismissible">
-                                <p>The email address you entered is invalid.</p>
-                                <button type="button" class="notice-dismiss"><span class="screen-reader_text">Dismiss this notice.</span></button>
-                            </div>
-                        <?php endif; ?>
+<div class="wrap">
+  <h1>Administration</h1>
+  <p class="sub">Signed in as <strong>c.mbeki</strong> (store manager) &middot;
+  last sign-in 13/08/2026 14:12 from 10.24.8.41</p>
+  <div class="grid">
+    <div class="kpi"><div class="n">5</div><div class="l"><a href="/admin/users">Users</a></div></div>
+    <div class="kpi"><div class="n">8</div><div class="l"><a href="/admin/roles">Roles &amp; permissions</a></div></div>
+    <div class="kpi"><div class="n">6</div><div class="l"><a href="/admin/integrations">Integrations</a></div></div>
+    <div class="kpi"><div class="n">460</div><div class="l"><a href="/admin/audit">Audit entries (7d)</a></div></div>
+  </div>
+  <div class="panel" style="margin-top:18px">
+    <h2>Latest audit events</h2>
+    <table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Source</th></tr></thead>
+    <tbody><tr><td>14/08 08:30</td><td>c.mbeki</td><td>Updated SMTP integration credentials</td><td>10.24.8.41</td></tr><tr><td>14/08 06:12</td><td>h.lindqvist</td><td>Generated API token <code>tok_feccce534e</code></td><td>10.24.9.16</td></tr><tr><td>14/08 00:12</td><td>system</td><td>Suspended account j.okonkwo (12 failed sign-ins)</td><td>&mdash;</td></tr><tr><td>13/08 09:12</td><td>a.pashkov</td><td>Exported order report Q3-2026</td><td>10.24.8.77</td></tr></tbody></table>
+  </div>
+</div>
 
-                        <form method="post" action="/wp-admin/profile.php" enctype="multipart/form-data">
-                            <input type="hidden" name="action" value="update">
-                            <input type="hidden" name="user_id" value="1">
-                            <input type="hidden" name="wp_http_referer" value="/wp-admin/profile.php">
-                            <input type="hidden" name="_wpnonce" value="abc123def456">
-                            
-                            <table class="form-table">
-                                <tr>
-                                    <th><label for="username">Username</label></th>
-                                    <td><input name="username" type="text" id="username" value="admin" class="regular-text" disabled></td>
-                                </tr>
-                                <tr>
-                                    <th><label for="email">Email</label></th>
-                                    <td><input name="email" type="email" id="email" value="admin@example.com" class="regular-text"><br>
-                                        <span class="description">This email address will be used for password resets and notifications.</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th><label for="first_name">First Name</label></th>
-                                    <td><input name="first_name" type="text" id="first_name" value="John" class="regular-text"></td>
-                                </tr>
-                                <tr>
-                                    <th><label for="last_name">Last Name</label></th>
-                                    <td><input name="last_name" type="text" id="last_name" value="Doe" class="regular-text"></td>
-                                </tr>
-                                <tr>
-                                    <th><label for="nickname">Nickname</label></th>
-                                    <td><input name="nickname" type="text" id="nickname" value="johndoe" class="regular-text"><br>
-                                        <span class="description">This will be your display name if "Display name publicly as" is left blank.</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th><label for="display_name">Display name publicly as</label></th>
-                                    <td>
-                                        <select name="display_name" id="display_name">
-                                            <option value="John Doe">John Doe</option>
-                                            <option value="johndoe">johndoe</option>
-                                            <option value="Admin">Admin</option>
-                                            <option value="admin">admin</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th><label for="description">Biographical Info</label></th>
-                                    <td><textarea name="description" id="description" rows="5" cols="50">Senior developer with over 10 years of experience in web development and security. Passionate about creating robust, scalable applications.</textarea><br>
-                                        <span class="description">This biographical info is shown in your author archive and at the end of your posts.</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th><label for="site">Website</label></th>
-                                    <td><input name="url" type="url" id="url" value="https://example.com" class="regular-text code"><br>
-                                        <span class="description">Enter your website URL (must start with http:// or https://).</span>
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <h3>Account Management</h3>
-                            <table class="form-table">
-                                <tr>
-                                    <th><label for="pass1">New Password</label></th>
-                                    <td>
-                                        <input name="pass1" type="password" id="pass1" size="16" value="" autocomplete="off"><br>
-                                        <span id="pass-strength-result">Enter new password twice</span><br>
-                                        <span class="description">If you would like to change your password, type a new one in both fields below (leave blank to keep current password).</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th><label for="pass2">Repeat New Password</label></th>
-                                    <td>
-                                        <input name="pass2" type="password" id="pass2" size="16" value="" autocomplete="off"><br>
-                                        <span class="description">Type your new password again.</span>
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <p class="submit">
-                                <input type="submit" name="submit" id="submit" class="button-primary button-large" value="Update Profile">
-                                <a href="https://wordpress.org/support/" target="_blank">Need help?</a>
-                            </p>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script>
-        // Fake client-side validation to appear realistic
-        document.getElementById('submit').addEventListener('click', function(e) {
-            const email = document.getElementById('email').value;
-            if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-                alert('Please enter a valid email address.');
-                e.preventDefault();
-            }
-        });
-    </script>
+<footer>Halcyon Commerce 6.0.3 &middot; &copy; 2026 Halcyon Retail Group &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

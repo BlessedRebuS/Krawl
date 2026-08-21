@@ -3,12 +3,30 @@
 import os
 import sys
 from dataclasses import dataclass
+from dataclasses import field as dc_field
 from pathlib import Path
 
 import requests
 import yaml
 
 from logger import get_app_logger
+
+# IPs/CIDRs ignored everywhere (never tracked, banned, exported, and purged on
+# startup). Defaults reproduce the previous hardcoded private/loopback/
+# link-local/CGNAT behaviour; operators can override via the `ignored_ips`
+# config section.
+DEFAULT_IGNORED_IPS = [
+    "127.0.0.0/8",
+    "10.0.0.0/8",
+    "172.16.0.0/12",
+    "192.168.0.0/16",
+    "169.254.0.0/16",
+    "0.0.0.0/8",
+    "100.64.0.0/10",
+    "::1/128",
+    "fc00::/7",
+    "fe80::/10",
+]
 
 
 @dataclass
@@ -62,6 +80,10 @@ class Config:
     infinite_pages_for_malicious: bool = True  # Infinite pages for malicious crawlers
     ban_duration_seconds: int = 600  # Ban duration in seconds for IPs exceeding limits
 
+    # IPs/CIDRs to ignore everywhere (never tracked, banned, exported, purged
+    # on startup). See DEFAULT_IGNORED_IPS.
+    ignored_ips: list[str] = dc_field(default_factory=lambda: list(DEFAULT_IGNORED_IPS))
+
     # backup job settings
     backups_path: str = "backups"
     backups_enabled: bool = False
@@ -103,6 +125,11 @@ class Config:
 
     # Deception pages import settings
     deception_import_pages: bool = True
+
+    # Banlist export/import settings
+    banlist_export_path: str = ""
+    banlist_sources: list[str] | None = None
+    banlist_refresh_interval: int = 3600
 
     _server_ip: str | None = None
     _server_ip_resolved: bool = False
@@ -186,7 +213,6 @@ class Config:
         links = data.get("links", {})
         canary = data.get("canary", {})
         dashboard = data.get("dashboard", {})
-        data.get("api", {})
         backups = data.get("backups", {})
         database = data.get("database", {})
         behavior = data.get("behavior", {})
@@ -197,13 +223,13 @@ class Config:
         ai = data.get("ai", {})
         metrics = data.get("metrics", {})
         deception = data.get("deception", {})
+        banlist = data.get("banlist", {})
         # Support legacy nested `page_template` or top-level `custom_template_path`.
         page_template = data.get("page_template", {})
         custom_template_path = data.get("custom_template_path", None)
         # If nested page_template is present and defines custom_template_path, prefer it
         if not custom_template_path and isinstance(page_template, dict):
             custom_template_path = page_template.get("custom_template_path", None)
-        metrics = data.get("metrics", {})
 
         # Handle dashboard_secret_path - auto-generate if null/not set
         dashboard_path = dashboard.get("secret_path")
@@ -295,6 +321,7 @@ class Config:
             ),
             max_pages_limit=crawl.get("max_pages_limit", 250),
             ban_duration_seconds=crawl.get("ban_duration_seconds", 600),
+            ignored_ips=data.get("ignored_ips") or list(DEFAULT_IGNORED_IPS),
             tarpit_enabled=tarpit.get("enabled", False),
             tarpit_delay_seconds=tarpit.get("delay_seconds", 5),
             log_level=os.getenv(
@@ -328,6 +355,9 @@ Generate the complete HTML page.""",
             ai_max_daily_requests=ai.get("max_daily_requests", 0),
             deception_import_pages=deception.get("import_pages", True),
             custom_template_path=custom_template_path,
+            banlist_export_path=banlist.get("export_path", ""),
+            banlist_sources=banlist.get("sources") or None,
+            banlist_refresh_interval=banlist.get("refresh_interval", 3600),
         )
 
 
@@ -342,10 +372,8 @@ def override_config_from_env(config: Config = None):
     """Initialize configuration from environment variables"""
 
     for field in config.__dataclass_fields__:
-
         env_var = __get_env_from_config(field)
         if env_var in os.environ:
-
             get_app_logger().info(
                 f"Overriding config '{field}' from environment variable '{env_var}'"
             )
@@ -366,6 +394,12 @@ def override_config_from_env(config: Config = None):
                     parts = env_value.split(",")
                     if len(parts) == 2:
                         setattr(config, field, (int(parts[0]), int(parts[1])))
+                elif field_type == list[str]:
+                    setattr(
+                        config,
+                        field,
+                        [p.strip() for p in env_value.split(",") if p.strip()],
+                    )
                 else:
                     # Treat empty strings as None for Optional fields (e.g. passwords)
                     setattr(config, field, env_value if env_value else None)

@@ -1,27 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Error Log - Server</title>
-<style>
-body{font-family:monospace;background:#f8f8f8;color:#111;padding:20px;}
-h1{color:#333;}
-pre{background:#fff;padding:10px;border:1px solid #ccc;overflow:auto;}
-</style>
-</head>
-<body>
-<h1>/logs/error.log</h1>
-<pre>
-[2025-09-24 10:12:03] ERROR: Failed to connect to database: Connection refused
-[2025-09-24 10:12:05] WARN: Deprecated function mysql_connect() used in /var/www/html/includes/db.php on line 42
-[2025-09-24 10:12:07] NOTICE: Undefined index: user_agent in /var/www/html/index.php on line 108
-[2025-09-24 10:12:09] ERROR: SQL syntax error near 'SELECT * FROM users WHERE id = ''1''' at line 1
-[2025-09-24 10:12:11] INFO: Cron job executed successfully
-[2025-09-24 10:12:13] ERROR: File not found: /var/www/html/admin/config.bak
-[2025-09-24 10:12:15] WARN: PHP Warning: Division by zero in /var/www/html/calc.php on line 23
-[2025-09-24 10:12:17] ERROR: Maximum execution time of 30 seconds exceeded in /var/www/html/report.php
-[2025-09-24 10:12:19] NOTICE: Session started successfully
-[2025-09-24 10:12:21] ERROR: Permission denied: Unable to write to log file /var/log/app.log
-</pre>
-</body>
-</html>
+[2026-08-13 01:41:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.nbh.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"c1acaac49be49085"}
+[2026-08-14 00:11:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"a61fcf1ea6d113a5"}
+[2026-08-12 16:18:07] production.ERROR: SMTP connect() failed on smtp.mail.nbh.internal:587 {"request_id":"1b29ab7fd3a570d6"}
+[2026-08-12 10:50:07] production.ERROR: SMTP connect() failed on smtp.mail.nbh.internal:587 {"request_id":"0c0185caee5b0249"}
+[2026-08-14 06:35:07] production.INFO: scheduled task inventory:sync finished, 3281 rows {"request_id":"9824bfa93287af0b"}
+[2026-08-12 12:37:07] production.ERROR: SMTP connect() failed on smtp.mail.nbh.internal:587 {"request_id":"cb48e07287bc8b38"}
+[2026-08-12 20:39:07] production.INFO: scheduled task inventory:sync finished, 7804 rows {"request_id":"08f728a6852a290b"}
+[2026-08-13 23:11:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=198 user_id=28 {"request_id":"7ea8e04486e886d1"}
+[2026-08-12 10:17:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.nbh.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"a106a1ab5a79b1d6"}
+[2026-08-12 06:49:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.nbh.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"2a51a780ebf9ecf1"}
+[2026-08-12 06:46:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=22 user_id=14 {"request_id":"1671200a4af750c9"}
+[2026-08-13 11:29:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"a19c682b625fbc48"}
+[2026-08-14 01:21:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"bdb9c57282205947"}
+[2026-08-13 13:49:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.nbh.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"d66c336f40f06ee8"}
+[2026-08-13 06:46:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"d8386af891eb9c39"}
+[2026-08-13 15:38:07] production.INFO: scheduled task inventory:sync finished, 717 rows {"request_id":"543fb23d89abd9af"}

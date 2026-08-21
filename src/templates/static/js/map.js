@@ -7,13 +7,7 @@ let mapMarkers = [];       // all marker objects, each tagged with .options.cate
 let clusterGroup = null;   // single shared MarkerClusterGroup
 let hiddenCategories = new Set();
 
-const categoryColors = {
-    attacker: '#f85149',
-    bad_crawler: '#f0883e',
-    good_crawler: '#3fb950',
-    regular_user: '#58a6ff',
-    unknown: '#8b949e'
-};
+const categoryColors = { ...krawlCategoryColors(), unknown: krawlToken('--text-dim') };
 
 // Build a conic-gradient pie icon showing the category mix inside a cluster
 function createClusterIcon(cluster) {
@@ -32,7 +26,7 @@ function createClusterIcon(cluster) {
         const start = (cumulative / total) * 360;
         cumulative += count;
         const end = (cumulative / total) * 360;
-        const color = categoryColors[cat] || '#8b949e';
+        const color = categoryColors[cat] || krawlToken('--text-dim');
         gradientStops.push(`${color} ${start.toFixed(1)}deg ${end.toFixed(1)}deg`);
     });
 
@@ -61,7 +55,7 @@ function createClusterIcon(cluster) {
         const x2 = cx + radius * Math.cos(endRad);
         const y2 = cy + radius * Math.sin(endRad);
         const largeArc = (endAngle - startAngle) > 180 ? 1 : 0;
-        const color = categoryColors[cat] || '#8b949e';
+        const color = categoryColors[cat] || krawlToken('--text-dim');
         // Glow layer - subtle
         glowSegments += `<path d="M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}" fill="none" stroke="${color}" stroke-width="${ringWidth + 4}" stroke-linecap="round" opacity="0.35" filter="url(#glow)"/>`;
         // Sharp layer
@@ -74,7 +68,7 @@ function createClusterIcon(cluster) {
             `<svg width="${size}" height="${size}" style="position:absolute;top:0;left:0;overflow:visible;">` +
             `<defs><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="blur"/></filter></defs>` +
             `${glowSegments}${segments}</svg>` +
-            `<div style="position:absolute;top:${centerOffset}px;left:${centerOffset}px;width:${centerSize}px;height:${centerSize}px;border-radius:50%;background:#0d1117;display:flex;align-items:center;justify-content:center;color:#e6edf3;font-family:'SF Mono',Monaco,Consolas,monospace;font-size:${Math.max(9, centerSize * 0.38)}px;font-weight:600;">${total}</div>` +
+            `<div style="position:absolute;top:${centerOffset}px;left:${centerOffset}px;width:${centerSize}px;height:${centerSize}px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--text-strong);font-family:var(--font-mono);font-size:${Math.max(9, centerSize * 0.38)}px;font-weight:600;">${total}</div>` +
             `</div>`,
         className: 'ip-cluster-icon',
         iconSize: L.point(size, size)
@@ -209,7 +203,7 @@ function _createIpMarker(ip, animate) {
     });
 
     const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
-    const categoryColor = categoryColors[category] || '#8b949e';
+    const categoryColor = categoryColors[category] || krawlToken('--text-dim');
     const categoryLabels = { attacker: 'Attacker', bad_crawler: 'Bad Crawler', good_crawler: 'Good Crawler', regular_user: 'Regular User', unknown: 'Unknown' };
 
     marker.bindPopup('', { maxWidth: 550, className: 'ip-detail-popup' });
@@ -218,10 +212,10 @@ function _createIpMarker(ip, animate) {
         const loadingPopup = `
             <div style="padding: 12px; min-width: 280px; max-width: 320px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                    <strong style="color: #58a6ff; font-size: 14px;">${ip.ip}</strong>
+                    <strong style="color: var(--accent); font-size: 14px;">${ip.ip}</strong>
                     <span style="background: ${categoryColor}1a; color: ${categoryColor}; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">${categoryLabels[category]}</span>
                 </div>
-                <div style="text-align: center; padding: 20px; color: #8b949e;"><div style="font-size: 12px;">Loading details...</div></div>
+                <div style="text-align: center; padding: 20px; color: var(--text-dim);"><div style="font-size: 12px;">Loading details...</div></div>
             </div>`;
         marker.setPopupContent(loadingPopup);
         marker.openPopup();
@@ -234,23 +228,23 @@ function _createIpMarker(ip, animate) {
             let popupContent = `
                 <div style="padding: 12px; min-width: 200px;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-                        <strong style="color: #58a6ff; font-size: 14px;">${ip.ip}</strong>
-                        <button onclick="window.openIpInsight('${ip.ip}')" class="inspect-btn" style="display: inline-flex; align-items: center; padding: 4px; background: none; color: #8b949e; border: none; cursor: pointer; border-radius: 4px;" title="Inspect IP">
+                        <strong style="color: var(--accent); font-size: 14px;">${ip.ip}</strong>
+                        <button onclick="window.openIpInsight('${ip.ip}')" class="inspect-btn" style="display: inline-flex; align-items: center; padding: 4px; background: none; color: var(--text-dim); border: none; cursor: pointer; border-radius: 4px;" title="Inspect IP">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
                         </button>
                     </div>
                     <div style="margin-bottom: 8px;">
                         <span style="background: ${categoryColor}1a; color: ${categoryColor}; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">${categoryLabels[category]}</span>
                     </div>
-                    <span style="color: #8b949e; font-size: 12px;">${ip.city ? (ip.country_code ? `${ip.city}, ${ip.country_code}` : ip.city) : (ip.country_code || 'Unknown')}</span><br/>
-                    <div style="margin-top: 8px; border-top: 1px solid #30363d; padding-top: 8px;">
-                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">Requests:</span> <span style="color: ${categoryColor}; font-weight: bold;">${ip.total_requests}</span></div>
-                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">First Seen:</span> <span style="color: #58a6ff; font-size: 11px;">${formatTimestamp(ip.first_seen)}</span></div>
-                        <div style="margin-bottom: 4px;"><span style="color: #8b949e;">Last Seen:</span> <span style="color: #58a6ff; font-size: 11px;">${formatTimestamp(ip.last_seen)}</span></div>
+                    <span style="color: var(--text-dim); font-size: 12px;">${ip.city ? (ip.country_code ? `${ip.city}, ${ip.country_code}` : ip.city) : (ip.country_code || 'Unknown')}</span><br/>
+                    <div style="margin-top: 8px; border-top: 1px solid var(--line); padding-top: 8px;">
+                        <div style="margin-bottom: 4px;"><span style="color: var(--text-dim);">Requests:</span> <span style="color: ${categoryColor}; font-weight: bold;">${ip.total_requests}</span></div>
+                        <div style="margin-bottom: 4px;"><span style="color: var(--text-dim);">First Seen:</span> <span style="color: var(--accent); font-size: 11px;">${formatTimestamp(ip.first_seen)}</span></div>
+                        <div style="margin-bottom: 4px;"><span style="color: var(--text-dim);">Last Seen:</span> <span style="color: var(--accent); font-size: 11px;">${formatTimestamp(ip.last_seen)}</span></div>
                     </div>`;
 
             if (stats.category_scores && Object.keys(stats.category_scores).length > 0) {
-                popupContent += `<div style="margin-top: 12px; border-top: 1px solid #30363d; padding-top: 12px;">${generateMapPanelRadarChart(stats.category_scores)}</div>`;
+                popupContent += `<div style="margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px;">${generateMapPanelRadarChart(stats.category_scores)}</div>`;
             }
             popupContent += '</div>';
             marker.setPopupContent(popupContent);
@@ -258,8 +252,8 @@ function _createIpMarker(ip, animate) {
             console.error('Error fetching IP stats:', err);
             marker.setPopupContent(`
                 <div style="padding: 12px; min-width: 200px;">
-                    <strong style="color: #58a6ff;">${ip.ip}</strong>
-                    <div style="margin-top: 8px; color: #f85149; font-size: 11px;">Failed to load details: ${err.message}</div>
+                    <strong style="color: var(--accent);">${ip.ip}</strong>
+                    <div class="text-danger fs-2xs" style="margin-top:var(--s2)">Failed to load details: ${err.message}</div>
                 </div>`);
         }
     });
@@ -414,7 +408,7 @@ async function initializeAttackerMap() {
         await fetchAndBuildMap(limit, _getMapSortBy());
 
         if (allIps.length === 0) {
-            mapContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #8b949e;">No IP location data available</div>';
+            mapContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-dim);">No IP location data available</div>';
             return;
         }
 
@@ -424,7 +418,7 @@ async function initializeAttackerMap() {
 
     } catch (err) {
         console.error('Error initializing attacker map:', err);
-        mapContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #f85149;">Failed to load map: ' + err.message + '</div>';
+        mapContainer.innerHTML = '<div class="center text-danger" style="height:100%">Failed to load map: ' + err.message + '</div>';
     }
 }
 
@@ -434,7 +428,7 @@ async function reloadMapWithLimit(limit) {
     const mapContainer = document.getElementById('attacker-map');
     const overlay = document.createElement('div');
     overlay.id = 'map-loading-overlay';
-    overlay.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(13,17,23,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;color:#8b949e;font-size:14px;';
+    overlay.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(13,17,23,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;color:var(--text-dim);font-size:14px;';
     overlay.textContent = 'Loading IPs...';
     mapContainer.style.position = 'relative';
     mapContainer.appendChild(overlay);
@@ -475,7 +469,7 @@ function updateMapFilters() {
 // Generate radar chart SVG for map panel popups
 function generateMapPanelRadarChart(categoryScores) {
     if (!categoryScores || Object.keys(categoryScores).length === 0) {
-        return '<div style="color: #8b949e; text-align: center; padding: 20px;">No category data available</div>';
+        return '<div style="color: var(--text-dim); text-align: center; padding: 20px;">No category data available</div>';
     }
 
     let html = '<div style="display: flex; flex-direction: column; align-items: center;">';
@@ -497,13 +491,7 @@ function generateMapPanelRadarChart(categoryScores) {
         normalizedScores[key] = minVisibleRadius + (scores[key] / maxScore) * (1 - minVisibleRadius);
     });
 
-    const colors = {
-        attacker: '#f85149',
-        good_crawler: '#3fb950',
-        bad_crawler: '#f0883e',
-        regular_user: '#58a6ff',
-        unknown: '#8b949e'
-    };
+    const colors = { ...krawlCategoryColors(), unknown: krawlToken('--text-dim') };
 
     const labels = {
         attacker: 'Attacker',
@@ -516,7 +504,7 @@ function generateMapPanelRadarChart(categoryScores) {
     const cx = 100, cy = 100, maxRadius = 75;
     for (let i = 1; i <= 5; i++) {
         const r = (maxRadius / 5) * i;
-        html += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#30363d" stroke-width="0.5"/>`;
+        html += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--line)" stroke-width="0.5"/>`;
     }
 
     const angles = [0, 72, 144, 216, 288];
@@ -526,12 +514,12 @@ function generateMapPanelRadarChart(categoryScores) {
         const rad = (angle - 90) * Math.PI / 180;
         const x2 = cx + maxRadius * Math.cos(rad);
         const y2 = cy + maxRadius * Math.sin(rad);
-        html += `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#30363d" stroke-width="0.5"/>`;
+        html += `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="var(--line)" stroke-width="0.5"/>`;
 
         const labelDist = maxRadius + 35;
         const lx = cx + labelDist * Math.cos(rad);
         const ly = cy + labelDist * Math.sin(rad);
-        html += `<text x="${lx}" y="${ly}" fill="#8b949e" font-size="12" text-anchor="middle" dominant-baseline="middle">${labels[keys[i]]}</text>`;
+        html += `<text x="${lx}" y="${ly}" fill="var(--text-dim)" font-size="12" text-anchor="middle" dominant-baseline="middle">${labels[keys[i]]}</text>`;
     });
 
     let points = [];
@@ -555,7 +543,7 @@ function generateMapPanelRadarChart(categoryScores) {
         const r = normalizedScore * maxRadius;
         const x = cx + r * Math.cos(rad);
         const y = cy + r * Math.sin(rad);
-        html += `<circle cx="${x}" cy="${y}" r="4.5" fill="${colors[keys[i]]}" stroke="#0d1117" stroke-width="2"/>`;
+        html += `<circle cx="${x}" cy="${y}" r="4.5" fill="${colors[keys[i]]}" stroke="var(--bg)" stroke-width="2"/>`;
     });
 
     html += '</svg>';

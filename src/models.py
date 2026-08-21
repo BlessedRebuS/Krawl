@@ -64,7 +64,9 @@ class AccessLog(Base):
         DateTime, nullable=False, default=datetime.utcnow, index=True
     )
     # Raw HTTP request for forensic analysis (nullable for backward compatibility)
-    raw_request: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Deferred: largest column on the busiest table, read only by the
+    # raw-request modal (by id). Eager loading dragged it into every query.
+    raw_request: Mapped[str | None] = mapped_column(Text, nullable=True, deferred=True)
 
     # Relationship to attack detections
     attack_detections: Mapped[list["AttackDetection"]] = relationship(

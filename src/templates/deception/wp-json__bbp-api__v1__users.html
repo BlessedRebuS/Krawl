@@ -1,59 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>WordPress REST API - Users</title>
-    <style>
-        body{font-family:Arial,sans-serif;margin:20px;background:#f9f9f9;color:#333}
-        pre{background:#eee;padding:10px;border:1px solid #ccc;overflow:auto}
-        .header{background:#21759b;color:#fff;padding:10px;margin-bottom:20px}
-        .nav a{margin-right:15px;text-decoration:none;color:#fff}
-    </style>
-</head>
-<body>
-<div class="header">
-    <h1>WordPress REST API</h1>
-    <div class="nav">
-        <a href="/">Home</a>
-        <a href="/wp-json/">API Root</a>
-        <a href="/wp-json/wp/v2/posts">Posts</a>
-        <a href="/wp-json/wp/v2/users">Users (WP)</a>
-        <a href="/wp-json/bbp-api/v1/users">BBPress Users</a>
-    </div>
-</div>
-<h2>Endpoint: /wp-json/bbp-api/v1/users</h2>
-<p>Returns a list of users from the bbPress forum.</p>
-<pre>[
+[
   {
-    "ID": 1,
-    "user_login": "admin",
-    "user_nicename": "admin",
-    "user_email": "admin@example.com",
-    "user_url": "",
-    "user_registered": "2023-05-12 08:30:00",
-    "display_name": "Administrator",
-    "roles": ["administrator", "bbp_keymaster"]
+    "id": 5,
+    "username": "c.mbeki",
+    "email": "c.mbeki@halcyonretail.co.uk",
+    "display_name": "Chloe Mbeki",
+    "role": "store_manager",
+    "status": "active",
+    "created_at": "2020-04-13T08:31:44Z",
+    "last_login_at": "2026-08-10T02:02:31Z",
+    "mfa_enabled": false
   },
   {
-    "ID": 42,
-    "user_login": "jdoe",
-    "user_nicename": "jdoe",
-    "user_email": "jdoe@example.com",
-    "user_url": "https://example.com",
-    "user_registered": "2024-01-15 14:22:10",
-    "display_name": "John Doe",
-    "roles": ["subscriber", "bbp_participant"]
+    "id": 8,
+    "username": "r.duffy",
+    "email": "r.duffy@halcyonretail.co.uk",
+    "display_name": "Ronan Duffy",
+    "role": "administrator",
+    "status": "active",
+    "created_at": "2018-12-01T08:31:44Z",
+    "last_login_at": "2026-08-05T19:38:04Z",
+    "mfa_enabled": true
   },
   {
-    "ID": 57,
-    "user_login": "forum_mod",
-    "user_nicename": "forum-mod",
-    "user_email": "mod@example.com",
-    "user_url": "",
-    "user_registered": "2024-03-03 09:05:41",
-    "display_name": "Forum Moderator",
-    "roles": ["bbp_moderator"]
+    "id": 16,
+    "username": "a.pashkov",
+    "email": "a.pashkov@halcyonretail.co.uk",
+    "display_name": "Anya Pashkov",
+    "role": "merchandiser",
+    "status": "active",
+    "created_at": "2022-02-24T08:31:44Z",
+    "last_login_at": "2026-08-09T06:15:40Z",
+    "mfa_enabled": false
+  },
+  {
+    "id": 19,
+    "username": "j.okonkwo",
+    "email": "j.okonkwo@halcyonretail.co.uk",
+    "display_name": "Jide Okonkwo",
+    "role": "fulfilment",
+    "status": "active",
+    "created_at": "2023-07-08T08:31:44Z",
+    "last_login_at": "2026-08-10T01:58:22Z",
+    "mfa_enabled": false
+  },
+  {
+    "id": 27,
+    "username": "h.lindqvist",
+    "email": "h.lindqvist@halcyonretail.co.uk",
+    "display_name": "Hanna Lindqvist",
+    "role": "customer_care",
+    "status": "active",
+    "created_at": "2024-11-05T08:31:44Z",
+    "last_login_at": "2026-08-11T05:40:37Z",
+    "mfa_enabled": false
   }
-]</pre>
-</body>
-</html>
+]

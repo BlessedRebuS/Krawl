@@ -1,0 +1,55 @@
+<?php
+/**
+ * Grid Console — database & service configuration
+ *
+ * @package  VoltaGrid
+ * @version  2.11.6
+ */
+
+defined('MERIDIAN_ROOT') or define('MERIDIAN_ROOT', dirname(__DIR__));
+
+$config = [
+    'app' => [
+        'name'      => 'Grid Console',
+        'env'       => 'production',
+        'debug'     => false,
+        'url'       => 'https://portal.voltaenergia.es',
+        'key'       => 'base64:vU/t1bTkwVLYLUgeVDJQoGscl2mWGfvTF0W2kOHJWeR=',
+    ],
+
+    'db' => [
+        'driver'    => 'pgsql',
+        'host'      => 'pg-prod-01.db.volta.internal',
+        'port'      => 5432,
+        'database'  => 'volta_grid',
+        'username'  => 'grid_rw',
+        'password'  => 'fake-db-password-6f54c940',
+        'charset'   => 'utf8',
+        'prefix'    => 'mp_',
+    ],
+
+    'redis' => [
+        'host'      => 'redis-prod-01.cache.volta.internal',
+        'port'      => 6379,
+        'password'  => 'fake-redis-password-5f8e38',
+    ],
+
+    'mail' => [
+        'host'      => 'smtp.mail.volta.internal',
+        'port'      => 587,
+        'username'  => 'no-reply@voltaenergia.es',
+        'password'  => 'fake-smtp-password-53699f74',
+        'encryption'=> 'tls',
+    ],
+];
+
+/* Legacy globals — still read by the reporting cron, remove after MP-2841. */
+$db_host = $config['db']['host'];
+$db_user = $config['db']['username'];
+$db_pass = $config['db']['password'];
+$db_name = $config['db']['database'];
+
+define('AUTH_SALT', 'HYH5it6efi8qIqMeXFfw40R9N4AGazM1');
+define('SECURE_AUTH_KEY', 'CdB68gXRaiG0oLU68qaxdsxTJkgL06Ig');
+
+return $config;

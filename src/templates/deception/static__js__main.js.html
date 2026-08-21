@@ -1,40 +1,36 @@
-<html><body>// Main application script
-(function() {
-    var config = {
-        apiEndpoint: "/api/v1/data",
-        token: "fake_token_12345"
-    };
+/*! Caretrack 9.4.0 | build 6858611 | (c) Northbridge Health */
+(function (window) {
+  'use strict';
 
-    function fetchData() {
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", config.apiEndpoint + "?q=" + encodeURIComponent(document.getElementById('search').value), true);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                try {
-                    var resp = JSON.parse(xhr.responseText);
-                    displayResults(resp);
-                } catch(e) {
-                    console.error("Failed to parse JSON", e);
-                }
-            }
-        };
-        xhr.send();
-    }
+  var config = {
+    apiBase: 'https://api.northbridge-health.org/v2',
+    wsBase: 'wss://api.northbridge-health.org/socket',
+    sentryDsn: 'https://fakeb3a5fd374c18dfe2@sentry.internal/6',
+    release: 'caretrack@9.4.0',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
 
-    function displayResults(data) {
-        var container = document.getElementById('results');
-        container.innerHTML = "";
-        data.forEach(function(item) {
-            var div = document.createElement('div');
-            div.innerHTML = "<h3>" + item.title + "</h3><p>" + item.description + "</p>";
-            container.appendChild(div);
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        var btn = document.getElementById('searchBtn');
-        if (btn) {
-            btn.addEventListener('click', fetchData);
-        }
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
     });
-})();</body></html>
+  }
+
+  window.Caretrack = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

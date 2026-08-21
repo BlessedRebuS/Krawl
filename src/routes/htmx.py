@@ -23,6 +23,16 @@ from routes.api import verify_auth
 
 router = APIRouter()
 
+# Shared 401 bodies: full-panel notice, and the inline variant used inside
+# table containers (returned with 200 so HTMX still swaps it in).
+_PANEL_401 = (
+    '<div class="table-container" style="text-align:center;padding:60px 20px;">'
+    '<h2 style="color:#c9d1d9;margin:0 0 8px;">401 Unauthorized</h2>'
+    '<p style="color:#8b949e;font-size:14px;margin:0;">'
+    "Access denied. Please log in to view this panel.</p></div>"
+)
+_INLINE_401 = "<p style='color:#f85149;'>Unauthorized</p>"
+
 
 def _dashboard_path(request: Request) -> str:
     config = request.app.state.config
@@ -531,14 +541,27 @@ async def htmx_credentials(
 async def htmx_attacks(
     request: Request,
     page: int = Query(1),
+    page_size: int = Query(15),
     sort_by: str = Query("timestamp"),
     sort_order: str = Query("desc"),
     ip_filter: str = Query(None),
     attack_type_filter: str = Query(None),
+    search: str = Query(""),
+    method_filter: str = Query(None),
 ):
     page = max(1, page)
-    cache_key = f"attacks:{page}:{sort_by}:{sort_order}:{ip_filter or ''}:{attack_type_filter or ''}"
-    cached = get_cached_table(cache_key)
+    page_size = max(1, min(int(page_size), 200))
+    search = search.strip() or None
+    method_filter = (method_filter or "").strip().upper() or None
+    # Validate page_size for the inline dashboard (must match the cached size to
+    # use cached results). When the expand overlay requests a different page
+    # size (e.g. 25), skip the cache so cached pages don't bleed across sizes.
+    use_cache = page_size == 15
+    cache_key = (
+        f"attacks:{page}:{sort_by}:{sort_order}:{ip_filter or ''}:"
+        f"{attack_type_filter or ''}:{search or ''}:{method_filter or ''}"
+    )
+    cached = get_cached_table(cache_key) if use_cache else None
     if cached:
         result = cached
     else:
@@ -546,13 +569,16 @@ async def htmx_attacks(
         result = await asyncio.to_thread(
             db.analytics.get_attack_types_paginated,
             page=page,
-            page_size=15,
+            page_size=page_size,
             sort_by=sort_by,
             sort_order=sort_order,
             ip_filter=ip_filter,
             attack_type_filter=attack_type_filter,
+            search=search,
+            method_filter=method_filter,
         )
-        set_cached_table(cache_key, result)
+        if use_cache:
+            set_cached_table(cache_key, result)
 
     # Transform attack data for template (join attack_types list, map id to log_id)
     items = []
@@ -560,6 +586,8 @@ async def htmx_attacks(
         items.append(
             {
                 "ip": attack["ip"],
+                "method": (attack.get("method") or "GET").upper(),
+                "request_size": len((attack.get("raw_request") or "").encode("utf-8")),
                 "path": attack["path"],
                 "attack_type": ", ".join(attack.get("attack_types", [])),
                 "user_agent": attack.get("user_agent", ""),
@@ -580,8 +608,69 @@ async def htmx_attacks(
             "sort_order": sort_order,
             "ip_filter": ip_filter or "",
             "attack_type_filter": attack_type_filter or "",
+            "search": search or "",
+            "method_filter": method_filter or "",
         },
     )
+
+
+# ── Recent Suspicious Activity (paginated for expand overlay) ────────
+
+
+@router.get("/htmx/suspicious")
+async def htmx_suspicious(
+    request: Request,
+    page: int = Query(1),
+    page_size: int = Query(25),
+    search: str = Query(""),
+    sort_order: str = Query("desc"),
+):
+    page = max(1, page)
+    page_size = max(1, min(int(page_size), 200))
+    search = search.strip() or None
+
+    cache_key = f"suspicious:{page}:{page_size}:{sort_order}:{search or ''}"
+    cached = get_cached_table(cache_key)
+    if cached:
+        result = cached
+    else:
+        db = get_db()
+        result = await asyncio.to_thread(
+            db.access_logs.get_recent_suspicious_paginated,
+            page=page,
+            page_size=page_size,
+            search=search,
+            sort_order=sort_order,
+        )
+        set_cached_table(cache_key, result)
+
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/suspicious_expand_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "items": result["items"],
+            "pagination": result["pagination"],
+            "sort_order": sort_order,
+            "search": search or "",
+        },
+    )
+
+
+# ── Attack types list (for filter dropdown in expand overlay) ────────
+
+
+@router.get("/htmx/attack-types-list")
+async def htmx_attack_types_list(request: Request):
+    """Return the list of distinct attack types for the expand overlay filter.
+    Rendered as a JSON response for client-side consumption."""
+    db = get_db()
+    stats = await asyncio.to_thread(db.analytics.get_attack_types_stats, limit=100)
+    types = [item["type"] for item in stats.get("attack_types", []) if item.get("type")]
+    from fastapi.responses import JSONResponse
+
+    return JSONResponse({"attack_types": types})
 
 
 # ── Attack Patterns ──────────────────────────────────────────────────
@@ -752,14 +841,7 @@ async def htmx_search(
 @router.get("/htmx/banlist")
 async def htmx_banlist(request: Request):
     if not verify_auth(request):
-        return HTMLResponse(
-            '<div class="table-container" style="text-align:center;padding:80px 20px;">'
-            '<h1 style="color:#f0883e;font-size:48px;margin:20px 0 10px;">Nice try bozo</h1>'
-            "<br>"
-            '<img src="https://media0.giphy.com/media/v1.Y2lkPTZjMDliOTUyaHQ3dHRuN2wyOW1kZndjaHdkY2dhYzJ6d2gzMDJkNm53ZnNrdnNlZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mOY97EXNisstZqJht9/200w.gif" alt="Diddy">'
-            "</div>",
-            status_code=200,
-        )
+        return HTMLResponse(_PANEL_401, status_code=401)
     templates = get_templates()
     return templates.TemplateResponse(
         request,
@@ -780,9 +862,7 @@ async def htmx_ban_attackers(
     page_size: int = Query(25),
 ):
     if not verify_auth(request):
-        return HTMLResponse(
-            "<p style='color:#f85149;'>Unauthorized</p>", status_code=200
-        )
+        return HTMLResponse(_INLINE_401, status_code=200)
 
     db = get_db()
     result = await asyncio.to_thread(
@@ -806,14 +886,7 @@ async def htmx_ban_attackers(
 @router.get("/htmx/tracked-ips")
 async def htmx_tracked_ips(request: Request):
     if not verify_auth(request):
-        return HTMLResponse(
-            '<div class="table-container" style="text-align:center;padding:80px 20px;">'
-            '<h1 style="color:#f0883e;font-size:48px;margin:20px 0 10px;">Nice try bozo</h1>'
-            "<br>"
-            '<img src="https://media0.giphy.com/media/v1.Y2lkPTZjMDliOTUyaHQ3dHRuN2wyOW1kZndjaHdkY2dhYzJ6d2gzMDJkNm53ZnNrdnNlZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mOY97EXNisstZqJht9/200w.gif" alt="Diddy">'
-            "</div>",
-            status_code=200,
-        )
+        return HTMLResponse(_PANEL_401, status_code=401)
     templates = get_templates()
     return templates.TemplateResponse(
         request,
@@ -831,9 +904,7 @@ async def htmx_tracked_ips_list(
     page_size: int = Query(25),
 ):
     if not verify_auth(request):
-        return HTMLResponse(
-            "<p style='color:#f85149;'>Unauthorized</p>", status_code=200
-        )
+        return HTMLResponse(_INLINE_401, status_code=200)
 
     db = get_db()
     result = await asyncio.to_thread(
@@ -858,9 +929,7 @@ async def htmx_ban_overrides(
     page_size: int = Query(25),
 ):
     if not verify_auth(request):
-        return HTMLResponse(
-            "<p style='color:#f85149;'>Unauthorized</p>", status_code=200
-        )
+        return HTMLResponse(_INLINE_401, status_code=200)
 
     db = get_db()
     result = await asyncio.to_thread(
@@ -884,14 +953,7 @@ async def htmx_ban_overrides(
 @router.get("/htmx/timedout")
 async def htmx_timedout(request: Request):
     if not verify_auth(request):
-        return HTMLResponse(
-            '<div class="table-container" style="text-align:center;padding:80px 20px;">'
-            '<h1 style="color:#f0883e;font-size:48px;margin:20px 0 10px;">Nice try bozo</h1>'
-            "<br>"
-            '<img src="https://media0.giphy.com/media/v1.Y2lkPTZjMDliOTUyaHQ3dHRuN2wyOW1kZndjaHdkY2dhYzJ6d2gzMDJkNm53ZnNrdnNlZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/mOY97EXNisstZqJht9/200w.gif" alt="Diddy">'
-            "</div>",
-            status_code=200,
-        )
+        return HTMLResponse(_PANEL_401, status_code=401)
     templates = get_templates()
     return templates.TemplateResponse(
         request,
@@ -905,11 +967,11 @@ async def htmx_timedout_active(
     request: Request,
     page: int = Query(1),
     page_size: int = Query(25),
+    sort_by: str = Query("time_left"),
+    sort_order: str = Query("desc"),
 ):
     if not verify_auth(request):
-        return HTMLResponse(
-            "<p style='color:#f85149;'>Unauthorized</p>", status_code=200
-        )
+        return HTMLResponse(_INLINE_401, status_code=200)
 
     db = get_db()
     duration = get_config().ban_duration_seconds
@@ -918,6 +980,8 @@ async def htmx_timedout_active(
         ban_duration_seconds=duration,
         page=max(1, page),
         page_size=page_size,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
     templates = get_templates()
     return templates.TemplateResponse(
@@ -927,6 +991,8 @@ async def htmx_timedout_active(
             "dashboard_path": _dashboard_path(request),
             "items": result["items"],
             "pagination": result["pagination"],
+            "sort_by": result["sort_by"],
+            "sort_order": result["sort_order"],
         },
     )
 
@@ -938,9 +1004,7 @@ async def htmx_timeout_exempt(
     page_size: int = Query(25),
 ):
     if not verify_auth(request):
-        return HTMLResponse(
-            "<p style='color:#f85149;'>Unauthorized</p>", status_code=200
-        )
+        return HTMLResponse(_INLINE_401, status_code=200)
 
     db = get_db()
     result = await asyncio.to_thread(
@@ -956,5 +1020,27 @@ async def htmx_timeout_exempt(
             "dashboard_path": _dashboard_path(request),
             "items": result["items"],
             "pagination": result["pagination"],
+        },
+    )
+
+
+# ── Protected Webhooks Panel ──────────────────────────────────────────
+
+
+@router.get("/htmx/webhooks")
+async def htmx_webhooks(request: Request):
+    if not verify_auth(request):
+        return HTMLResponse(_PANEL_401, status_code=401)
+
+    from webhooks import get_cloudflare_config
+
+    cf_config = get_cloudflare_config()
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/webhooks_panel.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "cf_config": cf_config,
         },
     )

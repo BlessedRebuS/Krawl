@@ -1,26 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Firebase Configuration</title>
-    <style>
-        body { font-family: monospace; margin: 2em; background:#f9f9f9; color:#222; }
-        pre { background:#fff; padding:1em; border:1px solid #ddd; overflow:auto; }
-    </style>
-</head>
-<body>
-    <h1>Firebase Project Configuration</h1>
-    <p>Below is the Firebase configuration file for the project.</p>
-    <pre>
 {
-  "apiKey": "FAKE_API_KEY_12345",
-  "authDomain": "myproject-fake.firebaseapp.com",
-  "projectId": "myproject-fake",
-  "storageBucket": "myproject-fake.appspot.com",
-  "messagingSenderId": "1234567890",
-  "appId": "1:1234567890:web:abcdef123456",
-  "measurementId": "G-ABCDEF1234"
+  "app": {
+    "name": "Kestrel TMS",
+    "version": "3.8",
+    "env": "production",
+    "url": "https://portal.kestrelfreight.nl"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.kestrel.internal",
+    "port": 5432,
+    "name": "kestrel_tms",
+    "user": "tmsuser",
+    "password": "fake-db-password-6d2a00a0"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.kestrel.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-6b3f0af2d9bdf269956ec68be0f5bb63",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-14T07:01:38Z"
 }
-    </pre>
-</body>
-</html>

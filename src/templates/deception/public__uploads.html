@@ -1,81 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Public Uploads – ExampleCorp</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9; color:#333;}
-        h1 {color:#2c3e50;}
-        table {width:100%; border-collapse:collapse; margin-top:20px;}
-        th, td {padding:10px; border:1px solid #ddd; text-align:left;}
-        th {background:#ecf0f1;}
-        tr:nth-child(even) {background:#f2f2f2;}
-        .upload-form {margin-top:30px; padding:15px; border:1px solid #ccc; background:#fff;}
-        label {display:block; margin-top:10px;}
-        input[type=submit] {margin-top:15px; padding:8px 12px; background:#27ae60; color:#fff; border:none; cursor:pointer;}
-        input[type=submit]:hover {background:#2ecc71;}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Document upload — Caretrack</title>
+<style>
+:root{--bg:#eef4f4;--panel:#fff;--ink:#16303a;--muted:#5f7c86;
+--line:#d3e2e4;--brand:#0f7a76;--brand-dk:#0a5b58;--r:10px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 "Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#fff;color:#0f7a76;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#0f7a76}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#5f7c86;font-size:13px}
+header.top nav a.active{color:#0f7a76;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(16,48,58,.06)}
+h1{font-family:inherit;font-size:22px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <h1>Public Uploads Directory</h1>
-    <p>Below are the files currently available for public download. Authorized users may upload new files using the form at the bottom of the page.</p>
+<header class="top"><span class="brand">Caretrack</span><nav><a href="/today">Today</a><a href="/appointments">Appointments</a><a href="/patients">Patients</a><a href="/clinicians">Clinicians</a><a href="/admin">Admin</a></nav></header>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Filename</th>
-                <th>Size</th>
-                <th>Last Modified</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>logo.png</td>
-                <td>84 KB</td>
-                <td>2024-10-12 09:15</td>
-                <td><a href="logo.png">Download</a></td>
-            </tr>
-            <tr>
-                <td>report_Q3.pdf</td>
-                <td>1.2 MB</td>
-                <td>2024-10-10 14:03</td>
-                <td><a href="report_Q3.pdf">Download</a></td>
-            </tr>
-            <tr>
-                <td>backup.zip</td>
-                <td>15.6 MB</td>
-                <td>2024-10-08 22:47</td>
-                <td><a href="backup.zip">Download</a></td>
-            </tr>
-            <tr>
-                <td>config.php.example</td>
-                <td>2.1 KB</td>
-                <td>2024-09-30 11:22</td>
-                <td><a href="config.php.example">Download</a></td>
-            </tr>
-            <tr>
-                <td>user_manual.docx</td>
-                <td>3.4 MB</td>
-                <td>2024-10-05 08:10</td>
-                <td><a href="user_manual.docx">Download</a></td>
-            </tr>
-        </tbody>
-    </table>
+<div class="wrap">
+  <div class="breadcrumb"><a href="/today">Today</a> / Documents / Upload</div>
+  <h1>Upload documents</h1>
+  <p class="sub">Attach referral letters, clinic letters or discharge summarys
+  to a appointment record.</p>
+  <div class="panel" style="max-width:620px">
+    <form method="post" action="/upload" enctype="multipart/form-data">
+      <input type="hidden" name="_token" value="9dUKf/hyxizaA0wjiW2E5CIwK76yzR7ysuGmd4XU">
+      <div class="field"><label for="ref">Appointment reference</label>
+        <input id="ref" name="reference" type="text" placeholder="AP-11456"></div>
+      <div class="field"><label for="type">Document type</label>
+        <select id="type" name="doc_type"><option>Referral letter</option><option>Clinic letter</option><option>Consent form</option><option>Discharge summary</option></select></div>
+      <div class="field"><label for="f">File</label>
+        <input id="f" name="file" type="file"></div>
+      <p class="muted" style="font-size:12px">Accepted: PDF, PNG, JPG, XLSX. Maximum 25 MB per file.</p>
+      <button type="submit">Upload</button>
+      <a class="btn sec" href="/documents" style="display:inline-block;margin-left:8px">Cancel</a>
+    </form>
+  </div>
+  <div class="panel" style="max-width:620px">
+    <h2>Recently uploaded</h2>
+    <table><tbody>
+      <tr><td>referral-letter-AP-11456.pdf</td><td class="muted">1.2 MB</td>
+          <td class="muted">14/08 04:12</td></tr>
+      <tr><td>clinic-letter-2026-08-0442.pdf</td><td class="muted">318 kB</td>
+          <td class="muted">13/08 09:12</td></tr>
+    </tbody></table>
+  </div>
+</div>
 
-    <div class="upload-form">
-        <h2>Upload a File</h2>
-        <form action="/public/uploads/upload.php" method="post" enctype="multipart/form-data">
-            <label for="file">Choose file (max 20 MB):</label>
-            <input type="file" name="file" id="file" required><br>
-            <label for="description">Description (optional):</label>
-            <input type="text" name="description" id="description" maxlength="100"><br>
-            <input type="submit" value="Upload">
-        </form>
-        <p><em>Note: Allowed extensions: .jpg, .jpeg, .png, .gif, .pdf, .doc, .docx, .zip.</em></p>
-    </div>
-
-    <hr>
-    <p style="font-size:0.9em; color:#777;">&copy; 2024 ExampleCorp. All rights reserved.</p>
+<footer>Caretrack 9.4.0 &middot; &copy; 2026 Northbridge Health &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

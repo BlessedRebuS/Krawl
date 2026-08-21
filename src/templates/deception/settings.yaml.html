@@ -1,35 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Settings Configuration</title>
-    <style>
-        body { font-family: monospace; background: #f8f8f8; color: #222; padding: 20px; }
-        pre { background: #fff; border: 1px solid #ddd; padding: 15px; overflow: auto; }
-    </style>
-</head>
-<body>
-<pre>
-# Application settings
+# Kestrel TMS — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
+
+app:
+  name: "Kestrel TMS"
+  env: production
+  url: https://portal.kestrelfreight.nl
+  version: "3.8"
+
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
+
 database:
-  host: localhost
+  driver: postgresql
+  host: pg-prod-01.db.kestrel.internal
   port: 5432
-  name: appdb
-  user: admin
-  password: s3cr3tP@ss
-cache:
-  redis:
-    host: 127.0.0.1
-    port: 6379
-    password: redisPass
-smtp:
-  host: smtp.example.com
-  port: 587
-  user: noreply@example.com
-  password: mailPass
-security:
-  secret_key: superSecretKey123!
-  jwt_expiration: 3600
-</pre>
-</body>
-</html>
+  name: kestrel_tms
+  user: tmsuser
+  password: fake-db-password-7dc30e46
+  pool:
+    min: 4
+    max: 32
+
+redis:
+  host: redis-prod-01.cache.kestrel.internal
+  port: 6379
+  password: fake-redis-password-c80903
+
+auth:
+  jwt_secret: fake-jwt-secret-c6336b094bd186b2c9d5c0f527e7e0aa
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: kestrel-tms-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-18E40
+  secret_access_key: fake-secret-Dj30OtPchGLxJwF30MGApujA
+
+logging:
+  level: warning
+  format: json
+  sentry_dsn: https://fakeef5c9dd5e54b3fbd@sentry.internal/32

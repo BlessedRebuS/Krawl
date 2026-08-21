@@ -1,0 +1,25 @@
+# Grid Console service configuration
+
+[app]
+name = "Grid Console"
+env = "production"
+url = "https://portal.voltaenergia.es"
+version = "2.11.6"
+
+[database]
+url = "postgresql://grid_rw:fake-db-password-6469e6bf@pg-prod-01.db.volta.internal:5432/volta_grid"
+pool_size = 32
+statement_timeout_ms = 15000
+
+[redis]
+url = "redis://:fake-redis-password-0c365f@redis-prod-01.cache.volta.internal:6379/0"
+
+[auth]
+jwt_secret = "fake-jwt-secret-78d7cfa7cd207e8b7fac5f430b53394d"
+token_ttl_minutes = 1440
+
+[storage]
+bucket = "volta-grid-prod-assets"
+region = "eu-west-1"
+access_key_id = "AKIA-FAKE-D9336"
+secret_access_key = "fake-secret-MGVkKJcvkrnQz/oBPVAEqfCl"

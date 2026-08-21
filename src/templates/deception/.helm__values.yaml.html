@@ -1,39 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Helm Values - values.yaml</title>
-    <style>
-        body { font-family: monospace; margin: 2em; background: #f8f8f8; color: #333; }
-        pre { background: #fff; padding: 1em; border: 1px solid #ddd; overflow: auto; }
-    </style>
-</head>
-<body>
-    <h1>Helm Chart Values</h1>
-    <p>Default configuration values for the example Helm chart.</p>
-    <pre>
-replicaCount: 2
+# Kestrel TMS — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
 
-image:
-  repository: nginx
-  pullPolicy: IfNotPresent
-  tag: "stable"
+app:
+  name: "Kestrel TMS"
+  env: production
+  url: https://portal.kestrelfreight.nl
+  version: "3.8"
 
-service:
-  type: ClusterIP
-  port: 80
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
 
-resources:
-  limits:
-    cpu: 100m
-    memory: 128Mi
-  requests:
-    cpu: 50m
-    memory: 64Mi
+database:
+  driver: postgresql
+  host: pg-prod-01.db.kestrel.internal
+  port: 5432
+  name: kestrel_tms
+  user: tmsuser
+  password: fake-db-password-b878a472
+  pool:
+    min: 4
+    max: 32
 
-nodeSelector: {}
-tolerations: []
-affinity: {}
-    </pre>
-</body>
-</html>
+redis:
+  host: redis-prod-01.cache.kestrel.internal
+  port: 6379
+  password: fake-redis-password-ae2664
+
+auth:
+  jwt_secret: fake-jwt-secret-780ec53d46f2ed7f8212de77d45d5114
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: kestrel-tms-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-61BDB
+  secret_access_key: fake-secret-WIj+IX06QT6eztGdsw77ZqDs
+
+logging:
+  level: warning
+  format: json
+  sentry_dsn: https://fakecfbdd5988fcf6df9@sentry.internal/2

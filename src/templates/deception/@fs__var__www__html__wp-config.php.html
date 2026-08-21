@@ -1,0 +1,36 @@
+<?php
+/**
+ * WordPress base configuration — Volta Energia corporate site.
+ */
+
+define( 'DB_NAME', 'volta_wp' );
+define( 'DB_USER', 'volta_wp_user' );
+define( 'DB_PASSWORD', 'fake-wp-password-8c837d965f' );
+define( 'DB_HOST', 'mysql-web-01.db.volta.internal' );
+define( 'DB_CHARSET', 'utf8mb4' );
+define( 'DB_COLLATE', '' );
+
+define( 'AUTH_KEY',         'uo5nCHj5Pfq1tpp8E8aKzeU2ocWraNA6rmUAaTVXt4GYdHaC' );
+define( 'SECURE_AUTH_KEY',  'cFI8ZqlvTpYbyYMOSoZjEFrItQtSI2wpKAcc0YfG+ZcGtKvm' );
+define( 'LOGGED_IN_KEY',    'JG1q4jveX5rYgazVdSbfKUyw23wB9v2BHV5qgdt+kBLZswda' );
+define( 'NONCE_KEY',        '5q6Kq/4tgKQfNw1FLNka5EA8VpFBNrBrZjJpajQdcYTLpuuU' );
+define( 'AUTH_SALT',        'xiv5Gwmqyd7IaRN5EU4Er88wUwSNov4u5cvU/f4Jsu/9C8my' );
+define( 'SECURE_AUTH_SALT', 'EFj7RyFB/PvVTqtvkQ0HZdDihKiBOXAts5Sk/66cqemrhSpu' );
+
+$table_prefix = 'wp_';
+
+define( 'WP_DEBUG', false );
+define( 'WP_MEMORY_LIMIT', '256M' );
+define( 'DISALLOW_FILE_EDIT', true );
+define( 'WP_HOME', 'https://www.voltaenergia.es' );
+define( 'WP_SITEURL', 'https://www.voltaenergia.es' );
+
+define( 'SMTP_HOST', 'smtp.mail.volta.internal' );
+define( 'SMTP_USER', 'no-reply@voltaenergia.es' );
+define( 'SMTP_PASS', 'fake-smtp-password-846a2ea8' );
+
+if ( ! defined( 'ABSPATH' ) ) {
+    define( 'ABSPATH', __DIR__ . '/' );
+}
+
+require_once ABSPATH . 'wp-settings.php';

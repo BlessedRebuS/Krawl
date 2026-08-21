@@ -1,0 +1,47 @@
+# Grid Console — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
+
+app:
+  name: "Grid Console"
+  env: production
+  url: https://portal.voltaenergia.es
+  version: "2.11.6"
+
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
+
+database:
+  driver: postgresql
+  host: pg-prod-01.db.volta.internal
+  port: 5432
+  name: volta_grid
+  user: grid_rw
+  password: fake-db-password-76876b62
+  pool:
+    min: 4
+    max: 32
+
+redis:
+  host: redis-prod-01.cache.volta.internal
+  port: 6379
+  password: fake-redis-password-538939
+
+auth:
+  jwt_secret: fake-jwt-secret-45ee008362f70b1c9c5e095216ded58f
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: volta-grid-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-D484A
+  secret_access_key: fake-secret-8y19EieETu3PLucw7NMHdC+n
+
+logging:
+  level: warning
+  format: json
+  sentry_dsn: https://fakefc1dbb1c1e9c44a3@sentry.internal/17

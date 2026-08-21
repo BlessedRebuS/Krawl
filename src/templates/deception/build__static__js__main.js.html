@@ -1,26 +1,36 @@
-<html><body>/* main.js */
-(function(){
-  // Simulated React bundle
-  var root = document.getElementById('root');
-  if(root){
-    root.innerHTML = '<div id="app">Loading...</div>';
+/*! Caretrack 9.4.0 | build 1da5100 | (c) Northbridge Health */
+(function (window) {
+  'use strict';
+
+  var config = {
+    apiBase: 'https://api.northbridge-health.org/v2',
+    wsBase: 'wss://api.northbridge-health.org/socket',
+    sentryDsn: 'https://fakeea5d38b21f5cce32@sentry.internal/23',
+    release: 'caretrack@9.4.0',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
+
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
   }
-  // Vulnerable: reflect hash into DOM without sanitization
-  var hash = window.location.hash.substr(1);
-  var el = document.createElement('div');
-  el.innerHTML = hash; // XSS
-  document.body.appendChild(el);
-  // Fake API call with potential SQLi via user input
-  function loadData(){
-    var txt = hash;
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET','/api/items?q='+encodeURIComponent(txt),true);
-    xhr.onreadystatechange = function(){
-      if(xhr.readyState===4 && xhr.status===200){
-        console.log('Data received:', xhr.responseText);
-      }
-    };
-    xhr.send();
-  }
-  loadData();
-})();</body></html>
+
+  window.Caretrack = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

@@ -1,22 +1,26 @@
-<html><body>{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": "*",
-      "Action": [
-        "s3:GetObject",
-        "s3:PutObject",
-        "s3:ListBucket"
-      ],
-      "Resource": [
-        "arn:aws:s3:::company-backups",
-        "arn:aws:s3:::company-backups/*"
-      ]
-    }
-  ],
-  "Bucket": "company-backups",
-  "Region": "eu-west-2",
-  "AccessKeyId": "AKIAJZLXAMPLEKEY1234",
-  "SecretAccessKey": "vJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-}</body></html>
+{
+  "app": {
+    "name": "Orbit Cloud",
+    "version": "0.38.2",
+    "env": "production",
+    "url": "https://portal.orbitlabs.dev"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.orbit.internal",
+    "port": 5432,
+    "name": "orbit_cloud",
+    "user": "orbit",
+    "password": "fake-db-password-109263cc"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.orbit.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-5cb8c9b58dfa6ddc93cd37467764dea2",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-13T19:34:30Z"
+}

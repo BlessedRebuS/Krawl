@@ -1,48 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>User Info API - dniapi</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9;}
-        h1, h2 {color:#333;}
-        pre {background:#eee; padding:10px; border:1px solid #ddd; overflow:auto;}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>User management — Orbit Cloud</title>
+<style>
+:root{--bg:#0f1117;--panel:#171a21;--ink:#e6e8ee;--muted:#8b90a0;
+--line:#262a34;--brand:#7c6cf5;--brand-dk:#6354e0;--r:8px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#0f1117;color:#e6e8ee;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#e6e8ee}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#8b90a0;font-size:13px}
+header.top nav a.active{color:#e6e8ee;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:0 0 0 1px rgba(255,255,255,.03)}
+h1{font-family:inherit;font-size:19px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <h1>DNI API - User Information</h1>
-    <p>This endpoint returns dummy user data for demonstration purposes.</p>
-    <h2>Sample Response</h2>
-    <pre>
-{
-  "users": [
-    {
-      "id": 1,
-      "username": "alice_smith",
-      "email": "alice@example.com",
-      "full_name": "Alice Smith",
-      "role": "admin",
-      "last_login": "2025-10-30T08:15:00Z"
-    },
-    {
-      "id": 2,
-      "username": "bob_jones",
-      "email": "bob@example.com",
-      "full_name": "Bob Jones",
-      "role": "user",
-      "last_login": "2025-10-29T14:03:22Z"
-    },
-    {
-      "id": 3,
-      "username": "carol_lee",
-      "email": "carol@example.com",
-      "full_name": "Carol Lee",
-      "role": "moderator",
-      "last_login": "2025-10-28T09:45:10Z"
-    }
-  ]
-}
-    </pre>
-    <p>Note: This is a simulated response; actual data may vary.</p>
+<header class="top"><span class="brand">Orbit Cloud</span><nav><a href="/projects">Projects</a><a href="/deployments">Deployments</a><a href="/builds">Builds</a><a href="/registry">Registry</a><a href="/team">Team</a></nav></header>
+
+<div class="wrap">
+  <div class="breadcrumb"><a href="/admin">Administration</a> / Users</div>
+  <h1>User management</h1>
+  <p class="sub">5 accounts &middot; 1 pending invitations</p>
+  <div class="panel">
+    <form method="get" action="/admin/users" style="display:flex;gap:10px;margin-bottom:16px">
+      <input type="search" name="q" placeholder="Search by name, ID or email">
+      <select name="role" style="max-width:200px"><option value="">All roles</option><option>billing</option><option>developer</option><option>maintainer</option><option>owner</option></select>
+      <button type="submit">Filter</button>
+    </form>
+    <table><thead><tr><th>ID</th><th>Username</th><th>Name</th><th>Email</th><th>Role</th>
+    <th>Last sign-in</th><th>Status</th></tr></thead><tbody>
+      <tr><td>10</td><td><a href="/admin/users/10">nsauter</a></td><td>Nils Sauter</td>
+      <td>nsauter@orbitlabs.dev</td><td>Owner</td>
+      <td>08/08/2026 07:12</td>
+      <td><span class="pill ok">
+      Active</span></td></tr>
+      <tr><td>13</td><td><a href="/admin/users/13">bkovacs</a></td><td>Bea Kovács</td>
+      <td>bkovacs@orbitlabs.dev</td><td>Maintainer</td>
+      <td>30/07/2026 15:12</td>
+      <td><span class="pill ok">
+      Active</span></td></tr>
+      <tr><td>22</td><td><a href="/admin/users/22">dmoreau</a></td><td>Didier Moreau</td>
+      <td>dmoreau@orbitlabs.dev</td><td>Developer</td>
+      <td>11/08/2026 20:12</td>
+      <td><span class="pill ok">
+      Active</span></td></tr>
+      <tr><td>31</td><td><a href="/admin/users/31">iyilmaz</a></td><td>Irem Yilmaz</td>
+      <td>iyilmaz@orbitlabs.dev</td><td>Developer</td>
+      <td>29/07/2026 05:12</td>
+      <td><span class="pill err">
+      Suspended</span></td></tr>
+      <tr><td>37</td><td><a href="/admin/users/37">pnwosu</a></td><td>Paul Nwosu</td>
+      <td>pnwosu@orbitlabs.dev</td><td>Billing</td>
+      <td>11/08/2026 11:12</td>
+      <td><span class="pill ok">
+      Active</span></td></tr></tbody></table>
+  </div>
+</div>
+
+<footer><a href="/docs">Docs</a> &middot; <a href="/status">Status</a> &middot; <a href="/support">Support</a> &middot; Orbit Labs</footer>
 </body>
 </html>

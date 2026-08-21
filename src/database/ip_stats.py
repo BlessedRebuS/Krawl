@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import and_, func, or_
 
+from dashboard_cache import pagination
 from logger import get_app_logger
 from models import CategoryHistory, IpStats, TrackedIp
 from sanitizer import sanitize_ip
@@ -303,7 +304,6 @@ class IpStatsRepo:
                 .scalar()
                 or 0
             )
-            total_pages = max(1, (total + page_size - 1) // page_size)
 
             results = (
                 base_query.order_by(IpStats.last_seen.desc())
@@ -328,12 +328,7 @@ class IpStatsRepo:
 
             return {
                 "overrides": overrides,
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": total,
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, total),
             }
         finally:
             self._db.close_session()
@@ -395,6 +390,26 @@ class IpStatsRepo:
         except Exception as e:
             session.rollback()
             applogger.error(f"Error updating IP stats analysis: {e}")
+        finally:
+            self._db.close_session()
+
+    def mark_analysed(self, ip: str, when: datetime) -> None:
+        """Clear the reevaluation flag without changing the category.
+
+        For IPs with no access logs left in the analysis window: there is
+        nothing to score, but the flag has to clear or the IP is re-read on
+        every run forever.
+        """
+        session = self._db.session
+        try:
+            session.query(IpStats).filter(IpStats.ip == sanitize_ip(ip)).update(
+                {IpStats.last_analysis: when, IpStats.need_reevaluation: False},
+                synchronize_session=False,
+            )
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            applogger.error(f"Error marking {ip} analysed: {e}")
         finally:
             self._db.close_session()
 
@@ -665,8 +680,10 @@ class IpStatsRepo:
                 .filter(
                     IpStats.last_seen >= last_seen_cutoff,
                     IpStats.last_analysis <= last_analysis_cutoff,
-                    not IpStats.need_reevaluation,
-                    not IpStats.manual_category,
+                    # `not <column>` is Python truthiness: it collapsed to False,
+                    # so this update matched nothing and never flagged an IP.
+                    IpStats.need_reevaluation.isnot(True),
+                    IpStats.manual_category.isnot(True),
                 )
                 .update(
                     {IpStats.need_reevaluation: True},
@@ -694,8 +711,8 @@ class IpStatsRepo:
             count = (
                 session.query(IpStats)
                 .filter(
-                    not IpStats.need_reevaluation,
-                    not IpStats.manual_category,
+                    IpStats.need_reevaluation.isnot(True),
+                    IpStats.manual_category.isnot(True),
                 )
                 .update(
                     {IpStats.need_reevaluation: True},
@@ -1007,8 +1024,6 @@ class IpStatsRepo:
             # Get paginated IPs
             rows = query.offset(offset).limit(page_size).all()
 
-            total_pages = (total_ips + page_size - 1) // page_size
-
             return {
                 "ips": [
                     {
@@ -1032,12 +1047,7 @@ class IpStatsRepo:
                     }
                     for row in rows
                 ],
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": total_ips,
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, total_ips),
             }
         finally:
             self._db.close_session()
@@ -1104,25 +1114,26 @@ class IpStatsRepo:
         ban_duration_seconds: int,
         page: int = 1,
         page_size: int = 25,
+        sort_by: str = "time_left",
+        sort_order: str = "desc",
     ) -> dict[str, Any]:
-        """Paginated view of currently timed-out IPs with remaining time."""
+        """Paginated view of currently timed-out IPs with remaining time.
+
+        Sortable by ``time_left`` (remaining_ban_seconds), ``violations``, or
+        ``multiplier``; any other value falls back to newest-ban-first order.
+        """
         session = self._db.session
         try:
             candidates = self._timedout_candidates(session, ban_duration_seconds)
-            total = len(candidates)
-            total_pages = max(1, (total + page_size - 1) // page_size)
-            page = max(1, page)
-            start = (page - 1) * page_size
-            window = candidates[start : start + page_size]
 
             now = datetime.now()
-            items = []
-            for r in window:
+            all_items = []
+            for r in candidates:
                 multiplier = r.ban_multiplier or 1
                 effective = ban_duration_seconds * multiplier
                 elapsed = (now - r.ban_timestamp).total_seconds()
                 remaining = max(0, int(effective - elapsed))
-                items.append(
+                all_items.append(
                     {
                         "ip": r.ip,
                         "remaining_ban_seconds": remaining,
@@ -1135,14 +1146,27 @@ class IpStatsRepo:
                     }
                 )
 
+            sort_keys = {
+                "time_left": "remaining_ban_seconds",
+                "violations": "total_violations",
+                "multiplier": "ban_multiplier",
+            }
+            if sort_by in sort_keys:
+                all_items.sort(
+                    key=lambda d: d[sort_keys[sort_by]],
+                    reverse=(sort_order != "asc"),
+                )
+
+            total = len(all_items)
+            page = max(1, page)
+            start = (page - 1) * page_size
+            items = all_items[start : start + page_size]
+
             return {
                 "items": items,
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": total,
-                    "total_pages": total_pages,
-                },
+                "sort_by": sort_by,
+                "sort_order": sort_order,
+                "pagination": pagination(page, page_size, total),
             }
         finally:
             self._db.close_session()
@@ -1290,7 +1314,6 @@ class IpStatsRepo:
         session = self._db.session
         try:
             total = session.query(func.count(TrackedIp.ip)).scalar() or 0
-            total_pages = max(1, (total + page_size - 1) // page_size)
 
             tracked_rows = (
                 session.query(TrackedIp)
@@ -1318,12 +1341,7 @@ class IpStatsRepo:
 
             return {
                 "tracked_ips": items,
-                "pagination": {
-                    "page": page,
-                    "page_size": page_size,
-                    "total": total,
-                    "total_pages": total_pages,
-                },
+                "pagination": pagination(page, page_size, total),
             }
         finally:
             self._db.close_session()

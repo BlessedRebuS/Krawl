@@ -1,41 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Next.js Build Manifest</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 2rem; background: #fafafa; }
-        h1 { color: #333; }
-        pre { background: #fff; padding: 1rem; border: 1px solid #ddd; overflow: auto; }
-    </style>
-</head>
-<body>
-    <h1>Next.js Build Manifest</h1>
-    <pre>
 {
-  "version": 3,
-  "rootDir": "/var/www/html",
-  "webpackLoaders": [],
-  "assetsByChunkName": {
-    "main": ["main.js", "main.css"],
-    "pages/_app": ["app.js"],
-    "pages/index": ["index.js"],
-    "pages/about": ["about.js"],
-    "pages/api/hello": ["hello.js"]
+  "app": {
+    "name": "Grid Console",
+    "version": "2.11.6",
+    "env": "production",
+    "url": "https://portal.voltaenergia.es"
   },
-  "assetPrefix": "",
-  "files": {
-    "/static/chunks/webpack.js": "",
-    "/static/chunks/framework.js": "",
-    "/static/chunks/main.js": "",
-    "/static/chunks/pages/_app.js": "",
-    "/static/chunks/pages/index.js": "",
-    "/static/chunks/pages/about.js": "",
-    "/static/chunks/pages/api/hello.js": "",
-    "/static/media/logo.8a2b3c4d.png": "",
-    "/static/media/hero-image.1f2e3d4c.jpg": ""
-  }
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.volta.internal",
+    "port": 5432,
+    "name": "volta_grid",
+    "user": "grid_rw",
+    "password": "fake-db-password-5e5371cd"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.volta.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-79aafb97cffe2932c1ed2a72ae01f6e1",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-05T20:27:56Z"
 }
-</pre>
-</body>
-</html>

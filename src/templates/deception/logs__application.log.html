@@ -1,28 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Application Log - /logs/application.log</title>
-<style>
-body{font-family:monospace;background:#f8f8f8;color:#222;padding:20px;}
-pre{background:#fff;padding:10px;border:1px solid #ddd;overflow:auto;}
-</style>
-</head>
-<body>
-<h1>Application Log</h1>
-<p>Path: /logs/application.log</p>
-<pre>
-[2025-09-25 08:12:01] INFO  Server started on port 8080
-[2025-09-25 08:12:05] DEBUG Loading configuration from /etc/app/config.yaml
-[2025-09-25 08:12:07] WARN  Deprecated API endpoint /old/users accessed from 203.0.113.45
-[2025-09-25 08:12:10] ERROR Database connection failed: Connection refused
-[2025-09-25 08:12:12] INFO  Retrying DB connection...
-[2025-09-25 08:12:15] INFO  DB connection established
-[2025-09-25 08:12:20] INFO  Request GET /api/users from 198.51.100.22 (200)
-[2025-09-25 08:12:25] DEBUG Cache hit for key user:42
-[2025-09-25 08:12:30] WARN  High memory usage: 78%
-[2025-09-25 08:12:35] INFO  Scheduled backup started
-[2025-09-25 08:13:00] INFO  Backup completed successfully
-</pre>
-</body>
-</html>
+[2026-08-13 21:04:07] production.ERROR: SMTP connect() failed on smtp.mail.nbh.internal:587 {"request_id":"8127fa81fa86860b"}
+[2026-08-14 07:06:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=169 user_id=14 {"request_id":"cd46a9a732b97478"}
+[2026-08-13 10:59:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=270 user_id=28 {"request_id":"c3186cb18cb68962"}
+[2026-08-12 18:09:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"3bb675926c26a643"}
+[2026-08-14 05:54:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=293 user_id=28 {"request_id":"f4d869caecd3cff5"}
+[2026-08-12 23:31:07] production.INFO: scheduled task inventory:sync finished, 4472 rows {"request_id":"997fa691c6a8b132"}
+[2026-08-11 15:00:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=152 user_id=14 {"request_id":"bfe65067c4b399a1"}
+[2026-08-12 00:49:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=234 user_id=21 {"request_id":"75910ffbc2defecf"}
+[2026-08-13 12:49:07] production.INFO: scheduled task inventory:sync finished, 5199 rows {"request_id":"be22d9c6c45c6460"}
+[2026-08-12 21:42:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"e865a008e2d773cf"}
+[2026-08-13 05:51:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.nbh.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"eb62f3d3b7ff7d5e"}
+[2026-08-12 22:50:07] production.INFO: scheduled task inventory:sync finished, 3655 rows {"request_id":"07264782c718ac45"}
+[2026-08-12 10:38:07] production.ERROR: SMTP connect() failed on smtp.mail.nbh.internal:587 {"request_id":"b2698f8ba09c60ea"}
+[2026-08-12 04:41:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=66 user_id=3 {"request_id":"be55ee44db1c8269"}
+[2026-08-11 22:58:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.nbh.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"b6ae43a704fffa03"}
+[2026-08-12 23:11:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=217 user_id=9 {"request_id":"a46813fb4cc9fc8b"}

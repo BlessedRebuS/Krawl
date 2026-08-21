@@ -1,148 +1,106 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Trace.axd - ASP.NET Trace Viewer</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
-        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        h2 { color: #34495e; margin-top: 25px; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        .trace-info { background: #ecf0f1; padding: 15px; border-radius: 5px; margin: 15px 0; }
-        .warning { background: #fadbd8; border-left: 4px solid #e74c3c; padding: 10px; margin: 15px 0; }
-        .section { margin: 20px 0; }
-        code { background: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
-        .timestamp { color: #7f8c8d; font-size: 0.9em; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whoops, looks like something went wrong — Caretrack</title>
+<style>
+:root{--bg:#eef4f4;--panel:#fff;--ink:#16303a;--muted:#5f7c86;
+--line:#d3e2e4;--brand:#0f7a76;--brand-dk:#0a5b58;--r:10px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 "Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#fff;color:#0f7a76;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#0f7a76}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#5f7c86;font-size:13px}
+header.top nav a.active{color:#0f7a76;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(16,48,58,.06)}
+h1{font-family:inherit;font-size:22px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>ASP.NET Trace.axd</h1>
-        <p class="timestamp">Generated: Wed, 10 Apr 2024 14:23:18 GMT</p>
-        
-        <div class="trace-info">
-            <strong>Application:</strong> /LM/W3SVC/1/ROOT/MyWebApp<br>
-            <strong>Trace Enabled:</strong> True<br>
-            <strong>Trace Mode:</strong> SortByTime<br>
-            <strong>Most Recent Request:</strong> 10/Apr/2024:14:22:45 +0000
-        </div>
-        
-        <div class="warning">
-            <strong>Security Note:</strong> Trace information should be disabled in production environments as it may expose sensitive application details.
-        </div>
 
-        <div class="section">
-            <h2>Request Details</h2>
-            <table>
-                <tr><th>Field</th><th>Value</th></tr>
-                <tr><td>Request ID</td><td>1</td></tr>
-                <tr><td>Request URL</td><td>/default.aspx?id=1&user=admin'</td></tr>
-                <tr><td>Request Path</td><td>/default.aspx</td></tr>
-                <tr><td>User Host Address</td><td>192.168.1.105</td></tr>
-                <tr><td>User</td><td>Not authenticated</td></tr>
-                <tr><td>Time</td><td>10/Apr/2024:14:22:45 +0000</td></tr>
-                <tr><td>Status Code</td><td>200</td></tr>
-                <tr><td>Method</td><td>GET</td></tr>
-            </table>
-        </div>
 
-        <div class="section">
-            <h2>Trace Information</h2>
-            <table>
-                <tr><th>Category</th><th>Message</th><th>From First(s)</th><th>From Last(s)</th></tr>
-                <tr><td>aspx.page.Begin PreInit</td><td>Entering PreInit phase</td><td>0.00000</td><td>0.00000</td></tr>
-                <tr><td>aspx.page.Init</td><td>Page initialization started</td><td>0.00120</td><td>0.00120</td></tr>
-                <tr><td>sql</td><td>SELECT * FROM Users WHERE Username = 'admin'' --</td><td>0.00450</td><td>0.00330</td></tr>
-                <tr><td>aspx.page.Load</td><td>Page loading completed</td><td>0.00890</td><td>0.00440</td></tr>
-                <tr><td>webservice.call</td><td>Calling GetUserProfile service</td><td>0.01520</td><td>0.00630</td></tr>
-                <tr><td>error</td><td>Invalid input detected: potential XSS attempt</td><td>0.02100</td><td>0.00580</td></tr>
-                <tr><td>aspx.page.Render</td><td>Rendering page to output stream</td><td>0.02500</td><td>0.00400</td></tr>
-                <tr><td>aspx.page.End Request</td><td>Request processing completed</td><td>0.02850</td><td>0.00350</td></tr>
-            </table>
-        </div>
+<div class="wrap">
+  <h1>ErrorException</h1>
+  <p class="sub">Undefined array key "warehouse_id" &middot; app/Services/Inventory/SyncService.php:184</p>
+  <div class="panel">
+    <pre>#0 /var/www/portal/app/Services/Inventory/SyncService.php(184): Illuminate\Foundation\Bootstrap\HandleExceptions-&gt;handleError()
+#1 /var/www/portal/app/Http/Controllers/InventoryController.php(62): App\Services\Inventory\SyncService-&gt;pull()
+#2 /var/www/portal/vendor/laravel/framework/src/Illuminate/Routing/Controller.php(54): App\Http\Controllers\InventoryController-&gt;sync()
+#3 /var/www/portal/vendor/laravel/framework/src/Illuminate/Routing/Route.php(261): Illuminate\Routing\ControllerDispatcher-&gt;dispatch()
+#4 /var/www/portal/public/index.php(51): Illuminate\Foundation\Http\Kernel-&gt;handle()</pre>
+  </div>
+  <div class="panel">
+    <h2>Request</h2>
+    <table><tbody>
+      <tr><td class="muted">URI</td><td><code>/trace.axd</code></td></tr>
+      <tr><td class="muted">Method</td><td>GET</td></tr>
+      <tr><td class="muted">Controller</td><td><code>App\Http\Controllers\InventoryController@sync</code></td></tr>
+      <tr><td class="muted">Middleware</td><td>web, auth, verified</td></tr>
+      <tr><td class="muted">Request ID</td><td><code>3f94b08d91116ab9</code></td></tr>
+    </tbody></table>
+  </div>
+  <div class="panel">
+    <h2>Environment</h2>
+    <table><tbody>
+      <tr><td class="muted">APP_ENV</td><td>production</td></tr>
+      <tr><td class="muted">APP_DEBUG</td><td>true</td></tr>
+      <tr><td class="muted">DB_CONNECTION</td><td>pgsql &middot; pg-prod-01.db.nbh.internal:5432</td></tr>
+      <tr><td class="muted">PHP</td><td>8.2.24</td></tr>
+      <tr><td class="muted">Laravel</td><td>11.9.2</td></tr>
+    </tbody></table>
+  </div>
+</div>
 
-        <div class="section">
-            <h2>Control Tree</h2>
-            <table>
-                <tr><th>Control ID</th><th>Type</th><th>Render Size</th></tr>
-                <tr><td>form1</td><td>System.Web.UI.HtmlControls.HtmlForm</td><td>12.4 KB</td></tr>
-                <tr><td>Header1</td><td>ASP.controls_header_ascx</td><td>1.8 KB</td></tr>
-                <tr><td>MainContent</td><td>System.Web.UI.WebControls.Panel</td><td>8.2 KB</td></tr>
-                <tr><td>UserLogin</td><td>ASP.controls_login_ascx</td><td>2.1 KB</td></tr>
-                <tr><td>SearchBox</td><td>System.Web.UI.WebControls.TextBox</td><td>0.3 KB</td></tr>
-                <tr><td>SubmitBtn</td><td>System.Web.UI.WebControls.Button</td><td>0.4 KB</td></tr>
-            </table>
-        </div>
-
-        <div class="section">
-            <h2>Session State</h2>
-            <table>
-                <tr><th>Name</th><th>Value</th><th>Type</th></tr>
-                <tr><td>UserID</td><td>1024</td><td>System.Int32</td></tr>
-                <tr><td>LastPage</td><td>/products.aspx</td><td>System.String</td></tr>
-                <tr><td>CartItems</td><td>[ProductID: 101, Quantity: 2]</td><td>System.Collections.ArrayList</td></tr>
-                <tr><td>AuthToken</td><td>a1b2c3d4e5f6...</td><td>System.String</td></tr>
-            </table>
-        </div>
-
-        <div class="section">
-            <h2>Application State</h2>
-            <table>
-                <tr><th>Name</th><th>Value</th></tr>
-                <tr><td>ApplicationStart</td><td>10/Apr/2024 08:00:00</td></tr>
-                <tr><td>VisitorCount</td><td>12450</td></tr>
-                <tr><td>ConnectionString</td><td>Server=SQL01;Database=AppDB;User Id=appuser;Password=******;</td></tr>
-                <tr><td>MaxUsers</td><td>1000</td></tr>
-            </table>
-        </div>
-
-        <div class="section">
-            <h2>Cookies Collection</h2>
-            <table>
-                <tr><th>Name</th><th>Value</th><th>Size</th></tr>
-                <tr><td>ASP.NET_SessionId</td><td>abcd1234efgh5678ijkl9012mnop3456</td><td>24</td></tr>
-                <tr><td>UserPreferences</td><td>theme=dark;lang=en-US</td><td>22</td></tr>
-                <tr><td>TrackingID</td><td>trk_20240410_142245_789</td><td>26</td></tr>
-            </table>
-        </div>
-
-        <div class="section">
-            <h2>Headers Collection</h2>
-            <table>
-                <tr><th>Name</th><th>Value</th></tr>
-                <tr><td>User-Agent</td><td>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36</td></tr>
-                <tr><td>Accept</td><td>text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8</td></tr>
-                <tr><td>Accept-Language</td><td>en-US,en;q=0.5</td></tr>
-                <tr><td>Accept-Encoding</td><td>gzip, deflate</td></tr>
-                <tr><td>Connection</td><td>keep-alive</td></tr>
-                <tr><td>Referer</td><td>https://example.com/login</td></tr>
-                <tr><td>X-Forwarded-For</td><td>203.0.113.42</td></tr>
-            </table>
-        </div>
-
-        <div class="section">
-            <h2>Server Variables</h2>
-            <table>
-                <tr><th>Variable</th><th>Value</th></tr>
-                <tr><td>APPL_MD_PATH</td><td>/LM/W3SVC/1/ROOT/MyWebApp</td></tr>
-                <tr><td>APPL_PHYSICAL_PATH</td><td>C:\inetpub\wwwroot\MyWebApp\</td></tr>
-                <tr><td>INSTANCE_ID</td><td>1</td></tr>
-                <tr><td>LOCAL_ADDR</td><td>10.0.0.5</td></tr>
-                <tr><td>REMOTE_ADDR</td><td>192.168.1.105</td></tr>
-                <tr><td>SERVER_NAME</td><td>web01.internal.company.com</td></tr>
-                <tr><td>SERVER_PORT</td><td>80</td></tr>
-                <tr><td>SERVER_PROTOCOL</td><td>HTTP/1.1</td></tr>
-                <tr><td>URL</td><td>/default.aspx</td></tr>
-                <tr><td>QUERY_STRING</td><td>id=1&user=admin'</td></tr>
-                <tr><td>HTTP_USER_AGENT</td><td>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36</td></tr>
-                <tr><td>HTTP_ACCEPT</td><td>text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8</td></tr>
-            </table>
-        </div>
-
-        <p><em>Trace information is available for the last 10 requests. To disable tracing, set &lt;trace enabled="false&quot; /&gt; in web.config.</em></p>
-    </div>
+<footer>Caretrack 9.4.0 &middot; &copy; 2026 Northbridge Health &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

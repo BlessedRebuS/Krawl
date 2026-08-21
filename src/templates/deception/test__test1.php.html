@@ -1,79 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Page - Internal System</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin: 20px 0; }
-        .form-group { margin: 15px 0; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        input[type="submit"] { background-color: #3498db; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        input[type="submit"]:hover { background-color: #2980b9; }
-        .footer { margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 14px; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbit Labs — container hosting and build pipelines</title>
+<style>
+:root{--bg:#0f1117;--panel:#171a21;--ink:#e6e8ee;--muted:#8b90a0;
+--line:#262a34;--brand:#7c6cf5;--brand-dk:#6354e0;--r:8px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#0f1117;color:#e6e8ee;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#e6e8ee}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#8b90a0;font-size:13px}
+header.top nav a.active{color:#e6e8ee;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:0 0 0 1px rgba(255,255,255,.03)}
+h1{font-family:inherit;font-size:19px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Internal Test Interface</h1>
-        <div class="warning">
-            <strong>Warning:</strong> This is a development test page. Do not use in production.
-        </div>
-        <p>This page is used for internal testing of database connectivity and input validation.</p>
-        
-        <form method="GET" action="/test/test1.php">
-            <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" value="<?php echo isset($_GET['username']) ? htmlspecialchars($_GET['username']) : ''; ?>" placeholder="Enter username">
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" placeholder="Enter password">
-            </div>
-            <div class="form-group">
-                <label for="query">Database Query (for testing):</label>
-                <input type="text" id="query" name="query" value="<?php echo isset($_GET['query']) ? htmlspecialchars($_GET['query']) : ''; ?>" placeholder="SELECT * FROM users">
-            </div>
-            <input type="submit" value="Submit Test">
-        </form>
+<header class="top"><span class="brand">Orbit Cloud</span><nav><a href="/projects">Projects</a><a href="/deployments">Deployments</a><a href="/builds">Builds</a><a href="/registry">Registry</a><a href="/team">Team</a></nav></header>
 
-        <?php
-        if (isset($_GET['username']) || isset($_GET['query'])) {
-            echo "<hr>";
-            echo "<h2>Test Results:</h2>";
-            
-            if (isset($_GET['username'])) {
-                echo "<p><strong>Username received:</strong> " . htmlspecialchars($_GET['username']) . "</p>";
-            }
-            
-            if (isset($_GET['query'])) {
-                echo "<p><strong>Query executed:</strong> " . htmlspecialchars($_GET['query']) . "</p>";
-                // Simulate fake query results
-                if (stripos($_GET['query'], 'select') !== false || stripos($_GET['query'], '*') !== false) {
-                    echo "<h3>Query Results:</h3>";
-                    echo "<table border='1' cellpadding='8' cellspacing='0'>";
-                    echo "<tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th></tr>";
-                    echo "<tr><td>1</td><td>admin</td><td>admin@company.com</td><td>Administrator</td></tr>";
-                    echo "<tr><td>2</td><td>john_doe</td><td>john.doe@company.com</td><td>User</td></tr>";
-                    echo "<tr><td>3</td><td>jane_smith</td><td>jane.smith@company.com</td><td>Manager</td></tr>";
-                    echo "</table>";
-                } elseif (stripos($_GET['query'], 'insert') !== false || stripos($_GET['query'], 'update') !== false || stripos($_GET['query'], 'delete') !== false) {
-                    echo "<p><strong>Query processed successfully.</strong> Rows affected: 1</p>";
-                } else {
-                    echo "<p><strong>Note:</strong> This is a simulated response. No actual database query was executed.</p>";
-                }
-            }
-        }
-        ?>
+<div class="wrap">
+  <div class="panel">
+    <h1>Ship it, then look at the graphs</h1>
+    <p class="sub">Orbit Labs hosts containers and build pipelines for 1 800 engineering teams.</p>
+    <p><a class="btn" href="/signup" style="display:inline-block">Start free</a>
+       <a class="btn sec" href="/login" style="display:inline-block;margin-left:8px">Sign in</a></p>
+  </div>
+  <div class="grid"><div class="panel"><h2>Push to deploy</h2><p class="muted">Every branch gets a preview URL. Merge to main promotes the same image to production.</p><p><a href="/product">Read more</a></p></div><div class="panel"><h2>Managed runtime</h2><p class="muted">Autoscaling, TLS, secrets and rollbacks handled for you, on your own VPC if you want.</p><p><a href="/pricing">Read more</a></p></div><div class="panel"><h2>Observability</h2><p class="muted">Logs, traces and build history retained for 30 days and queryable from the CLI.</p><p><a href="/docs">Read more</a></p></div></div>
+  <div class="panel">
+    <h2>Latest updates</h2>
+    <p><a href="/blog/q3-platform-roadmap">Q3 platform roadmap</a>
+      <span class="muted">&middot; 08 August 2026</span><br>
+    <a href="/blog/release-0.38.2">What changed in Orbit Cloud 0.38.2</a>
+      <span class="muted">&middot; 26 July 2026</span><br>
+    <a href="/blog/integration-notes">Integration notes for partners</a>
+      <span class="muted">&middot; 12 July 2026</span></p>
+  </div>
+  <div class="panel">
+    <p class="muted" style="font-size:12px">Orbit Labs &middot; Ada-Lovelace-Str. 9, 10557 Berlin, Germany &middot;
+    company no. 7135576 &middot; <a href="/product">Product</a> &middot; <a href="/pricing">Pricing</a> &middot; <a href="/docs">Docs</a> &middot; <a href="/changelog">Changelog</a> &middot; <a href="/contact-us">Contact</a></p>
+  </div>
+</div>
 
-        <div class="footer">
-            <p>Internal Test System v1.2.3 &copy; 2024 Company Name</p>
-            <p>Page generated: <?php echo date('Y-m-d H:i:s'); ?></p>
-        </div>
-    </div>
+<footer><a href="/docs">Docs</a> &middot; <a href="/status">Status</a> &middot; <a href="/support">Support</a> &middot; Orbit Labs</footer>
 </body>
 </html>

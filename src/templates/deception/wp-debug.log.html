@@ -1,25 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>WordPress Debug Log</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; margin:0; padding:20px;}
-        h1 {color:#333;}
-        pre {background:#fff; padding:15px; border:1px solid #ddd; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>WordPress Debug Log</h1>
-    <p>Generated on 23-Sep-2025 10:12:40 UTC</p>
-    <pre>
-[23-Sep-2025 10:12:34 UTC] PHP Notice:  Undefined variable: wpdb in /var/www/html/wp-includes/functions.php on line 1234
-[23-Sep-2025 10:12:35 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /var/www/html/wp-config.php:1) in /var/www/html/wp-includes/pluggable.php on line 1225
-[23-Sep-2025 10:12:36 UTC] PHP Notice:  Trying to access array offset on value of type null in /var/www/html/wp-content/plugins/some-plugin/some-file.php on line 78
-[23-Sep-2025 10:12:37 UTC] WordPress database error Table 'wp_options' doesn't exist for query SELECT option_value FROM wp_options WHERE option_name = 'siteurl' LIMIT 1 made by require_once('wp-load.php'), ...
-[23-Sep-2025 10:12:38 UTC] PHP Deprecated:  Function create_function() is deprecated in /var/www/html/wp-content/themes/twentytwentyfour/functions.php on line 45
-[23-Sep-2025 10:12:39 UTC] PHP Notice:  Use of undefined constant WP_DEBUG_LOG - assumed 'WP_DEBUG_LOG' in /var/www/html/wp-config.php on line 92
-[23-Sep-2025 10:12:40 UTC] PHP Warning:  fopen(/var/www/html/wp-content/debug.log): failed to open stream: Permission denied in /var/www/html/wp-includes/functions.php on line 2032
-    </pre>
-</body>
-</html>
+[2026-08-12 11:49:07] production.ERROR: SMTP connect() failed on smtp.mail.halcyon.internal:587 {"request_id":"4cff2afa9219cf4a"}
+[2026-08-14 03:12:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=343 user_id=19 {"request_id":"0dc016752e6a075b"}
+[2026-08-13 10:31:07] production.ERROR: SMTP connect() failed on smtp.mail.halcyon.internal:587 {"request_id":"39029a86903cb3d4"}
+[2026-08-13 12:35:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=278 user_id=27 {"request_id":"c9ddb38bbf4ca0e5"}
+[2026-08-11 15:53:07] production.ERROR: SMTP connect() failed on smtp.mail.halcyon.internal:587 {"request_id":"85730dbb24fe30f8"}
+[2026-08-13 07:10:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=59 user_id=16 {"request_id":"e178381153fec0fc"}
+[2026-08-14 04:53:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"165a6f0bc347a9f0"}
+[2026-08-11 14:53:07] production.ERROR: SMTP connect() failed on smtp.mail.halcyon.internal:587 {"request_id":"03f386c4eaf31ba4"}
+[2026-08-12 08:05:07] production.INFO: scheduled task inventory:sync finished, 6083 rows {"request_id":"6728c977ab726678"}
+[2026-08-13 09:27:07] production.ERROR: SMTP connect() failed on smtp.mail.halcyon.internal:587 {"request_id":"49fa6cff71a1736f"}
+[2026-08-14 02:10:07] production.ERROR: SMTP connect() failed on smtp.mail.halcyon.internal:587 {"request_id":"8def614129460a38"}
+[2026-08-13 13:06:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=341 user_id=8 {"request_id":"e19fbe3a8e4034a3"}
+[2026-08-13 17:51:07] production.ERROR: SMTP connect() failed on smtp.mail.halcyon.internal:587 {"request_id":"8a1d5cf19e4ca074"}
+[2026-08-13 18:12:07] production.ERROR: SMTP connect() failed on smtp.mail.halcyon.internal:587 {"request_id":"fe893f8e21a5bc76"}
+[2026-08-12 09:57:07] production.INFO: scheduled task inventory:sync finished, 6813 rows {"request_id":"c9edb3d6b9706c11"}
+[2026-08-12 12:51:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"e85fa3ac4a96ffc7"}

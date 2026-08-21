@@ -1,29 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>gcp-key.json</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; padding:20px;}
-        h1 {color:#333;}
-        pre {background:#eee; padding:10px; border:1px solid #ccc; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>gcp-key.json</h1>
-    <pre>
 {
-  "type": "service_account",
-  "project_id": "my-project-12345",
-  "private_key_id": "abcd1234efgh5678ijkl9012mnop3456qrst7890",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDL...\n-----END PRIVATE KEY-----",
-  "client_email": "my-service-account@my-project-12345.iam.gserviceaccount.com",
-  "client_id": "123456789012345678901",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/my-service-account%40my-project-12345.iam.gserviceaccount.com"
+  "app": {
+    "name": "Meridian Portal",
+    "version": "4.2.1",
+    "env": "production",
+    "url": "https://portal.meridiansys.io"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.meridian.internal",
+    "port": 5432,
+    "name": "meridian_portal",
+    "user": "meridian_app",
+    "password": "fake-db-password-e461cef3"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.meridian.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-8f6d510493252f88acaecda9c0641751",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-07T02:31:09Z"
 }
-    </pre>
-</body>
-</html>

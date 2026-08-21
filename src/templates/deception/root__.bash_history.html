@@ -1,0 +1,12 @@
+cd /var/www/portal
+git pull origin main
+php artisan down
+PGPASSWORD=fake-db-password-38b50abc psql -h pg-prod-01.db.orbit.internal -U orbit orbit_cloud
+php artisan migrate --force
+php artisan queue:restart
+php artisan up
+sudo systemctl restart php8.2-fpm
+tail -f storage/logs/laravel.log
+aws s3 cp storage/exports/q3.csv s3://orbit-cloud-prod-assets/exports/
+docker compose -f infra/compose.yml ps
+exit

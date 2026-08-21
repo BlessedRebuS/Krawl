@@ -2,30 +2,30 @@
 <div x-data="banManagement()" x-init="init()">
 
     {# Force ban IP form #}
-    <div class="table-container" style="margin-bottom: 20px;">
+    <div class="table-container mb-5">
         <h2>IP Banlist</h2>
-        <p style="color: #8b949e; font-size: 14px; margin-bottom: 16px;">
+        <p class="panel-note">
             Force-ban a new IP or manage existing ban overrides. Changes take effect on the next banlist export cycle (every 5 minutes).
         </p>
-        <form @submit.prevent="forceBan()" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 200px;">
-                <label style="display: block; color: #8b949e; font-size: 12px; margin-bottom: 4px;">IP Address</label>
+        <form class="form-row" @submit.prevent="forceBan()">
+            <div class="form-col-wide">
+                <label class="field-label">IP Address</label>
                 <input type="text"
                        x-model="newBanIp"
                        placeholder="e.g. 192.168.1.100"
-                       class="auth-modal-input"
-                       style="width: 100%;" />
+                       class="auth-modal-input w-full"
+                       />
             </div>
             <button type="submit" class="ban-form-btn" :disabled="!newBanIp || banLoading">
-                <span class="material-symbols-outlined">gavel</span>
+                <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.28 6.78a.75.75 0 0 0-1.06-1.06L8.75 7.19 6.31 4.75l1.47-1.47a.75.75 0 0 0-1.06-1.06L2.47 6.47a.75.75 0 0 0 1.06 1.06L5 6.06l2.44 2.44-4.72 4.72a.75.75 0 1 0 1.06 1.06l4.72-4.72L11 12l-1.47 1.47a.75.75 0 1 0 1.06 1.06l4.25-4.25a.75.75 0 0 0-1.06-1.06L12.31 10.7 9.87 8.25l1.41-1.47Z"/></svg>
                 <span x-text="banLoading ? 'Banning...' : 'Force Ban IP'"></span>
             </button>
         </form>
-        <p x-show="banMessage" x-text="banMessage" :style="{ color: banSuccess ? '#3fb950' : '#f85149' }" style="margin-top: 10px; font-size: 13px;" x-cloak></p>
+        <p class="form-status" x-show="banMessage" x-text="banMessage" :style="{ color: banSuccess ? 'var(--ok)' : 'var(--danger)' }" x-cloak></p>
     </div>
 
     {# Attackers list with unban option #}
-    <div class="table-container" style="margin-bottom: 20px;">
+    <div class="table-container mb-5">
         <h2>Detected Attackers</h2>
         <div class="htmx-container"
              hx-get="{{ dashboard_path }}/htmx/ban/attackers?page=1"

@@ -1,53 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>WP JSON Post SMTP Log</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9; color:#333;}
-        h1 {color:#2c3e50;}
-        pre {background:#ecf0f1; padding:15px; border-radius:5px; overflow-x:auto;}
-        nav {margin-bottom:20px;}
-        nav a {margin-right:15px; text-decoration:none; color:#2980b9;}
-        nav a:hover {text-decoration:underline;}
-    </style>
-</head>
-<body>
-    <nav>
-        <a href="/">Home</a>
-        <a href="/wp-admin/">Admin</a>
-        <a href="/wp-json/">WP JSON API</a>
-    </nav>
-    <h1>Post SMTP – Log Retrieval</h1>
-    <p>This endpoint returns the latest SMTP logging data for the Post SMTP plugin.</p>
-    <pre>
-{
-  "status": "success",
-  "logs": [
-    {
-      "timestamp": "2025-09-25 10:12:03",
-      "level": "INFO",
-      "message": "Email sent to user@example.com via SMTP (smtp.gmail.com:587)"
-    },
-    {
-      "timestamp": "2025-09-25 10:11:58",
-      "level": "ERROR",
-      "message": "SMTP connection failed: Connection timed out after 30000ms"
-    },
-    {
-      "timestamp": "2025-09-25 10:10:45",
-      "level": "INFO",
-      "message": "SMTP authentication succeeded for user@example.com"
-    },
-    {
-      "timestamp": "2025-09-25 10:09:12",
-      "level": "WARN",
-      "message": "Retrying email to admin@example.com (attempt 2/3)"
+[
+  {
+    "id": 8255,
+    "level": "error",
+    "logged_at": "2026-08-09T07:20:50Z",
+    "message": "SMTP connect failed: Connection timed out (smtp.mail.halcyon.internal:587)",
+    "context": {
+      "request_id": "5cf9037052787a48"
     }
-  ],
-  "total_entries": 4,
-  "generated_at": "2025-09-25T10:12:10Z"
-}
-</pre>
-</body>
-</html>
+  },
+  {
+    "id": 4355,
+    "level": "warning",
+    "logged_at": "2026-08-04T15:25:23Z",
+    "message": "Queue worker restarted after memory limit (128M)",
+    "context": {
+      "request_id": "7d549314591ba0b3"
+    }
+  },
+  {
+    "id": 3435,
+    "level": "info",
+    "logged_at": "2026-08-12T21:17:48Z",
+    "message": "Nightly export completed: 4 812 rows",
+    "context": {
+      "request_id": "254e143ee21a0843"
+    }
+  }
+]

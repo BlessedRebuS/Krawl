@@ -97,16 +97,183 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
+    Alpine.data('webhookManagement', () => ({
+        accountId: '',
+        authToken: '',
+        listName: 'krawl_banlist',
+        syncInterval: 30,
+        zoneId: '',
+        zoneName: '',
+        ruleAction: 'block',
+        cfEnabled: false,
+        listId: null,
+        selectedCategories: ['attacker'],
+        lastSync: null,
+        lastSyncStatus: null,
+        lastSyncError: null,
+        saving: false,
+        syncing: false,
+        testResult: '',
+        testOk: false,
+        syncStatus: '',
+        syncOk: false,
+        wafRuleStatus: '',
+        wafRuleOk: false,
+        allCategories: [
+            { value: 'attacker', label: 'Attackers' },
+            { value: 'bad_crawler', label: 'Bad Crawlers' },
+            { value: 'regular_user', label: 'Regular Users' },
+            { value: 'good_crawler', label: 'Good Crawlers' },
+            { value: 'timed_out', label: 'Timed Out' },
+        ],
+
+        async init() {
+            const dp = window.__DASHBOARD_PATH__ || '';
+            try {
+                const resp = await fetch(`${dp}/api/webhooks/status`, { credentials: 'same-origin' });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    const cf = data.cloudflare || {};
+                    this.accountId = cf.account_id || '';
+                    this.authToken = cf.auth_token || '';
+                    this.listName = cf.list_name || 'krawl_banlist';
+                    this.syncInterval = cf.sync_interval_minutes || 30;
+                    this.zoneId = cf.zone_id || '';
+                    this.zoneName = cf.zone_name || '';
+                    this.ruleAction = cf.rule_action || 'block';
+                    this.cfEnabled = cf.enabled || false;
+                    this.wafRuleStatus = (cf.zone_id && cf.waf_rule_created) ? 'WAF rule active' : '';
+                    this.wafRuleOk = !!(cf.zone_id && cf.waf_rule_created);
+                    this.listId = cf.list_id || null;
+                    this.selectedCategories = cf.categories || ['attacker'];
+                    this.lastSync = cf.last_sync ? new Date(cf.last_sync).toLocaleString() : null;
+                    this.lastSyncStatus = cf.last_sync_status || null;
+                    this.lastSyncError = cf.last_sync_error || null;
+                }
+            } catch {}
+        },
+
+        async saveConfig() {
+            if (!this.accountId || !this.authToken) {
+                this.testResult = 'Account ID and API Token are required';
+                this.testOk = false;
+                return;
+            }
+            this.saving = true;
+            this.testResult = '';
+            this.syncStatus = '';
+            const dp = window.__DASHBOARD_PATH__ || '';
+            try {
+                const resp = await fetch(`${dp}/api/webhooks/cloudflare/save`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        account_id: this.accountId,
+                        auth_token: this.authToken,
+                        list_name: this.listName,
+                        sync_interval_minutes: this.syncInterval,
+                        categories: this.selectedCategories,
+                        enabled: this.cfEnabled,
+                        zone_id: this.zoneId,
+                        rule_action: this.ruleAction,
+                    }),
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    this.listId = data.list_id;
+                    if (data.zone_name) this.zoneName = data.zone_name;
+                    this.wafRuleStatus = '';
+                    this.wafRuleOk = false;
+                    if (data.rule_created) { this.wafRuleStatus = 'WAF rule created'; this.wafRuleOk = true; }
+                    else if (data.rule_exists) { this.wafRuleStatus = 'WAF rule active'; this.wafRuleOk = true; }
+                    this.testResult = data.warning || ('Saved (' + (data.list_name || this.listName) + ')');
+                    this.testOk = !data.warning;
+                } else {
+                    this.testResult = data.error || 'Save failed';
+                    this.testOk = false;
+                }
+            } catch {
+                this.testResult = 'Request failed';
+                this.testOk = false;
+            }
+            this.saving = false;
+        },
+
+        async syncNow() {
+            this.syncing = true;
+            this.syncStatus = '';
+            const dp = window.__DASHBOARD_PATH__ || '';
+            try {
+                const resp = await fetch(`${dp}/api/webhooks/cloudflare/sync`, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    this.syncStatus = 'Synced ' + data.count + ' IPs to CloudFlare';
+                    this.syncOk = true;
+                    this.lastSync = new Date().toLocaleString();
+                    this.lastSyncStatus = 'ok';
+                    this.lastSyncError = null;
+                } else {
+                    this.syncStatus = data.error || 'Sync failed';
+                    this.syncOk = false;
+                    this.lastSyncStatus = 'error';
+                    this.lastSyncError = data.error;
+                }
+            } catch {
+                this.syncStatus = 'Request failed';
+                this.syncOk = false;
+            }
+            this.syncing = false;
+        },
+
+        async deleteConfig() {
+            const dp = window.__DASHBOARD_PATH__ || '';
+            try {
+                const resp = await fetch(`${dp}/api/webhooks/cloudflare/config`, {
+                    method: 'DELETE',
+                    credentials: 'same-origin',
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    this.accountId = '';
+                    this.authToken = '';
+                    this.zoneId = '';
+                    this.zoneName = '';
+                    this.ruleAction = 'block';
+                    this.wafRuleStatus = '';
+                    this.wafRuleOk = false;
+                    this.listId = null;
+                    this.lastSync = null;
+                    this.lastSyncStatus = null;
+                    this.lastSyncError = null;
+                    this.testResult = 'Config deleted';
+                    this.testOk = true;
+                } else {
+                    this.testResult = data.error || 'Delete failed';
+                    this.testOk = false;
+                }
+            } catch {
+                this.testResult = 'Request failed';
+                this.testOk = false;
+            }
+        },
+    }));
+
     Alpine.data('dashboardApp', () => ({
         // State
         tab: 'overview',
         dashboardPath: window.__DASHBOARD_PATH__ || '',
 
         // Export IPs modal
-        exportModal: { show: false, categories: ['attacker'], fwtype: 'raw', error: '', loading: false },
+        exportModal: { show: false, categories: ['attacker'], fwtype: 'raw', error: '', loading: false, mergeBanlists: false, excludeCdn: ['cloudflare', 'fastly', 'cloudfront', 'google', 'bunny'] },
+        banlistSources: [],
+        showBanlistSources: false,
 
         // Raw request modal
-        rawModal: { show: false, content: '', logId: null },
+        rawModal: { show: false, content: '', highlightedContent: '', logId: null, attachments: [], attachmentsShow: false, hasAttachments: false },
 
         // Map state
         mapInitialized: false,
@@ -123,7 +290,7 @@ document.addEventListener('alpine:init', () => {
         uploadModal: { show: false, path: '', fileName: '', fileContent: '', error: '', success: '', loading: false, dragging: false },
 
         // Expand overlay state
-        expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false },
+        expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false, method: '', attackType: '', attackTypes: [], ipFilter: '' },
 
         // Flag to prevent double-triggering during init
         _initializingHash: false,
@@ -138,6 +305,19 @@ document.addEventListener('alpine:init', () => {
             // Sync ban action button visibility with auth state
             this.$watch('authenticated', (val) => updateBanActionVisibility(val));
             updateBanActionVisibility(this.authenticated);
+
+            // Fetch banlist sources when export modal opens
+            this.$watch('exportModal.show', async (show) => {
+                if (show) {
+                    try {
+                        const resp = await fetch(`${this.dashboardPath}/api/banlist-sources`, { credentials: 'same-origin' });
+                        if (resp.ok) {
+                            const data = await resp.json();
+                            this.banlistSources = data.sources || [];
+                        }
+                    } catch {}
+                }
+            });
 
             // Set flag to prevent double-triggering during initialization
             this._initializingHash = true;
@@ -154,6 +334,8 @@ document.addEventListener('alpine:init', () => {
                 this.switchToTrackedIps();
             } else if (hash === 'deception' && this.authenticated) {
                 this.switchToDeception();
+            } else if (hash === 'webhooks' && this.authenticated) {
+                this.switchToWebhooks();
             } else if (hash === 'overview' || !hash) {
                 this.switchToOverview();
             } else {
@@ -178,6 +360,8 @@ document.addEventListener('alpine:init', () => {
                         if (this.authenticated) this.switchToTrackedIps();
                     } else if (h === 'deception') {
                         if (this.authenticated) this.switchToDeception();
+                    } else if (h === 'webhooks') {
+                        if (this.authenticated) this.switchToWebhooks();
                     } else if (h !== 'ip-insight') {
                         if (this.tab !== 'ip-insight') {
                             this.switchToOverview();
@@ -276,6 +460,22 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
+        switchToWebhooks() {
+            if (!this.authenticated) return;
+            if (this.tab === 'webhooks') return;
+            this.tab = 'webhooks';
+            window.location.hash = '#webhooks';
+            this.$nextTick(() => {
+                const container = document.getElementById('webhooks-htmx-container');
+                if (container && typeof htmx !== 'undefined') {
+                    htmx.ajax('GET', `${this.dashboardPath}/htmx/webhooks`, {
+                        target: '#webhooks-htmx-container',
+                        swap: 'innerHTML'
+                    });
+                }
+            });
+        },
+
         async logout() {
             try {
                 await fetch(`${this.dashboardPath}/api/auth/logout`, {
@@ -284,7 +484,7 @@ document.addEventListener('alpine:init', () => {
                 });
             } catch {}
             this.authenticated = false;
-            if (this.tab === 'banlist' || this.tab === 'tracked-ips' || this.tab === 'deception' || this.tab === 'timedout') this.switchToOverview();
+            if (this.tab === 'banlist' || this.tab === 'tracked-ips' || this.tab === 'deception' || this.tab === 'timedout' || this.tab === 'webhooks') this.switchToOverview();
         },
 
         promptAuth() {
@@ -306,18 +506,24 @@ document.addEventListener('alpine:init', () => {
                 categories: (this.exportModal.categories.slice().sort()).join(','),
                 fwtype: this.exportModal.fwtype,
             });
+            if (this.exportModal.mergeBanlists) {
+                params.set('merge_banlists', 'true');
+            }
+            if (this.exportModal.excludeCdn.length > 0) {
+                params.set('exclude_cdn', this.exportModal.excludeCdn.slice().sort().join(','));
+            }
             return `${window.location.origin}${this.dashboardPath}/api/export-ips?${params}`;
         },
 
         async copyExportUrl(event) {
             const btn = event.currentTarget;
             const originalHTML = btn.innerHTML;
-            const checkIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="#3fb950"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>';
+            const checkIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="icon" fill="var(--ok)"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>';
             try {
                 await navigator.clipboard.writeText(this.exportUrl());
                 btn.innerHTML = checkIcon;
             } catch {
-                btn.style.color = '#f85149';
+                btn.style.color = krawlToken('--danger');
             }
             setTimeout(() => { btn.innerHTML = originalHTML; btn.style.color = ''; }, 1500);
         },
@@ -334,6 +540,12 @@ document.addEventListener('alpine:init', () => {
                     categories: this.exportModal.categories.join(','),
                     fwtype: this.exportModal.fwtype,
                 });
+                if (this.exportModal.mergeBanlists) {
+                    params.set('merge_banlists', 'true');
+                }
+                if (this.exportModal.excludeCdn.length > 0) {
+                    params.set('exclude_cdn', this.exportModal.excludeCdn.join(','));
+                }
                 const resp = await fetch(`${this.dashboardPath}/api/export-ips?${params}`, {
                     credentials: 'same-origin',
                 });
@@ -458,29 +670,78 @@ document.addEventListener('alpine:init', () => {
                 }
                 const data = await resp.json();
                 this.rawModal.content = data.raw_request || 'No content available';
+                this.rawModal.highlightedContent = this.highlightRawRequest(this.rawModal.content);
                 this.rawModal.logId = logId;
+                const ctMatch = this.rawModal.content.match(/content-type:\s*([^\r\n]+)/i);
+                if (ctMatch) {
+                    const ct = ctMatch[1].trim().toLowerCase();
+                    const nonFile = ['multipart/form-data', 'application/json', 'application/x-www-form-urlencoded', 'application/xml', 'application/xhtml+xml'];
+                    const nonFileText = ['text/html', 'text/plain', 'text/css', 'text/javascript'];
+                    const isText = ct.startsWith('text/');
+                    this.rawModal.hasAttachments = ct.startsWith('multipart/form-data')
+                        || (!nonFile.some(t => ct.startsWith(t)) && (!isText || !nonFileText.some(t => ct.startsWith(t))));
+                } else {
+                    this.rawModal.hasAttachments = false;
+                }
                 this.rawModal.show = true;
             } catch (err) {
                 krawlModal.error('Failed to load raw request');
             }
         },
 
+        escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        },
+
+        highlightRawRequest(rawRequest) {
+            const escapedLines = this.escapeHtml(rawRequest).split(/\r?\n/);
+            const requestLine = /^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+(\S+)\s+(HTTP\/\d(?:\.\d)?)$/i;
+            const headerLine = /^([^:\s][^:]*):(.*)$/;
+
+            return escapedLines.map((line, index) => {
+                if (index === 0) {
+                    return line.replace(
+                        requestLine,
+                        '<span class="raw-token-method">$1</span> <span class="raw-token-path">$2</span> <span class="raw-token-version">$3</span>'
+                    );
+                }
+
+                if (!line.trim()) {
+                    return '<span class="raw-token-separator"></span>';
+                }
+
+                return line.replace(
+                    headerLine,
+                    '<span class="raw-token-header">$1:</span><span class="raw-token-value">$2</span>'
+                );
+            }).join('\n');
+        },
+
         closeRawModal() {
             this.rawModal.show = false;
             this.rawModal.content = '';
+            this.rawModal.highlightedContent = '';
             this.rawModal.logId = null;
+            this.rawModal.attachments = [];
+            this.rawModal.attachmentsShow = false;
+            this.rawModal.hasAttachments = false;
         },
 
         async copyRawRequest(event) {
             if (!this.rawModal.content) return;
             const btn = event.currentTarget;
             const originalHTML = btn.innerHTML;
-            const checkIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="#3fb950"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>';
+            const checkIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="icon" fill="var(--ok)"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>';
             try {
                 await navigator.clipboard.writeText(this.rawModal.content);
                 btn.innerHTML = checkIcon;
             } catch {
-                btn.style.color = '#f85149';
+                btn.style.color = krawlToken('--danger');
             }
             setTimeout(() => { btn.innerHTML = originalHTML; btn.style.color = ''; }, 1500);
         },
@@ -498,6 +759,40 @@ document.addEventListener('alpine:init', () => {
             URL.revokeObjectURL(url);
         },
 
+        async fetchAttachments() {
+            if (this.rawModal.attachmentsShow) {
+                this.rawModal.attachmentsShow = false;
+                return;
+            }
+            if (this.rawModal.attachments.length > 0) {
+                this.rawModal.attachmentsShow = true;
+                return;
+            }
+            if (!this.rawModal.logId) return;
+            try {
+                const resp = await fetch(
+                    `${this.dashboardPath}/api/attachments/${this.rawModal.logId}`,
+                    { cache: 'no-store' }
+                );
+                const data = await resp.json();
+                this.rawModal.attachments = data.attachments || [];
+                this.rawModal.attachmentsShow = true;
+            } catch (err) {
+                krawlModal.error('Failed to load attachments');
+            }
+        },
+
+        downloadAttachment(index, filename) {
+            if (!this.rawModal.logId) return;
+            const a = document.createElement('a');
+            a.href = `${this.dashboardPath}/api/attachments/${this.rawModal.logId}/download/${index}`;
+            a.download = filename || 'attachment';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            this.rawModal.attachmentsShow = false;
+        },
+
         toggleIpDetail(event) {
             const row = event.target.closest('tr');
             if (!row) return;
@@ -506,6 +801,19 @@ document.addEventListener('alpine:init', () => {
                 detailRow.style.display =
                     detailRow.style.display === 'table-row' ? 'none' : 'table-row';
             }
+        },
+
+        colorizeUrl(url) {
+            const catColors = krawlCategoryColors();
+            const escaped = url.replace(/[&<>"']/g, function(m) {
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+            });
+            let result = escaped;
+            for (const [cat, color] of Object.entries(catColors)) {
+                const re = new RegExp('(' + cat.replace(/_/g, '[_-]') + ')', 'gi');
+                result = result.replace(re, '<span style="color:' + color + ';font-weight:600;">$1</span>');
+            }
+            return result;
         },
     }));
 });
@@ -1033,8 +1341,15 @@ window.openExpandOverlay = function(title, endpoint, pageSize) {
         show: true, title: title, endpoint: endpoint,
         pageSize: pageSize || 25, search: '',
         categories: [], honeypotOnly: false,
+        method: '', attackType: '', attackTypes: [],
+        ipFilter: '',
     });
     _reloadExpandOverlay();
+    // For attacks, lazily load the list of distinct attack types for the
+    // dropdown filter.
+    if (endpoint === 'attacks') {
+        _loadExpandAttackTypes();
+    }
 };
 
 window.triggerExpandSearch = function() {
@@ -1058,6 +1373,39 @@ window.toggleExpandHoneypot = function() {
     _reloadExpandOverlay();
 };
 
+window.toggleExpandMethod = function(method) {
+    const app = _getAlpineData();
+    if (!app) return;
+    app.expandOverlay.method = (app.expandOverlay.method === method) ? '' : method;
+    _reloadExpandOverlay();
+};
+
+window.clearExpandFilter = function(name) {
+    const app = _getAlpineData();
+    if (!app) return;
+    const ov = app.expandOverlay;
+    if (name === 'attackType') ov.attackType = '';
+    else if (name === 'method') ov.method = '';
+    else if (name === 'search') { ov.search = ''; const el = document.querySelector('.expand-overlay-search'); if (el) el.value = ''; }
+    else if (name === 'ipFilter') ov.ipFilter = '';
+    _reloadExpandOverlay();
+};
+
+function _loadExpandAttackTypes() {
+    const dashboardPath = window.__DASHBOARD_PATH__ || '';
+    fetch(`${dashboardPath}/htmx/attack-types-list`)
+        .then(r => r.ok ? r.json() : { attack_types: [] })
+        .then(data => {
+            const app = _getAlpineData();
+            if (!app) return;
+            app.expandOverlay.attackTypes = Array.isArray(data.attack_types) ? data.attack_types : [];
+        })
+        .catch(() => {
+            const app = _getAlpineData();
+            if (app) app.expandOverlay.attackTypes = [];
+        });
+}
+
 function _reloadExpandOverlay() {
     const app = _getAlpineData();
     if (!app) return;
@@ -1079,9 +1427,17 @@ function _reloadExpandOverlay() {
     if (ov.endpoint === 'top-paths' && ov.honeypotOnly) {
         params.set('honeypot_only', '1');
     }
+    if (ov.endpoint === 'attacks') {
+        if (ov.method) params.set('method_filter', ov.method);
+        if (ov.attackType) params.set('attack_type_filter', ov.attackType);
+        // Pull sort defaults from the currently displayed partial if present,
+        // otherwise default to timestamp desc.
+        if (!params.has('sort_by')) params.set('sort_by', 'timestamp');
+        if (!params.has('sort_order')) params.set('sort_order', 'desc');
+    }
 
     const url = `${dashboardPath}/htmx/${ov.endpoint}?${params}`;
-    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #8b949e;">Loading...</div>';
+    container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-dim);">Loading...</div>';
     htmx.ajax('GET', url, { target: container, swap: 'innerHTML' });
 }
 
@@ -1092,6 +1448,14 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
+// Icon set — inline Octicons on a 16 viewBox, sized and colored by CSS (.icon*).
+// Same system the templates use; no icon webfont.
+const KRAWL_ICONS = {
+    alert: '<svg class="icon-lg" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>',
+    check: '<svg class="icon-lg" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 16A8 8 0 1 1 8 0a8 8 0 0 1 0 16Zm3.78-9.72a.751.751 0 0 0-.018-1.042.751.751 0 0 0-1.042-.018L6.75 9.19 5.28 7.72a.751.751 0 0 0-1.042.018.751.751 0 0 0-.018 1.042l2 2a.75.75 0 0 0 1.06 0Z"/></svg>',
+    error: '<svg class="icon-lg" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.343 13.657A8 8 0 1 1 13.658 2.342 8 8 0 0 1 2.343 13.657ZM6.03 4.97a.751.751 0 0 0-1.042.018.751.751 0 0 0-.018 1.042L6.94 8 4.97 9.97a.749.749 0 0 0 .326 1.275.749.749 0 0 0 .734-.215L8 9.06l1.97 1.97a.749.749 0 0 0 1.275-.326.749.749 0 0 0-.215-.734L9.06 8l1.97-1.97a.749.749 0 0 0-.326-1.275.749.749 0 0 0-.734.215L8 6.94Z"/></svg>',
+};
+
 // Custom modal system (replaces native confirm/alert)
 window.krawlModal = {
     _create(icon, iconClass, message, buttons) {
@@ -1101,7 +1465,7 @@ window.krawlModal = {
             overlay.innerHTML = `
                 <div class="krawl-modal-box">
                     <div class="krawl-modal-icon ${iconClass}">
-                        <span class="material-symbols-outlined">${icon}</span>
+                        ${KRAWL_ICONS[icon]}
                     </div>
                     <div class="krawl-modal-message">${message}</div>
                     <div class="krawl-modal-actions" id="krawl-modal-actions"></div>
@@ -1121,13 +1485,13 @@ window.krawlModal = {
         });
     },
     confirm(message) {
-        return this._create('warning', 'krawl-modal-icon-warn', message, [
+        return this._create('alert', 'krawl-modal-icon-warn', message, [
             { label: 'Cancel', cls: 'auth-modal-btn-cancel', value: false },
             { label: 'Confirm', cls: 'auth-modal-btn-submit', value: true },
         ]);
     },
     success(message) {
-        return this._create('check_circle', 'krawl-modal-icon-success', message, [
+        return this._create('check', 'krawl-modal-icon-success', message, [
             { label: 'OK', cls: 'auth-modal-btn-submit', value: true },
         ]);
     },

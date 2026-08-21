@@ -1,0 +1,25 @@
+# Orbit Cloud service configuration
+
+[app]
+name = "Orbit Cloud"
+env = "production"
+url = "https://portal.orbitlabs.dev"
+version = "0.38.2"
+
+[database]
+url = "postgresql://orbit:fake-db-password-e2b62b15@pg-prod-01.db.orbit.internal:5432/orbit_cloud"
+pool_size = 32
+statement_timeout_ms = 15000
+
+[redis]
+url = "redis://:fake-redis-password-283e39@redis-prod-01.cache.orbit.internal:6379/0"
+
+[auth]
+jwt_secret = "fake-jwt-secret-54bf32cabea8f60cfb4b39ae1b657e30"
+token_ttl_minutes = 1440
+
+[storage]
+bucket = "orbit-cloud-prod-assets"
+region = "eu-west-1"
+access_key_id = "AKIA-FAKE-5FCD6"
+secret_access_key = "fake-secret-5GyvF3pAI5Q6vJQa9iKeBeHZ"

@@ -225,6 +225,19 @@ def flush_all() -> None:
         _cache.clear()
 
 
+def pagination(page: int, page_size: int, total: int) -> dict:
+    """Build the pagination block shared by every paginated response.
+
+    total_pages is at least 1 so an empty table still reads "page 1 of 1".
+    """
+    return {
+        "page": page,
+        "page_size": page_size,
+        "total": total,
+        "total_pages": max(1, (total + page_size - 1) // page_size),
+    }
+
+
 def paginate_cached_list(items: list, page: int, page_size: int) -> dict:
     """Slice a pre-computed sorted list into a paginated response."""
     total = len(items)
@@ -233,12 +246,7 @@ def paginate_cached_list(items: list, page: int, page_size: int) -> dict:
     offset = (page - 1) * page_size
     return {
         "items": items[offset : offset + page_size],
-        "pagination": {
-            "page": page,
-            "page_size": page_size,
-            "total": total,
-            "total_pages": total_pages,
-        },
+        "pagination": pagination(page, page_size, total),
     }
 
 

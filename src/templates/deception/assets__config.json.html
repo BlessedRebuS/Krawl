@@ -1,27 +1,26 @@
-<html><body>{
-  "debug": true,
-  "db_host": "localhost",
-  "db_user": "admin",
-  "db_pass": "s3cr3tP@ssw0rd!",
-  "db_name": "app_prod",
-  "api_key": "sk_live_51HgJkL2mNpQrStUvWxYzAbCdEfGhIjKlMnOpQrStUvWxYz",
-  "jwt_secret": "super_secret_jwt_key_change_in_production",
-  "cache_ttl": 300,
-  "max_upload_size": "10MB",
-  "allowed_origins": [
-    "https://example.com",
-    "https://admin.example.com"
-  ],
-  "features": {
-    "user_registration": true,
-    "file_upload": true,
-    "analytics": false,
-    "debug_mode": true
+{
+  "app": {
+    "name": "Meridian Portal",
+    "version": "4.2.1",
+    "env": "production",
+    "url": "https://portal.meridiansys.io"
   },
-  "logging": {
-    "level": "debug",
-    "file": "/var/log/app.log",
-    "max_size": "10MB",
-    "backup_count": 5
-  }
-}</body></html>
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.meridian.internal",
+    "port": 5432,
+    "name": "meridian_portal",
+    "user": "meridian_app",
+    "password": "fake-db-password-dbd5b6c6"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.meridian.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-428a10aabdd8cde319a173aa1b56f496",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-06T09:12:03Z"
+}

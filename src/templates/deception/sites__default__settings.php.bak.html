@@ -1,65 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>settings.php.bak - Site Configuration Backup</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; color:#222; padding:20px;}
-        pre {background:#fff; padding:15px; border:1px solid #ddd; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>Drupal Settings Configuration Backup</h1>
-    <p>This is a backup of the site's settings.php file.</p>
-    <pre>
 <?php
 /**
- * @file
- * Drupal site-specific configuration file.
+ * Grid Console — database & service configuration
  *
- * IMPORTANT NOTE:
- * This file may have been set to read-only by the Drupal installer.
- * If you make changes to this file, be sure to protect it again
- * after making your modifications. Failure to do so could lead
- * to security vulnerabilities.
+ * @package  VoltaGrid
+ * @version  2.11.6
  */
 
-$databases = array (
-  'default' =>
-  array (
-    'default' =>
-    array (
-      'database' => 'drupaldb',
-      'username' => 'dbuser',
-      'password' => 's3cr3tP@ss!',
-      'host' => 'localhost',
-      'port' => '',
-      'driver' => 'mysql',
-      'prefix' => '',
-    ),
-  ),
-);
+defined('MERIDIAN_ROOT') or define('MERIDIAN_ROOT', dirname(__DIR__));
 
-$settings['hash_salt'] = 'h@shS@ltV@lue123';
-$settings['file_public_path'] = 'sites/default/files';
-$settings['file_private_path'] = '';
-$settings['file_temporary_path'] = '/tmp';
+$config = [
+    'app' => [
+        'name'      => 'Grid Console',
+        'env'       => 'production',
+        'debug'     => false,
+        'url'       => 'https://portal.voltaenergia.es',
+        'key'       => 'base64:EueAeZmWZsPf6NypuMG90xEm+EBZyYSTjMW7JoB6kSP=',
+    ],
 
-$config_directories = array (
-  CONFIG_SYNC_DIRECTORY => 'sites/default/files/config_XXXXXXX/sync',
-);
+    'db' => [
+        'driver'    => 'pgsql',
+        'host'      => 'pg-prod-01.db.volta.internal',
+        'port'      => 5432,
+        'database'  => 'volta_grid',
+        'username'  => 'grid_rw',
+        'password'  => 'fake-db-password-35a6675b',
+        'charset'   => 'utf8',
+        'prefix'    => 'mp_',
+    ],
 
-$settings['container_yamls'][] = DRUPAL_ROOT . '/sites/development.services.yml';
-$settings['update_free_access'] = FALSE;
-$settings['skip_permissions_hardening'] = TRUE;
+    'redis' => [
+        'host'      => 'redis-prod-01.cache.volta.internal',
+        'port'      => 6379,
+        'password'  => 'fake-redis-password-65217c',
+    ],
 
-/**
- * Reverse Proxy Configuration:
- */
-// $settings['reverse_proxy'] = TRUE;
-// $settings['reverse_proxy_addresses'] = array('a.b.c.d', ...);
+    'mail' => [
+        'host'      => 'smtp.mail.volta.internal',
+        'port'      => 587,
+        'username'  => 'no-reply@voltaenergia.es',
+        'password'  => 'fake-smtp-password-3610adb2',
+        'encryption'=> 'tls',
+    ],
+];
 
-?>
-    </pre>
-</body>
-</html>
+/* Legacy globals — still read by the reporting cron, remove after MP-2841. */
+$db_host = $config['db']['host'];
+$db_user = $config['db']['username'];
+$db_pass = $config['db']['password'];
+$db_name = $config['db']['database'];
+
+define('AUTH_SALT', 'C0mvF91SzbQVfN0sGFJ6otNdgetSw08N');
+define('SECURE_AUTH_KEY', 'gNgEkHKf77e15Uqb+faKw6kQ9e2gOlhU');
+
+return $config;

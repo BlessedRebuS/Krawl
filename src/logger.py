@@ -7,22 +7,7 @@ Provides two loggers: app (application) and access (HTTP access logs).
 
 import logging
 import os
-from datetime import datetime
 from logging.handlers import RotatingFileHandler
-
-
-class TimezoneFormatter(logging.Formatter):
-    """Custom formatter that respects configured timezone"""
-
-    def __init__(self, fmt=None, datefmt=None):
-        super().__init__(fmt, datefmt)
-
-    def formatTime(self, record, datefmt=None):
-        """Override formatTime to use configured timezone"""
-        dt = datetime.fromtimestamp(record.created)
-        if datefmt:
-            return dt.strftime(datefmt)
-        return dt.isoformat()
 
 
 class LoggerManager:
@@ -51,7 +36,7 @@ class LoggerManager:
         os.makedirs(log_dir, exist_ok=True)
 
         # Common format for all loggers
-        log_format = TimezoneFormatter(
+        log_format = logging.Formatter(
             "[%(asctime)s] %(levelname)s - %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
         )
@@ -102,7 +87,7 @@ class LoggerManager:
         self._credential_logger.handlers.clear()
 
         # Credential logger uses a simple format: timestamp|ip|username|password|path
-        credential_format = TimezoneFormatter("%(message)s")
+        credential_format = logging.Formatter("%(message)s")
 
         credential_file_handler = RotatingFileHandler(
             os.path.join(log_dir, "credentials.log"),

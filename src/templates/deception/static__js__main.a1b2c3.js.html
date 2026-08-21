@@ -1,27 +1,36 @@
-<html><body>/**
- * Main application bundle
- * Version 1.0.0
- */
-(function() {
-    // Fake configuration
-    var config = {
-        apiEndpoint: "/api/v1/data",
-        token: "fake-token-12345"
-    };
+/*! Caretrack 9.4.0 | build efea37b | (c) Northbridge Health */
+(function (window) {
+  'use strict';
 
-    // Simulate a vulnerable AJAX call
-    function loadData() {
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", config.apiEndpoint + "?q=" + encodeURIComponent(document.location.hash.substr(1)), true);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                // Vulnerable to XSS via innerHTML
-                document.getElementById('content').innerHTML = xhr.responseText;
-            }
-        };
-        xhr.send();
-    }
+  var config = {
+    apiBase: 'https://api.northbridge-health.org/v2',
+    wsBase: 'wss://api.northbridge-health.org/socket',
+    sentryDsn: 'https://fake4b090bc742930533@sentry.internal/12',
+    release: 'caretrack@9.4.0',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
 
-    // Expose globally for debugging
-    window.loadData = loadData;
-})();</body></html>
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
+  }
+
+  window.Caretrack = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

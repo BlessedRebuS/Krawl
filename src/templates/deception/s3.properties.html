@@ -1,0 +1,25 @@
+# Caretrack — Spring Boot configuration
+spring.application.name=caretrack
+server.port=8080
+server.servlet.context-path=/
+
+spring.datasource.url=jdbc:postgresql://pg-prod-01.db.nbh.internal:5432/caretrack
+spring.datasource.username=caretrack_svc
+spring.datasource.password=fake-db-password-78fa54db
+spring.datasource.hikari.maximum-pool-size=32
+
+spring.data.redis.host=redis-prod-01.cache.nbh.internal
+spring.data.redis.port=6379
+spring.data.redis.password=fake-redis-password-f749f8
+
+spring.mail.host=smtp.mail.nbh.internal
+spring.mail.port=587
+spring.mail.username=no-reply@northbridge-health.org
+spring.mail.password=fake-smtp-password-5e1785e6
+
+management.endpoints.web.exposure.include=health,info,metrics
+management.endpoint.health.show-details=when-authorized
+
+meridian.jwt.secret=fake-jwt-secret-c2739fb89c5bde2459a4f52bad1b7f11
+meridian.jwt.ttl-minutes=1440
+logging.level.root=WARN

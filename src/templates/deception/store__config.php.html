@@ -1,0 +1,55 @@
+<?php
+/**
+ * Halcyon Commerce — database & service configuration
+ *
+ * @package  Halcyon
+ * @version  6.0.3
+ */
+
+defined('MERIDIAN_ROOT') or define('MERIDIAN_ROOT', dirname(__DIR__));
+
+$config = [
+    'app' => [
+        'name'      => 'Halcyon Commerce',
+        'env'       => 'production',
+        'debug'     => false,
+        'url'       => 'https://portal.halcyonretail.co.uk',
+        'key'       => 'base64:3lRsDGwmaLWRsFM5CZBi/lmJLGG4PvrKQXGaBQ3i2PK=',
+    ],
+
+    'db' => [
+        'driver'    => 'pgsql',
+        'host'      => 'pg-prod-01.db.halcyon.internal',
+        'port'      => 5432,
+        'database'  => 'halcyon_commerce',
+        'username'  => 'hc_web',
+        'password'  => 'fake-db-password-abd8c0ab',
+        'charset'   => 'utf8',
+        'prefix'    => 'mp_',
+    ],
+
+    'redis' => [
+        'host'      => 'redis-prod-01.cache.halcyon.internal',
+        'port'      => 6379,
+        'password'  => 'fake-redis-password-72450b',
+    ],
+
+    'mail' => [
+        'host'      => 'smtp.mail.halcyon.internal',
+        'port'      => 587,
+        'username'  => 'no-reply@halcyonretail.co.uk',
+        'password'  => 'fake-smtp-password-30a5e632',
+        'encryption'=> 'tls',
+    ],
+];
+
+/* Legacy globals — still read by the reporting cron, remove after MP-2841. */
+$db_host = $config['db']['host'];
+$db_user = $config['db']['username'];
+$db_pass = $config['db']['password'];
+$db_name = $config['db']['database'];
+
+define('AUTH_SALT', 'bI003NEaQAArVXoxTrTSQAwcFbWT1uee');
+define('SECURE_AUTH_KEY', 'o+7GnwWtCfhkGUzZUpkNv+JxkLHGcUk1');
+
+return $config;

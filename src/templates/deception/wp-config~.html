@@ -1,47 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>wp-config~ - WordPress Configuration Backup</title>
-    <style>
-        body {font-family: monospace; margin: 2rem; background:#fafafa; color:#222;}
-        textarea {width:100%; height:400px; background:#fff; border:1px solid #ccc; padding:1rem; font-size:0.9rem;}
-        h1 {color:#0066cc;}
-    </style>
-</head>
-<body>
-    <h1>wp-config~</h1>
-    <p>This appears to be a backup copy of the WordPress configuration file. It may contain sensitive information such as database credentials and authentication keys.</p>
-    <textarea readonly>
 <?php
 /**
- * WordPress Configuration Backup (fake)
+ * WordPress base configuration — Halcyon Retail Group corporate site.
  */
-define('DB_NAME', 'wordpress');
-define('DB_USER', 'wp_user');
-define('DB_PASSWORD', 'SuperSecretPass!23');
-define('DB_HOST', 'localhost');
-define('DB_CHARSET', 'utf8');
-define('DB_COLLATE', '');
 
-define('AUTH_KEY',         'put your unique phrase here');
-define('SECURE_AUTH_KEY',  'put your unique phrase here');
-define('LOGGED_IN_KEY',    'put your unique phrase here');
-define('NONCE_KEY',        'put your unique phrase here');
-define('AUTH_SALT',        'put your unique phrase here');
-define('SECURE_AUTH_SALT', 'put your unique phrase here');
-define('LOGGED_IN_SALT',   'put your unique phrase here');
-define('NONCE_SALT',       'put your unique phrase here');
+define( 'DB_NAME', 'halcyon_wp' );
+define( 'DB_USER', 'halcyon_wp_user' );
+define( 'DB_PASSWORD', 'fake-wp-password-3cdd6326a9' );
+define( 'DB_HOST', 'mysql-web-01.db.halcyon.internal' );
+define( 'DB_CHARSET', 'utf8mb4' );
+define( 'DB_COLLATE', '' );
 
-$table_prefix  = 'wp_';
+define( 'AUTH_KEY',         'wnaEb6HQnRfWEmMSeraDMRterq1kTcyrhDKHvFOGEzjslOR9' );
+define( 'SECURE_AUTH_KEY',  'bfZQd9NW/C+NKFWj+uTYMJpTODghRiuOjC6rIU1L0xjw5ams' );
+define( 'LOGGED_IN_KEY',    'DI/i7yvSC8pn7w7mGnXldrTlycyaWwlwmP9yNELQzSa/pnNX' );
+define( 'NONCE_KEY',        'xrNIZeZQ0tiay3HQsZFdRSr3epc7aKxYoz61mLmozG26yYIQ' );
+define( 'AUTH_SALT',        'UcYCgYFiQpNTg/FLrxPXga9lhiSLMVqjFijsthBB8XxPu4E6' );
+define( 'SECURE_AUTH_SALT', 'bfb0V1eS3mIKPAZt8X4Ybkl5W757qRq/WkI2b2oqqLH+kCVl' );
 
-define('WP_DEBUG', false);
+$table_prefix = 'wp_';
 
-/* That's all, stop editing! Happy publishing. */
-require_once(ABSPATH . 'wp-settings.php');
-?>
-    </textarea>
-    <hr>
-    <p><em>Note: This is a simulated environment for security training purposes. No actual data is exposed.</em></p>
-</body>
-</html>
+define( 'WP_DEBUG', false );
+define( 'WP_MEMORY_LIMIT', '256M' );
+define( 'DISALLOW_FILE_EDIT', true );
+define( 'WP_HOME', 'https://www.halcyonretail.co.uk' );
+define( 'WP_SITEURL', 'https://www.halcyonretail.co.uk' );
+
+define( 'SMTP_HOST', 'smtp.mail.halcyon.internal' );
+define( 'SMTP_USER', 'no-reply@halcyonretail.co.uk' );
+define( 'SMTP_PASS', 'fake-smtp-password-61914de2' );
+
+if ( ! defined( 'ABSPATH' ) ) {
+    define( 'ABSPATH', __DIR__ . '/' );
+}
+
+require_once ABSPATH . 'wp-settings.php';

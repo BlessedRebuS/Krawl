@@ -1,0 +1,55 @@
+<?php
+/**
+ * Kestrel TMS — database & service configuration
+ *
+ * @package  KestrelTMS
+ * @version  3.8
+ */
+
+defined('MERIDIAN_ROOT') or define('MERIDIAN_ROOT', dirname(__DIR__));
+
+$config = [
+    'app' => [
+        'name'      => 'Kestrel TMS',
+        'env'       => 'production',
+        'debug'     => false,
+        'url'       => 'https://portal.kestrelfreight.nl',
+        'key'       => 'base64:S8z3F+DTFDPM+383ceFQtlg2gc2JL0ljQrDmRDgz5OI=',
+    ],
+
+    'db' => [
+        'driver'    => 'pgsql',
+        'host'      => 'pg-prod-01.db.kestrel.internal',
+        'port'      => 5432,
+        'database'  => 'kestrel_tms',
+        'username'  => 'tmsuser',
+        'password'  => 'fake-db-password-4106e52d',
+        'charset'   => 'utf8',
+        'prefix'    => 'mp_',
+    ],
+
+    'redis' => [
+        'host'      => 'redis-prod-01.cache.kestrel.internal',
+        'port'      => 6379,
+        'password'  => 'fake-redis-password-9d2c17',
+    ],
+
+    'mail' => [
+        'host'      => 'smtp.mail.kestrel.internal',
+        'port'      => 587,
+        'username'  => 'no-reply@kestrelfreight.nl',
+        'password'  => 'fake-smtp-password-a50408e3',
+        'encryption'=> 'tls',
+    ],
+];
+
+/* Legacy globals — still read by the reporting cron, remove after MP-2841. */
+$db_host = $config['db']['host'];
+$db_user = $config['db']['username'];
+$db_pass = $config['db']['password'];
+$db_name = $config['db']['database'];
+
+define('AUTH_SALT', '3K+xeRfRfIaBhY8Hkv1SzvpKA0m9Cmei');
+define('SECURE_AUTH_KEY', 'WAy6Mp6nE86WOOr3ymqxoVk2H4FS2xVC');
+
+return $config;

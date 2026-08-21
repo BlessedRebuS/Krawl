@@ -6,7 +6,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/blessedrebus/krawl
   pullPolicy: Always
-  tag: "2.2.0"
+  tag: "2.3.0"
 
 imagePullSecrets: []
 nameOverride: "krawl"
@@ -37,6 +37,19 @@ service:
 #   - config.metrics.enabled is true
 #   - config.dashboard.secret_path is set (the metrics path is
 #     /<secret_path>/metrics, so an auto-generated/blank path can't be scraped)
+# Grafana dashboard shipped as a ConfigMap for the Grafana sidecar to pick up.
+# The dashboard JSON is the one at the repository root; the sidecar discovers the
+# ConfigMap by label, so set `label`/`labelValue` to whatever your Grafana watches
+# (grafana_dashboard: "1" for the kube-prometheus-stack / Rancher sidecar).
+grafanaDashboard:
+  enabled: false
+  label: grafana_dashboard
+  labelValue: "1"
+  # Namespace the sidecar watches, when it is not the release namespace
+  # (e.g. cattle-monitoring-system on Rancher). Empty = release namespace.
+  namespace: ""
+  annotations: {}
+
 serviceMonitor:
   enabled: false
   interval: 30s
@@ -84,6 +97,53 @@ affinity: {}
 # Dashboard password for protected panels
 # If empty, a random password will be auto-generated and printed in the logs
 dashboardPassword: ""
+# Read the dashboard password and/or secret path from an externally-managed
+# Secret (ExternalSecrets / SealedSecrets / Vault) instead of the chart-managed
+# one. `name` empty = use the chart-managed Secret built from `dashboardPassword`.
+# `pathKey` empty = the secret path comes from config.dashboard.secret_path;
+# when set, KRAWL_DASHBOARD_SECRET_PATH is injected from the Secret instead.
+dashboardExistingSecret:
+  name: ""
+  passwordKey: "dashboard-password"
+  pathKey: ""
+
+# AI/LLM API key from an externally-managed Secret instead of the chart-managed
+# one built from `config.ai.api_key`. `name` empty = chart-managed.
+aiExistingSecret:
+  name: ""
+  key: "ai-api-key"
+
+# Canary token URL. Setting `canaryTokenUrl` creates a chart-managed Secret and
+# injects KRAWL_CANARY_TOKEN_URL from it, keeping the URL out of the ConfigMap.
+# Set `canaryExistingSecret.name` to read it from an external Secret instead.
+canaryTokenUrl: ""
+canaryExistingSecret:
+  name: ""
+  key: "canary-token-url"
+
+# CloudFlare WAF/banlist sync credentials. Set them inline (chart-managed
+# Secret) or point `existingSecret.name` at an externally-managed one. Either
+# way they are injected as KRAWL_CLOUDFLARE_ACCOUNT_ID / KRAWL_CLOUDFLARE_AUTH_TOKEN
+# and take precedence over data/webhooks.json, so the sync survives restarts
+# without a persistent volume and the token is never written back to disk.
+cloudflare:
+  enabled: false
+  accountId: ""
+  authToken: ""
+  existingSecret:
+    name: ""
+    accountIdKey: "cloudflare-account-id"
+    authTokenKey: "cloudflare-auth-token"
+
+# Extra environment variables for the Krawl container, e.g. any KRAWL_* setting
+# this chart does not model yet. `extraEnvFrom` accepts secretRef/configMapRef
+# entries, which is the escape hatch for External Secrets Operator / Vault.
+extraEnv: []
+#  - name: KRAWL_LOG_LEVEL
+#    value: "INFO"
+extraEnvFrom: []
+#  - secretRef:
+#      name: krawl-external-secrets
 
 # Application configuration (config.yaml structure)
 config:
@@ -133,6 +193,21 @@ config:
     infinite_pages_for_malicious: true
     max_pages_limit: 250
     ban_duration_seconds: 600
+  # IPs / CIDR ranges to ignore everywhere: never tracked, banned, exported, or
+  # persisted, and purged from the database on startup. Single IPs or CIDRs
+  # (IPv4/IPv6). Defaults cover loopback, RFC1918, link-local and CGNAT ranges;
+  # add trusted networks (monitoring, health checks, office egress) as needed.
+  ignored_ips:
+    - 127.0.0.0/8      # loopback
+    - 10.0.0.0/8       # RFC1918 private
+    - 172.16.0.0/12    # RFC1918 private
+    - 192.168.0.0/16   # RFC1918 private
+    - 169.254.0.0/16   # link-local
+    - 0.0.0.0/8        # "this network"
+    - 100.64.0.0/10    # CGNAT
+    - ::1/128          # IPv6 loopback
+    - fc00::/7         # IPv6 unique local
+    - fe80::/10        # IPv6 link-local
   ai:
     enabled: false
     provider: "openrouter"  # "openrouter" or "openai". Use "openai" for OpenAI-compatible endpoints such as Ollama or llama.cpp.
@@ -161,6 +236,11 @@ config:
         - SQLi/XSS attack paths → respond with realistic error messages or data leaks
       7. Include realistic details: version numbers, usernames, internal IPs, database names
       8. If the path implies a file type, return that content type raw (JSON, XML, INI, PHP source)
+  banlist:
+    export_path: ""  # Public banlist download path, e.g. "/public_banlist.txt". Empty = disabled.
+    sources: []      # Upstream banlist URLs to fetch, e.g. ["https://krawl1.example.com/public_banlist.txt"]
+    refresh_interval: 3600  # Seconds between fetches
+
   tarpit:
     enabled: false  # Opt-in: trap AI agents with slow responses and random text
     delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active
@@ -200,9 +280,19 @@ postgres:
   user: "krawl"
   password: "krawl"
   database: "krawl"
-  # Use an existing secret for the PostgreSQL password instead of plaintext
-  # existingSecret: ""
-  # existingSecretKey: "postgres-password"
+  # Read credentials from an externally-managed Secret. `name` empty = use the
+  # chart-managed Secret built from `password` above. Any connection key left
+  # empty falls back to the plaintext value above.
+  # Setting `name` skips the chart-managed postgres Secret; the Krawl
+  # Deployment, the bundled StatefulSet and the migration Job all read from it.
+  # Combine with `postgres.enabled: false` for a fully external instance.
+  existingSecret:
+    name: ""
+    passwordKey: "postgres-password"
+    userKey: ""
+    hostKey: ""
+    portKey: ""
+    databaseKey: ""
   image:
     repository: postgres
     tag: "16-alpine"
@@ -232,9 +322,17 @@ redis:
   cache_ttl: 600    # Dashboard warmup data (default: 10 minutes)
   hot_ttl: 30       # Hot-path data like ban info (default: 30 seconds)
   table_ttl: 120    # Paginated dashboard tables (default: 2 minutes)
-  # Use an existing secret for the Redis password instead of plaintext
-  # existingSecret: ""
-  # existingSecretKey: "redis-password"
+  # Read credentials from an externally-managed Secret. `name` empty = use the
+  # chart-managed Secret built from `password` above. Any connection key left
+  # empty falls back to the plaintext value above.
+  # Setting `name` skips the chart-managed redis Secret; the Krawl Deployment
+  # and the bundled StatefulSet both read from it. Combine with
+  # `redis.enabled: false` for a fully external instance.
+  existingSecret:
+    name: ""
+    passwordKey: "redis-password"
+    hostKey: ""
+    portKey: ""
   image:
     repository: redis
     tag: "7-alpine"

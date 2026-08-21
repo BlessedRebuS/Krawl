@@ -1,0 +1,47 @@
+# Orbit Cloud — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
+
+app:
+  name: "Orbit Cloud"
+  env: production
+  url: https://portal.orbitlabs.dev
+  version: "0.38.2"
+
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
+
+database:
+  driver: postgresql
+  host: pg-prod-01.db.orbit.internal
+  port: 5432
+  name: orbit_cloud
+  user: orbit
+  password: fake-db-password-0ca5806a
+  pool:
+    min: 4
+    max: 32
+
+redis:
+  host: redis-prod-01.cache.orbit.internal
+  port: 6379
+  password: fake-redis-password-b1e0bc
+
+auth:
+  jwt_secret: fake-jwt-secret-b3727e5b437721d6161a16a256a4d09b
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: orbit-cloud-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-6F3D7
+  secret_access_key: fake-secret-ytECZfyc2qDHP/rp6G2trvgZ
+
+logging:
+  level: warning
+  format: json
+  sentry_dsn: https://fake3dc3930a1fb43662@sentry.internal/37

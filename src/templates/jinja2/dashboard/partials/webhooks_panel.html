@@ -1,0 +1,111 @@
+{# Webhooks management panel #}
+<div x-data="webhookManagement()" x-init="init()">
+
+    {# CloudFlare webhook config #}
+    <div class="table-container mb-5">
+        <h2>
+            CloudFlare IP List
+            <a class="info-link" href="https://developers.cloudflare.com/waf/tools/lists/create-dashboard/" target="_blank" rel="noopener" title="Cloudflare Lists docs">&#9432;</a>
+        </h2>
+        <p class="panel-note">
+            Push banned IPs to a CloudFlare Custom List for use in WAF rules.
+        </p>
+
+        {# Connection status #}
+        <p class="form-status" x-show="testResult" x-text="testResult" :class="testOk ? 'text-ok' : 'text-danger'" x-cloak></p>
+
+        {# Sync status #}
+        <p class="form-status" x-show="syncStatus" x-text="syncStatus" :class="syncOk ? 'text-ok' : 'text-danger'" x-cloak></p>
+
+        {# WAF rule status #}
+        <p class="form-status" x-show="wafRuleStatus" x-text="wafRuleStatus" :class="wafRuleOk ? 'text-ok' : 'text-danger'" x-cloak></p>
+
+        {# Config form #}
+        <form @submit.prevent="saveConfig()">
+            <div class="form-row">
+                <div class="form-col-wide">
+                    <label class="field-label">
+                        Account ID
+                        <a class="info-link fs-2xs" href="https://developers.cloudflare.com/fundamentals/account/find-account-and-zone-ids/" target="_blank" rel="noopener" title="Find your Account ID">&#9432;</a>
+                    </label>
+                    <input type="text" x-model="accountId" placeholder="32 hex characters" class="auth-modal-input w-full" />
+                </div>
+                <div class="form-col-wide">
+                    <label class="field-label">
+                        API Token
+                        <a class="info-link fs-2xs" href="https://developers.cloudflare.com/fundamentals/api/get-started/create-token/" target="_blank" rel="noopener" title="Create an API token">&#9432;</a>
+                    </label>
+                    <input type="password" x-model="authToken" placeholder="Bearer token" class="auth-modal-input w-full" />
+                </div>
+            </div>
+            <div class="form-row mt-3">
+                <div class="form-col-wide">
+                    <label class="field-label">
+                        Zone ID
+                        <a class="info-link fs-2xs" href="https://developers.cloudflare.com/fundamentals/account/find-account-and-zone-ids/" target="_blank" rel="noopener" title="Find your Zone ID">&#9432;</a>
+                    </label>
+                    <input type="text" x-model="zoneId" placeholder="32 hex characters (optional)" class="auth-modal-input w-full" />
+                </div>
+                <div class="form-col">
+                    <label class="field-label">Rule Action</label>
+                    <select x-model="ruleAction" class="auth-modal-input w-full">
+                        <option value="block">Block</option>
+                        <option value="managed_challenge">Managed Challenge</option>
+                        <option value="js_challenge">JS Challenge</option>
+                        <option value="challenge">Challenge</option>
+                        <option value="skip">Skip</option>
+                    </select>
+                </div>
+                <div class="form-col">
+                    <label class="field-label">List Name</label>
+                    <input type="text" x-model="listName" placeholder="krawl_banlist" class="auth-modal-input w-full" />
+                </div>
+                <div class="form-col-narrow">
+                    <label class="field-label">Interval (min)</label>
+                    <input type="number" x-model.number="syncInterval" min="1" max="1440" class="auth-modal-input w-full" />
+                </div>
+            </div>
+            <div class="form-row mt-3">
+                <div class="form-col-wider">
+                    <label class="field-label">IP Categories</label>
+                    <div class="row gap-2 nowrap">
+                        <template x-for="cat in allCategories" :key="cat.value">
+                            <label class="check-inline">
+                                <input type="checkbox" :value="cat.value" x-model="selectedCategories" />
+                                <span x-text="cat.label"></span>
+                            </label>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row mt-3">
+                <label class="check-inline check-inline-lg">
+                    <input type="checkbox" x-model="cfEnabled" />
+                    <span>Enable</span>
+                </label>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-ok" :disabled="saving">
+                        <span x-text="saving ? 'Saving...' : 'Save'"></span>
+                    </button>
+                    <button type="button" class="btn" @click="syncNow()" :disabled="syncing">
+                        <span x-text="syncing ? 'Syncing...' : 'Sync Config'"></span>
+                    </button>
+                    <button type="button" class="btn btn-danger" @click="deleteConfig()">Delete</button>
+                </div>
+            </div>
+        </form>
+
+        {# Last sync info #}
+        <p class="sync-note" x-show="lastSync" x-cloak>
+            Last sync: <span x-text="lastSync"></span>
+            <span class="text-ok" x-show="lastSyncStatus === 'ok'">OK</span>
+            <span class="text-danger" x-show="lastSyncStatus !== 'ok' && lastSyncError" x-text="lastSyncError"></span>
+        </p>
+
+        {# Config status #}
+        <p class="fs-xs mt-3" x-show="accountId" x-cloak>
+            <a :href="'https://dash.cloudflare.com/' + accountId + '/configurations/lists'" target="_blank" rel="noopener" class="link-out">Cloudflare Configured List &#8599;</a>
+            <a x-show="zoneId" :href="'https://dash.cloudflare.com/' + accountId + '/' + (zoneName || zoneId) + '/security/security-rules'" target="_blank" rel="noopener" class="link-out ml-4">Cloudflare Configured Rules &#8599;</a>
+        </p>
+    </div>
+</div>

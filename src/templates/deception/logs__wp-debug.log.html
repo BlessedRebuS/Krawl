@@ -1,29 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>WordPress Debug Log</title>
-    <style>
-        body { font-family: monospace; background:#f8f8f8; color:#222; margin:2rem; }
-        h1 { color:#0066cc; }
-        pre { background:#fff; padding:1rem; border:1px solid #ddd; overflow:auto; }
-    </style>
-</head>
-<body>
-    <h1>/logs/wp-debug.log</h1>
-    <pre>
-[23-Sep-2025 10:12:34 UTC] PHP Notice:  Undefined index: HTTP_X_FORWARDED_FOR in /var/www/html/wp-content/plugins/cache-enabler/cache-enabler.php on line 124
-[23-Sep-2025 10:12:35 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /var/www/html/wp-config.php:1) in /var/www/html/wp-includes/pluggable.php on line 1292
-[23-Sep-2025 10:12:36 UTC] MySQL query error: SELECT * FROM wp_options WHERE option_name = 'siteurl' LIMIT 1; Table 'wp_options' is marked as crashed and should be repaired
-[23-Sep-2025 10:12:37 UTC] PHP Notice:  Undefined variable: wp_query in /var/www/html/wp-content/themes/twentytwentyfour/header.php on line 45
-[23-Sep-2025 10:12:38 UTC] PHP Deprecated:  Function create_function() is deprecated in /var/www/html/wp-content/plugins/old-plugin/old.php on line 78
-[23-Sep-2025 10:12:39 UTC] PHP Warning:  fopen(/var/www/html/wp-content/uploads/2025/09/debug.txt): failed to open stream: Permission denied in /var/www/html/wp-admin/includes/file.php on line 155
-[23-Sep-2025 10:12:40 UTC] [INFO] WP Cron spawn: wp_scheduled_delete
-[23-Sep-2025 10:12:41 UTC] [ERROR] Failed to connect to remote API: cURL error 28: Operation timed out after 5000 milliseconds with 0 bytes received
-[23-Sep-2025 10:12:42 UTC] PHP Notice:  Trying to access array offset on value of type null in /var/www/html/wp-includes/post.php on line 3784
-[23-Sep-2025 10:12:43 UTC] [DEBUG] Loaded plugin: akismet (version 5.2.1)
-[23-Sep-2025 10:12:44 UTC] [DEBUG] Loaded plugin: wordpress-seo (version 22.5)
-[23-Sep-2025 10:12:45 UTC] PHP Notice:  Undefined index: HTTP_USER_AGENT in /var/www/html/wp-content/plugins/user-agent-blocker/ua-blocker.php on line 22
-    </pre>
-</body>
-</html>
+[2026-08-12 02:05:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"c85471d03379b352"}
+[2026-08-14 05:28:07] production.ERROR: SMTP connect() failed on smtp.mail.nbh.internal:587 {"request_id":"aa5560f7abccde9e"}
+[2026-08-12 16:01:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=147 user_id=3 {"request_id":"8fa2b2291af8eba7"}
+[2026-08-13 07:28:07] production.INFO: scheduled task inventory:sync finished, 7185 rows {"request_id":"af8ef4566f03e69d"}
+[2026-08-12 08:08:07] production.INFO: scheduled task inventory:sync finished, 774 rows {"request_id":"e4b38671eca6e965"}
+[2026-08-13 05:32:07] production.ERROR: SMTP connect() failed on smtp.mail.nbh.internal:587 {"request_id":"0b0f647aec142453"}
+[2026-08-13 04:06:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=149 user_id=21 {"request_id":"9a1ceda128273d36"}
+[2026-08-13 13:35:07] production.INFO: scheduled task inventory:sync finished, 1826 rows {"request_id":"c5c78776d6feec5b"}
+[2026-08-11 20:33:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=296 user_id=14 {"request_id":"fbfb4a2a8d555b5d"}
+[2026-08-13 01:44:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.nbh.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"1c00ba8d54f6404a"}
+[2026-08-13 06:17:07] production.ERROR: SMTP connect() failed on smtp.mail.nbh.internal:587 {"request_id":"088de0c0f52344be"}
+[2026-08-12 20:29:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.nbh.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"501ed4f5c3b8653a"}
+[2026-08-14 03:15:07] production.WARNING: queue worker exceeded soft memory limit (128M), restarting {"request_id":"8544c151a8df0d64"}
+[2026-08-12 20:15:07] production.ERROR: SQLSTATE[08006] connection to server at "pg-prod-01.db.nbh.internal" (10.24.3.11), port 5432 failed: timeout expired {"request_id":"145620f498b68dc1"}
+[2026-08-12 11:29:07] production.INFO: request completed method=GET path=/api/v2/orders status=200 duration_ms=165 user_id=28 {"request_id":"52ee7e095a117bce"}
+[2026-08-12 09:55:07] production.ERROR: SMTP connect() failed on smtp.mail.nbh.internal:587 {"request_id":"11b67a2b9f5fbd24"}

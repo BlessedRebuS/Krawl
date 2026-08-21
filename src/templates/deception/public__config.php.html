@@ -1,43 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Configuration - Example Corp</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 40px; background:#f9f9f9; color:#333;}
-        h1 {color:#2c3e50;}
-        pre {background:#ecf0f1; padding:15px; border:1px solid #bdc3c7; overflow:auto;}
-        a {color:#2980b9; text-decoration:none;}
-        a:hover {text-decoration:underline;}
-        hr {border:0; border-top:1px solid #ddd; margin:20px 0;}
-    </style>
-</head>
-<body>
-    <h1>Configuration Settings</h1>
-    <p>Below are the current configuration parameters for the application.</p>
-    <pre>
 <?php
-// Database configuration
-define('DB_HOST', 'localhost');
-define('DB_USER', 'admin');
-define('DB_PASS', 's3cr3t!@#');
-define('DB_NAME', 'app_db');
+/**
+ * Caretrack — database & service configuration
+ *
+ * @package  Caretrack
+ * @version  9.4.0
+ */
 
-// API keys
-define('API_KEY', 'abcd1234efgh5678ijkl9012mnop3456');
-define('SECRET_KEY', 'super_secret_key_9876543210');
+defined('MERIDIAN_ROOT') or define('MERIDIAN_ROOT', dirname(__DIR__));
 
-// Debug mode
-define('DEBUG', true);
+$config = [
+    'app' => [
+        'name'      => 'Caretrack',
+        'env'       => 'production',
+        'debug'     => false,
+        'url'       => 'https://portal.northbridge-health.org',
+        'key'       => 'base64:7uwOGSD9KpW7ydBIRTD6LXAaJv/YgoFQC0qHAzEnw3D=',
+    ],
 
-// Mail settings
-define('MAIL_SMTP', 'smtp.example.com');
-define('MAIL_PORT', 587);
-define('MAIL_USER', 'no-reply@example.com');
-define('MAIL_PASS', 'mailpass123');
-?>
-    </pre>
-    <hr>
-    <p><a href="/">Return to homepage</a></p>
-</body>
-</html>
+    'db' => [
+        'driver'    => 'pgsql',
+        'host'      => 'pg-prod-01.db.nbh.internal',
+        'port'      => 5432,
+        'database'  => 'caretrack',
+        'username'  => 'caretrack_svc',
+        'password'  => 'fake-db-password-effab954',
+        'charset'   => 'utf8',
+        'prefix'    => 'mp_',
+    ],
+
+    'redis' => [
+        'host'      => 'redis-prod-01.cache.nbh.internal',
+        'port'      => 6379,
+        'password'  => 'fake-redis-password-70e6b4',
+    ],
+
+    'mail' => [
+        'host'      => 'smtp.mail.nbh.internal',
+        'port'      => 587,
+        'username'  => 'no-reply@northbridge-health.org',
+        'password'  => 'fake-smtp-password-23c8a245',
+        'encryption'=> 'tls',
+    ],
+];
+
+/* Legacy globals — still read by the reporting cron, remove after MP-2841. */
+$db_host = $config['db']['host'];
+$db_user = $config['db']['username'];
+$db_pass = $config['db']['password'];
+$db_name = $config['db']['database'];
+
+define('AUTH_SALT', 'OZbJo5s2djH5yP/8ebagjCXVq9CDPrAk');
+define('SECURE_AUTH_KEY', 'xaJcJ7TEigCcrRKx6iZMEJggLN1QchQV');
+
+return $config;

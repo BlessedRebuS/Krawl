@@ -1,26 +1,26 @@
-<html><body>{
-  "src/main.js": {
-    "file": "assets/main.js",
-    "src": "src/main.js",
-    "isEntry": true,
-    "imports": ["_chunks/dep.js"],
-    "css": ["assets/main.css"],
-    "dynamicImports": []
+{
+  "app": {
+    "name": "Halcyon Commerce",
+    "version": "6.0.3",
+    "env": "production",
+    "url": "https://portal.halcyonretail.co.uk"
   },
-  "_chunks/dep.js": {
-    "file": "assets/dep.js",
-    "src": "_chunks/dep.js",
-    "isEntry": false,
-    "imports": [],
-    "css": [],
-    "dynamicImports": []
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.halcyon.internal",
+    "port": 5432,
+    "name": "halcyon_commerce",
+    "user": "hc_web",
+    "password": "fake-db-password-a8406311"
   },
-  "src/styles.css": {
-    "file": "assets/styles.css",
-    "src": "src/styles.css",
-    "isEntry": false,
-    "imports": [],
-    "css": [],
-    "dynamicImports": []
-  }
-}</body></html>
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.halcyon.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-0139c2d9418a242fc712af5bc7b97fed",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-11T20:10:11Z"
+}

@@ -1,48 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>nuxt.config.js</title>
-<style>
-body{font-family:monospace;background:#f8f8f8;color:#222;padding:20px;}
-pre{background:#fff;padding:10px;border:1px solid #ddd;overflow:auto;}
-</style>
-</head>
-<body>
-<h1>nuxt.config.js</h1>
-<pre>export default {
-  // Server configuration
-  server: {
-    host: '0.0.0.0',
-    port: 3000
-  },
-  // Build modules
-  buildModules: [
-    '@nuxtjs/eslint-module',
-    '@nuxtjs/tailwindcss'
-  ],
-  // Environment variables (exposed for demo)
-  env: {
-    API_KEY: 'fake_api_key_12345',
-    DB_URL: 'mongodb://admin:password@localhost:27017/mydb'
-  },
-  // Axios module config (potential SSRF)
-  axios: {
-    baseURL: 'http://internal.service.local/api',
-    credentials: false
-  },
-  // Router middleware (open redirect)
-  router: {
-    middleware: ['log'],
-    extendRoutes (routes, resolve) {
-      routes.push({
-        name: 'redirect',
-        path: '/redirect',
-        component: resolve(__dirname, 'pages/redirect.vue')
-      })
-    }
+/*! Meridian Portal 4.2.1 | build b0510bc | (c) Meridian Systems */
+(function (window) {
+  'use strict';
+
+  var config = {
+    apiBase: 'https://api.meridiansys.io/v2',
+    wsBase: 'wss://api.meridiansys.io/socket',
+    sentryDsn: 'https://fake8822bda72b71c3b2@sentry.internal/30',
+    release: 'meridian-portal@4.2.1',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
+
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
   }
-};
-</pre>
-</body>
-</html>
+
+  window.Meridian = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

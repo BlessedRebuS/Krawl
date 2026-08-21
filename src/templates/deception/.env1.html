@@ -1,28 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>.env1 - Environment Configuration</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 2em; background:#f9f9f9; color:#333;}
-        pre {background:#eee; padding:1em; border:1px solid #ccc;}
-    </style>
-</head>
-<body>
-    <h1>.env1 File</h1>
-    <p>The following environment variables are configured for this application (sample data):</p>
-    <pre>
-DB_HOST=localhost
-DB_USER=admin
-DB_PASS=supersecret123
-DB_NAME=myapp
-API_KEY=abcd1234efgh5678ijkl9012mnop3456
-SECRET_KEY=notreallyasecretbutlooksgood
-MAIL_SMTP=smtp.example.com
+# Caretrack — application environment
+# managed by ops, do not edit by hand (see infra/ansible/roles/app)
+# last sync: 2026-08-14 09:12 UTC
+
+APP_NAME="Caretrack"
+APP_ENV=production
+APP_KEY=base64:JR1lZOfh6+ZjqKkJRbQNwxZXChIuLnPBqC7svoiB1qX=
+APP_DEBUG=false
+APP_URL=https://portal.northbridge-health.org
+LOG_CHANNEL=stack
+LOG_LEVEL=warning
+
+DB_CONNECTION=pgsql
+DB_HOST=pg-prod-01.db.nbh.internal
+DB_PORT=5432
+DB_DATABASE=caretrack
+DB_USERNAME=caretrack_app
+DB_PASSWORD=fake-db-password-230d12e1
+
+REDIS_HOST=redis-prod-01.cache.nbh.internal
+REDIS_PORT=6379
+REDIS_PASSWORD=fake-redis-password-65d57c
+CACHE_DRIVER=redis
+QUEUE_CONNECTION=redis
+SESSION_DRIVER=redis
+SESSION_LIFETIME=120
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mail.nbh.internal
 MAIL_PORT=587
-MAIL_USER=no-reply@example.com
-MAIL_PASS=mailpass123
-    </pre>
-    <p><a href="/">Return to homepage</a></p>
-</body>
-</html>
+MAIL_USERNAME=no-reply@northbridge-health.org
+MAIL_PASSWORD=fake-smtp-password-88f2f6b5
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=no-reply@northbridge-health.org
+
+AWS_ACCESS_KEY_ID=AKIA-FAKE-754F2
+AWS_SECRET_ACCESS_KEY=fake-secret-GE/mV3+ChgGzcqBFlHYmSegP
+AWS_DEFAULT_REGION=eu-west-1
+AWS_BUCKET=caretrack-production-assets
+
+JWT_SECRET=fake-jwt-secret-e4ea8148173fb789e4e88cb2f28b2d9f
+JWT_TTL=1440
+STRIPE_KEY=pk_test_FAKE-9200388818a18383
+STRIPE_SECRET=sk_test_FAKE-2e888d184f2b7ef4
+SENTRY_LARAVEL_DSN=https://fake60f2be68c9300e80@sentry.internal/39

@@ -1,0 +1,36 @@
+/*! Meridian Portal 4.2.1 | build 049c1e6 | (c) Meridian Systems */
+(function (window) {
+  'use strict';
+
+  var config = {
+    apiBase: 'https://api.meridiansys.io/v2',
+    wsBase: 'wss://api.meridiansys.io/socket',
+    sentryDsn: 'https://fakee01f5dd7dd04018b@sentry.internal/9',
+    release: 'meridian-portal@4.2.1',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
+
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
+  }
+
+  window.Meridian = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

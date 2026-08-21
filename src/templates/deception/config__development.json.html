@@ -1,38 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Development Config - development.json</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; margin:2em; color:#333;}
-        pre {background:#eee; padding:1em; border:1px solid #ccc; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>Development Configuration</h1>
-    <p>File: <code>/config/development.json</code></p>
-    <pre>
 {
+  "app": {
+    "name": "Meridian Portal",
+    "version": "4.2.1",
+    "env": "production",
+    "url": "https://portal.meridiansys.io"
+  },
   "database": {
-    "host": "localhost",
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.meridian.internal",
     "port": 5432,
-    "name": "dev_db",
-    "user": "dev_user",
-    "password": "s3cr3tP@ss"
+    "name": "meridian_portal",
+    "user": "meridian_app",
+    "password": "fake-db-password-0782b716"
   },
-  "api_keys": {
-    "google_maps": "AIzaSyDummyKey123",
-    "stripe": "sk_test_dummy"
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.meridian.internal",
+    "port": 6379
   },
-  "debug": true,
-  "log_level": "debug",
-  "features": {
-    "new_ui": true,
-    "beta_features": false
-  }
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-99bfe826f36df0fff0effcfdac91c97b",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-08T16:29:48Z"
 }
-</pre>
-    <hr>
-    <p><small>Server time: 2025-09-26 12:34:56 UTC</small></p>
-</body>
-</html>

@@ -31,7 +31,56 @@ kubectl get secret krawl-server -n krawl-system \
 
 ### Setting Dashboard Password
 
-To set a custom password for protected dashboard panels, create the `secret.yaml` manifest (see `kubernetes/manifests/secret.yaml`) and uncomment the `KRAWL_DASHBOARD_PASSWORD` env var in the deployment. If not set, a random password is auto-generated and printed in the pod logs.
+To set a custom password for protected dashboard panels, create a Secret and uncomment the `KRAWL_DASHBOARD_PASSWORD` env var in the deployment. If not set, a random password is auto-generated and printed in the pod logs.
+
+```bash
+kubectl create secret generic krawl-dashboard \
+  --namespace krawl-system \
+  --from-literal=dashboard-password='your-strong-password'
+```
+
+### Externally-Managed Secrets (Postgres / Redis / Dashboard / Dashboard Path)
+
+The all-in-one manifest ships with a built-in `krawl-postgres` Secret holding the
+default `krawl` password. To use credentials managed out-of-band (ExternalSecrets,
+SealedSecrets, Vault, cloud secret stores, etc.), supply your own Secret and edit
+the `secretKeyRef` entries in the manifest to point at it. The relevant locations
+are the `KRAWL_POSTGRES_PASSWORD` env on both the Krawl Deployment and the
+`krawl-postgres` StatefulSet, and (for the optional extras) the commented-out
+`KRAWL_DASHBOARD_PASSWORD`, `KRAWL_DASHBOARD_SECRET_PATH`, and `KRAWL_REDIS_PASSWORD`
+env vars on the Krawl Deployment.
+
+Example: bring your own Postgres Secret.
+
+```bash
+kubectl create secret generic my-pg-creds \
+  --namespace krawl-system \
+  --from-literal=postgres-password='supersecret'
+```
+
+Then in `kubernetes/krawl-all-in-one-deploy.yaml` replace every occurrence of
+
+```yaml
+secretKeyRef:
+  name: krawl-postgres
+  key: postgres-password
+```
+
+with
+
+```yaml
+secretKeyRef:
+  name: my-pg-creds
+  key: postgres-password
+```
+
+For dashboard password / dashboard path / Redis password, create a Secret (using
+keys `dashboard-password`, `dashboard-path`, and `redis-password` respectively)
+and uncomment the corresponding env-var blocks already present in the deployment.
+
+The Helm chart exposes the same flexibility via `postgres.existingSecret`,
+`redis.existingSecret`, `dashboardExistingSecret`, and `dashboardPathExistingSecret`
+— see the [Helm chart documentation](../helm/README.md) for the full reference.
 
 ### From Source (Python 3.13+)
 

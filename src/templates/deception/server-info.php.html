@@ -1,68 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Server Information - Internal Dashboard</title>
-    <style>
-        body {font-family:Arial,Helvetica,sans-serif; margin:20px; background:#f9f9f9; color:#333;}
-        h1 {color:#2c3e50;}
-        table {border-collapse:collapse; width:100%; max-width:800px;}
-        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
-        th {background:#ecf0f1;}
-        tr:nth-child(even) {background:#f2f2f2;}
-        .note {font-size:0.9em; color:#555; margin-top:15px;}
-    </style>
-</head>
-<body>
-    <h1>Server Information</h1>
-    <p>Generated on: 2025-11-03 14:22:07 UTC</p>
-    <table>
-        <tr><th>PHP Version</th><td>7.4.33 (fake)</td></tr>
-        <tr><th>Server API</th><td>Apache 2.4.41 (Unix)</td></tr>
-        <tr><th>Server Software</th><td>Apache/2.4.41 (Ubuntu)</td></tr>
-        <tr><th>Document Root</th><td>/var/www/html</td></tr>
-        <tr><th>Loaded Modules</th><td>core, mod_soap, mod_rewrite, mod_headers, mod_expires, mod_deflate, mod_ssl, mod_proxy, mod_proxy_http, mod_cache, mod_cache_disk</td></tr>
-        <tr><th>Environment Variables</th><td>
-            <ul style="margin:0; padding-left:20px;">
-                <li>DB_HOST: localhost</li>
-                <li>DB_USER: app_user</li>
-                <li>DB_PASS: s3cr3t!Pass</li>
-                <li>DB_NAME: app_db</li>
-                <li>APP_KEY: base64:VFAke2X9zJbU6kG+YQw5tR8pLzNsVv4Jb2K1sT3R7aM=</li>
-                <li>MAIL_DRIVER: smtp</li>
-                <li>MAIL_HOST: smtp.example.com</li>
-                <li>MAIL_PORT: 587</li>
-                <li>MAIL_USERNAME: noreply@example.com</li>
-                <li>MAIL_PASSWORD: mailpass123</li>
-            </ul>
-        </td></tr>
-        <tr><th>PHP Configuration (excerpt)</th><td>
-            <ul style="margin:0; padding-left:20px;">
-                <li>display_errors: On</li>
-                <li>log_errors: On</li>
-                <li>error_log: /var/log/php_errors.log</li>
-                <li>max_execution_time: 30</li>
-                <li>memory_limit: 256M</li>
-                <li>post_max_size: 64M</li>
-                <li>upload_max_filesize: 64M</li>
-                <li>allow_url_fopen: On</li>
-                <li>allow_url_include: Off</li>
-                <li>session.save_path: /var/lib/php/sessions</li>
-            </ul>
-        </td></tr>
-    </table>
-
-    <h2>Debug Form (example)</h2>
-    <form action="/server-info.php" method="GET">
-        <label for="q">Test input:</label>
-        <input type="text" id="q" name="q" value="example">
-        <button type="submit">Submit</button>
-    </form>
-    <p class="note">Note: The value of <code>q</code> would be echoed back unsanitized in a real vulnerable deployment (demonstrating a potential XSS vector).</p>
-
-    <hr>
-    <footer>
-        <small>© 2025 Internal IT Dashboard – For authorized use only.</small>
-    </footer>
-</body>
-</html>
+<html><head><title>Apache Status</title></head><body>
+<h1>Apache Server Status for web-01.meridiansys.io (via 10.24.1.7)</h1>
+<dl><dt>Server Version: Apache/2.4.58 (Ubuntu) OpenSSL/3.0.13</dt>
+<dt>Server MPM: event</dt>
+<dt>Server Built: 2025-07-24T11:02:19</dt></dl><hr>
+<dl>
+<dt>Current Time: Friday, 14-Aug-2026 09:12:07 UTC</dt>
+<dt>Restart Time: Sunday, 10-Aug-2026 04:15:02 UTC</dt>
+<dt>Parent Server Config. Generation: 3</dt>
+<dt>Server uptime: 4 days 5 hours 57 minutes</dt>
+<dt>Total accesses: 1674212 - Total Traffic: 69.5 GB</dt>
+<dt>5.3 requests/sec - 41 kB/second</dt>
+<dt>19 requests currently being processed, 35 idle workers</dt>
+</dl>
+<pre>__W_K_W__RW__K_.._W_KK___W_.................................
+............................................................</pre>
+<p>Scoreboard Key:<br>
+"<b><code>_</code></b>" Waiting for Connection,
+"<b><code>W</code></b>" Sending Reply,
+"<b><code>K</code></b>" Keepalive (read),
+"<b><code>.</code></b>" Open slot with no current process</p>
+<table border="0"><tr><th>Srv</th><th>PID</th><th>Acc</th><th>M</th><th>CPU</th><th>SS</th><th>Req</th><th>VHost</th><th>Request</th></tr>
+<tr><td>0-0</td><td>9082</td><td>0/122/8841</td><td>W</td><td>0.41</td><td>0</td><td>312</td><td>portal.meridiansys.io</td><td>GET /api/v2/orders?page=3 HTTP/1.1</td></tr>
+<tr><td>1-0</td><td>3247</td><td>0/98/7712</td><td>K</td><td>0.29</td><td>2</td><td>88</td><td>portal.meridiansys.io</td><td>GET /static/app.a298c95.js HTTP/1.1</td></tr>
+<tr><td>2-0</td><td>6323</td><td>0/45/3390</td><td>_</td><td>0.11</td><td>6</td><td>0</td><td>portal.meridiansys.io</td><td>POST /api/v2/auth/refresh HTTP/1.1</td></tr>
+</table><hr><address>Apache/2.4.58 (Ubuntu) Server at web-01.meridiansys.io Port 443</address>
+</body></html>

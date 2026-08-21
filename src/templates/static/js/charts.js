@@ -36,7 +36,7 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
         const attackTypes = data.attack_types || [];
 
         if (attackTypes.length === 0) {
-            canvas.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8b949e;font-size:13px;">No attack data</div>';
+            canvas.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-dim);font-size:13px;">No attack data</div>';
             return;
         }
 
@@ -88,9 +88,9 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
                 datasets: [{
                     data: counts,
                     backgroundColor: backgroundColors,
-                    borderColor: '#0d1117',
+                    borderColor: krawlToken('--bg'),
                     borderWidth: 3,
-                    hoverBorderColor: '#58a6ff',
+                    hoverBorderColor: krawlToken('--accent'),
                     hoverBorderWidth: 4,
                     hoverOffset: 10
                 }]
@@ -102,7 +102,7 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
                     legend: {
                         position: legendPosition,
                         labels: {
-                            color: '#c9d1d9',
+                            color: krawlToken('--text'),
                             font: {
                                 size: 12,
                                 weight: '500',
@@ -126,9 +126,9 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
                     tooltip: {
                         enabled: true,
                         backgroundColor: 'rgba(22, 27, 34, 0.95)',
-                        titleColor: '#58a6ff',
-                        bodyColor: '#c9d1d9',
-                        borderColor: '#58a6ff',
+                        titleColor: krawlToken('--accent'),
+                        bodyColor: krawlToken('--text'),
+                        borderColor: krawlToken('--accent'),
                         borderWidth: 2,
                         padding: 14,
                         titleFont: {
@@ -246,7 +246,7 @@ async function loadAttackTrendsChart(canvasId) {
             if (!emptyMsg) {
                 emptyMsg = document.createElement('div');
                 emptyMsg.className = 'trends-empty-msg';
-                emptyMsg.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:#8b949e;font-size:13px;';
+                emptyMsg.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-dim);font-size:13px;';
                 canvas.parentElement.appendChild(emptyMsg);
             }
             emptyMsg.textContent = 'No attack data for this period';
@@ -300,9 +300,9 @@ async function loadAttackTrendsChart(canvasId) {
                     tooltip: {
                         enabled: true,
                         backgroundColor: 'rgba(22, 27, 34, 0.95)',
-                        titleColor: '#58a6ff',
-                        bodyColor: '#c9d1d9',
-                        borderColor: '#30363d',
+                        titleColor: krawlToken('--accent'),
+                        bodyColor: krawlToken('--text'),
+                        borderColor: krawlToken('--line'),
                         borderWidth: 1,
                         padding: 10,
                         titleFont: { size: 12, weight: 'bold' },
@@ -316,12 +316,12 @@ async function loadAttackTrendsChart(canvasId) {
                 },
                 scales: {
                     x: {
-                        ticks: { color: '#8b949e', font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 15 },
+                        ticks: { color: krawlToken('--text-dim'), font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 15 },
                         grid: { color: 'rgba(48, 54, 61, 0.3)' },
                     },
                     y: {
                         beginAtZero: true,
-                        ticks: { color: '#8b949e', font: { size: 10 }, precision: 0 },
+                        ticks: { color: krawlToken('--text-dim'), font: { size: 10 }, precision: 0 },
                         grid: { color: 'rgba(48, 54, 61, 0.3)' },
                     }
                 },
@@ -369,11 +369,11 @@ function _updateTrendsTotals(attackTypes) {
     if (!container) return;
 
     if (attackTypes.length === 0) {
-        container.innerHTML = '<span style="color: #8b949e; font-size: 0.8em;">No data</span>';
+        container.innerHTML = '<span style="color: var(--text-dim); font-size: 0.8em;">No data</span>';
         return;
     }
 
-    let html = '<span style="color: #8b949e; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Totals (period)</span>';
+    let html = '<span style="color: var(--text-dim); font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Totals (period)</span>';
     attackTypes.forEach(at => {
         const color = _trendsColor(at.type);
         html += `<div style="display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; border-radius: 4px; transition: background 0.15s;"
@@ -381,7 +381,7 @@ function _updateTrendsTotals(attackTypes) {
                       onmouseout="this.style.background='transparent'"
                       onclick="filterAttackTableByType('${at.type.replace(/'/g, "\\'")}')">
             <span style="width: 8px; height: 8px; border-radius: 50%; background: ${color}; flex-shrink: 0;"></span>
-            <span style="color: #c9d1d9; font-size: 0.8em; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${at.type}">${at.type}</span>
+            <span style="color: var(--text); font-size: 0.8em; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${at.type}">${at.type}</span>
             <span style="color: ${color}; font-size: 0.85em; font-weight: 600; font-variant-numeric: tabular-nums;">${at.total.toLocaleString()}</span>
         </div>`;
     });

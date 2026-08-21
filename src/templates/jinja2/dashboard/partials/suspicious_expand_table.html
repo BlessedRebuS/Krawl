@@ -1,0 +1,88 @@
+{# HTMX fragment: paginated recent suspicious activity (used in expand overlay) #}
+{% set filter_qs %}{% if search %}&search={{ search | e }}{% endif %}&sort_order={{ sort_order }}{% endset %}
+<div class="panel-header">
+    <div class="row row-wrap">
+        <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} suspicious</span>
+        {% if search %}
+        <span class="filter-pill filter-pill-danger">
+            &ldquo;{{ search | e }}&rdquo;
+            <span class="filter-pill-clear"
+                  onclick="clearExpandFilter('search')"
+                  title="Clear search">&times;</span>
+        </span>
+        {% endif %}
+    </div>
+    <div class="row">
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/suspicious?page={{ pagination.page - 1 }}{{ filter_qs }}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML"
+                {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/suspicious?page={{ pagination.page + 1 }}{{ filter_qs }}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML"
+                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
+    </div>
+</div>
+<table>
+    <thead>
+        <tr>
+            <th>IP Address</th>
+            <th>Method</th>
+            <th>Path</th>
+            <th>User-Agent</th>
+            <th>Time</th>
+            <th class="col-w-80"></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for activity in items %}
+        <tr class="ip-row" data-ip="{{ activity.ip | e }}">
+            <td class="ip-clickable"
+                hx-get="{{ dashboard_path }}/htmx/ip-detail/{{ activity.ip | e }}"
+                hx-target="next .ip-stats-row .ip-stats-dropdown"
+                hx-swap="innerHTML"
+                @click="toggleIpDetail($event)">
+                {{ activity.ip | e }}
+            </td>
+            <td>
+                {% set method = activity.method | default('GET') | upper %}
+                <span class="method-badge method-{{ method | lower | e }}">{{ method | e }}</span>
+            </td>
+            <td>
+                <div class="path-cell-container">
+                    <span class="path-truncated">{{ activity.path | e }}</span>
+                    {% if activity.path | length > 30 %}
+                    <div class="path-tooltip">{{ activity.path | e }}</div>
+                    {% endif %}
+                </div>
+            </td>
+            <td class="break-all">{{ (activity.user_agent | default(''))[:80] | e }}</td>
+            <td class="ts-cell">{{ activity.timestamp | format_ts }}</td>
+            <td>
+                <div class="table-action-btns">
+                {% if activity.log_id %}
+                <button class="view-btn" @click="viewRawRequest({{ activity.log_id }})" title="View Request">
+                    <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m11.28 3.22 4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L13.94 8l-3.72-3.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215Zm-6.56 0a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L2.06 8l3.72 3.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L.47 8.53a.75.75 0 0 1 0-1.06Z"/></svg>
+                    <span class="view-btn-tooltip">View Request</span>
+                </button>
+                {% endif %}
+                <button class="inspect-btn" @click="openIpInsight('{{ activity.ip | e }}')" title="Inspect IP">
+                    <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
+                </button>
+                </div>
+            </td>
+        </tr>
+        <tr class="ip-stats-row" style="display: none;">
+            <td colspan="6" class="ip-stats-cell">
+                <div class="ip-stats-dropdown">
+                    <div class="loading">Loading stats...</div>
+                </div>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty-state">No suspicious activity detected</td></tr>
+        {% endfor %}
+    </tbody>
+</table>

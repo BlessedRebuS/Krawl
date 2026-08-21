@@ -80,7 +80,9 @@ Shows which IPs accessed honeypot endpoints and how many times, sorted by trigge
 
 ### Detected Attack Types
 
-A detailed table of individual attack detections showing IP, path, attack type classifications, user-agent, and timestamp. Each entry can be expanded to view the raw HTTP request.
+A detailed table of individual attack detections showing IP, path, attack type classifications, user-agent, request method, size, and timestamp. The size column is sortable, so the heaviest payloads surface first. Each entry can be expanded to view the raw HTTP request.
+
+**Attachments.** When the request carried an upload — a webshell, a malware sample, an exfiltration payload — a paperclip button appears in the raw request modal listing the uploaded files, and downloads the one you click. Both `multipart/form-data` parts and raw-body uploads are recognised. Treat every download as hostile and open it in a sandbox. Requests with bodies above 64 KB are not buffered, so they have no retrievable attachment. The same data is available through the [Dashboard API](dashboard-api.md#attachments).
 
 ### Most Recurring Attack Types
 
@@ -178,6 +180,8 @@ A dropdown menu to download the current banlist in two formats:
 
 The dashboard uses session-based authentication with secure HTTP-only cookies. Protected features (Tracked IPs, IP Banlist, ban/track actions) require entering the dashboard password. The login includes brute-force protection with IP-based rate limiting and exponential backoff.
 
+Sessions and the attempt counters live in Redis in scalable mode, so a cookie issued by one replica is accepted by every other one and the lockout applies per attacker rather than per pod. In standalone mode they are held in-process. Sessions expire after 12 hours, attempt counters after 1 hour.
+
 Click the lock icon in the top-right corner of the navigation bar to authenticate or log out.
 
 ![Authentication Modal](../img/auth_prompt.png)
@@ -221,3 +225,41 @@ dashboard:
 | `KRAWL_DASHBOARD_TOP_N_MIN_COUNT` | Minimum access count for top paths/user-agents (set to `1` to disable filtering) | `5` |
 
 > **Scalable mode**: `warmup_aggregation` is enabled by default in Helm and Kubernetes deployments. In standalone mode it is disabled because SQLite handles the load without it.
+
+## Design system
+
+The dashboard UI is a console for reading attacker traffic, and the styles are
+built around that. Everything visual is defined once, as tokens, at the top of
+`src/templates/static/css/dashboard.css`.
+
+### Tokens
+
+| Group | Tokens | Notes |
+|---|---|---|
+| Surfaces | `--bg` `--surface` `--raised` `--sunken` `--line` `--line-soft` `--scrim` | Deep console canvas, cards one step up |
+| Text | `--text` `--text-strong` `--text-dim` `--text-faint` | All AA or better on `--bg` and `--surface` |
+| Semantics | `--accent` `--danger` `--warn` `--ok` `--violet` `--pink` `--cyan` | Links and primary actions use `--accent` |
+| Categories | `--cat-attacker` `--cat-bad-crawler` `--cat-good-crawler` `--cat-regular-user` `--cat-timed-out` | Threat class, aliased onto the semantics |
+| Signal | `--honey` | **Reserved for honeypot triggers.** Nothing else is honey |
+| Type | `--font-ui` `--font-mono`, `--fs-2xs` … `--fs-2xl` | Seven steps, no ad-hoc sizes |
+| Space | `--s1` … `--s10` | 4px base |
+| Radius | `--r-sm` `--r-md` `--r-lg` `--r-pill` | Controls / cards / modals / pills |
+| Icons | `--icon-sm` `--icon` `--icon-lg` | 12 / 16 / 20 |
+
+### Rules
+
+- **Log data is mono.** IP addresses, request paths, user agents, timestamps and
+  credential pairs use `--font-mono` so columns align and `0`/`O` and `1`/`l`
+  stay distinguishable. Labels, prose and controls use `--font-ui`.
+- **Honey means a trap was sprung.** Attack volume is red because it is a threat;
+  a tripped honeypot is the product working, and it owns the only warm color on
+  the page (the two trap-count stat cards and the honeypot trigger counts).
+- **One icon system.** Inline Octicon SVGs on a 16 viewBox, sized by `.icon`,
+  `.icon-sm` or `.icon-lg`, filled with `currentColor`. No icon webfont.
+- **Category colors come from the tokens**, including in JavaScript — `map.js`,
+  `radar.js` and `charts.js` read them through `krawlCategoryColors()` in
+  `tokens.js`, so a category cannot look one way in a table and another on the map.
+- **No `style="…"` in templates.** Add a class to `dashboard.css` instead; the
+  component layer at the bottom of the file exists for exactly this. The only
+  inline styles left are Alpine's initial `display: none` and colors computed
+  per-row on the server.

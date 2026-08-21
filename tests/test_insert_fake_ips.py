@@ -138,6 +138,101 @@ FAKE_USER_AGENTS = [
     "nikto/2.1.6",
 ]
 
+
+def _build_fake_raw_request(method: str, path: str, user_agent: str, large: bool = False, huge: bool = False) -> str:
+    """Build a fake raw HTTP request string matching build_raw_request format."""
+    raw = f"{method} {path} HTTP/1.1\r\n"
+    raw += "Host: example.com\r\n"
+    raw += f"User-Agent: {user_agent}\r\n"
+    raw += "Accept: */*\r\n"
+    raw += "Connection: keep-alive\r\n"
+    if method == "POST":
+        raw += "Content-Type: application/x-www-form-urlencoded\r\n"
+    if huge:
+        raw += "X-Padding: " + "B" * (2 * 1024 * 1024) + "\r\n"
+    elif large:
+        raw += "X-Padding: " + "A" * 1200 + "\r\n"
+    raw += "\r\n"
+    if method == "POST":
+        raw += "username=admin&password=secret"
+    return raw
+
+
+BOUNDARY = "----FakeBoundary7MA4YWxkTrZu0gW"
+
+MULTIPART_ATTACHMENTS = [
+    {
+        "path": "/upload",
+        "filename": "shell.php",
+        "content_type_file": "application/x-php",
+        "body": '<?php system($_GET["cmd"]); phpinfo(); ?>',
+    },
+    {
+        "path": "/api/import",
+        "filename": "config.yaml",
+        "content_type_file": "application/x-yaml",
+        "body": "debug: true\nadmin_password: P@ssw0rd123\napi_key: sk-live-fakekey123456789",
+    },
+    {
+        "path": "/upload",
+        "filename": "webshell.jsp",
+        "content_type_file": "application/jsp",
+        "body": '<%@ page import="java.io.*" %><% Runtime.getRuntime().exec(request.getParameter("cmd")); %>',
+    },
+]
+
+# Raw body file uploads (no multipart encoding)
+RAW_FILE_UPLOADS = [
+    {
+        "path": "/uploads/backdoor.php",
+        "content_type": "application/x-php",
+        "body": '<?php eval($_POST["pass"]); ?>',
+    },
+    {
+        "path": "/api/upload/payload.bin",
+        "content_type": "application/octet-stream",
+        "body": "\x7fELF\x02\x01\x01\x00fake-binary-payload-here",
+    },
+    {
+        "path": "/uploads/shell.py",
+        "content_type": "text/x-python",
+        "body": 'import os; os.system(request.args.get("cmd"))',
+    },
+]
+
+
+def _build_multipart_raw_request(path: str, filename: str, content_type_file: str, file_body: str, user_agent: str) -> str:
+    """Build a raw HTTP request with multipart/form-data body containing a file attachment."""
+    raw = f"POST {path} HTTP/1.1\r\n"
+    raw += "Host: example.com\r\n"
+    raw += f"User-Agent: {user_agent}\r\n"
+    raw += "Accept: */*\r\n"
+    raw += f"Content-Type: multipart/form-data; boundary={BOUNDARY}\r\n"
+    raw += "Content-Length: 999\r\n"
+    raw += "Connection: keep-alive\r\n"
+    raw += "\r\n"
+    raw += f"--{BOUNDARY}\r\n"
+    raw += f'Content-Disposition: form-data; name="file"; filename="{filename}"\r\n'
+    raw += f"Content-Type: {content_type_file}\r\n"
+    raw += "\r\n"
+    raw += f"{file_body}\r\n"
+    raw += f"--{BOUNDARY}--\r\n"
+    return raw
+
+
+def _build_raw_body_request(path: str, content_type: str, body: str, user_agent: str) -> str:
+    """Build a raw HTTP request with a file body (no multipart encoding)."""
+    raw = f"POST {path} HTTP/1.1\r\n"
+    raw += "Host: example.com\r\n"
+    raw += f"User-Agent: {user_agent}\r\n"
+    raw += "Accept: */*\r\n"
+    raw += f"Content-Type: {content_type}\r\n"
+    raw += f"Content-Length: {len(body.encode('utf-8', errors='replace'))}\r\n"
+    raw += "Connection: keep-alive\r\n"
+    raw += "\r\n"
+    raw += body
+    return raw
+
 FAKE_CREDENTIALS = [
     ("admin", "admin"),
     ("admin", "password"),
@@ -338,14 +433,19 @@ def generate_fake_data(
                 num_attacks = random.randint(1, 3)
                 attack_types = random.sample(ATTACK_TYPES, num_attacks)
 
+            method = random.choice(["GET", "POST", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "QUERY"])
+            r = random.random()
+            raw_request = _build_fake_raw_request(method, path, user_agent, large=r < 0.3, huge=r < 0.05)
+
             log_id = db_manager.persist_access(
                 ip=ip,
                 path=path,
                 user_agent=user_agent,
-                method=random.choice(["GET", "POST"]),
+                method=method,
                 is_suspicious=is_suspicious,
                 is_honeypot_trigger=is_honeypot,
                 attack_types=attack_types,
+                raw_request=raw_request,
             )
 
             if log_id:
@@ -377,7 +477,7 @@ def generate_fake_data(
 
         if geo_data:
             country_code, city, asn, asn_org = geo_data
-            db_manager.update_ip_rep_infos(
+            db_manager.ip_stats.update_ip_rep_infos(
                 ip=ip,
                 country_code=country_code,
                 asn=asn if asn else 12345,
@@ -404,7 +504,7 @@ def generate_fake_data(
             f"  ⟳ Analyzing behavior - Initial category: {initial_category}"
         )
 
-        db_manager.update_ip_stats_analysis(
+        db_manager.ip_stats.update_ip_stats_analysis(
             ip=ip,
             analyzed_metrics=generate_analyzed_metrics(),
             category=initial_category,
@@ -425,7 +525,7 @@ def generate_fake_data(
                 f"  ⟳ Behavior change detected: {initial_category} → {new_category}"
             )
 
-            db_manager.update_ip_stats_analysis(
+            db_manager.ip_stats.update_ip_stats_analysis(
                 ip=ip,
                 analyzed_metrics=generate_analyzed_metrics(),
                 category=new_category,
@@ -444,7 +544,7 @@ def generate_fake_data(
                 )
 
                 time.sleep(0.1)
-                db_manager.update_ip_stats_analysis(
+                db_manager.ip_stats.update_ip_stats_analysis(
                     ip=ip,
                     analyzed_metrics=generate_analyzed_metrics(),
                     category=final_category,
@@ -482,12 +582,13 @@ def generate_fake_data(
                 is_suspicious=False,
                 is_honeypot_trigger=False,
                 attack_types=None,
+                raw_request=_build_fake_raw_request("GET", "/robots.txt", "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"),
             )
 
             # Add geolocation if API fetch was successful
             if geo_data:
                 country_code, city, asn, asn_org = geo_data
-                db_manager.update_ip_rep_infos(
+                db_manager.ip_stats.update_ip_rep_infos(
                     ip=crawler_ip,
                     country_code=country_code,
                     asn=asn if asn else 12345,
@@ -502,7 +603,7 @@ def generate_fake_data(
                 app_logger.warning(f"  ⚠ Could not fetch geolocation for {crawler_ip}")
 
             # Set category to good_crawler - this sets manual_category=True to prevent re-analysis
-            db_manager.update_ip_stats_analysis(
+            db_manager.ip_stats.update_ip_stats_analysis(
                 ip=crawler_ip,
                 analyzed_metrics={
                     "request_frequency": 0.1,  # Very low frequency
@@ -522,6 +623,49 @@ def generate_fake_data(
             )
             total_good_crawlers += 1
             time.sleep(0.5)  # Small delay between API calls
+
+    # Insert multipart/form-data requests with file attachments for dashboard testing
+    app_logger.info("\n" + "=" * 60)
+    app_logger.info("Adding multipart/form-data requests with file attachments")
+    app_logger.info("=" * 60)
+    attacker_ip = random.choice(FAKE_IPS[:5])
+    for att in MULTIPART_ATTACHMENTS:
+        raw = _build_multipart_raw_request(
+            att["path"], att["filename"], att["content_type_file"], att["body"], "curl/7.68.0"
+        )
+        db_manager.persist_access(
+            ip=attacker_ip,
+            path=att["path"],
+            user_agent="curl/7.68.0",
+            method="POST",
+            is_suspicious=True,
+            is_honeypot_trigger=True,
+            attack_types=["suspicious_pattern"],
+            raw_request=raw,
+        )
+        app_logger.info(f"  ✓ Inserted multipart request: {att['filename']} → {att['path']}")
+    total_logs += len(MULTIPART_ATTACHMENTS)
+
+    # Insert raw body file uploads (no multipart) for dashboard testing
+    app_logger.info("\n" + "=" * 60)
+    app_logger.info("Adding raw body file uploads (non-multipart)")
+    app_logger.info("=" * 60)
+    for att in RAW_FILE_UPLOADS:
+        raw = _build_raw_body_request(
+            att["path"], att["content_type"], att["body"], "curl/7.68.0"
+        )
+        db_manager.persist_access(
+            ip=attacker_ip,
+            path=att["path"],
+            user_agent="curl/7.68.0",
+            method="POST",
+            is_suspicious=True,
+            is_honeypot_trigger=True,
+            attack_types=["suspicious_pattern"],
+            raw_request=raw,
+        )
+        app_logger.info(f"  ✓ Inserted raw body upload: {att['path']} ({att['content_type']})")
+    total_logs += len(RAW_FILE_UPLOADS)
 
     # Print summary
     app_logger.info("\n" + "=" * 60)

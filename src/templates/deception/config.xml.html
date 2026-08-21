@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration>
-  <appSettings>
-    <add key="DatabaseConnectionString" value="Server=localhost;Database=appdb;User Id=admin;Password=secret123;"/>
-    <add key="EnableDebug" value="true"/>
-  </appSettings>
-  <connectionStrings>
-    <add name="DefaultConnection" connectionString="Data Source=localhost;Initial Catalog=Users;Integrated Security=True"/>
-  </connectionStrings>
-  <system.web>
-    <authentication mode="Forms">
-      <forms loginUrl="~/Account/Login" timeout="2880"/>
-    </authentication>
-  </system.web>
+<configuration version="9.4.0" generated="2026-08-14T09:12:07Z">
+  <application name="Caretrack" environment="production"/>
+  <datasource>
+    <host>pg-prod-01.db.nbh.internal</host>
+    <port>5432</port>
+    <database>caretrack</database>
+    <username>caretrack_svc</username>
+    <password>fake-db-password-2450262a</password>
+  </datasource>
+  <mail host="smtp.mail.nbh.internal" port="587" user="no-reply@northbridge-health.org"
+        password="fake-smtp-password-8d454f0e"/>
 </configuration>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inspect — Orbit Labs</title>
+<style>
+:root{--bg:#0f1117;--panel:#171a21;--ink:#e6e8ee;--muted:#8b90a0;
+--line:#262a34;--brand:#7c6cf5;--brand-dk:#6354e0;--r:8px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#0f1117;color:#e6e8ee;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#e6e8ee}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#8b90a0;font-size:13px}
+header.top nav a.active{color:#e6e8ee;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:0 0 0 1px rgba(255,255,255,.03)}
+h1{font-family:inherit;font-size:19px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
+</head>
+<body>
+<header class="top"><span class="brand">Orbit Cloud</span><nav><a href="/projects">Projects</a><a href="/deployments">Deployments</a><a href="/builds">Builds</a><a href="/registry">Registry</a><a href="/team">Team</a></nav></header>
+
+<div class="wrap">
+  <div class="breadcrumb"><a href="/">Home</a> / Inspect</div>
+  <h1>Inspect</h1>
+  <p class="sub">Orbit Labs &middot; container hosting and build pipelines</p>
+  <div class="panel">
+    <p>Orbit Labs hosts containers and build pipelines for 1 800 engineering teams. This section of the site is maintained by the
+    operations team; content was last reviewed on 03 August 2026.</p>
+    <p>If you reached this page from an internal link that no longer works, please raise a
+    ticket with the <a href="/support">IT service desk</a> quoting reference
+    <code>WEB-8035</code>.</p>
+  </div>
+  <div class="panel">
+    <h2>Related</h2>
+    <p><a href="/product">Product</a> &middot; <a href="/pricing">Pricing</a> &middot; <a href="/docs">Docs</a> &middot; <a href="/changelog">Changelog</a> &middot; <a href="/contact-us">Contact</a></p>
+  </div>
+</div>
+
+<footer><a href="/docs">Docs</a> &middot; <a href="/status">Status</a> &middot; <a href="/support">Support</a> &middot; Orbit Labs</footer>
+</body>
+</html>

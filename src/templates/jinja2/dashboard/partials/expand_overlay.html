@@ -7,55 +7,55 @@
 >
     <div class="expand-overlay-content">
         <div class="expand-overlay-header">
-            <h2 x-text="expandOverlay.title" style="margin: 0; color: #58a6ff; font-size: 1.3em;"></h2>
-            <div style="display: flex; align-items: center; gap: 12px;">
+            <h2 class="panel-title" x-text="expandOverlay.title"></h2>
+            <div class="row gap-3">
                 <input type="text"
                        class="expand-overlay-search"
                        placeholder="Filter..."
                        x-model="expandOverlay.search"
                        @input.debounce.300ms="triggerExpandSearch()"
                        autocomplete="off" />
-                <span class="auth-modal-close" @click="expandOverlay.show = false" style="position: static; font-size: 28px;">&times;</span>
+                <span class="auth-modal-close overlay-close" @click="expandOverlay.show = false">&times;</span>
             </div>
         </div>
 
         {# Contextual filter bar - shown based on endpoint #}
-        <div x-show="expandOverlay.endpoint === 'top-ips' || expandOverlay.endpoint === 'top-paths'"
+        <div x-show="['top-ips', 'top-paths', 'attacks'].includes(expandOverlay.endpoint)"
              x-cloak
-             style="padding: 8px 24px; border-bottom: 1px solid #30363d; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+             class="overlay-toolbar">
 
             {# Category filters for Top IPs #}
             <template x-if="expandOverlay.endpoint === 'top-ips'">
-                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                    <span style="color: #8b949e; font-size: 0.8em; margin-right: 4px;">Category</span>
+                <div class="row row-wrap">
+                    <span class="muted fs-xs">Category</span>
                     <div class="map-legend-item"
                          :class="{ active: expandOverlay.categories.includes('attacker') }"
                          @click="toggleExpandCategory('attacker')">
-                        <span class="map-legend-dot" style="background: #f85149;"></span>
+                        <span class="map-legend-dot cat-attacker"></span>
                         <span class="map-legend-label">Attackers</span>
                     </div>
                     <div class="map-legend-item"
                          :class="{ active: expandOverlay.categories.includes('bad_crawler') }"
                          @click="toggleExpandCategory('bad_crawler')">
-                        <span class="map-legend-dot" style="background: #f0883e;"></span>
+                        <span class="map-legend-dot cat-bad_crawler"></span>
                         <span class="map-legend-label">Bad Crawlers</span>
                     </div>
                     <div class="map-legend-item"
                          :class="{ active: expandOverlay.categories.includes('good_crawler') }"
                          @click="toggleExpandCategory('good_crawler')">
-                        <span class="map-legend-dot" style="background: #3fb950;"></span>
+                        <span class="map-legend-dot cat-good_crawler"></span>
                         <span class="map-legend-label">Good Crawlers</span>
                     </div>
                     <div class="map-legend-item"
                          :class="{ active: expandOverlay.categories.includes('regular_user') }"
                          @click="toggleExpandCategory('regular_user')">
-                        <span class="map-legend-dot" style="background: #58a6ff;"></span>
+                        <span class="map-legend-dot cat-regular_user"></span>
                         <span class="map-legend-label">Regular Users</span>
                     </div>
                     <div class="map-legend-item"
                          :class="{ active: expandOverlay.categories.includes('unknown') }"
                          @click="toggleExpandCategory('unknown')">
-                        <span class="map-legend-dot" style="background: #8b949e;"></span>
+                        <span class="map-legend-dot cat-unknown"></span>
                         <span class="map-legend-label">Unknown</span>
                     </div>
                 </div>
@@ -63,21 +63,45 @@
 
             {# Honeypot toggle for Top Paths #}
             <template x-if="expandOverlay.endpoint === 'top-paths'">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="color: #8b949e; font-size: 0.8em; margin-right: 4px;">Filter</span>
+                <div class="row">
+                    <span class="muted fs-xs">Filter</span>
                     <div class="map-legend-item"
                          :class="{ active: expandOverlay.honeypotOnly }"
                          @click="toggleExpandHoneypot()">
-                        <span class="map-legend-dot" style="background: #f85149;"></span>
+                        <span class="map-legend-dot cat-attacker"></span>
                         <span class="map-legend-label">Honeypot Only</span>
                     </div>
+                </div>
+            </template>
+
+            {# Filters for Attacks #}
+            <template x-if="expandOverlay.endpoint === 'attacks'">
+                <div class="overlay-filters">
+                    <span class="muted fs-xs">Method</span>
+                    <div class="row row-wrap gap-1">
+                        <template x-for="m in ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']" :key="m">
+                            <button class="map-limit-btn btn-sm"
+                                    :class="{ active: expandOverlay.method === m }"
+                                    @click="toggleExpandMethod(m)"
+                                    x-text="m" ></button>
+                        </template>
+                    </div>
+                    <span class="muted fs-xs">Attack type</span>
+                    <select x-model="expandOverlay.attackType"
+                            @change="triggerExpandSearch()"
+                            class="select">
+                        <option value="">All attack types</option>
+                        <template x-for="t in expandOverlay.attackTypes" :key="t">
+                            <option :value="t" x-text="t"></option>
+                        </template>
+                    </select>
                 </div>
             </template>
         </div>
 
         <div class="expand-overlay-body">
             <div class="htmx-container" id="expand-overlay-table">
-                <div style="text-align: center; padding: 40px; color: #8b949e;">Loading...</div>
+                <div class="state">Loading...</div>
             </div>
         </div>
     </div>

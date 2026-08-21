@@ -13,26 +13,26 @@
             {% endif %}
         </h1>
         {# Ban/Unban + Track/Untrack actions — visible only when authenticated #}
-        <span class="ip-ban-actions" style="display: none; gap: 4px;">
+        <span class="ip-ban-actions">
             {% if stats.category and stats.category | lower == 'attacker' %}
             <button class="ban-icon-btn ban-icon-unban" onclick="ipBanAction('{{ ip_address | e }}', 'unban')" title="Unban">
-                <span class="material-symbols-outlined">health_and_safety</span>
+                <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M7.467.133a1.748 1.748 0 0 1 1.066 0l5.25 1.68A1.75 1.75 0 0 1 15 3.48V7c0 1.566-.32 3.182-1.303 4.682-.983 1.498-2.585 2.813-5.032 3.855a1.7 1.7 0 0 1-1.33 0c-2.447-1.042-4.049-2.357-5.032-3.855C1.32 10.182 1 8.566 1 7V3.48a1.75 1.75 0 0 1 1.217-1.667Zm.61 1.429a.25.25 0 0 0-.153 0l-5.25 1.68a.25.25 0 0 0-.174.238V7c0 1.358.275 2.666 1.057 3.86.784 1.194 2.121 2.34 4.366 3.297a.2.2 0 0 0 .154 0c2.245-.956 3.582-2.104 4.366-3.298C13.225 9.666 13.5 8.36 13.5 7V3.48a.25.25 0 0 0-.174-.237l-5.25-1.68ZM8.75 4.75v3a.75.75 0 0 1-1.5 0v-3a.75.75 0 0 1 1.5 0ZM9 10.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>
                 <span class="ban-icon-tooltip">Unban</span>
             </button>
             {% else %}
             <button class="ban-icon-btn ban-icon-ban" onclick="ipBanAction('{{ ip_address | e }}', 'ban')" title="Add to banlist">
-                <span class="material-symbols-outlined">gavel</span>
+                <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.28 6.78a.75.75 0 0 0-1.06-1.06L8.75 7.19 6.31 4.75l1.47-1.47a.75.75 0 0 0-1.06-1.06L2.47 6.47a.75.75 0 0 0 1.06 1.06L5 6.06l2.44 2.44-4.72 4.72a.75.75 0 1 0 1.06 1.06l4.72-4.72L11 12l-1.47 1.47a.75.75 0 1 0 1.06 1.06l4.25-4.25a.75.75 0 0 0-1.06-1.06L12.31 10.7 9.87 8.25l1.41-1.47Z"/></svg>
                 <span class="ban-icon-tooltip">Add to banlist</span>
             </button>
             {% endif %}
             {% if is_tracked %}
             <button class="ban-icon-btn track-icon-untrack" onclick="ipTrackAction('{{ ip_address | e }}', 'untrack')" title="Untrack IP">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
+                <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M.143 2.31a.75.75 0 0 1 1.047-.167l14.5 10.5a.75.75 0 1 1-.88 1.214l-2.248-1.628C11.346 13.19 9.792 14 8 14c-1.981 0-3.67-.992-4.933-2.078C1.797 10.832.88 9.577.43 8.9a1.62 1.62 0 0 1 0-1.797c.353-.533.995-1.42 1.868-2.305L.31 3.357A.75.75 0 0 1 .143 2.31Zm1.536 5.622A.12.12 0 0 0 1.657 8c0 .021.006.045.022.068.412.621 1.242 1.75 2.366 2.717C5.175 11.758 6.527 12.5 8 12.5c1.195 0 2.31-.488 3.29-1.191L9.063 9.695A2.5 2.5 0 0 1 5.2 6.821ZM8 3.5c-.516 0-1.017.09-1.499.251a.75.75 0 1 1-.473-1.423A6.23 6.23 0 0 1 8 2c1.981 0 3.67.992 4.933 2.078 1.27 1.09 2.187 2.345 2.637 3.022a1.62 1.62 0 0 1 0 1.8c-.11.166-.248.365-.41.587a.75.75 0 1 1-1.21-.887c.148-.201.272-.382.371-.53a.119.119 0 0 0 0-.137c-.412-.621-1.242-1.75-2.366-2.717C10.825 4.242 9.473 3.5 8 3.5Z"/></svg>
                 <span class="ban-icon-tooltip">Untrack</span>
             </button>
             {% else %}
             <button class="ban-icon-btn track-icon-track" onclick="ipTrackAction('{{ ip_address | e }}', 'track')" title="Track IP">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2c1.981 0 3.671.992 4.933 2.078 1.27 1.091 2.187 2.345 2.637 3.023a1.62 1.62 0 0 1 0 1.798c-.45.678-1.367 1.932-2.637 3.023C11.67 13.008 9.981 14 8 14c-1.981 0-3.671-.992-4.933-2.078C1.797 10.83.88 9.576.43 8.898a1.62 1.62 0 0 1 0-1.798c.45-.677 1.367-1.931 2.637-3.022C4.33 2.992 6.019 2 8 2ZM1.679 7.932a.12.12 0 0 0 0 .136c.411.622 1.241 1.75 2.366 2.717C5.176 11.758 6.527 12.5 8 12.5c1.473 0 2.825-.742 3.955-1.715 1.124-.967 1.954-2.096 2.366-2.717a.12.12 0 0 0 0-.136c-.412-.621-1.242-1.75-2.366-2.717C10.824 4.242 9.473 3.5 8 3.5c-1.473 0-2.825.742-3.955 1.715-1.124.967-1.954 2.096-2.366 2.717ZM8 10a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 10Z"/></svg>
                 <span class="ban-icon-tooltip">Track</span>
             </button>
             {% endif %}
@@ -206,15 +206,15 @@
 
 {# Location map #}
 {% if stats.latitude and stats.longitude %}
-<div class="table-container" style="margin-top: 20px;">
+<div class="table-container mt-5">
     <h2>Location</h2>
-    <div id="{{ uid }}-ip-map" style="height: 300px; border-radius: 6px; border: 1px solid #30363d;"></div>
+    <div id="{{ uid }}-ip-map" class="map-frame map-frame-sm"></div>
 </div>
 {% endif %}
 
 {# Detected Attack Types table – only for attackers #}
 {% if stats.category and stats.category | lower == 'attacker' %}
-<div class="table-container alert-section" style="margin-top: 20px;">
+<div class="table-container alert-section mt-5">
     <h2>Detected Attack Types</h2>
     <div class="htmx-container"
          hx-get="{{ dashboard_path }}/htmx/attacks?page=1&ip_filter={{ ip_address }}"
@@ -226,7 +226,7 @@
 {% endif %}
 
 {# Access History table #}
-<div class="table-container alert-section" id="access-history-section" style="margin-top: 20px;">
+<div class="table-container alert-section mt-5" id="access-history-section">
     <h2>Access History</h2>
     <div class="htmx-container"
          hx-get="{{ dashboard_path }}/htmx/access-logs?page=1&ip_filter={{ ip_address }}"
@@ -278,11 +278,11 @@
         var category = '{{ stats.category | default("unknown") | lower }}';
 
         var categoryColors = {
-            attacker: '#f85149',
-            bad_crawler: '#f0883e',
-            good_crawler: '#3fb950',
-            regular_user: '#58a6ff',
-            unknown: '#8b949e'
+            attacker: 'var(--danger)',
+            bad_crawler: 'var(--warn)',
+            good_crawler: 'var(--ok)',
+            regular_user: 'var(--accent)',
+            unknown: 'var(--text-dim)'
         };
 
         var map = L.map(UID + '-ip-map', {
@@ -298,9 +298,9 @@
             subdomains: 'abcd'
         }).addTo(map);
 
-        var color = categoryColors[category] || '#8b949e';
+        var color = categoryColors[category] || 'var(--text-dim)';
         var markerHtml = '<div style="width:24px;height:24px;background:' + color +
-            ';border:3px solid #fff;border-radius:50%;box-shadow:0 0 12px ' + color +
+            ';border:3px solid var(--text-strong);border-radius:50%;box-shadow:0 0 12px ' + color +
             ',0 0 24px ' + color + '80;"></div>';
 
         var icon = L.divIcon({
@@ -315,7 +315,7 @@
     {% else %}
     var mapContainer = document.getElementById(UID + '-ip-map');
     if (mapContainer) {
-        mapContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#8b949e;">Location data not available</div>';
+        mapContainer.innerHTML = '<div class="center muted" style="height:100%">Location data not available</div>';
     }
     {% endif %}
 })();

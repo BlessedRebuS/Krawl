@@ -1,180 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Dashboard - Acme Corp</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4;}
-        header {background:#2c3e50; color:#fff; padding:1rem; text-align:center;}
-        nav {background:#34495e; overflow:hidden;}
-        nav a {float:left; display:block; color:#fff; text-align:center; padding:1rem 1.5rem; text-decoration:none;}
-        nav a:hover {background:#1abc9c;}
-        .container {padding:2rem;}
-        h2 {color:#2c3e50;}
-        table {width:100%; border-collapse:collapse; margin-top:1rem;}
-        th, td {border:1px solid #ddd; padding:0.8rem; text-align:left;}
-        th {background:#ecf0f1;}
-        tr:nth-child(even) {background:#f9f9f9;}
-        .chart {width:100%; height:300px; background:#fff; border:1px solid #ddd; margin-top:1rem;}
-        form {background:#fff; padding:1.5rem; border-radius:5px; box-shadow:0 0 10px rgba(0,0,0,0.1); margin-top:2rem;}
-        label {display:block; margin-bottom:0.5rem; font-weight:bold;}
-        input[type="text"], input[type="email"], textarea {width:100%; padding:0.5rem; margin-bottom:1rem; border:1px solid #ccc; border-radius:3px;}
-        button {background:#27ae60; color:#fff; border:none; padding:0.7rem 1.5rem; cursor:pointer;}
-        button:hover {background:#2ecc71;}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dash — Orbit Labs</title>
+<style>
+:root{--bg:#0f1117;--panel:#171a21;--ink:#e6e8ee;--muted:#8b90a0;
+--line:#262a34;--brand:#7c6cf5;--brand-dk:#6354e0;--r:8px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#0f1117;color:#e6e8ee;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#e6e8ee}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#8b90a0;font-size:13px}
+header.top nav a.active{color:#e6e8ee;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:0 0 0 1px rgba(255,255,255,.03)}
+h1{font-family:inherit;font-size:19px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <header>
-        <h1>Acme Corp Dashboard</h1>
-    </header>
-    <nav>
-        <a href="/">Home</a>
-        <a href="/dash">Dashboard</a>
-        <a href="/reports">Reports</a>
-        <a href="/settings">Settings</a>
-        <a href="/logout">Logout</a>
-    </nav>
-    <div class="container">
-        <h2>Welcome, admin</h2>
-        <p>Here is an overview of recent system activity:</p>
-        <table>
-            <thead>
-                <tr>
-                    <th>Time</th>
-                    <th>User</th>
-                    <th>Action</th>
-                    <th>IP Address</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>2025-11-02 08:12:03</td>
-                    <td>jdoe</td>
-                    <td>Login</td>
-                    <td>192.168.1.45</td>
-                </tr>
-                <tr>
-                    <td>2025-11-02 08:15:41</td>
-                    <td>asmith</td>
-                    <td>File Upload</td>
-                    <td>10.0.0.22</td>
-                </tr>
-                <tr>
-                    <td>2025-11-02 08:20:10</td>
-                    <td>jdoe</td>
-                    <td>Password Change</td>
-                    <td>192.168.1.45</td>
-                </tr>
-                <tr>
-                    <td>2025-11-02 08:25:33</td>
-                    <td>guest</td>
-                    <td>Failed Login</td>
-                    <td>203.0.113.5</td>
-                </tr>
-            </tbody>
-        </table>
+<header class="top"><span class="brand">Orbit Cloud</span><nav><a href="/projects">Projects</a><a href="/deployments">Deployments</a><a href="/builds">Builds</a><a href="/registry">Registry</a><a href="/team">Team</a></nav></header>
 
-        <div class="chart" id="activityChart"></div>
+<div class="wrap">
+  <div class="breadcrumb"><a href="/">Home</a> / Dash</div>
+  <h1>Dash</h1>
+  <p class="sub">Orbit Labs &middot; container hosting and build pipelines</p>
+  <div class="panel">
+    <p>Orbit Labs hosts containers and build pipelines for 1 800 engineering teams. This section of the site is maintained by the
+    operations team; content was last reviewed on 27 July 2026.</p>
+    <p>If you reached this page from an internal link that no longer works, please raise a
+    ticket with the <a href="/support">IT service desk</a> quoting reference
+    <code>WEB-7591</code>.</p>
+  </div>
+  <div class="panel">
+    <h2>Related</h2>
+    <p><a href="/product">Product</a> &middot; <a href="/pricing">Pricing</a> &middot; <a href="/docs">Docs</a> &middot; <a href="/changelog">Changelog</a> &middot; <a href="/contact-us">Contact</a></p>
+  </div>
+</div>
 
-        <h2>Add New Notification</h2>
-        <form action="/dash/notify" method="POST">
-            <label for="title">Title:</label>
-            <input type="text" id="title" name="title" placeholder="Enter notification title" required>
-
-            <label for="message">Message:</label>
-            <textarea id="message" name="message" rows="4" placeholder="Enter notification message"></textarea>
-
-            <label for="priority">Priority:</label>
-            <select id="priority" name="priority">
-                <option value="low">Low</option>
-                <option value="medium" selected>Medium</option>
-                <option value="high">High</option>
-            </select>
-
-            <button type="submit">Submit</button>
-        </form>
-    </div>
-
-    <script>
-        // Simple fake chart data rendered via inline SVG for demo purposes
-        const data = [
-            {time:'08:00', value:12},
-            {time:'09:00', value:19},
-            {time:'10:00', value:8},
-            {time:'11:00', value:24},
-            {time:'12:00', value:5},
-            {time:'13:00', value:15},
-            {time:'14:00', value:22}
-        ];
-        const svgNS = "http://www.w3.org/2000/svg";
-        const container = document.getElementById('activityChart');
-        const width = container.clientWidth;
-        const height = 300;
-        const padding = 40;
-        const chartWidth = width - 2*padding;
-        const chartHeight = height - 2*padding;
-        const maxVal = Math.max(...data.map(d=>d.value));
-        const xScale = chartWidth / (data.length-1);
-        const yScale = chartHeight / maxVal;
-
-        const svg = document.createElementNS(svgNS, "svg");
-        svg.setAttribute("width", width);
-        svg.setAttribute("height", height);
-        svg.setAttribute("style", "display:block;");
-
-        // Axes
-        const xAxis = document.createElementNS(svgNS, "line");
-        xAxis.setAttribute("x1", padding);
-        xAxis.setAttribute("y1", height-padding);
-        xAxis.setAttribute("x2", width-padding);
-        xAxis.setAttribute("y2", height-padding);
-        xAxis.setAttribute("stroke", "#ccc");
-        svg.appendChild(xAxis);
-
-        const yAxis = document.createElementNS(svgNS, "line");
-        yAxis.setAttribute("x1", padding);
-        yAxis.setAttribute("y1", padding);
-        yAxis.setAttribute("x2", padding);
-        yAxis.setAttribute("y2", height-padding);
-        yAxis.setAttribute("stroke", "#ccc");
-        svg.appendChild(yAxis);
-
-        // Data points and line
-        const polyline = document.createElementNS(svgNS, "polyline");
-        let points = "";
-        data.forEach((d,i)=>{
-            const x = padding + i*xScale;
-            const y = height - padding - d.value*yScale;
-            points += `${x},${y} `;
-            // point circle
-            const circle = document.createElementNS(svgNS, "circle");
-            circle.setAttribute("cx", x);
-            circle.setAttribute("cy", y);
-            circle.setAttribute("r", "4");
-            circle.setAttribute("fill", "#27ae60");
-            svg.appendChild(circle);
-        });
-        polyline.setAttribute("points", points.trim());
-        polyline.setAttribute("fill", "none");
-        polyline.setAttribute("stroke", "#2980b9");
-        polyline.setAttribute("stroke-width", "2");
-        svg.appendChild(polyline);
-
-        // Labels
-        data.forEach((d,i)=>{
-            const x = padding + i*xScale;
-            const y = height - padding + 20;
-            const text = document.createElementNS(svgNS, "text");
-            text.setAttribute("x", x);
-            text.setAttribute("y", y);
-            text.setAttribute("text-anchor", "middle");
-            text.setAttribute("font-size", "10");
-            text.setAttribute("fill", "#555");
-            text.textContent = d.time;
-            svg.appendChild(text);
-        });
-
-        container.appendChild(svg);
-    </script>
+<footer><a href="/docs">Docs</a> &middot; <a href="/status">Status</a> &middot; <a href="/support">Support</a> &middot; Orbit Labs</footer>
 </body>
 </html>

@@ -1,23 +1,47 @@
-<html>
-<head>
-    <title>.yarnrc.yml</title>
-    <style>
-        body { font-family: monospace; margin: 2em; background: #f9f9f9; color: #222; }
-        pre { background: #fff; padding: 1em; border: 1px solid #ddd; overflow: auto; }
-    </style>
-</head>
-<body>
-<pre>
-# .yarnrc.yml
-npmScopes:
-  mycompany:
-    npmRegistryServer: "https://npm.mycompany.com"
-    npmAuthToken: "${NPM_TOKEN}"
-npmRegistryServer: "https://registry.yarnpkg.com"
-yarnPath: ".yarn/releases/yarn-3.5.0.cjs"
-enableGlobalCache: true
-nodeLinker: node-modules
-cacheFolder: "/tmp/.yarn-cache"
-</pre>
-</body>
-</html>
+# Grid Console — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
+
+app:
+  name: "Grid Console"
+  env: production
+  url: https://portal.voltaenergia.es
+  version: "2.11.6"
+
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
+
+database:
+  driver: postgresql
+  host: pg-prod-01.db.volta.internal
+  port: 5432
+  name: volta_grid
+  user: grid_rw
+  password: fake-db-password-9f6202d2
+  pool:
+    min: 4
+    max: 32
+
+redis:
+  host: redis-prod-01.cache.volta.internal
+  port: 6379
+  password: fake-redis-password-674525
+
+auth:
+  jwt_secret: fake-jwt-secret-1219be9f523a498d3909cb49099f0024
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: volta-grid-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-E82D2
+  secret_access_key: fake-secret-P34e7LY5dk0tmdrdh/kfxPJh
+
+logging:
+  level: warning
+  format: json
+  sentry_dsn: https://fakeec057686c485a5f9@sentry.internal/32

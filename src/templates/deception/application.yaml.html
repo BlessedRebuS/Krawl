@@ -1,64 +1,47 @@
-<html><body>application:
-  name: MyCorpApp
-  version: "2.3.1"
-  environment: production
-  server:
-    host: 0.0.0.0
-    port: 8080
-    ssl:
-      enabled: true
-      cert_file: /etc/ssl/certs/app.crt
-      key_file: /etc/ssl/private/app.key
-  database:
-    type: postgresql
-    host: db.internal
-    port: 5432
-    name: appdb
-    username: app_user
-    password: SuperSecretPwd!2025
-    pool:
-      min: 5
-      max: 20
-  cache:
-    redis:
-      host: cache.internal
-      port: 6379
-      password: redisPass!2025
-  logging:
-    level: INFO
-    format: json
-    outputs:
-      - type: file
-        path: /var/log/app/app.log
-        rotation:
-          max_size: 100MB
-          max_files: 10
-      - type: stdout
-  features:
-    - name: user_management
-      enabled: true
-    - name: payment_gateway
-      enabled: false
-    - name: analytics
-      enabled: true
-  external_services:
-    - name: email_provider
-      url: https://email.api.example.com
-      api_key: fake_email_key_12345
-    - name: sms_provider
-      url: https://sms.api.example.com
-      api_key: fake_sms_key_67890
-  security:
-    cors:
-      allowed_origins:
-        - https://app.example.com
-        - https://admin.example.com
-      allowed_methods: [GET, POST, PUT, DELETE, OPTIONS]
-      allowed_headers: ["Content-Type", "Authorization"]
-    rate_limit:
-      requests_per_minute: 120
-      burst: 30
-  deprecated:
-    - endpoint: /legacy/v1/users
-      removal_date: "2026-01-01"
-      notice: "This endpoint will be removed; use /api/v2/users instead."</body></html>
+# Meridian Portal — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
+
+app:
+  name: "Meridian Portal"
+  env: production
+  url: https://portal.meridiansys.io
+  version: "4.2.1"
+
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
+
+database:
+  driver: postgresql
+  host: pg-prod-01.db.meridian.internal
+  port: 5432
+  name: meridian_portal
+  user: meridian_app
+  password: fake-db-password-df2a8ebb
+  pool:
+    min: 4
+    max: 32
+
+redis:
+  host: redis-prod-01.cache.meridian.internal
+  port: 6379
+  password: fake-redis-password-35dff8
+
+auth:
+  jwt_secret: fake-jwt-secret-ed903fcbe7a55e3874fca9faa2d6fc62
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: meridian-portal-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-80F70
+  secret_access_key: fake-secret-Da45186B66MaKsEYLa1a685T
+
+logging:
+  level: warning
+  format: json
+  sentry_dsn: https://fake0a7a0a1bc8c50d70@sentry.internal/33

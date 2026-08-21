@@ -1,25 +1,25 @@
 {# HTMX fragment: Generated Deception Templates table (AUTHENTICATED - with checkboxes) #}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-    <span style="color: #8b949e; font-size: 0.9em;">Page {{ pagination.page }}/{{ pagination.total_pages }} — {{ pagination.total }} total</span>
-    <div style="display: flex; gap: 8px;">
-        <button style="padding: 6px 12px; background: transparent; border: 1px solid #30363d; color: #c9d1d9; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-size: 0.85em;"
+<div class="panel-header mb-4">
+    <span class="muted fs-sm">Page {{ pagination.page }}/{{ pagination.total_pages }} — {{ pagination.total }} total</span>
+    <div class="row">
+        <button class="page-btn"
                 hx-get="{{ dashboard_path }}/htmx/generated-pages?page={{ pagination.page - 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
-                {% if pagination.page <= 1 %}disabled style="opacity: 0.5; cursor: not-allowed;"{% else %}onmouseover="this.style.borderColor='#58a6ff'; this.style.color='#58a6ff';" onmouseout="this.style.borderColor='#30363d'; this.style.color='#c9d1d9';"{% endif %}>Prev</button>
-        <button style="padding: 6px 12px; background: transparent; border: 1px solid #30363d; color: #c9d1d9; border-radius: 4px; cursor: pointer; transition: all 0.2s; font-size: 0.85em;"
+                {% if pagination.page <= 1 %}disabled class="is-disabled"{% else %}onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)';" onmouseout="this.style.borderColor='var(--line)'; this.style.color='var(--text)';"{% endif %}>Prev</button>
+        <button class="page-btn is-disabled"
                 hx-get="{{ dashboard_path }}/htmx/generated-pages?page={{ pagination.page + 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
-                {% if pagination.page >= pagination.total_pages %}disabled style="opacity: 0.5; cursor: not-allowed;"{% else %}onmouseover="this.style.borderColor='#58a6ff'; this.style.color='#58a6ff';" onmouseout="this.style.borderColor='#30363d'; this.style.color='#c9d1d9';"{% endif %}>Next</button>
+                {% if pagination.page >= pagination.total_pages %}disabled{% else %}onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)';" onmouseout="this.style.borderColor='var(--line)'; this.style.color='var(--text)';"{% endif %}>Next</button>
     </div>
 </div>
 
 <table>
     <thead>
         <tr>
-            <th style="width: 30px; text-align: center;">
-                <input type="checkbox" id="select-all-pages" onchange="selectAllPages()" style="cursor: pointer;" />
+            <th class="col-w-30">
+                <input class="checkbox" type="checkbox" id="select-all-pages" onchange="selectAllPages()" />
             </th>
             <th>#</th>
             <th class="sortable {% if sort_by == 'path' %}{{ sort_order }}{% endif %}"
@@ -46,43 +46,43 @@
                 hx-swap="innerHTML">
                 Accesses
             </th>
-            <th style="width: 80px; padding: 12px 8px;"></th>
+            <th class="col-w-80 cell-pad"></th>
         </tr>
     </thead>
     <tbody>
         {% for item in items %}
-        <tr style="border-bottom: 1px solid #161b22;">
-            <td style="text-align: center; padding: 12px 8px;">
-                <input type="checkbox" name="page-checkbox" value="{{ item.path }}" style="cursor: pointer;" />
+        <tr class="row-line">
+            <td class="cell-pad text-center">
+                <input class="checkbox" type="checkbox" name="page-checkbox" value="{{ item.path }}" />
             </td>
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
-            <td style="padding: 12px 8px;">
+            <td class="cell-pad">
                 <a href="{{ item.path }}" target="_blank"
-                   style="color: #58a6ff; text-decoration: none; cursor: pointer; transition: color 0.2s ease;"
-                   onmouseover="this.style.color='#79c0ff';"
-                   onmouseout="this.style.color='#58a6ff';">
+                   class="link-out"
+                   onmouseover="this.style.color='var(--accent-hi)';"
+                   onmouseout="this.style.color='var(--accent)';">
                     {% if item.path.endswith('.html') %}{{ (item.path[:-5]) | e }}{% else %}{{ item.path | e }}{% endif %}
                 </a>
             </td>
-            <td style="padding: 12px 8px; color: #8b949e; font-size: 0.85em;">
+            <td class="cell-empty">
                 {% if item.created_at %}
                     {{ (item.created_at | replace('T', ' ') | replace('Z', ''))[:19] }}
                 {% endif %}
             </td>
-            <td style="padding: 12px 8px; color: #8b949e; font-size: 0.85em;">
+            <td class="cell-empty">
                 {% if item.last_accessed %}
                     {{ (item.last_accessed | replace('T', ' ') | replace('Z', ''))[:19] }}
                 {% endif %}
             </td>
-            <td style="padding: 12px 8px; color: #8b949e; font-size: 0.9em;">{{ item.access_count }}</td>
-            <td style="padding: 12px 8px;">
+            <td class="cell-empty">{{ item.access_count }}</td>
+            <td class="cell-pad">
                 <div class="table-action-btns">
-                    <button class="ban-icon-btn" style="color: #58a6ff;" onclick="downloadGeneratedPage('{{ item.path | e }}')" title="Download">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06Z"/></svg>
+                    <button class="ban-icon-btn text-accent" onclick="downloadGeneratedPage('{{ item.path | e }}')" title="Download">
+                        <svg class="icon-sm" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06Z"/></svg>
                         <span class="ban-icon-tooltip">Download</span>
                     </button>
-                    <button class="ban-icon-btn" style="color: #f85149;" onclick="deleteGeneratedPage('{{ item.path | e }}')" title="Delete">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M11 1.75V0H5v1.75H1v1.5h1.5v10c0 .966.784 1.75 1.75 1.75h7.5A1.75 1.75 0 0 0 13.5 13.25v-10H15v-1.5Zm-7.5 0V1.5h9v.25ZM12 13.25a.25.25 0 0 1-.25.25h-7.5a.25.25 0 0 1-.25-.25v-10h8ZM6.5 5.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5a.75.75 0 0 1 .75-.75Zm3 0a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5a.75.75 0 0 1 .75-.75Z"/></svg>
+                    <button class="ban-icon-btn text-danger" onclick="deleteGeneratedPage('{{ item.path | e }}')" title="Delete">
+                        <svg class="icon-sm" viewBox="0 0 16 16" aria-hidden="true"><path d="M11 1.75V0H5v1.75H1v1.5h1.5v10c0 .966.784 1.75 1.75 1.75h7.5A1.75 1.75 0 0 0 13.5 13.25v-10H15v-1.5Zm-7.5 0V1.5h9v.25ZM12 13.25a.25.25 0 0 1-.25.25h-7.5a.25.25 0 0 1-.25-.25v-10h8ZM6.5 5.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5a.75.75 0 0 1 .75-.75Zm3 0a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5a.75.75 0 0 1 .75-.75Z"/></svg>
                         <span class="ban-icon-tooltip">Delete</span>
                     </button>
                 </div>
@@ -90,7 +90,7 @@
         </tr>
         {% else %}
         <tr>
-            <td colspan="7" style="text-align: center; padding: 40px 8px; color: #8b949e; font-size: 0.9em;">No generated pages yet</td>
+            <td class="state" colspan="7">No generated pages yet</td>
         </tr>
         {% endfor %}
     </tbody>

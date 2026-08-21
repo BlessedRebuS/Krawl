@@ -1,43 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>terraform.tfstate</title>
-</head>
-<body>
-<h1>Terraform State File</h1>
-<pre>
 {
   "version": 4,
-  "terraform_version": "1.3.7",
-  "serial": 12,
-  "lineage": "abcdef12-3456-7890-abcd-ef1234567890",
-  "outputs": {},
+  "terraform_version": "1.9.5",
+  "serial": 676,
+  "lineage": "a4283a39-339b-7386-22fb-76ea620425b8",
+  "outputs": {
+    "db_endpoint": {
+      "value": "pg-prod-01.db.meridian.internal:5432",
+      "type": "string"
+    },
+    "bucket": {
+      "value": "meridian-portal-prod-assets",
+      "type": "string"
+    }
+  },
   "resources": [
     {
       "mode": "managed",
-      "type": "aws_instance",
-      "name": "web",
-      "provider": "provider.aws",
+      "type": "aws_db_instance",
+      "name": "primary",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
       "instances": [
         {
-          "index_key": 0,
-          "schema_version": 0,
           "attributes": {
-            "id": "i-0a1b2c3d4e5f6g7h8",
-            "ami": "ami-0abcdef1234567890",
-            "instance_type": "t2.micro",
-            "subnet_id": "subnet-12345abcd",
-            "vpc_security_group_ids": ["sg-0123456789abcdef0"],
-            "tags": {
-              "Name": "web-server"
-            }
+            "identifier": "meridian-portal-prod",
+            "engine": "postgres",
+            "engine_version": "16.3",
+            "instance_class": "db.m6g.large",
+            "username": "meridian_app",
+            "password": "fake-db-password-e326a362"
           }
         }
       ]
     }
   ]
 }
-</pre>
-</body>
-</html>

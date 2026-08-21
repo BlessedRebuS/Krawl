@@ -2,9 +2,9 @@
 {% set ps = pagination.page_size %}
 {% set sq = search|default('', true) %}
 {% set hp = honeypot_only|default('', true) %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+<div class="panel-header">
     <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} total</span>
-    <div style="display: flex; gap: 8px;">
+    <div class="row">
         <button class="pagination-btn"
                 hx-get="{{ dashboard_path }}/htmx/top-paths?page={{ pagination.page - 1 }}&page_size={{ ps }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&search={{ sq }}&honeypot_only={{ hp }}"
                 hx-target="closest .htmx-container"

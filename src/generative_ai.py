@@ -72,10 +72,7 @@ def import_deception_pages_from_directory() -> int:
     config = get_config()
 
     # Check if import is enabled
-    if (
-        not hasattr(config, "deception_import_pages")
-        or not config.deception_import_pages
-    ):
+    if not config.deception_import_pages:
         return 0
 
     deception_dir = Path(__file__).parent / "templates" / "deception"
@@ -148,104 +145,47 @@ def import_deception_pages_from_directory() -> int:
 
 
 def is_ai_enabled() -> bool:
-    """Check if AI generation is enabled via config or environment variable."""
+    """Check if AI generation is enabled in config."""
     from config import get_config
 
-    config = get_config()
-    return config.ai_enabled
+    return get_config().ai_enabled
 
 
 def get_api_key() -> str | None:
-    """Get OpenRouter API key from config or environment."""
+    """API key from the OPENROUTER_API_KEY env var, falling back to config."""
     from config import get_config
 
-    config = get_config()
-    # Env var takes precedence over config file
-    return os.getenv("OPENROUTER_API_KEY") or config.ai_api_key
+    return os.getenv("OPENROUTER_API_KEY") or get_config().ai_api_key
 
 
 def get_model() -> str:
-    """Get OpenRouter model from config or environment."""
+    """Model from the OPENROUTER_MODEL env var, falling back to config."""
     from config import get_config
 
-    config = get_config()
-    # Env var takes precedence over config file
-    return os.getenv("OPENROUTER_MODEL") or config.ai_model
-
-
-def get_prompt() -> str:
-    """Get custom prompt template from config."""
-    from config import get_config
-
-    config = get_config()
-    return config.ai_prompt
-
-
-def is_reasoning_enabled() -> bool:
-    """Get whether reasoning is enabled from config."""
-    from config import get_config
-
-    config = get_config()
-    return config.ai_reasoning_enabled
-
-
-def get_reasoning_effort() -> str:
-    """Get the reasoning effort level from config."""
-    from config import get_config
-
-    config = get_config()
-    return config.ai_reasoning_effort
-
-
-def get_timeout() -> int:
-    """Get API request timeout from config."""
-    from config import get_config
-
-    config = get_config()
-    return config.ai_timeout
+    return os.getenv("OPENROUTER_MODEL") or get_config().ai_model
 
 
 def get_provider() -> str:
-    """Get AI provider ('openrouter' or 'openai') from config."""
+    """AI provider ('openrouter' or 'openai'), validated."""
     from config import get_config
 
-    config = get_config()
-    provider = config.ai_provider.lower()
+    provider = get_config().ai_provider.lower()
     if provider not in ("openrouter", "openai"):
         logger.warning(f"Invalid provider '{provider}', defaulting to openrouter")
         return "openrouter"
     return provider
 
 
-def get_openai_base_url() -> str:
-    """Get OpenAI base URL from config or environment variable."""
-    from config import get_config
-
-    config = get_config()
-    openai_base_url = config.ai_openai_base_url
-    return openai_base_url
-
-
-def get_max_daily_requests() -> int:
-    """Get max daily AI requests limit from config."""
-    from config import get_config
-
-    config = get_config()
-    return config.ai_max_daily_requests
-
-
 def can_generate_today() -> bool:
     """Check if we can still generate more pages today based on daily limit."""
-    from datetime import date
-
+    from config import get_config
     from dependencies import get_db
 
-    max_requests = get_max_daily_requests()
+    max_requests = get_config().ai_max_daily_requests
     if max_requests <= 0:  # No limit if set to 0 or negative
         return True
 
     db = get_db()
-    date.today()
 
     # Count generated pages created today
     generated_today = db.generated_pages.count_created_today()
@@ -629,16 +569,18 @@ async def generate_html_for_path(
             False,
         )
 
+    from config import get_config
+
+    config = get_config()
     model = get_model()
     provider = get_provider()
-    openai_base_url = get_openai_base_url()
+    openai_base_url = config.ai_openai_base_url
 
     # Build prompt for AI
     query_part = f"?{query}" if query else ""
-    prompt_template = get_prompt()
-    prompt = prompt_template.format(path=path, query_part=query_part)
-    reasoning_enabled = is_reasoning_enabled()
-    timeout = get_timeout()
+    prompt = config.ai_prompt.format(path=path, query_part=query_part)
+    reasoning_enabled = config.ai_reasoning_enabled
+    timeout = config.ai_timeout
 
     try:
         logger.info(

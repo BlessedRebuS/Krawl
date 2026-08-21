@@ -1,55 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>application-prod.yml</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; margin:2em;}
-        pre {background:#eee; padding:1em; border:1px solid #ccc; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>application-prod.yml</h1>
-    <pre>
-# Application Production Configuration
-server:
-  port: 8080
-  servlet:
-    context-path: /api
+# Grid Console — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
 
-spring:
-  datasource:
-    url: jdbc:postgresql://db-prod.example.com:5432/proddb
-    username: prod_user
-    password: S3cr3tP@ssw0rd!
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-  mail:
-    host: smtp.example.com
-    port: 587
-    username: noreply@example.com
-    password: mailpass123
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+app:
+  name: "Grid Console"
+  env: production
+  url: https://portal.voltaenergia.es
+  version: "2.11.6"
+
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
+
+database:
+  driver: postgresql
+  host: pg-prod-01.db.volta.internal
+  port: 5432
+  name: volta_grid
+  user: grid_rw
+  password: fake-db-password-b0e0e834
+  pool:
+    min: 4
+    max: 32
+
+redis:
+  host: redis-prod-01.cache.volta.internal
+  port: 6379
+  password: fake-redis-password-85d9b2
+
+auth:
+  jwt_secret: fake-jwt-secret-3510a492f76208f5655d49ff9209cbd9
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: volta-grid-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-D2551
+  secret_access_key: fake-secret-W4VDEx9KPV77NST0RmMIlzHs
 
 logging:
-  level:
-    root: INFO
-    com.example: DEBUG
-  file:
-    name: /var/logs/application-prod.log
-
-security:
-  jwt:
-    secret: fakeSecretKey1234567890abcdef
-    expiration: 86400000
-    </pre>
-</body>
-</html>
+  level: warning
+  format: json
+  sentry_dsn: https://fake1ff413c0f7f313a6@sentry.internal/33

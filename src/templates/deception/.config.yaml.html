@@ -1,17 +1,47 @@
-<html><body># Application configuration
+# Caretrack — service configuration
+# ansible-managed: infra/ansible/roles/app/templates/config.yml.j2
+
+app:
+  name: "Caretrack"
+  env: production
+  url: https://portal.northbridge-health.org
+  version: "9.4.0"
+
+server:
+  host: 0.0.0.0
+  port: 8080
+  workers: 8
+  timeout_seconds: 30
+
 database:
-  host: localhost
+  driver: postgresql
+  host: pg-prod-01.db.nbh.internal
   port: 5432
-  name: myapp_db
-  user: admin
-  password: s3cr3tP@ssw0rd!
+  name: caretrack
+  user: caretrack_svc
+  password: fake-db-password-fa3d045a
+  pool:
+    min: 4
+    max: 32
+
 redis:
-  host: 127.0.0.1
+  host: redis-prod-01.cache.nbh.internal
   port: 6379
-  password: redisPass123
-api:
-  key: abcdef1234567890ghijklmnopqrstuvwxyz
-  endpoint: https://api.example.com/v1
+  password: fake-redis-password-bd89c9
+
+auth:
+  jwt_secret: fake-jwt-secret-f6d86e8bd36c2b8bee9a27b28d017337
+  token_ttl_minutes: 1440
+  mfa_required_roles: [administrator, developer]
+
+storage:
+  provider: s3
+  bucket: caretrack-prod-assets
+  region: eu-west-1
+  access_key_id: AKIA-FAKE-E2EC3
+  secret_access_key: fake-secret-8C/xfc/8nVQQvikqCnqlWw6O
+
 logging:
-  level: DEBUG
-  file: /var/log/myapp.log</body></html>
+  level: warning
+  format: json
+  sentry_dsn: https://fake064c2bd8854e0f54@sentry.internal/10

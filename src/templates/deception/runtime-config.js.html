@@ -1,24 +1,36 @@
-<html><body>window.runtimeConfig = {
-  apiEndpoint: "https://api.example.com/v1",
-  authToken: "fake_token_12345",
-  debug: true,
-  features: {
-    newUI: true,
-    legacySupport: false
-  },
-  // TODO: remove hardcoded credentials in production
-  dbConnection: {
-    host: "db.internal.example.com",
-    user: "admin",
-    password: "SuperSecret!@#"
+/*! Caretrack 9.4.0 | build 42e1f74 | (c) Northbridge Health */
+(function (window) {
+  'use strict';
+
+  var config = {
+    apiBase: 'https://api.northbridge-health.org/v2',
+    wsBase: 'wss://api.northbridge-health.org/socket',
+    sentryDsn: 'https://fake24fdc937926a242c@sentry.internal/3',
+    release: 'caretrack@9.4.0',
+    features: { exportsV2: true, betaSearch: false, mfaEnforced: true }
+  };
+
+  function request(path, options) {
+    options = options || {};
+    return fetch(config.apiBase + path, {
+      method: options.method || 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': window.__CSRF__ || ''
+      },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    }).then(function (res) {
+      if (res.status === 401) { window.location.href = '/login?next=' + encodeURIComponent(location.pathname); }
+      if (!res.ok) { throw new Error('Request failed: ' + res.status); }
+      return res.json();
+    });
   }
-};
 
-function loadConfig() {
-  return window.runtimeConfig;
-}
-
-// Vulnerable: using eval on user input
-function processInput(input) {
-  return eval(input);
-}</body></html>
+  window.Caretrack = {
+    config: config,
+    request: request,
+    session: { refresh: function () { return request('/auth/refresh', { method: 'POST' }); } }
+  };
+})(window);

@@ -1,58 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WordPress REST API - Users</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f9f9f9; color: #333; }
-        pre { background: #eee; padding: 15px; border-radius: 5px; overflow-x: auto; }
-        h1 { color: #21759b; }
-        .endpoint { background: #fff; border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 5px; }
-    </style>
-</head>
-<body>
-    <h1>WordPress REST API</h1>
-    <div class="endpoint">
-        <h2>GET /wp-json/wp/v2/users</h2>
-        <p>Retrieve a list of users with specified parameters.</p>
-        <p><strong>Request:</strong> <code>/wp-json/wp/v2/users?per_page=100&_fields=slug</code></p>
-        <p><strong>Response:</strong></p>
-        <pre>[
+[
   {
-    "slug": "admin"
+    "id": 5,
+    "username": "c.mbeki",
+    "email": "c.mbeki@halcyonretail.co.uk",
+    "display_name": "Chloe Mbeki",
+    "role": "store_manager",
+    "status": "active",
+    "created_at": "2020-04-13T08:31:44Z",
+    "last_login_at": "2026-08-05T02:02:47Z",
+    "mfa_enabled": false
   },
   {
-    "slug": "editor"
+    "id": 8,
+    "username": "r.duffy",
+    "email": "r.duffy@halcyonretail.co.uk",
+    "display_name": "Ronan Duffy",
+    "role": "administrator",
+    "status": "active",
+    "created_at": "2018-12-01T08:31:44Z",
+    "last_login_at": "2026-08-07T21:44:43Z",
+    "mfa_enabled": true
   },
   {
-    "slug": "author1"
+    "id": 16,
+    "username": "a.pashkov",
+    "email": "a.pashkov@halcyonretail.co.uk",
+    "display_name": "Anya Pashkov",
+    "role": "merchandiser",
+    "status": "active",
+    "created_at": "2022-02-24T08:31:44Z",
+    "last_login_at": "2026-08-13T10:16:20Z",
+    "mfa_enabled": false
   },
   {
-    "slug": "contributor2"
+    "id": 19,
+    "username": "j.okonkwo",
+    "email": "j.okonkwo@halcyonretail.co.uk",
+    "display_name": "Jide Okonkwo",
+    "role": "fulfilment",
+    "status": "active",
+    "created_at": "2023-07-08T08:31:44Z",
+    "last_login_at": "2026-08-05T02:58:37Z",
+    "mfa_enabled": false
   },
   {
-    "slug": "subscriber3"
-  },
-  {
-    "slug": "guestuser"
-  },
-  {
-    "slug": "demo-account"
-  },
-  {
-    "slug": "test-user"
-  },
-  {
-    "slug": "wpadmin"
-  },
-  {
-    "slug": "support"
+    "id": 27,
+    "username": "h.lindqvist",
+    "email": "h.lindqvist@halcyonretail.co.uk",
+    "display_name": "Hanna Lindqvist",
+    "role": "customer_care",
+    "status": "active",
+    "created_at": "2024-11-05T08:31:44Z",
+    "last_login_at": "2026-08-05T06:25:56Z",
+    "mfa_enabled": false
   }
-]</pre>
-        <p><em>Note: This is a simulated response for security testing purposes. Actual user data is protected.</em></p>
-    </div>
-    <hr>
-    <p><small>WordPress 6.5.2 | REST API v2 | Server: Apache/2.4.41 (Ubuntu)</small></p>
-</body>
-</html>
+]

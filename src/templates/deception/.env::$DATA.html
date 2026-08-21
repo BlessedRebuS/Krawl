@@ -1,0 +1,45 @@
+# Caretrack — application environment
+# managed by ops, do not edit by hand (see infra/ansible/roles/app)
+# last sync: 2026-08-14 09:12 UTC
+
+APP_NAME="Caretrack"
+APP_ENV=production
+APP_KEY=base64:S2n4nj+uMuwYZ4QlDzOUUvQrOFsgqu9CzH8oEb+EWZb=
+APP_DEBUG=false
+APP_URL=https://portal.northbridge-health.org
+LOG_CHANNEL=stack
+LOG_LEVEL=warning
+
+DB_CONNECTION=pgsql
+DB_HOST=pg-prod-01.db.nbh.internal
+DB_PORT=5432
+DB_DATABASE=caretrack
+DB_USERNAME=caretrack_app
+DB_PASSWORD=fake-db-password-0584320d
+
+REDIS_HOST=redis-prod-01.cache.nbh.internal
+REDIS_PORT=6379
+REDIS_PASSWORD=fake-redis-password-6ecc97
+CACHE_DRIVER=redis
+QUEUE_CONNECTION=redis
+SESSION_DRIVER=redis
+SESSION_LIFETIME=120
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mail.nbh.internal
+MAIL_PORT=587
+MAIL_USERNAME=no-reply@northbridge-health.org
+MAIL_PASSWORD=fake-smtp-password-5d98a850
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=no-reply@northbridge-health.org
+
+AWS_ACCESS_KEY_ID=AKIA-FAKE-BD54A
+AWS_SECRET_ACCESS_KEY=fake-secret-Z3/k4TP7BXyoDuJmW107izKy
+AWS_DEFAULT_REGION=eu-west-1
+AWS_BUCKET=caretrack-production-assets
+
+JWT_SECRET=fake-jwt-secret-4bc19d714681e0184231a63141eedca0
+JWT_TTL=1440
+STRIPE_KEY=pk_test_FAKE-ddf7897a322d3126
+STRIPE_SECRET=sk_test_FAKE-4f339060ac120c62
+SENTRY_LARAVEL_DSN=https://fakebb10764f60bbb756@sentry.internal/7

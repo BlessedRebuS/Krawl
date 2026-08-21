@@ -1,139 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Explore Projects - TechNova Solutions</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
-        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        .project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 25px; }
-        .project-card { border: 1px solid #ddd; border-radius: 6px; padding: 18px; background: #fafafa; transition: transform 0.2s; }
-        .project-card:hover { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        .project-title { font-size: 1.2em; font-weight: bold; color: #2980b9; margin-bottom: 8px; }
-        .project-desc { color: #555; line-height: 1.5; font-size: 0.95em; margin-bottom: 12px; }
-        .project-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-        .tag { background: #ecf0f1; color: #34495e; padding: 3px 8px; border-radius: 12px; font-size: 0.8em; }
-        .btn { display: inline-block; background: #3498db; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; font-size: 0.9em; margin-top: 10px; }
-        .btn:hover { background: #2980b9; }
-        .stats { display: flex; justify-content: space-between; color: #7f8c8d; font-size: 0.9em; margin-top: 15px; }
-        footer { text-align: center; margin-top: 30px; color: #95a5a6; font-size: 0.9em; border-top: 1px solid #eee; padding-top: 20px; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explore Projects — Northbridge Health</title>
+<style>
+:root{--bg:#eef4f4;--panel:#fff;--ink:#16303a;--muted:#5f7c86;
+--line:#d3e2e4;--brand:#0f7a76;--brand-dk:#0a5b58;--r:10px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 "Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#fff;color:#0f7a76;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#0f7a76}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#5f7c86;font-size:13px}
+header.top nav a.active{color:#0f7a76;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(16,48,58,.06)}
+h1{font-family:inherit;font-size:22px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Explore Our Projects</h1>
-        <p>Discover innovative solutions developed by our talented team at TechNova Solutions. Browse through our latest initiatives across various domains.</p>
-        
-        <div class="project-grid">
-            <div class="project-card">
-                <div class="project-title">AI-Powered Customer Analytics</div>
-                <div class="project-desc">Leveraging machine learning to analyze customer behavior patterns and predict churn rates with 94% accuracy. Integrated with CRM systems for real-time insights.</div>
-                <div class="project-tags">
-                    <span class="tag">Machine Learning</span>
-                    <span class="tag">Python</span>
-                    <span class="tag">TensorFlow</span>
-                    <span class="tag">Data Science</span>
-                </div>
-                <a href="/projects/ai-analytics" class="btn">View Details</a>
-                <div class="stats">
-                    <span>Updated: May 12, 2024</span>
-                    <span>Stars: 128</span>
-                </div>
-            </div>
-            
-            <div class="project-card">
-                <div class="project-title">Blockchain Supply Chain Tracker</div>
-                <div class="project-desc">Decentralized application for transparent tracking of goods from manufacturer to consumer. Uses smart contracts to automate verification steps.</div>
-                <div class="project-tags">
-                    <span class="tag">Blockchain</span>
-                    <span class="tag">Solidity</span>
-                    <span class="tag">Ethereum</span>
-                    <span class="tag">Web3</span>
-                </div>
-                <a href="/projects/blockchain-supply" class="btn">View Details</a>
-                <div class="stats">
-                    <span>Updated: Apr 28, 2024</span>
-                    <span>Stars: 89</span>
-                </div>
-            </div>
-            
-            <div class="project-card">
-                <div class="project-title">IoT Smart City Sensors</div>
-                <div class="project-desc">Network of environmental sensors monitoring air quality, noise levels, and traffic flow. Data visualized through interactive dashboards for urban planners.</div>
-                <div class="project-tags">
-                    <span class="tag">IoT</span>
-                    <span class="tag">Arduino</span>
-                    <span class="tag">MQTT</span>
-                    <span class="tag">React</span>
-                </div>
-                <a href="/projects/iot-sensors" class="btn">View Details</a>
-                <div class="stats">
-                    <span>Updated: Jun 03, 2024</span>
-                    <span>Stars: 156</span>
-                </div>
-            </div>
-            
-            <div class="project-card">
-                <div class="project-title">Cybersecurity Threat Intelligence Platform</div>
-                <div class="project-desc">Real-time threat detection system using behavioral analysis and anomaly detection. Features automated response playbooks and integration with SIEM tools.</div>
-                <div class="project-tags">
-                    <span class="tag">Cybersecurity</span>
-                    <span class="tag">SIEM</span>
-                    <span class="tag">Python</span>
-                    <span class="tag">Elasticsearch</span>
-                </div>
-                <a href="/projects/threat-intel" class="btn">View Details</a>
-                <div class="stats">
-                    <span>Updated: May 18, 2024</span>
-                    <span>Stars: 203</span>
-                </div>
-            </div>
-            
-            <div class="project-card">
-                <div class="project-title">AR/VR Training Simulator</div>
-                <div class="project-desc">Immersive training environment for industrial equipment operation. Reduces training time by 40% while improving safety compliance metrics.</div>
-                <div class="project-tags">
-                    <span class="tag">AR/VR</span>
-                    <span class="tag">Unity</span>
-                    <span class="tag">C#</span>
-                    <span class="tag">Simulation</span>
-                </div>
-                <a href="/projects/arvr-training" class="btn">View Details</a>
-                <div class="stats">
-                    <span>Updated: Jun 10, 2024</span>
-                    <span>Stars: 112</span>
-                </div>
-            </div>
-            
-            <div class="project-card">
-                <div class="project-title">Legacy System Migration Toolkit</div>
-                <div class="project-desc">Automated solution for migrating COBOL and mainframe applications to modern cloud architectures. Includes code analysis and refactoring assistants.</div>
-                <div class="project-tags">
-                    <span class="tag">Migration</span>
-                    <span class="tag">Java</span>
-                    <span class="tag">AWS</span>
-                    <span class="tag">Mainframe</span>
-                </div>
-                <a href="/projects/legacy-migration" class="btn">View Details</a>
-                <div class="stats">
-                    <span>Updated: May 05, 2024</span>
-                    <span>Stars: 67</span>
-                </div>
-            </div>
-        </div>
-        
-        <div style="text-align: center; margin-top: 30px;">
-            <a href="/projects" class="btn" style="background: #95a5a6;">View All Projects</a>
-            <a href="/contact" class="btn" style="margin-left: 10px;">Get In Touch</a>
-        </div>
-    </div>
-    
-    <footer>
-        © 2024 TechNova Solutions. All rights reserved.<br>
-        <a href="/privacy" style="color: #95a5a6; text-decoration: none;">Privacy Policy</a> | 
-        <a href="/terms" style="color: #95a5a6; text-decoration: none;">Terms of Service</a>
-    </footer>
+<header class="top"><span class="brand">Caretrack</span><nav><a href="/today">Today</a><a href="/appointments">Appointments</a><a href="/patients">Patients</a><a href="/clinicians">Clinicians</a><a href="/admin">Admin</a></nav></header>
+
+<div class="wrap">
+  <div class="breadcrumb"><a href="/">Home</a> / Explore Projects</div>
+  <h1>Explore Projects</h1>
+  <p class="sub">Northbridge Health &middot; clinical scheduling and patient records</p>
+  <div class="panel">
+    <p>Northbridge Health supports 9 sites and 340 clinicians with scheduling, referral triage and reporting. This section of the site is maintained by the
+    operations team; content was last reviewed on 28 June 2026.</p>
+    <p>If you reached this page from an internal link that no longer works, please raise a
+    ticket with the <a href="/support">IT service desk</a> quoting reference
+    <code>WEB-3496</code>.</p>
+  </div>
+  <div class="panel">
+    <h2>Related</h2>
+    <p><a href="/services">Services</a> &middot; <a href="/clinicians">For clinicians</a> &middot; <a href="/patients">Patient information</a> &middot; <a href="/about-us">About us</a> &middot; <a href="/contact-us">Contact</a></p>
+  </div>
+</div>
+
+<footer>Caretrack 9.4.0 &middot; &copy; 2026 Northbridge Health &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

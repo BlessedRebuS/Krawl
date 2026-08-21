@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<info>
-    <server name="web01" ip="192.168.10.5">
-        <service>http</service>
-        <version>2.4.41</version>
-    </server>
-    <database>
-        <host>db.internal</host>
-        <port>3306</port>
-        <name>appdb</name>
-        <user>app_user</user>
-        <password>S3cr3tP@ss</password>
-    </database>
-    <notes>
-        This file contains internal configuration details. Do not expose.
-    </notes>
-</info>
+<configuration version="2.11.6" generated="2026-08-14T09:12:07Z">
+  <application name="Grid Console" environment="production"/>
+  <datasource>
+    <host>pg-prod-01.db.volta.internal</host>
+    <port>5432</port>
+    <database>volta_grid</database>
+    <username>grid_rw</username>
+    <password>fake-db-password-42b0dd29</password>
+  </datasource>
+  <mail host="smtp.mail.volta.internal" port="587" user="no-reply@voltaenergia.es"
+        password="fake-smtp-password-beb47b5b"/>
+</configuration>

@@ -1,23 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Database JSON</title>
-    <style>body{font-family:monospace;}</style>
-</head>
-<body>
-    <h1>Database Export</h1>
-    <pre>
 {
-  "users": [
-    {"id":1,"username":"admin","password_hash":"5f4dcc3b5aa765d61d8327deb882cf99","email":"admin@example.com"},
-    {"id":2,"username":"guest","password_hash":"e10adc3949ba59abbe56e057f20f883e","email":"guest@example.com"}
-  ],
-  "settings": {
-    "debug": true,
-    "max_connections": 100
-  }
+  "app": {
+    "name": "Caretrack",
+    "version": "9.4.0",
+    "env": "production",
+    "url": "https://portal.northbridge-health.org"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.nbh.internal",
+    "port": 5432,
+    "name": "caretrack",
+    "user": "caretrack_svc",
+    "password": "fake-db-password-630d7881"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.nbh.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-9de3c6dc3bc4f73ca07264f209c01051",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-04T18:30:31Z"
 }
-</pre>
-</body>
-</html>

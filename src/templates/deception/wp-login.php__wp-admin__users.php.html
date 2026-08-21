@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<title>Log In &lsaquo; Halcyon Retail Group &#8212; WordPress</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{background:#f0f0f1;color:#3c434a;font:14px/1.4 -apple-system,"Segoe UI",Roboto,sans-serif;margin:0;padding:0}
+#login{width:320px;padding:8% 0 0;margin:auto}
+.brandline{text-align:center;font-size:20px;font-weight:600;color:#3c434a;margin-bottom:20px}
+form{background:#fff;margin-top:20px;padding:26px 24px;border:1px solid #c3c4c7;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+label{display:block;font-size:14px;margin-bottom:3px}
+input[type=text],input[type=password]{width:100%;padding:6px 8px;border:1px solid #8c8f94;border-radius:3px;font-size:16px;margin-bottom:16px}
+.button-primary{background:#2271b1;border:1px solid #2271b1;color:#fff;padding:6px 14px;border-radius:3px;float:right;cursor:pointer;font-size:13px}
+.forgetmenot{font-size:13px;float:left;line-height:30px}
+#nav,#backtoblog{clear:both;padding-top:16px;font-size:13px;text-align:center}
+#nav a,#backtoblog a{color:#50575e;text-decoration:none}
+#login_error{background:#fff;border-left:4px solid #d63638;padding:12px;margin-bottom:20px;font-size:13px;box-shadow:0 1px 1px rgba(0,0,0,.04)}
+</style>
+</head>
+<body class="login">
+<div id="login">
+<div class="brandline">Halcyon Retail Group</div>
+<div id="login_error"><strong>Error:</strong> The password you entered for the username
+<strong>r.duffy</strong> is incorrect.
+<a href="/wp-login.php?action=lostpassword">Lost your password?</a></div>
+<form name="loginform" id="loginform" action="/wp-login.php" method="post">
+  <label for="user_login">Username or Email Address</label>
+  <input type="text" name="log" id="user_login" value="" autocomplete="username">
+  <label for="user_pass">Password</label>
+  <input type="password" name="pwd" id="user_pass" autocomplete="current-password">
+  <p class="forgetmenot"><input name="rememberme" type="checkbox" id="rememberme" value="forever">
+  <label for="rememberme" style="display:inline">Remember Me</label></p>
+  <p class="submit"><input type="submit" name="wp-submit" id="wp-submit" class="button-primary" value="Log In">
+  <input type="hidden" name="redirect_to" value="/wp-admin/">
+  <input type="hidden" name="testcookie" value="1"></p>
+</form>
+<p id="nav"><a href="/wp-login.php?action=register">Register</a> |
+<a href="/wp-login.php?action=lostpassword">Lost your password?</a></p>
+<p id="backtoblog"><a href="https://www.halcyonretail.co.uk/">&larr; Go to Halcyon Retail Group</a></p>
+</div>
+</body>
+</html>

@@ -1,33 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>WP Mail SMTP – Providers API</title>
-<style>
-body{font-family:Arial,sans-serif;margin:20px;}
-pre{background:#f4f4f4;padding:10px;border:1px solid #ddd;}
-</style>
-</head>
-<body>
-<h1>WP Mail SMTP Providers</h1>
-<p>This endpoint returns a list of available mail providers.</p>
-<pre>
 {
-  "providers": [
-    {"id":"gmail","name":"Gmail","description":"Send via Gmail SMTP"},
-    {"id":"smtp","name":"Other SMTP","description":"Custom SMTP server"},
-    {"id":"mailgun","name":"Mailgun","description":"Mailgun API"},
-    {"id":"sendgrid","name":"SendGrid","description":"SendGrid API"},
-    {"id":"sparkpost","name":"SparkPost","description":"SparkPost API"}
-  ]
+  "app": {
+    "name": "Halcyon Commerce",
+    "version": "6.0.3",
+    "env": "production",
+    "url": "https://portal.halcyonretail.co.uk"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.halcyon.internal",
+    "port": 5432,
+    "name": "halcyon_commerce",
+    "user": "hc_web",
+    "password": "fake-db-password-76ad1cb7"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.halcyon.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-686ef503bc32f555af85f91ce06bb3ae",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-14T00:04:37Z"
 }
-</pre>
-<p>For debugging, you can try adding a <code>?debug=1</code> parameter.</p>
-<!-- Simple reflected XSS test -->
-<form action="/wp-json/wpmailsmtp/v1/providers" method="get">
-  <label for="search">Search providers:</label>
-  <input type="text" id="search" name="q" value="">
-  <input type="submit" value="Search">
-</form>
-</body>
-</html>

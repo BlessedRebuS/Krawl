@@ -1,0 +1,36 @@
+{
+  "version": 4,
+  "terraform_version": "1.9.5",
+  "serial": 73,
+  "lineage": "fd0ed59c-06e8-c6e0-27a3-049c9a1cd464",
+  "outputs": {
+    "db_endpoint": {
+      "value": "pg-prod-01.db.nbh.internal:5432",
+      "type": "string"
+    },
+    "bucket": {
+      "value": "caretrack-prod-assets",
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "mode": "managed",
+      "type": "aws_db_instance",
+      "name": "primary",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "attributes": {
+            "identifier": "caretrack-prod",
+            "engine": "postgres",
+            "engine_version": "16.3",
+            "instance_class": "db.m6g.large",
+            "username": "caretrack_svc",
+            "password": "fake-db-password-665a19c3"
+          }
+        }
+      ]
+    }
+  ]
+}

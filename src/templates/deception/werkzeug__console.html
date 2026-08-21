@@ -1,65 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Werkzeug Debugger Console</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overview — Grid Console</title>
 <style>
-    body {font-family: monospace; background:#111; color:#0f0; margin:0; padding:20px;}
-    h1 {color:#0f0; text-align:center;}
-    #output {background:#000; border:1px solid #0f0; padding:10px; height:300px; overflow:auto; margin-bottom:10px;}
-    #input {width:100%; padding:5px; background:#222; border:1px solid #0f0; color:#0f0; font-family:monospace;}
-    button {padding:5px 10px; margin-top:5px; background:#0f0; color:#111; border:none; cursor:pointer;}
+:root{--bg:#12161c;--panel:#1a2029;--ink:#dfe5ee;--muted:#8794a6;
+--line:#2a323e;--brand:#e8a33d;--brand-dk:#c9862a;--r:3px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 "IBM Plex Sans",Inter,Roboto,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:#0c1015;color:#e8a33d;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#e8a33d}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#8794a6;font-size:13px}
+header.top nav a.active{color:#e8a33d;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:none}
+h1{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:17px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
 </style>
 </head>
 <body>
-<h1>Werkzeug Debugger Console</h1>
-<div id="output">
->>> Python 3.9.7 (default, Sep 16 2021, 13:09:58) <br>
->>> [GCC 7.5.0] on linux<br>
->>> Type "help", "copyright", "credits" or "license" for more information.<br>
->>> import sys<br>
->>> print(sys.version)<br>
-3.9.7 (default, Sep 16 2021, 13:09:58) <br>
-[GCC 7.5.0] on linux<br>
->>> import os<br>
->>> os.getcwd()<br>
-'/app'<br>
->>> list(os.listdir('.'))<br>
-['app.py', 'requirements.txt', 'templates', 'static']<br>
+<header class="top"><span class="brand">Grid Console</span><nav><a href="/overview" class="active">Overview</a><a href="/sites">Sites</a><a href="/alarms">Alarms</a><a href="/telemetry">Telemetry</a><a href="/operators">Operators</a><a href="/logout">Sign out</a></nav></header>
+
+<div class="wrap">
+  <h1>Grid overview</h1>
+  <p class="sub">Overview for the week beginning 10 August 2026.</p>
+  <div class="grid" style="margin-bottom:18px"><div class="kpi"><div class="n">37.0 MW</div><div class="l">Exporting now</div></div><div class="kpi"><div class="n">272</div><div class="l">Sites online</div></div><div class="kpi"><div class="n">5</div><div class="l">Active alarms</div></div><div class="kpi"><div class="n">97.4%</div><div class="l">Availability (7d)</div></div></div>
+  <div class="panel">
+    <h2>Recent sites</h2>
+    <table><thead><tr><th>Reference</th><th>Operator</th><th>Date</th>
+    <th>Reading</th>
+    <th>Status</th></tr></thead><tbody>
+      <tr><td><a href="/sites/11400">SI-11400</a></td>
+      <td>PV-Alcalá-04</td><td>14/08/2026</td>
+      <td>&mdash;</td>
+      <td><span class="pill ok">Exporting 412 kW</span></td></tr>
+      <tr><td><a href="/sites/11401">SI-11401</a></td>
+      <td>PV-Tarragona-11</td><td>13/08/2026</td>
+      <td>&mdash;</td>
+      <td><span class="pill warn">Curtailed</span></td></tr>
+      <tr><td><a href="/sites/11402">SI-11402</a></td>
+      <td>WT-Navarra-02</td><td>12/08/2026</td>
+      <td>&mdash;</td>
+      <td><span class="pill ok">Exporting 1.9 MW</span></td></tr>
+      <tr><td><a href="/sites/11403">SI-11403</a></td>
+      <td>BESS-Getafe-01</td><td>11/08/2026</td>
+      <td>&mdash;</td>
+      <td><span class="pill err">Inverter fault F203</span></td></tr>
+      <tr><td><a href="/sites/11404">SI-11404</a></td>
+      <td>PV-Sevilla-07</td><td>10/08/2026</td>
+      <td>&mdash;</td>
+      <td><span class="pill ok">Exporting 288 kW</span></td></tr></tbody></table>
+  </div>
+  <div class="panel"><h2>System notices</h2><p class="muted">Inverter firmware rollout paused at 62% pending vendor advisory VE-2026-0114. Next SCADA maintenance window: Sunday 02:00–04:00 CEST.</p></div>
 </div>
-<form id="console-form" onsubmit="return false;">
-    <input type="text" id="console-input" placeholder="Enter Python code..." autocomplete="off"/>
-    <button type="submit">Execute</button>
-</form>
-<script>
-    const output = document.getElementById('output');
-    const input = document.getElementById('console-input');
-    const form = document.getElementById('console-form');
-    const fakeResponses = {
-        'import os': ">>> import os\n",
-        'os.getcwd()': ">>> os.getcwd()\n'/app'\n",
-        \"os.listdir('.')\": ">>> os.listdir('.')\n['app.py', 'requirements.txt', 'templates', 'static']\n",
-        'help()': ">>> help()\nWelcome to Python 3.9's help utility!\n",
-        '__import__(\"sys\")': ">>> __import__(\"sys\")\n<module 'sys' (built-in)>\n",
-    };
-    function addLine(text) {
-        const div = document.createElement('div');
-        div.innerHTML = text.replace(/\n/g, '<br>');
-        output.appendChild(div);
-        output.scrollTop = output.scrollHeight;
-    }
-    form.onsubmit = function(e){
-        e.preventDefault();
-        const cmd = input.value.trim();
-        if(!cmd) return;
-        addLine('>>> ' + cmd);
-        const key = cmd;
-        const resp = fakeResponses[key] || fakeResponses[Object.keys(fakeResponses).find(k=>key.startsWith(k))] || '>>> '+cmd+'\nNameError: name \\''+cmd.split('(')[0]+'\\' is not defined\n';
-        addLine(resp);
-        input.value = '';
-        return false;
-    };
-    input.focus();
-</script>
+
+<footer>Grid Console 2.11.6 &middot; &copy; 2026 Volta Energia &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

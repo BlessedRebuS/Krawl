@@ -1,74 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>SSO Information - Internal Portal</title>
-    <style>
-        body {font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9;}
-        h1 {color:#2c3e50;}
-        table {border-collapse:collapse; width:100%; margin-top:15px;}
-        th, td {border:1px solid #ddd; padding:8px; text-align:left;}
-        th {background:#ecf0f1;}
-        tr:nth-child(even){background:#f2f2f2;}
-        a {color:#2980b9; text-decoration:none;}
-        a:hover {text-decoration:underline;}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sso Info — Meridian Systems</title>
+<style>
+:root{--bg:#f5f6f8;--panel:#fff;--ink:#1f2733;--muted:#6b7688;
+--line:#dde2e9;--brand:#1d4f91;--brand-dk:#163c6e;--r:4px;
+--ok:#1e7a4b;--warn:#a05a00;--err:#b02a25}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+header.top{background:var(--brand);color:#fff;padding:0 24px;display:flex;
+align-items:center;gap:26px;height:54px;border-bottom:1px solid var(--line)}
+header.top .brand{font-weight:700;letter-spacing:.2px;font-size:15px;color:#fff}
+header.top nav{display:flex;gap:18px;margin-left:auto}
+header.top nav a{color:#dbe6f5;font-size:13px}
+header.top nav a.active{color:#fff;font-weight:600}
+.wrap{max-width:1080px;margin:24px auto;padding:0 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+padding:20px;margin-bottom:18px;box-shadow:none}
+h1{font-family:inherit;font-size:20px;margin:0 0 6px}
+h2{font-size:15px;margin:0 0 12px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);
+padding:8px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:9px 10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+label{display:block;font-size:12px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=password],input[type=email],input[type=search],select,textarea{
+width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);font:inherit;
+background:var(--panel);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--brand);border-color:var(--brand)}
+.field{margin-bottom:14px}
+button,.btn{background:var(--brand);color:#fff;border:0;border-radius:var(--r);padding:9px 16px;
+font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--brand-dk)}
+.btn.sec{background:transparent;color:var(--brand);border:1px solid var(--line)}
+.muted{color:var(--muted)}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.pill.ok{background:rgba(30,122,75,.14);color:var(--ok)}
+.pill.warn{background:rgba(160,90,0,.14);color:var(--warn)}
+.pill.err{background:rgba(176,42,37,.14);color:var(--err)}
+.err-box{background:rgba(176,42,37,.10);border:1px solid rgba(176,42,37,.35);color:var(--err);
+padding:10px 12px;border-radius:var(--r);font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.kpi .n{font-size:24px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted)}
+pre{background:rgba(0,0,0,.72);color:#dfe6f0;padding:14px;border-radius:var(--r);overflow:auto;
+font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 0 34px}
+.login{max-width:380px;margin:8vh auto}
+.login .panel{padding:26px}
+.login h1{font-size:18px;text-align:center}
+.login .sub{text-align:center}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:10px}
+.split{display:grid;grid-template-columns:1.1fr .9fr;min-height:100vh}
+.split .hero{background:var(--brand);color:#fff;padding:8vh 6vw}
+.split .hero h2{font-family:inherit;font-size:28px;line-height:1.25;color:#fff}
+.split .hero p{color:rgba(255,255,255,.85);max-width:34ch}
+.split .form{display:flex;align-items:center;justify-content:center;padding:6vh 5vw}
+.split .form .inner{width:100%;max-width:330px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.split .hero{padding:6vh 8vw}}
+</style>
 </head>
 <body>
-    <h1>Single Sign-On (SSO) Configuration</h1>
-    <p>This page provides diagnostic information about the SSO integration for internal troubleshooting.</p>
+<header class="top"><span class="brand">Meridian Portal</span><nav><a href="/dashboard">Dashboard</a><a href="/orders">Orders</a><a href="/directory">Directory</a><a href="/reports">Reports</a><a href="/settings">Settings</a></nav></header>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Provider</th>
-                <th>Entity ID</th>
-                <th>Metadata URL</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Azure AD</td>
-                <td>https://sts.windows.net/11111111-2222-3333-4444-555555555555/</td>
-                <td>https://login.microsoftonline.com/11111111-2222-3333-4444-555555555555/federationmetadata/2007-06/federationmetadata.xml</td>
-                <td>Active</td>
-            </tr>
-            <tr>
-                <td>Okta</td>
-                <td>https://dev-123456.okta.com/oauth2/default</td>
-                <td>https://dev-123456.okta.com/oauth2/default/.well-known/openid-configuration</td>
-                <td>Active</td>
-            </tr>
-            <tr>
-                <td>Google Workspace</td>
-                <td>https://accounts.google.com/o/saml2?idpid=ABCD1234</td>
-                <td>https://accounts.google.com/o/saml2?idpid=ABCD1234&metadata</td>
-                <td>Active</td>
-            </tr>
-            <tr>
-                <td>LDAP (Test)</td>
-                <td>ldap://ldap-test.internal:389</td>
-                <td>N/A</td>
-                <td>Disabled</td>
-            </tr>
-        </tbody>
-    </table>
+<div class="wrap">
+  <div class="breadcrumb"><a href="/">Home</a> / Sso Info</div>
+  <h1>Sso Info</h1>
+  <p class="sub">Meridian Systems &middot; industrial telemetry and logistics software</p>
+  <div class="panel">
+    <p>Meridian Systems builds the dispatch, telemetry and reporting platform used by freight operators and field-service teams in 14 European countries. This section of the site is maintained by the
+    operations team; content was last reviewed on 20 June 2026.</p>
+    <p>If you reached this page from an internal link that no longer works, please raise a
+    ticket with the <a href="/support">IT service desk</a> quoting reference
+    <code>WEB-4904</code>.</p>
+  </div>
+  <div class="panel">
+    <h2>Related</h2>
+    <p><a href="/products">Products</a> &middot; <a href="/solutions/logistics">Logistics</a> &middot; <a href="/support">Support</a> &middot; <a href="/about-us">About us</a> &middot; <a href="/contact-us">Contact</a></p>
+  </div>
+</div>
 
-    <p><strong>Last updated:</strong> 2025-06-24 10:15:UTC</p>
-    <p><em>Note: This endpoint is intended for internal administrators only. Exposing detailed SSO metadata may assist attackers in crafting SAML or OAuth attacks.</em></p>
-
-    <hr>
-    <p>
-        <a href="/sso/info/debug">[Debug endpoint – view raw token exchange logs]</a> |
-        <a href="/sso/info/config">[Download current SAML/OIDC config (XML)]</a> |
-        <a href="/sso/info/test">[Test SSO login flow (simulated)]</a>
-    </p>
-
-    <!--
-        Fake internal comment for potential leakage:
-        DEBUG_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-        SECRET_KEY=supersecretkey123
-    -->
+<footer>Meridian Portal 4.2.1 &middot; &copy; 2026 Meridian Systems &middot; <a href="/support">Support</a></footer>
 </body>
 </html>

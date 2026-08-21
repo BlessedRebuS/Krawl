@@ -1,10 +1,26 @@
-<html><body>{
-  "gpc_enabled": false,
-  "user_preference": "unspecified",
-  "version": "1.0",
-  "last_updated": "2024-06-15T10:30:00Z",
-  "policy_url": "https://example.com/privacy/gpc-policy",
-  "contact": "privacy@example.com",
-  "jurisdiction": "Global",
-  "note": "This is a placeholder response for testing purposes. Actual GPC signal handling is implemented server-side."
-}</body></html>
+{
+  "app": {
+    "name": "Caretrack",
+    "version": "9.4.0",
+    "env": "production",
+    "url": "https://portal.northbridge-health.org"
+  },
+  "database": {
+    "driver": "pgsql",
+    "host": "pg-prod-01.db.nbh.internal",
+    "port": 5432,
+    "name": "caretrack",
+    "user": "caretrack_svc",
+    "password": "fake-db-password-5cfafcd8"
+  },
+  "cache": {
+    "driver": "redis",
+    "host": "redis-prod-01.cache.nbh.internal",
+    "port": 6379
+  },
+  "auth": {
+    "jwt_secret": "fake-jwt-secret-29c3208be53416ac1a85ce1473ced5e4",
+    "token_ttl": 1440
+  },
+  "generated_at": "2026-08-05T23:35:07Z"
+}

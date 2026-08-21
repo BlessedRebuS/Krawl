@@ -1,85 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>wp-config.php.disabled - WordPress Configuration</title>
-    <style>
-        body {font-family: monospace; background:#f8f8f8; color:#222; padding:20px;}
-        pre {background:#fff; padding:10px; border:1px solid #ccc; overflow:auto;}
-    </style>
-</head>
-<body>
-    <h1>wp-config.php.disabled</h1>
-    <p>This file has been renamed to prevent accidental execution.</p>
-    <pre>
 <?php
 /**
- * WordPress Configuration File
- *
- * This file contains the following settings:
- * MySQL settings, Table Prefix, Secret Keys, WordPress Language, and ABSPATH.
- * You can find more information by visiting {@link https://codex.wordpress.org/Editing_wp-config.php Editing wp-config.php} Codex page.
- * You can get the MySQL settings from your web host.
- *
- * This file is used by the wp-config.php creation script during the installation.
+ * WordPress base configuration — Halcyon Retail Group corporate site.
  */
-// ** MySQL settings - You can get this info from your web host ** //
-define('DB_NAME', 'wordpress_db');
-/** MySQL database username */
-define('DB_USER', 'wp_user');
-/** MySQL database password */
-define('DB_PASSWORD', 'S3cureP@ssw0rd!');
-/** MySQL hostname */
-define('DB_HOST', 'localhost');
-//** Database Charset to use in creating database tables. */
-define('DB_CHARSET', 'utf8mb4');
-//** The Database Collate type. Don't change this if in doubt. */
-define('DB_COLLATE', '');
 
-/**#@+
- * Authentication Unique Keys and Salts.
- *
- * Change these to different unique phrases!
- * You can generate these using the {@link https://api.wordpress.org/secret-key/1.1/salt/ WordPress.org secret-key service}
- */
-define('AUTH_KEY',         'put your unique phrase here');
-define('SECURE_AUTH_KEY',  'put your unique phrase here');
-define('LOGGED_IN_KEY',    'put your unique phrase here');
-define('NONCE_KEY',        'put your unique phrase here');
-define('AUTH_SALT',        'put your unique phrase here');
-define('SECURE_AUTH_SALT', 'put your unique phrase here');
-define('LOGGED_IN_SALT',   'put your unique phrase here');
-define('NONCE_SALT',       'put your unique phrase here');
+define( 'DB_NAME', 'halcyon_wp' );
+define( 'DB_USER', 'halcyon_wp_user' );
+define( 'DB_PASSWORD', 'fake-wp-password-886b697f47' );
+define( 'DB_HOST', 'mysql-web-01.db.halcyon.internal' );
+define( 'DB_CHARSET', 'utf8mb4' );
+define( 'DB_COLLATE', '' );
 
-/**#@-*/
+define( 'AUTH_KEY',         'ygOPyCfk5nv9k2riDk536x+8VHdZJb5PIDHh4sLG6PmgnU/v' );
+define( 'SECURE_AUTH_KEY',  '7W8Smhge79P9SVjxTV3WZhqhmCeYHsO3HjZQgd2pSvPS7zgn' );
+define( 'LOGGED_IN_KEY',    'ylCg5y7C9lk8wrEdVAbKuZA4vZDCxDAYET61HmH0rY2oq0de' );
+define( 'NONCE_KEY',        'CHuWfaTVcOqBT0DQzWzmaf7V/Qot2a/yX0vt+EilLF55BO0Y' );
+define( 'AUTH_SALT',        'ug2+w2wOzfw9C+VvYvAxuXrhqwO81PcwyDBJebZoMGE9h2k9' );
+define( 'SECURE_AUTH_SALT', 'vetEQc0J2AXjb7xPljNFFCbYPC36IxbFBcc+634w+ifeieYD' );
 
- /**
-  * WordPress Database Table prefix.
-  *
-  * You can have multiple installations in one database if you give each a unique
-  * prefix. Only numbers, letters, and underscores please!
-  */
 $table_prefix = 'wp_';
 
-/**
- * For developers: WordPress debugging mode.
- *
- * Change this to true to enable the display of notices during development.
- * It is strongly recommended that plugin and theme developers use WP_DEBUG
- * in their development environments.
- */
 define( 'WP_DEBUG', false );
+define( 'WP_MEMORY_LIMIT', '256M' );
+define( 'DISALLOW_FILE_EDIT', true );
+define( 'WP_HOME', 'https://www.halcyonretail.co.uk' );
+define( 'WP_SITEURL', 'https://www.halcyonretail.co.uk' );
 
-/* That's all, stop editing! Happy publishing. */
+define( 'SMTP_HOST', 'smtp.mail.halcyon.internal' );
+define( 'SMTP_USER', 'no-reply@halcyonretail.co.uk' );
+define( 'SMTP_PASS', 'fake-smtp-password-ae605ec7' );
 
-/** Absolute path to the WordPress directory. */
 if ( ! defined( 'ABSPATH' ) ) {
     define( 'ABSPATH', __DIR__ . '/' );
 }
 
-/** Sets up WordPress vars and included files. */
 require_once ABSPATH . 'wp-settings.php';
-?>
-    </pre>
-</body>
-</html>

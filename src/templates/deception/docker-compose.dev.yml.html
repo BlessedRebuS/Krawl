@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  app:
+    image: registry.orbitlabs.dev/orbit-cloud/app:0.38.2
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      DB_HOST: postgres
+      DB_DATABASE: orbit_cloud
+      DB_USERNAME: orbit
+      DB_PASSWORD: fake-db-password-ba3cd15d
+      REDIS_HOST: redis
+      JWT_SECRET: fake-jwt-secret-d8248aa366b5974517f4809edb56beb7
+    depends_on: [postgres, redis]
+    ports:
+      - "127.0.0.1:8080:8080"
+
+  postgres:
+    image: postgres:16.3-alpine
+    environment:
+      POSTGRES_USER: orbit
+      POSTGRES_PASSWORD: fake-db-password-452b0b43
+      POSTGRES_DB: orbit_cloud
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7.2-alpine
+    command: ["redis-server", "--requirepass", "fake-redis-password-2affd5"]
+
+volumes:
+  pgdata:
