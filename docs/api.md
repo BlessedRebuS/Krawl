@@ -1,5 +1,8 @@
 # External APIs
 
+> These are the third-party services Krawl calls out to. For Krawl's own endpoints
+> (IP stats, banlist export, attachments, webhooks), see the [Dashboard API](dashboard-api.md).
+
 Krawl calls a set of external APIs to enrich IP data, resolve geolocation, and check reputation. All external calls happen in background tasks — they never block incoming requests.
 
 ## IP Geolocation
