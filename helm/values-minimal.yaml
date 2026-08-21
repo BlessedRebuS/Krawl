@@ -1,12 +1,15 @@
 # Minimal values for SCALABLE mode (default)
 # Usage: helm install krawl ./helm -n krawl-system --create-namespace -f values-minimal.yaml
+#
+# Only the settings most deployments actually touch. Everything else falls back to
+# helm/values.yaml — see helm/README.md for the full reference.
 
 mode: scalable
 replicaCount: 2
 
 image:
   repository: ghcr.io/blessedrebus/krawl
-  tag: "latest"
+  tag: "2.3.0"
   pullPolicy: Always
 
 ingress:
@@ -25,13 +28,86 @@ postgres:
 redis:
   enabled: true
 
+# Password for the protected dashboard panels. Left empty, one is generated and
+# printed in the pod logs on first start.
+dashboardPassword: ""
+# Already keeping credentials in a Secret (External Secrets, Vault, sealed-secrets)?
+# Point at it instead and the chart skips creating its own:
+# dashboardExistingSecret:
+#   name: krawl-dashboard
+#   passwordKey: dashboard-password
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
 config:
-  deception:
-    import_pages: true
-  dashboard:
-    secret_path: null
-  database:
-    retention_days: 30
   server:
     port: 5000
     delay: 100
+
+  dashboard:
+    # Set a fixed path rather than letting it be generated: the metrics endpoint
+    # lives at /<secret_path>/metrics, so scraping needs a stable value.
+    secret_path: null
+    # Redis table caching already absorbs the load in scalable mode, so the
+    # background warmup task is usually redundant here.
+    cache_warmup: false
+    warmup_aggregation: true
+
+  database:
+    retention_days: 30
+    # Keep only suspicious requests. Cuts database growth hard on a busy honeypot.
+    persist_suspicious_only: false
+
+  # Never tracked, banned, exported or persisted, and purged at startup. Add your
+  # monitoring probes, health checks and office egress so they stay out of the stats.
+  # Defaults (loopback, RFC1918, link-local, CGNAT) apply when this is omitted.
+  # ignored_ips:
+  #   - 10.0.0.0/8
+  #   - 192.168.0.0/16
+
+  # Share banlists with other Krawl instances: publish yours, merge theirs.
+  banlist:
+    export_path: ""
+    sources:
+      - "https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw"
+    refresh_interval: 3600
+
+  # Slow every honeypot response down and pad it with noise, to make the site
+  # expensive to crawl. Applies to all honeypot visitors — see docs/tarpit.md.
+  tarpit:
+    enabled: false
+    delay_seconds: 5
+
+  deception:
+    import_pages: true
+
+  metrics:
+    enabled: true
+
+  logging:
+    level: "INFO"
+
+# Prometheus Operator scraping. Needs config.metrics.enabled and an explicit
+# config.dashboard.secret_path above.
+serviceMonitor:
+  enabled: false
+  # labels:
+  #   release: kube-prometheus-stack
+
+# Ship the Grafana dashboard as a ConfigMap for the Grafana sidecar to discover.
+grafanaDashboard:
+  enabled: false
+  # namespace: monitoring
+
+# Push banned IPs to a Cloudflare Account IP List for use in WAF rules.
+# See docs/cloudflare_banlist.md.
+# cloudflare:
+#   enabled: true
+#   accountId: ""
+#   authToken: ""
