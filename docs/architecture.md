@@ -26,57 +26,79 @@ Krawl/
 │   ├── app.py                    # FastAPI app factory + lifespan
 │   ├── config.py                 # YAML + env config loader
 │   ├── dependencies.py           # DI providers (templates, DB, client IP)
-│   ├── database.py               # DatabaseManager singleton
 │   ├── models.py                 # SQLAlchemy ORM models
 │   ├── tracker.py                # In-memory + DB access tracking
 │   ├── logger.py                 # Rotating file log handlers
+│   ├── auth_store.py             # Dashboard sessions + bruteforce counters (Redis / in-process)
+│   ├── dashboard_cache.py        # Cache backend (Redis in scalable, dict in standalone)
+│   ├── banlist_sync.py           # Fetch + merge upstream community banlists
+│   ├── webhooks.py               # Outbound integrations (CloudFlare WAF / IP lists)
+│   ├── metrics.py                # Prometheus collector
+│   ├── metrics_counters.py       # Counter state shared with the flush task
 │   ├── deception_responses.py    # Attack detection + fake responses
+│   ├── generative_ai.py          # AI deception page generation
 │   ├── sanitizer.py              # Input sanitization
 │   ├── generators.py             # Random content generators
 │   ├── wordlists.py              # JSON wordlist loader
 │   ├── geo_utils.py              # IP geolocation API
-│   ├── ip_utils.py               # IP validation
+│   ├── ip_utils.py               # IP validation + ignored IP/CIDR matching
+│   │
+│   ├── database/                 # DatabaseManager singleton, split by domain
+│   │   ├── core.py               # Engine, session, write buffer
+│   │   ├── startup.py            # Startup cleanup (purge ignored IPs, expire bans)
+│   │   ├── access_logs.py  credentials.py  generated_pages.py
+│   │   ├── ip_stats.py     analytics.py
+│   │   └── __init__.py           # Public API re-exports
 │   │
 │   ├── routes/
 │   │   ├── honeypot.py           # Trap pages, credential capture, catch-all
 │   │   ├── dashboard.py          # Dashboard page (Jinja2 SSR)
 │   │   ├── api.py                # JSON API endpoints
+│   │   ├── banlist.py            # Public unauthenticated banlist download
 │   │   └── htmx.py               # HTMX HTML fragment endpoints
 │   │
 │   ├── middleware/
 │   │   ├── deception.py          # Path traversal / XXE / cmd injection detection
 │   │   └── ban_check.py          # Banned IP enforcement
 │   │
-│   ├── tasks/                    # APScheduler background jobs
+│   ├── tasks/                    # APScheduler background jobs (auto-discovered)
 │   │   ├── analyze_ips.py        # IP categorization scoring
 │   │   ├── fetch_ip_rep.py       # Geolocation + blocklist enrichment
+│   │   ├── flag_stale_ips.py     # Flag stale IPs for reevaluation
+│   │   ├── flush_access_logs.py  # Drain the access-log write buffer
+│   │   ├── metrics_flush.py      # Persist metric counters
+│   │   ├── dashboard_warmup.py   # Pre-compute dashboard data
+│   │   ├── refresh_banlist.py    # Fetch + merge upstream banlists
+│   │   ├── sync_cloudflare.py    # Push banned IPs to a CloudFlare IP list
 │   │   ├── db_dump.py            # Database export
-│   │   ├── memory_cleanup.py     # In-memory list trimming
+│   │   ├── pre_retention_cleanup.py  # Prune non-suspicious rows before retention
 │   │   └── db_retention.py       # Data retention cleanup
 │   │
 │   ├── tasks_master.py           # Task discovery + APScheduler orchestrator
-│   ├── firewall/                 # Banlist export (iptables, raw)
-│   ├── migrations/               # Schema migrations (auto-run)
+│   ├── firewall/                 # Banlist export formats (raw, iptables, nftables)
+│   ├── migrations/               # Schema migrations (auto-run at startup)
 │   │
 │   └── templates/
 │       ├── jinja2/
 │       │   ├── base.html                     # Layout + CDN scripts
 │       │   └── dashboard/
 │       │       ├── index.html                # Main dashboard page
-│       │       └── partials/                 # 13 HTMX fragment templates
+│       │       └── partials/                 # HTMX fragment templates
 │       ├── html/                             # Deceptive trap page templates
+│       ├── deception/                        # Path-mapped deception pages (auto-imported)
 │       └── static/
 │           ├── css/dashboard.css
 │           └── js/
+│               ├── tokens.js                 # Design tokens shared with the CSS
 │               ├── dashboard.js              # Alpine.js app controller
 │               ├── map.js                    # Leaflet map
 │               ├── charts.js                 # Chart.js doughnut
 │               └── radar.js                  # SVG radar chart
 │
-├── config.yaml               # Application configuration
+├── config.yaml                # Application configuration
 ├── wordlists.json             # Attack patterns + fake credentials
 ├── Dockerfile                 # Container build
-├── docker-compose.yaml        # Local orchestration
+├── docker/                    # Production compose files (dev/ for source builds)
 ├── entrypoint.sh              # Container startup (gosu privilege drop)
 ├── kubernetes/                # K8s manifests
 └── helm/                      # Helm chart
@@ -274,11 +296,16 @@ Managed by `TasksMaster` (APScheduler). Tasks are auto-discovered from `src/task
 
 | Task | Schedule | Purpose |
 |------|----------|---------|
+| `flush_access_logs` | Every 30 s | Drain the in-memory access-log write buffer into the database |
 | `analyze_ips` | Every 1 min | Score IPs into categories (attacker, crawler, user) |
+| `metrics_flush` | Every 2 min | Persist Prometheus counter state |
 | `fetch_ip_rep` | Every 5 min | Enrich IPs with geolocation + blocklist data |
 | `dashboard_warmup` | Every 5 min | Pre-compute dashboard overview data (optional, disable via `cache_warmup: false`) |
-| `db_dump` | Configurable | Export database backups |
-| `memory_cleanup` | Periodic | Trim in-memory lists |
+| `sync_cloudflare` | Every 1 min | Push banned IPs to a CloudFlare Account IP List (opt-in) |
+| `refresh_banlist` | `banlist.refresh_interval` (default 1 h) | Fetch and merge upstream community banlists |
+| `db_dump` | `backups.cron` | Export database backups |
+| `flag_stale_ips` | Daily (2 AM) | Flag stale IPs for reevaluation by the analyzer |
+| `pre_retention_cleanup` | Daily (2:30 AM) | Prune non-suspicious access rows ahead of retention |
 | `db_retention` | Daily (3 AM) | Clean up old records based on retention policy |
 
 ### IP Categorization Model

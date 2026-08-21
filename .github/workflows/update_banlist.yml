@@ -1,28 +1,23 @@
 name: Fetch krawl ip banlist from demo and create PR
-
 on:
   schedule:
     - cron: '0 9 * * 6'  # Runs every saturday at 9:00 AM
   workflow_dispatch:      # Allow manual trigger too
-
 jobs:
   fetch-and-pr:
     runs-on: self-hosted
     permissions:
       contents: write
       pull-requests: write
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
 
       - name: Fetch data from API
         run: |
-          curl -s \
+          curl -sf \
             "https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw" \
             -o banlist.txt
-
-          # Fail the step if the file is empty or curl errored
           if [ ! -s banlist.txt ]; then
             echo "Error: API response is empty or request failed"
             exit 1
@@ -47,4 +42,4 @@ jobs:
           branch: community-banlist-update
           body: |
             Updated community banlist
-          reviewers: "carnivuth,BlessedRebuS,Lore09"
+          reviewers: "carnivuth,Lore09"

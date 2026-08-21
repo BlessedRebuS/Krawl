@@ -127,14 +127,14 @@ In standalone mode, only the warmup cache is used (in-memory dict). The hot-path
 
 ## Running with Docker Compose
 
-Production-ready compose files are available in the [`docker/`](../docker/) directory (using pre-built images). Development compose files at the project root use `build` + `watch` for hot-reload.
+Production-ready compose files are available in the [`docker/`](../docker/) directory (using pre-built images). Development compose files in [`docker/dev/`](../docker/dev/) use `build` + `watch` for hot-reload.
 
 | File | Mode | Purpose |
 |------|------|---------|
 | `docker/docker-compose.standalone.yaml` | Standalone | Production — pre-built image |
 | `docker/docker-compose.scalable.yaml` | Scalable | Production — pre-built image |
-| `docker-compose.yaml` | Standalone | Development — builds from source, hot-reload |
-| `docker-compose.scalable.yaml` | Scalable | Development — builds from source, hot-reload |
+| `docker/dev/docker-compose.standalone.dev.yaml` | Standalone | Development — builds from source, hot-reload |
+| `docker/dev/docker-compose.scalable.dev.yaml` | Scalable | Development — builds from source, hot-reload |
 
 ### Standalone
 
@@ -421,7 +421,7 @@ docker compose -f docker/docker-compose.scalable.yaml up -d
 
 ### Step-by-step: Docker Compose
 
-If you're already using the standalone `docker-compose.yaml`:
+If you're already using the standalone `docker/docker-compose.standalone.yaml`:
 
 ```bash
 # 1. BACK UP your SQLite database
@@ -434,10 +434,10 @@ docker compose down
 docker ps | grep krawl
 
 # 4. Start only PostgreSQL and Redis from the scalable stack
-docker compose -f docker-compose.scalable.yaml up -d postgres redis
+docker compose -f docker/docker-compose.scalable.yaml up -d postgres redis
 
 # 5. Wait for PostgreSQL to be healthy
-docker compose -f docker-compose.scalable.yaml exec postgres pg_isready -U krawl -d krawl
+docker compose -f docker/docker-compose.scalable.yaml exec postgres pg_isready -U krawl -d krawl
 
 # 6. Run migration from the host (SQLite data is in ./data/)
 python scripts/migrate_sqlite_to_postgres.py \
@@ -457,7 +457,7 @@ docker compose -f docker/docker-compose.scalable.yaml up -d
 Alternatively, run the migration inside a container with access to both volumes:
 
 ```bash
-docker compose -f docker-compose.scalable.yaml run --rm \
+docker compose -f docker/docker-compose.scalable.yaml run --rm \
   -v ./data:/app/data:ro \
   krawl python /app/scripts/migrate_sqlite_to_postgres.py \
     --sqlite-path /app/data/krawl.db \
