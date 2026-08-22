@@ -89,6 +89,42 @@ def extract_geolocation_from_ip(ip_address: str) -> dict[str, Any] | None:
     }
 
 
+# Geolocation is a property of the network, not the address. One /32 in this
+# honeypot produced 24,500 IPv6 addresses that would otherwise have cost 24,500
+# identical API calls. Cache by /48 — the standard site allocation, so the answer
+# is the same for every address inside it.
+# ponytail: plain dict cleared wholesale at the cap. Swap for an LRU if the
+# clear-and-refill ever shows up in the API call count.
+_PREFIX_GEO: dict[str, dict[str, Any]] = {}
+_PREFIX_GEO_MAX = 4096
+
+
+def _geo_cache_key(ip_address: str) -> str | None:
+    """The /48 an IPv6 address belongs to, or None for IPv4 (no sharing)."""
+    if ":" not in ip_address:
+        return None
+    return ":".join(ip_address.split(":")[:3])
+
+
+def extract_geolocation_shared(ip_address: str) -> dict[str, Any] | None:
+    """extract_geolocation_from_ip, reusing the answer across an IPv6 /48."""
+    key = _geo_cache_key(ip_address)
+    if key is not None and key in _PREFIX_GEO:
+        app_logger.debug(f"Reusing geolocation from {key}::/48 for {ip_address}")
+        return dict(_PREFIX_GEO[key])
+
+    data = extract_geolocation_from_ip(ip_address)
+
+    # Only successful lookups are cached, so a failure never poisons a whole /48.
+    if data and key is not None:
+        if len(_PREFIX_GEO) >= _PREFIX_GEO_MAX:
+            _PREFIX_GEO.clear()
+        # Reverse DNS is per-address; everything else describes the network.
+        _PREFIX_GEO[key] = {**data, "reverse": None}
+
+    return data
+
+
 def fetch_blocklist_data(ip_address: str) -> dict[str, Any] | None:
     """
     Fetch blocklist data for an IP address using lcrawl API.
