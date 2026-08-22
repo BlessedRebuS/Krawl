@@ -1,7 +1,7 @@
 import requests
 
 from database import get_database
-from geo_utils import extract_geolocation_from_ip, fetch_blocklist_data
+from geo_utils import extract_geolocation_shared, fetch_blocklist_data
 from logger import get_app_logger
 from sanitizer import sanitize_dict, sanitize_for_storage
 
@@ -29,7 +29,7 @@ def main():
     for ip in unenriched_ips:
         try:
             # Fetch geolocation data using ip-api.com
-            geoloc_data = extract_geolocation_from_ip(ip)
+            geoloc_data = extract_geolocation_shared(ip)
 
             # Fetch blocklist data from lcrawl API
             blocklist_data = fetch_blocklist_data(ip)
