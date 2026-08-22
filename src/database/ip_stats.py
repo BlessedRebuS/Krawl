@@ -586,49 +586,38 @@ class IpStatsRepo:
 
     def get_unenriched_ips(self, limit: int = 100) -> list[str]:
         """
-        Get IPs that don't have complete reputation data yet.
-        Returns IPs without country_code, city, latitude, or longitude data.
-        Excludes RFC1918 private addresses and other non-routable IPs.
+        Get IPs that still have no geolocation, newest activity first.
+
+        Coordinates are the only completeness test: they are the one field the
+        provider always returns on success, and they are what the dashboard map
+        needs. City in particular is legitimately empty for many datacenter and
+        hosting ranges — including it here meant a successfully enriched row kept
+        matching this filter forever, and since the batch is capped, those rows
+        monopolised every run and newly seen IPs were never enriched at all.
+
+        Ordering by last_seen keeps the batch pointed at currently active IPs
+        rather than whatever the database happens to return first.
 
         Args:
             limit: Maximum number of IPs to return
 
         Returns:
-            List of IP addresses without complete reputation data
+            List of IP addresses without geolocation data
         """
-        from sqlalchemy.exc import OperationalError
-
         session = self._db.session
         try:
-            # Try to query including latitude/longitude (for backward compatibility)
-            try:
-                ips = (
-                    session.query(IpStats.ip)
-                    .filter(
-                        or_(
-                            IpStats.country_code.is_(None),
-                            IpStats.city.is_(None),
-                            IpStats.latitude.is_(None),
-                            IpStats.longitude.is_(None),
-                        ),
-                    )
-                    .limit(limit)
-                    .all()
+            ips = (
+                session.query(IpStats.ip)
+                .filter(
+                    or_(
+                        IpStats.latitude.is_(None),
+                        IpStats.longitude.is_(None),
+                    ),
                 )
-            except OperationalError as e:
-                # If latitude/longitude columns don't exist yet, fall back to old query
-                if "no such column" in str(e).lower():
-                    ips = (
-                        session.query(IpStats.ip)
-                        .filter(
-                            or_(IpStats.country_code.is_(None), IpStats.city.is_(None)),
-                        )
-                        .limit(limit)
-                        .all()
-                    )
-                else:
-                    raise
-
+                .order_by(IpStats.last_seen.desc())
+                .limit(limit)
+                .all()
+            )
             return [ip[0] for ip in ips]
         finally:
             self._db.close_session()
