@@ -20,6 +20,7 @@ from database.analytics import AnalyticsRepo
 from database.credentials import CredentialRepo
 from database.generated_pages import GeneratedPageRepo
 from database.ip_stats import IpStatsRepo
+from ip_utils import defer_persist
 from logger import get_app_logger
 from models import (
     AccessLog,
@@ -506,6 +507,15 @@ class DatabaseManager:
 
         was_new_ip = False
         was_first_honeypot = False
+
+        # A never-before-seen IPv6 address gets no row until it comes back:
+        # rotating proxy pools mint one address per request and never reuse it,
+        # which was 42% of this table. Suspicious traffic is exempt, so nothing
+        # worth investigating is dropped. See ip_utils.defer_persist.
+        if ip_stats is None and defer_persist(
+            sanitized_ip, is_suspicious, is_honeypot_trigger
+        ):
+            return 0, False, False
 
         if ip_stats:
             ip_stats.total_requests += 1
