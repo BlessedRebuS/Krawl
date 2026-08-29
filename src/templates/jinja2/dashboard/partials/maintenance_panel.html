@@ -1,0 +1,64 @@
+{# Maintenance panel: run scheduled tasks on demand #}
+<div x-data="maintenancePanel()" x-init="init()">
+
+    <div class="table-container mb-5">
+        <h2>Maintenance Tasks</h2>
+        <p class="panel-note">
+            Every task under <code>src/tasks/</code> is listed here with its schedule.
+            Running one now does not affect its next scheduled run.
+        </p>
+
+        <p class="form-status" x-show="status" x-text="status" :class="statusOk ? 'text-ok' : 'text-danger'" x-cloak></p>
+
+        <template x-if="loading">
+            <p class="panel-note">Loading tasks…</p>
+        </template>
+
+        <table class="w-full" x-show="!loading" x-cloak>
+            <thead>
+                <tr>
+                    <th>Task</th>
+                    <th>Schedule</th>
+                    <th>Status</th>
+                    <th>Next run</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <template x-for="task in tasks" :key="task.name">
+                    <tr>
+                        <td>
+                            <strong x-text="task.name"></strong>
+                            <div class="fs-2xs" x-text="task.filename"></div>
+
+                            {# Only the purge task takes arguments; render them as checkboxes. #}
+                            <template x-if="task.options">
+                                <div class="mt-2">
+                                    <template x-for="opt in task.options" :key="opt.key">
+                                        <label class="field-label d-block">
+                                            <input type="checkbox" :value="opt.key" x-model="selected[task.name]" />
+                                            <span x-text="opt.label"></span>
+                                        </label>
+                                    </template>
+                                </div>
+                            </template>
+                        </td>
+                        <td x-text="task.interval_seconds ? `every ${task.interval_seconds}s` : (task.cron || '—')"></td>
+                        <td>
+                            <span x-show="task.running" class="text-ok">running</span>
+                            <span x-show="!task.running && task.enabled">scheduled</span>
+                            <span x-show="!task.running && !task.enabled" class="panel-note">on demand</span>
+                        </td>
+                        <td x-text="task.next_run ? new Date(task.next_run).toLocaleString() : '—'"></td>
+                        <td>
+                            <button class="btn"
+                                    :disabled="task.running || busy === task.name"
+                                    @click="runTask(task)"
+                                    x-text="busy === task.name ? 'Running…' : 'Run now'"></button>
+                        </td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+</div>

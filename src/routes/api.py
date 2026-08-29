@@ -13,6 +13,7 @@ import hmac
 import io
 import re
 import secrets
+import threading
 import time
 import zipfile
 from datetime import UTC
@@ -1582,3 +1583,155 @@ async def webhook_cloudflare_delete(request: Request):
     }
     save_config(cfg)
     return JSONResponse(content={"ok": True})
+
+
+# ---------------------------------------------------------------------------
+# Maintenance panel: run the scheduled tasks on demand
+# ---------------------------------------------------------------------------
+# TasksMaster already discovers every module under src/tasks/ exposing
+# TASK_CONFIG + main(), and holds its schedule. These two endpoints are a thin
+# authenticated view over that registry — there is no separate job runner, and
+# adding a task file is all it takes to make it appear in the panel.
+
+_RUN_LOCK_PREFIX = "krawl:taskrun:"
+_RUN_LOCK_TTL = 3600  # a stuck task must not block its own next run forever
+
+_local_running: set[str] = set()
+_local_running_lock = threading.Lock()
+
+
+def _acquire_run_lock(name: str) -> bool:
+    """Claim the right to run `name`. False when it is already running.
+
+    Redis in scalable mode so one click does not start the task on every
+    replica; a process-local set in standalone. Same split as auth_store.
+    """
+    from dashboard_cache import get_backend, get_redis_client
+
+    if get_backend() == "scalable":
+        r = get_redis_client()
+        if r is not None:
+            return bool(
+                r.set(f"{_RUN_LOCK_PREFIX}{name}", "1", nx=True, ex=_RUN_LOCK_TTL)
+            )
+    with _local_running_lock:
+        if name in _local_running:
+            return False
+        _local_running.add(name)
+        return True
+
+
+def _release_run_lock(name: str) -> None:
+    from dashboard_cache import get_backend, get_redis_client
+
+    if get_backend() == "scalable":
+        r = get_redis_client()
+        if r is not None:
+            r.delete(f"{_RUN_LOCK_PREFIX}{name}")
+            return
+    with _local_running_lock:
+        _local_running.discard(name)
+
+
+def _is_running(name: str) -> bool:
+    from dashboard_cache import get_backend, get_redis_client
+
+    if get_backend() == "scalable":
+        r = get_redis_client()
+        if r is not None:
+            return bool(r.exists(f"{_RUN_LOCK_PREFIX}{name}"))
+    with _local_running_lock:
+        return name in _local_running
+
+
+@router.get("/api/tasks", dependencies=[Depends(require_auth)])
+async def list_tasks():
+    """List every discovered task with its schedule and current state."""
+    from tasks_master import get_tasksmaster
+
+    tm = get_tasksmaster()
+    next_runs = {}
+    try:
+        for job in tm.scheduler.get_jobs():
+            next_runs[job.name] = (
+                job.next_run_time.isoformat() if job.next_run_time else None
+            )
+    except Exception as e:
+        get_app_logger().error(f"Could not read scheduled job times: {e}")
+
+    tasks = []
+    for t in tm.tasks:
+        name = t.get("name")
+        entry = {
+            "name": name,
+            "filename": t.get("filename"),
+            "cron": t.get("cron"),
+            "interval_seconds": t.get("interval_seconds"),
+            "enabled": bool(t.get("enabled")),
+            "next_run": next_runs.get(name),
+            "running": _is_running(name),
+            "options": None,
+        }
+        # The purge task is the only one taking arguments; surface its targets
+        # so the panel can render them as checkboxes.
+        if t.get("filename") == "purge.py":
+            from tasks.purge import PURGE_TARGETS
+
+            entry["options"] = [
+                {"key": k, "label": v} for k, v in PURGE_TARGETS.items()
+            ]
+        tasks.append(entry)
+
+    return JSONResponse(content={"tasks": tasks}, headers=_no_cache_headers())
+
+
+class RunTaskRequest(BaseModel):
+    name: str
+    targets: list[str] | None = None
+
+
+@router.post("/api/tasks/run", dependencies=[Depends(require_auth)])
+async def run_task(body: RunTaskRequest):
+    """Run one discovered task now, in a worker thread.
+
+    Only names already present in the TasksMaster registry are accepted, so
+    this cannot be used to import an arbitrary module.
+    """
+    import importlib
+    import os
+
+    from tasks_master import get_tasksmaster
+
+    task = next(
+        (t for t in get_tasksmaster().tasks if t.get("name") == body.name), None
+    )
+    if task is None:
+        return JSONResponse(content={"error": "Unknown task"}, status_code=404)
+
+    if not _acquire_run_lock(body.name):
+        return JSONResponse(
+            content={"error": "Task is already running"}, status_code=409
+        )
+
+    module_name = os.path.splitext(task["filename"])[0]
+    try:
+        module = importlib.import_module(f"tasks.{module_name}")
+        kwargs = {"targets": body.targets} if body.targets is not None else {}
+        get_app_logger().info(f"Manual run of task {body.name} requested")
+        started = time.monotonic()
+        result = await asyncio.to_thread(lambda: module.main(**kwargs))
+        elapsed = round(time.monotonic() - started, 2)
+        get_app_logger().info(f"Manual run of task {body.name} finished in {elapsed}s")
+        return JSONResponse(
+            content={
+                "ok": True,
+                "name": body.name,
+                "elapsed_seconds": elapsed,
+                "result": result if isinstance(result, dict) else None,
+            }
+        )
+    except Exception as e:
+        get_app_logger().error(f"Manual run of task {body.name} failed: {e}")
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+    finally:
+        _release_run_lock(body.name)
