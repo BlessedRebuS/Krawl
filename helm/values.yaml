@@ -241,6 +241,10 @@ config:
     sources: []      # Upstream banlist URLs to fetch, e.g. ["https://krawl1.example.com/public_banlist.txt"]
     refresh_interval: 3600  # Seconds between fetches
 
+  ipv6:
+    ignore: false          # Drop IPv6 requests: logged to stdout, never persisted or ban-checked
+    purge_existing: false  # Also delete existing IPv6 rows at next startup (irreversible)
+
   tarpit:
     enabled: false  # Opt-in: trap AI agents with slow responses and random text
     delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active

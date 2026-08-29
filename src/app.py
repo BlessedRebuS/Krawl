@@ -98,7 +98,10 @@ async def lifespan(app: FastAPI):
         from database.startup import run_startup_cleanup
 
         run_startup_cleanup(
-            get_database(), config.ban_duration_seconds, config.ignored_ips
+            get_database(),
+            config.ban_duration_seconds,
+            config.ignored_ips,
+            purge_ipv6=config.ipv6_ignore and config.ipv6_purge_existing,
         )
 
     # Initialize cache backend (in-memory dict for standalone, Redis for scalable)

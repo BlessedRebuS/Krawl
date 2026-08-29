@@ -33,7 +33,11 @@ def _parse_ignored_networks(entries: tuple[str, ...]) -> tuple:
     return tuple(networks)
 
 
-def is_ignored_ip(ip_str: str, ignored_entries: list[str] | None = None) -> bool:
+def is_ignored_ip(
+    ip_str: str,
+    ignored_entries: list[str] | None = None,
+    ignore_ipv6: bool | None = None,
+) -> bool:
     """
     Check whether an IP should be ignored (never tracked, banned, exported,
     or persisted), based on the configurable ignored_ips list.
@@ -42,19 +46,32 @@ def is_ignored_ip(ip_str: str, ignored_entries: list[str] | None = None) -> bool
         ip_str: IP address string.
         ignored_entries: Optional explicit list of IP/CIDR strings. When None,
             the current config's `ignored_ips` is used.
+        ignore_ipv6: Optional override for the `ipv6.ignore` policy. When None,
+            the current config is used. Callers that must not inherit the
+            policy (the startup purge, which would otherwise delete every
+            historical IPv6 row) pass False explicitly.
 
     Returns:
         True if the IP matches the ignore list, or is not a valid IP address
         (malformed input is treated as ignorable, mirroring the previous guard).
     """
-    if ignored_entries is None:
+    if ignored_entries is None or ignore_ipv6 is None:
         from config import get_config
 
-        ignored_entries = get_config().ignored_ips
+        config = get_config()
+        if ignored_entries is None:
+            ignored_entries = config.ignored_ips
+        if ignore_ipv6 is None:
+            ignore_ipv6 = config.ipv6_ignore
 
     try:
         ip = ipaddress.ip_address(ip_str)
     except ValueError:
+        return True
+
+    # Blanket IPv6 drop: rotating proxy pools make per-address tracking
+    # worthless and unbounded. Requests are still written to the access log.
+    if ignore_ipv6 and ip.version == 6:
         return True
 
     for net in _parse_ignored_networks(tuple(ignored_entries)):

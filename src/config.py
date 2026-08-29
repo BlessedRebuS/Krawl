@@ -74,9 +74,7 @@ class Config:
     metrics_enabled: bool = True
 
     # Crawl limiting settings - for legitimate vs malicious crawlers
-    max_pages_limit: int = (
-        100  # Max pages limit for good crawlers and regular users (and bad crawlers/attackers if infinite_pages_for_malicious is False)
-    )
+    max_pages_limit: int = 100  # Max pages limit for good crawlers and regular users (and bad crawlers/attackers if infinite_pages_for_malicious is False)
     infinite_pages_for_malicious: bool = True  # Infinite pages for malicious crawlers
     ban_duration_seconds: int = 600  # Ban duration in seconds for IPs exceeding limits
 
@@ -92,6 +90,14 @@ class Config:
     database_path: str = "data/krawl.db"
     database_retention_days: int = 30
     database_persist_suspicious_only: bool = False
+
+    # IPv6 settings — rotating IPv6 proxy pools burn a fresh address per
+    # request, which floods ip_stats with rows that are never seen again.
+    # `ignore` drops them entirely (still logged to stdout, never persisted,
+    # never ban-checked); `purge_existing` also deletes the IPv6 rows already
+    # in the database at the next startup.
+    ipv6_ignore: bool = False
+    ipv6_purge_existing: bool = False
 
     # Analyzer settings
     http_risky_methods_threshold: float = None
@@ -215,6 +221,7 @@ class Config:
         dashboard = data.get("dashboard", {})
         backups = data.get("backups", {})
         database = data.get("database", {})
+        ipv6_cfg = data.get("ipv6", {})
         behavior = data.get("behavior", {})
         analyzer = data.get("analyzer") or {}
         crawl = data.get("crawl", {})
@@ -304,6 +311,8 @@ class Config:
             database_persist_suspicious_only=database.get(
                 "persist_suspicious_only", False
             ),
+            ipv6_ignore=ipv6_cfg.get("ignore", False),
+            ipv6_purge_existing=ipv6_cfg.get("purge_existing", False),
             http_risky_methods_threshold=analyzer.get(
                 "http_risky_methods_threshold", 0.1
             ),

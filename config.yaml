@@ -94,6 +94,18 @@ database:
   # but won't be stored as individual access log entries, saving disk I/O.
   persist_suspicious_only: false
 
+# IPv6 handling. Rotating IPv6 proxy pools burn a fresh address on every
+# request, so per-address tracking is worthless and the row/memory growth is
+# unbounded — one operator produced ~24,500 single-request addresses from a
+# single /32.
+ipv6:
+  # Drop IPv6 entirely: still written to the access log on stdout, but never
+  # persisted, never ban-checked, never exported.
+  ignore: false
+  # Also delete the IPv6 rows already in the database, once, at the next
+  # startup. Irreversible; only takes effect when `ignore` is true.
+  purge_existing: false
+
 behavior:
   probability_error_codes: 0  # 0-100 percentage
 

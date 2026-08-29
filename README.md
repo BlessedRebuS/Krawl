@@ -374,6 +374,8 @@ Storage location, how long data is kept, and the dump job.
 |----------------------|-------------|---------|
 | `KRAWL_DATABASE_PATH` | Database file location | `data/krawl.db` |
 | `KRAWL_DATABASE_PERSIST_SUSPICIOUS_ONLY` | Only persist suspicious requests to the access log | `false` |
+| `KRAWL_IPV6_IGNORE` | Drop IPv6 requests entirely: still logged to stdout, never persisted, ban-checked or exported | `false` |
+| `KRAWL_IPV6_PURGE_EXISTING` | Also delete existing IPv6 rows at the next startup (irreversible; requires `KRAWL_IPV6_IGNORE`) | `false` |
 | `KRAWL_DATABASE_RETENTION_DAYS` | Days to retain data in database | `30` |
 | `KRAWL_BACKUPS_PATH` | Path where database dump are saved | `backups` |
 | `KRAWL_BACKUPS_CRON` | cron expression to control backup job schedule | `*/30 * * * *` |
