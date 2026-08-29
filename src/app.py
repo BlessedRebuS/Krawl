@@ -105,8 +105,14 @@ async def lifespan(app: FastAPI):
         )
 
     # Initialize cache backend (in-memory dict for standalone, Redis for scalable)
-    try:
-        if config.mode == "scalable":
+    if config.mode == "scalable":
+        # No fallback here on purpose. Falling back to the in-memory backend
+        # moves the shared ledgers (first-sighting IPs, distinct paths, auth
+        # sessions) into per-process dicts that only Redis bounds — under a
+        # flood that is an unbounded memory leak, and it used to happen behind
+        # a single WARNING. Failing loudly lets the orchestrator restart us
+        # once Redis is actually reachable.
+        with _phase(app_logger, "Redis cache init", fatal=True):
             initialize_cache(
                 mode="scalable",
                 redis_config={
@@ -121,17 +127,10 @@ async def lifespan(app: FastAPI):
                     "table_ttl": config.redis_table_ttl,
                 },
             )
-            app_logger.info(
-                f"Cache initialized with Redis at {config.redis_host}:{config.redis_port}"
-            )
-        else:
+            app_logger.info(f"Redis at {config.redis_host}:{config.redis_port}")
+    else:
+        with _phase(app_logger, "In-memory cache init"):
             initialize_cache(mode="standalone")
-            app_logger.info("Cache initialized with in-memory backend")
-    except Exception as e:
-        app_logger.warning(
-            f"Redis cache initialization failed: {e}. Falling back to in-memory cache."
-        )
-        initialize_cache(mode="standalone")
 
     # Flush stale cache from previous run so the pod starts fresh
     with _phase(app_logger, "Cache flush"):

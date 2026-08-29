@@ -189,14 +189,29 @@ _SEEN_PREFIX = "krawl:seen:"
 # small. Make it configurable if operators need to trade rows for fidelity.
 FIRST_SIGHT_TTL = 1800  # 30 minutes
 
+# Hard ceiling for the standalone ledger. Expiry alone is not a bound: a flood
+# of N addresses/second holds N * FIRST_SIGHT_TTL entries, which is exactly the
+# OOM this ledger exists to prevent. At the cap the ledger is cleared wholesale
+# rather than trimmed — losing the window costs a few extra rows, and picking
+# victims would need an LRU we do not otherwise want.
+_MAX_SEEN = 100_000
+
 _seen_lock = threading.Lock()
 _seen: dict[str, float] = {}  # ip -> expires_at
 
 
 def _prune_seen(now: float) -> None:
-    """Drop expired entries. Cheap: the dict only holds one TTL window."""
+    """Drop expired entries, and the whole ledger if it blew past the cap."""
     for ip in [ip for ip, expires in _seen.items() if expires <= now]:
         del _seen[ip]
+    if len(_seen) >= _MAX_SEEN:
+        _seen.clear()
+
+
+def get_seen_ledger_size() -> int:
+    """Entries held in the standalone first-sighting ledger (for monitoring)."""
+    with _seen_lock:
+        return len(_seen)
 
 
 def seen_before(ip: str, ttl: int = FIRST_SIGHT_TTL) -> bool:
