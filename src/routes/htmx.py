@@ -233,22 +233,6 @@ async def htmx_top_paths(
     )
 
 
-# ── Maintenance ──────────────────────────────────────────────────────
-
-
-@router.get("/htmx/maintenance")
-async def htmx_maintenance(request: Request):
-    """Load the maintenance panel (on-demand task runner)."""
-    templates = get_templates()
-    return templates.TemplateResponse(
-        request,
-        "dashboard/partials/maintenance_panel.html",
-        {
-            "dashboard_path": _dashboard_path(request),
-        },
-    )
-
-
 # ── Generated Deception Templates ────────────────────────────────────
 
 

@@ -105,10 +105,6 @@ document.addEventListener('alpine:init', () => {
         status: '',
         statusOk: false,
 
-        async init() {
-            await this.load();
-        },
-
         async load() {
             const dp = window.__DASHBOARD_PATH__ || '';
             this.loading = true;
@@ -336,6 +332,7 @@ document.addEventListener('alpine:init', () => {
 
         // Export IPs modal
         exportModal: { show: false, categories: ['attacker'], fwtype: 'raw', error: '', loading: false, mergeBanlists: false, excludeCdn: ['cloudflare', 'fastly', 'cloudfront', 'google', 'bunny'] },
+        maintenanceModal: { show: false },
         banlistSources: [],
         showBanlistSources: false,
 
@@ -403,8 +400,7 @@ document.addEventListener('alpine:init', () => {
                 this.switchToDeception();
             } else if (hash === 'webhooks' && this.authenticated) {
                 this.switchToWebhooks();
-            } else if (hash === 'maintenance' && this.authenticated) {
-                this.switchToMaintenance();
+
             } else if (hash === 'overview' || !hash) {
                 this.switchToOverview();
             } else {
@@ -431,8 +427,6 @@ document.addEventListener('alpine:init', () => {
                         if (this.authenticated) this.switchToDeception();
                     } else if (h === 'webhooks') {
                         if (this.authenticated) this.switchToWebhooks();
-                    } else if (h === 'maintenance') {
-                        if (this.authenticated) this.switchToMaintenance();
                     } else if (h !== 'ip-insight') {
                         if (this.tab !== 'ip-insight') {
                             this.switchToOverview();
@@ -531,22 +525,6 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
-        switchToMaintenance() {
-            if (!this.authenticated) return;
-            if (this.tab === 'maintenance') return;
-            this.tab = 'maintenance';
-            window.location.hash = '#maintenance';
-            this.$nextTick(() => {
-                const container = document.getElementById('maintenance-htmx-container');
-                if (container && typeof htmx !== 'undefined') {
-                    htmx.ajax('GET', `${this.dashboardPath}/htmx/maintenance`, {
-                        target: '#maintenance-htmx-container',
-                        swap: 'innerHTML'
-                    });
-                }
-            });
-        },
-
         switchToWebhooks() {
             if (!this.authenticated) return;
             if (this.tab === 'webhooks') return;
@@ -564,6 +542,8 @@ document.addEventListener('alpine:init', () => {
         },
 
         async logout() {
+            // Maintenance is privileged; never leave it open behind a logout.
+            this.maintenanceModal.show = false;
             try {
                 await fetch(`${this.dashboardPath}/api/auth/logout`, {
                     method: 'POST',
