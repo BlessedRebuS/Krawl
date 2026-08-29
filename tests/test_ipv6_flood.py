@@ -11,6 +11,9 @@ lookup for each.
 1. ip_utils.defer_persist: an IPv6 address earns its row on the second
    sighting. IPv4 and suspicious traffic are never deferred.
 2. geo_utils.extract_geolocation_shared: one lookup answers for a whole /48.
+3. ip_utils.is_ignored_ip honours the `ipv6.ignore` policy, and the standalone
+   first-sighting ledger stays bounded under a flood.
+4. The access-log write buffer is capped by bytes, not just by row count.
 
 Usage: python tests/test_ipv6_flood.py
 """
@@ -92,6 +95,111 @@ def test_geo_shared():
     print("OK: one geolocation lookup per /48, failures and IPv4 excluded")
 
 
+def test_ignore_ipv6_policy():
+    """`ipv6.ignore` must drop IPv6 wholesale, and must not leak into callers
+    that pass the flag explicitly (the startup purge)."""
+    entries = ["127.0.0.0/8"]
+
+    # Policy off: IPv6 is ordinary traffic.
+    assert ip_utils.is_ignored_ip(V6, entries, ignore_ipv6=False) is False
+    assert ip_utils.is_ignored_ip(V4, entries, ignore_ipv6=False) is False
+
+    # Policy on: every IPv6 address is ignored, IPv4 is untouched.
+    assert ip_utils.is_ignored_ip(V6, entries, ignore_ipv6=True) is True
+    assert ip_utils.is_ignored_ip(V6_OTHER, entries, ignore_ipv6=True) is True
+    assert ip_utils.is_ignored_ip(V4, entries, ignore_ipv6=True) is False
+
+    # The explicit list still applies regardless of the policy.
+    assert ip_utils.is_ignored_ip("127.0.0.1", entries, ignore_ipv6=False) is True
+
+    # Malformed input stays ignorable (pre-existing guard).
+    assert ip_utils.is_ignored_ip("not-an-ip", entries, ignore_ipv6=False) is True
+
+    print("OK: ipv6.ignore drops all IPv6, leaves IPv4 and the explicit list alone")
+
+
+def test_seen_ledger_is_bounded():
+    """The standalone ledger must not grow without bound.
+
+    This is the failure mode the ledger itself introduced: under a flood it
+    holds one entry per address for the whole TTL window.
+    """
+    ip_utils._seen.clear()
+    try:
+        for i in range(ip_utils._MAX_SEEN + 100):
+            ip_utils.seen_before(f"2001:db8::{i:x}", ttl=3600)
+        size = ip_utils.get_seen_ledger_size()
+        assert size <= ip_utils._MAX_SEEN, (
+            f"ledger grew to {size}, cap is {ip_utils._MAX_SEEN}"
+        )
+    finally:
+        ip_utils._seen.clear()
+
+    print(f"OK: first-sighting ledger stays at or below {ip_utils._MAX_SEEN} entries")
+
+
+def test_write_buffer_byte_cap():
+    """A row count is not a memory bound: entries carry up to 16 KiB of
+    raw_request, so the buffer must evict on bytes too."""
+    import database.core as core
+
+    core._write_buffer.clear()
+    core._buffer_bytes = 0
+    core._dropped_rows = 0
+
+    big = "x" * 16384  # MAX_RAW_REQUEST, the worst case per entry
+    # Enough entries to blow the byte budget well before the 50k row cap.
+    n = (core._MAX_BUFFER_BYTES // len(big)) + 500
+    for i in range(n):
+        core._buffer_access_log_entry(
+            ip=f"2001:db8::{i:x}", path="/wp-login.php", raw_request=big
+        )
+
+    assert core.get_write_buffer_bytes() <= core._MAX_BUFFER_BYTES, (
+        f"buffer held {core.get_write_buffer_bytes()} bytes, "
+        f"budget is {core._MAX_BUFFER_BYTES}"
+    )
+    assert len(core._write_buffer) < core._MAX_BUFFER_ROWS, (
+        "byte budget must bite before the row cap for large entries"
+    )
+    assert core.get_dropped_rows() > 0, "evictions must be counted, not silent"
+
+    # The accounting must survive a drain: bytes go down with the rows.
+    before = core.get_write_buffer_bytes()
+    popped = core.DatabaseManager._pop_batch(None, 10)
+    assert len(popped) == 10
+    assert core.get_write_buffer_bytes() < before, "draining must release bytes"
+
+    core._write_buffer.clear()
+    core._buffer_bytes = 0
+    print(
+        f"OK: write buffer capped at {core._MAX_BUFFER_BYTES // (1024 * 1024)} MiB, "
+        "evictions counted, drain releases bytes"
+    )
+
+
+def test_paths_set_is_bounded():
+    """The standalone distinctness set is append-only; it needs a ceiling."""
+    import metrics_counters as mc
+
+    mc._sets.clear()
+    try:
+        for i in range(mc._MAX_SET_ENTRIES + 200):
+            mc.add_to_set("paths", f"/attack-{i}")
+        size = mc.get_local_set_size("paths")
+        assert size <= mc._MAX_SET_ENTRIES, f"set grew to {size}"
+        # Past the cap, add_to_set reports "not new" rather than growing.
+        assert mc.add_to_set("paths", "/brand-new-path") is False
+    finally:
+        mc._sets.clear()
+
+    print(f"OK: distinct-paths set stays at or below {mc._MAX_SET_ENTRIES} entries")
+
+
 if __name__ == "__main__":
     test_defer_persist()
     test_geo_shared()
+    test_ignore_ipv6_policy()
+    test_seen_ledger_is_bounded()
+    test_write_buffer_byte_cap()
+    test_paths_set_is_bounded()
