@@ -45,6 +45,9 @@ _CHUNK = 500
 # bounded on PostgreSQL rather than building one enormous transaction.
 _PURGE_BATCH = 10_000
 
+# Rows fetched per round-trip when walking the ip-keyed tables for candidates.
+_SCAN_BATCH = 10_000
+
 # Every table that stores a client IP. attack_detections is handled separately:
 # it references access_logs by id, not by IP.
 _IP_TABLES = (
@@ -111,19 +114,32 @@ def purge_ipv6_rows(session) -> int:
 def purge_ignored_ips(session, ignored_ips: list[str]) -> int:
     """Delete every row belonging to an IP on the configured ignore list.
 
+    Candidates come only from the tables keyed BY ip — ip_stats and
+    tracked_ips, where ip is the primary key — so finding them is an
+    index-only walk of the distinct set.
+
+    It used to run `SELECT DISTINCT ip` across all five IP-bearing tables.
+    access_logs and category_history hold one row per event, so that scan was
+    O(traffic) rather than O(addresses): on an instance under an IPv6proxy
+    flood it blocked startup for minutes with no output, which read as a hang
+    straight after "Database ready".
+
+    Dropping them loses nothing. An ignored IP is only in the database because
+    it was tracked before the ignore guard existed, and tracking has always
+    written an ip_stats row in the same transaction as the access_logs row —
+    so an ignored IP present in an event table but absent from ip_stats cannot
+    occur. The event tables are still *deleted* from below, by their ip index.
+
     ``ignore_ipv6=False`` keeps this on the explicit list only. The IPv6 policy
     is a separate opt-in (purge_ipv6_rows); letting it leak in here would
     delete all IPv6 history the moment ``ipv6.ignore`` was enabled.
     """
     matched_ips: set[str] = set()
-    for col in (
-        IpStats.ip,
-        AccessLog.ip,
-        CredentialAttempt.ip,
-        CategoryHistory.ip,
-        TrackedIp.ip,
-    ):
-        for (ip,) in session.query(col).distinct():
+    for col in (IpStats.ip, TrackedIp.ip):
+        # No .distinct(): both columns are primary keys. yield_per streams the
+        # rows instead of materialising every address at once — this runs at
+        # boot, on the machine whose memory we are trying to keep down.
+        for (ip,) in session.query(col).yield_per(_SCAN_BATCH):
             if ip and is_ignored_ip(ip, ignored_ips, ignore_ipv6=False):
                 matched_ips.add(ip)
 
