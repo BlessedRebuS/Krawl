@@ -42,35 +42,24 @@ canary:
   token_tries: 10
 
 dashboard:
-  # if set to "null" this will Auto-generates random path if not set
-  # can be set to "/dashboard" or similar <-- note this MUST include a forward slash
-  # secret_path: super-secret-dashboard-path
+  # Random path generated when null. If set, must start with a forward slash.
   secret_path: null
 
-  # Password for accessing protected dashboard panels.
-  # If null, a random password will be generated and printed in the logs.
-  # Can also be set via KRAWL_DASHBOARD_PASSWORD env var.
+  # Protects the dashboard panels. Random and logged when null.
+  # Also KRAWL_DASHBOARD_PASSWORD.
   password: null
 
-  # Enable background cache warmup task for the dashboard.
-  # When enabled, dashboard data is pre-computed every 5 minutes for instant page loads.
-  # When disabled, all dashboard queries hit the database directly on each request.
-  # In scalable mode with Redis, consider disabling this — paginated table caching
-  # already reduces DB load without needing a background warmup task.
+  # Pre-computes dashboard data every 5 minutes instead of querying per request.
+  # Redundant in scalable mode, where table caching already covers it.
   cache_warmup: true
 
-  # Number of pages to pre-warm per table panel (attacks, attackers, credentials, honeypot).
-  # Only has effect in scalable mode (set_cached_table is a no-op in standalone).
+  # Pages pre-warmed per table panel. Scalable mode only.
   warmup_pages: 10
 
-  # Pre-compute full top_paths/top_ua aggregations so any page is served instantly
-  # with zero DB queries (works in both standalone and scalable modes).
-  # Disabled by default in standalone; enable in scalable via Helm values or this flag.
+  # Pre-computes full top_paths/top_ua aggregations so any page costs no queries.
   warmup_aggregation: false
 
-  # Minimum access count for top paths and top user agents to be shown or cached.
-  # Entries below this threshold are excluded at the database level, reducing noise
-  # and keeping the aggregation data compact. Set to 1 to disable filtering.
+  # Hides top paths / user agents below this many accesses. 1 disables filtering.
   top_n_min_count: 5
 
 backups:
@@ -89,21 +78,15 @@ logging:
 database:
   path: "data/krawl.db"
   retention_days: 30
-  # Only persist suspicious requests to the access log.
-  # When enabled, non-suspicious requests still increment IP stats counters
-  # but won't be stored as individual access log entries, saving disk I/O.
+  # Log only suspicious requests. IP stats counters still count every request.
   persist_suspicious_only: false
 
-# IPv6 handling. Rotating IPv6 proxy pools burn a fresh address on every
-# request, so per-address tracking is worthless and the row/memory growth is
-# unbounded — one operator produced ~24,500 single-request addresses from a
-# single /32.
+# Rotating IPv6 proxy pools burn a fresh address per request, so per-address
+# tracking is worthless and grows rows and memory without bound.
 ipv6:
-  # Drop IPv6 entirely: still written to the access log on stdout, but never
-  # persisted, never ban-checked, never exported.
+  # Drop IPv6: still logged to stdout, never persisted, ban-checked or exported.
   ignore: false
-  # Also delete the IPv6 rows already in the database, once, at the next
-  # startup. Irreversible; only takes effect when `ignore` is true.
+  # Also delete existing IPv6 rows at next startup. Irreversible; needs `ignore`.
   purge_existing: false
 
 behavior:
@@ -122,11 +105,8 @@ crawl:
   max_pages_limit: 250
   ban_duration_seconds: 600
 
-# IPs / CIDR ranges to ignore everywhere: never tracked, banned, exported, and
-# purged from the database on startup. Accepts single IPs (e.g. 203.0.113.5) or
-# CIDR ranges (IPv4 and IPv6). Defaults cover loopback, RFC1918 private,
-# link-local and CGNAT ranges; add your own trusted networks (monitoring,
-# health checks, office egress, etc.) here.
+# Never tracked, banned or exported, and purged at startup. Single IPs or CIDRs.
+# Add your own trusted networks: monitoring, health checks, office egress.
 ignored_ips:
   - 127.0.0.0/8      # loopback
   - 10.0.0.0/8       # RFC1918 private
@@ -139,46 +119,34 @@ ignored_ips:
   - fc00::/7         # IPv6 unique local
   - fe80::/10        # IPv6 link-local
 
-# Map tiles for the dashboard's IP origins map.
-#
-# CARTO now stamps "API KEY REQUIRED" across tiles served without a key, so the
-# default is Esri's dark canvas, which needs no key. To go back to CARTO, sign
-# up at carto.com/basemaps/apikey, set api_key below, and uncomment its URL.
-#
-# `{z}/{x}/{y}` are required; `{s}` (subdomain) and `{r}` (retina) are optional.
+# Basemap for the IP origins map. {z}/{x}/{y} required; {s} and {r} optional.
 map:
-  # Esri dark canvas — keyless, no watermark (default).
+  # Esri dark canvas: keyless, no watermark.
   tile_url: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
   attribution: "&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors"
 
-  # CARTO dark — needs an API key, otherwise every tile is watermarked.
+  # CARTO dark: watermarks every tile unless api_key is set.
   # tile_url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
   # attribution: "&copy; CARTO | &copy; OpenStreetMap contributors"
 
-  # OpenStreetMap — keyless, but light-themed; see docs for the CSS invert.
+  # OpenStreetMap: keyless but light-themed, needs the CSS invert in the docs.
   # tile_url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
   # attribution: "&copy; OpenStreetMap contributors"
 
   subdomains: "abcd"
-  # Appended to every tile request as ?key=... Also KRAWL_MAP_API_KEY.
-  # It is served in the page source (the browser fetches tiles itself), so
-  # restrict the key to your dashboard domain at the provider.
+  # Sent as ?key= on every tile request, and visible in the page source.
+  # Restrict it to your dashboard domain at the provider. Also KRAWL_MAP_API_KEY.
   api_key: ""
 
 tarpit:
   enabled: false  # Opt-in: trap AI agents with slow responses and random text
   delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active
 
-# Custom page template settings
-# Operators can provide a custom HTML template file by setting
-# `custom_template_path`. If this key is present and not null, Krawl
-# will attempt to load the template from the provided path. The template
-# may include `{counter}` and `{content}` placeholders but they are
-# optional (no strict validation is performed).
+# Custom honeypot page. Optional {counter} and {content} placeholders.
 # custom_template_path: "/path/to/custom_page.html"
 
-### AI-Generated Deception pages. Here it can be used either OpenRouter or OpenAI as provider, but also self-hosted LLMs with an API-compatible endpoint 
-### by setting the provider to "openai" and pointing the openai_base_url to the local LLM server URL. Note that the krawl-llm is the service name of the llama.cpp server in the docker-compose.yaml.
+# AI-generated deception pages via OpenRouter or OpenAI. For a self-hosted LLM,
+# set provider to "openai" and point openai_base_url at its endpoint.
 ai:
   enabled: false
   provider: "openrouter"  # "openrouter" or "openai"
@@ -218,7 +186,6 @@ banlist:
   refresh_interval: 3600  # Seconds between fetches
 
 deception:
-  # Enable automatic import of deception pages from src/templates/deception directory on startup
-  # Files are mapped to paths by replacing "/" with "_" (e.g., test_blabla.html -> /test/blabla)
-  # A zip file containing deception pages can also be uploaded via the dashboard
+  # Imports src/templates/deception at startup; "/" in a filename becomes a path
+  # separator (test_blabla.html -> /test/blabla). Zips upload via the dashboard.
   import_pages: true
