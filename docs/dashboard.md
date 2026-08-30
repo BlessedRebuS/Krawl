@@ -38,6 +38,17 @@ An interactive world map (powered by Leaflet) displays the geolocation of top IP
 
 The number of displayed IPs is configurable (top 10, 100, 1,000, or all).
 
+Markers cluster as you zoom out, and each cluster is ringed in the proportions
+of the categories inside it, so a cluster that is mostly attackers reads red
+before you click it. The view fits itself to the visible markers rather than
+opening at a fixed zoom, which keeps the framing right on any screen width and
+re-fits when you toggle a category off. It will not zoom past a global
+overview on load — panning in is left to you.
+
+The basemap is deliberately desaturated so that the category colours are the
+only saturated thing on the panel. See [Map tiles](#map-tiles) to change the
+tile provider.
+
 ![Overview — Stats and Map](../img/geoip_dashboard.png)
 
 ### Recent Suspicious Activity
@@ -225,6 +236,81 @@ dashboard:
 | `KRAWL_DASHBOARD_TOP_N_MIN_COUNT` | Minimum access count for top paths/user-agents (set to `1` to disable filtering) | `5` |
 
 > **Scalable mode**: `warmup_aggregation` is enabled by default in Helm and Kubernetes deployments. In standalone mode it is disabled because SQLite handles the load without it.
+
+### Map tiles
+
+The IP Origins Map fetches its basemap from a tile provider. The provider is
+configured under the `map` section, so switching it never needs a code change.
+
+```yaml
+map:
+  tile_url: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+  attribution: "&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors"
+  subdomains: "abcd"
+  api_key: ""
+```
+
+| Env var | Description | Default |
+|---|---|---|
+| `KRAWL_MAP_TILE_URL` | Tile URL template. `{z}`, `{x}` and `{y}` are required; `{s}` (subdomain) and `{r}` (retina suffix) are optional | Esri dark canvas |
+| `KRAWL_MAP_TILE_ATTRIBUTION` | Credit line shown in the map corner | Esri / OSM |
+| `KRAWL_MAP_TILE_SUBDOMAINS` | Values substituted into `{s}` | `abcd` |
+| `KRAWL_MAP_API_KEY` | Appended to every tile request as `?key=` | _(empty)_ |
+
+Note the axis order: Esri serves tiles as `{z}/{y}/{x}`, while most other
+providers use `{z}/{x}/{y}`. Copy the template exactly as the provider
+documents it.
+
+#### Choosing a provider
+
+**Esri dark canvas (default)** needs no account and adds no watermark. It is
+the reason the map works out of the box.
+
+**CARTO** requires an API key. Without one, every tile comes back with
+`API KEY REQUIRED` stamped diagonally across it — the tiles still load, so
+there is no error to notice, just a defaced map. Sign up at
+[carto.com/basemaps/apikey](https://carto.com/basemaps/apikey), then:
+
+```yaml
+map:
+  tile_url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+  attribution: "&copy; CARTO | &copy; OpenStreetMap contributors"
+  api_key: "your-key-here"
+```
+
+**OpenStreetMap** needs no key but is light-themed, so it fights the dashboard
+until you invert it. Add this to your own CSS after setting the URL:
+
+```css
+#attacker-map { --map-tile-filter: invert(1) hue-rotate(180deg) brightness(0.75) saturate(0.4); }
+```
+
+Also read [OSM's tile usage policy](https://operations.osmfoundation.org/policies/tiles/)
+before pointing a busy instance at it.
+
+**A self-hosted tile server** is just another `tile_url`. Worth considering:
+the dashboard is normally the only page you open on the instance, and every
+other option tells a third-party CDN when you are looking at it.
+
+#### Two things to know
+
+**The API key is public.** The browser fetches tiles directly, so the key is
+served in the page source. That is unavoidable for a client-side map — restrict
+the key to your dashboard's domain at the provider rather than trying to hide
+it.
+
+**Attribution is a licence condition** for every provider above, not
+decoration. It is styled to be unobtrusive; do not remove it.
+
+#### Adjusting how the basemap looks
+
+The tiles are desaturated and darkened so the category colours stand out. The
+treatment is a single custom property, so you can retune it without touching
+the rule:
+
+```css
+#attacker-map { --map-tile-filter: saturate(0.35) brightness(0.62) contrast(1.05); }
+```
 
 ## Design system
 
