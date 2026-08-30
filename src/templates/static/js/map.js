@@ -340,12 +340,7 @@ async function fetchAndBuildMap(limit, sortBy) {
         await new Promise(r => setTimeout(r, 80));
     }
 
-    // Fit bounds to visible markers
-    const visibleMarkers = mapMarkers.filter(m => !hiddenCategories.has(m.options.category));
-    if (visibleMarkers.length > 0) {
-        const bounds = L.featureGroup(visibleMarkers).getBounds();
-        attackerMap.fitBounds(bounds, { padding: [50, 50] });
-    }
+    fitToMarkers();
 }
 
 // Legacy wrapper kept for filter rebuilds
@@ -378,16 +373,35 @@ function buildMapMarkers(ips) {
     });
 
     attackerMap.addLayer(clusterGroup);
-    const visibleMarkers = mapMarkers.filter(m => !hiddenCategories.has(m.options.category));
-    if (visibleMarkers.length > 0) {
-        const bounds = L.featureGroup(visibleMarkers).getBounds();
-        attackerMap.fitBounds(bounds, { padding: [50, 50] });
-    }
+    fitToMarkers();
 }
 
-// Everything above ~72N and below ~55S is ice and empty ocean; excluding it
-// from the default view buys real estate for the latitudes traffic comes from.
-const INHABITED_BOUNDS = [[-55, -168], [72, 178]];
+// Breathing room around the data. The map is wider than it is tall, so the
+// vertical padding is what actually sets the zoom; at 50px the outermost
+// markers sat almost on the frame edge with no surrounding context.
+const MARKER_FIT_PADDING = [90, 90];
+
+// Never zoom past a global overview on load. Without a cap, an instance whose
+// traffic all comes from one city would open zoomed into that city, which is
+// not what a map called "IP Origins" is for — panning in is a deliberate act.
+const MAX_OVERVIEW_ZOOM = 4;
+
+// Fit the visible markers, with padding and the overview cap applied. Called
+// after a load and after a category filter changes, so both paths frame the
+// data the same way.
+function fitToMarkers() {
+    const visible = mapMarkers.filter(m => !hiddenCategories.has(m.options.category));
+    if (visible.length === 0) return;
+    attackerMap.fitBounds(L.featureGroup(visible).getBounds(), {
+        padding: MARKER_FIT_PADDING,
+        maxZoom: MAX_OVERVIEW_ZOOM,
+        animate: false
+    });
+}
+
+// The view before any data arrives: the whole span of longitude, and far
+// enough north and south to keep every inhabited coastline off the edge.
+const INHABITED_BOUNDS = [[-58, -180], [80, 180]];
 
 // Tile source comes from the server (Config.map_*), so an operator can point
 // the map at any provider — and supply the API key that CARTO now requires —
