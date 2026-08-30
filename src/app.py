@@ -325,6 +325,16 @@ def create_app() -> FastAPI:
             access_logger.info(f"[{method}] {client_ip} - {path} - {status}")
         return response
 
+    # Outermost layer: ignored IPs are answered here, from the ASGI scope
+    # alone, so nothing below allocates for them. Added last because Starlette
+    # wraps in reverse registration order — last added is outermost.
+    from middleware.drop_ignored import DropIgnoredMiddleware
+
+    application.add_middleware(
+        DropIgnoredMiddleware,
+        dashboard_prefix="/" + config.dashboard_secret_path.lstrip("/"),
+    )
+
     # Mount static files for the dashboard
     static_dir = os.path.join(os.path.dirname(__file__), "templates", "static")
 
