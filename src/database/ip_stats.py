@@ -622,17 +622,32 @@ class IpStatsRepo:
         finally:
             self._db.close_session()
 
-    def get_ips_needing_reevaluation(self) -> list[str]:
+    def get_ips_needing_reevaluation(self, limit: int | None = None) -> list[str]:
         """
-        Get all IP addresses that need evaluation.
+        Get IP addresses that need evaluation, most deserving first.
 
-        Returns:
-            List of IP addresses where need_reevaluation is True
-            or that have never been analyzed (last_analysis is NULL)
+        Includes IPs never analysed at all (last_analysis IS NULL) — that is
+        what keeps newly seen addresses from staying uncategorised — as well as
+        those explicitly flagged.
+
+        Ordering matters as much as the filter. The caller can only afford a
+        fixed number per run, and it used to take them with
+        `sorted(ips)[:MAX]` — lexicographically, so with a backlog larger than
+        one batch the same low addresses were re-picked every minute and the
+        tail of the address space was never analysed at all.
+
+        Ordering by last_analysis (nulls first) is self-rotating instead:
+        analysing an IP stamps it with the current time, which sends it to the
+        back of the queue, so nothing can starve. last_seen breaks ties toward
+        the addresses that are still active.
+
+        `limit` is applied in SQL. Without it this returned every matching row
+        — millions of addresses after a flood — just for the caller to discard
+        all but a couple of thousand.
         """
         session = self._db.session
         try:
-            ips = (
+            query = (
                 session.query(IpStats.ip)
                 .filter(
                     or_(
@@ -640,9 +655,17 @@ class IpStatsRepo:
                         IpStats.last_analysis.is_(None),
                     )
                 )
-                .all()
+                .order_by(
+                    # `IS NULL DESC` rather than NULLS FIRST: works on both
+                    # SQLite and PostgreSQL without a dialect branch.
+                    IpStats.last_analysis.is_(None).desc(),
+                    IpStats.last_analysis.asc(),
+                    IpStats.last_seen.desc(),
+                )
             )
-            return [ip[0] for ip in ips]
+            if limit is not None:
+                query = query.limit(limit)
+            return [ip[0] for ip in query.all()]
         finally:
             self._db.close_session()
 

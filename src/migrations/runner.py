@@ -58,6 +58,10 @@ INDEXES = [
     ("ix_ip_stats_last_seen", "ip_stats", "last_seen"),
     ("ix_ip_stats_first_seen", "ip_stats", "first_seen"),
     ("ix_ip_stats_reputation_score", "ip_stats", "reputation_score"),
+    # Startup cleanup scans for live bans; the analyzer orders its queue by
+    # last analysis time. Both were full scans of ip_stats without these.
+    ("ix_ip_stats_ban_timestamp", "ip_stats", "ban_timestamp"),
+    ("ix_ip_stats_last_analysis", "ip_stats", "last_analysis"),
 ]
 
 
