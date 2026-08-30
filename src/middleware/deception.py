@@ -10,7 +10,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from deception_responses import detect_and_respond_deception
-from dependencies import body_too_large, build_raw_request, get_client_ip
+from dependencies import build_raw_request, get_client_ip, read_body_capped
 from logger import get_access_logger, get_app_logger
 
 
@@ -28,18 +28,10 @@ class DeceptionMiddleware(BaseHTTPMiddleware):
         query = request.url.query or ""
         method = request.method
 
-        # Read body for POST requests
+        # Read body for POST requests, bounded — see read_body_capped.
         body = ""
         if method == "POST":
-            try:
-                if body_too_large(request):
-                    body = ""
-                else:
-                    body_bytes = await request.body()
-                    body = body_bytes.decode("utf-8", errors="replace")
-            except Exception:
-                # Client disconnected before body was fully sent
-                body = ""
+            body = (await read_body_capped(request)).decode("utf-8", errors="replace")
 
         result = detect_and_respond_deception(path, query, body, method)
 
