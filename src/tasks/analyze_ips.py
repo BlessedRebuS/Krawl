@@ -18,7 +18,8 @@ TASK_CONFIG = {
     "name": "analyze-ips",
     "cron": "*/1 * * * *",
     "enabled": True,
-    "run_when_loaded": True,
+    # runs every minute anyway; a boot run only duplicates it.
+    "run_when_loaded": False,
 }
 
 # Upper bound on IPs analysed per run; the remainder is picked up next minute.
