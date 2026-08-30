@@ -6,7 +6,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/blessedrebus/krawl
   pullPolicy: Always
-  tag: "2.3.0"
+  tag: "2.3.1"
 
 imagePullSecrets: []
 nameOverride: "krawl"
@@ -240,6 +240,10 @@ config:
     export_path: ""  # Public banlist download path, e.g. "/public_banlist.txt". Empty = disabled.
     sources: []      # Upstream banlist URLs to fetch, e.g. ["https://krawl1.example.com/public_banlist.txt"]
     refresh_interval: 3600  # Seconds between fetches
+
+  ipv6:
+    ignore: false          # Drop IPv6 requests: logged to stdout, never persisted or ban-checked
+    purge_existing: false  # Also delete existing IPv6 rows at next startup (irreversible)
 
   tarpit:
     enabled: false  # Opt-in: trap AI agents with slow responses and random text

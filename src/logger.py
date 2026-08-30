@@ -97,6 +97,28 @@ class LoggerManager:
         credential_file_handler.setFormatter(credential_format)
         self._credential_logger.addHandler(credential_file_handler)
 
+        # Each krawl.* logger owns its handlers, so a record must stop there.
+        # Without this it also travels up to `krawl` and on to the root logger,
+        # and anything that has configured root — uvicorn, or a dependency
+        # calling logging.basicConfig() — prints it a second time in its own
+        # format. That is the duplicated access line:
+        #     INFO:krawl.access:[GET] 1.2.3.4 - /x - 200      <- root
+        #     [2026-08-30 18:27:48] INFO - [GET] 1.2.3.4 ...  <- ours
+        self._app_logger.propagate = False
+        self._access_logger.propagate = False
+        self._credential_logger.propagate = False
+
+        # tracker.py, generative_ai.py and deception_responses.py log to the
+        # bare `krawl` parent. It had no handlers, so those records fell
+        # through to root as well. Give it the app handlers and stop it there
+        # too, so every krawl log lands in exactly one place.
+        krawl_logger = logging.getLogger("krawl")
+        krawl_logger.setLevel(level)
+        krawl_logger.handlers.clear()
+        krawl_logger.addHandler(app_file_handler)
+        krawl_logger.addHandler(app_stream_handler)
+        krawl_logger.propagate = False
+
         # Disable uvicorn's default access log to avoid duplicate entries
         # with the wrong (proxy) IP. Our custom access logger handles this.
         logging.getLogger("uvicorn.access").setLevel(logging.WARNING)

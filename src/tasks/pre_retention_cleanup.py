@@ -23,7 +23,8 @@ TASK_CONFIG = {
     "name": "pre-retention-cleanup",
     "cron": "30 2 * * *",  # Run daily at 2:30 AM (before db-retention at 3 AM)
     "enabled": True,
-    "run_when_loaded": True,
+    # a daily 02:30 job, same problem, and it is the heavier of the two.
+    "run_when_loaded": False,
 }
 
 # Batch size for processing old logs to limit memory usage

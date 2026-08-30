@@ -14,6 +14,8 @@ The `GET /api/export-ips` endpoint queries the database directly and returns a d
 |-----------|----------|-------------|
 | `categories` | Yes | Comma-separated list of IP categories to include |
 | `fwtype` | No | Output format (default: `raw`) |
+| `merge_banlists` | No | Also include IPs pulled from the configured upstream banlists (default: `false`) |
+| `exclude_cdn` | No | Comma-separated CDN providers whose published ranges are dropped from the output |
 
 **Available categories:**
 
@@ -23,6 +25,29 @@ The `GET /api/export-ips` endpoint queries the database directly and returns a d
 | `bad_crawler` | Non-compliant crawlers and bots violating robots.txt |
 | `regular_user` | Normal human visitors |
 | `good_crawler` | Legitimate web crawlers (Google, Bing, etc.) |
+
+**CDN exclusion (`exclude_cdn`):**
+
+Behind a CDN, the address Krawl records can be an edge node rather than the attacker.
+Blocking those ranges takes the CDN itself offline for your users, so the exporter can
+drop them from the output. Ranges are fetched live from each provider's published list
+at export time and cached for an hour — nothing is stored, so the lists never go stale.
+
+| Provider | Source |
+|----------|--------|
+| `cloudflare` | `cloudflare.com/ips-v4`, `ips-v6` |
+| `fastly` | `api.fastly.com/public-ip-list` |
+| `cloudfront` | AWS CloudFront published ranges |
+| `google` | `gstatic.com/ipranges/goog.json` |
+| `bunny` | `bunnycdn.com/api/system/edgeserverlist` |
+
+```bash
+curl "https://your-krawl-instance/<DASHBOARD-PATH>/api/export-ips?categories=attacker&exclude_cdn=cloudflare,fastly,cloudfront,google,bunny"
+```
+
+In the dashboard's export dialog these are checkboxes under **Skip CDN providers**, with
+all five selected by default. If a provider's list can't be fetched, the export still
+succeeds — that provider's ranges just aren't excluded, and a warning is logged.
 
 **Available formats (`fwtype`):**
 

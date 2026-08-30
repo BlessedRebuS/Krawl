@@ -5,7 +5,8 @@ from logger import get_app_logger
 TASK_CONFIG = {
     "name": "sync-cloudflare",
     "enabled": True,
-    "run_when_loaded": True,
+    # pushes again 60 seconds later regardless.
+    "run_when_loaded": False,
     "interval_seconds": 60,
 }
 

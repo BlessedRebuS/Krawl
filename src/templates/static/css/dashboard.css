@@ -192,10 +192,52 @@ h1 {
     letter-spacing: normal;
     color: var(--accent);
 }
-.download-section {
+/* ── Header actions ───────────────────────────────────────────────
+   Three controls of equal weight: docs, export, maintenance. They are
+   peers, so they get one shape and one hit target rather than a link
+   next to a filled button. Icon-only, with the name in the tooltip and
+   the accessible name on the control itself. */
+.header-actions {
     position: absolute;
     top: 0;
     right: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+}
+.header-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--r-md);
+    color: var(--text-faint);
+    cursor: pointer;
+    text-decoration: none;
+    transition: color var(--dur) var(--ease),
+        background var(--dur) var(--ease),
+        border-color var(--dur) var(--ease);
+}
+.header-action:hover:not(:disabled) {
+    color: var(--accent);
+    background: var(--tint-accent);
+    border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.header-action:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+/* Locked rather than hidden: the capability stays advertised, the tooltip
+   says how to unlock it. Dimmed enough to read as inert, not so dim it
+   reads as a rendering fault — --line is a border colour and disappears
+   against the page. */
+.header-action:disabled {
+    color: color-mix(in srgb, var(--text-faint) 55%, transparent);
+    cursor: not-allowed;
 }
 .download-btn {
     display: inline-block;
@@ -214,69 +256,6 @@ h1 {
 }
 .download-btn:active {
     background: var(--ok);
-}
-.banlist-dropdown {
-    position: relative;
-    display: inline-block;
-    width: 100%;
-}
-.banlist-dropdown-btn {
-    display: block;
-    width: 100%;
-    padding: var(--s2) var(--s4);
-    background: color-mix(in srgb, var(--ok) 40%, transparent);
-    color: color-mix(in srgb, var(--text-strong) 70%, transparent);
-    text-decoration: none;
-    border-radius: var(--r-md);
-    font-weight: 500;
-    font-size: var(--fs-sm);
-    transition: background 0.2s, color 0.2s;
-    border: 1px solid color-mix(in srgb, var(--ok) 40%, transparent);
-    cursor: pointer;
-    text-align: left;
-    box-sizing: border-box;
-}
-.banlist-dropdown-btn:hover {
-    background: color-mix(in srgb, var(--ok) 60%, transparent);
-    color: var(--text-strong);
-}
-.banlist-dropdown-menu {
-    display: none;
-    position: absolute;
-    right: 0;
-    left: 0;
-    background-color: var(--surface);
-    box-shadow: var(--shadow-2);
-    z-index: 1;
-    border: 1px solid var(--line);
-    border-radius: var(--r-md);
-    margin-top: var(--s1);
-    overflow: hidden;
-}
-.banlist-dropdown-menu.show {
-    display: block;
-}
-.banlist-dropdown-menu a {
-    color: var(--text);
-    padding: var(--s2) var(--s3);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: var(--s2);
-    transition: background 0.2s;
-    font-size: var(--fs-md);
-}
-.banlist-dropdown-menu a:hover {
-    background-color: var(--raised);
-    color: var(--accent);
-}
-.banlist-dropdown-menu a.disabled {
-    color: var(--text-faint);
-    cursor: not-allowed;
-    pointer-events: none;
-}
-.banlist-icon {
-    font-size: var(--fs-md);
 }
 .stats-grid {
     display: grid;
@@ -1510,6 +1489,10 @@ tbody {
 .auth-modal-body {
     padding: var(--s6);
     overflow-y: auto;
+    /* A flex child defaults to min-height:auto, which lets it grow past the
+       parent's max-height instead of scrolling. Every modal needs this; only
+       the long ones showed it. */
+    min-height: 0;
 }
 
 /* Export modal: compact checkbox sections */
@@ -1977,10 +1960,11 @@ tbody {
         left: auto;
         margin-bottom: var(--s4);
     }
-    .download-section {
+    .header-actions {
         position: relative;
         top: auto;
         right: auto;
+        justify-content: flex-end;
         margin-bottom: var(--s5);
     }
     .stats-grid {
@@ -3006,6 +2990,75 @@ tbody {
 
 /* ── Export modal ─────────────────────────────────────────────── */
 .export-modal-content { width: 480px; }
+
+/* ── Maintenance modal ────────────────────────────────────────────
+   A task is a name, when it runs, and one action. Rows, not a table:
+   the run control needs to sit hard right at every width, and only one
+   task carries options. */
+.maintenance-modal-content { width: 560px; max-width: 100%; }
+.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s2);
+}
+.task-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--s4);
+    padding: var(--s3);
+    background: var(--sunken);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--r-md);
+}
+.task-main { min-width: 0; }
+.task-name {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text-strong);
+}
+.task-meta {
+    margin-top: 2px;
+    font-size: var(--fs-2xs);
+    color: var(--text-faint);
+}
+.task-state { color: var(--ok); }
+.task-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+    margin-top: var(--s2);
+}
+.task-run-btn {
+    flex: none;
+    padding: var(--s1) var(--s3);
+    background: var(--raised);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    font-size: var(--fs-xs);
+    cursor: pointer;
+    transition: background var(--dur) var(--ease),
+        color var(--dur) var(--ease),
+        border-color var(--dur) var(--ease);
+}
+.task-run-btn:hover:not(:disabled) {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.task-run-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+.task-run-btn:disabled {
+    color: var(--text-faint);
+    cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+    .task-row { flex-direction: column; align-items: stretch; }
+    .task-run-btn { align-self: flex-start; }
+}
 /* Category checkboxes carry their category's color. */
 .export-check input[value="attacker"] { accent-color: var(--cat-attacker); }
 .export-check input[value="bad_crawler"] { accent-color: var(--cat-bad-crawler); }
@@ -3107,13 +3160,6 @@ tbody {
 .form-status-error { color: var(--danger); }
 
 /* ── Dashboard header + trends ────────────────────────────────── */
-.icon-link-quiet {
-    display: flex;
-    align-items: center;
-    color: var(--text-faint);
-    transition: color var(--dur) var(--ease);
-}
-.icon-link-quiet:hover { color: var(--accent); }
 .chart-head {
     display: flex;
     align-items: center;

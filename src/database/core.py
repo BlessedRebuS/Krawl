@@ -59,28 +59,70 @@ def _ban_multiplier_for(total_violations: int) -> int:
 
 # Statement size, not a per-flush ceiling: the flush loops until drained.
 _FLUSH_BATCH_SIZE = 200
-# ~60 MiB at 1.2 KB/entry. Hitting it means the flush task is behind; the
-# oldest rows are dropped and counted rather than growing until OOM.
+
+# Two ceilings, because a row count is not a memory bound. Entries carry
+# `raw_request`, capped at MAX_RAW_REQUEST (16 KiB), so 50k rows is anywhere
+# between ~60 MiB and ~800 MiB depending on what the traffic looks like — and
+# an attack flood is exactly the traffic that fills the buffer with large
+# entries. The byte budget is what actually holds RSS down; the row cap stays
+# as a cheap second guard.
 _MAX_BUFFER_ROWS = 50_000
+_MAX_BUFFER_BYTES = 64 * 1024 * 1024
 
 _write_buffer: collections.deque = collections.deque(maxlen=_MAX_BUFFER_ROWS)
 _write_lock = threading.Lock()
 _dropped_rows = 0
+_buffer_bytes = 0
+
+
+def _entry_bytes(entry: dict) -> int:
+    """Approximate heap cost of a buffered entry.
+
+    Only the string payloads are worth counting — they are the part that
+    varies by three orders of magnitude. The rest is a fixed dict overhead,
+    approximated by the constant.
+    """
+    raw = entry.get("raw_request") or ""
+    return (
+        len(raw)
+        + len(entry.get("path") or "")
+        + len(entry.get("user_agent") or "")
+        + len(entry.get("ip") or "")
+        + 512
+    )
 
 
 def _buffer_access_log_entry(**kwargs) -> None:
-    """Append an access-log entry to the in-memory write buffer."""
-    global _dropped_rows
+    """Append an access-log entry to the in-memory write buffer.
+
+    Evicts oldest-first when either ceiling is hit, and counts the losses, so
+    a flush task that falls behind degrades into dropped rows rather than an
+    OOM kill.
+    """
+    global _dropped_rows, _buffer_bytes
     kwargs["_buffered_at"] = datetime.now()
+    size = _entry_bytes(kwargs)
     with _write_lock:
         if len(_write_buffer) == _MAX_BUFFER_ROWS:
-            _dropped_rows += 1  # maxlen evicts from the left on append
+            # maxlen evicts from the left on append; account for it ourselves.
+            _buffer_bytes -= _entry_bytes(_write_buffer[0])
+            _dropped_rows += 1
         _write_buffer.append(kwargs)
+        _buffer_bytes += size
+
+        while _buffer_bytes > _MAX_BUFFER_BYTES and len(_write_buffer) > 1:
+            _buffer_bytes -= _entry_bytes(_write_buffer.popleft())
+            _dropped_rows += 1
 
 
 def get_write_buffer_size() -> int:
     """Return current buffer depth (for monitoring)."""
     return len(_write_buffer)
+
+
+def get_write_buffer_bytes() -> int:
+    """Approximate bytes held by the write buffer (for monitoring)."""
+    return _buffer_bytes
 
 
 def get_dropped_rows() -> int:
@@ -345,8 +387,11 @@ class DatabaseManager:
 
     def _pop_batch(self, n: int) -> list[dict]:
         """Remove up to n entries from the front of the write buffer."""
+        global _buffer_bytes
         with _write_lock:
-            return [_write_buffer.popleft() for _ in range(min(len(_write_buffer), n))]
+            batch = [_write_buffer.popleft() for _ in range(min(len(_write_buffer), n))]
+            _buffer_bytes -= sum(_entry_bytes(e) for e in batch)
+            return batch
 
     def flush_access_log_buffer(self, max_rows: int = 50_000) -> int:
         """
@@ -427,8 +472,10 @@ class DatabaseManager:
                 f"Error flushing access log buffer ({len(entries)} entries): {e}"
             )
             # Re-queue failed entries so they aren't lost
+            global _buffer_bytes
             with _write_lock:
                 _write_buffer.extendleft(reversed(entries))
+                _buffer_bytes += sum(_entry_bytes(e) for e in entries)
             return 0
         finally:
             self.close_session()

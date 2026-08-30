@@ -5,7 +5,8 @@ from logger import get_app_logger
 TASK_CONFIG = {
     "name": "refresh-banlist",
     "enabled": True,
-    "run_when_loaded": True,
+    # the lifespan already does an initial banlist sync before traffic is accepted; this repeated it.
+    "run_when_loaded": False,
     "interval_seconds": 3600,
 }
 

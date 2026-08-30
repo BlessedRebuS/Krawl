@@ -287,7 +287,7 @@ For more details on both modes, see [Deployment Modes](docs/deployment-modes.md)
 The Helm chart **defaults to scalable mode** with bundled PostgreSQL and Redis:
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.1 \
   -n krawl-system --create-namespace \
   --set postgres.password=your-password \
   --set redis.password=your-redis-password \
@@ -321,6 +321,15 @@ You can use the [config.yaml](config.yaml) file for advanced configurations, suc
 
 ### Configuration via Environmental Variables
 
+All settings can be supplied as environment variables, which override `config.yaml`.
+The variable name is `KRAWL_` plus the setting path in upper case, so `dashboard.password`
+becomes `KRAWL_DASHBOARD_PASSWORD`.
+
+<details>
+<summary><b>Server and link generation</b> (12 variables)</summary>
+
+How Krawl presents itself and shapes the maze of generated pages.
+
 | Environment Variable | Description | Default |
 |----------------------|-------------|---------|
 | `CONFIG_LOCATION` | Path to yaml config file | `config.yaml` |
@@ -331,35 +340,102 @@ You can use the [config.yaml](config.yaml) file for advanced configurations, suc
 | `KRAWL_LINKS_PER_PAGE_RANGE` | Links per page as `min,max` | `10,15` |
 | `KRAWL_CHAR_SPACE` | Characters used for link generation | `abcdefgh...` |
 | `KRAWL_MAX_COUNTER` | Initial counter value | `10` |
-| `KRAWL_CANARY_TOKEN_URL` | External canary token URL | None |
-| `KRAWL_CANARY_TOKEN_TRIES` | Requests before showing canary token | `10` |
+| `KRAWL_PROBABILITY_ERROR_CODES` | Error response probability (0-100%) | `0` |
+| `KRAWL_INFINITE_PAGES_FOR_MALICIOUS` | Serve infinite pages to malicious IPs | `true` |
+| `KRAWL_MAX_PAGES_LIMIT` | Maximum page limit for crawlers | `250` |
+| `KRAWL_BAN_DURATION_SECONDS` | Ban duration in seconds for rate-limited IPs | `600` |
+
+</details>
+
+<details>
+<summary><b>Dashboard, metrics and logging</b> (8 variables)</summary>
+
+Dashboard access, cache warmup, Prometheus and log level.
+
+| Environment Variable | Description | Default |
+|----------------------|-------------|---------|
 | `KRAWL_DASHBOARD_SECRET_PATH` | Custom dashboard path | Auto-generated |
 | `KRAWL_DASHBOARD_PASSWORD` | Password for protected dashboard panels | Auto-generated |
 | `KRAWL_DASHBOARD_CACHE_WARMUP` | Pre-compute dashboard data every 5 minutes for instant page loads | `true` |
 | `KRAWL_DASHBOARD_WARMUP_PAGES` | Number of pages to pre-warm per table panel | `10` |
 | `KRAWL_DASHBOARD_WARMUP_AGGREGATION` | Pre-compute full top_paths/top_ua aggregations for zero-query serving | `false` |
 | `KRAWL_DASHBOARD_TOP_N_MIN_COUNT` | Minimum access count for top paths/user agents panels (set to 1 to disable) | `5` |
-| `KRAWL_PROBABILITY_ERROR_CODES` | Error response probability (0-100%) | `0` |
 | `KRAWL_METRICS_ENABLED` | Expose Prometheus metrics at `/<dashboard_path>/metrics` | `true` |
 | `KRAWL_LOG_LEVEL` | Application log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) | `INFO` |
-| `KRAWL_IGNORED_IPS` | Comma-separated IPs/CIDRs never tracked, banned or exported | Loopback, RFC1918, link-local, CGNAT |
+
+</details>
+
+<details>
+<summary><b>Database, retention and backups</b> (6 variables)</summary>
+
+Storage location, how long data is kept, and the dump job.
+
+| Environment Variable | Description | Default |
+|----------------------|-------------|---------|
 | `KRAWL_DATABASE_PATH` | Database file location | `data/krawl.db` |
 | `KRAWL_DATABASE_PERSIST_SUSPICIOUS_ONLY` | Only persist suspicious requests to the access log | `false` |
+| `KRAWL_IPV6_IGNORE` | Drop IPv6 requests entirely: still logged to stdout, never persisted, ban-checked or exported | `false` |
+| `KRAWL_IPV6_PURGE_EXISTING` | Also delete existing IPv6 rows at the next startup (irreversible; requires `KRAWL_IPV6_IGNORE`) | `false` |
+| `KRAWL_DATABASE_RETENTION_DAYS` | Days to retain data in database | `30` |
 | `KRAWL_BACKUPS_PATH` | Path where database dump are saved | `backups` |
 | `KRAWL_BACKUPS_CRON` | cron expression to control backup job schedule | `*/30 * * * *` |
 | `KRAWL_BACKUPS_ENABLED` | Boolean to enable db dump job | `true` |
-| `KRAWL_DATABASE_RETENTION_DAYS` | Days to retain data in database | `30` |
+
+</details>
+
+<details>
+<summary><b>Traps: tarpit, deception pages and canary</b> (6 variables)</summary>
+
+Opt-in traps and the pages served to attackers.
+
+| Environment Variable | Description | Default |
+|----------------------|-------------|---------|
 | `KRAWL_TARPIT_ENABLED` | Trap AI agents with slow responses and random text | `false` |
 | `KRAWL_TARPIT_DELAY_SECONDS` | Extra delay in seconds added per response when tarpit is active | `5` |
+| `KRAWL_DECEPTION_IMPORT_PAGES` | Auto-import deception pages from `src/templates/deception/` at startup | `true` |
+| `KRAWL_CUSTOM_TEMPLATE_PATH` | Path inside the container to a custom HTML template. Template must include `{counter}` and `{content}` placeholders. | `/templates/custom_page.html` |
+| `KRAWL_CANARY_TOKEN_URL` | External canary token URL | None |
+| `KRAWL_CANARY_TOKEN_TRIES` | Requests before showing canary token | `10` |
+
+</details>
+
+<details>
+<summary><b>IP reputation analyzer</b> (6 variables)</summary>
+
+Thresholds that decide how an IP gets classified.
+
+| Environment Variable | Description | Default |
+|----------------------|-------------|---------|
 | `KRAWL_HTTP_RISKY_METHODS_THRESHOLD` | Threshold for risky HTTP methods detection | `0.1` |
 | `KRAWL_VIOLATED_ROBOTS_THRESHOLD` | Threshold for robots.txt violations | `0.1` |
 | `KRAWL_UNEVEN_REQUEST_TIMING_THRESHOLD` | Coefficient of variation threshold for timing | `0.5` |
 | `KRAWL_UNEVEN_REQUEST_TIMING_TIME_WINDOW_SECONDS` | Time window for request timing analysis in seconds | `300` |
 | `KRAWL_USER_AGENTS_USED_THRESHOLD` | Threshold for detecting multiple user agents | `2` |
 | `KRAWL_ATTACK_URLS_THRESHOLD` | Threshold for attack URL detection | `1` |
-| `KRAWL_INFINITE_PAGES_FOR_MALICIOUS` | Serve infinite pages to malicious IPs | `true` |
-| `KRAWL_MAX_PAGES_LIMIT` | Maximum page limit for crawlers | `250` |
-| `KRAWL_BAN_DURATION_SECONDS` | Ban duration in seconds for rate-limited IPs | `600` |
+
+</details>
+
+<details>
+<summary><b>Banlist and ignored IPs</b> (4 variables)</summary>
+
+Sharing banlists with other instances, and traffic to never track.
+
+| Environment Variable | Description | Default |
+|----------------------|-------------|---------|
+| `KRAWL_IGNORED_IPS` | Comma-separated IPs/CIDRs never tracked, banned or exported | Loopback, RFC1918, link-local, CGNAT |
+| `KRAWL_BANLIST_EXPORT_PATH` | Public banlist download path, e.g. `/public_banlist.txt` (empty = disabled) | `""` |
+| `KRAWL_BANLIST_SOURCES` | Comma-separated upstream banlist URLs to fetch and merge | Krawl community banlist |
+| `KRAWL_BANLIST_REFRESH_INTERVAL` | Seconds between upstream banlist fetches | `3600` |
+
+</details>
+
+<details>
+<summary><b>AI-generated deception pages</b> (10 variables)</summary>
+
+See the [AI Generation documentation](docs/ai_generation.md).
+
+| Environment Variable | Description | Default |
+|----------------------|-------------|---------|
 | `KRAWL_AI_ENABLED` | Enable AI-generated deception pages | `false` |
 | `KRAWL_AI_PROVIDER` | AI provider (`"openrouter"` or `"openai"`) | `"openrouter"` |
 | `KRAWL_AI_OPENAI_BASE_URL` | Optional OpenAI Base URL for custom API endpoints | `"https://api.openai.com/v1"` |
@@ -370,12 +446,16 @@ You can use the [config.yaml](config.yaml) file for advanced configurations, suc
 | `KRAWL_AI_PROMPT` | Custom prompt template for AI page generation | Default prompt |
 | `KRAWL_AI_REASONING_ENABLED` | Enable reasoning tokens (OpenRouter reasoning models only) | `false` |
 | `KRAWL_AI_REASONING_EFFORT` | Reasoning effort (`none`, `minimal`, `low`, `medium`, `high`, `xhigh`) | `"medium"` |
-| `KRAWL_DECEPTION_IMPORT_PAGES` | Auto-import deception pages from `src/templates/deception/` at startup | `true` |
-| `KRAWL_BANLIST_EXPORT_PATH` | Public banlist download path, e.g. `/public_banlist.txt` (empty = disabled) | `""` |
-| `KRAWL_BANLIST_SOURCES` | Comma-separated upstream banlist URLs to fetch and merge | Krawl community banlist |
-| `KRAWL_BANLIST_REFRESH_INTERVAL` | Seconds between upstream banlist fetches | `3600` |
-| `KRAWL_CUSTOM_TEMPLATE_PATH` | Path inside the container to a custom HTML template. Template must include `{counter}` and `{content}` placeholders. | `/templates/custom_page.html` |
-| **Scalable mode** | | |
+
+</details>
+
+<details>
+<summary><b>Scalable mode: PostgreSQL and Redis</b> (13 variables)</summary>
+
+Only used when `KRAWL_MODE=scalable`. See [Deployment Modes](docs/deployment-modes.md).
+
+| Environment Variable | Description | Default |
+|----------------------|-------------|---------|
 | `KRAWL_MODE` | Deployment mode (`standalone` or `scalable`) | `standalone` |
 | `KRAWL_POSTGRES_HOST` | PostgreSQL hostname | `localhost` |
 | `KRAWL_POSTGRES_PORT` | PostgreSQL port | `5432` |
@@ -389,6 +469,9 @@ You can use the [config.yaml](config.yaml) file for advanced configurations, suc
 | `KRAWL_REDIS_CACHE_TTL` | TTL in seconds for dashboard warmup data | `600` |
 | `KRAWL_REDIS_HOT_TTL` | TTL in seconds for hot-path data (ban info, IP categories) | `30` |
 | `KRAWL_REDIS_TABLE_TTL` | TTL in seconds for paginated dashboard tables | `120` |
+
+</details>
+
 
 For example
 

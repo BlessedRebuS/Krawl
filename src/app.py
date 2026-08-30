@@ -7,7 +7,8 @@ Replaces the old http.server-based server.py.
 
 import gc
 import os
-from contextlib import asynccontextmanager
+import time
+from contextlib import asynccontextmanager, contextmanager
 
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
@@ -22,6 +23,29 @@ from logger import get_access_logger, get_app_logger, initialize_logging
 from routes.dashboard import KRAWL_VERSION
 from tasks_master import get_tasksmaster
 from tracker import AccessTracker
+
+
+@contextmanager
+def _phase(app_logger, name: str, fatal: bool = False):
+    """Log a startup phase with its duration, and never let it stall silently.
+
+    Boot used to run eight hand-rolled try/excepts that only logged on success,
+    so a slow phase (the database cleanup, typically) looked like a hang right
+    after "Database ready". Now every phase announces itself before it runs.
+
+    Non-fatal phases log the failure and let startup continue, matching the
+    previous behaviour; `fatal=True` re-raises.
+    """
+    app_logger.info(f"→ {name}")
+    t0 = time.monotonic()
+    try:
+        yield
+    except Exception as e:
+        app_logger.error(f"✗ {name} failed after {time.monotonic() - t0:.1f}s: {e}")
+        if fatal:
+            raise
+    else:
+        app_logger.info(f"✓ {name} ({time.monotonic() - t0:.1f}s)")
 
 
 @asynccontextmanager
@@ -70,18 +94,25 @@ async def lifespan(app: FastAPI):
 
     # One-time startup cleanup: purge configured ignored IPs that predate the
     # tracking guard and clear stale (fully expired) ban state.
-    try:
+    with _phase(app_logger, "Database startup cleanup"):
         from database.startup import run_startup_cleanup
 
         run_startup_cleanup(
-            get_database(), config.ban_duration_seconds, config.ignored_ips
+            get_database(),
+            config.ban_duration_seconds,
+            config.ignored_ips,
+            purge_ipv6=config.ipv6_ignore and config.ipv6_purge_existing,
         )
-    except Exception as e:
-        app_logger.warning(f"Startup cleanup skipped: {e}")
 
     # Initialize cache backend (in-memory dict for standalone, Redis for scalable)
-    try:
-        if config.mode == "scalable":
+    if config.mode == "scalable":
+        # No fallback here on purpose. Falling back to the in-memory backend
+        # moves the shared ledgers (first-sighting IPs, distinct paths, auth
+        # sessions) into per-process dicts that only Redis bounds — under a
+        # flood that is an unbounded memory leak, and it used to happen behind
+        # a single WARNING. Failing loudly lets the orchestrator restart us
+        # once Redis is actually reachable.
+        with _phase(app_logger, "Redis cache init", fatal=True):
             initialize_cache(
                 mode="scalable",
                 redis_config={
@@ -96,41 +127,29 @@ async def lifespan(app: FastAPI):
                     "table_ttl": config.redis_table_ttl,
                 },
             )
-            app_logger.info(
-                f"Cache initialized with Redis at {config.redis_host}:{config.redis_port}"
-            )
-        else:
+            app_logger.info(f"Redis at {config.redis_host}:{config.redis_port}")
+    else:
+        with _phase(app_logger, "In-memory cache init"):
             initialize_cache(mode="standalone")
-            app_logger.info("Cache initialized with in-memory backend")
-    except Exception as e:
-        app_logger.warning(
-            f"Redis cache initialization failed: {e}. Falling back to in-memory cache."
-        )
-        initialize_cache(mode="standalone")
 
     # Flush stale cache from previous run so the pod starts fresh
-    try:
+    with _phase(app_logger, "Cache flush"):
         flush_cache()
-        app_logger.info("Cache flushed on startup")
-    except Exception as e:
-        app_logger.warning(f"Cache flush on startup failed: {e}")
 
     # Seed event-driven metric counters (from metrics_summary or a one-time
     # recompute). In scalable mode only the first pod actually seeds.
-    try:
+    with _phase(app_logger, "Metric counter seed"):
         import metrics_counters
 
         metrics_counters.bootstrap(get_database())
-        app_logger.info("Metric counters seeded")
-    except Exception as e:
-        app_logger.warning(f"Metric counter bootstrap failed: {e}")
 
     # Resolve server IP once (used to exclude self-traffic from stats)
-    config.resolve_server_ip()
-    if config.get_server_ip():
-        app_logger.info(f"Server public IP: {config.get_server_ip()}")
-    else:
-        app_logger.warning("Server public IP could not be determined")
+    with _phase(app_logger, "Server IP resolution"):
+        config.resolve_server_ip()
+        if config.get_server_ip():
+            app_logger.info(f"Server public IP: {config.get_server_ip()}")
+        else:
+            app_logger.warning("Server public IP could not be determined")
 
     # Log AI configuration status
     from generative_ai import (
@@ -150,24 +169,18 @@ async def lifespan(app: FastAPI):
         )
 
     # Import deception pages from templates directory
-    try:
-        imported = import_deception_pages_from_directory()
-        app_logger.info(f"Imported {imported} deception pages")
-    except Exception as e:
-        app_logger.warning(f"Failed to import deception pages: {e}")
+    with _phase(app_logger, "Deception page import"):
+        app_logger.info(f"Imported {import_deception_pages_from_directory()} pages")
 
     # Initialize tracker
     tracker = AccessTracker(config.max_pages_limit, config.ban_duration_seconds)
 
     # Initial banlist sync (before accepting traffic)
     if config.banlist_sources:
-        try:
+        with _phase(app_logger, "Initial banlist sync"):
             from banlist_sync import refresh_banlist_sources
 
             refresh_banlist_sources()
-            app_logger.info("Initial banlist sync complete")
-        except Exception as e:
-            app_logger.warning(f"Initial banlist sync failed: {e}")
 
     # Store in app.state for dependency injection
     app.state.config = config
@@ -195,8 +208,9 @@ async def lifespan(app: FastAPI):
     app.state.counter = config.canary_token_tries
 
     # Start scheduled tasks
-    tasks_master = get_tasksmaster()
-    tasks_master.run_scheduled_tasks()
+    with _phase(app_logger, "Scheduled task startup"):
+        tasks_master = get_tasksmaster()
+        tasks_master.run_scheduled_tasks()
 
     password_line = ""
     if config.dashboard_password_generated:
@@ -310,6 +324,16 @@ def create_app() -> FastAPI:
         else:
             access_logger.info(f"[{method}] {client_ip} - {path} - {status}")
         return response
+
+    # Outermost layer: ignored IPs are answered here, from the ASGI scope
+    # alone, so nothing below allocates for them. Added last because Starlette
+    # wraps in reverse registration order — last added is outermost.
+    from middleware.drop_ignored import DropIgnoredMiddleware
+
+    application.add_middleware(
+        DropIgnoredMiddleware,
+        dashboard_prefix="/" + config.dashboard_secret_path.lstrip("/"),
+    )
 
     # Mount static files for the dashboard
     static_dir = os.path.join(os.path.dirname(__file__), "templates", "static")

@@ -94,7 +94,7 @@ without one.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/api/export-ips` | Export the banlist. Supports `?categories=` and `?fwtype=` — see [Firewall Exporters](firewall-exporters.md) |
+| `GET` | `/api/export-ips` | Export the banlist. Supports `?categories=`, `?fwtype=`, `?merge_banlists=` and `?exclude_cdn=` — see [Firewall Exporters](firewall-exporters.md) |
 | `GET` | `/api/banlist-sources` | Upstream banlists currently merged into the local one |
 | `POST` | 🔒 `/api/ban-override` | Manually ban or unban an IP |
 | `POST` | 🔒 `/api/timeout-exempt` | Exempt an IP from automatic rate-limit time-bans |

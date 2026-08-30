@@ -9,7 +9,8 @@ TASK_CONFIG = {
     "name": "flag-stale-ips",
     "cron": "0 2 * * *",  # Run daily at 2 AM
     "enabled": True,
-    "run_when_loaded": True,
+    # a daily 02:00 job — running it on every restart makes a daily sweep happen N times a day.
+    "run_when_loaded": False,
 }
 
 # Set to True to force all IPs to be flagged for reevaluation on next run.

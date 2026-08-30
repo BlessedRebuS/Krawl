@@ -97,6 +97,69 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
+    Alpine.data('maintenancePanel', () => ({
+        tasks: [],
+        selected: {},
+        loading: true,
+        busy: null,
+        status: '',
+        statusOk: false,
+
+        async load() {
+            const dp = window.__DASHBOARD_PATH__ || '';
+            this.loading = true;
+            try {
+                const resp = await fetch(`${dp}/api/tasks`, { credentials: 'same-origin' });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const data = await resp.json();
+                this.tasks = data.tasks || [];
+                // Seed a selection array for every task exposing options, so
+                // x-model has something to bind to.
+                for (const t of this.tasks) {
+                    if (t.options && !this.selected[t.name]) this.selected[t.name] = [];
+                }
+            } catch (e) {
+                this.status = `Could not load tasks: ${e.message}`;
+                this.statusOk = false;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async runTask(task) {
+            const dp = window.__DASHBOARD_PATH__ || '';
+            const targets = task.options ? (this.selected[task.name] || []) : null;
+            if (task.options && targets.length === 0) {
+                this.status = 'Select at least one option before running.';
+                this.statusOk = false;
+                return;
+            }
+            this.busy = task.name;
+            this.status = '';
+            try {
+                const resp = await fetch(`${dp}/api/tasks/run`, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: task.name, targets }),
+                });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+                const detail = data.result
+                    ? ` — ${Object.entries(data.result).map(([k, v]) => `${k}: ${v}`).join(', ')}`
+                    : '';
+                this.status = `${task.name} finished in ${data.elapsed_seconds}s${detail}`;
+                this.statusOk = true;
+            } catch (e) {
+                this.status = `${task.name} failed: ${e.message}`;
+                this.statusOk = false;
+            } finally {
+                this.busy = null;
+                await this.load();
+            }
+        },
+    }));
+
     Alpine.data('webhookManagement', () => ({
         accountId: '',
         authToken: '',
@@ -269,6 +332,7 @@ document.addEventListener('alpine:init', () => {
 
         // Export IPs modal
         exportModal: { show: false, categories: ['attacker'], fwtype: 'raw', error: '', loading: false, mergeBanlists: false, excludeCdn: ['cloudflare', 'fastly', 'cloudfront', 'google', 'bunny'] },
+        maintenanceModal: { show: false },
         banlistSources: [],
         showBanlistSources: false,
 
@@ -336,6 +400,7 @@ document.addEventListener('alpine:init', () => {
                 this.switchToDeception();
             } else if (hash === 'webhooks' && this.authenticated) {
                 this.switchToWebhooks();
+
             } else if (hash === 'overview' || !hash) {
                 this.switchToOverview();
             } else {
@@ -477,6 +542,8 @@ document.addEventListener('alpine:init', () => {
         },
 
         async logout() {
+            // Maintenance is privileged; never leave it open behind a logout.
+            this.maintenanceModal.show = false;
             try {
                 await fetch(`${this.dashboardPath}/api/auth/logout`, {
                     method: 'POST',

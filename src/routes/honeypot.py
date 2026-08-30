@@ -22,9 +22,9 @@ from deception_responses import (
     get_sql_response_with_data,
 )
 from dependencies import (
-    body_too_large,
     build_raw_request,
     get_client_ip,
+    read_body_capped,
 )
 from generative_ai import (
     generate_html_for_path,
@@ -47,13 +47,7 @@ from wordlists import get_wordlists
 
 async def _safe_body(request: Request) -> str:
     """Read the request body, bounded, empty on client disconnect."""
-    try:
-        if body_too_large(request):
-            return ""
-        body_bytes = await request.body()
-        return body_bytes.decode("utf-8", errors="replace")
-    except Exception:
-        return ""
+    return (await read_body_capped(request)).decode("utf-8", errors="replace")
 
 
 # --- Auto-tracking dependency ---

@@ -622,17 +622,32 @@ class IpStatsRepo:
         finally:
             self._db.close_session()
 
-    def get_ips_needing_reevaluation(self) -> list[str]:
+    def get_ips_needing_reevaluation(self, limit: int | None = None) -> list[str]:
         """
-        Get all IP addresses that need evaluation.
+        Get IP addresses that need evaluation, most deserving first.
 
-        Returns:
-            List of IP addresses where need_reevaluation is True
-            or that have never been analyzed (last_analysis is NULL)
+        Includes IPs never analysed at all (last_analysis IS NULL) — that is
+        what keeps newly seen addresses from staying uncategorised — as well as
+        those explicitly flagged.
+
+        Ordering matters as much as the filter. The caller can only afford a
+        fixed number per run, and it used to take them with
+        `sorted(ips)[:MAX]` — lexicographically, so with a backlog larger than
+        one batch the same low addresses were re-picked every minute and the
+        tail of the address space was never analysed at all.
+
+        Ordering by last_analysis (nulls first) is self-rotating instead:
+        analysing an IP stamps it with the current time, which sends it to the
+        back of the queue, so nothing can starve. last_seen breaks ties toward
+        the addresses that are still active.
+
+        `limit` is applied in SQL. Without it this returned every matching row
+        — millions of addresses after a flood — just for the caller to discard
+        all but a couple of thousand.
         """
         session = self._db.session
         try:
-            ips = (
+            query = (
                 session.query(IpStats.ip)
                 .filter(
                     or_(
@@ -640,9 +655,17 @@ class IpStatsRepo:
                         IpStats.last_analysis.is_(None),
                     )
                 )
-                .all()
+                .order_by(
+                    # `IS NULL DESC` rather than NULLS FIRST: works on both
+                    # SQLite and PostgreSQL without a dialect branch.
+                    IpStats.last_analysis.is_(None).desc(),
+                    IpStats.last_analysis.asc(),
+                    IpStats.last_seen.desc(),
+                )
             )
-            return [ip[0] for ip in ips]
+            if limit is not None:
+                query = query.limit(limit)
+            return [ip[0] for ip in query.all()]
         finally:
             self._db.close_session()
 
@@ -997,8 +1020,24 @@ class IpStatsRepo:
                 query = query.filter(IpStats.category.in_(categories))
                 count_query = count_query.filter(IpStats.category.in_(categories))
 
-            # Get total count (direct count avoids subquery with all columns)
-            total_ips = count_query.scalar() or 0
+            # COUNT(*) has no shortcut on PostgreSQL: it walks every row.
+            # The map fetches pages sequentially, so an uncached count is paid
+            # once per page — with a flooded ip_stats that is what makes
+            # /api/all-ips hang. One cached value serves every page and every
+            # sort order. It shares the table-cache TTL and is dropped by
+            # invalidate_table_cache() after a write, so it cannot go stale
+            # past a purge. Standalone mode has no table cache and counts live.
+            from dashboard_cache import get_cached_table, set_cached_table
+
+            count_key = (
+                f"ip_stats:count:{','.join(sorted(categories))}"
+                if categories
+                else "ip_stats:count:all"
+            )
+            total_ips = get_cached_table(count_key)
+            if total_ips is None:  # 0 is a valid count, so test for None
+                total_ips = count_query.scalar() or 0
+                set_cached_table(count_key, total_ips)
 
             # Apply sorting
             sort_column = {

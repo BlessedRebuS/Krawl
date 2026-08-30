@@ -236,6 +236,11 @@ class IpStats(Base):
         Index("ix_ip_stats_last_seen", "last_seen"),
         Index("ix_ip_stats_first_seen", "first_seen"),
         Index("ix_ip_stats_reputation_score", "reputation_score"),
+        # clear_expired_bans() filters on ban_timestamp IS NOT NULL at every
+        # boot; unindexed that is a full scan of ip_stats.
+        Index("ix_ip_stats_ban_timestamp", "ban_timestamp"),
+        # analyze-ips orders the reevaluation queue by last_analysis.
+        Index("ix_ip_stats_last_analysis", "last_analysis"),
     )
 
     def __repr__(self) -> str:

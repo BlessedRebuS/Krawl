@@ -21,6 +21,13 @@ _COUNTER_PREFIX = "krawl:counter:"
 _SET_PREFIX = "krawl:counter:set:"
 _SEED_MARKER = "krawl:counter:_seeded"
 
+# Distinctness sets are append-only by design, and "paths" is keyed on
+# attacker-chosen URLs — so in standalone mode it grows for the lifetime of the
+# process. Redis holds the real set in scalable mode; this cap only bounds the
+# fallback. Past it, `unique_paths` stops rising and becomes a floor rather
+# than an exact count, which is the right trade against an OOM.
+_MAX_SET_ENTRIES = 100_000
+
 _lock = threading.Lock()
 _counters: dict[str, int] = {}
 _sets: dict[str, set] = {}
@@ -120,6 +127,8 @@ def add_to_set(name: str, member: str) -> bool:
         s = _sets.setdefault(name, set())
         if member in s:
             return False
+        if len(s) >= _MAX_SET_ENTRIES:
+            return False  # capped: stop counting rather than grow without bound
         s.add(member)
         return True
 
@@ -287,3 +296,13 @@ def reconcile(db) -> None:
         import logging
 
         logging.getLogger("krawl").exception("metrics_counters.reconcile failed")
+
+
+def get_local_set_size(name: str) -> int:
+    """Entries held in the process-local distinctness set (for monitoring).
+
+    Always the in-memory fallback, never Redis — this is here to make the
+    unbounded-growth path visible, so it must not be masked by the backend.
+    """
+    with _lock:
+        return len(_sets.get(name, ()))
