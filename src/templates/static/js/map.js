@@ -385,6 +385,10 @@ function buildMapMarkers(ips) {
     }
 }
 
+// Everything above ~72N and below ~55S is ice and empty ocean; excluding it
+// from the default view buys real estate for the latitudes traffic comes from.
+const INHABITED_BOUNDS = [[-55, -168], [72, 178]];
+
 // Tile source comes from the server (Config.map_*), so an operator can point
 // the map at any provider — and supply the API key that CARTO now requires —
 // without editing this file. Falls back to the previous hardcoded CARTO layer
@@ -407,12 +411,22 @@ async function initializeAttackerMap() {
 
     try {
         attackerMap = L.map('attacker-map', {
-            center: [20, 0],
+            center: [25, 5],
+            // Quarter-step zoom so the default view can fill the frame instead
+            // of leaving bands of empty ocean. A whole step to 3 would cut a
+            // third of the globe off the sides, which is the wrong trade for an
+            // origins map, so the zoom is fitted below rather than hardcoded.
+            zoomSnap: 0.25,
             zoom: 2,
             layers: [
                 _tileLayer()
             ]
         });
+
+        // Fit the inhabited latitude band to the frame. The right zoom depends
+        // on the container, which changes with the breakpoint, so letting
+        // Leaflet solve it beats a hardcoded value that only suits one width.
+        attackerMap.fitBounds(INHABITED_BOUNDS, { animate: false, padding: [0, 0] });
 
         const activeBtn = document.querySelector('#map-limit-selector .map-limit-btn.active');
         const limit = activeBtn ? activeBtn.dataset.value : '1000';

@@ -2095,7 +2095,7 @@ tbody {
         max-height: 300px;
     }
     #attacker-map {
-        height: 350px !important;
+        height: 460px !important;
     }
     .leaflet-popup-content {
         min-width: 200px !important;
@@ -2251,7 +2251,7 @@ tbody {
         font-size: var(--fs-2xs);
     }
     #attacker-map {
-        height: 300px !important;
+        height: 380px !important;
     }
     .leaflet-popup-content {
         min-width: 150px !important;
@@ -2303,7 +2303,7 @@ tbody {
         padding: var(--s2);
     }
     #attacker-map {
-        height: 250px !important;
+        height: 320px !important;
     }
     .ip-stats-dropdown {
         gap: var(--s3);
@@ -3325,7 +3325,7 @@ tbody {
 .col-w-130 { width: 130px; }
 .map-frame { border: 1px solid var(--line); border-radius: var(--r-md); }
 .map-frame-sm { height: 300px; }
-.map-frame-lg { height: 450px; }
+.map-frame-lg { height: 620px; }
 .dot-inline {
     display: inline-block;
     width: var(--s3);
