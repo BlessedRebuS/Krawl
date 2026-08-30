@@ -1139,8 +1139,23 @@ tbody {
 .leaflet-container {
     background: var(--bg) !important;
 }
+/* ── Map: the basemap is substrate, the markers are the subject ────
+   This panel answers one question — where is hostile traffic coming
+   from — and the category colours are the answer. So everything that is
+   not a marker gets its colour taken away: the tiles are desaturated and
+   pushed down toward --bg until the five --cat-* hues are the only
+   saturated things on screen. Saturation means threat here.
+
+   It also makes the panel provider-agnostic. Esri, CARTO and OSM tiles
+   all land in roughly the same place, which matters now that the tile
+   source is configurable. A light provider needs a stronger treatment:
+   override the token, e.g.
+       #attacker-map { --map-tile-filter: invert(1) hue-rotate(180deg) brightness(.75) saturate(.4); } */
+#attacker-map {
+    --map-tile-filter: saturate(0.35) brightness(0.62) contrast(1.05);
+}
 .leaflet-tile {
-    filter: none;
+    filter: var(--map-tile-filter);
 }
 .leaflet-popup-content-wrapper {
     background-color: var(--bg);
@@ -1223,8 +1238,65 @@ tbody {
     background: none !important;
     border: none !important;
 }
-.leaflet-bottom.leaflet-right {
-    display: none !important;
+/* Attribution is a licence condition for every provider we ship a URL for,
+   so it is styled down rather than hidden — quiet, but present and legible. */
+.leaflet-control-attribution {
+    background: color-mix(in srgb, var(--bg) 78%, transparent) !important;
+    color: var(--text-faint) !important;
+    font-family: var(--font-ui);
+    font-size: var(--fs-2xs);
+    padding: 2px var(--s2);
+    border-top-left-radius: var(--r-md);
+}
+.leaflet-control-attribution a {
+    color: var(--text-dim);
+    text-decoration: none;
+}
+.leaflet-control-attribution a:hover { color: var(--accent); }
+
+/* Zoom control: stock Leaflet ships a white box with black glyphs, which on
+   this page was the brightest thing on screen — chrome outshouting the data.
+   Same shape and hit target as the header actions, so the dashboard's
+   controls read as one family. */
+.leaflet-control-zoom {
+    border: none !important;
+    box-shadow: none !important;
+}
+.leaflet-control-zoom a.leaflet-control-zoom-in,
+.leaflet-control-zoom a.leaflet-control-zoom-out {
+    width: 30px;
+    height: 30px;
+    line-height: 28px;
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    color: var(--text-dim);
+    border: 1px solid var(--line);
+    font-size: var(--fs-lg);
+    font-weight: 400;
+    transition: color var(--dur) var(--ease),
+        background var(--dur) var(--ease),
+        border-color var(--dur) var(--ease);
+}
+.leaflet-control-zoom a.leaflet-control-zoom-in {
+    border-radius: var(--r-md) var(--r-md) 0 0;
+}
+.leaflet-control-zoom a.leaflet-control-zoom-out {
+    border-radius: 0 0 var(--r-md) var(--r-md);
+    border-top: none;
+}
+.leaflet-control-zoom a:hover {
+    background: var(--raised);
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.leaflet-control-zoom a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    z-index: 1;
+}
+.leaflet-control-zoom a.leaflet-disabled {
+    background: color-mix(in srgb, var(--surface) 60%, transparent);
+    color: var(--line);
+    cursor: not-allowed;
 }
 .charts-container {
     display: grid;
@@ -2023,7 +2095,7 @@ tbody {
         max-height: 300px;
     }
     #attacker-map {
-        height: 350px !important;
+        height: 460px !important;
     }
     .leaflet-popup-content {
         min-width: 200px !important;
@@ -2179,7 +2251,7 @@ tbody {
         font-size: var(--fs-2xs);
     }
     #attacker-map {
-        height: 300px !important;
+        height: 380px !important;
     }
     .leaflet-popup-content {
         min-width: 150px !important;
@@ -2231,7 +2303,7 @@ tbody {
         padding: var(--s2);
     }
     #attacker-map {
-        height: 250px !important;
+        height: 320px !important;
     }
     .ip-stats-dropdown {
         gap: var(--s3);
@@ -3253,7 +3325,7 @@ tbody {
 .col-w-130 { width: 130px; }
 .map-frame { border: 1px solid var(--line); border-radius: var(--r-md); }
 .map-frame-sm { height: 300px; }
-.map-frame-lg { height: 450px; }
+.map-frame-lg { height: 620px; }
 .dot-inline {
     display: inline-block;
     width: var(--s3);

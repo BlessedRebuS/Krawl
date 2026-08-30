@@ -15,6 +15,10 @@
     <script src="{{ dashboard_path }}/static/vendor/js/htmx.min.js" defer></script>
     <script defer src="{{ dashboard_path }}/static/vendor/js/alpine.min.js"></script>
     <script>window.__DASHBOARD_PATH__ = '{{ dashboard_path }}';</script>
+    {# Tile config is resolved server-side (see Config.map_*). The key is
+       necessarily public — the browser fetches tiles directly — so restrict it
+       by domain at the provider. #}
+    <script>window.__MAP_TILES__ = {{ (map_tiles or {}) | tojson }};</script>
 </head>
 <body>
     {% block content %}{% endblock %}

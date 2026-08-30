@@ -34,6 +34,24 @@ def _get_krawl_version() -> str:
     return "dev"
 
 
+def _map_tiles(config) -> dict:
+    """Resolve the tile layer passed to Leaflet.
+
+    The API key is appended as a query parameter because that is how CARTO and
+    most raster providers take it. It ends up in the page source, which is
+    unavoidable for a client-side map: the browser requests tiles itself. Lock
+    the key to your dashboard domain at the provider.
+    """
+    url = config.map_tile_url
+    if config.map_api_key:
+        url += ("&" if "?" in url else "?") + f"key={config.map_api_key}"
+    return {
+        "url": url,
+        "attribution": config.map_tile_attribution,
+        "subdomains": config.map_tile_subdomains,
+    }
+
+
 KRAWL_VERSION = _get_krawl_version()
 
 
@@ -98,6 +116,7 @@ async def dashboard_page(request: Request):
             "stats": clean_stats,
             "suspicious_activities": suspicious,
             "krawl_version": KRAWL_VERSION,
+            "map_tiles": _map_tiles(config),
         },
     )
 
@@ -135,6 +154,7 @@ async def ip_page(ip_address: str, request: Request):
                     "dashboard_path": dashboard_path,
                     "stats": clean_stats,
                     "ip_address": ip_address,
+                    "map_tiles": _map_tiles(config),
                 },
             )
         else:
