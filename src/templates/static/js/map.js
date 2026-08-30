@@ -426,11 +426,20 @@ async function initializeAttackerMap() {
     try {
         attackerMap = L.map('attacker-map', {
             center: [25, 5],
-            // Quarter-step zoom so the default view can fill the frame instead
-            // of leaving bands of empty ocean. A whole step to 3 would cut a
-            // third of the globe off the sides, which is the wrong trade for an
-            // origins map, so the zoom is fitted below rather than hardcoded.
-            zoomSnap: 0.25,
+            // Half-level zoom steps. Fractional zoom is what lets the default
+            // view fit the frame instead of snapping to a whole level and
+            // leaving bands of empty ocean; finer than this made the wheel
+            // crawl, because a trackpad's small deltas each round to a tiny
+            // step.
+            zoomSnap: 0.5,
+            // Wheel speed, in pixels of scroll per zoom level. Leaflet's
+            // default of 60 assumes whole-level steps; with zoomSnap at 0.5
+            // each gesture rounds up to half a level instead of a full one,
+            // which halves the distance travelled and is what made the wheel
+            // feel slow. Measured against stock Leaflet — 240px of scroll
+            // moves 4 levels — 15 restores that, and lower is faster still.
+            wheelPxPerZoomLevel: 15,
+            wheelDebounceTime: 20,
             zoom: 2,
             layers: [
                 _tileLayer()
