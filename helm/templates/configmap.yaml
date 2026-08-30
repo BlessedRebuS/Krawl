@@ -83,6 +83,11 @@ data:
     ipv6:
       ignore: {{ .Values.config.ipv6.ignore }}
       purge_existing: {{ .Values.config.ipv6.purge_existing }}
+    map:
+      tile_url: {{ .Values.config.map.tile_url | quote }}
+      attribution: {{ .Values.config.map.attribution | quote }}
+      subdomains: {{ .Values.config.map.subdomains | quote }}
+      api_key: {{ .Values.config.map.api_key | quote }}
     tarpit:
       enabled: {{ .Values.config.tarpit.enabled }}
       delay_seconds: {{ .Values.config.tarpit.delay_seconds }}

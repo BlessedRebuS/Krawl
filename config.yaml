@@ -139,6 +139,32 @@ ignored_ips:
   - fc00::/7         # IPv6 unique local
   - fe80::/10        # IPv6 link-local
 
+# Map tiles for the dashboard's IP origins map.
+#
+# CARTO now stamps "API KEY REQUIRED" across tiles served without a key, so the
+# default is Esri's dark canvas, which needs no key. To go back to CARTO, sign
+# up at carto.com/basemaps/apikey, set api_key below, and uncomment its URL.
+#
+# `{z}/{x}/{y}` are required; `{s}` (subdomain) and `{r}` (retina) are optional.
+map:
+  # Esri dark canvas — keyless, no watermark (default).
+  tile_url: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+  attribution: "&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors"
+
+  # CARTO dark — needs an API key, otherwise every tile is watermarked.
+  # tile_url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+  # attribution: "&copy; CARTO | &copy; OpenStreetMap contributors"
+
+  # OpenStreetMap — keyless, but light-themed; see docs for the CSS invert.
+  # tile_url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+  # attribution: "&copy; OpenStreetMap contributors"
+
+  subdomains: "abcd"
+  # Appended to every tile request as ?key=... Also KRAWL_MAP_API_KEY.
+  # It is served in the page source (the browser fetches tiles itself), so
+  # restrict the key to your dashboard domain at the provider.
+  api_key: ""
+
 tarpit:
   enabled: false  # Opt-in: trap AI agents with slow responses and random text
   delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active

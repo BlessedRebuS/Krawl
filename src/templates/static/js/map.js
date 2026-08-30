@@ -385,6 +385,22 @@ function buildMapMarkers(ips) {
     }
 }
 
+// Tile source comes from the server (Config.map_*), so an operator can point
+// the map at any provider — and supply the API key that CARTO now requires —
+// without editing this file. Falls back to the previous hardcoded CARTO layer
+// if the page did not supply one.
+function _tileLayer() {
+    const cfg = window.__MAP_TILES__ || {};
+    return L.tileLayer(
+        cfg.url || 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        {
+            attribution: cfg.attribution || '&copy; CartoDB | &copy; OpenStreetMap contributors',
+            maxZoom: 19,
+            subdomains: cfg.subdomains || 'abcd'
+        }
+    );
+}
+
 async function initializeAttackerMap() {
     const mapContainer = document.getElementById('attacker-map');
     if (!mapContainer || attackerMap) return;
@@ -394,11 +410,7 @@ async function initializeAttackerMap() {
             center: [20, 0],
             zoom: 2,
             layers: [
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                    attribution: '&copy; CartoDB | &copy; OpenStreetMap contributors',
-                    maxZoom: 19,
-                    subdomains: 'abcd'
-                })
+                _tileLayer()
             ]
         });
 

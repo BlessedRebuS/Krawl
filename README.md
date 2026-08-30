@@ -374,6 +374,9 @@ Storage location, how long data is kept, and the dump job.
 |----------------------|-------------|---------|
 | `KRAWL_DATABASE_PATH` | Database file location | `data/krawl.db` |
 | `KRAWL_DATABASE_PERSIST_SUSPICIOUS_ONLY` | Only persist suspicious requests to the access log | `false` |
+| `KRAWL_MAP_TILE_URL` | Tile URL template for the dashboard map (`{z}/{x}/{y}`, optional `{s}`/`{r}`) | Esri dark canvas |
+| `KRAWL_MAP_TILE_ATTRIBUTION` | Attribution shown on the map | Esri/OSM |
+| `KRAWL_MAP_API_KEY` | Appended to every tile request as `?key=` — required by CARTO | _(empty)_ |
 | `KRAWL_IPV6_IGNORE` | Drop IPv6 requests entirely: still logged to stdout, never persisted, ban-checked or exported | `false` |
 | `KRAWL_IPV6_PURGE_EXISTING` | Also delete existing IPv6 rows at the next startup (irreversible; requires `KRAWL_IPV6_IGNORE`) | `false` |
 | `KRAWL_DATABASE_RETENTION_DAYS` | Days to retain data in database | `30` |
