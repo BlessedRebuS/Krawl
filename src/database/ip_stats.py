@@ -997,8 +997,24 @@ class IpStatsRepo:
                 query = query.filter(IpStats.category.in_(categories))
                 count_query = count_query.filter(IpStats.category.in_(categories))
 
-            # Get total count (direct count avoids subquery with all columns)
-            total_ips = count_query.scalar() or 0
+            # COUNT(*) has no shortcut on PostgreSQL: it walks every row.
+            # The map fetches pages sequentially, so an uncached count is paid
+            # once per page — with a flooded ip_stats that is what makes
+            # /api/all-ips hang. One cached value serves every page and every
+            # sort order. It shares the table-cache TTL and is dropped by
+            # invalidate_table_cache() after a write, so it cannot go stale
+            # past a purge. Standalone mode has no table cache and counts live.
+            from dashboard_cache import get_cached_table, set_cached_table
+
+            count_key = (
+                f"ip_stats:count:{','.join(sorted(categories))}"
+                if categories
+                else "ip_stats:count:all"
+            )
+            total_ips = get_cached_table(count_key)
+            if total_ips is None:  # 0 is a valid count, so test for None
+                total_ips = count_query.scalar() or 0
+                set_cached_table(count_key, total_ips)
 
             # Apply sorting
             sort_column = {
