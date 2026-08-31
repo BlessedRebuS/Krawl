@@ -241,20 +241,10 @@ dashboard:
 
 The IP Origins Map uses a bundled offline basemap (z0–z6 raster tiles). No tile
 provider, API key, or outbound network access is required — the entire pyramid
-is shipped inside the repo at `src/templates/static/tiles/`.
-
-The tiles are downloaded once at build time by `scripts/build_tiles.py` (Esri
-Canvas World Dark Gray Base, keyless) and committed to the repo.  There is
-intentionally no runtime configuration surface for the tile source.
-
-#### Regenerating the tiles
-
-```bash
-python scripts/build_tiles.py
-```
-
-This re-downloads z0–z6 and writes them to `src/templates/static/tiles/`.
-Commit the result.
+is shipped inside the repo at `src/templates/static/tiles/` and served as a
+static asset. There is intentionally no runtime configuration surface for the
+tile source and no build step at deploy time; the tiles are committed to the
+repository.
 
 #### Adjusting how the basemap looks
 
