@@ -21,6 +21,12 @@
     --line-soft: #18222f;
     --scrim: rgba(4, 7, 11, 0.72);
 
+    /* The bundled offline dark tiles are pushed down toward --bg so the
+       --cat-* marker colours are the only saturated things on screen.
+       Defined here (not on a single map) so both the main IP map and the
+       per-IP popup map share the same treatment. */
+    --map-tile-filter: saturate(0.3) brightness(0.5) contrast(1.02);
+
     /* ── Text ─────────────────────────────────────────────────── */
     --text: #dde5f0;
     --text-strong: #f2f7ff;
@@ -1146,14 +1152,9 @@ tbody {
    pushed down toward --bg until the five --cat-* hues are the only
    saturated things on screen. Saturation means threat here.
 
-   It also makes the panel provider-agnostic. Esri, CARTO and OSM tiles
-   all land in roughly the same place, which matters now that the tile
-   source is configurable. A light provider needs a stronger treatment:
-   override the token, e.g.
-       #attacker-map { --map-tile-filter: invert(1) hue-rotate(180deg) brightness(.75) saturate(.4); } */
-#attacker-map {
-    --map-tile-filter: saturate(0.35) brightness(0.62) contrast(1.05);
-}
+   It also makes the panel provider-agnostic. The single bundled offline dark
+   tile style already sits close to this target; the filter (see :root) keeps
+   the subject sharp. */
 .leaflet-tile {
     filter: var(--map-tile-filter);
 }

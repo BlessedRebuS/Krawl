@@ -292,11 +292,10 @@
             scrollWheelZoom: true
         });
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; CartoDB | &copy; OpenStreetMap contributors',
-            maxZoom: 19,
-            subdomains: 'abcd'
-        }).addTo(map);
+        L.tileLayer(
+            (window.__DASHBOARD_PATH__ || '') + '/static/tiles/{z}/{x}/{y}.jpg',
+            { attribution: '&copy; OpenStreetMap contributors', maxZoom: 6 }
+        ).addTo(map);
 
         var color = categoryColors[category] || 'var(--text-dim)';
         var markerHtml = '<div style="width:24px;height:24px;background:' + color +

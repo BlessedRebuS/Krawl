@@ -245,14 +245,6 @@ config:
     ignore: false          # Drop IPv6 requests: logged to stdout, never persisted or ban-checked
     purge_existing: false  # Also delete existing IPv6 rows at next startup (irreversible)
 
-  map:
-    # CARTO watermarks unkeyed tiles; the default below is keyless. See
-    # config.yaml for alternative providers.
-    tile_url: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-    attribution: "&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors"
-    subdomains: "abcd"
-    api_key: ""   # served in the page source; restrict it by domain
-
   tarpit:
     enabled: false  # Opt-in: trap AI agents with slow responses and random text
     delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active

@@ -14,7 +14,7 @@ Krawl is a cloud-native deception honeypot server built on **FastAPI**. It creat
 | **Reactivity** | Alpine.js 3.14 |
 | **Partial Updates** | HTMX 2.0 |
 | **Charts** | Chart.js 3.9 (doughnut), custom SVG radar |
-| **Maps** | Leaflet 1.9 + CartoDB dark tiles |
+| **Maps** | Leaflet 1.9 + bundled offline dark tiles (z0–z6) |
 | **Scheduling** | APScheduler |
 | **Container** | Docker (python:3.11-slim), Helm/K8s ready |
 
@@ -286,7 +286,9 @@ base.html
 **Responsibility split:**
 - **Alpine.js** — Tab state, modals, dropdowns, lazy initialization
 - **HTMX** — Table pagination, sorting, IP detail expansion
-- **Leaflet** — Interactive map with category-colored markers
+- **Leaflet** — Interactive map with category-colored markers; basemap is a
+  bundled offline tile pyramid (z0–z6) served from `/static/tiles` with no
+  network access or configuration
 - **Chart.js** — Doughnut chart for attack type distribution
 - **Custom SVG** — Radar charts for IP category scores
 

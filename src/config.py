@@ -29,17 +29,6 @@ DEFAULT_IGNORED_IPS = [
 ]
 
 
-# Esri's dark canvas: no API key, no watermark, and a companion labels layer.
-# CARTO's equivalent now requires a key. Swap via the `map:` config section.
-_DEFAULT_TILE_URL = (
-    "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/"
-    "World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-)
-_DEFAULT_TILE_ATTRIBUTION = (
-    "&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors"
-)
-
-
 @dataclass
 class Config:
     """Configuration class for the deception server"""
@@ -111,14 +100,6 @@ class Config:
     # in the database at the next startup.
     ipv6_ignore: bool = False
     ipv6_purge_existing: bool = False
-
-    # Map tiles. The default provider is keyless; set map_api_key when using a
-    # provider that requires one (CARTO started stamping "API KEY REQUIRED"
-    # across unkeyed tiles). See config.yaml for alternative tile_url values.
-    map_tile_url: str = _DEFAULT_TILE_URL
-    map_tile_attribution: str = _DEFAULT_TILE_ATTRIBUTION
-    map_tile_subdomains: str = "abcd"
-    map_api_key: str = ""
 
     # Analyzer settings
     http_risky_methods_threshold: float = None
@@ -243,7 +224,6 @@ class Config:
         backups = data.get("backups", {})
         database = data.get("database", {})
         ipv6_cfg = data.get("ipv6", {})
-        map_cfg = data.get("map", {})
         behavior = data.get("behavior", {})
         analyzer = data.get("analyzer") or {}
         crawl = data.get("crawl", {})
@@ -335,12 +315,6 @@ class Config:
             ),
             ipv6_ignore=ipv6_cfg.get("ignore", False),
             ipv6_purge_existing=ipv6_cfg.get("purge_existing", False),
-            map_tile_url=map_cfg.get("tile_url") or _DEFAULT_TILE_URL,
-            map_tile_attribution=(
-                map_cfg.get("attribution") or _DEFAULT_TILE_ATTRIBUTION
-            ),
-            map_tile_subdomains=map_cfg.get("subdomains", "abcd"),
-            map_api_key=map_cfg.get("api_key", ""),
             http_risky_methods_threshold=analyzer.get(
                 "http_risky_methods_threshold", 0.1
             ),

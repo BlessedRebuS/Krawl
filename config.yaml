@@ -119,24 +119,9 @@ ignored_ips:
   - fc00::/7         # IPv6 unique local
   - fe80::/10        # IPv6 link-local
 
-# Basemap for the IP origins map. {z}/{x}/{y} required; {s} and {r} optional.
-map:
-  # Esri dark canvas: keyless, no watermark.
-  tile_url: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-  attribution: "&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors"
-
-  # CARTO dark: watermarks every tile unless api_key is set.
-  # tile_url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-  # attribution: "&copy; CARTO | &copy; OpenStreetMap contributors"
-
-  # OpenStreetMap: keyless but light-themed, needs the CSS invert in the docs.
-  # tile_url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-  # attribution: "&copy; OpenStreetMap contributors"
-
-  subdomains: "abcd"
-  # Sent as ?key= on every tile request, and visible in the page source.
-  # Restrict it to your dashboard domain at the provider. Also KRAWL_MAP_API_KEY.
-  api_key: ""
+# The dashboard map uses a bundled offline basemap (z0-z6) served from
+# /static/tiles. No tile provider, API key, or network access is required;
+# there is intentionally no `map:` section to configure.
 
 tarpit:
   enabled: false  # Opt-in: trap AI agents with slow responses and random text

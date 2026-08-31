@@ -403,19 +403,12 @@ function fitToMarkers() {
 // enough north and south to keep every inhabited coastline off the edge.
 const INHABITED_BOUNDS = [[-58, -180], [80, 180]];
 
-// Tile source comes from the server (Config.map_*), so an operator can point
-// the map at any provider — and supply the API key that CARTO now requires —
-// without editing this file. Falls back to the previous hardcoded CARTO layer
-// if the page did not supply one.
+// Offline basemap: z0-z6 raster tiles shipped with the repo. No external
+// requests, no API key, no watermark.
 function _tileLayer() {
-    const cfg = window.__MAP_TILES__ || {};
     return L.tileLayer(
-        cfg.url || 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        {
-            attribution: cfg.attribution || '&copy; CartoDB | &copy; OpenStreetMap contributors',
-            maxZoom: 19,
-            subdomains: cfg.subdomains || 'abcd'
-        }
+        `${window.__DASHBOARD_PATH__ || ''}/static/tiles/{z}/{x}/{y}.jpg`,
+        { attribution: '&copy; OpenStreetMap contributors', maxZoom: 6 }
     );
 }
 
