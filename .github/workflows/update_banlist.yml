@@ -35,6 +35,8 @@ jobs:
 
       - name: Create Pull Request
         if: steps.diff.outputs.changed == 'true'
+        env:
+          HOME: ${{ runner.temp }}
         uses: peter-evans/create-pull-request@v8
         with:
           title: 'Community banlist update'
