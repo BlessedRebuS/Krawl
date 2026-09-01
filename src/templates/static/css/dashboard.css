@@ -512,7 +512,7 @@ tbody {
     flex: 1;
     min-width: 0;
     overflow: auto;
-    max-height: 350px;
+    max-height: 560px;
 }
 .timeline-column:first-child {
     flex: 1.5;
@@ -762,7 +762,7 @@ tbody {
 
 /* Scrollable reputation container */
 .ip-rep-scroll {
-    max-height: 200px;
+    max-height: 420px;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--line) var(--surface);
@@ -782,9 +782,9 @@ tbody {
     background: var(--text-faint);
 }
 
-/* Scrollable behavior timeline – show ~5 entries max */
+/* Scrollable behavior timeline */
 .ip-timeline-scroll {
-    max-height: 230px;
+    max-height: 420px;
     overflow-y: auto;
     min-height: 0;
     scrollbar-width: thin;
@@ -1121,8 +1121,9 @@ tbody {
     border: 1px solid var(--line);
     border-radius: var(--r-md);
     padding: var(--s8);
-    max-width: 900px;
-    max-height: 90vh;
+    width: 1240px;
+    max-width: 94vw;
+    max-height: 92vh;
     overflow-y: auto;
     position: relative;
 }
@@ -1395,7 +1396,7 @@ tbody {
     color: var(--text);
     white-space: pre-wrap;
     word-wrap: break-word;
-    max-height: 400px;
+    max-height: 60vh;
     overflow-y: auto;
 }
 .raw-token-method {
@@ -2809,16 +2810,17 @@ tbody {
     background-color: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--r-lg);
-    width: 900px;
-    max-width: 92vw;
-    max-height: 85vh;
+    width: 1400px;
+    max-width: 94vw;
+    /* An expanded table is only reachable by asking for it, so give it the
+       screen. A fixed height beats max-height here: the body then owns the
+       one scrollbar, instead of the panel shrinking to a letterbox and
+       handing every inner block its own slider. */
+    height: 88vh;
     display: flex;
     flex-direction: column;
     box-shadow: 0 16px 48px var(--scrim);
     animation: authModalIn 0.2s ease-out;
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
 }
 .expand-overlay-header {
     padding: var(--s4) var(--s6);
