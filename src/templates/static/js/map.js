@@ -432,14 +432,14 @@ async function initializeAttackerMap() {
             // crawl, because a trackpad's small deltas each round to a tiny
             // step.
             zoomSnap: 0.5,
-            // Wheel speed, in pixels of scroll per zoom level. Leaflet's
-            // default of 60 assumes whole-level steps; with zoomSnap at 0.5
-            // each gesture rounds up to half a level instead of a full one,
-            // which halves the distance travelled and is what made the wheel
-            // feel slow. Measured against stock Leaflet — 240px of scroll
-            // moves 4 levels — 15 restores that, and lower is faster still.
-            wheelPxPerZoomLevel: 15,
-            wheelDebounceTime: 20,
+            // Wheel speed, in pixels of scroll per zoom level — higher is
+            // gentler. 15 made a single mouse notch jump several levels, so
+            // the map overshot whatever the reader was aiming at. 120 puts
+            // one notch at roughly half a level, which is the step zoomSnap
+            // is set up for; the debounce coalesces a trackpad's flurry of
+            // small deltas into that same step instead of stacking them.
+            wheelPxPerZoomLevel: 120,
+            wheelDebounceTime: 40,
             zoom: 2,
             layers: [
                 _tileLayer()

@@ -75,6 +75,7 @@ class Config:
     dashboard_secret_path: str = None
     dashboard_password: str | None = None
     dashboard_password_generated: bool = False
+    dashboard_secret_path_generated: bool = False
     dashboard_cache_warmup: bool = True
     dashboard_warmup_pages: int = 10
     dashboard_warmup_aggregation: bool = False
@@ -86,7 +87,7 @@ class Config:
 
     # Crawl limiting settings - for legitimate vs malicious crawlers
     max_pages_limit: int = (
-        100  # Max pages limit for good crawlers and regular users (and bad crawlers/attackers if infinite_pages_for_malicious is False)
+        250  # Max pages limit for good crawlers and regular users (and bad crawlers/attackers if infinite_pages_for_malicious is False)
     )
     infinite_pages_for_malicious: bool = True  # Infinite pages for malicious crawlers
     ban_duration_seconds: int = 600  # Ban duration in seconds for IPs exceeding limits
@@ -121,12 +122,12 @@ class Config:
     map_api_key: str = ""
 
     # Analyzer settings
-    http_risky_methods_threshold: float = None
-    violated_robots_threshold: float = None
-    uneven_request_timing_threshold: float = None
-    uneven_request_timing_time_window_seconds: float = None
-    user_agents_used_threshold: float = None
-    attack_urls_threshold: float = None
+    http_risky_methods_threshold: float = 0.1
+    violated_robots_threshold: float = 0.1
+    uneven_request_timing_threshold: float = 0.5
+    uneven_request_timing_time_window_seconds: float = 300
+    user_agents_used_threshold: float = 2
+    attack_urls_threshold: float = 1
 
     # Tarpit settings - opt-in feature to slow down and confuse AI crawlers
     tarpit_enabled: bool = False
@@ -140,6 +141,8 @@ class Config:
     ai_openai_base_url: str | None = "https://api.openai.com/v1"
     ai_api_key: str | None = None
     ai_model: str = "nvidia/nemotron-3-super-120b-a12b:free"
+    # No default: the prompt is config.yaml's to own. Shipping a second copy
+    # here only creates a version that silently disagrees with the file.
     ai_prompt: str = ""
     ai_timeout: int = 60
     ai_max_daily_requests: int = 0
@@ -262,8 +265,10 @@ class Config:
 
         # Handle dashboard_secret_path - auto-generate if null/not set
         dashboard_path = dashboard.get("secret_path")
+        dashboard_secret_path_generated = False
         if dashboard_path is None:
             dashboard_path = f"/{os.urandom(16).hex()}"
+            dashboard_secret_path_generated = True
         else:
             # ensure the dashboard path starts with a /
             if dashboard_path[:1] != "/":
@@ -319,6 +324,7 @@ class Config:
             dashboard_secret_path=dashboard_path,
             dashboard_password=dashboard_password,
             dashboard_password_generated=dashboard_password_generated,
+            dashboard_secret_path_generated=dashboard_secret_path_generated,
             dashboard_cache_warmup=dashboard.get("cache_warmup", True),
             dashboard_warmup_pages=int(dashboard.get("warmup_pages", 10)),
             dashboard_warmup_aggregation=dashboard.get("warmup_aggregation", False),
@@ -327,7 +333,7 @@ class Config:
             probability_error_codes=behavior.get("probability_error_codes", 0),
             backups_path=backups.get("path", "backups"),
             backups_enabled=backups.get("enabled", False),
-            backups_cron=backups.get("cron"),
+            backups_cron=backups.get("cron", "*/30 * * * *"),
             database_path=database.get("path", "data/krawl.db"),
             database_retention_days=database.get("retention_days", 30),
             database_persist_suspicious_only=database.get(
@@ -371,23 +377,7 @@ class Config:
             ai_model=ai.get("model", "nvidia/nemotron-3-super-120b-a12b:free"),
             ai_reasoning_enabled=ai.get("reasoning", {}).get("enabled", True),
             ai_reasoning_effort=ai.get("reasoning", {}).get("effort", "medium"),
-            ai_prompt=ai.get(
-                "prompt",
-                """Your goal is to create a plausible but fake intentionally vulnerable page that might appear on a real server, that can distract attackers. 
-Your input will be a query path, that the attacker asked for. 
-
-Follow this rules:
-1. You must output ONLY the HTML, nothing else
-2. Include realistic content if necessary (links, text, forms, etc.)
-3. Do not add markdown, code blocks, or explanations
-4. Do not include any file in the html, generate everything needed in one single file
-5. Include proper HTML structure with head and body tags
-6. If the request is a common attack vector (e.g., SQLi, XSS), include fake data in response
-7. If the request has a file extension, generate a RAW content relevant to that type (e.g. a fake json for .json requests)
-
-Path: {path}{query_part}
-Generate the complete HTML page.""",
-            ),
+            ai_prompt=ai.get("prompt", ""),
             ai_timeout=ai.get("timeout", 60),
             ai_max_daily_requests=ai.get("max_daily_requests", 0),
             deception_import_pages=deception.get("import_pages", True),

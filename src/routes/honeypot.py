@@ -457,7 +457,13 @@ async def trap_page(request: Request, path: str):
                 access_logger.info(
                     f"[AI GENERATED] {client_ip} - {full_path} - {provider}/{model}"
                 )
-            return HTMLResponse(content=html_content, status_code=status_code)
+            # Honour the generated content type: HTMLResponse would stamp
+            # text/html on a sourcemap or a .env dump and give the game away.
+            return Response(
+                content=html_content,
+                status_code=status_code,
+                media_type=content_type,
+            )
         except Exception as err:
             app_logger.warning(
                 f"AI generation failed for {full_path}, falling back to default: {err}"

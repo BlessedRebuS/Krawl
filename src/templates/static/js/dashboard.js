@@ -97,13 +97,22 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
-    Alpine.data('maintenancePanel', () => ({
+    Alpine.data('settingsPanel', () => ({
+        tab: 'maintenance',
         tasks: [],
         selected: {},
         loading: true,
         busy: null,
         status: '',
         statusOk: false,
+
+        // Configuration tab. Fetched on first open rather than with the
+        // modal, so opening Maintenance stays one request.
+        configSections: [],
+        configLoading: false,
+        configLoaded: false,
+        configError: '',
+        configFilter: '',
 
         async load() {
             const dp = window.__DASHBOARD_PATH__ || '';
@@ -157,6 +166,56 @@ document.addEventListener('alpine:init', () => {
                 this.busy = null;
                 await this.load();
             }
+        },
+
+        showConfig() {
+            this.tab = 'config';
+            if (!this.configLoaded) this.loadConfig();
+        },
+
+        async loadConfig() {
+            const dp = window.__DASHBOARD_PATH__ || '';
+            this.configLoading = true;
+            this.configError = '';
+            try {
+                const resp = await fetch(`${dp}/api/config`, { credentials: 'same-origin' });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const data = await resp.json();
+                this.configSections = data.sections || [];
+                this.configLoaded = true;
+            } catch (e) {
+                this.configError = `Could not load configuration: ${e.message}`;
+            } finally {
+                this.configLoading = false;
+            }
+        },
+
+        // Match on the full key, not the shortened label, so typing "postgres"
+        // finds the whole block even though the rows there read "host", "port".
+        visibleFields(section) {
+            const q = this.configFilter.trim().toLowerCase();
+            if (!q) return section.fields;
+            return section.fields.filter((f) =>
+                f.key.toLowerCase().includes(q) ||
+                section.name.toLowerCase().includes(q) ||
+                (!f.sensitive && this.formatValue(f.value).toLowerCase().includes(q))
+            );
+        },
+
+        anyVisible() {
+            return this.configSections.some((s) => this.visibleFields(s).length > 0);
+        },
+
+        isEmpty(value) {
+            return value === null || value === undefined || value === '' ||
+                (Array.isArray(value) && value.length === 0);
+        },
+
+        formatValue(value) {
+            if (this.isEmpty(value)) return 'not set';
+            if (Array.isArray(value)) return value.join(', ');
+            if (typeof value === 'boolean') return value ? 'true' : 'false';
+            return String(value);
         },
     }));
 
@@ -332,7 +391,7 @@ document.addEventListener('alpine:init', () => {
 
         // Export IPs modal
         exportModal: { show: false, categories: ['attacker'], fwtype: 'raw', error: '', loading: false, mergeBanlists: false, excludeCdn: ['cloudflare', 'fastly', 'cloudfront', 'google', 'bunny'] },
-        maintenanceModal: { show: false },
+        settingsModal: { show: false },
         banlistSources: [],
         showBanlistSources: false,
 
@@ -543,7 +602,7 @@ document.addEventListener('alpine:init', () => {
 
         async logout() {
             // Maintenance is privileged; never leave it open behind a logout.
-            this.maintenanceModal.show = false;
+            this.settingsModal.show = false;
             try {
                 await fetch(`${this.dashboardPath}/api/auth/logout`, {
                     method: 'POST',

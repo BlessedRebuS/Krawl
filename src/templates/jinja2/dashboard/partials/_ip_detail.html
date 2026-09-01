@@ -285,18 +285,27 @@
             unknown: 'var(--text-dim)'
         };
 
+        // Same wheel feel and tile source as the dashboard map — this used to
+        // hardcode CARTO, so an operator who pointed Config.map_* somewhere
+        // else still got the old tiles here.
         var map = L.map(UID + '-ip-map', {
             center: [lat, lng],
             zoom: 6,
             zoomControl: true,
-            scrollWheelZoom: true
+            scrollWheelZoom: true,
+            zoomSnap: 0.5,
+            wheelPxPerZoomLevel: 120,
+            wheelDebounceTime: 40
         });
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; CartoDB | &copy; OpenStreetMap contributors',
-            maxZoom: 19,
-            subdomains: 'abcd'
-        }).addTo(map);
+        (typeof _tileLayer === 'function'
+            ? _tileLayer()
+            : L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; CartoDB | &copy; OpenStreetMap contributors',
+                maxZoom: 19,
+                subdomains: 'abcd'
+            })
+        ).addTo(map);
 
         var color = categoryColors[category] || 'var(--text-dim)';
         var markerHtml = '<div style="width:24px;height:24px;background:' + color +

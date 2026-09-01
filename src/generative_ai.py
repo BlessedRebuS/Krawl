@@ -519,6 +519,53 @@ async def _call_api(
         raise RuntimeError(f"{provider} unexpected response: {body}") from err
 
 
+# What a request for this path should come back as. Derived from the
+# extension rather than sniffed from the body, so a cached response is served
+# with the same type as the generation that produced it.
+_CONTENT_TYPES = {
+    "json": "application/json",
+    "map": "application/json",
+    "xml": "application/xml",
+    "rss": "application/xml",
+    "js": "application/javascript",
+    "css": "text/css",
+    "csv": "text/csv",
+    "txt": "text/plain",
+    "log": "text/plain",
+    "md": "text/plain",
+    "ini": "text/plain",
+    "conf": "text/plain",
+    "cfg": "text/plain",
+    "yml": "text/plain",
+    "yaml": "text/plain",
+    "env": "text/plain",
+    "sql": "text/plain",
+    "sh": "text/plain",
+    "py": "text/plain",
+    "php": "text/plain",
+    "bak": "text/plain",
+    "pem": "text/plain",
+    "key": "text/plain",
+}
+
+
+def content_type_for_path(path: str) -> str:
+    """The Content-Type a real server would answer this path with.
+
+    A scanner asking for /app.js.map and getting text/html back has learned it
+    is not talking to a real server, which is the one thing a honeypot cannot
+    afford. Dotfiles with no extension (.env, .npmrc) are text too.
+    """
+    name = path.rsplit("/", 1)[-1].lower()
+    if "." not in name:
+        return "text/html"
+    ext = name.rsplit(".", 1)[-1]
+    if not ext and name.startswith("."):
+        # e.g. "/.env" splits to ext "env" already; this covers a bare dot.
+        return "text/plain"
+    return _CONTENT_TYPES.get(ext, "text/html")
+
+
 async def generate_html_for_path(
     path: str, query: str = ""
 ) -> tuple[str, str, int, bool]:
@@ -543,7 +590,7 @@ async def generate_html_for_path(
         logger.debug(
             f"[DB CACHE HIT] Retrieved cached AI-generated page for path: {path}"
         )
-        return (cached_html, "text/html", 200, True)
+        return (cached_html, content_type_for_path(path), 200, True)
 
     # No cached page - check if we can generate new ones
     if not is_ai_enabled():
@@ -576,9 +623,27 @@ async def generate_html_for_path(
     provider = get_provider()
     openai_base_url = config.ai_openai_base_url
 
-    # Build prompt for AI
+    # Build prompt for AI. The prompt lives only in config.yaml, so an empty
+    # one means the key is missing — fall back to the static honeypot rather
+    # than paying for a request that asks the model nothing.
+    if not config.ai_prompt.strip():
+        logger.error(
+            "ai.prompt is empty in config.yaml; skipping AI generation for "
+            f"{path}. Set ai.prompt to enable generated pages."
+        )
+        raise RuntimeError("ai.prompt is not configured")
+
     query_part = f"?{query}" if query else ""
-    prompt = config.ai_prompt.format(path=path, query_part=query_part)
+    try:
+        prompt = config.ai_prompt.format(path=path, query_part=query_part)
+    except (KeyError, IndexError) as err:
+        # Only {path} and {query_part} exist; any other brace in the configured
+        # prompt lands here instead of taking the request down.
+        logger.error(
+            f"ai.prompt has an unknown placeholder {err}; only 'path' and "
+            "'query_part' are substituted. Escape literal braces by doubling them."
+        )
+        raise RuntimeError("ai.prompt has an invalid placeholder") from err
     reasoning_enabled = config.ai_reasoning_enabled
     timeout = config.ai_timeout
 
@@ -620,8 +685,11 @@ async def generate_html_for_path(
 
         logger.debug(f"Cleaned HTML response (first 200 chars): {html_content[:200]}")
 
-        # Ensure we have valid HTML
-        if not html_content.startswith("<"):
+        # Wrap only what is meant to be a page. This used to wrap everything,
+        # which silently defeated the prompt's instruction to return raw file
+        # contents: a correct JSON sourcemap came back as HTML.
+        content_type = content_type_for_path(path)
+        if content_type == "text/html" and not html_content.startswith("<"):
             logger.warning(
                 f"AI response not HTML-formatted for path {path}, wrapping content"
             )
@@ -633,7 +701,7 @@ async def generate_html_for_path(
         if save_generated_page_to_db(path, html_content):
             logger.debug(f"[DB CACHE SAVE] Saved generated page for path: {path}")
 
-        return (html_content, "text/html", 200, False)
+        return (html_content, content_type, 200, False)
 
     except RuntimeError as err:
         logger.error(f"AI generation failed for path {path}: {err}")
