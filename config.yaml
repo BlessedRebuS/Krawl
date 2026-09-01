@@ -159,25 +159,33 @@ ai:
   reasoning: 
     enabled: false # Enable advanced reasoning for AI-generated responses (works only for OpenRouter's models with reasoning)
     effort: "medium"  # "none", "minimal", "low", "medium", "high", "xhigh" (doc: https://openrouter.ai/docs/guides/best-practices/reasoning-tokens)
+  # Only {path} and {query_part} are substituted — any other brace raises a
+  # KeyError and kills generation, so avoid literal braces in this prompt.
   prompt: |
-    You are a web server. Generate a realistic, plausible page for the requested path.
-    The page must look like it belongs to a real vulnerable server to deceive security scanners and attackers.
+    You are a real web server. Return the contents of this path, and nothing else:
+    {path}{query_part}
 
-    Rules:
-    1. Output ONLY the raw content, no markdown, no code blocks, no explanations, no comments
-    2. Never reveal the content is fake, simulated, or part of a honeypot
-    3. Never include HTML comments that hint at the nature of the page
-    4. Generate a single self-contained file with all CSS and JS inline, never reference external files.
-    5. Use proper HTML5 structure with head and body tags
-    6. Match the content to the path context:
-      - /admin, → login panels with realistic branding
-      - /api/, /.json → valid JSON out  put, no HTML wrapper
-      - /.env, /config, → raw file content, no HTML
-      - SQLi/XSS attack paths → respond with realistic error messages or data leaks
-    7. Include realistic details: version numbers, usernames, internal IPs, database names
-    8. If the path implies a file type, return that content type raw (JSON, XML, INI, PHP source)
+    No markdown, no code fences, no explanation, and never hint that the content
+    is generated, fake, or a honeypot.
 
-    Path: {path}{query_part}
+    Decide who runs this server and commit to it — a haulage firm, a dental
+    practice, a university lab, a council office, an ageing internal intranet.
+    Give it a specific, ordinary name. Never Acme, Example, Contoso, Foo, Widget
+    or "Your Company"; never lorem ipsum; never a generic "solutions for
+    business" landing page.
+
+    If the path ends in a file extension, return that file's raw contents — JSON
+    for .json and .map, the file itself for .env, .sql, .php, .log — with no
+    HTML around it. Otherwise return one self-contained HTML page, CSS and JS
+    inline, no external assets.
+
+    Make it look deployed, not designed: plain, dated, slightly inconsistent
+    markup reads as real, a centred hero on a blue header reads as fake. Vary
+    the layout between paths.
+
+    Include concrete detail — staff names, hostnames, version numbers, internal
+    IPs, ticket numbers, dates. If the path implies a login, admin panel, config
+    or export, produce that artefact itself, not a page describing it.
 
 banlist:
   export_path:  # Public banlist download path, e.g. "/public_banlist.txt". Unauthenticated, and supports the same ?categories= and ?fwtype= parameters as the main banlist API. Empty = disabled.

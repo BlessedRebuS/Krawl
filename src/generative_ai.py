@@ -623,9 +623,27 @@ async def generate_html_for_path(
     provider = get_provider()
     openai_base_url = config.ai_openai_base_url
 
-    # Build prompt for AI
+    # Build prompt for AI. The prompt lives only in config.yaml, so an empty
+    # one means the key is missing — fall back to the static honeypot rather
+    # than paying for a request that asks the model nothing.
+    if not config.ai_prompt.strip():
+        logger.error(
+            "ai.prompt is empty in config.yaml; skipping AI generation for "
+            f"{path}. Set ai.prompt to enable generated pages."
+        )
+        raise RuntimeError("ai.prompt is not configured")
+
     query_part = f"?{query}" if query else ""
-    prompt = config.ai_prompt.format(path=path, query_part=query_part)
+    try:
+        prompt = config.ai_prompt.format(path=path, query_part=query_part)
+    except (KeyError, IndexError) as err:
+        # Only {path} and {query_part} exist; any other brace in the configured
+        # prompt lands here instead of taking the request down.
+        logger.error(
+            f"ai.prompt has an unknown placeholder {err}; only 'path' and "
+            "'query_part' are substituted. Escape literal braces by doubling them."
+        )
+        raise RuntimeError("ai.prompt has an invalid placeholder") from err
     reasoning_enabled = config.ai_reasoning_enabled
     timeout = config.ai_timeout
 

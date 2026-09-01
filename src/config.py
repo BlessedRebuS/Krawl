@@ -141,6 +141,8 @@ class Config:
     ai_openai_base_url: str | None = "https://api.openai.com/v1"
     ai_api_key: str | None = None
     ai_model: str = "nvidia/nemotron-3-super-120b-a12b:free"
+    # No default: the prompt is config.yaml's to own. Shipping a second copy
+    # here only creates a version that silently disagrees with the file.
     ai_prompt: str = ""
     ai_timeout: int = 60
     ai_max_daily_requests: int = 0
@@ -375,23 +377,7 @@ class Config:
             ai_model=ai.get("model", "nvidia/nemotron-3-super-120b-a12b:free"),
             ai_reasoning_enabled=ai.get("reasoning", {}).get("enabled", True),
             ai_reasoning_effort=ai.get("reasoning", {}).get("effort", "medium"),
-            ai_prompt=ai.get(
-                "prompt",
-                """Your goal is to create a plausible but fake intentionally vulnerable page that might appear on a real server, that can distract attackers. 
-Your input will be a query path, that the attacker asked for. 
-
-Follow this rules:
-1. You must output ONLY the HTML, nothing else
-2. Include realistic content if necessary (links, text, forms, etc.)
-3. Do not add markdown, code blocks, or explanations
-4. Do not include any file in the html, generate everything needed in one single file
-5. Include proper HTML structure with head and body tags
-6. If the request is a common attack vector (e.g., SQLi, XSS), include fake data in response
-7. If the request has a file extension, generate a RAW content relevant to that type (e.g. a fake json for .json requests)
-
-Path: {path}{query_part}
-Generate the complete HTML page.""",
-            ),
+            ai_prompt=ai.get("prompt", ""),
             ai_timeout=ai.get("timeout", 60),
             ai_max_daily_requests=ai.get("max_daily_requests", 0),
             deception_import_pages=deception.get("import_pages", True),
