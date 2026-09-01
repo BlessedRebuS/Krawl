@@ -61,6 +61,19 @@ spec:
       - name: postgres
         image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
         imagePullPolicy: {{ .Values.postgres.image.pullPolicy }}
+        {{- with .Values.postgres.config }}
+        # The image entrypoint forwards a leading `-` argument to the server,
+        # so these become postgres command-line settings. Sorted for a stable
+        # rendering, or every `helm upgrade` shows a spurious diff.
+        args:
+          {{- range $key := (keys . | sortAlpha) }}
+          {{- $value := index $.Values.postgres.config $key }}
+          {{- if $value }}
+          - -c
+          - {{ printf "%s=%v" $key $value | quote }}
+          {{- end }}
+          {{- end }}
+        {{- end }}
         ports:
         - name: postgresql
           containerPort: 5432
@@ -77,10 +90,14 @@ spec:
               key: {{ (include "krawl.postgres.secret" . | fromJson).key }}
         - name: PGDATA
           value: /var/lib/postgresql/data/pgdata
-        {{- if .Values.postgres.persistence.enabled }}
         volumeMounts:
+        {{- if .Values.postgres.persistence.enabled }}
         - name: data
           mountPath: /var/lib/postgresql/data
+        {{- end }}
+        {{- if .Values.postgres.shmSize }}
+        - name: dshm
+          mountPath: /dev/shm
         {{- end }}
         {{- with .Values.postgres.resources }}
         resources:
@@ -108,10 +125,21 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 5
           timeoutSeconds: 3
-      {{- if .Values.postgres.persistence.enabled }}
       volumes:
+      {{- if .Values.postgres.persistence.enabled }}
       - name: data
         persistentVolumeClaim:
           claimName: {{ include "krawl.fullname" . }}-postgres
+      {{- end }}
+      {{- if .Values.postgres.shmSize }}
+      # Kubernetes gives a container 64Mi of /dev/shm, which PostgreSQL uses
+      # for the dynamic shared memory segments that parallel workers allocate.
+      # A parallel VACUUM takes one segment per index, so a table with several
+      # large indexes overruns the default and the vacuum dies with
+      # "could not resize shared memory segment ... No space left on device".
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: {{ .Values.postgres.shmSize }}
       {{- end }}
 {{- end }}
