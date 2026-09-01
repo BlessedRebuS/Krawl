@@ -205,7 +205,7 @@ h1 {
     color: var(--accent);
 }
 /* ── Header actions ───────────────────────────────────────────────
-   Three controls of equal weight: docs, export, maintenance. They are
+   Three controls of equal weight: docs, export, settings. They are
    peers, so they get one shape and one hit target rather than a link
    next to a filled button. Icon-only, with the name in the tooltip and
    the accessible name on the control itself. */
@@ -3077,11 +3077,22 @@ tbody {
 /* ── Export modal ─────────────────────────────────────────────── */
 .export-modal-content { width: 480px; }
 
-/* ── Maintenance modal ────────────────────────────────────────────
-   A task is a name, when it runs, and one action. Rows, not a table:
-   the run control needs to sit hard right at every width, and only one
-   task carries options. */
-.maintenance-modal-content { width: 560px; max-width: 100%; }
+/* ── Settings modal ───────────────────────────────────────────────
+   Two tabs. Maintenance: a task is a name, when it runs, and one
+   action. Rows, not a table — the run control needs to sit hard right
+   at every width, and only one task carries options. Configuration is
+   below. The width serves the wider of the two. */
+.settings-modal-content { width: 1080px; max-width: 94vw; }
+
+/* The tab strip reuses .tabs-container/.tab-button from the dashboard so
+   the modal speaks the same tab language; it only needs to lose the page
+   version's bottom margin and sit flush inside the modal frame. */
+.settings-tabs {
+    margin-bottom: 0;
+    padding: 0 var(--s6);
+    border-radius: 0;
+    flex-shrink: 0;
+}
 .task-list {
     display: flex;
     flex-direction: column;
@@ -3450,4 +3461,166 @@ td:last-child {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+
+/* ── Settings > Configuration ─────────────────────────────────────
+   A structured echo of config.yaml: the same section names, the same
+   keys, in the same mono the rest of the dashboard reserves for data.
+   The operator is reading the file they would edit, so it is set like
+   a file — a hairline per row, keys dim, values bright — rather than
+   dressed up as a settings form it is not. Only a value that has
+   actually been changed carries a badge; a default earns no ink. */
+.cfg-body { padding-top: var(--s5); }
+
+.cfg-inline {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text);
+    background: var(--raised);
+    border-radius: var(--r-sm);
+    padding: 1px 4px;
+}
+
+.cfg-toolbar {
+    /* 71 rows scroll past quickly; the filter has to stay reachable. */
+    position: sticky;
+    top: calc(var(--s6) * -1);
+    z-index: 1;
+    margin: calc(var(--s6) * -1) calc(var(--s6) * -1) var(--s5);
+    padding: var(--s4) var(--s6);
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s4);
+    flex-wrap: wrap;
+}
+.cfg-filter { width: 240px; }
+.cfg-legend {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+    flex-wrap: wrap;
+}
+.cfg-legend-note {
+    font-size: var(--fs-2xs);
+    color: var(--text-dim);
+    margin-right: var(--s2);
+}
+
+.cfg-section + .cfg-section { margin-top: var(--s6); }
+.cfg-section-title {
+    /* The yaml block name, in the console register the dashboard already
+       uses for section labels. */
+    margin-bottom: 0;
+    padding-bottom: var(--s2);
+    border-bottom: 1px solid var(--line);
+    color: var(--accent);
+}
+.cfg-section { min-width: 0; }
+
+/* The grid lives on the list, not the row, and each row is display:contents.
+   Every section gets the SAME three column widths: sizing each section to its
+   own longest key made the value column start at a different x in every
+   block, so the panel read as a stack of unrelated little tables instead of
+   one file. 22rem clears the longest key there is
+   (uneven_request_timing_time_window_seconds); the badge column is fixed so
+   the hairlines all end together too. */
+.cfg-rows {
+    margin: 0;
+    display: grid;
+    grid-template-columns: 22rem minmax(0, 1fr) 5rem;
+    column-gap: var(--s5);
+    /* Cells stretch rather than centre so all three hairlines in a row sit at
+       the same height — a badge is taller than a line of text. */
+    align-items: stretch;
+}
+.cfg-row { display: contents; }
+
+/* One line per setting. The rule is drawn on the three cells rather than on
+   the row, because display:contents leaves the row itself with no box. */
+.cfg-key,
+.cfg-value,
+.cfg-source {
+    padding: var(--s2) 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+    /* Every value is one line: a config file is scanned down the key column,
+       and a wrapped tile URL would push the next key out of reach. The full
+       text is in the title attribute for the few that overflow. */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.6;
+}
+.cfg-row:last-child .cfg-key,
+.cfg-row:last-child .cfg-value,
+.cfg-row:last-child .cfg-source { border-bottom: none; }
+
+.cfg-key {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+.cfg-value {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-strong);
+}
+.cfg-empty { color: var(--text-faint); font-style: italic; }
+
+/* A secret reports only that it exists. */
+.cfg-secret {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--text-faint);
+}
+/* The word carries the meaning, so the colour is the only decoration here —
+   a dot as well would state the same bit a third time. */
+.cfg-secret.is-set { color: var(--ok); }
+
+.cfg-source {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+.cfg-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    padding: 1px var(--s2);
+    border-radius: var(--r-sm);
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+.cfg-badge-env {
+    /* An env override silently beats config.yaml, which is the surprise
+       this panel exists to explain. It gets the louder of the two. */
+    color: var(--warn);
+    border-color: color-mix(in srgb, var(--warn) 40%, transparent);
+    background: color-mix(in srgb, var(--warn) 12%, transparent);
+}
+.cfg-badge-custom {
+    color: var(--text-dim);
+    border-color: var(--line);
+}
+
+@media (max-width: 900px) {
+    .cfg-rows { grid-template-columns: 14rem minmax(0, 1fr) 5rem; }
+}
+@media (max-width: 640px) {
+    .cfg-rows { grid-template-columns: minmax(0, 1fr) 5rem; }
+    .cfg-key {
+        grid-column: 1 / -1;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+    .cfg-filter { width: 100%; }
 }
