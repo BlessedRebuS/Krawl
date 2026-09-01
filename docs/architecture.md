@@ -304,9 +304,9 @@ Managed by `TasksMaster` (APScheduler). Tasks are auto-discovered from `src/task
 | `sync_cloudflare` | Every 1 min | Push banned IPs to a CloudFlare Account IP List (opt-in) |
 | `refresh_banlist` | `banlist.refresh_interval` (default 1 h) | Fetch and merge upstream community banlists |
 | `db_dump` | `backups.cron` | Export database backups |
-| `flag_stale_ips` | Daily (2 AM) | Flag stale IPs for reevaluation by the analyzer |
-| `pre_retention_cleanup` | Daily (2:30 AM) | Prune non-suspicious access rows ahead of retention |
-| `db_retention` | Daily (3 AM) | Clean up old records based on retention policy |
+| `flag_stale_ips` | Daily (8 AM) | Flag stale IPs for reevaluation by the analyzer |
+| `pre_retention_cleanup` | Daily (8:30 AM) | Prune non-suspicious access rows ahead of retention |
+| `db_retention` | Daily (9 AM) | Clean up old records based on retention policy |
 
 ### IP Categorization Model
 
