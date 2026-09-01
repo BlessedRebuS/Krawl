@@ -105,6 +105,18 @@
     --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.45);
     --dur: 0.15s;
     --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* ── Stacking layers ──────────────────────────────────────────
+       Equal z-index means DOM order decides, and the expand overlay
+       is the last partial in index.html — so it used to paint over
+       every modal opened from inside it. These are the only values
+       any fixed/absolute layer should use; pick the layer, not a
+       number. */
+    --z-sticky: 100;      /* in-flow chrome: sticky headers, tooltips */
+    --z-overlay: 1000;    /* fullscreen expand overlay */
+    --z-modal: 1200;      /* modals opened from a table or an overlay */
+    --z-popover: 1300;    /* menus anchored inside a modal */
+    --z-alert: 1400;      /* confirm/alert — always the top of the stack */
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1097,7 +1109,7 @@ tbody {
     width: 100%;
     height: 100%;
     background: var(--scrim);
-    z-index: 1000;
+    z-index: var(--z-modal);
     align-items: center;
     justify-content: center;
 }
@@ -1327,7 +1339,7 @@ tbody {
 /* Raw Request Modal */
 .raw-request-modal {
     position: fixed;
-    z-index: 1000;
+    z-index: var(--z-modal);
     left: 0;
     top: 0;
     width: 100%;
@@ -1469,7 +1481,7 @@ tbody {
     background: var(--raised);
     border: 1px solid var(--line);
     border-radius: var(--r-md);
-    z-index: 100;
+    z-index: var(--z-popover);
     box-shadow: 0 4px 12px color-mix(in srgb, black 40%, transparent);
 }
 .raw-attachment-item {
@@ -1501,7 +1513,7 @@ tbody {
 /* Auth Modal */
 .auth-modal {
     position: fixed;
-    z-index: 1000;
+    z-index: var(--z-modal);
     left: 0;
     top: 0;
     width: 100%;
@@ -1818,7 +1830,7 @@ tbody {
 /* Custom confirm/alert modal */
 .krawl-modal-overlay {
     position: fixed;
-    z-index: 1100;
+    z-index: var(--z-alert);
     left: 0;
     top: 0;
     width: 100%;
@@ -2782,7 +2794,7 @@ tbody {
 /* Expand overlay */
 .expand-overlay {
     position: fixed;
-    z-index: 1000;
+    z-index: var(--z-overlay);
     left: 0;
     top: 0;
     width: 100%;
