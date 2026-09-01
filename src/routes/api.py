@@ -35,10 +35,10 @@ from auth_store import (
 from config import get_config
 from dashboard_cache import (
     get_cached,
+    get_cached_list_page,
     get_cached_table,
     invalidate_table_cache,
     is_warm,
-    paginate_cached_list,
     set_cached_table,
 )
 from dependencies import get_client_ip, get_db
@@ -334,9 +334,8 @@ async def all_ips(
         and sort_order == "desc"
         and is_warm()
     ):
-        agg = get_cached("agg:map_ips")
-        if agg is not None:
-            sliced = paginate_cached_list(agg, page=page, page_size=page_size)
+        sliced = get_cached_list_page("agg:map_ips", page=page, page_size=page_size)
+        if sliced is not None:
             return JSONResponse(
                 content={"ips": sliced["items"], "pagination": sliced["pagination"]},
                 headers=_no_cache_headers(),

@@ -314,7 +314,43 @@ The Krawl service already includes `externalTrafficPolicy: Local` by default to 
 | `postgres.persistence.size` | PVC size | `5Gi` |
 | `postgres.persistence.accessMode` | PVC access mode | `ReadWriteOnce` |
 | `postgres.persistence.storageClassName` | Storage class name | `` |
-| `postgres.resources` | CPU/memory resource requests and limits | `{}` |
+| `postgres.resources` | CPU/memory resource requests and limits | `1Gi` limit / `512Mi` request |
+| `postgres.config` | Server settings passed as `-c name=value` flags; set a key to `null` to drop it | see below |
+| `postgres.shmSize` | Size of `/dev/shm` (tmpfs); `""` leaves the Kubernetes 64Mi default | `256Mi` |
+
+#### PostgreSQL tuning
+
+The chart overrides a few server defaults that are far too small for the table
+sizes Krawl reaches on a busy sensor:
+
+| Setting | Chart default | Server default |
+|---------|---------------|----------------|
+| `shared_buffers` | `256MB` | `128MB` |
+| `effective_cache_size` | `512MB` | `4GB` |
+| `work_mem` | `16MB` | `4MB` |
+| `maintenance_work_mem` | `128MB` | `64MB` |
+| `random_page_cost` | `4` | `4` |
+| `effective_io_concurrency` | `1` | `1` |
+
+The last two are deliberately left at their rotational-disk defaults. On
+SSD-backed storage set `random_page_cost: "1.1"` and
+`effective_io_concurrency: "100"`; both are actively harmful on spinning or
+network-replicated volumes, so the chart does not assume SSD.
+
+`postgres.shmSize` mounts `/dev/shm` as an in-memory `emptyDir`. Kubernetes
+gives a container only 64Mi there, and PostgreSQL allocates dynamic shared
+memory segments per parallel worker — one per index during a parallel `VACUUM`.
+On a table with several large indexes the default is exhausted and the vacuum
+fails with `could not resize shared memory segment ... No space left on device`.
+Because tmpfs usage is charged to the container, `shmSize` comes out of the
+same memory limit as everything else.
+
+Keep the memory limit comfortably above `shared_buffers`. The kernel page cache
+counts against the container's cgroup, and PostgreSQL leans on it as a second
+caching tier — so a tight limit squeezes both tiers at once. An OOM kill also
+discards the cumulative statistics file, which resets the counters autovacuum
+uses to schedule itself; a database that keeps getting killed can stop being
+vacuumed or analyzed altogether.
 
 ### Redis Configuration (Scalable)
 

@@ -114,6 +114,71 @@ def set_cached(key: str, value: Any, ttl: int = None) -> None:
         _cache[key] = value
 
 
+# Items pushed per RPUSH when storing a cached list, so a 100k-row aggregate
+# does not become one enormous command.
+_LIST_PUSH_BATCH = 1_000
+
+
+def set_cached_list(key: str, items: list, ttl: int = None) -> None:
+    """Cache a pre-sorted list so pages can be served without reading it whole.
+
+    In scalable mode the list is stored as a Redis LIST of per-item JSON rather
+    than one JSON blob, which is what lets get_cached_list_page() fetch a
+    ten-row slice with LRANGE. The blob form meant every request for any page
+    transferred and parsed the entire aggregate — tens of MB, for ten rows.
+
+    Standalone keeps the plain in-memory list: there is no serialization
+    boundary to cross, so slicing it directly is already optimal.
+    """
+    if _backend == "scalable" and _redis_client is not None:
+        redis_key = f"{_REDIS_PREFIX}list:{key}"
+        encoded = [json.dumps(i, default=_json_serializer) for i in items]
+        pipe = _redis_client.pipeline()
+        # Build under a temporary key and rename into place, so readers never
+        # observe a half-populated list mid-refresh.
+        staging = f"{redis_key}:staging"
+        pipe.delete(staging)
+        for start in range(0, len(encoded), _LIST_PUSH_BATCH):
+            pipe.rpush(staging, *encoded[start : start + _LIST_PUSH_BATCH])
+        if encoded:
+            pipe.rename(staging, redis_key)
+            pipe.expire(redis_key, ttl or _REDIS_TTL)
+        else:
+            pipe.delete(redis_key)
+        pipe.execute()
+        return
+
+    with _lock:
+        _cache[f"list:{key}"] = list(items)
+
+
+def get_cached_list_page(key: str, page: int, page_size: int) -> dict | None:
+    """Return one page of a cached list, or None if the list is not cached.
+
+    The shape matches paginate_cached_list() so callers are interchangeable.
+    """
+    if _backend == "scalable" and _redis_client is not None:
+        redis_key = f"{_REDIS_PREFIX}list:{key}"
+        total = _redis_client.llen(redis_key)
+        if not total:
+            return None
+        total_pages = max(1, (total + page_size - 1) // page_size)
+        page = max(1, min(page, total_pages))
+        offset = (page - 1) * page_size
+        # LRANGE is inclusive on both ends.
+        raw = _redis_client.lrange(redis_key, offset, offset + page_size - 1)
+        return {
+            "items": [json.loads(r) for r in raw],
+            "pagination": pagination(page, page_size, total),
+        }
+
+    with _lock:
+        items = _cache.get(f"list:{key}")
+    if items is None:
+        return None
+    return paginate_cached_list(items, page, page_size)
+
+
 def get_cached_short(key: str) -> Any | None:
     """Get a value from the short-TTL hot-path cache (scalable mode only).
 

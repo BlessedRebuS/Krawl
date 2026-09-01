@@ -9,7 +9,7 @@ import time
 
 import metrics
 from config import get_config
-from dashboard_cache import set_cached, set_cached_table
+from dashboard_cache import set_cached, set_cached_list, set_cached_table
 from database import get_database
 from logger import get_app_logger
 
@@ -121,7 +121,7 @@ def main():
                 ),
             )
             agg_ua = [{"user_agent": ua, "count": c} for ua, c in top_ua_all]
-            set_cached("agg:top_ua", agg_ua)
+            set_cached_list("agg:top_ua", agg_ua)
             top_ua = {
                 "user_agents": agg_ua[:5],
                 "pagination": {
@@ -138,7 +138,7 @@ def main():
                 lambda: db.analytics.get_top_paths(limit=100_000, min_count=min_count),
             )
             agg_paths = [{"path": p, "count": c} for p, c in top_paths_all]
-            set_cached("agg:top_paths", agg_paths)
+            set_cached_list("agg:top_paths", agg_paths)
             top_paths = {
                 "paths": agg_paths[:5],
                 "pagination": {
@@ -159,7 +159,7 @@ def main():
                     sort_order="desc",
                 ),
             )
-            set_cached("agg:attackers", attackers_all["attackers"])
+            set_cached_list("agg:attackers", attackers_all["attackers"])
 
             honeypot_all = _timed(
                 "get_honeypot_all",
@@ -167,7 +167,7 @@ def main():
                     page=1, page_size=100_000, sort_by="count", sort_order="desc"
                 ),
             )
-            set_cached("agg:honeypot", honeypot_all["honeypots"])
+            set_cached_list("agg:honeypot", honeypot_all["honeypots"])
         else:
             top_ua = _timed(
                 "get_top_user_agents_paginated",
@@ -194,7 +194,7 @@ def main():
                     sort_order="desc",
                 ),
             )
-            set_cached("agg:map_ips", map_ips_all["ips"])
+            set_cached_list("agg:map_ips", map_ips_all["ips"])
             total_ips = map_ips_all["pagination"]["total"]
             map_ips = {
                 "ips": map_ips_all["ips"][:1000],

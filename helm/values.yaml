@@ -314,13 +314,27 @@ postgres:
     size: 5Gi
     accessMode: ReadWriteOnce
     # storageClassName: ""
+  # Server settings, rendered as `-c name=value`. null drops a key.
+  # SSD-backed storage: set random_page_cost 1.1, effective_io_concurrency 100.
+  config:
+    shared_buffers: 256MB
+    effective_cache_size: 512MB
+    work_mem: 16MB
+    maintenance_work_mem: 128MB
+    random_page_cost: "4"
+    effective_io_concurrency: "1"
+  # /dev/shm size (tmpfs). The k8s default of 64Mi is too small for parallel
+  # VACUUM. "" leaves it at the default. Counts against the memory limit below.
+  shmSize: 256Mi
+  # Keep the limit well above shared_buffers + shmSize: the page cache is
+  # charged to the cgroup too, and an OOM kill wipes the stats autovacuum needs.
   resources:
     limits:
       cpu: 500m
-      memory: 512Mi
+      memory: 1Gi
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 512Mi
 
 # Redis settings (only used when mode=scalable)
 redis:
@@ -330,6 +344,12 @@ redis:
   port: 6379
   db: 0
   password: ""
+  # Memory ceiling; "" = unbounded (Redis then grows until OOM-killed).
+  # Keep at ~75% of resources.limits.memory to leave room for fragmentation.
+  # volatile-lru evicts only TTL'd keys, i.e. krawl:cache:* and never a
+  # krawl:counter:* metric. Do not use allkeys-lru.
+  maxmemory: "192mb"
+  maxmemoryPolicy: "volatile-lru"
   # Cache TTL settings (seconds)
   cache_ttl: 600    # Dashboard warmup data (default: 10 minutes)
   hot_ttl: 30       # Hot-path data like ban info (default: 30 seconds)
@@ -357,7 +377,7 @@ redis:
   resources:
     limits:
       cpu: 250m
-      memory: 128Mi
+      memory: 256Mi
     requests:
       cpu: 50m
       memory: 64Mi

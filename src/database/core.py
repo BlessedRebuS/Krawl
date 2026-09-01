@@ -234,6 +234,13 @@ class DatabaseManager:
 
         run_migrations(self._engine)
 
+        # Collect planner statistics if this database has never had any. Runs
+        # after the migrations so the autovacuum thresholds they set are in
+        # place first; a no-op on every boot but the first.
+        from database.maintenance import bootstrap_analyze
+
+        bootstrap_analyze(self._engine)
+
         # Set restrictive file permissions for SQLite (owner read/write only)
         if mode == "standalone" and os.path.exists(database_path):
             try:
@@ -251,6 +258,19 @@ class DatabaseManager:
                 "DatabaseManager not initialized. Call initialize() first."
             )
         return self._Session()
+
+    @property
+    def engine(self):
+        """The SQLAlchemy Engine, for statements that cannot run in a session.
+
+        ANALYZE and friends need connection-level control (AUTOCOMMIT), which a
+        thread-local ORM session does not give.
+        """
+        if not self._initialized:
+            raise RuntimeError(
+                "DatabaseManager not initialized. Call initialize() first."
+            )
+        return self._engine
 
     def close_session(self) -> None:
         """Close the current thread-local session."""
@@ -368,8 +388,7 @@ class DatabaseManager:
                         mc.increment("honeypot_triggered")
                     if was_first_honeypot:
                         mc.increment("honeypot_ips")
-                    if mc.add_to_set("paths", sanitize_path(path)):
-                        mc.increment("unique_paths")
+                    mc.record_distinct("paths", sanitize_path(path), "unique_paths")
                     if attack_types:
                         for attack_type in attack_types:
                             mc.increment("attack_detections", attack_type[:50])

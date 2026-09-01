@@ -24,7 +24,7 @@ DELETE_BATCH_SIZE = 10_000
 
 TASK_CONFIG = {
     "name": "db-retention",
-    "cron": "0 3 * * *",  # Run daily at 3 AM
+    "cron": "0 9 * * *",  # Run daily at 9 AM
     "enabled": True,
     "run_when_loaded": False,
 }
@@ -161,6 +161,23 @@ def main():
             metrics_counters.reconcile(db)
         except Exception as e:
             app_logger.error(f"Error reconciling metrics after retention: {e}")
+
+        # Refresh planner statistics: the purge above just invalidated them,
+        # and this is the one moment we know that for certain. Autovacuum would
+        # get there on its own, but not before the next day's queries have run
+        # against row estimates that count rows we deleted. Only worth the pass
+        # if something was actually removed.
+        if total:
+            try:
+                from database.maintenance import analyze_tables
+
+                analyzed = analyze_tables(db.engine)
+                if analyzed:
+                    app_logger.info(
+                        f"DB retention: refreshed statistics on {analyzed} table(s)"
+                    )
+            except Exception as e:
+                app_logger.error(f"Error analyzing tables after retention: {e}")
 
     except Exception as e:
         app_logger.error(f"Error during DB retention cleanup: {e}")

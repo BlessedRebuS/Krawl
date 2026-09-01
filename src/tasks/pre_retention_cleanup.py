@@ -21,9 +21,9 @@ from wordlists import get_wordlists
 
 TASK_CONFIG = {
     "name": "pre-retention-cleanup",
-    "cron": "30 2 * * *",  # Run daily at 2:30 AM (before db-retention at 3 AM)
+    "cron": "30 8 * * *",  # Run daily at 8:30 AM (before db-retention at 9 AM)
     "enabled": True,
-    # a daily 02:30 job, same problem, and it is the heavier of the two.
+    # a daily 08:30 job, same problem, and it is the heavier of the two.
     "run_when_loaded": False,
 }
 

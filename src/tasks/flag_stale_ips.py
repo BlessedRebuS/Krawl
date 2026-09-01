@@ -7,9 +7,9 @@ from logger import get_app_logger
 
 TASK_CONFIG = {
     "name": "flag-stale-ips",
-    "cron": "0 2 * * *",  # Run daily at 2 AM
+    "cron": "0 8 * * *",  # Run daily at 8 AM
     "enabled": True,
-    # a daily 02:00 job — running it on every restart makes a daily sweep happen N times a day.
+    # a daily 08:00 job — running it on every restart makes a daily sweep happen N times a day.
     "run_when_loaded": False,
 }
 

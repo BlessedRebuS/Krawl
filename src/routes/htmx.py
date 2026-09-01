@@ -13,9 +13,9 @@ from fastapi.responses import HTMLResponse
 from config import get_config
 from dashboard_cache import (
     get_cached,
+    get_cached_list_page,
     get_cached_table,
     is_warm,
-    paginate_cached_list,
     set_cached_table,
 )
 from dependencies import get_db, get_templates
@@ -60,9 +60,8 @@ async def htmx_honeypot(
         and sort_order == "desc"
         and is_warm()
     ):
-        agg = get_cached("agg:honeypot")
-        if agg is not None:
-            sliced = paginate_cached_list(agg, page=page, page_size=5)
+        sliced = get_cached_list_page("agg:honeypot", page=page, page_size=5)
+        if sliced is not None:
             result = {"honeypots": sliced["items"], "pagination": sliced["pagination"]}
 
     if result is None:
@@ -183,11 +182,10 @@ async def htmx_top_paths(
         and not is_honeypot
         and is_warm()
     ):
-        agg = get_cached("agg:top_paths")
-        if agg is not None:
-            sliced = paginate_cached_list(
-                agg, page=max(1, page), page_size=min(page_size, 100)
-            )
+        sliced = get_cached_list_page(
+            "agg:top_paths", page=max(1, page), page_size=min(page_size, 100)
+        )
+        if sliced is not None:
             result = {"paths": sliced["items"], "pagination": sliced["pagination"]}
 
     # Legacy page-1 warmup fallback
@@ -336,11 +334,10 @@ async def htmx_top_ua(
         and not search
         and is_warm()
     ):
-        agg = get_cached("agg:top_ua")
-        if agg is not None:
-            sliced = paginate_cached_list(
-                agg, page=max(1, page), page_size=min(page_size, 100)
-            )
+        sliced = get_cached_list_page(
+            "agg:top_ua", page=max(1, page), page_size=min(page_size, 100)
+        )
+        if sliced is not None:
             result = {
                 "user_agents": sliced["items"],
                 "pagination": sliced["pagination"],
@@ -407,9 +404,8 @@ async def htmx_attackers(
         and sort_order == "desc"
         and is_warm()
     ):
-        agg = get_cached("agg:attackers")
-        if agg is not None:
-            sliced = paginate_cached_list(agg, page=page, page_size=10)
+        sliced = get_cached_list_page("agg:attackers", page=page, page_size=10)
+        if sliced is not None:
             result = {"attackers": sliced["items"], "pagination": sliced["pagination"]}
 
     if result is None:
