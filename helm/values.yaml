@@ -314,20 +314,8 @@ postgres:
     size: 5Gi
     accessMode: ReadWriteOnce
     # storageClassName: ""
-  # Server tuning, rendered as `-c name=value` flags on the postgres command.
-  # Set a key to null to drop it and fall back to the server default.
-  #
-  # The stock image ships shared_buffers=128MB and work_mem=4MB, which are
-  # sized for a toy database. Krawl's ip_stats and access_logs tables reach
-  # gigabytes on a busy sensor, and the dashboard aggregates group over all of
-  # them; at the defaults, essentially every one of those reads misses the
-  # cache and every GROUP BY spills to a temp file.
-  #
-  # random_page_cost and effective_io_concurrency are left at their
-  # rotational-disk defaults on purpose. Lower random_page_cost (1.1) if the
-  # data volume is SSD-backed, and raise effective_io_concurrency (100-200)
-  # if it can service parallel random reads — both are actively harmful on
-  # spinning or network-replicated storage.
+  # Server settings, rendered as `-c name=value`. null drops a key.
+  # SSD-backed storage: set random_page_cost 1.1, effective_io_concurrency 100.
   config:
     shared_buffers: 256MB
     effective_cache_size: 512MB
@@ -335,23 +323,11 @@ postgres:
     maintenance_work_mem: 128MB
     random_page_cost: "4"
     effective_io_concurrency: "1"
-  # Size of /dev/shm, mounted as an in-memory emptyDir. Kubernetes defaults a
-  # container to 64Mi, which is not enough for the dynamic shared memory that
-  # PostgreSQL's parallel workers allocate — one segment per index during a
-  # parallel VACUUM, so a table with several large indexes fails outright with
-  # "could not resize shared memory segment". Set to "" to leave /dev/shm at
-  # the Kubernetes default.
-  #
-  # This is tmpfs, so whatever it actually uses counts against the container's
-  # memory limit; keep the limit above shmSize + shared_buffers + working set.
+  # /dev/shm size (tmpfs). The k8s default of 64Mi is too small for parallel
+  # VACUUM. "" leaves it at the default. Counts against the memory limit below.
   shmSize: 256Mi
-  # Memory limits must leave room for shared_buffers *plus* the kernel page
-  # cache, which is charged to the container's cgroup: Postgres relies on the
-  # OS cache as its second tier, so a tight limit squeezes both at once. An
-  # OOM kill is not merely a restart here — the unclean shutdown discards the
-  # cumulative statistics file, which resets the counters autovacuum uses to
-  # decide when to run, and a database whose statistics never accumulate stops
-  # being vacuumed or analyzed at all.
+  # Keep the limit well above shared_buffers + shmSize: the page cache is
+  # charged to the cgroup too, and an OOM kill wipes the stats autovacuum needs.
   resources:
     limits:
       cpu: 500m
