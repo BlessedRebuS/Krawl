@@ -388,8 +388,7 @@ class DatabaseManager:
                         mc.increment("honeypot_triggered")
                     if was_first_honeypot:
                         mc.increment("honeypot_ips")
-                    if mc.add_to_set("paths", sanitize_path(path)):
-                        mc.increment("unique_paths")
+                    mc.record_distinct("paths", sanitize_path(path), "unique_paths")
                     if attack_types:
                         for attack_type in attack_types:
                             mc.increment("attack_detections", attack_type[:50])

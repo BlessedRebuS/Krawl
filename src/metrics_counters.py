@@ -8,8 +8,8 @@ standalone mode they are a locked in-memory dict. Values feed Prometheus gauges
 (set at scrape time) and the dashboard's aggregate counts.
 
 Encoding: a labeled counter is stored as "metric|label"; an unlabeled one as
-"metric". Distinctness sets (e.g. seen request paths) live under
-krawl:counter:set:<name>.
+"metric". Distinctness estimators (e.g. seen request paths) live under
+krawl:counter:hll:<name>.
 """
 
 import threading
@@ -18,14 +18,31 @@ from collections.abc import Iterable
 from dashboard_cache import get_backend, get_redis_client
 
 _COUNTER_PREFIX = "krawl:counter:"
-_SET_PREFIX = "krawl:counter:set:"
+_HLL_PREFIX = "krawl:counter:hll:"
+# Superseded by _HLL_PREFIX; retained so the one-time migration can find and
+# drop the old exact sets. See migrate_legacy_sets().
+_LEGACY_SET_PREFIX = "krawl:counter:set:"
 _SEED_MARKER = "krawl:counter:_seeded"
 
-# Distinctness sets are append-only by design, and "paths" is keyed on
-# attacker-chosen URLs — so in standalone mode it grows for the lifetime of the
-# process. Redis holds the real set in scalable mode; this cap only bounds the
-# fallback. Past it, `unique_paths` stops rising and becomes a floor rather
-# than an exact count, which is the right trade against an OOM.
+# Names of the distinctness estimators, for the legacy migration to walk.
+_DISTINCT_NAMES = ("paths",)
+
+# Members pushed per PFADD when seeding, so a multi-million-member rebuild does
+# not become one enormous command.
+_HLL_SEED_BATCH = 5_000
+
+# Distinctness tracking is append-only by design, and "paths" is keyed on
+# attacker-chosen URLs — worse, Krawl *generates* random link paths, so the key
+# space has no natural ceiling and the structure only ever grows.
+#
+# Scalable mode uses a Redis HyperLogLog: a fixed ~12 KB per estimator with a
+# 0.81% standard error, regardless of cardinality. It replaced an exact SET
+# that had reached 2.9M members and ~94 MB — all to produce one dashboard
+# integer, and with nothing to stop it consuming the whole instance.
+#
+# Standalone keeps the exact in-memory set, capped: past the cap `unique_paths`
+# stops rising and becomes a floor rather than an exact count, which is the
+# right trade against an OOM.
 _MAX_SET_ENTRIES = 100_000
 
 _lock = threading.Lock()
@@ -90,7 +107,12 @@ def get_many(metrics) -> dict[str, int]:
 
 
 def get_all() -> dict[str, int]:
-    """Return all counters as {encoded_key: value}. Excludes distinctness sets."""
+    """Return all counters as {encoded_key: value}. Excludes distinctness state.
+
+    Both the estimator and legacy-set prefixes are filtered out: they share the
+    krawl:counter: namespace but hold structures, not integers, and a
+    HyperLogLog's value would raise on int().
+    """
     if get_backend() == "scalable":
         r = get_redis_client()
         out: dict[str, int] = {}
@@ -102,7 +124,9 @@ def get_all() -> dict[str, int]:
                 keys.extend(
                     k
                     for k in batch
-                    if not k.startswith(_SET_PREFIX) and k != _SEED_MARKER
+                    if not k.startswith(_HLL_PREFIX)
+                    and not k.startswith(_LEGACY_SET_PREFIX)
+                    and k != _SEED_MARKER
                 )
                 if cursor == 0:
                     break
@@ -118,11 +142,18 @@ def get_all() -> dict[str, int]:
 
 
 def add_to_set(name: str, member: str) -> bool:
-    """Add member to a distinctness set. Return True if it was newly added."""
+    """Record a member as seen. Return True if it looks newly added.
+
+    Scalable mode answers from a HyperLogLog, so "newly added" is an estimate:
+    PFADD reports whether the registers changed, which a genuinely new member
+    may occasionally fail to do. The caller uses this only to step the
+    `unique_paths` counter, which is itself realigned to the estimator on every
+    reconcile — so a rare miss self-corrects rather than accumulating.
+    """
     if get_backend() == "scalable":
         r = get_redis_client()
         if r is not None:
-            return r.sadd(f"{_SET_PREFIX}{name}", member) == 1
+            return r.pfadd(f"{_HLL_PREFIX}{name}", member) == 1
     with _lock:
         s = _sets.setdefault(name, set())
         if member in s:
@@ -133,27 +164,116 @@ def add_to_set(name: str, member: str) -> bool:
         return True
 
 
+def record_distinct(name: str, member: str, counter: str) -> None:
+    """Record `member` as seen and keep `counter` in step with the count.
+
+    The two backends reach the same number by different routes:
+
+    - standalone holds an exact set, so a newly-added member increments the
+      counter directly, as it always has;
+    - scalable holds a HyperLogLog, whose PFADD result is a statement about
+      registers rather than membership — it can report a change for a member
+      already present, and incrementing on that would drift the counter upward
+      with no bound between reconciles. There the counter is instead realigned
+      wholesale by sync_distinct_counter(), which is exact with respect to the
+      estimator and costs one O(1) call.
+    """
+    is_new = add_to_set(name, member)
+    if get_backend() == "scalable":
+        return
+    if is_new:
+        increment(counter)
+
+
+def sync_distinct_counter(name: str, counter: str) -> None:
+    """Set `counter` to the estimator's cardinality (scalable mode only).
+
+    PFCOUNT is O(1) — Redis caches the cardinality in the HyperLogLog header
+    and only recomputes it after a modification — so this is cheap enough to
+    run on the metrics flush schedule.
+    """
+    if get_backend() == "scalable":
+        set_value(counter, "", scard(name))
+
+
 def scard(name: str) -> int:
-    """Return the cardinality of a distinctness set."""
+    """Return the number of distinct members seen.
+
+    Approximate in scalable mode (HyperLogLog, ~0.81% standard error); exact
+    in standalone mode up to _MAX_SET_ENTRIES.
+    """
     if get_backend() == "scalable":
         r = get_redis_client()
         if r is not None:
-            return int(r.scard(f"{_SET_PREFIX}{name}"))
+            return int(r.pfcount(f"{_HLL_PREFIX}{name}"))
     with _lock:
         return len(_sets.get(name, set()))
 
 
 def seed_set(name: str, members: Iterable[str]) -> None:
-    """Replace a distinctness set's contents (used when seeding from the DB)."""
-    members = list(members)
+    """Seed a distinctness estimator (used when rebuilding from the DB).
+
+    Batched, because seeding walks every distinct path ever recorded and that
+    is a seven-figure list on a long-running sensor.
+    """
     if get_backend() == "scalable":
         r = get_redis_client()
         if r is not None:
-            if members:
-                r.sadd(f"{_SET_PREFIX}{name}", *members)
+            batch: list[str] = []
+            for member in members:
+                batch.append(member)
+                if len(batch) >= _HLL_SEED_BATCH:
+                    r.pfadd(f"{_HLL_PREFIX}{name}", *batch)
+                    batch.clear()
+            if batch:
+                r.pfadd(f"{_HLL_PREFIX}{name}", *batch)
             return
     with _lock:
         _sets[name] = set(members)
+
+
+def migrate_legacy_sets() -> None:
+    """Fold any pre-HyperLogLog exact SET into its estimator, then drop it.
+
+    Runs on every boot and is a no-op once done. It deliberately sits *outside*
+    the needs_seed() gate: that marker is already set on any deployment old
+    enough to have the legacy set, so a seed-gated migration would never fire
+    on exactly the installs that need it.
+
+    The estimator is seeded by scanning the old set rather than recomputed from
+    SQL, which keeps the count continuous without a distinct-scan of
+    access_logs. Only then is the old key deleted — an interrupted run just
+    repeats harmlessly next boot, since PFADD is idempotent.
+    """
+    if get_backend() != "scalable":
+        return
+    r = get_redis_client()
+    if r is None:
+        return
+
+    for name in _DISTINCT_NAMES:
+        legacy = f"{_LEGACY_SET_PREFIX}{name}"
+        try:
+            if not r.exists(legacy):
+                continue
+            hll = f"{_HLL_PREFIX}{name}"
+            batch: list[str] = []
+            for member in r.sscan_iter(legacy, count=1000):
+                batch.append(member)
+                if len(batch) >= _HLL_SEED_BATCH:
+                    r.pfadd(hll, *batch)
+                    batch.clear()
+            if batch:
+                r.pfadd(hll, *batch)
+            # UNLINK reclaims a multi-million-member set on a background
+            # thread; DEL would block the event loop for the whole free.
+            r.unlink(legacy)
+        except Exception:
+            import logging
+
+            logging.getLogger("krawl").exception(
+                f"Legacy distinctness set migration failed for {name!r}"
+            )
 
 
 def needs_seed() -> bool:
@@ -214,14 +334,14 @@ def _recompute_heavy(db) -> None:
 
     For tallied metrics, cumulative = count(current rows) + deleted tally, so
     they stay "total ever observed" even after retention purges benign rows.
-    The seen-paths set is left untouched (append-only distinct-ever); we only
-    keep the unique_paths counter aligned to its cardinality.
+    The seen-paths estimator is left untouched (append-only distinct-ever); we
+    only keep the unique_paths counter aligned to its cardinality.
     """
     counts = db.access_logs._compute_dashboard_counts_sql()
     tallies = db.analytics.get_deleted_tallies()
     for metric in HEAVY_METRICS:
         if metric == "unique_paths":
-            continue  # backed by the append-only seen-paths set
+            continue  # backed by the append-only seen-paths estimator
         base = int(counts.get(metric, 0) or 0)
         if metric in _TALLIED_METRICS:
             base += int(tallies.get(metric, 0) or 0)
@@ -248,11 +368,15 @@ def bootstrap(db) -> None:
     avoids a full scan on every pod start) or are recomputed from SQL on first
     run. clients_total is NOT seeded here — it is recomputed live at scrape time.
     """
+    # Before the seed gate: installs carrying the legacy set already hold the
+    # seed marker, so this would never run behind it.
+    migrate_legacy_sets()
+
     if not needs_seed():
         return
 
     try:
-        # Seen-paths distinctness set: rebuild only if absent (e.g. Redis wiped).
+        # Seen-paths estimator: rebuild only if absent (e.g. Redis wiped).
         # It is append-only across restarts, so we never shrink it here.
         if scard("paths") == 0:
             seed_set("paths", db.access_logs.get_distinct_paths())
