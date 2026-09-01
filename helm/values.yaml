@@ -344,6 +344,12 @@ redis:
   port: 6379
   db: 0
   password: ""
+  # Memory ceiling; "" = unbounded (Redis then grows until OOM-killed).
+  # Keep at ~75% of resources.limits.memory to leave room for fragmentation.
+  # volatile-lru evicts only TTL'd keys, i.e. krawl:cache:* and never a
+  # krawl:counter:* metric. Do not use allkeys-lru.
+  maxmemory: "192mb"
+  maxmemoryPolicy: "volatile-lru"
   # Cache TTL settings (seconds)
   cache_ttl: 600    # Dashboard warmup data (default: 10 minutes)
   hot_ttl: 30       # Hot-path data like ban info (default: 30 seconds)
@@ -371,7 +377,7 @@ redis:
   resources:
     limits:
       cpu: 250m
-      memory: 128Mi
+      memory: 256Mi
     requests:
       cpu: 50m
       memory: 64Mi

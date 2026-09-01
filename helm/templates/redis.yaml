@@ -65,11 +65,19 @@ spec:
         - name: redis
           containerPort: 6379
           protocol: TCP
-        {{- if .Values.redis.password }}
         command:
           - redis-server
+          {{- if .Values.redis.password }}
           - --requirepass
           - $(REDIS_PASSWORD)
+          {{- end }}
+          {{- if .Values.redis.maxmemory }}
+          - --maxmemory
+          - {{ .Values.redis.maxmemory | quote }}
+          - --maxmemory-policy
+          - {{ .Values.redis.maxmemoryPolicy | quote }}
+          {{- end }}
+        {{- if .Values.redis.password }}
         env:
         - name: REDIS_PASSWORD
           valueFrom:
