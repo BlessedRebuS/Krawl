@@ -113,6 +113,13 @@ aiExistingSecret:
   name: ""
   key: "ai-api-key"
 
+# Map tile API key from an externally-managed Secret instead of the
+# chart-managed one built from `config.map.api_key`. `name` empty =
+# chart-managed. Injected as KRAWL_MAP_API_KEY.
+mapExistingSecret:
+  name: ""
+  key: "map-api-key"
+
 # Canary token URL. Setting `canaryTokenUrl` creates a chart-managed Secret and
 # injects KRAWL_CANARY_TOKEN_URL from it, keeping the URL out of the ConfigMap.
 # Set `canaryExistingSecret.name` to read it from an external Secret instead.
@@ -246,11 +253,17 @@ config:
     purge_existing: false  # Also delete existing IPv6 rows at next startup (irreversible)
 
   map:
-    # CARTO watermarks unkeyed tiles; the default below is keyless. See
-    # config.yaml for alternative providers.
+    # Raster {z}/{x}/{y} template only -- not a vector style.json. CARTO
+    # watermarks unkeyed tiles; the default below is keyless. See
+    # docs/dashboard.md#map-tiles for alternative providers.
     tile_url: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
     attribution: "&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors"
     subdomains: "abcd"
+    # Query parameter the key rides on. CARTO and Stadia want api_key,
+    # Thunderforest apikey, MapTiler key.
+    api_key_param: "api_key"
+    # Never lands in the ConfigMap: it becomes a chart-managed Secret injected
+    # as KRAWL_MAP_API_KEY. Use mapExistingSecret to supply your own instead.
     api_key: ""   # served in the page source; restrict it by domain
 
   tarpit:

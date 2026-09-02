@@ -109,6 +109,15 @@ Resolve the AI API key Secret name/key to reference.
 {{- end }}
 
 {{/*
+Resolve the map tile API key Secret name/key to reference.
+*/}}
+{{- define "krawl.map.secret" -}}
+{{- $name := .Values.mapExistingSecret.name | default (printf "%s-map" (include "krawl.fullname" .)) }}
+{{- $key := .Values.mapExistingSecret.key | default "map-api-key" }}
+{{- dict "name" $name "key" $key | toJson }}
+{{- end }}
+
+{{/*
 Resolve the canary token URL Secret name/key to reference.
 */}}
 {{- define "krawl.canary.secret" -}}

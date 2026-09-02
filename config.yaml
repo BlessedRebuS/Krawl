@@ -125,7 +125,8 @@ map:
   tile_url: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
   attribution: "&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors"
 
-  # CARTO dark: watermarks every tile unless api_key is set.
+  # CARTO dark: watermarks every tile unless api_key is set. Raster endpoint
+  # only -- CARTO's docs push vector style.json, which Leaflet cannot render.
   # tile_url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
   # attribution: "&copy; CARTO | &copy; OpenStreetMap contributors"
 
@@ -137,6 +138,9 @@ map:
   # Sent as ?key= on every tile request, and visible in the page source.
   # Restrict it to your dashboard domain at the provider. Also KRAWL_MAP_API_KEY.
   api_key: ""
+  # Query parameter the key rides on: CARTO and Stadia want api_key,
+  # Thunderforest apikey, MapTiler key. Also KRAWL_MAP_API_KEY_PARAM.
+  api_key_param: "api_key"
 
 tarpit:
   enabled: false  # Opt-in: trap AI agents with slow responses and random text
