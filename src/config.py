@@ -120,6 +120,9 @@ class Config:
     map_tile_attribution: str = _DEFAULT_TILE_ATTRIBUTION
     map_tile_subdomains: str = "abcd"
     map_api_key: str = ""
+    # Query parameter the key is sent as. Providers disagree: CARTO and Stadia
+    # want `api_key`, Thunderforest `apikey`, MapTiler `key`.
+    map_api_key_param: str = "api_key"
 
     # Analyzer settings
     http_risky_methods_threshold: float = 0.1
@@ -347,6 +350,7 @@ class Config:
             ),
             map_tile_subdomains=map_cfg.get("subdomains", "abcd"),
             map_api_key=map_cfg.get("api_key", ""),
+            map_api_key_param=map_cfg.get("api_key_param") or "api_key",
             http_risky_methods_threshold=analyzer.get(
                 "http_risky_methods_threshold", 0.1
             ),
