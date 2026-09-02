@@ -87,7 +87,7 @@ data:
       tile_url: {{ .Values.config.map.tile_url | quote }}
       attribution: {{ .Values.config.map.attribution | quote }}
       subdomains: {{ .Values.config.map.subdomains | quote }}
-      api_key: {{ .Values.config.map.api_key | quote }}
+      api_key_param: {{ .Values.config.map.api_key_param | default "api_key" | quote }}
     tarpit:
       enabled: {{ .Values.config.tarpit.enabled }}
       delay_seconds: {{ .Values.config.tarpit.delay_seconds }}
