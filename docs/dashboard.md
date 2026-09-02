@@ -248,6 +248,7 @@ map:
   attribution: "&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors"
   subdomains: "abcd"
   api_key: ""
+  api_key_param: "api_key"
 ```
 
 | Env var | Description | Default |
@@ -255,7 +256,8 @@ map:
 | `KRAWL_MAP_TILE_URL` | Tile URL template. `{z}`, `{x}` and `{y}` are required; `{s}` (subdomain) and `{r}` (retina suffix) are optional | Esri dark canvas |
 | `KRAWL_MAP_TILE_ATTRIBUTION` | Credit line shown in the map corner | Esri / OSM |
 | `KRAWL_MAP_TILE_SUBDOMAINS` | Values substituted into `{s}` | `abcd` |
-| `KRAWL_MAP_API_KEY` | Appended to every tile request as `?key=` | _(empty)_ |
+| `KRAWL_MAP_API_KEY` | Appended to every tile request as a query parameter | _(empty)_ |
+| `KRAWL_MAP_API_KEY_PARAM` | Name of that query parameter | `api_key` |
 
 Note the axis order: Esri serves tiles as `{z}/{y}/{x}`, while most other
 providers use `{z}/{x}/{y}`. Copy the template exactly as the provider
@@ -278,6 +280,20 @@ map:
   api_key: "your-key-here"
 ```
 
+Use the **raster** endpoint above, not the vector one. CARTO's documentation
+leads with vector basemaps — a `style.json` handed to MapLibre GL. This map is
+Leaflet, and `tile_url` is a raster `{z}/{x}/{y}` template; a style URL in that
+field produces a blank basemap with no error in the console. The raster
+`basemaps.cartocdn.com` endpoints are still served, and the tiles are pushed
+through a desaturating filter anyway, so vector buys nothing here. The same
+applies to any other provider that documents itself style-JSON-first
+(MapTiler, Stadia): find their raster tile template.
+
+Providers disagree on what to call the query parameter — CARTO and Stadia want
+`api_key`, Thunderforest `apikey`, MapTiler `key` — so `api_key_param` sets it.
+It defaults to `api_key`, which is what CARTO expects, so the block above works
+as written.
+
 **OpenStreetMap** needs no key but is light-themed, so it fights the dashboard
 until you invert it. Add this to your own CSS after setting the URL:
 
@@ -298,6 +314,18 @@ other option tells a third-party CDN when you are looking at it.
 served in the page source. That is unavoidable for a client-side map — restrict
 the key to your dashboard's domain at the provider rather than trying to hide
 it.
+
+On Kubernetes the key still never touches the ConfigMap. Setting
+`config.map.api_key` creates a chart-managed Secret and injects it as
+`KRAWL_MAP_API_KEY`; to keep it out of your values file entirely, point
+`mapExistingSecret` at a Secret you manage (External Secrets Operator, Vault,
+sealed-secrets):
+
+```yaml
+mapExistingSecret:
+  name: krawl-map-tiles
+  key: map-api-key
+```
 
 **Attribution is a licence condition** for every provider above, not
 decoration. It is styled to be unobtrusive; do not remove it.
