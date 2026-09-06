@@ -1,0 +1,27 @@
+{# HTMX fragment: Referer history for a single IP #
+ # Shows which referring URL (bait) led the attacker onto which trap path. #}
+<div class="panel-header">
+    <span class="pagination-info">Recent referers &mdash; {{ items | length }} shown</span>
+</div>
+<table>
+    <thead>
+        <tr>
+            <th>Referer</th>
+            <th>Path</th>
+            <th>Time</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td class="data data-mono">
+                <a href="{{ item.referer | e }}" target="_blank" rel="noopener noreferrer" class="data-link">{{ item.referer | e }}</a>
+            </td>
+            <td class="data"><a href="#" @click.prevent="viewRawRequest({{ item.id }})" class="data-link">{{ item.path | e }}</a></td>
+            <td class="ts-cell">{{ item.timestamp | format_ts }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" class="empty-state">No referer data captured for this IP</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
