@@ -6,6 +6,7 @@ Server-rendered HTML partials for table pagination, sorting, IP details, and sea
 """
 
 import asyncio
+from datetime import datetime
 
 from fastapi import APIRouter, Query, Request, Response
 from fastapi.responses import HTMLResponse
@@ -19,7 +20,7 @@ from dashboard_cache import (
     set_cached_table,
 )
 from dependencies import get_db, get_templates
-from routes.api import verify_auth
+from routes.api import _campaign_window, verify_auth
 
 router = APIRouter()
 
@@ -37,6 +38,16 @@ _INLINE_401 = "<p style='color:#f85149;'>Unauthorized</p>"
 def _dashboard_path(request: Request) -> str:
     config = request.app.state.config
     return "/" + config.dashboard_secret_path.lstrip("/")
+
+
+def _parse_day(day: str):
+    """ISO date string -> datetime.date, or None when absent/invalid."""
+    if not day:
+        return None
+    try:
+        return datetime.fromisoformat(day.strip()).date()
+    except ValueError:
+        return None
 
 
 # ── Honeypot Triggers ────────────────────────────────────────────────
@@ -499,9 +510,10 @@ async def htmx_credentials(
     page: int = Query(1),
     sort_by: str = Query("timestamp"),
     sort_order: str = Query("desc"),
+    ip_filter: str = Query(""),
 ):
     page = max(1, page)
-    cache_key = f"credentials:{page}:{sort_by}:{sort_order}"
+    cache_key = f"credentials:{page}:{sort_by}:{sort_order}:{ip_filter}"
     cached = get_cached_table(cache_key)
     if cached:
         result = cached
@@ -513,6 +525,7 @@ async def htmx_credentials(
             page_size=5,
             sort_by=sort_by,
             sort_order=sort_order,
+            ip_filter=ip_filter or None,
         )
         set_cached_table(cache_key, result)
 
@@ -526,6 +539,7 @@ async def htmx_credentials(
             "pagination": result["pagination"],
             "sort_by": sort_by,
             "sort_order": sort_order,
+            "ip_filter": ip_filter,
         },
     )
 
@@ -589,6 +603,9 @@ async def htmx_attacks(
                 "user_agent": attack.get("user_agent", ""),
                 "timestamp": attack.get("timestamp"),
                 "log_id": attack.get("id"),
+                "tlsh_hash": attack.get("tlsh_hash"),
+                "cluster_id": attack.get("cluster_id"),
+                "cluster_hash": attack.get("cluster_hash"),
             }
         )
 
@@ -793,6 +810,151 @@ async def htmx_ip_detail(ip_address: str, request: Request):
             "dashboard_path": _dashboard_path(request),
             "stats": clean_stats,
             "is_tracked": is_tracked,
+        },
+    )
+
+
+# ── IP Payloads (files uploaded by one IP) ───────────────────────────
+
+
+@router.get("/htmx/ip-referers")
+async def htmx_ip_referers(
+    request: Request,
+    ip_filter: str = Query(""),
+):
+    db = get_db()
+    items = await asyncio.to_thread(
+        db.payloads.get_referer_history, ip=ip_filter, limit=50
+    )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/referer_history_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "items": items,
+            "ip_filter": ip_filter,
+        },
+    )
+
+
+@router.get("/htmx/ip-payloads")
+async def htmx_ip_payloads(
+    request: Request,
+    ip_filter: str = Query(""),
+    page: int = Query(1),
+):
+    page = max(1, page)
+    db = get_db()
+    result = await asyncio.to_thread(
+        db.payloads.get_by_ip, ip=ip_filter, page=page, page_size=10
+    )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/payloads_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "items": result["payloads"],
+            "pagination": result["pagination"],
+            "ip_filter": ip_filter,
+        },
+    )
+
+
+# ── Global Filename Index (Threat tab) ───────────────────────────────
+
+
+@router.get("/htmx/global-filenames")
+async def htmx_global_filenames(
+    request: Request,
+    page: int = Query(1),
+):
+    page = max(1, page)
+    db = get_db()
+    result = await asyncio.to_thread(
+        db.payloads.get_global_index, page=page, page_size=20
+    )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/filenames_index_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "index": result["index"],
+            "pagination": result["pagination"],
+        },
+    )
+
+
+# ── Similar events (fuzzy TLSH match across attacks + files) ─────────
+
+
+@router.get("/htmx/similar-events")
+async def htmx_similar_events(
+    request: Request,
+    tlsh: str = Query(""),
+):
+    db = get_db()
+    items = await asyncio.to_thread(
+        db.payloads.get_similar_events, base_hash=tlsh
+    )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/similar_threats_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "items": items,
+            "tlsh": tlsh,
+        },
+    )
+
+
+# ── Recurring patterns / campaign clusters (Threats tab) ─────────────
+
+
+@router.get("/htmx/pattern-clusters")
+async def htmx_pattern_clusters(
+    request: Request,
+    day: str = Query(""),
+    days: int = Query(0),
+    offset: int = Query(0),
+):
+    db = get_db()
+    window = _campaign_window(day, days=days, offset=offset)
+    kwargs: dict = {}
+    if window is not None:
+        kwargs["start"], kwargs["end"] = window
+    clusters = await asyncio.to_thread(
+        db.payloads.get_campaign_clusters, **kwargs
+    )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/pattern_clusters_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "clusters": clusters,
+        },
+    )
+
+
+@router.get("/htmx/cluster-events")
+async def htmx_cluster_events(
+    request: Request,
+    cluster: str = Query(""),
+):
+    db = get_db()
+    events = await asyncio.to_thread(db.payloads.get_cluster_events, cluster_id=cluster)
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/cluster_events_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "items": events,
+            "cluster": cluster,
         },
     )
 

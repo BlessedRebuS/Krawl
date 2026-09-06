@@ -16,7 +16,7 @@ import secrets
 import threading
 import time
 import zipfile
-from datetime import UTC
+from datetime import UTC, datetime, timedelta
 from email import policy
 
 from fastapi import APIRouter, Depends, Query, Request, Response
@@ -59,6 +59,45 @@ def _no_cache_headers() -> dict:
         "Expires": "0",
         "Access-Control-Allow-Origin": "*",
     }
+
+
+def _parse_day(day: str):
+    """ISO date string -> datetime.date, or None when absent/invalid."""
+    if not day:
+        return None
+    try:
+        return datetime.fromisoformat(day.strip()).date()
+    except ValueError:
+        return None
+
+
+def _campaign_window(day: str = "", days: int = 0, offset: int = 0):
+    """Range window for the campaigns filter.
+
+    ``day``: explicit ISO date -> that single day.
+    ``days``: span length (1/7/30); window is the ``days`` days ending
+    ``offset*days`` days ago (mirrors the attack-trends period pager).
+    Returns (start_dt, end_dt) naive datetimes, or None for the global view.
+    """
+    from datetime import time
+
+    if day:
+        d = _parse_day(day)
+        if d is None:
+            return None
+        start = datetime.combine(d, time.min)
+        return start, start + timedelta(days=1)
+
+    if days:
+        days = min(max(1, days), 90)
+        offset = max(0, offset)
+        end_date = (datetime.now() - timedelta(days=offset * days)).date()
+        start_date = end_date - timedelta(days=days - 1)
+        start = datetime.combine(start_date, time.min)
+        end = datetime.combine(end_date, time.min) + timedelta(days=1)
+        return start, end
+
+    return None
 
 
 class AuthRequest(BaseModel):
@@ -575,6 +614,54 @@ async def attack_types_stats(
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
         get_app_logger().error(f"Error fetching attack types stats: {e}")
+        return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
+
+
+@router.get("/api/campaign-stats")
+async def campaign_stats(
+    request: Request,
+    limit: int = Query(12),
+    day: str = Query(""),
+    days: int = Query(0),
+    offset: int = Query(0),
+):
+    limit = min(max(1, limit), 50)
+    window = _campaign_window(day, days=days, offset=offset)
+    cache_key = f"api:campaign_stats:{limit}:{day or days or 0}:{offset}"
+    cached = get_cached_table(cache_key)
+    if cached:
+        return JSONResponse(content=cached, headers=_no_cache_headers())
+
+    db = get_db()
+    try:
+        kwargs = {"limit": limit}
+        if window is not None:
+            kwargs["start"], kwargs["end"] = window
+        clusters = await asyncio.to_thread(
+            db.payloads.get_campaign_clusters, **kwargs
+        )
+        campaigns = [
+            {
+                "id": c["id"],
+                "label": (c["rep_hash"] or "")[:8],
+                "path": c["path"],
+                "top_path": c["top_path"],
+                "sample": c["sample"],
+                "sources": c["sources"],
+                "captures": c["events"],
+                "ips": c["ips"],
+                "first_seen": (
+                    c["first_seen"].isoformat() if c["first_seen"] else None
+                ),
+                "last_seen": c["last_seen"].isoformat() if c["last_seen"] else None,
+            }
+            for c in clusters
+        ]
+        result = {"campaigns": campaigns}
+        set_cached_table(cache_key, result)
+        return JSONResponse(content=result, headers=_no_cache_headers())
+    except Exception as e:
+        get_app_logger().error(f"Error fetching campaign stats: {e}")
         return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
 
 
