@@ -148,6 +148,7 @@ def main():
             for d in post:
                 assert d.tlsh_hash, f"{d.attack_type} row missing TLSH hash"
                 assert d.cluster_id, f"{d.attack_type} row missing cluster_id"
+            from models import PayloadCluster
             from models import PayloadHashWatermark as WM
 
             wm = db.session.get(WM, 1)
@@ -194,6 +195,29 @@ def main():
             c3 = db.payloads.assign_cluster(h_un, t0 + timedelta(hours=3))
             assert c3 != c1, "unrelated digest must seed a separate cluster"
             assert db.payloads.assign_cluster(None, t0) is None
+            # Backfill: a past-dated member merging into an existing cluster
+            # must widen first/last, never invert them (regression for
+            # watermark backfill pushing last_seen earlier than first_seen).
+            s = db.session
+            c1_row = (
+                s.query(PayloadCluster)
+                .filter(PayloadCluster.id == c1)
+                .one()
+            )
+            old_first, old_last = c1_row.first_seen, c1_row.last_seen
+            assert db.payloads.assign_cluster(
+                h_var, t0 - timedelta(days=30)
+            ) == c1, "backfilled near-variant must join the same cluster"
+            db.close_session()
+            c1_row = (
+                db.session.query(PayloadCluster)
+                .filter(PayloadCluster.id == c1)
+                .one()
+            )
+            assert c1_row.first_seen < old_first, "backfill must widen first_seen backward"
+            assert c1_row.last_seen == old_last, "backfill must NOT move last_seen backward"
+            assert c1_row.first_seen <= c1_row.last_seen
+            db.close_session()
             s = db.session
             s.query(CapturedPayload).filter(
                 CapturedPayload.filename == "c99shell-v2.php"
@@ -203,11 +227,13 @@ def main():
             ).update({"cluster_id": c3})
             s.commit()
             db.close_session()
-            campaigns = db.payloads.get_campaign_clusters()
+            campaigns = db.payloads.get_campaign_clusters(min_events=1)
             c_row = next(c for c in campaigns if c["id"] == c1)
             assert c_row["events"] >= 3, c_row  # capture_count from incremental assigns
             assert c_row["ips"] >= 1, c_row
-            assert any(c["id"] == c3 and c["events"] == 1 for c in campaigns), campaigns
+            assert not any(
+                c["id"] == c3 for c in campaigns
+            ), "single-shot probes must not surface as campaigns"
             members = db.payloads.get_cluster_events(c1)
             assert any(m["filename"] == "c99shell-v2.php" for m in members), members
 

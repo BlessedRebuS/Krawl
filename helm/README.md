@@ -406,6 +406,7 @@ A one-shot Kubernetes Job that copies data from an existing SQLite PVC into Post
 | `config.analyzer.attack_urls_threshold` | Attack URLs threshold | `1` |
 | `config.analyzer.tlsh_enabled` | TLSH-hash captured payloads/files for near-duplicate campaign clustering (`KRAWL_TLSH_ENABLED`) | `true` |
 | `config.analyzer.tlsh_cluster_threshold` | TLSH distance below which a payload joins an existing campaign (`KRAWL_TLSH_CLUSTER_THRESHOLD`) | `150` |
+| `config.analyzer.tlsh_campaign_min_events` | A campaign shows only when its payload was seen more than this many times (`KRAWL_TLSH_CAMPAIGN_MIN_EVENTS`) | `10` |
 | `config.analyzer.referer_enabled` | Capture the inbound HTTP Referer header for bait-chain tracking (`KRAWL_REFERER_ENABLED`) | `true` |
 
 ### Crawl Configuration

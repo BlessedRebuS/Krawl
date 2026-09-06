@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from database import get_database, initialize_database
 from tlsh_utils import tlsh_available, tlsh_hash
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "..", "src", "data", "krawl.db")
+DEFAULT_DB_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "krawl.db")
 
 
 def _raw(
@@ -212,12 +212,13 @@ SEEDS = [
 ]
 
 
-def main():
-    if not os.path.exists(DB_PATH):
-        print(f"DB not found: {DB_PATH}")
+def main(db_path: str | None = None):
+    target = os.path.abspath(db_path or DEFAULT_DB_PATH)
+    if not os.path.exists(target):
+        print(f"DB not found: {target}")
         return
 
-    initialize_database(DB_PATH)
+    initialize_database(target)
     db = get_database()
     session = db.session
     try:
@@ -344,6 +345,16 @@ def main():
                 ),
             ]
             first_ts = _now(5, 12, 30)  # Sep 1, a day earlier than SQLi
+            attach_log_id = (
+                session.query(AccessLog.id)
+                .filter(AccessLog.path == "/upload")
+                .first()
+            )
+            attach_log_id = (
+                attach_log_id[0]
+                if attach_log_id
+                else session.query(AccessLog.id).order_by(AccessLog.id.desc()).first()[0]
+            )
             pending_clusters = {}
             for i, (fname, content) in enumerate(shell_variants):
                 ip = [
@@ -357,7 +368,7 @@ def main():
                 digest = tlsh_hash(content_bytes)
                 sha = hashlib.sha256(content_bytes).hexdigest()
                 cp = CapturedPayload(
-                    access_log_id=1 + i,  # dummy, will be overwritten
+                    access_log_id=attach_log_id,
                     ip=ip,
                     filename=fname,
                     content_type="application/x-php",
@@ -366,8 +377,7 @@ def main():
                     sha256=sha,
                     timestamp=ts,
                 )
-                # assign to access_log 3253 + i (the 3 real POST logs exist)
-                cp.access_log_id = 3253 + (i % 3)
+                cp.access_log_id = attach_log_id
                 session.add(cp)
                 session.flush()
 
@@ -411,4 +421,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1] if len(sys.argv) > 1 else None)

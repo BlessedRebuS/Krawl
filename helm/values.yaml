@@ -199,6 +199,7 @@ config:
     # Threat-intel capture
     tlsh_enabled: true  # TLSH-hash captured payloads/files (near-duplicate campaign clustering)
     tlsh_cluster_threshold: 150  # TLSH distance below which a payload joins an existing campaign
+    tlsh_campaign_min_events: 10  # A campaign shows only when its payload was seen more than this many times
     referer_enabled: true  # Capture the inbound HTTP Referer header (bait-chain tracking)
   crawl:
     infinite_pages_for_malicious: true
