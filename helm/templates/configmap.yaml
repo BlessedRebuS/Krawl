@@ -49,6 +49,9 @@ data:
       uneven_request_timing_time_window_seconds: {{ .Values.config.analyzer.uneven_request_timing_time_window_seconds }}
       user_agents_used_threshold: {{ .Values.config.analyzer.user_agents_used_threshold }}
       attack_urls_threshold: {{ .Values.config.analyzer.attack_urls_threshold }}
+      tlsh_enabled: {{ .Values.config.analyzer.tlsh_enabled }}
+      tlsh_cluster_threshold: {{ .Values.config.analyzer.tlsh_cluster_threshold }}
+      referer_enabled: {{ .Values.config.analyzer.referer_enabled }}
     crawl:
       infinite_pages_for_malicious: {{ .Values.config.crawl.infinite_pages_for_malicious }}
       max_pages_limit: {{ .Values.config.crawl.max_pages_limit }}

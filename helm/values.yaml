@@ -196,6 +196,10 @@ config:
     uneven_request_timing_time_window_seconds: 300
     user_agents_used_threshold: 2
     attack_urls_threshold: 1
+    # Threat-intel capture
+    tlsh_enabled: false  # TLSH-hash captured payloads/files (near-duplicate campaign clustering)
+    tlsh_cluster_threshold: 150  # TLSH distance below which a payload joins an existing campaign
+    referer_enabled: false  # Capture the inbound HTTP Referer header (bait-chain tracking)
   crawl:
     infinite_pages_for_malicious: true
     max_pages_limit: 250
