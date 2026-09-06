@@ -29,6 +29,7 @@ def _request_body(raw_request: str | None) -> str | None:
     body = raw_request.split("\r\n\r\n", 1)[1] if "\r\n\r\n" in raw_request else ""
     return unquote(body) if body else None
 
+
 applogger = get_app_logger()
 
 
@@ -74,9 +75,7 @@ class PayloadRepo:
 
     # ---- Reads ----
 
-    def get_by_ip(
-        self, ip: str, page: int = 1, page_size: int = 10
-    ) -> dict[str, Any]:
+    def get_by_ip(self, ip: str, page: int = 1, page_size: int = 10) -> dict[str, Any]:
         """Paginated payloads uploaded by a single IP (IP Insight tab)."""
         session = self._db.session
         try:
@@ -109,9 +108,11 @@ class PayloadRepo:
         try:
             if not cluster_ids:
                 return {}
-            rows = session.query(
-                PayloadCluster.id, PayloadCluster.representative_hash
-            ).filter(PayloadCluster.id.in_(cluster_ids)).all()
+            rows = (
+                session.query(PayloadCluster.id, PayloadCluster.representative_hash)
+                .filter(PayloadCluster.id.in_(cluster_ids))
+                .all()
+            )
             return dict(rows)
         finally:
             self._db.close_session()
@@ -139,9 +140,7 @@ class PayloadRepo:
             base = (
                 session.query(
                     CapturedPayload.filename,
-                    func.count(func.distinct(CapturedPayload.ip)).label(
-                        "distinct_ips"
-                    ),
+                    func.count(func.distinct(CapturedPayload.ip)).label("distinct_ips"),
                     func.count(CapturedPayload.id).label("total"),
                     func.min(CapturedPayload.timestamp).label("first_seen"),
                     func.max(CapturedPayload.timestamp).label("last_seen"),
@@ -160,24 +159,25 @@ class PayloadRepo:
                 "distinct_ips": func.count(func.distinct(CapturedPayload.ip)),
             }
             order = valid_sort.get(sort_by, valid_sort["last_seen"])
-            rows = base.order_by(order.desc()).offset((page - 1) * page_size).limit(
-                page_size
-            ).all()
+            rows = (
+                base.order_by(order.desc())
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+                .all()
+            )
 
             # access_log_id of the most recent capture per filename, so clicking a
             # filename in the Threats tab can open that payload directly.
-            latest = (
-                session.query(
-                    CapturedPayload.filename.label("fname"),
-                    CapturedPayload.access_log_id.label("log_id"),
-                    func.row_number()
-                    .over(
-                        partition_by=CapturedPayload.filename,
-                        order_by=CapturedPayload.id.desc(),
-                    )
-                    .label("rn"),
-                ).subquery()
-            )
+            latest = session.query(
+                CapturedPayload.filename.label("fname"),
+                CapturedPayload.access_log_id.label("log_id"),
+                func.row_number()
+                .over(
+                    partition_by=CapturedPayload.filename,
+                    order_by=CapturedPayload.id.desc(),
+                )
+                .label("rn"),
+            ).subquery()
             latest_by_filename = {
                 r.fname: r.log_id
                 for r in session.query(latest).filter(latest.c.rn == 1).all()
@@ -463,11 +463,11 @@ class PayloadRepo:
                 types_q = types_q.join(
                     AccessLog, AttackDetection.access_log_id == AccessLog.id
                 )
-            for cid, atype, cnt in types_q.filter(
-                AttackDetection.cluster_id.isnot(None), *attack_win
-            ).group_by(
-                AttackDetection.cluster_id, AttackDetection.attack_type
-            ).all():
+            for cid, atype, cnt in (
+                types_q.filter(AttackDetection.cluster_id.isnot(None), *attack_win)
+                .group_by(AttackDetection.cluster_id, AttackDetection.attack_type)
+                .all()
+            ):
                 c = clusters.get(cid)
                 if c is not None:
                     c["types"][atype] = cnt
@@ -494,7 +494,8 @@ class PayloadRepo:
                     "path": c["path"],
                     "top_path": c["top_path"] or c["path"],
                     "attack_types": [
-                        t for t, _ in sorted(
+                        t
+                        for t, _ in sorted(
                             c["types"].items(), key=lambda kv: (-kv[1], kv[0])
                         )
                     ],

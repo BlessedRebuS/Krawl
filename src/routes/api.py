@@ -637,9 +637,7 @@ async def campaign_stats(
         kwargs = {"limit": limit}
         if window is not None:
             kwargs["start"], kwargs["end"] = window
-        clusters = await asyncio.to_thread(
-            db.payloads.get_campaign_clusters, **kwargs
-        )
+        clusters = await asyncio.to_thread(db.payloads.get_campaign_clusters, **kwargs)
         campaigns = [
             {
                 "id": c["id"],

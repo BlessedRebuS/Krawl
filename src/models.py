@@ -419,9 +419,7 @@ class CapturedPayload(Base):
         DateTime, nullable=False, default=datetime.utcnow, index=True
     )
 
-    __table_args__ = (
-        Index("ix_captured_payloads_ip_timestamp", "ip", "timestamp"),
-    )
+    __table_args__ = (Index("ix_captured_payloads_ip_timestamp", "ip", "timestamp"),)
 
     def __repr__(self) -> str:
         return f"<CapturedPayload(id={self.id}, ip='{self.ip}', filename='{self.filename}')>"

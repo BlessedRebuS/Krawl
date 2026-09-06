@@ -257,7 +257,9 @@ class AccessTracker:
             for fp in file_payloads:
                 if fp.get("tlsh_hash") and not fp.get("cluster_id"):
                     fp["cluster_id"] = self.db.payloads.assign_cluster(
-                        fp["tlsh_hash"], _seen_ts, threshold=config.tlsh_cluster_threshold
+                        fp["tlsh_hash"],
+                        _seen_ts,
+                        threshold=config.tlsh_cluster_threshold,
                     )
 
         is_suspicious = (

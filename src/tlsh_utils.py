@@ -72,7 +72,9 @@ def tlsh_diff(h1: str | None, h2: str | None) -> int | None:
         return None
 
 
-def is_similar(h1: str | None, h2: str | None, threshold: int = SIMILARITY_THRESHOLD) -> bool:
+def is_similar(
+    h1: str | None, h2: str | None, threshold: int = SIMILARITY_THRESHOLD
+) -> bool:
     """True if two TLSH digests are within the similarity threshold."""
     d = tlsh_diff(h1, h2)
     return d is not None and d <= threshold

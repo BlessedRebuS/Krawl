@@ -896,9 +896,7 @@ async def htmx_similar_events(
     tlsh: str = Query(""),
 ):
     db = get_db()
-    items = await asyncio.to_thread(
-        db.payloads.get_similar_events, base_hash=tlsh
-    )
+    items = await asyncio.to_thread(db.payloads.get_similar_events, base_hash=tlsh)
     templates = get_templates()
     return templates.TemplateResponse(
         request,
@@ -926,9 +924,7 @@ async def htmx_pattern_clusters(
     kwargs: dict = {}
     if window is not None:
         kwargs["start"], kwargs["end"] = window
-    clusters = await asyncio.to_thread(
-        db.payloads.get_campaign_clusters, **kwargs
-    )
+    clusters = await asyncio.to_thread(db.payloads.get_campaign_clusters, **kwargs)
     templates = get_templates()
     return templates.TemplateResponse(
         request,

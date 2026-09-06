@@ -505,9 +505,11 @@ class DatabaseManager:
                         "is_honeypot_trigger": entry.get("is_honeypot_trigger", False),
                         "timestamp": ts,
                         "raw_request": entry.get("raw_request"),
-                        "referer": sanitize_path(entry.get("referer"))
-                        if entry.get("referer")
-                        else None,
+                        "referer": (
+                            sanitize_path(entry.get("referer"))
+                            if entry.get("referer")
+                            else None
+                        ),
                     }
                 )
 
