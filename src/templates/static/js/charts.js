@@ -423,3 +423,173 @@ function filterAttackTableByType(attackType) {
         htmx.ajax('GET', DASHBOARD_PATH + '/htmx/attacks?page=1&attack_type_filter=' + encodeURIComponent(attackType), { target: container, swap: 'innerHTML' });
     }
 }
+
+/**
+ * Attack Campaigns horizontal bar chart (Threats tab).
+ * One bar per payload cluster: captures vs distinct IPs. Clicking a bar
+ * opens the campaign members overlay. Day-navigable like the attack trends
+ * chart: each view is the top campaigns active on the selected day.
+ */
+let campaignsChart = null;
+let _campaignDays = 1;
+let _campaignOffset = 0;
+
+function _campaignEndDate() {
+    const d = new Date();
+    d.setDate(d.getDate() - (_campaignOffset * _campaignDays));
+    return d;
+}
+
+function _campaignStartDate() {
+    const d = _campaignEndDate();
+    d.setDate(d.getDate() - (_campaignDays - 1));
+    return d;
+}
+
+function _campaignLabel() {
+    const label = document.getElementById('campaigns-period-label');
+    if (label) {
+        const end = _campaignEndDate();
+        if (_campaignDays === 1) {
+            label.textContent = end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        } else {
+            label.textContent = `${_campaignStartDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} — ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+        }
+    }
+    const next = document.getElementById('campaigns-period-next');
+    if (next) next.disabled = _campaignOffset === 0;
+}
+
+async function loadCampaignsChart() {
+    const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
+
+    try {
+        const canvas = document.getElementById('campaigns-chart');
+        if (!canvas) return;
+
+        _campaignLabel();
+
+        const response = await fetch(
+            DASHBOARD_PATH + `/api/campaign-stats?limit=5&days=${_campaignDays}&offset=${_campaignOffset}`,
+            {
+                cache: 'no-store',
+                headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+            }
+        );
+        if (!response.ok) throw new Error('Failed to fetch campaign stats');
+
+        const data = await response.json();
+        const campaigns = data.campaigns || [];
+
+        if (campaignsChart) campaignsChart.destroy();
+
+        if (campaigns.length === 0) {
+            canvas.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-dim);font-size:13px;">No campaigns in this period</div>';
+            return;
+        }
+
+        const labels = campaigns.map(c => c.label || (c.id || '').slice(0, 8));
+
+        const ctx = canvas.getContext('2d');
+        campaignsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Captures',
+                        data: campaigns.map(c => c.captures),
+                        backgroundColor: 'hsl(210, 85%, 60%)',
+                        hoverBackgroundColor: 'hsl(210, 85%, 68%)'
+                    },
+                    {
+                        label: 'Distinct IPs',
+                        data: campaigns.map(c => c.ips),
+                        backgroundColor: 'hsl(280, 70%, 65%)',
+                        hoverBackgroundColor: 'hsl(280, 70%, 73%)'
+                    }
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: krawlToken('--text') }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(22, 27, 34, 0.95)',
+                        titleColor: krawlToken('--accent'),
+                        bodyColor: krawlToken('--text'),
+                        borderColor: krawlToken('--accent'),
+                        borderWidth: 2,
+                        padding: 14,
+                        callbacks: {
+                            label: (context) =>
+                                `${context.dataset.label}: ${context.parsed.x}`,
+                            afterLabel: (context) => {
+                                const c = campaigns[context.dataIndex];
+                                const parts = [`source: ${c.sources}`];
+                                if (c.top_path) parts.push(`most hit target: ${c.top_path}`);
+                                if (c.first_seen) parts.push(`first: ${new Date(c.first_seen).toLocaleString()}`);
+                                if (c.last_seen) parts.push(`last: ${new Date(c.last_seen).toLocaleString()}`);
+                                return parts;
+                            }
+                        }
+                    }
+                },
+                animation: { enabled: false },
+                onClick: (evt, elements) => {
+                    if (!elements.length) return;
+                    const c = campaigns[elements[0].index];
+                    window.openExpandOverlay(c.label, 'campaign', '', c.id);
+                },
+                onHover: (event, activeElements) => {
+                    const canvas = event.native && event.native.target;
+                    if (canvas) canvas.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.06)' },
+                        ticks: { color: krawlToken('--text-dim'), precision: 0 }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: krawlToken('--text-dim'), font: { size: 11 } }
+                    }
+                }
+            },
+            plugins: [{
+                id: 'customCanvasBackgroundColor',
+                beforeDraw: (chart) => {
+                    if (chart.ctx) {
+                        chart.ctx.save();
+                        chart.ctx.globalCompositeOperation = 'destination-over';
+                        chart.ctx.fillStyle = 'rgba(0,0,0,0)';
+                        chart.ctx.fillRect(0, 0, chart.width, chart.height);
+                        chart.ctx.restore();
+                    }
+                }
+            }]
+        });
+    } catch (err) {
+        console.error('Error loading campaigns chart:', err);
+    }
+}
+
+/** Shift the campaigns chart period by N spans (negative = newer, towards now) */
+function shiftCampaignPeriod(direction) {
+    _campaignOffset = Math.max(0, _campaignOffset + direction);
+    loadCampaignsChart();
+}
+
+/** Switch the campaigns chart span (1, 7, 30 days) and reset to the current period */
+function setCampaignSpan(days, btn) {
+    _campaignDays = days;
+    _campaignOffset = 0;
+    document.querySelectorAll('#campaigns-span-selector .map-limit-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    loadCampaignsChart();
+}

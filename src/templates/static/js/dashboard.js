@@ -398,6 +398,9 @@ document.addEventListener('alpine:init', () => {
         // Raw request modal
         rawModal: { show: false, content: '', highlightedContent: '', logId: null, attachments: [], attachmentsShow: false, hasAttachments: false },
 
+        // Captured file viewer modal
+        fileModal: { show: false, content: '', filename: '', contentType: '', size: '', logId: null, index: null },
+
         // Map state
         mapInitialized: false,
 
@@ -415,8 +418,18 @@ document.addEventListener('alpine:init', () => {
         // Expand overlay state
         expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false, method: '', attackType: '', attackTypes: [], ipFilter: '' },
 
+        // LIFO of active popups (raw/file modal can open over the expand
+        // overlay); ESC closes only the most recently opened one.
+        _popupStack: [],
+
         // Flag to prevent double-triggering during init
         _initializingHash: false,
+
+        _trackPopup(show, key) {
+            const idx = this._popupStack.indexOf(key);
+            if (show && idx === -1) this._popupStack.push(key);
+            else if (!show && idx !== -1) this._popupStack.splice(idx, 1);
+        },
 
         async init() {
             // Check if already authenticated (cookie-based)
@@ -428,6 +441,26 @@ document.addEventListener('alpine:init', () => {
             // Sync ban action button visibility with auth state
             this.$watch('authenticated', (val) => updateBanActionVisibility(val));
             updateBanActionVisibility(this.authenticated);
+
+            // Track popup z-order so Escape closes only the topmost one.
+            this.$watch('expandOverlay.show', (show) => {
+                document.body.style.overflow = show ? 'hidden' : '';
+                this._trackPopup(show, 'overlay');
+            });
+            this.$watch('rawModal.show', (show) => this._trackPopup(show, 'raw'));
+            this.$watch('fileModal.show', (show) => this._trackPopup(show, 'file'));
+            this.$watch('authModal.show', (show) => this._trackPopup(show, 'auth'));
+            this.$watch('exportModal.show', (show) => this._trackPopup(show, 'export'));
+            document.addEventListener('keydown', (e) => {
+                if (e.key !== 'Escape') return;
+                if (!this._popupStack.length) return;
+                const top = this._popupStack[this._popupStack.length - 1];
+                if (top === 'overlay') this.expandOverlay.show = false;
+                else if (top === 'raw') this.closeRawModal();
+                else if (top === 'file') this.closeFileModal();
+                else if (top === 'auth') this.authModal.show = false;
+                else if (top === 'export') this.exportModal.show = false;
+            });
 
             // Fetch banlist sources when export modal opens
             this.$watch('exportModal.show', async (show) => {
@@ -459,6 +492,8 @@ document.addEventListener('alpine:init', () => {
                 this.switchToDeception();
             } else if (hash === 'webhooks' && this.authenticated) {
                 this.switchToWebhooks();
+            } else if (hash === 'threats') {
+                this.switchToThreats();
 
             } else if (hash === 'overview' || !hash) {
                 this.switchToOverview();
@@ -486,6 +521,8 @@ document.addEventListener('alpine:init', () => {
                         if (this.authenticated) this.switchToDeception();
                     } else if (h === 'webhooks') {
                         if (this.authenticated) this.switchToWebhooks();
+                    } else if (h === 'threats') {
+                        if (this.tab !== 'threats') this.switchToThreats();
                     } else if (h !== 'ip-insight') {
                         if (this.tab !== 'ip-insight') {
                             this.switchToOverview();
@@ -594,6 +631,28 @@ document.addEventListener('alpine:init', () => {
                 if (container && typeof htmx !== 'undefined') {
                     htmx.ajax('GET', `${this.dashboardPath}/htmx/webhooks`, {
                         target: '#webhooks-htmx-container',
+                        swap: 'innerHTML'
+                    });
+                }
+            });
+        },
+
+        switchToThreats() {
+            if (this.tab === 'threats') return;
+            this.tab = 'threats';
+            window.location.hash = '#threats';
+            this.$nextTick(() => {
+                if (typeof loadCampaignsChart === 'function') {
+                    loadCampaignsChart();
+                }
+                const container = document.getElementById('threats-htmx-container');
+                if (container && typeof htmx !== 'undefined') {
+                    htmx.ajax('GET', `${this.dashboardPath}/htmx/global-filenames?page=1`, {
+                        target: '#threats-htmx-container',
+                        swap: 'innerHTML'
+                    });
+                    htmx.ajax('GET', `${this.dashboardPath}/htmx/pattern-clusters`, {
+                        target: '#patterns-htmx-container',
                         swap: 'innerHTML'
                     });
                 }
@@ -767,6 +826,10 @@ document.addEventListener('alpine:init', () => {
             // Collapse any open search results before switching to the insight tab
             this.collapseSearch();
 
+            // Close any popup overlaying the dashboard (campaign / similar
+            // panel) when navigating to the IP insight tab.
+            this.expandOverlay.show = false;
+
             // Set the IP and load the insight content
             this.insightIp = ip;
             this.tab = 'ip-insight';
@@ -917,6 +980,57 @@ document.addEventListener('alpine:init', () => {
             a.click();
             document.body.removeChild(a);
             this.rawModal.attachmentsShow = false;
+        },
+
+        async viewPayload(logId, filename) {
+            try {
+                const resp = await fetch(
+                    `${this.dashboardPath}/api/attachments/${logId}`,
+                    { cache: 'no-store' }
+                );
+                const data = await resp.json();
+                const list = data.attachments || [];
+                let att = list.find(a => a.filename === filename);
+                if (!att && list.length) att = list[0];
+                if (!att) {
+                    krawlModal.error('No file content available');
+                    return;
+                }
+                const contentResp = await fetch(
+                    `${this.dashboardPath}/api/attachments/${logId}/download/${att.index}`,
+                    { cache: 'no-store' }
+                );
+                if (!contentResp.ok) throw new Error('download failed');
+                this.fileModal.logId = logId;
+                this.fileModal.index = att.index;
+                this.fileModal.filename = att.filename || filename || 'file';
+                this.fileModal.contentType = att.content_type || '';
+                this.fileModal.size = att.size != null ? `${att.size} B` : '';
+                this.fileModal.content = await contentResp.text();
+                this.fileModal.show = true;
+            } catch (err) {
+                krawlModal.error('Failed to load file content');
+            }
+        },
+
+        closeFileModal() {
+            this.fileModal.show = false;
+            this.fileModal.content = '';
+            this.fileModal.filename = '';
+            this.fileModal.contentType = '';
+            this.fileModal.size = '';
+            this.fileModal.logId = null;
+            this.fileModal.index = null;
+        },
+
+        downloadPayloadFile() {
+            if (this.fileModal.logId == null || this.fileModal.index == null) return;
+            const a = document.createElement('a');
+            a.href = `${this.dashboardPath}/api/attachments/${this.fileModal.logId}/download/${this.fileModal.index}`;
+            a.download = this.fileModal.filename || 'file';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         },
 
         toggleIpDetail(event) {
@@ -1460,15 +1574,15 @@ window.submitUploadPage = async function() {
 };
 
 // === Expand overlay for Top X tables ===
-window.openExpandOverlay = function(title, endpoint, pageSize) {
+window.openExpandOverlay = function(title, endpoint, pageSize, cluster, searchVal) {
     const app = _getAlpineData();
     if (!app) return;
     Object.assign(app.expandOverlay, {
         show: true, title: title, endpoint: endpoint,
-        pageSize: pageSize || 25, search: '',
+        pageSize: pageSize || 25, search: searchVal || '',
         categories: [], honeypotOnly: false,
         method: '', attackType: '', attackTypes: [],
-        ipFilter: '',
+        ipFilter: '', cluster: cluster || '',
     });
     _reloadExpandOverlay();
     // For attacks, lazily load the list of distinct attack types for the
@@ -1476,6 +1590,12 @@ window.openExpandOverlay = function(title, endpoint, pageSize) {
     if (endpoint === 'attacks') {
         _loadExpandAttackTypes();
     }
+};
+
+window.jumpToPath = function(event) {
+    if (!window.openExpandOverlay) return;
+    const path = (event.currentTarget.getAttribute('data-path') || '').trim();
+    openExpandOverlay('Attacks on ' + path, 'attacks', 25, '', path);
 };
 
 window.triggerExpandSearch = function() {
@@ -1563,8 +1683,18 @@ function _reloadExpandOverlay() {
     }
 
     const url = `${dashboardPath}/htmx/${ov.endpoint}?${params}`;
+
+    let targetUrl = url;
+    if (ov.endpoint === 'campaign') {
+        const cv = ov.cluster ? `?cluster=${encodeURIComponent(ov.cluster)}` : '';
+        targetUrl = `${dashboardPath}/htmx/cluster-events${cv}`;
+    } else if (ov.endpoint === 'similar') {
+        const sv = ov.cluster ? `?tlsh=${encodeURIComponent(ov.cluster)}` : '';
+        targetUrl = `${dashboardPath}/htmx/similar-events${sv}`;
+    }
+
     container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-dim);">Loading...</div>';
-    htmx.ajax('GET', url, { target: container, swap: 'innerHTML' });
+    htmx.ajax('GET', targetUrl, { target: container, swap: 'innerHTML' });
 }
 
 // Escape HTML to prevent XSS when inserting into innerHTML

@@ -1,0 +1,27 @@
+{# Captured file viewer modal - Alpine.js controlled.
+ # Shows the payload file content itself (not the HTTP request wrapper). #}
+<div class="raw-request-modal"
+     x-show="fileModal.show"
+     x-cloak
+     @click.self="closeFileModal()"
+>
+    <div class="raw-request-modal-content">
+        <div class="raw-request-modal-header">
+            <h3 x-text="fileModal.filename || 'Captured File'"></h3>
+            <span class="raw-request-modal-close" @click="closeFileModal()">&times;</span>
+        </div>
+        <div class="raw-request-modal-body">
+            <div class="file-modal-meta">
+                <span x-text="fileModal.contentType"></span>
+                <span x-text="fileModal.size"></span>
+            </div>
+            <pre class="raw-request-content" x-text="fileModal.content"></pre>
+        </div>
+        <div class="raw-request-modal-footer">
+            <button class="raw-request-icon-btn" @click="downloadPayloadFile()" title="Download file">
+                <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"/><path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06Z"/></svg>
+                <span class="raw-request-icon-tooltip">Download file</span>
+            </button>
+        </div>
+    </div>
+</div>

@@ -225,6 +225,39 @@
 </div>
 {% endif %}
 
+{# Referer history – bait-chain tracking #}
+<div class="table-container alert-section mt-5">
+    <h2>Referer History</h2>
+    <div class="htmx-container"
+         hx-get="{{ dashboard_path }}/htmx/ip-referers?ip_filter={{ ip_address }}"
+         hx-trigger="revealed"
+         hx-swap="innerHTML">
+        <div class="htmx-indicator">Loading...</div>
+    </div>
+</div>
+
+{# Captured payloads / files uploaded by this IP #}
+<div class="table-container alert-section mt-5">
+    <h2>Captured Payloads / Files</h2>
+    <div class="htmx-container"
+         hx-get="{{ dashboard_path }}/htmx/ip-payloads?ip_filter={{ ip_address }}&page=1"
+         hx-trigger="revealed"
+         hx-swap="innerHTML">
+        <div class="htmx-indicator">Loading...</div>
+    </div>
+</div>
+
+{# Credentials attempted / used by this IP #}
+<div class="table-container alert-section mt-5">
+    <h2>Captured Credentials</h2>
+    <div class="htmx-container"
+         hx-get="{{ dashboard_path }}/htmx/credentials?ip_filter={{ ip_address }}&page=1"
+         hx-trigger="revealed"
+         hx-swap="innerHTML">
+        <div class="htmx-indicator">Loading...</div>
+    </div>
+</div>
+
 {# Access History table #}
 <div class="table-container alert-section mt-5" id="access-history-section">
     <h2>Access History</h2>

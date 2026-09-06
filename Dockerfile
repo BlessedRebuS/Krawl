@@ -16,7 +16,8 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # gosu lets the entrypoint drop privileges after fixing mount ownership
-RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends gosu postgresql-client && \
+# build-essential: py-tlsh compile its C++ extension from source at install time
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends gosu postgresql-client build-essential && \
     rm -rf /var/lib/apt/lists/* && \
     useradd -m -u 1000 krawl && \
     mkdir -p /app/logs /app/data /app/exports && \

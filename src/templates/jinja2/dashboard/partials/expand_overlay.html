@@ -3,7 +3,6 @@
      id="expand-overlay"
      x-show="expandOverlay.show"
      x-cloak
-     @keydown.escape.window="expandOverlay.show && (expandOverlay.show = false)"
 >
     <div class="expand-overlay-content">
         <div class="expand-overlay-header">
@@ -14,7 +13,9 @@
                        placeholder="Filter..."
                        x-model="expandOverlay.search"
                        @input.debounce.300ms="triggerExpandSearch()"
-                       autocomplete="off" />
+                       autocomplete="off"
+                       x-show="expandOverlay.endpoint !== 'campaign' && expandOverlay.endpoint !== 'similar'"
+                       x-cloak />
                 <span class="auth-modal-close overlay-close" @click="expandOverlay.show = false">&times;</span>
             </div>
         </div>

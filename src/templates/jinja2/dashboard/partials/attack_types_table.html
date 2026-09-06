@@ -1,6 +1,6 @@
 {# HTMX fragment: Detected Attack Types table #}
 {% set filter_qs %}{% if ip_filter %}&ip_filter={{ ip_filter }}{% endif %}{% if attack_type_filter %}&attack_type_filter={{ attack_type_filter | e }}{% endif %}{% if search %}&search={{ search | e }}{% endif %}{% if method_filter %}&method_filter={{ method_filter | e }}{% endif %}{% endset %}
-<div class="panel-header">
+<div class="panel-header similar-host">
     <div class="row row-wrap">
         <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} total</span>
         {% if attack_type_filter %}
@@ -60,6 +60,12 @@
             </th>
             <th>Path</th>
             <th>Attack Types</th>
+            <th title="Campaign hash for grouped attacks, TLSH for standalone threats">TL Hash
+                <span class="th-hint" tabindex="0">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="#e3e3e3"><path d="M440-280h80v-240h-80v240Zm68.5-331.5Q520-623 520-640t-11.5-28.5Q497-680 480-680t-28.5 11.5Q440-657 440-640t11.5 28.5Q463-600 480-600t28.5-11.5ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
+                    <span class="th-hint-tip">Campaign hash for grouped attacks, click to open the campaign.</span>
+                </span>
+            </th>
             <th>User-Agent</th>
             <th class="sortable {% if sort_by == 'timestamp' %}{{ sort_order }}{% endif %}"
                 hx-get="{{ dashboard_path }}/htmx/attacks?page=1&page_size={{ pagination.page_size }}&sort_by=timestamp&sort_order={% if sort_by == 'timestamp' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ filter_qs }}"
@@ -102,6 +108,19 @@
                     {% endif %}
                 </div>
             </td>
+            <td class="data-mono tl-hash">
+                {% if attack.cluster_hash %}
+                <a href="#"
+                   class="data-link campaign-hash-link"
+                   @click.prevent="openExpandOverlay('{{ attack.cluster_hash }}', 'campaign', '', '{{ attack.cluster_id | e }}')"
+                   title="Campaign members ({{ attack.cluster_hash | e }})">{{ attack.cluster_hash | e }}</a>
+                {% elif attack.tlsh_hash %}
+                <a href="#"
+                   class="data-link"
+                   @click.prevent="openExpandOverlay('{{ attack.tlsh_hash[:12] }}', 'similar', '', '{{ attack.tlsh_hash | e }}')"
+                   title="{{ attack.tlsh_hash | e }}">{{ attack.tlsh_hash[:12] }}</a>
+                {% endif %}
+            </td>
             <td class="ua-cell">{{ (attack.user_agent | default(''))[:50] | e }}</td>
             <td class="ts-cell">{{ attack.timestamp | format_ts }}</td>
             <td>
@@ -119,14 +138,14 @@
             </td>
         </tr>
         <tr class="ip-stats-row" style="display: none;">
-            <td colspan="9" class="ip-stats-cell">
+            <td colspan="10" class="ip-stats-cell">
                 <div class="ip-stats-dropdown">
                     <div class="loading">Loading stats...</div>
                 </div>
             </td>
         </tr>
         {% else %}
-        <tr><td colspan="9" class="empty-state">No attacks detected</td></tr>
+        <tr><td colspan="10" class="empty-state">No attacks detected</td></tr>
         {% endfor %}
     </tbody>
 </table>

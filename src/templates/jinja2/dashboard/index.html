@@ -64,6 +64,7 @@
     <div class="tabs-container">
         <a class="tab-button" :class="{ active: tab === 'overview' }" @click.prevent="switchToOverview()" href="#overview">Overview</a>
         <a class="tab-button" :class="{ active: tab === 'attacks' }" @click.prevent="switchToAttacks()" href="#ip-stats">Attacks</a>
+        <a class="tab-button" :class="{ active: tab === 'threats' }" @click.prevent="switchToThreats()" href="#threats">Threats</a>
         <a class="tab-button" :class="{ active: tab === 'ip-insight', disabled: !insightIp }" @click.prevent="insightIp && switchToIpInsight()" href="#ip-insight">
             IP Insight<span x-show="insightIp" x-text="' (' + insightIp + ')'"></span>
         </a>
@@ -280,6 +281,48 @@
         <div id="webhooks-htmx-container"></div>
     </div>
 
+    {# ==================== THREAT TAB (global captured-file index) ==================== #}
+    <div x-show="tab === 'threats'" x-cloak>
+        <div class="table-container alert-section">
+            <div class="chart-head">
+                <h2 class="m-0">Attack Campaigns <span class="chart-head-hint">(click a bar to open its members)</span></h2>
+                <div class="row">
+                    <div class="row gap-1" id="campaigns-span-selector">
+                        <button class="map-limit-btn active" data-days="1" onclick="setCampaignSpan(1, this)">1D</button>
+                        <button class="map-limit-btn" data-days="7" onclick="setCampaignSpan(7, this)">7D</button>
+                        <button class="map-limit-btn" data-days="30" onclick="setCampaignSpan(30, this)">30D</button>
+                    </div>
+                    <div class="row">
+                        <button id="campaigns-period-prev" onclick="shiftCampaignPeriod(1)" class="pagination-btn fs-sm">&#8592;</button>
+                        <span id="campaigns-period-label" class="period-label"></span>
+                        <button id="campaigns-period-next" onclick="shiftCampaignPeriod(-1)" class="pagination-btn fs-sm" disabled>&#8594;</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-row">
+                <div class="chart-wrapper chart-main">
+                    <canvas id="campaigns-chart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="table-container alert-section">
+            <div class="row-top">
+                <h2>Campaign Members</h2>
+            </div>
+            <div id="patterns-htmx-container">
+                <div class="htmx-indicator">Loading...</div>
+            </div>
+        </div>
+        <div class="table-container alert-section">
+            <div class="row-top">
+                <h2>Captured Files</h2>
+            </div>
+            <div id="threats-htmx-container">
+                <div class="htmx-indicator">Loading...</div>
+            </div>
+        </div>
+    </div>
+
     {# Export IPs modal - Alpine.js #}
     {% include "dashboard/partials/export_modal.html" %}
 
@@ -288,6 +331,9 @@
 
     {# Raw request modal - Alpine.js #}
     {% include "dashboard/partials/raw_request_modal.html" %}
+
+    {# Captured file viewer modal - Alpine.js #}
+    {% include "dashboard/partials/file_view_modal.html" %}
 
     {# Auth modal - Alpine.js #}
     {% include "dashboard/partials/auth_modal.html" %}

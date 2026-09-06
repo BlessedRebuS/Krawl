@@ -6,6 +6,7 @@ Stores access logs, credential attempts, attack detections, and IP statistics.
 """
 
 from datetime import datetime
+from uuid import uuid4
 
 from sqlalchemy import (
     JSON,
@@ -67,6 +68,8 @@ class AccessLog(Base):
     # Deferred: largest column on the busiest table, read only by the
     # raw-request modal (by id). Eager loading dragged it into every query.
     raw_request: Mapped[str | None] = mapped_column(Text, nullable=True, deferred=True)
+    # Inbound HTTP Referer header — which bait page/URL this request came from.
+    referer: Mapped[str | None] = mapped_column(String(MAX_PATH_LENGTH), nullable=True)
 
     # Relationship to attack detections
     attack_detections: Mapped[list["AttackDetection"]] = relationship(
@@ -135,6 +138,12 @@ class AttackDetection(Base):
     attack_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     matched_pattern: Mapped[str | None] = mapped_column(
         String(MAX_ATTACK_PATTERN_LENGTH), nullable=True
+    )
+    # TLSH fuzzy hash of the payload that matched (near-duplicate variant clustering).
+    tlsh_hash: Mapped[str | None] = mapped_column(String(72), nullable=True, index=True)
+    # Campaign membership: payload_clusters.id (NULL until a valid hash is clustered).
+    cluster_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("payload_clusters.id"), nullable=True, index=True
     )
 
     # Relationship back to access log
@@ -345,6 +354,75 @@ class MetricsSummary(Base):
 
     def __repr__(self) -> str:
         return f"<MetricsSummary(metric='{self.metric}', label='{self.label}', value={self.value})>"
+
+
+class PayloadCluster(Base):
+    """
+    A campaign: a family of near-duplicate payloads (captured files or flagged
+    attack request bodies) with the same TL Hash family.
+
+    Representative hash is the first member's digest; every later member within
+    TLSH_CLUSTER_THRESHOLD of a cluster's representative joins it. Both
+    captured_payloads and attack_detections may point here (cluster_id).
+    """
+
+    __tablename__ = "payload_clusters"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid4())
+    )
+    representative_hash: Mapped[str] = mapped_column(
+        String(72), nullable=False, index=True
+    )
+    first_seen: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.utcnow
+    )
+    last_seen: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.utcnow
+    )
+    capture_count: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+
+    def __repr__(self) -> str:
+        return f"<PayloadCluster(id={self.id[:8]}, count={self.capture_count})>"
+
+
+class CapturedPayload(Base):
+    """
+    Files/attachments captured from honeypot requests.
+
+    Stores per-file metadata plus a TLSH fuzzy hash so near-duplicate payloads
+    (WebShell/script variants) can be clustered across attackers and IPs.
+    """
+
+    __tablename__ = "captured_payloads"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    access_log_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("access_logs.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False, index=True)
+    filename: Mapped[str] = mapped_column(String(255), nullable=True, index=True)
+    content_type: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    size: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # TLSH fuzzy hash (70-72 hex chars, T1 prefix); NULL if payload too small/low-entropy.
+    tlsh_hash: Mapped[str | None] = mapped_column(String(72), nullable=True, index=True)
+    # Campaign membership: payload_clusters.id (NULL until a valid hash is clustered).
+    cluster_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("payload_clusters.id"), nullable=True, index=True
+    )
+    # Exact SHA-256 for exact dedupe + linking raw content, complementing fuzzy TLSH.
+    sha256: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.utcnow, index=True
+    )
+
+    __table_args__ = (Index("ix_captured_payloads_ip_timestamp", "ip", "timestamp"),)
+
+    def __repr__(self) -> str:
+        return f"<CapturedPayload(id={self.id}, ip='{self.ip}', filename='{self.filename}')>"
 
 
 # class IpLog(Base):

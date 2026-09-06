@@ -34,7 +34,7 @@
         {% for item in items %}
         <tr>
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
-            <td>{{ item.path | e }}</td>
+            <td><a href="#" class="data-link path-jump" data-path="{{ item.path | e }}" @click.prevent="jumpToPath($event)">{{ item.path | e }}</a></td>
             <td>{{ item.count }}</td>
         </tr>
         {% else %}
