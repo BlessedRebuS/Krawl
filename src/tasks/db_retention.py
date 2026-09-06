@@ -43,9 +43,11 @@ def main():
         from models import (
             AccessLog,
             AttackDetection,
+            CapturedPayload,
             CategoryHistory,
             IpStats,
             MetricsSummary,
+            PayloadCluster,
         )
 
         config = get_config()
@@ -92,6 +94,33 @@ def main():
                 .delete(synchronize_session=False)
             )
             session.commit()
+
+        # Orphan sweep: captured files and campaign clusters whose access log was
+        # retained out from under them would otherwise linger as ghosts (counts
+        # with no members) on the Threats tab.
+        orphan_files = (
+            session.query(CapturedPayload)
+            .filter(
+                ~session.query(AccessLog.id)
+                .filter(AccessLog.id == CapturedPayload.access_log_id)
+                .exists()
+            )
+            .delete(synchronize_session=False)
+        )
+        session.commit()
+        orphan_clusters = (
+            session.query(PayloadCluster)
+            .filter(
+                ~session.query(AttackDetection.id)
+                .filter(AttackDetection.cluster_id == PayloadCluster.id)
+                .exists(),
+                ~session.query(CapturedPayload.id)
+                .filter(CapturedPayload.cluster_id == PayloadCluster.id)
+                .exists(),
+            )
+            .delete(synchronize_session=False)
+        )
+        session.commit()
 
         # IPs to preserve: those with any suspicious access logs
         preserved_ips = (
@@ -141,13 +170,21 @@ def main():
 
         session.commit()
 
-        total = logs_deleted + detections_deleted + ips_deleted + history_deleted
+        total = (
+            logs_deleted
+            + detections_deleted
+            + ips_deleted
+            + history_deleted
+            + orphan_files
+            + orphan_clusters
+        )
         if total:
-            # Invalidate cached dashboard tables so stale deleted data isn't served
             invalidate_table_cache()
             app_logger.info(
                 f"DB retention: Deleted {logs_deleted} access logs, "
                 f"{detections_deleted} attack detections, "
+                f"{orphan_files} orphan file payloads, "
+                f"{orphan_clusters} orphan campaign clusters, "
                 f"{ips_deleted} stale IPs, "
                 f"{history_deleted} category history records "
                 f"older than {retention_days} days"
