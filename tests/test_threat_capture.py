@@ -28,6 +28,10 @@ def main():
         dbpkg.DatabaseManager._instance = None
         db = dbpkg.DatabaseManager()
         db.initialize(database_path=os.path.join(tmp, "krawl.db"), mode="standalone")
+        # The scheduled tasks resolve get_database() (a module-level manager),
+        # not the _instance singleton; init it against the same file so the
+        # task runs in the test write to the DB the assertions read.
+        dbpkg.initialize_database(os.path.join(tmp, "krawl.db"))
 
         from config import get_config
         from models import CapturedPayload
@@ -105,8 +109,9 @@ def main():
             assert tlsh_diff(h_base, h_var) <= SIMILARITY_THRESHOLD, tlsh_diff(h_base, h_var)
             assert tlsh_diff(h_base, h_un) > SIMILARITY_THRESHOLD, tlsh_diff(h_base, h_un)
 
-            # Integration: a body-flagged attack must land with a cluster_id
-            # end-to-end through record_access -> persist_access.
+            # Integration: a body-flagged attack must land with a TLSH hash
+            # and campaign cluster_id via the scheduled hash-payloads task
+            # (hashing moved off the ingest path).
             attack_body = (
                 "username=admin&password=x' OR '1'='1'--"
                 "&csrf="
@@ -119,15 +124,38 @@ def main():
                 user_agent="UA",
                 body=attack_body,
                 method="POST",
+                raw_request=build_raw_request(
+                    "POST",
+                    "/login.php",
+                    "application/x-www-form-urlencoded",
+                    attack_body,
+                ),
             )
             from models import AttackDetection as AD
 
             live_dets = db.session.query(AD).all()
             assert live_dets, "no attack detections recorded"
             for d in live_dets:
-                assert d.cluster_id, (
-                    f"{d.attack_type} attack row missing cluster_id (integration)"
+                assert d.tlsh_hash is None, (
+                    "ingest must not hash inline; hashing is task-deferred"
                 )
+            db.close_session()  # release the read transaction before the task sweeps
+
+            from tasks.hash_payloads import main as hash_payloads_main
+
+            hash_payloads_main()
+            post = db.session.query(AD).all()
+            for d in post:
+                assert d.tlsh_hash, f"{d.attack_type} row missing TLSH hash"
+                assert d.cluster_id, f"{d.attack_type} row missing cluster_id"
+            from models import PayloadHashWatermark as WM
+
+            wm = db.session.get(WM, 1)
+            assert wm and wm.access_log_id >= max(d.access_log_id for d in post), (
+                f"watermark at {wm.access_log_id if wm else None}, expected >= "
+                f"{max(d.access_log_id for d in post)}"
+            )
+            db.close_session()
 
             db.payloads.add_payload(
                 access_log_id=1,
@@ -203,13 +231,15 @@ def main():
             hash0 = det_rows[0][0]
             assert hash0, "login attack has no TLSH hash"
             expected = sorted({t for _, t in det_rows})
-            c_attack = db.payloads.assign_cluster(hash0, t0 + timedelta(hours=4))
-            (
-                db.session.query(AD)
+            # A second sweep finds nothing new (watermark advanced past these).
+            hash_payloads_main()
+            c_attack = (
+                db.session.query(AD.cluster_id)
                 .filter(AD.access_log_id.in_(login_log_ids))
-                .update({"cluster_id": c_attack})
+                .first()
             )
-            db.session.commit()
+            assert c_attack and c_attack[0], "job did not stamp a cluster on the attack"
+            c_attack = c_attack[0]
             db.close_session()
             attack_rows = [
                 m for m in db.payloads.get_cluster_events(c_attack)

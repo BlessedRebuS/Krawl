@@ -425,6 +425,20 @@ class CapturedPayload(Base):
         return f"<CapturedPayload(id={self.id}, ip='{self.ip}', filename='{self.filename}')>"
 
 
+class PayloadHashWatermark(Base):
+    """High-water mark for the hash-payloads task: every access log with
+    id <= access_log_id has had its attack detections hashed (or been
+    permanently skipped as unhashable), so the next run resumes there."""
+
+    __tablename__ = "payload_hash_watermark"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)  # fixed single row: id=1
+    access_log_id: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+
 # class IpLog(Base):
 #     """
 #     Records all IPs that have accessed the honeypot, along with aggregated stats and inferred user category.

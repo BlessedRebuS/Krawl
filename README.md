@@ -425,9 +425,15 @@ Thresholds that decide how an IP gets classified.
 Fuzzy-hash captured payloads (files and flagged request bodies) and group
 near-duplicate variants into campaign clusters. Requires `py-tlsh`.
 
+Hashing runs as the scheduled `hash-payloads` background task (see
+`src/tasks/hash_payloads.py`), which hashes each captured attack once — new
+hits at ingest time, and a one-time backward sweep of existing history
+tracked by a `payload_hash_watermark` high-water mark — then clusters the
+digests into recurring-pattern campaigns.
+
 | Environment Variable | Description | Default |
 |----------------------|-------------|---------|
-| `KRAWL_TLSH_ENABLED` | Hash uploaded files and flagged request bodies with TLSH for near-duplicate clustering | `false` |
+| `KRAWL_TLSH_ENABLED` | Hash uploaded files and flagged request bodies with TLSH for near-duplicate clustering | `true` |
 | `KRAWL_TLSH_CLUSTER_THRESHOLD` | TLSH distance below which a payload joins an existing campaign (0 = identical bytes; variants of a webshell typically diff < 100) | `150` |
 
 </details>
