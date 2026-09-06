@@ -30,6 +30,14 @@ def _request_body(raw_request: str | None) -> str | None:
     return unquote(body) if body else None
 
 
+def _scalar_min_max(db) -> tuple[Any, Any]:
+    """Two-argument scalar min/max: sqlite's func.min(col, val) works, but
+    postgres only has aggregate min/max and needs LEAST/GREATEST instead."""
+    if db.engine.dialect.name == "postgresql":
+        return func.least, func.greatest
+    return func.min, func.max
+
+
 applogger = get_app_logger()
 
 
@@ -316,6 +324,7 @@ class PayloadRepo:
                 if d is not None and d <= threshold and (best is None or d < best):
                     best, match_id = d, cid
             if match_id:
+                smin, smax = _scalar_min_max(self._db)
                 session.execute(
                     PayloadCluster.__table__.update()
                     .where(PayloadCluster.id == match_id)
@@ -323,8 +332,8 @@ class PayloadRepo:
                         # Backfilled (past-dated) members may arrive after the
                         # cluster already saw fresher ones; widen the window
                         # instead of blindly overwriting last_seen backward.
-                        first_seen=func.min(PayloadCluster.first_seen, timestamp),
-                        last_seen=func.max(PayloadCluster.last_seen, timestamp),
+                        first_seen=smin(PayloadCluster.first_seen, timestamp),
+                        last_seen=smax(PayloadCluster.last_seen, timestamp),
                         capture_count=PayloadCluster.capture_count + 1,
                     )
                 )
