@@ -852,6 +852,40 @@ tbody {
     font-weight: 700;
     letter-spacing: 0.04em;
 }
+.badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    row-gap: 5px;
+}
+.badge-row .method-badge {
+    font-size: 0.8em;
+    padding: 1px 6px;
+}
+.diff-ok {
+    color: var(--ok);
+    font-weight: 700;
+}
+.diff-near {
+    color: var(--warn, #d29922);
+}
+.cluster-body {
+    display: inline-block;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: top;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.78em;
+    color: color-mix(in srgb, var(--text-primary, #ddd) 75%, transparent);
+}
+.cluster-body[href] {
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: none;
+    border-bottom: 1px dotted color-mix(in srgb, var(--accent) 40%, transparent);
+}
 .method-get {
     border-color: color-mix(in srgb, var(--accent) 30%, transparent);
     background: color-mix(in srgb, var(--accent) 15%, transparent);
@@ -2394,6 +2428,93 @@ tbody {
 .view-btn:hover .view-btn-tooltip {
     opacity: 1;
 }
+/* Info icon + tooltip next to a column header (TL Hash) */
+.th-hint {
+    position: relative;
+    display: inline-block;
+    margin-left: 4px;
+    vertical-align: middle;
+    cursor: help;
+}
+.th-hint svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+    opacity: 0.7;
+}
+.th-hint:hover svg {
+    opacity: 1;
+}
+.th-hint-tip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: var(--s1) var(--s2);
+    background: var(--raised);
+    color: var(--text-strong);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    font-size: var(--fs-2xs);
+    font-weight: 400;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+    z-index: var(--z-sticky);
+}
+.th-hint:hover .th-hint-tip {
+    opacity: 1;
+}
+/* Clickable table cells (IP Insight referers/paths, payload filenames, Threats) */
+.data-link {
+    color: var(--accent);
+    text-decoration: none;
+    cursor: pointer;
+    border-bottom: 1px dotted color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.data-link:hover {
+    color: var(--accent-strong, var(--accent));
+    border-bottom-style: solid;
+}
+.campaign-cell-link {
+    display: block;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text);
+}
+.campaign-target-link {
+    display: block;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-decoration: none;
+    color: var(--accent);
+}
+.campaign-target-link:hover {
+    color: var(--accent-strong, var(--accent));
+    text-decoration: underline;
+}
+.campaign-path-hint {
+    margin-top: 4px;
+    max-width: 320px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-dim);
+    font-size: 0.85em;
+}
+.campaign-cell-link:hover .campaign-path-hint {
+    color: var(--accent);
+}
+.file-modal-meta {
+    display: flex;
+    gap: var(--s2);
+    padding-bottom: var(--s2);
+    color: var(--text-dim);
+    font-size: var(--fs-2xs);
+}
 #access-history-section table tr:not(:last-child) td {
     border-bottom: 1px solid var(--line);
 }
@@ -2846,6 +2967,7 @@ tbody {
 .expand-overlay-body {
     padding: var(--s4) var(--s6) var(--s5);
     overflow-y: auto;
+    overscroll-behavior: contain;
     flex: 1;
 }
 .expand-btn {

@@ -1,0 +1,61 @@
+{# HTMX fragment: events (attack bodies + files) fuzzy-similar to a TLSH digest.
+ # Expects: items, tlsh, dashboard_path. Diff = TLSH distance (0 = identical). #}
+<div class="panel-header">
+    <span class="pagination-info">Similar patterns &mdash; diff &le; 150 &middot; {{ items | length }} events</span>
+</div>
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Kind</th>
+            <th title="TLSH distance (0 = identical bytes)">Diff</th>
+            <th title="Detector regex / fragment that matched this event">Matched Pattern</th>
+            <th>IP</th>
+            <th>Path</th>
+            <th>Time</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td class="rank">{{ loop.index }}</td>
+            <td>
+                <div class="badge-row">
+                    {% for t in (item.attack_types or [item.attack_type]) %}
+                    <span class="method-badge method-{{ t | lower | replace('_', '-') | e }}">{{ t | e }}</span>
+                    {% endfor %}
+                </div>
+            </td>
+            <td class="ts-cell diff-{{ 'ok' if item.diff == 0 else 'near' }}">{{ item.diff }}</td>
+            <td class="data data-mono" title="Detector regex / fragment that matched">
+                {% if item.kind == 'file' %}
+                {{ item.content_type | default('') | e }}
+                {% else %}
+                {{ item.matched_pattern | default('(pattern)') | truncate(34) | e }}
+                {% endif %}
+            </td>
+            <td class="data data-mono">
+                <a href="#"
+                   class="data-link"
+                   @click.prevent="openIpInsight('{{ item.ip | default('') | e }}')">{{ item.ip | default('') | e }}</a>
+            </td>
+            <td class="data data-mono">
+                {% if item.kind == 'file' %}
+                <a href="#"
+                   class="data-link"
+                   data-filename="{{ item.filename | default('(untitled)') | e }}"
+                   @click.prevent="viewPayload({{ item.access_log_id }}, $event.currentTarget.dataset.filename)"
+                   title="View file">{{ item.filename | default('(untitled)') | e }}</a>
+                {% elif item.path %}
+                <a href="{{ item.path }}" class="data-link" target="_blank" rel="noopener" title="Open in Krawl">{{ item.path | truncate(30) | e }}</a>
+                {% else %}
+                <span class="muted"></span>
+                {% endif %}
+            </td>
+            <td class="ts-cell">{{ item.timestamp | format_ts }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="empty-state">No similar patterns within diff {{ threshold | default(150) }}</td></tr>
+        {% endfor %}
+    </tbody>
+</table>

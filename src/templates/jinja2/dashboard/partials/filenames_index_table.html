@@ -1,0 +1,51 @@
+{# HTMX fragment: Global captured-file index (Threats tab) #
+ # Groups captured payload filenames across all IPs; same name from many IPs # 
+ # signals a recurring campaign artifact (WebShell / script upload name).
+ # Clicking a filename shows the most recent capture's payload (raw request). #}
+<div class="panel-header">
+    <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} filenames</span>
+    <div class="row">
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/global-filenames?page={{ pagination.page - 1 }}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML"
+                {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/global-filenames?page={{ pagination.page + 1 }}"
+                hx-target="closest .htmx-container"
+                hx-swap="innerHTML"
+                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
+    </div>
+</div>
+<table>
+    <thead>
+        <tr>
+            <th>Filename</th>
+            <th title="Distinct source IPs sharing this filename">Distinct IPs</th>
+            <th>Captures</th>
+            <th>First Seen</th>
+            <th>Last Seen</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in index %}
+        <tr>
+            <td class="data data-mono">
+                <a href="#"
+                   class="data-link"
+                   data-filename="{{ item.filename | e }}"
+                   @click.prevent="viewPayload({{ item.log_id }}, $event.currentTarget.dataset.filename)"
+                   title="View file {{ item.filename | e }}">
+                    {{ item.filename | e }}
+                </a>
+            </td>
+            <td class="ts-cell">{{ item.distinct_ips }}</td>
+            <td class="ts-cell">{{ item.total }}</td>
+            <td class="ts-cell">{{ item.first_seen | format_ts }}</td>
+            <td class="ts-cell">{{ item.last_seen | format_ts }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="empty-state">No captured payloads yet &mdash; captured files will appear here once TLSH capture is enabled and files arrive</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
