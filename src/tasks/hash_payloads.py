@@ -83,7 +83,9 @@ def _advance_watermark(db, value: int) -> None:
         db.close_session()
 
 
-def _hash_attack_bodies(db, watermark: int, threshold: int) -> tuple[int, int, int, int]:
+def _hash_attack_bodies(
+    db, watermark: int, threshold: int
+) -> tuple[int, int, int, int]:
     """Hash + cluster attack bodies for logs above the watermark.
 
     Returns (logs_seen, hashed, clustered, new_watermark).
@@ -136,11 +138,15 @@ def _hash_files(db, threshold: int) -> int:
     try:
         files = (
             session.query(
-                CapturedPayload.id, CapturedPayload.filename,
-                AccessLog.timestamp, AccessLog.raw_request,
+                CapturedPayload.id,
+                CapturedPayload.filename,
+                AccessLog.timestamp,
+                AccessLog.raw_request,
             )
             .join(AccessLog, AccessLog.id == CapturedPayload.access_log_id)
-            .filter(CapturedPayload.tlsh_hash.is_(None), AccessLog.raw_request.isnot(None))
+            .filter(
+                CapturedPayload.tlsh_hash.is_(None), AccessLog.raw_request.isnot(None)
+            )
             .limit(MAX_LOGS_PER_RUN)
             .all()
         )
