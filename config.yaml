@@ -99,6 +99,10 @@ analyzer:
   uneven_request_timing_time_window_seconds: 300
   user_agents_used_threshold: 2
   attack_urls_threshold: 1
+  # Compute TLSH fuzzy hashes for captured payloads/files (near-duplicate clustering).
+  tlsh_enabled: true
+  # Capture the inbound HTTP Referer header on access logs for bait-chain tracking.
+  referer_enabled: true
 
 crawl:
   infinite_pages_for_malicious: true
@@ -193,8 +197,8 @@ ai:
 
 banlist:
   export_path:  # Public banlist download path, e.g. "/public_banlist.txt". Unauthenticated, and supports the same ?categories= and ?fwtype= parameters as the main banlist API. Empty = disabled.
-  sources:
-    - "https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw" # Upstream banlist URLs to fetch, e.g. ["https://krawl.example.com/public_banlist.txt"]. You can add an array of URLs here. Even external "".txt" banlists are supported.
+#  sources:
+#    - "https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw" # Upstream banlist URLs to fetch, e.g. ["https://krawl.example.com/public_banlist.txt"]. You can add an array of URLs here. Even external "".txt" banlists are supported.
   refresh_interval: 3600  # Seconds between fetches
 
 deception:

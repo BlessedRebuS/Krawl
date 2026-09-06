@@ -420,6 +420,19 @@ Thresholds that decide how an IP gets classified.
 </details>
 
 <details>
+<summary><b>Threat-intel capture</b> (2 variables)</summary>
+
+Fuzzy-hash captured payloads (files and flagged request bodies) and group
+near-duplicate variants into campaign clusters. Requires `py-tlsh`.
+
+| Environment Variable | Description | Default |
+|----------------------|-------------|---------|
+| `KRAWL_TLSH_ENABLED` | Hash uploaded files and flagged request bodies with TLSH for near-duplicate clustering | `false` |
+| `KRAWL_TLSH_CLUSTER_THRESHOLD` | TLSH distance below which a payload joins an existing campaign (0 = identical bytes; variants of a webshell typically diff < 100) | `150` |
+
+</details>
+
+<details>
 <summary><b>Banlist and ignored IPs</b> (4 variables)</summary>
 
 Sharing banlists with other instances, and traffic to never track.

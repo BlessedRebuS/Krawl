@@ -20,6 +20,7 @@ from database.analytics import AnalyticsRepo
 from database.credentials import CredentialRepo
 from database.generated_pages import GeneratedPageRepo
 from database.ip_stats import IpStatsRepo
+from database.payloads import PayloadRepo
 from ip_utils import defer_persist
 from logger import get_app_logger
 from models import (
@@ -154,6 +155,7 @@ class DatabaseManager:
             cls._instance.analytics = AnalyticsRepo(cls._instance)
             cls._instance.ip_stats = IpStatsRepo(cls._instance)
             cls._instance.access_logs = AccessLogRepo(cls._instance)
+            cls._instance.payloads = PayloadRepo(cls._instance)
         return cls._instance
 
     def initialize(
@@ -287,7 +289,11 @@ class DatabaseManager:
         is_honeypot_trigger: bool = False,
         attack_types: list[str] | None = None,
         matched_patterns: dict[str, str] | None = None,
+        tlsh_hashes: dict[str, str] | None = None,
+        tlsh_clusters: dict[str, str] | None = None,
         raw_request: str | None = None,
+        referer: str | None = None,
+        file_payloads: list[dict] | None = None,
         increment_page_visit: bool = False,
         max_pages_limit: int = 0,
     ) -> int:
@@ -303,7 +309,12 @@ class DatabaseManager:
             is_honeypot_trigger: Whether a honeypot path was accessed
             attack_types: List of detected attack types
             matched_patterns: Dict mapping attack_type to matched pattern
+            tlsh_hashes: Dict mapping attack_type to TLSH digest of the payload
+            tlsh_clusters: Dict mapping attack_type to campaign cluster_id
             raw_request: Full raw HTTP request for forensic analysis
+            referer: Inbound HTTP Referer header (bait-chain tracking)
+            file_payloads: Uploaded-file dicts {filename, content_type, size,
+                content(bytes)} to persist as captured_payloads rows
             increment_page_visit: Also bump the page visit counter in the same tx
             max_pages_limit: Ban threshold (used with increment_page_visit)
 
@@ -331,7 +342,11 @@ class DatabaseManager:
                         is_honeypot_trigger=is_honeypot_trigger,
                         attack_types=attack_types,
                         matched_patterns=matched_patterns,
+                        tlsh_hashes=tlsh_hashes,
+                        tlsh_clusters=tlsh_clusters,
                         raw_request=raw_request,
+                        referer=referer,
+                        file_payloads=file_payloads,
                     )
             else:
                 if not persist_suspicious_only or is_suspicious:
@@ -344,12 +359,15 @@ class DatabaseManager:
                         is_honeypot_trigger=is_honeypot_trigger,
                         timestamp=datetime.now(),
                         raw_request=raw_request,
+                        referer=sanitize_path(referer) if referer else None,
                     )
                     session.add(access_log)
                     session.flush()
 
                     if attack_types:
                         matched_patterns = matched_patterns or {}
+                        tlsh_hashes = tlsh_hashes or {}
+                        tlsh_clusters = tlsh_clusters or {}
                         for attack_type in attack_types:
                             detection = AttackDetection(
                                 access_log_id=access_log.id,
@@ -357,8 +375,36 @@ class DatabaseManager:
                                 matched_pattern=sanitize_attack_pattern(
                                     matched_patterns.get(attack_type, "")
                                 ),
+                                tlsh_hash=tlsh_hashes.get(attack_type),
+                                cluster_id=tlsh_clusters.get(attack_type),
                             )
                             session.add(detection)
+
+                    # Persist captured file payloads (WebShell/uploads) linked to this log.
+                    if file_payloads:
+                        from models import CapturedPayload
+
+                        for fp in file_payloads:
+                            session.add(
+                                CapturedPayload(
+                                    access_log_id=access_log.id,
+                                    ip=sanitize_ip(ip),
+                                    filename=(
+                                        fp.get("filename")[:255]
+                                        if fp.get("filename")
+                                        else None
+                                    ),
+                                    content_type=(
+                                        fp.get("content_type")[:128]
+                                        if fp.get("content_type")
+                                        else None
+                                    ),
+                                    size=fp.get("size", 0),
+                                    tlsh_hash=fp.get("tlsh_hash"),
+                                    cluster_id=fp.get("cluster_id"),
+                                    sha256=fp.get("sha256"),
+                                )
+                            )
 
             # Always update IP stats counters (+ optional page visit increment)
             page_visit_count, was_new_ip, was_first_honeypot = self._update_ip_stats(
@@ -436,15 +482,19 @@ class DatabaseManager:
         """Insert one batch of buffered entries: two statements, not two per row."""
         session = self.session
         try:
-            logs, attacks_per_entry = [], []
+            logs, attacks_per_entry, payloads_per_entry = [], [], []
             for entry in entries:
                 ts = entry.pop("_buffered_at", datetime.now())
                 attacks_per_entry.append(
                     (
                         entry.pop("attack_types", None),
                         entry.pop("matched_patterns", None) or {},
+                        entry.pop("tlsh_hashes", None) or {},
+                        entry.pop("tlsh_clusters", None) or {},
                     )
                 )
+                file_payloads = entry.pop("file_payloads", None)
+                payloads_per_entry.append(file_payloads)
                 logs.append(
                     {
                         "ip": sanitize_ip(entry["ip"]),
@@ -455,6 +505,9 @@ class DatabaseManager:
                         "is_honeypot_trigger": entry.get("is_honeypot_trigger", False),
                         "timestamp": ts,
                         "raw_request": entry.get("raw_request"),
+                        "referer": sanitize_path(entry.get("referer"))
+                        if entry.get("referer")
+                        else None,
                     }
                 )
 
@@ -472,8 +525,10 @@ class DatabaseManager:
                     "matched_pattern": sanitize_attack_pattern(
                         patterns.get(attack_type, "")
                     ),
+                    "tlsh_hash": tlshs.get(attack_type),
+                    "cluster_id": clusters.get(attack_type),
                 }
-                for log_id, (types, patterns) in zip(
+                for log_id, (types, patterns, tlshs, clusters) in zip(
                     log_ids, attacks_per_entry, strict=True
                 )
                 if types
@@ -481,6 +536,33 @@ class DatabaseManager:
             ]
             if detections:
                 session.execute(insert(AttackDetection), detections)
+
+            # Insert captured file payloads, linked to their access logs.
+            from models import CapturedPayload
+
+            captured_rows = [
+                {
+                    "access_log_id": log_id,
+                    "ip": sanitize_ip(entry["ip"]),
+                    "filename": (
+                        fp.get("filename")[:255] if fp.get("filename") else None
+                    ),
+                    "content_type": (
+                        fp.get("content_type")[:128] if fp.get("content_type") else None
+                    ),
+                    "size": fp.get("size", 0),
+                    "tlsh_hash": fp.get("tlsh_hash"),
+                    "cluster_id": fp.get("cluster_id"),
+                    "sha256": fp.get("sha256"),
+                }
+                for log_id, (entry, file_payloads) in zip(
+                    log_ids, zip(entries, payloads_per_entry, strict=True), strict=True
+                )
+                if file_payloads
+                for fp in file_payloads
+            ]
+            if captured_rows:
+                session.execute(insert(CapturedPayload), captured_rows)
 
             session.commit()
             return len(logs)

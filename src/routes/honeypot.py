@@ -13,7 +13,7 @@ from urllib.parse import parse_qs
 from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 
-from config import Config
+from config import Config, get_config
 from deception_responses import (
     detect_xss_pattern,
     generate_server_error,
@@ -59,6 +59,7 @@ async def _track_honeypot_request(request: Request):
     tracker = request.app.state.tracker
     client_ip = get_client_ip(request)
     user_agent = request.headers.get("User-Agent", "")
+    referer = request.headers.get("Referer", "") if get_config().referer_enabled else ""
     path = request.url.path
     get_app_logger().debug(f"[HoneypotDep] {request.method} {path} from {client_ip}")
 
@@ -79,6 +80,15 @@ async def _track_honeypot_request(request: Request):
     if attack_findings or tracker.is_honeypot_path(path):
         import asyncio
 
+        raw_request = build_raw_request(request, body)
+
+        # Capture uploaded files (WebShells, etc.) as TLSH-indexed payloads.
+        file_payloads = None
+        if get_config().tlsh_enabled:
+            from tlsh_utils import extract_file_payloads
+
+            file_payloads = extract_file_payloads(raw_request)
+
         await asyncio.to_thread(
             tracker.record_access,
             ip=client_ip,
@@ -86,7 +96,9 @@ async def _track_honeypot_request(request: Request):
             user_agent=user_agent,
             body=body,
             method=request.method,
-            raw_request=build_raw_request(request, body),
+            raw_request=raw_request,
+            referer=referer,
+            file_payloads=file_payloads,
         )
 
 

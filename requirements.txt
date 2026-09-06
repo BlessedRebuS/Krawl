@@ -26,3 +26,6 @@ pydantic>=2.0.0
 psycopg2-binary>=2.9.0
 redis>=5.0.0
 prometheus-client>=0.25.0
+
+# Fuzzy hashing (near-duplicate payload clustering)
+py-tlsh>=5.0.0
