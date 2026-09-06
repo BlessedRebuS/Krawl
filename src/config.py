@@ -138,13 +138,18 @@ class Config:
 
     # Threat-intel capture settings
     # TLSH fuzzy-hash captured payloads/files for near-duplicate variant clustering.
-    tlsh_enabled: bool = False
+    # Hashing runs as the scheduled hash-payloads task (see src/tasks/).
+    tlsh_enabled: bool = True
     # TLSH distance below which a payload joins an existing cluster (< = same
     # campaign family). 0 = byte-identical; 150 is the conservative default
     # (variants of a webshell typically diff < 100).
     tlsh_cluster_threshold: int = 150
+    # A cluster only counts as a campaign (shown on the Threats tab) when its
+    # payload was seen MORE than this many times. 1 = recurring pattern only;
+    # single-shot probes never form campaigns.
+    tlsh_campaign_min_events: int = 10
     # Capture the inbound HTTP Referer header on access logs (bait-chain tracking).
-    referer_enabled: bool = False
+    referer_enabled: bool = True
 
     log_level: str = "INFO"
 
@@ -373,9 +378,10 @@ class Config:
             ),
             user_agents_used_threshold=analyzer.get("user_agents_used_threshold", 2),
             attack_urls_threshold=analyzer.get("attack_urls_threshold", 1),
-            tlsh_enabled=analyzer.get("tlsh_enabled", False),
+            tlsh_enabled=analyzer.get("tlsh_enabled", True),
             tlsh_cluster_threshold=analyzer.get("tlsh_cluster_threshold", 150),
-            referer_enabled=analyzer.get("referer_enabled", False),
+            tlsh_campaign_min_events=analyzer.get("tlsh_campaign_min_events", 10),
+            referer_enabled=analyzer.get("referer_enabled", True),
             infinite_pages_for_malicious=crawl.get(
                 "infinite_pages_for_malicious", True
             ),

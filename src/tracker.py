@@ -7,7 +7,6 @@ from datetime import datetime
 
 from database import DatabaseManager, get_database
 from ip_utils import is_ignored_ip
-from tlsh_utils import tlsh_available, tlsh_hash
 from wordlists import get_wordlists
 
 logger = logging.getLogger("krawl")
@@ -226,32 +225,10 @@ class AccessTracker:
         attack_types = [t for t, _ in attack_findings]
         matched_patterns = {t: m for t, m in attack_findings}
 
-        # TLSH fuzzy hash of the payload (decoded body, or path for path-only hits)
-        # for near-duplicate variant clustering across attackers.
-        tlsh_hashes: dict[str, str] = {}
-        if attack_findings and config.tlsh_enabled and tlsh_available():
-            _payload = (urllib.parse.unquote(body) if body else path).encode(
-                "utf-8", errors="replace"
-            )
-            _digest = tlsh_hash(_payload)
-            if _digest:
-                for t in attack_types:
-                    tlsh_hashes[t] = _digest
-
-        # Incremental campaign clustering: assign each distinct digest to a
-        # cluster (or seed a new one) before persisting, so every row carries
-        # its cluster_id and the Recurring Patterns panel needs no per-query O(n²).
-        tlsh_clusters: dict[str, str] = {}
-        if tlsh_hashes and self.db:
-            _seen_ts = datetime.now()
-            _by_digest: dict[str, str] = {}
-            for t, digest in tlsh_hashes.items():
-                cid = _by_digest.get(digest) or self.db.payloads.assign_cluster(
-                    digest, _seen_ts, threshold=config.tlsh_cluster_threshold
-                )
-                if cid:
-                    _by_digest[digest] = cid
-                    tlsh_clusters[t] = cid
+        # TLSH hashing + campaign clustering of attack bodies moved to the
+        # scheduled hash-payloads task (reads the persisted raw_request), so
+        # ingest stays cheap. Captured files stay inline: uploads are rare and
+        # already fully parsed.
         if file_payloads and self.db:
             _seen_ts = datetime.now()
             for fp in file_payloads:
@@ -281,8 +258,6 @@ class AccessTracker:
                     is_honeypot_trigger=is_honeypot,
                     attack_types=attack_types if attack_types else None,
                     matched_patterns=matched_patterns if matched_patterns else None,
-                    tlsh_hashes=tlsh_hashes if tlsh_hashes else None,
-                    tlsh_clusters=tlsh_clusters if tlsh_clusters else None,
                     raw_request=raw_request if raw_request else None,
                     referer=referer if referer else None,
                     file_payloads=file_payloads,

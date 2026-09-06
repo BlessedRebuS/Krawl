@@ -101,6 +101,8 @@ analyzer:
   attack_urls_threshold: 1
   # Compute TLSH fuzzy hashes for captured payloads/files (near-duplicate clustering).
   tlsh_enabled: true
+  # A campaign shows only when its payload was seen more than this many times.
+  tlsh_campaign_min_events: 10
   # Capture the inbound HTTP Referer header on access logs for bait-chain tracking.
   referer_enabled: true
 

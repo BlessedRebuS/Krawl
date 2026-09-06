@@ -289,8 +289,6 @@ class DatabaseManager:
         is_honeypot_trigger: bool = False,
         attack_types: list[str] | None = None,
         matched_patterns: dict[str, str] | None = None,
-        tlsh_hashes: dict[str, str] | None = None,
-        tlsh_clusters: dict[str, str] | None = None,
         raw_request: str | None = None,
         referer: str | None = None,
         file_payloads: list[dict] | None = None,
@@ -309,8 +307,6 @@ class DatabaseManager:
             is_honeypot_trigger: Whether a honeypot path was accessed
             attack_types: List of detected attack types
             matched_patterns: Dict mapping attack_type to matched pattern
-            tlsh_hashes: Dict mapping attack_type to TLSH digest of the payload
-            tlsh_clusters: Dict mapping attack_type to campaign cluster_id
             raw_request: Full raw HTTP request for forensic analysis
             referer: Inbound HTTP Referer header (bait-chain tracking)
             file_payloads: Uploaded-file dicts {filename, content_type, size,
@@ -342,8 +338,6 @@ class DatabaseManager:
                         is_honeypot_trigger=is_honeypot_trigger,
                         attack_types=attack_types,
                         matched_patterns=matched_patterns,
-                        tlsh_hashes=tlsh_hashes,
-                        tlsh_clusters=tlsh_clusters,
                         raw_request=raw_request,
                         referer=referer,
                         file_payloads=file_payloads,
@@ -366,8 +360,6 @@ class DatabaseManager:
 
                     if attack_types:
                         matched_patterns = matched_patterns or {}
-                        tlsh_hashes = tlsh_hashes or {}
-                        tlsh_clusters = tlsh_clusters or {}
                         for attack_type in attack_types:
                             detection = AttackDetection(
                                 access_log_id=access_log.id,
@@ -375,8 +367,6 @@ class DatabaseManager:
                                 matched_pattern=sanitize_attack_pattern(
                                     matched_patterns.get(attack_type, "")
                                 ),
-                                tlsh_hash=tlsh_hashes.get(attack_type),
-                                cluster_id=tlsh_clusters.get(attack_type),
                             )
                             session.add(detection)
 
@@ -489,8 +479,6 @@ class DatabaseManager:
                     (
                         entry.pop("attack_types", None),
                         entry.pop("matched_patterns", None) or {},
-                        entry.pop("tlsh_hashes", None) or {},
-                        entry.pop("tlsh_clusters", None) or {},
                     )
                 )
                 file_payloads = entry.pop("file_payloads", None)
@@ -527,10 +515,10 @@ class DatabaseManager:
                     "matched_pattern": sanitize_attack_pattern(
                         patterns.get(attack_type, "")
                     ),
-                    "tlsh_hash": tlshs.get(attack_type),
-                    "cluster_id": clusters.get(attack_type),
+                    "tlsh_hash": None,
+                    "cluster_id": None,
                 }
-                for log_id, (types, patterns, tlshs, clusters) in zip(
+                for log_id, (types, patterns) in zip(
                     log_ids, attacks_per_entry, strict=True
                 )
                 if types

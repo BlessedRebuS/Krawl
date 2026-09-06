@@ -320,7 +320,11 @@ class PayloadRepo:
                     PayloadCluster.__table__.update()
                     .where(PayloadCluster.id == match_id)
                     .values(
-                        last_seen=timestamp,
+                        # Backfilled (past-dated) members may arrive after the
+                        # cluster already saw fresher ones; widen the window
+                        # instead of blindly overwriting last_seen backward.
+                        first_seen=func.min(PayloadCluster.first_seen, timestamp),
+                        last_seen=func.max(PayloadCluster.last_seen, timestamp),
                         capture_count=PayloadCluster.capture_count + 1,
                     )
                 )
@@ -339,7 +343,11 @@ class PayloadRepo:
             self._db.close_session()
 
     def get_campaign_clusters(
-        self, limit: int = 30, start: Any = None, end: Any = None
+        self,
+        limit: int = 30,
+        start: Any = None,
+        end: Any = None,
+        min_events: int | None = None,
     ) -> list[dict[str, Any]]:
         """Campaign view, one row per payload_clusters entry. Captures/first-last
         come from the cluster row itself (maintained incrementally at ingest);
@@ -348,10 +356,20 @@ class PayloadRepo:
         With ``start``/``end`` (naive datetimes), only campaigns whose activity
         window overlaps the range are returned — used by the Threats tab
         Global/1D/7D/30D filter and the day navigator.
+
+        ``min_events`` hides clusters that never appeared more than that many
+        times (config.tlsh_campaign_min_events) so single-shot probes don't
+        read as campaigns.
         """
+        if min_events is None:
+            from config import get_config
+
+            min_events = get_config().tlsh_campaign_min_events
         session = self._db.session
         try:
-            cluster_q = session.query(PayloadCluster)
+            cluster_q = session.query(PayloadCluster).filter(
+                PayloadCluster.capture_count > min_events
+            )
             if start is not None and end is not None:
                 cluster_q = cluster_q.filter(
                     PayloadCluster.last_seen >= start,
