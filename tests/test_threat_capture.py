@@ -7,6 +7,7 @@ import os
 import sqlite3
 import sys
 import tempfile
+import types
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
@@ -33,14 +34,44 @@ def main():
         # task runs in the test write to the DB the assertions read.
         dbpkg.initialize_database(os.path.join(tmp, "krawl.db"))
 
+        from sqlalchemy import create_mock_engine
+        from sqlalchemy.sql import func as sa_func
+
         from config import get_config
-        from models import CapturedPayload
+        from database.payloads import _scalar_min_max
+        from models import AccessLog, CapturedPayload, PayloadCluster
         from tlsh_utils import (
             SIMILARITY_THRESHOLD,
             tlsh_available,
             tlsh_diff,
             tlsh_hash,
         )
+
+        # The cluster backfill scalar must compile for both SQLite (min/max)
+        # and Postgres (LEAST/GREATEST); func.min(a,b) is undefined on Postgres.
+        for dialect, marker in (("postgresql", "least("), ("sqlite", "min(")):
+            smin, smax = _scalar_min_max(
+                types.SimpleNamespace(
+                    engine=types.SimpleNamespace(
+                        dialect=types.SimpleNamespace(name=dialect)
+                    )
+                )
+            )
+            compiled: list[str] = []
+
+            def _capture(*a, buf: list[str] = compiled) -> None:
+                buf.append(str(a[0]))
+
+            eng = create_mock_engine(f"{dialect}://", _capture)
+            eng.execute(
+                PayloadCluster.__table__.update().values(
+                    first_seen=smin(PayloadCluster.first_seen, sa_func.now()),
+                    last_seen=smax(PayloadCluster.last_seen, sa_func.now()),
+                )
+            )
+            assert marker in " ".join(compiled), (dialect, compiled)
+        print("backfill scalar compiles on sqlite + postgres: OK")
+
         from tracker import AccessTracker
 
         cfg = get_config()
