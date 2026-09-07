@@ -15,7 +15,8 @@
                 <span x-text="fileModal.contentType"></span>
                 <span x-text="fileModal.size"></span>
             </div>
-            <pre class="raw-request-content" x-text="fileModal.content"></pre>
+            <pre class="raw-request-content" x-show="!fileModal.binary" x-text="fileModal.content"></pre>
+            <p class="empty-state" x-show="fileModal.binary" x-cloak>Not readable as text. Download the file to inspect it.</p>
         </div>
         <div class="raw-request-modal-footer">
             <button class="raw-request-icon-btn" @click="downloadPayloadFile()" title="Download file">

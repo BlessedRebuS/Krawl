@@ -15,7 +15,12 @@
         {% for item in items %}
         <tr>
             <td class="data data-mono">
-                <a href="{{ item.referer | e }}" target="_blank" rel="noopener noreferrer" class="data-link">{{ item.referer | e }}</a>
+                {% set ref_url = item.referer | safe_url %}
+                {% if ref_url %}
+                <a href="{{ ref_url | e }}" target="_blank" rel="noopener noreferrer" class="data-link">{{ item.referer | e }}</a>
+                {% else %}
+                {{ item.referer | e }}
+                {% endif %}
             </td>
             <td class="data"><a href="#" @click.prevent="viewRawRequest({{ item.id }})" class="data-link">{{ item.path | e }}</a></td>
             <td class="ts-cell">{{ item.timestamp | format_ts }}</td>

@@ -236,9 +236,9 @@
     </div>
 </div>
 
-{# Captured payloads / files uploaded by this IP #}
+{# Captured files uploaded by this IP #}
 <div class="table-container alert-section mt-5">
-    <h2>Captured Payloads / Files</h2>
+    <h2>Captured Files</h2>
     <div class="htmx-container"
          hx-get="{{ dashboard_path }}/htmx/ip-payloads?ip_filter={{ ip_address }}&page=1"
          hx-trigger="revealed"

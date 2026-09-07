@@ -1,12 +1,12 @@
-{# HTMX fragment: one campaign's members (cluster drill-down).
+{# HTMX fragment: one campaign's events (cluster drill-down).
  # Expects: items (cluster event dicts), cluster, dashboard_path. #}
 <div class="panel-header">
-    <span class="pagination-info">Campaign members</span>
+    <span class="pagination-info">Campaign events &mdash; {{ items | length }} shown</span>
 </div>
 <table>
     <thead>
         <tr>
-            <th>Kind</th>
+            <th>Detected as</th>
             <th>Request</th>
             <th>IP</th>
             <th>Target</th>
@@ -47,16 +47,18 @@
                    data-filename="{{ item.filename | default('(untitled)') | e }}"
                    @click.prevent="viewPayload({{ item.access_log_id }}, $event.currentTarget.dataset.filename)"
                    title="View file">{{ item.filename | default('(untitled)') | e }}</a>
+                {% elif item.path | safe_url %}
+                <a href="{{ item.path | safe_url | e }}" class="data-link" target="_blank" rel="noopener" title="Open in Krawl">{{ item.path | truncate(30) | e }}</a>
                 {% elif item.path %}
-                <a href="{{ item.path }}" class="data-link" target="_blank" rel="noopener" title="Open in Krawl">{{ item.path | truncate(30) | e }}</a>
+                {{ item.path | truncate(30) | e }}
                 {% else %}
-                <span class="muted"></span>
+                <span class="muted">&mdash;</span>
                 {% endif %}
             </td>
             <td class="ts-cell">{{ item.timestamp | format_ts }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="5" class="empty-state">Cluster has no members</td></tr>
+        <tr><td colspan="5" class="empty-state">This campaign has no events yet</td></tr>
         {% endfor %}
     </tbody>
 </table>
