@@ -399,7 +399,7 @@ document.addEventListener('alpine:init', () => {
         rawModal: { show: false, content: '', highlightedContent: '', logId: null, attachments: [], attachmentsShow: false, hasAttachments: false },
 
         // Captured file viewer modal
-        fileModal: { show: false, content: '', filename: '', contentType: '', size: '', logId: null, index: null },
+        fileModal: { show: false, content: '', filename: '', contentType: '', size: '', logId: null, index: null, binary: false },
 
         // Map state
         mapInitialized: false,
@@ -1005,8 +1005,14 @@ document.addEventListener('alpine:init', () => {
                 this.fileModal.index = att.index;
                 this.fileModal.filename = att.filename || filename || 'file';
                 this.fileModal.contentType = att.content_type || '';
-                this.fileModal.size = att.size != null ? `${att.size} B` : '';
-                this.fileModal.content = await contentResp.text();
+                this.fileModal.size = formatBytes(att.size);
+                const text = await contentResp.text();
+                // A webshell upload is often a binary or a megabyte of packed
+                // code: rendering it into a <pre> hangs the tab and tells the
+                // reader nothing. Download is the way to inspect those.
+                this.fileModal.binary = text.length > 512 * 1024
+                    || /[\x00-\x08\x0E-\x1F]/.test(text.slice(0, 4096));
+                this.fileModal.content = this.fileModal.binary ? '' : text;
                 this.fileModal.show = true;
             } catch (err) {
                 krawlModal.error('Failed to load file content');
@@ -1021,6 +1027,7 @@ document.addEventListener('alpine:init', () => {
             this.fileModal.size = '';
             this.fileModal.logId = null;
             this.fileModal.index = null;
+            this.fileModal.binary = false;
         },
 
         downloadPayloadFile() {
@@ -1930,6 +1937,14 @@ window.downloadCredentials = function() {
 };
 
 // Utility function for formatting timestamps (used by map popups)
+/** Byte count as B / KB / MB — mirrors the format_size Jinja filter. */
+function formatBytes(value) {
+    if (value == null) return '';
+    if (value < 1024) return `${value} B`;
+    if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+    return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 function formatTimestamp(isoTimestamp) {
     if (!isoTimestamp) return 'N/A';
     try {

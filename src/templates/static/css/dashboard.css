@@ -89,6 +89,9 @@
     --s8: 32px;
     --s10: 40px;
 
+    /* Width at which a long value (payload body, path, digest) is ellipsised. */
+    --w-trunc: 320px;
+
     /* ── Radius ───────────────────────────────────────────────── */
     --r-sm: 4px;
     --r-md: 6px;
@@ -855,30 +858,32 @@ tbody {
 .badge-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 7px;
-    row-gap: 5px;
+    gap: var(--s2);
+    row-gap: var(--s1);
 }
 .badge-row .method-badge {
     font-size: 0.8em;
     padding: 1px 6px;
 }
-.diff-ok {
-    color: var(--ok);
+/* A diff of 0 is a byte-identical replay — the strongest campaign signal, so it
+   reads as a warning, not an "all clear". */
+.diff-exact {
+    color: var(--warn);
     font-weight: 700;
 }
 .diff-near {
-    color: var(--warn, #d29922);
+    color: var(--text-dim);
 }
 .cluster-body {
     display: inline-block;
-    max-width: 320px;
+    max-width: var(--w-trunc);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     vertical-align: top;
-    font-family: var(--font-mono, monospace);
+    font-family: var(--font-mono);
     font-size: 0.78em;
-    color: color-mix(in srgb, var(--text-primary, #ddd) 75%, transparent);
+    color: var(--text-dim);
 }
 .cluster-body[href] {
     color: var(--accent);
@@ -1358,6 +1363,18 @@ tbody {
 .chart-wrapper {
     display: flex;
     flex-direction: column;
+}
+/* Sits beside the canvas (never replacing it) so a span switch can redraw. */
+.chart-empty {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+}
+.chart-empty[hidden] {
+    display: none;
 }
 #attack-types-chart {
     max-height: 350px;
@@ -2432,18 +2449,19 @@ tbody {
 .th-hint {
     position: relative;
     display: inline-block;
-    margin-left: 4px;
+    margin-left: var(--s1);
     vertical-align: middle;
     cursor: help;
+    color: var(--text-dim);
 }
 .th-hint svg {
-    width: 14px;
-    height: 14px;
+    width: var(--icon-sm);
+    height: var(--icon-sm);
     display: block;
-    opacity: 0.7;
 }
-.th-hint:hover svg {
-    opacity: 1;
+.th-hint:hover,
+.th-hint:focus-visible {
+    color: var(--text-strong);
 }
 .th-hint-tip {
     position: absolute;
@@ -2457,13 +2475,15 @@ tbody {
     border-radius: var(--r-sm);
     font-size: var(--fs-2xs);
     font-weight: 400;
-    white-space: nowrap;
+    width: max-content;
+    max-width: var(--w-trunc);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.15s;
     z-index: var(--z-sticky);
 }
-.th-hint:hover .th-hint-tip {
+.th-hint:hover .th-hint-tip,
+.th-hint:focus-visible .th-hint-tip {
     opacity: 1;
 }
 /* Clickable table cells (IP Insight referers/paths, payload filenames, Threats) */
@@ -2474,7 +2494,7 @@ tbody {
     border-bottom: 1px dotted color-mix(in srgb, var(--accent) 45%, transparent);
 }
 .data-link:hover {
-    color: var(--accent-strong, var(--accent));
+    color: var(--accent-hi);
     border-bottom-style: solid;
 }
 .campaign-cell-link {
@@ -2485,7 +2505,7 @@ tbody {
 }
 .campaign-target-link {
     display: block;
-    max-width: 320px;
+    max-width: var(--w-trunc);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2493,12 +2513,12 @@ tbody {
     color: var(--accent);
 }
 .campaign-target-link:hover {
-    color: var(--accent-strong, var(--accent));
+    color: var(--accent-hi);
     text-decoration: underline;
 }
 .campaign-path-hint {
-    margin-top: 4px;
-    max-width: 320px;
+    margin-top: var(--s1);
+    max-width: var(--w-trunc);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

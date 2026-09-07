@@ -426,8 +426,10 @@ function filterAttackTableByType(attackType) {
 
 /**
  * Attack Campaigns horizontal bar chart (Threats tab).
- * One bar per payload cluster: captures vs distinct IPs. Clicking a bar
- * opens the campaign members overlay. Day-navigable like the attack trends
+ * One bar per payload cluster, sized by captures; distinct IPs ride in the
+ * tooltip so the bars stay comparable. Bars are named by the target the
+ * campaign hits, since a TLSH prefix says nothing to a reader. Clicking a bar
+ * opens the campaign events overlay. Day-navigable like the attack trends
  * chart: each view is the top campaigns active on the selected day.
  */
 let campaignsChart = null;
@@ -460,6 +462,13 @@ function _campaignLabel() {
     if (next) next.disabled = _campaignOffset === 0;
 }
 
+/** Human-readable bar name: the target hit, falling back to the digest prefix. */
+function _campaignName(c) {
+    const target = c.path || c.top_path || '';
+    if (!target) return `campaign ${c.label}`;
+    return target.length > 38 ? target.slice(0, 37) + '…' : target;
+}
+
 async function loadCampaignsChart() {
     const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
 
@@ -483,12 +492,14 @@ async function loadCampaignsChart() {
 
         if (campaignsChart) campaignsChart.destroy();
 
-        if (campaigns.length === 0) {
-            canvas.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-dim);font-size:13px;">No campaigns in this period</div>';
-            return;
-        }
+        // Toggle a sibling instead of replacing the wrapper's markup: blowing
+        // away the canvas left the next span switch with nothing to draw on.
+        const empty = document.getElementById('campaigns-chart-empty');
+        if (empty) empty.hidden = campaigns.length > 0;
+        canvas.hidden = campaigns.length === 0;
+        if (campaigns.length === 0) return;
 
-        const labels = campaigns.map(c => c.label || (c.id || '').slice(0, 8));
+        const labels = campaigns.map(_campaignName);
 
         const ctx = canvas.getContext('2d');
         campaignsChart = new Chart(ctx, {
@@ -499,14 +510,8 @@ async function loadCampaignsChart() {
                     {
                         label: 'Captures',
                         data: campaigns.map(c => c.captures),
-                        backgroundColor: 'hsl(210, 85%, 60%)',
-                        hoverBackgroundColor: 'hsl(210, 85%, 68%)'
-                    },
-                    {
-                        label: 'Distinct IPs',
-                        data: campaigns.map(c => c.ips),
-                        backgroundColor: 'hsl(280, 70%, 65%)',
-                        hoverBackgroundColor: 'hsl(280, 70%, 73%)'
+                        backgroundColor: krawlToken('--accent'),
+                        hoverBackgroundColor: krawlToken('--accent-hi')
                     }
                 ]
             },
@@ -515,9 +520,7 @@ async function loadCampaignsChart() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        labels: { color: krawlToken('--text') }
-                    },
+                    legend: { display: false },
                     tooltip: {
                         backgroundColor: 'rgba(22, 27, 34, 0.95)',
                         titleColor: krawlToken('--accent'),
@@ -527,11 +530,15 @@ async function loadCampaignsChart() {
                         padding: 14,
                         callbacks: {
                             label: (context) =>
-                                `${context.dataset.label}: ${context.parsed.x}`,
+                                `${context.parsed.x} captures`,
                             afterLabel: (context) => {
                                 const c = campaigns[context.dataIndex];
-                                const parts = [`source: ${c.sources}`];
-                                if (c.top_path) parts.push(`most hit target: ${c.top_path}`);
+                                const parts = [
+                                    `distinct IPs: ${c.ips}`,
+                                    `source: ${c.sources}`,
+                                    `digest: ${c.label}`
+                                ];
+                                if (c.top_path && c.top_path !== c.path) parts.push(`most hit target: ${c.top_path}`);
                                 if (c.first_seen) parts.push(`first: ${new Date(c.first_seen).toLocaleString()}`);
                                 if (c.last_seen) parts.push(`last: ${new Date(c.last_seen).toLocaleString()}`);
                                 return parts;
@@ -543,7 +550,7 @@ async function loadCampaignsChart() {
                 onClick: (evt, elements) => {
                     if (!elements.length) return;
                     const c = campaigns[elements[0].index];
-                    window.openExpandOverlay(c.label, 'campaign', '', c.id);
+                    window.openExpandOverlay(_campaignName(c), 'campaign', '', c.id);
                 },
                 onHover: (event, activeElements) => {
                     const canvas = event.native && event.native.target;

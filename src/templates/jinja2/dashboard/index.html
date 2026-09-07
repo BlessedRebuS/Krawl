@@ -285,7 +285,7 @@
     <div x-show="tab === 'threats'" x-cloak>
         <div class="table-container alert-section">
             <div class="chart-head">
-                <h2 class="m-0">Attack Campaigns <span class="chart-head-hint">(click a bar to open its members)</span></h2>
+                <h2 class="m-0">Attack Campaigns <span class="chart-head-hint">(click a bar to see its events)</span></h2>
                 <div class="row">
                     <div class="row gap-1" id="campaigns-span-selector">
                         <button class="map-limit-btn active" data-days="1" onclick="setCampaignSpan(1, this)">1D</button>
@@ -302,14 +302,15 @@
             <div class="chart-row">
                 <div class="chart-wrapper chart-main">
                     <canvas id="campaigns-chart"></canvas>
+                    <div id="campaigns-chart-empty" class="chart-empty" hidden>No campaigns in this period</div>
                 </div>
             </div>
         </div>
         <div class="table-container alert-section">
             <div class="row-top">
-                <h2>Campaign Members</h2>
+                <h2>Campaigns</h2>
             </div>
-            <div id="patterns-htmx-container">
+            <div id="patterns-htmx-container" class="htmx-container">
                 <div class="htmx-indicator">Loading...</div>
             </div>
         </div>
@@ -317,7 +318,7 @@
             <div class="row-top">
                 <h2>Captured Files</h2>
             </div>
-            <div id="threats-htmx-container">
+            <div id="threats-htmx-container" class="htmx-container">
                 <div class="htmx-indicator">Loading...</div>
             </div>
         </div>

@@ -31,6 +31,9 @@
         {% for item in index %}
         <tr>
             <td class="data data-mono">
+                {# No log_id means the request it came from was pruned, so there is
+                 # nothing left to open. #}
+                {% if item.log_id %}
                 <a href="#"
                    class="data-link"
                    data-filename="{{ item.filename | e }}"
@@ -38,6 +41,9 @@
                    title="View file {{ item.filename | e }}">
                     {{ item.filename | e }}
                 </a>
+                {% else %}
+                <span title="Original request no longer retained">{{ item.filename | e }}</span>
+                {% endif %}
             </td>
             <td class="ts-cell">{{ item.distinct_ips }}</td>
             <td class="ts-cell">{{ item.total }}</td>
@@ -45,7 +51,7 @@
             <td class="ts-cell">{{ item.last_seen | format_ts }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="5" class="empty-state">No captured payloads yet &mdash; captured files will appear here once TLSH capture is enabled and files arrive</td></tr>
+        <tr><td colspan="5" class="empty-state">No captured files yet &mdash; uploads land here once attackers start sending them</td></tr>
         {% endfor %}
     </tbody>
 </table>
