@@ -40,6 +40,11 @@ def _scalar_min_max(db) -> tuple[Any, Any]:
 
 applogger = get_app_logger()
 
+# Hashed events pulled into memory per similarity lookup, newest first. TLSH
+# distance can't be expressed in SQL, so the diff runs in Python — without a cap
+# a single dashboard click read every hashed row in the database.
+MAX_CANDIDATES = 5000
+
 
 class PayloadRepo:
     """Reads and writes captured file payloads, plus referer-history reads."""
@@ -219,8 +224,9 @@ class PayloadRepo:
 
         A digest of 0 from another IP is an exact copy (the campaign signal) and
         is deliberately kept.
-        ponytail: O(N) in-Python diff over every hashed event; fine for the current
-        table sizes, prefilter by hash prefix in SQL if this grows.
+        ponytail: in-Python diff over the MAX_CANDIDATES most recent hashed
+        events (TLSH can't be prefiltered in SQL); raise the cap or prefilter by
+        hash prefix if older events need to match too.
         """
         session = self._db.session
         try:
@@ -236,11 +242,23 @@ class PayloadRepo:
                 )
                 .join(AccessLog, AttackDetection.access_log_id == AccessLog.id)
                 .filter(AttackDetection.tlsh_hash.isnot(None))
+                .order_by(AccessLog.timestamp.desc())
+                .limit(MAX_CANDIDATES)
                 .all()
             )
             file_rows = (
-                session.query(CapturedPayload)
+                session.query(
+                    CapturedPayload.tlsh_hash,
+                    CapturedPayload.filename,
+                    CapturedPayload.ip,
+                    CapturedPayload.access_log_id,
+                    CapturedPayload.timestamp,
+                    CapturedPayload.content_type,
+                    CapturedPayload.size,
+                )
                 .filter(CapturedPayload.tlsh_hash.isnot(None))
+                .order_by(CapturedPayload.timestamp.desc())
+                .limit(MAX_CANDIDATES)
                 .all()
             )
 
@@ -274,8 +292,8 @@ class PayloadRepo:
                 g["attack_type"] = ", ".join(g["attack_types"])
                 g["matched_pattern"] = ", ".join(g["matched_pattern"]) or None
             similar += groups.values()
-            for p in file_rows:
-                d = tlsh_diff(base_hash, p.tlsh_hash)
+            for fhash, fname, fip, flog_id, fts, ctype, size in file_rows:
+                d = tlsh_diff(base_hash, fhash)
                 if d is not None and d <= threshold:
                     similar.append(
                         {
@@ -283,13 +301,13 @@ class PayloadRepo:
                             "diff": d,
                             "attack_type": "file",
                             "matched_pattern": None,
-                            "filename": p.filename,
-                            "ip": p.ip,
+                            "filename": fname,
+                            "ip": fip,
                             "path": None,
-                            "access_log_id": p.access_log_id,
-                            "timestamp": p.timestamp,
-                            "content_type": p.content_type,
-                            "size": p.size,
+                            "access_log_id": flog_id,
+                            "timestamp": fts,
+                            "content_type": ctype,
+                            "size": size,
                         }
                     )
             similar.sort(key=lambda r: r["diff"])
@@ -297,8 +315,31 @@ class PayloadRepo:
         finally:
             self._db.close_session()
 
+    def cluster_reps(self) -> list[tuple[str, str]]:
+        """(cluster id, representative hash) for every campaign.
+
+        Load once per batch and pass to assign_cluster, so hashing N payloads
+        doesn't re-read payload_clusters N times.
+        ponytail: whole-table load, and clustering still costs one tlsh_diff per
+        (payload, cluster); bucket by hash prefix if the cluster count ever gets
+        big enough to matter.
+        """
+        session = self._db.session
+        try:
+            return list(
+                session.execute(
+                    select(PayloadCluster.id, PayloadCluster.representative_hash)
+                ).all()
+            )
+        finally:
+            self._db.close_session()
+
     def assign_cluster(
-        self, digest: str | None, timestamp, threshold: int = SIMILARITY_THRESHOLD
+        self,
+        digest: str | None,
+        timestamp,
+        threshold: int = SIMILARITY_THRESHOLD,
+        reps: list[tuple[str, str]] | None = None,
     ) -> str | None:
         """Campaign assignment for one TLSH digest (incremental, O(#clusters)).
 
@@ -307,6 +348,10 @@ class PayloadRepo:
         (bumping capture_count / last_seen) or starts a new cluster with
         `digest` as its representative. Returns the cluster id, or None for an
         unclusterable digest (TNULL / already assigned).
+
+        `reps` is an optional caller-cached cluster_reps() list, appended to
+        when a new cluster is seeded so a batch stays consistent without
+        re-querying.
         ponytail: concurrent writers (scalable mode) could double-create a
         cluster for the same digest; a startup merge pass would tidy that if
         it ever shows up.
@@ -315,9 +360,10 @@ class PayloadRepo:
             return None
         session = self._db.session
         try:
-            reps = session.execute(
-                select(PayloadCluster.id, PayloadCluster.representative_hash)
-            ).all()
+            if reps is None:
+                reps = session.execute(
+                    select(PayloadCluster.id, PayloadCluster.representative_hash)
+                ).all()
             match_id, best = None, None
             for cid, rep in reps:
                 d = tlsh_diff(digest, rep)
@@ -347,7 +393,9 @@ class PayloadRepo:
             )
             session.add(cluster)
             session.commit()
-            return cluster.id
+            cid = cluster.id
+            reps.append((cid, digest))
+            return cid
         finally:
             self._db.close_session()
 
@@ -391,7 +439,7 @@ class PayloadRepo:
                     "first_seen": row.first_seen,
                     "last_seen": row.last_seen,
                     "events": row.capture_count,
-                    "ips": set(),
+                    "ips": 0,
                     "sources": set(),
                     "sample": None,
                     "path": None,
@@ -401,6 +449,9 @@ class PayloadRepo:
                 }
                 for row in cluster_q.all()
             }
+            if not clusters:
+                return []
+            cluster_ids = list(clusters)
 
             # Window predicates: when start/end are set, the detail aggregates
             # below scope to members whose own timestamp falls in the range
@@ -416,68 +467,63 @@ class PayloadRepo:
                 else []
             )
 
+            # Every member read below aggregates in SQL and is restricted to the
+            # clusters actually being rendered: pulling one row per member and
+            # folding it in Python meant transferring the whole clustered
+            # history (including clusters under min_events) on each request.
             for cid, fname in (
-                session.query(CapturedPayload.cluster_id, CapturedPayload.filename)
-                .filter(CapturedPayload.cluster_id.isnot(None), *files_win)
+                session.query(
+                    CapturedPayload.cluster_id, func.min(CapturedPayload.filename)
+                )
+                .filter(CapturedPayload.cluster_id.in_(cluster_ids), *files_win)
+                .group_by(CapturedPayload.cluster_id)
                 .all()
             ):
-                c = clusters.get(cid)
-                if c is not None:
-                    c["sources"].add("files")
-                    if not c["sample"]:
-                        c["sample"] = fname
-                    if not c["path"]:
-                        c["path"] = fname
+                c = clusters[cid]
+                c["sources"].add("files")
+                c["sample"] = c["sample"] or fname
+                c["path"] = c["path"] or fname
 
             pattern_q = session.query(
-                AttackDetection.cluster_id, AttackDetection.matched_pattern
+                AttackDetection.cluster_id, func.min(AttackDetection.matched_pattern)
             )
             if attack_win:
                 pattern_q = pattern_q.join(
                     AccessLog, AttackDetection.access_log_id == AccessLog.id
                 )
-            for cid, pattern in pattern_q.filter(
-                AttackDetection.cluster_id.isnot(None),
-                AttackDetection.matched_pattern.isnot(None),
-                *attack_win,
+            for cid, pattern in (
+                pattern_q.filter(
+                    AttackDetection.cluster_id.in_(cluster_ids),
+                    AttackDetection.matched_pattern.isnot(None),
+                    *attack_win,
+                )
+                .group_by(AttackDetection.cluster_id)
+                .all()
+            ):
+                c = clusters[cid]
+                c["sources"].add("attacks")
+                c["sample"] = c["sample"] or pattern
+
+            # Distinct IPs per cluster across both member tables — UNION so an
+            # IP seen in both is counted once (what the two Python sets did).
+            files_ips = select(
+                CapturedPayload.cluster_id.label("cid"),
+                CapturedPayload.ip.label("ip"),
+            ).where(CapturedPayload.cluster_id.in_(cluster_ids), *files_win)
+            attack_ips = (
+                select(
+                    AttackDetection.cluster_id.label("cid"), AccessLog.ip.label("ip")
+                )
+                .join(AccessLog, AttackDetection.access_log_id == AccessLog.id)
+                .where(AttackDetection.cluster_id.in_(cluster_ids), *attack_win)
+            )
+            member_ips = files_ips.union(attack_ips).subquery()
+            for cid, ip_count in session.execute(
+                select(
+                    member_ips.c.cid, func.count(func.distinct(member_ips.c.ip))
+                ).group_by(member_ips.c.cid)
             ).all():
-                c = clusters.get(cid)
-                if c is not None:
-                    c["sources"].add("attacks")
-                    if not c["sample"]:
-                        c["sample"] = pattern
-
-            # Representative path per cluster (fallback for file-only clusters
-            # is the filename, set above); first-seen order is irrelevant here
-            # since the per-cluster aggregates already scope to the window.
-            for cid, path in (
-                session.query(AttackDetection.cluster_id, AccessLog.path)
-                .join(AccessLog, AttackDetection.access_log_id == AccessLog.id)
-                .filter(AttackDetection.cluster_id.isnot(None), *attack_win)
-                .all()
-            ):
-                c = clusters.get(cid)
-                if c is not None and not c["path"]:
-                    c["path"] = path
-
-            # distinct IPs per cluster, from both member tables
-            for cid, ip in (
-                session.query(CapturedPayload.cluster_id, CapturedPayload.ip)
-                .filter(CapturedPayload.cluster_id.isnot(None), *files_win)
-                .distinct()
-                .all()
-            ):
-                if cid in clusters:
-                    clusters[cid]["ips"].add(ip)
-            for cid, ip in (
-                session.query(AttackDetection.cluster_id, AccessLog.ip)
-                .join(AccessLog, AttackDetection.access_log_id == AccessLog.id)
-                .filter(AttackDetection.cluster_id.isnot(None), *attack_win)
-                .distinct()
-                .all()
-            ):
-                if cid in clusters:
-                    clusters[cid]["ips"].add(ip)
+                clusters[cid]["ips"] = ip_count
 
             # Signature mix: distinct attack types with counts, plus the most
             # frequent target path (a campaign can span several paths).
@@ -491,13 +537,11 @@ class PayloadRepo:
                     AccessLog, AttackDetection.access_log_id == AccessLog.id
                 )
             for cid, atype, cnt in (
-                types_q.filter(AttackDetection.cluster_id.isnot(None), *attack_win)
+                types_q.filter(AttackDetection.cluster_id.in_(cluster_ids), *attack_win)
                 .group_by(AttackDetection.cluster_id, AttackDetection.attack_type)
                 .all()
             ):
-                c = clusters.get(cid)
-                if c is not None:
-                    c["types"][atype] = cnt
+                clusters[cid]["types"][atype] = cnt
             for cid, path, cnt in (
                 session.query(
                     AttackDetection.cluster_id,
@@ -505,12 +549,12 @@ class PayloadRepo:
                     func.count(),
                 )
                 .join(AccessLog, AttackDetection.access_log_id == AccessLog.id)
-                .filter(AttackDetection.cluster_id.isnot(None), *attack_win)
+                .filter(AttackDetection.cluster_id.in_(cluster_ids), *attack_win)
                 .group_by(AttackDetection.cluster_id, AccessLog.path)
                 .all()
             ):
-                c = clusters.get(cid)
-                if c is not None and cnt > c["top_path_cnt"]:
+                c = clusters[cid]
+                if cnt > c["top_path_cnt"]:
                     c["top_path"] = path
                     c["top_path_cnt"] = cnt
 
@@ -518,7 +562,9 @@ class PayloadRepo:
                 {
                     "id": c["id"],
                     "rep_hash": c["rep_hash"],
-                    "path": c["path"],
+                    # File clusters show their filename; attack-only clusters
+                    # fall back to the path they hit most.
+                    "path": c["path"] or c["top_path"],
                     "top_path": c["top_path"] or c["path"],
                     "attack_types": [
                         t
@@ -527,7 +573,7 @@ class PayloadRepo:
                         )
                     ],
                     "events": c["events"],
-                    "ips": len(c["ips"]),
+                    "ips": c["ips"],
                     "sources": " + ".join(sorted(c["sources"])) or "unlinked",
                     "first_seen": c["first_seen"],
                     "last_seen": c["last_seen"],
