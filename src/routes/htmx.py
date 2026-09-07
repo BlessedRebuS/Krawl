@@ -896,7 +896,10 @@ async def htmx_similar_events(
     tlsh: str = Query(""),
 ):
     db = get_db()
-    items = await asyncio.to_thread(db.payloads.get_similar_events, base_hash=tlsh)
+    threshold = get_config().tlsh_cluster_threshold
+    items = await asyncio.to_thread(
+        db.payloads.get_similar_events, base_hash=tlsh, threshold=threshold
+    )
     templates = get_templates()
     return templates.TemplateResponse(
         request,
@@ -905,6 +908,7 @@ async def htmx_similar_events(
             "dashboard_path": _dashboard_path(request),
             "items": items,
             "tlsh": tlsh,
+            "threshold": threshold,
         },
     )
 

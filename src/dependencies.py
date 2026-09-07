@@ -32,6 +32,7 @@ def get_templates() -> Jinja2Templates:
         )
         _templates.env.filters["format_ts"] = _format_ts
         _templates.env.filters["format_size"] = _format_size
+        _templates.env.filters["safe_url"] = _safe_url
     return _templates
 
 
@@ -61,6 +62,22 @@ def _format_size(value):
     if value < 1024 * 1024:
         return f"{value / 1024:.1f} KB"
     return f"{value / (1024 * 1024):.1f} MB"
+
+
+def _safe_url(value):
+    """Empty string unless the URL is safe to put in an href.
+
+    Referers and request paths are attacker-controlled and rendered as live
+    links; autoescape stops tag injection but not `javascript:` in an href.
+    """
+    if not value:
+        return ""
+    url = str(value).strip()
+    if url.lower().startswith(("http://", "https://")):
+        return url
+    if url.startswith("/") and not url.startswith("//"):
+        return url
+    return ""
 
 
 def get_db() -> DatabaseManager:
