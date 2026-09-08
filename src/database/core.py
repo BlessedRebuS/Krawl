@@ -690,6 +690,10 @@ class DatabaseManager:
 
                 delete_cached_short(f"ban:{sanitized_ip}")
 
+                import ban_cache
+
+                ban_cache.add(sanitized_ip)
+
         return page_visit_count, was_new_ip, was_first_honeypot
 
     def increment_page_visit(self, ip: str, max_pages_limit: int) -> int:
@@ -735,6 +739,10 @@ class DatabaseManager:
                 from dashboard_cache import delete_cached_short
 
                 delete_cached_short(f"ban:{sanitized_ip}")
+
+                import ban_cache
+
+                ban_cache.add(sanitized_ip)
 
             return ip_stats.page_visit_count
 

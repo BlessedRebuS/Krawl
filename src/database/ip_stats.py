@@ -25,6 +25,21 @@ applogger = get_app_logger()
 _MAX_BAN_MULTIPLIER = 1024
 
 
+def _publish_ban_change(sanitized_ip: str, banned: bool) -> None:
+    """Make a manual ban/unban visible to the two caches in front of the query.
+
+    Both were being skipped here, so a force-ban from the dashboard did nothing
+    until the cached "not banned" answer expired.
+    """
+    from dashboard_cache import delete_cached_short
+
+    delete_cached_short(f"ban:{sanitized_ip}")
+    if banned:
+        import ban_cache
+
+        ban_cache.add(sanitized_ip)
+
+
 class IpStatsRepo:
     """Queries and mutations centered on the ip_stats table."""
 
@@ -225,6 +240,7 @@ class IpStatsRepo:
         ip_stats.ban_override = override
         try:
             session.commit()
+            _publish_ban_change(sanitized_ip, banned=override is True)
             return True
         except Exception as e:
             session.rollback()
@@ -253,6 +269,7 @@ class IpStatsRepo:
         ip_stats.ban_override = True
         try:
             session.commit()
+            _publish_ban_change(sanitized_ip, banned=True)
             return True
         except Exception as e:
             session.rollback()
@@ -1118,6 +1135,41 @@ class IpStatsRepo:
             if elapsed < effective:
                 live.append(r)
         return live
+
+    def get_banned_ips(
+        self, ban_duration_seconds: int, limit: int = 200_000
+    ) -> list[str]:
+        """Every IP that might currently be banned -- a superset, deliberately.
+
+        Feeds the in-process fast path in ban_cache, which may only skip the
+        real check for IPs this does NOT return. So the predicate errs wide: it
+        takes any row with a force ban or a ban_timestamp inside the widest
+        possible window, and leaves exemptions and exact expiry to
+        get_ban_info. A stray IP costs one slow lookup; a missing one would let
+        a banned client through.
+
+        Reads one column, not whole ORM rows: this runs against every banned IP
+        on a schedule, and _timedout_candidates' hydration is wasted here.
+        """
+        coarse_floor = datetime.now() - timedelta(
+            seconds=ban_duration_seconds * _MAX_BAN_MULTIPLIER
+        )
+        session = self._db.session
+        try:
+            rows = (
+                session.query(IpStats.ip)
+                .filter(
+                    or_(
+                        IpStats.ban_override.is_(True),
+                        IpStats.ban_timestamp >= coarse_floor,
+                    )
+                )
+                .limit(limit)
+                .all()
+            )
+            return [r[0] for r in rows if r[0]]
+        finally:
+            self._db.close_session()
 
     def get_timedout_ips(self, ban_duration_seconds: int) -> list[str]:
         """IP strings currently serving an automatic time-ban (for export)."""
