@@ -15,7 +15,6 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from config import get_config
-from dashboard_cache import flush_all as flush_cache
 from dashboard_cache import initialize_cache
 from database import get_database, initialize_database
 from generators import random_server_header
@@ -131,10 +130,6 @@ async def lifespan(app: FastAPI):
     else:
         with _phase(app_logger, "In-memory cache init"):
             initialize_cache(mode="standalone")
-
-    # Flush stale cache from previous run so the pod starts fresh
-    with _phase(app_logger, "Cache flush"):
-        flush_cache()
 
     # Seed event-driven metric counters (from metrics_summary or a one-time
     # recompute). In scalable mode only the first pod actually seeds.

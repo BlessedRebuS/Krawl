@@ -1,11 +1,12 @@
 """
 Event-driven metric counters backed by the cache layer.
 
-Counters live under the krawl:counter: prefix so they survive the krawl:cache:*
-flush that runs on every pod startup (see dashboard_cache.flush_all). In
-scalable mode they are Redis keys (atomic INCRBY, shared across pods); in
-standalone mode they are a locked in-memory dict. Values feed Prometheus gauges
-(set at scrape time) and the dashboard's aggregate counts.
+Counters live under the krawl:counter: prefix, separate from the krawl:cache:
+keyspace: cache entries are disposable and TTL'd, counters are durable state
+that must survive independently of them. In scalable mode they are Redis keys
+(atomic INCRBY, shared across pods); in standalone mode they are a locked
+in-memory dict. Values feed Prometheus gauges (set at scrape time) and the
+dashboard's aggregate counts.
 
 Encoding: a labeled counter is stored as "metric|label"; an unlabeled one as
 "metric". Distinctness estimators (e.g. seen request paths) live under
