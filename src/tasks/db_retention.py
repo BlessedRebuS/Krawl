@@ -27,6 +27,8 @@ TASK_CONFIG = {
     "cron": "0 9 * * *",  # Run daily at 9 AM
     "enabled": True,
     "run_when_loaded": False,
+    # A shared-database sweep; running it N times repeats the same deletes.
+    "single_pod": True,
 }
 
 app_logger = get_app_logger()

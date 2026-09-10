@@ -20,6 +20,8 @@ TASK_CONFIG = {
     "enabled": config.backups_enabled,
     # a backup per pod restart is wasted I/O; the cron is the schedule.
     "run_when_loaded": False,
+    # N pods would write N identical backups per schedule.
+    "single_pod": True,
 }
 
 

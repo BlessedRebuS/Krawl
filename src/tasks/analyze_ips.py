@@ -20,6 +20,8 @@ TASK_CONFIG = {
     "enabled": True,
     # runs every minute anyway; a boot run only duplicates it.
     "run_when_loaded": False,
+    # One pod per minute analyses the batch; the others would redo the same rows.
+    "single_pod": True,
 }
 
 # Upper bound on IPs analysed per run; the remainder is picked up next minute.
