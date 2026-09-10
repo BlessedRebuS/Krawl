@@ -28,6 +28,7 @@ EXPECTED_SINGLE_POD = {
     "flag-stale-ips",
     "hash-payloads",
     "pre-retention-cleanup",
+    "refresh-banlist",     # gated, but followers adopt via on_skip()
     "sync-cloudflare",
 }
 
@@ -36,7 +37,6 @@ EXPECTED_EVERY_POD = {
     "flush-access-logs",   # drains this pod's access-log write buffer
     "metrics-flush",       # flushes this pod's counters
     "refresh-ban-cache",   # fills this pod's banned-IP frozenset
-    "refresh-banlist",     # fills this pod's global banlist frozenset
     "purge",               # disabled; only ever run from the maintenance panel
 }
 

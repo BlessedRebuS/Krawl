@@ -173,9 +173,12 @@ async def lifespan(app: FastAPI):
     # Initial banlist sync (before accepting traffic)
     if config.banlist_sources:
         with _phase(app_logger, "Initial banlist sync"):
-            from banlist_sync import refresh_banlist_sources
+            from banlist_sync import load_published, refresh_banlist_sources
 
-            refresh_banlist_sources()
+            # A pod joining a running cluster adopts what a peer already
+            # fetched; only a cold cluster pays for the external requests.
+            if not load_published():
+                refresh_banlist_sources()
 
     # Store in app.state for dependency injection
     app.state.config = config
