@@ -313,21 +313,20 @@ HEAVY_METRICS = (
 # never purged), so their current count already equals the cumulative total.
 _TALLIED_METRICS = ("total_accesses", "unique_ips")
 
-_RECONCILE_LOCK = "krawl:counter:_reconcile_lock"
+# Namespaced under krawl:task: with every other cross-pod lease. The old
+# krawl:counter:_reconcile_lock key simply expires; nothing reads it.
+_RECONCILE_JOB = "counter-reconcile"
 
 
 def _acquire_reconcile_lock(ttl: int = 600) -> bool:
     """Return True if this process should run the (expensive) full recompute.
 
-    Scalable: a short-lived Redis lock so only one pod recomputes per window.
-    Standalone: always True (single process).
+    Scalable: one pod per window, via the shared cross-pod lease. Standalone:
+    always True, there being one process.
     """
-    if get_backend() == "scalable":
-        r = get_redis_client()
-        if r is not None:
-            return bool(r.set(_RECONCILE_LOCK, "1", nx=True, ex=ttl))
-        return True
-    return True
+    import task_lock
+
+    return task_lock.claim(_RECONCILE_JOB, ttl)
 
 
 def _recompute_heavy(db) -> None:

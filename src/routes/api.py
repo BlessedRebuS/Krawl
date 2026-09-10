@@ -13,7 +13,6 @@ import hmac
 import io
 import re
 import secrets
-import threading
 import time
 import zipfile
 from datetime import UTC, datetime, timedelta
@@ -1677,55 +1676,33 @@ async def webhook_cloudflare_delete(request: Request):
 # authenticated view over that registry — there is no separate job runner, and
 # adding a task file is all it takes to make it appear in the panel.
 
-_RUN_LOCK_PREFIX = "krawl:taskrun:"
 _RUN_LOCK_TTL = 3600  # a stuck task must not block its own next run forever
-
-_local_running: set[str] = set()
-_local_running_lock = threading.Lock()
 
 
 def _acquire_run_lock(name: str) -> bool:
     """Claim the right to run `name`. False when it is already running.
 
-    Redis in scalable mode so one click does not start the task on every
-    replica; a process-local set in standalone. Same split as auth_store.
+    One click must not start the task on every replica, and a second click must
+    not start it twice on this one. Both are the shared cross-pod lease; unlike
+    the scheduler's use of it, this one is released on completion.
     """
-    from dashboard_cache import get_backend, get_redis_client
+    import task_lock
 
-    if get_backend() == "scalable":
-        r = get_redis_client()
-        if r is not None:
-            return bool(
-                r.set(f"{_RUN_LOCK_PREFIX}{name}", "1", nx=True, ex=_RUN_LOCK_TTL)
-            )
-    with _local_running_lock:
-        if name in _local_running:
-            return False
-        _local_running.add(name)
-        return True
+    return task_lock.claim(name, _RUN_LOCK_TTL)
 
 
 def _release_run_lock(name: str) -> None:
-    from dashboard_cache import get_backend, get_redis_client
+    """Free the task for another manual run now that this one has finished."""
+    import task_lock
 
-    if get_backend() == "scalable":
-        r = get_redis_client()
-        if r is not None:
-            r.delete(f"{_RUN_LOCK_PREFIX}{name}")
-            return
-    with _local_running_lock:
-        _local_running.discard(name)
+    task_lock.release(name)
 
 
 def _is_running(name: str) -> bool:
-    from dashboard_cache import get_backend, get_redis_client
+    """True while a manual run of `name` is in flight anywhere in the cluster."""
+    import task_lock
 
-    if get_backend() == "scalable":
-        r = get_redis_client()
-        if r is not None:
-            return bool(r.exists(f"{_RUN_LOCK_PREFIX}{name}"))
-    with _local_running_lock:
-        return name in _local_running
+    return task_lock.is_held(name)
 
 
 @router.get("/api/tasks", dependencies=[Depends(require_auth)])

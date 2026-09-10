@@ -6,7 +6,6 @@ Usage: python tests/test_task_lock.py
 """
 
 import sys
-import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
@@ -15,17 +14,27 @@ import dashboard_cache
 
 
 class FakeRedis:
-    """Only the calls task_lock makes, with real NX and EX semantics."""
+    """Only the calls task_lock makes, with real NX and EX semantics.
+
+    Time is driven by `now` rather than the wall clock. Sleeping past a 1-second
+    TTL leaves ~100ms of margin, which a loaded machine will occasionally miss --
+    and expiry is exactly what these tests are asserting, so it must not depend
+    on the OS scheduler.
+    """
 
     def __init__(self):
         self.store: dict[str, tuple[str, float | None]] = {}
+        self.now = 1_000_000.0
+
+    def advance(self, seconds: float) -> None:
+        self.now += seconds
 
     def _alive(self, key: str) -> bool:
         entry = self.store.get(key)
         if entry is None:
             return False
         expires = entry[1]
-        if expires is not None and expires <= time.time():
+        if expires is not None and expires <= self.now:
             del self.store[key]
             return False
         return True
@@ -33,7 +42,7 @@ class FakeRedis:
     def set(self, key, value, nx=False, ex=None):
         if nx and self._alive(key):
             return None
-        self.store[key] = (value, time.time() + ex if ex else None)
+        self.store[key] = (value, self.now + ex if ex else None)
         return True
 
     def delete(self, key):
@@ -73,13 +82,14 @@ def test_different_jobs_do_not_collide():
 
 
 def test_lease_expiry_frees_the_job():
-    use_scalable(FakeRedis())
+    redis_client = FakeRedis()
+    use_scalable(redis_client)
     import task_lock
 
-    assert task_lock.claim("db-dump", 1) is True
-    assert task_lock.claim("db-dump", 1) is False
-    time.sleep(1.1)
-    assert task_lock.claim("db-dump", 1) is True, "an expired lease must be reclaimable"
+    assert task_lock.claim("db-dump", 60) is True
+    assert task_lock.claim("db-dump", 60) is False
+    redis_client.advance(61)
+    assert task_lock.claim("db-dump", 60) is True, "an expired lease must be reclaimable"
 
 
 def test_standalone_always_claims():
@@ -145,6 +155,36 @@ def test_holder_is_recorded():
     assert value == task_lock.POD_UID, f"expected {task_lock.POD_UID}, got {value}"
 
 
+def test_reconcile_lock_delegates():
+    """metrics_counters keeps its API but stops hand-rolling the lock."""
+    use_scalable(FakeRedis())
+    import metrics_counters
+    import task_lock
+
+    assert metrics_counters._acquire_reconcile_lock(60) is True
+    assert metrics_counters._acquire_reconcile_lock(60) is False
+    # Delegation, not just equivalent behaviour: one lock implementation, one
+    # namespace. Three hand-rolled copies of SET NX EX was the thing to fix.
+    keys = list(dashboard_cache._redis_client.store)
+    assert keys and all(k.startswith(task_lock.LOCK_PREFIX) for k in keys), keys
+
+
+def test_run_lock_delegates_and_releases():
+    """The maintenance panel wants a mutex: claim, then release on completion."""
+    use_scalable(FakeRedis())
+    import task_lock
+    from routes import api
+
+    assert api._acquire_run_lock("db-dump") is True
+    keys = list(dashboard_cache._redis_client.store)
+    assert keys and all(k.startswith(task_lock.LOCK_PREFIX) for k in keys), keys
+    assert api._acquire_run_lock("db-dump") is False
+    assert api._is_running("db-dump") is True
+    api._release_run_lock("db-dump")
+    assert api._is_running("db-dump") is False
+    assert api._acquire_run_lock("db-dump") is True
+
+
 if __name__ == "__main__":
     test_one_pod_wins()
     test_different_jobs_do_not_collide()
@@ -155,4 +195,6 @@ if __name__ == "__main__":
     test_release_frees_the_job()
     test_lock_keys_stay_out_of_the_cache_namespace()
     test_holder_is_recorded()
+    test_reconcile_lock_delegates()
+    test_run_lock_delegates_and_releases()
     print("PASS: task_lock")
