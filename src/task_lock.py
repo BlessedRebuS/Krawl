@@ -130,7 +130,7 @@ def record_run(task_name: str, ok: bool) -> None:
     payload = json.dumps(
         {
             "pod": POD_UID,
-            "at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "at": datetime.datetime.now(datetime.UTC).isoformat(),
             "ok": bool(ok),
         }
     )
