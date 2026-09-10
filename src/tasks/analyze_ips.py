@@ -416,3 +416,19 @@ def main():
             ip, analyzed_metrics, category, category_scores, last_analysis
         )
     return
+
+
+def on_skip() -> None:
+    """Another pod owns this occurrence; still refresh this pod's gauges.
+
+    krawl_generated_pages_today, krawl_ips_needing_reevaluation,
+    krawl_unenriched_ips and krawl_auth_locked_ips are prometheus_client Gauges
+    living in this process's memory, not in Redis. A pod that never sets them
+    exports 0, and the dashboard's max() then reports whichever pod last held
+    the lease -- a stale high-water mark instead of the current value.
+
+    Four indexed COUNTs. Only the analysis loop above is worth deduplicating.
+    """
+    db_manager = get_database()
+    metrics.refresh_ai(db_manager)
+    metrics.refresh_system(db_manager)
