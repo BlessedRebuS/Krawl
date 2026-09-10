@@ -1708,6 +1708,7 @@ def _is_running(name: str) -> bool:
 @router.get("/api/tasks", dependencies=[Depends(require_auth)])
 async def list_tasks():
     """List every discovered task with its schedule and current state."""
+    import task_lock
     from tasks_master import get_tasksmaster
 
     tm = get_tasksmaster()
@@ -1731,6 +1732,8 @@ async def list_tasks():
             "enabled": bool(t.get("enabled")),
             "next_run": next_runs.get(name),
             "running": _is_running(name),
+            "single_pod": bool(t.get("single_pod")),
+            "last_run": task_lock.get_last_run(name),
             "options": None,
         }
         # The purge task is the only one taking arguments; surface its targets
@@ -1743,7 +1746,10 @@ async def list_tasks():
             ]
         tasks.append(entry)
 
-    return JSONResponse(content={"tasks": tasks}, headers=_no_cache_headers())
+    return JSONResponse(
+        content={"tasks": tasks, "this_pod": task_lock.POD_UID},
+        headers=_no_cache_headers(),
+    )
 
 
 class RunTaskRequest(BaseModel):

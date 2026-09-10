@@ -16,6 +16,8 @@ the claim. A honeypot that silently stops doing maintenance is worse than one
 that does it twice.
 """
 
+import datetime
+import json
 import os
 import threading
 import time
@@ -105,3 +107,60 @@ def is_held(job_id: str) -> bool:
     if redis_client is None:
         return False
     return bool(redis_client.exists(f"{LOCK_PREFIX}{job_id}"))
+
+
+LAST_RUN_PREFIX: str = "krawl:task:last_run:"
+
+# Long enough that a task on a weekly-ish schedule still shows its last run, and
+# short enough that a task deleted from the folder stops appearing eventually.
+LAST_RUN_TTL: int = 14 * 24 * 3600
+
+# Standalone has no Redis; the panel still wants to show the last run.
+_local_last_runs: dict[str, str] = {}
+
+
+def record_run(task_name: str, ok: bool) -> None:
+    """Record that this pod just ran `task_name`, successfully or not.
+
+    Deliberately separate from the lease. A lease is held for twice the jitter
+    window and then expires -- a daily task holds one for 480 seconds out of
+    86400 -- so it cannot answer "who ran this", only "who is mid-window right
+    now". The dashboard needs the durable answer.
+    """
+    payload = json.dumps(
+        {
+            "pod": POD_UID,
+            "at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "ok": bool(ok),
+        }
+    )
+
+    if get_backend() != "scalable":
+        with _local_lock:
+            _local_last_runs[task_name] = payload
+        return
+
+    redis_client = get_redis_client()
+    if redis_client is not None:
+        redis_client.setex(f"{LAST_RUN_PREFIX}{task_name}", LAST_RUN_TTL, payload)
+
+
+def get_last_run(task_name: str) -> dict | None:
+    """The last recorded run of `task_name`, or None if it has not run.
+
+    Returns {"pod": str, "at": ISO-8601 str, "ok": bool}.
+    """
+    if get_backend() != "scalable":
+        with _local_lock:
+            payload = _local_last_runs.get(task_name)
+    else:
+        redis_client = get_redis_client()
+        payload = (
+            redis_client.get(f"{LAST_RUN_PREFIX}{task_name}")
+            if redis_client is not None
+            else None
+        )
+
+    if not payload:
+        return None
+    return json.loads(payload)

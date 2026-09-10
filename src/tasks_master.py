@@ -307,10 +307,24 @@ class TasksMaster:
             app_logger.error(f"Failed to load {module_name}: {e}")
 
     def job_listener(self, event):
-        if event.exception:
-            app_logger.error(f"Job {event.job_id} failed: {event.exception}")
-        else:
+        """Log every completion, and record which pod it happened on.
+
+        The job id is built as "<module>__<task name>" in _schedule_task, so the
+        task name the API and the dashboard use is its second half.
+        """
+        ok = event.exception is None
+        if ok:
             app_logger.info(f"Job {event.job_id} completed successfully.")
+        else:
+            app_logger.error(f"Job {event.job_id} failed: {event.exception}")
+
+        _, _, task_name = event.job_id.partition("__")
+        if task_name:
+            try:
+                task_lock.record_run(task_name, ok=ok)
+            except Exception as e:
+                # Never let bookkeeping turn a completed job into a failed one.
+                app_logger.error(f"Could not record run of {task_name}: {e}")
 
     def run_scheduled_tasks(self):
         """
