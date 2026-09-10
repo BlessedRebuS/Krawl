@@ -7,6 +7,8 @@ Krawl supports two deployment modes: **standalone** and **scalable**. The mode i
 - [Standalone Mode](#standalone-mode)
 - [Scalable Mode](#scalable-mode)
   - [Redis Cache Tiers](#redis-cache-tiers)
+  - [Scheduled Tasks Across Pods](#scheduled-tasks-across-pods)
+  - [Metrics Across Pods](#metrics-across-pods)
 - [Running with Docker Compose](#running-with-docker-compose)
   - [Standalone](#standalone)
   - [Scalable](#scalable)
@@ -122,6 +124,34 @@ In scalable mode, Redis is used across three cache tiers to reduce database load
 In standalone mode, only the warmup cache is used (in-memory dict). The hot-path and table caches are no-ops since there's only one process and the database is local.
 
 > **Tip**: In scalable mode, you can disable `dashboard.cache_warmup` in your config. The table-tier cache already reduces DB load for dashboard requests without needing a background task.
+
+---
+
+### Scheduled Tasks Across Pods
+
+Every pod runs its own scheduler. Tasks whose effect is global are gated so exactly one pod runs each occurrence, using a Redis lease under `krawl:task:lock:<job>`. A task opts in with `"single_pod": True` in its `TASK_CONFIG`.
+
+The lease is not released when the task finishes — it expires. Jobs are scheduled with up to 240 seconds of jitter, so pods fire the same cron minutes apart; a lease released on completion would just be picked up by the next pod, and the task would run everywhere anyway. Lease length is twice the jitter window, clamped below the task's period, so a daily task holds it for 480 seconds rather than a day.
+
+Tasks that maintain **per-pod** state are deliberately not gated and run everywhere, every time:
+
+| Task | Per-pod state it maintains |
+|------|----------------------------|
+| `flush-access-logs` | This pod's access-log write buffer |
+| `metrics-flush` | This pod's metric counters |
+| `refresh-ban-cache` | This pod's banned-IP set, read on every request |
+
+`refresh-banlist` is a hybrid. One pod fetches the external sources and publishes the merged result to `krawl:task:banlist`; the others adopt that payload into their own in-process set. A pod starting up adopts the published list too, so joining a running cluster costs no external requests.
+
+Running a task by hand from **Settings → Maintenance** is never gated by this mechanism. It runs immediately on the pod serving the request, deduplicated only against other concurrent manual runs.
+
+> **Tip**: `redis-cli --scan --pattern 'krawl:task:*'` shows the active leases, and `redis-cli get krawl:task:lock:<job>` names the pod holding one.
+
+### Metrics Across Pods
+
+Prometheus scrapes each pod separately, and the cumulative counters are shared in Redis, so every pod reports the same cluster-wide totals as its own series. **Aggregate them with `max()`, not `sum()`** — summing multiplies every total by the replica count.
+
+The bundled Grafana dashboard already does this: `sum()` appears only on `krawl_write_buffer_dropped_total`, which is genuinely per-process, alongside the other per-pod diagnostics (`krawl_write_buffer_rows`, `krawl_seen_ledger_entries`, `krawl_local_paths_set_entries`, `krawl_cache_backend_redis`).
 
 ---
 
