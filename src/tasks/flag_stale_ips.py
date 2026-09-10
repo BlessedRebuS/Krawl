@@ -11,6 +11,8 @@ TASK_CONFIG = {
     "enabled": True,
     # a daily 08:00 job — running it on every restart makes a daily sweep happen N times a day.
     "run_when_loaded": False,
+    # A shared-database sweep; the flags are global, not per pod.
+    "single_pod": True,
 }
 
 # Set to True to force all IPs to be flagged for reevaluation on next run.

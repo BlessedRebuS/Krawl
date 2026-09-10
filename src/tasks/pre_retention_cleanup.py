@@ -25,6 +25,8 @@ TASK_CONFIG = {
     "enabled": True,
     # a daily 08:30 job, same problem, and it is the heavier of the two.
     "run_when_loaded": False,
+    # A shared-database sweep, and the heavier of the two.
+    "single_pod": True,
 }
 
 # Batch size for processing old logs to limit memory usage

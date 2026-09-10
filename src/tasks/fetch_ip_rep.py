@@ -15,6 +15,8 @@ TASK_CONFIG = {
     "enabled": True,
     # runs every 5 minutes anyway; enrichment is not needed to serve traffic.
     "run_when_loaded": False,
+    # Calls a third-party reputation API; N pods means N times the quota.
+    "single_pod": True,
 }
 
 

@@ -39,6 +39,8 @@ TASK_CONFIG = {
     # runs every minute anyway; a boot run only piles the history sweep on top
     # of startup, which is how this OOM-killed the pod into a crash loop.
     "run_when_loaded": False,
+    # One pod per minute hashes the batch; the others would redo the same rows.
+    "single_pod": True,
 }
 
 # Upper bound on access logs hashed per run; the remainder is picked up next

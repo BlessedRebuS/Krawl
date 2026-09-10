@@ -30,7 +30,8 @@
 
         <div class="auth-modal-body" x-show="tab === 'maintenance'">
             <p class="auth-modal-description">
-                Run a scheduled job now. Running one here does not change when it next runs on its own.
+                Run a scheduled job now. Running one here does not change when it next runs on its own,
+                and it always runs on the pod serving this page.
             </p>
 
             <p class="form-status" x-show="status" x-text="status" :class="statusOk ? 'text-ok' : 'text-danger'" x-cloak></p>
@@ -45,14 +46,39 @@
                         <div class="task-main">
                             <div class="task-name" x-text="task.name"></div>
                             <div class="task-meta">
-                                {# A disabled task still carries TasksMaster's default cron. Showing it
-                                   would claim a schedule the task does not actually have. #}
-                                <span x-text="!task.enabled ? 'on demand only'
-                                    : (task.interval_seconds ? `every ${task.interval_seconds}s` : task.cron)"></span>
-                                <span x-show="task.next_run" x-cloak>
-                                    · next <span x-text="task.next_run ? new Date(task.next_run).toLocaleString() : ''"></span>
+                                <span class="task-schedule">
+                                    {# A disabled task still carries TasksMaster's default cron. Showing it
+                                       would claim a schedule the task does not actually have. #}
+                                    <span x-text="!task.enabled ? 'on demand only'
+                                        : (task.interval_seconds ? `every ${task.interval_seconds}s` : task.cron)"></span>
+                                    <span x-show="task.next_run" x-cloak>
+                                        · next <span x-text="task.next_run ? new Date(task.next_run).toLocaleString() : ''"></span>
+                                    </span>
+                                    <span class="task-state" x-show="task.running" x-cloak>· running</span>
                                 </span>
-                                <span class="task-state" x-show="task.running" x-cloak>· running</span>
+
+                                {# Which pod does the work. A chip means one pod owns each
+                                   occurrence; the plain words mean every pod runs it. The
+                                   chip is tinted when it names the pod serving this page. #}
+                                <span class="task-owner">
+                                    <template x-if="!task.single_pod">
+                                        <span>runs on every pod</span>
+                                    </template>
+                                    <template x-if="task.single_pod && !task.last_run">
+                                        <span>not yet run</span>
+                                    </template>
+                                    <template x-if="task.single_pod && task.last_run">
+                                        <span class="task-owner-run">
+                                            <span class="task-pod"
+                                                  :class="{ 'task-pod-self': task.last_run.pod === thisPod }"
+                                                  :title="task.last_run.pod === thisPod ? 'This pod' : 'Another pod'"
+                                                  x-text="task.last_run.pod"></span>
+                                            <span :class="{ 'task-owner-failed': !task.last_run.ok }"
+                                                  x-text="(task.last_run.ok ? '' : 'failed ') +
+                                                      new Date(task.last_run.at).toLocaleTimeString()"></span>
+                                        </span>
+                                    </template>
+                                </span>
                             </div>
 
                             {# Only the purge task takes arguments; render them as checkboxes. #}

@@ -23,6 +23,8 @@ TASK_CONFIG = {
     "cron": "*/5 * * * *",
     "enabled": True,
     "run_when_loaded": True,
+    # Warms the shared Redis cache; N pods writing it is N times the work.
+    "single_pod": True,
 }
 
 

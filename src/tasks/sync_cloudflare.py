@@ -8,6 +8,8 @@ TASK_CONFIG = {
     # pushes again 60 seconds later regardless.
     "run_when_loaded": False,
     "interval_seconds": 60,
+    # Pushes the banlist to CloudFlare; one push per interval is enough.
+    "single_pod": True,
 }
 
 

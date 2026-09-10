@@ -267,29 +267,6 @@ def invalidate_table_cache() -> None:
                 break
 
 
-def flush_all() -> None:
-    """Flush all Krawl cache keys.
-
-    In scalable mode, deletes all Redis keys with the krawl:cache: prefix.
-    In standalone mode, clears the in-memory dict.
-    Called on startup so each pod restart begins with a fresh cache.
-    """
-    if _backend == "scalable" and _redis_client is not None:
-        cursor = 0
-        while True:
-            cursor, keys = _redis_client.scan(
-                cursor, match=f"{_REDIS_PREFIX}*", count=200
-            )
-            if keys:
-                _redis_client.delete(*keys)
-            if cursor == 0:
-                break
-        return
-
-    with _lock:
-        _cache.clear()
-
-
 def pagination(page: int, page_size: int, total: int) -> dict:
     """Build the pagination block shared by every paginated response.
 
