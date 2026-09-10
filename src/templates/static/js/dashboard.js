@@ -100,6 +100,9 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('settingsPanel', () => ({
         tab: 'maintenance',
         tasks: [],
+        // Which pod is serving this page, so a task's last-run pod can be shown
+        // as "this one" rather than just another hostname.
+        thisPod: '',
         selected: {},
         loading: true,
         busy: null,
@@ -122,6 +125,7 @@ document.addEventListener('alpine:init', () => {
                 if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                 const data = await resp.json();
                 this.tasks = data.tasks || [];
+                this.thisPod = data.this_pod || '';
                 // Seed a selection array for every task exposing options, so
                 // x-model has something to bind to.
                 for (const t of this.tasks) {

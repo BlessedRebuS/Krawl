@@ -3256,12 +3256,49 @@ tbody {
     font-size: var(--fs-sm);
     color: var(--text-strong);
 }
+/* Schedule on the left, which pod does the work on the right. They wrap onto
+   separate lines before either has to truncate. */
 .task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s1) var(--s3);
     margin-top: 2px;
     font-size: var(--fs-2xs);
     color: var(--text-faint);
 }
+.task-schedule { min-width: 0; }
 .task-state { color: var(--ok); }
+
+.task-owner,
+.task-owner-run {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s1);
+}
+
+/* A hostname is an identifier, so it is set in mono like every other piece of
+   log data here -- and left in its real case, unlike the uppercased .cfg-badge
+   labels elsewhere in this modal. */
+.task-pod {
+    font-family: var(--font-mono);
+    padding: 1px var(--s2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
+/* The pod serving this page. The only question the operator cannot answer from
+   any other view. */
+.task-pod-self {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    background: var(--tint-accent);
+}
+
+.task-owner-failed { color: var(--danger); }
 .task-options {
     display: flex;
     flex-direction: column;
@@ -3297,6 +3334,7 @@ tbody {
 @media (max-width: 600px) {
     .task-row { flex-direction: column; align-items: stretch; }
     .task-run-btn { align-self: flex-start; }
+    .task-meta { justify-content: flex-start; }
 }
 /* Category checkboxes carry their category's color. */
 .export-check input[value="attacker"] { accent-color: var(--cat-attacker); }

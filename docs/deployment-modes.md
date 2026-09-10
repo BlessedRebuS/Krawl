@@ -145,6 +145,8 @@ Tasks that maintain **per-pod** state are deliberately not gated and run everywh
 
 Running a task by hand from **Settings → Maintenance** is never gated by this mechanism. It runs immediately on the pod serving the request, deduplicated only against other concurrent manual runs.
 
+**Settings → Maintenance** shows which pod last ran each task. A pod chip means one pod owns each occurrence; "runs on every pod" means the task is not gated. The chip is highlighted when it names the pod currently serving the dashboard.
+
 > **Tip**: `redis-cli --scan --pattern 'krawl:task:*'` shows the active leases, and `redis-cli get krawl:task:lock:<job>` names the pod holding one.
 
 ### Metrics Across Pods
