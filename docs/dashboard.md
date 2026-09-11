@@ -60,7 +60,7 @@ A table showing the last 10 suspicious requests with IP address, path, user-agen
 
 ### Top IP Addresses
 
-A paginated, sortable table ranking IPs by access count. Each IP shows its category badge and can be clicked to expand inline details or open the IP Insight tab.
+A paginated, sortable table ranking IPs by access count. Each IP shows its category badge, and clicking the address opens it in the IP Insight tab — the same place the magnifier button goes.
 
 ### Top Paths
 
@@ -122,6 +122,9 @@ Hashing runs as the scheduled `hash-payloads` task, not at request time: new
 captures are hashed on the next run, and existing history is swept backwards
 once, tracked by a watermark. A freshly upgraded instance therefore fills this
 tab in over a few task cycles rather than immediately.
+
+The whole tab is pre-computed by the warmup task, so it opens instantly; see
+[Cache warmup](#cache-warmup).
 
 ### Attack Campaigns
 
@@ -287,6 +290,13 @@ dashboard:
 | `KRAWL_DASHBOARD_TOP_N_MIN_COUNT` | Minimum access count for top paths/user-agents (set to `1` to disable filtering) | `5` |
 
 > **Scalable mode**: `warmup_aggregation` is enabled by default in Helm and Kubernetes deployments. In standalone mode it is disabled because SQLite handles the load without it.
+
+Warmup covers the Overview and Attacks panels, and the three Threats panels —
+the campaign chart's opening view, the all-time cluster scan, and
+`warmup_pages` pages of the captured-file index. Campaign clustering scans
+every payload hash in its window, so on an instance with real history the
+Threats tab is the slowest thing in the dashboard without it. Other chart spans
+(7D, 30D) and later file pages are still computed on demand.
 
 ### Branding
 
