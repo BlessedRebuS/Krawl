@@ -2,7 +2,10 @@
 
 Access the dashboard at `http://<server-ip>:<port>/<dashboard-path>`
 
-The Krawl dashboard is a single-page application with **5 tabs**: Overview, Attacks, IP Insight, Tracked IPs, and IP Banlist. The last two tabs are only visible after authenticating with the dashboard password.
+The Krawl dashboard is a single-page application with four open tabs — Overview,
+Attacks, Threats and IP Insight — and five more that appear once you authenticate
+with the dashboard password: Tracked IPs, IP Banlist, Timed Out IPs, Deception
+and Webhooks.
 
 ---
 
@@ -107,6 +110,39 @@ A paginated table of specific attack patterns and their occurrence counts across
 
 ---
 
+## Threats
+
+The Threats tab groups captured payloads into campaigns. Krawl fuzzy-hashes
+every captured file and flagged request body with TLSH, then clusters digests
+within `analyzer.tlsh_cluster_threshold` of each other — so a webshell and its
+lightly-edited variants land in one campaign rather than looking like unrelated
+one-off hits.
+
+Hashing runs as the scheduled `hash-payloads` task, not at request time: new
+captures are hashed on the next run, and existing history is swept backwards
+once, tracked by a watermark. A freshly upgraded instance therefore fills this
+tab in over a few task cycles rather than immediately.
+
+### Attack Campaigns
+
+A bar chart of campaign activity over the selected span (1, 7 or 30 days), with
+arrows to step through earlier periods. Clicking a bar loads that campaign's
+events.
+
+### Campaigns
+
+Each recurring payload pattern, with how many times it was seen and how many
+distinct IPs sent it. A campaign appears only once its payload has been seen
+more than `analyzer.tlsh_campaign_min_events` times, which keeps one-off probes
+out of the table.
+
+### Captured Files
+
+An index of every file Krawl captured, across all IPs — name, size, type and the
+campaign it belongs to.
+
+---
+
 ## IP Insight
 
 The IP Insight tab provides a deep-dive view for a single IP address. It is activated by clicking "Inspect IP" from any table in the dashboard.
@@ -129,6 +165,21 @@ When authenticated, admin actions are available:
 ### Blocklist Memberships
 
 Shows which threat intelligence blocklists the IP appears on, providing external reputation context.
+
+### Referer History
+
+The `Referer` headers this IP arrived with, so you can see which bait link, page
+or external source led it here. Empty unless `analyzer.referer_enabled` is on.
+
+### Captured Files
+
+Files this IP uploaded or requested, with the TLSH digest that ties each one to
+a campaign. A file opens in place rather than downloading.
+
+### Captured Credentials
+
+The usernames and passwords this IP submitted to the login traps, filtered to
+this address alone.
 
 ### Access Logs
 

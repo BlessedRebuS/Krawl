@@ -103,15 +103,21 @@ The dashboard is organized in six tabs:
 
 ![attack_types](img/attack_types.png)
 
-- **IP Insight**: in-depth forensic view of a selected IP: geolocation, ISP/ASN info, reputation flags, behavioral timeline, attack type distribution, and full access history.
+- **Threats**: payloads grouped into campaigns by TLSH fuzzy hash, so a webshell and its edited variants read as one campaign rather than unrelated hits, with an index of every captured file.
+
+- **IP Insight**: in-depth forensic view of a selected IP: geolocation, ISP/ASN info, reputation flags, behavioral timeline, attack type distribution, referer history, captured files and credentials, and full access history.
 
 ![ipinsight](img/ip_insight_dashboard.png)
 
-Additionally, after authenticating with the dashboard password, two protected tabs become available:
+Additionally, after authenticating with the dashboard password, protected tabs become available:
 
 - **Tracked IPs**: maintain a watchlist of IP addresses you want to monitor over time.
 - **IP Banlist**: manage IP bans, view detected attackers, and export the banlist in raw or IPTables format.
+- **Timed Out IPs**: review the IPs currently held in the tarpit, and exempt any that should not be.
 - **Deception**: manage AI generated pages, export them or import new ones.
+- **Webhooks**: forward bans to CloudFlare and other firewalls.
+
+The header icons open the API docs, the banlist export, and a settings panel showing the running configuration and a maintenance page for running scheduled tasks on demand.
 
 For more details, see the [Dashboard documentation](docs/dashboard.md).
 
@@ -287,7 +293,7 @@ For more details on both modes, see [Deployment Modes](docs/deployment-modes.md)
 The Helm chart **defaults to scalable mode** with bundled PostgreSQL and Redis:
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.1 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
   -n krawl-system --create-namespace \
   --set postgres.password=your-password \
   --set redis.password=your-redis-password \
@@ -326,7 +332,7 @@ The variable name is `KRAWL_` plus the setting path in upper case, so `dashboard
 becomes `KRAWL_DASHBOARD_PASSWORD`.
 
 <details>
-<summary><b>Server and link generation</b> (12 variables)</summary>
+<summary><b>Server and link generation</b> (11 variables)</summary>
 
 How Krawl presents itself and shapes the maze of generated pages.
 
@@ -348,7 +354,7 @@ How Krawl presents itself and shapes the maze of generated pages.
 </details>
 
 <details>
-<summary><b>Dashboard, metrics and logging</b> (8 variables)</summary>
+<summary><b>Dashboard, metrics and logging</b> (13 variables)</summary>
 
 Dashboard access, cache warmup, Prometheus and log level.
 
@@ -371,7 +377,7 @@ Dashboard access, cache warmup, Prometheus and log level.
 </details>
 
 <details>
-<summary><b>Database, retention and backups</b> (6 variables)</summary>
+<summary><b>Database, retention and backups</b> (12 variables)</summary>
 
 Storage location, how long data is kept, and the dump job.
 
@@ -425,7 +431,7 @@ Thresholds that decide how an IP gets classified.
 </details>
 
 <details>
-<summary><b>Threat-intel capture</b> (2 variables)</summary>
+<summary><b>Threat-intel capture</b> (4 variables)</summary>
 
 Fuzzy-hash captured payloads (files and flagged request bodies) and group
 near-duplicate variants into campaign clusters. Requires `py-tlsh`.
@@ -440,6 +446,8 @@ digests into recurring-pattern campaigns.
 |----------------------|-------------|---------|
 | `KRAWL_TLSH_ENABLED` | Hash uploaded files and flagged request bodies with TLSH for near-duplicate clustering | `true` |
 | `KRAWL_TLSH_CLUSTER_THRESHOLD` | TLSH distance below which a payload joins an existing campaign (0 = identical bytes; variants of a webshell typically diff < 100) | `150` |
+| `KRAWL_TLSH_CAMPAIGN_MIN_EVENTS` | Times a payload must be seen before its campaign appears in the Threats tab | `10` |
+| `KRAWL_REFERER_ENABLED` | Record the inbound HTTP Referer on access logs, for bait-chain tracking | `true` |
 
 </details>
 
