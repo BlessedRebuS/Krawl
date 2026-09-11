@@ -56,7 +56,7 @@ tile provider.
 
 ### Recent Suspicious Activity
 
-A table showing the last 10 suspicious requests with IP address, path, user-agent, and timestamp. Each entry provides actions to view the raw HTTP request or inspect the IP in detail.
+A table showing the last 10 suspicious requests with IP address, path, user-agent, and timestamp. Clicking the address opens it in IP Insight; each entry also links to the raw HTTP request.
 
 ### Top IP Addresses
 
@@ -186,7 +186,9 @@ this address alone.
 
 ### Access Logs
 
-A filtered view of all requests made by this specific IP, with full request details.
+A filtered view of all requests made by this specific IP, with full request
+details. The tables on this tab drop their IP column — every row is the address
+the tab is already about.
 
 ![IP Insight — Detail View](../img/ip_insight_dashboard.png)
 

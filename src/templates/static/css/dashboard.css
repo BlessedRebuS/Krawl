@@ -444,32 +444,6 @@ tbody {
     text-decoration-style: solid;
     background: var(--raised);
 }
-.ip-stats-row {
-    background: var(--bg);
-}
-.ip-stats-cell {
-    padding: 0 !important;
-}
-.ip-stats-dropdown {
-    margin-top: var(--s3);
-    padding: var(--s4);
-    background: var(--bg);
-    border: 1px solid var(--line);
-    border-radius: var(--r-md);
-    font-size: var(--fs-sm);
-    display: flex;
-    gap: var(--s5);
-}
-.stats-left {
-    flex: 1;
-}
-.stats-right {
-    flex: 0 0 200px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
 .radar-chart {
     position: relative;
     width: 280px;
@@ -491,27 +465,6 @@ tbody {
     width: 12px;
     height: 12px;
     border-radius: var(--r-sm);
-}
-.ip-stats-dropdown .loading {
-    color: var(--text-dim);
-    font-style: italic;
-}
-.stat-row {
-    display: flex;
-    justify-content: space-between;
-    padding: var(--s1) 0;
-    border-bottom: 1px solid var(--raised);
-}
-.stat-row:last-child {
-    border-bottom: none;
-}
-.stat-label-sm {
-    color: var(--text-dim);
-    font-weight: 500;
-}
-.stat-value-sm {
-    color: var(--accent);
-    font-weight: 600;
 }
 .category-badge {
     display: inline-block;
@@ -2183,14 +2136,6 @@ tbody {
         padding: var(--s3) var(--s4);
         font-size: var(--fs-xs);
     }
-    .ip-stats-dropdown {
-        flex-direction: column;
-        gap: var(--s4);
-    }
-    .stats-right {
-        flex: 0 0 auto;
-        width: 100%;
-    }
     .radar-chart {
         width: 160px;
         height: 160px;
@@ -2298,18 +2243,6 @@ tbody {
     .ip-clickable {
         display: inline-block;
     }
-    .ip-stats-dropdown {
-        flex-direction: column;
-        gap: var(--s3);
-        font-size: var(--fs-xs);
-    }
-    .stats-left {
-        flex: 1;
-    }
-    .stats-right {
-        flex: 0 0 auto;
-        width: 100%;
-    }
     .radar-chart {
         width: 140px;
         height: 140px;
@@ -2317,15 +2250,6 @@ tbody {
     .radar-legend {
         margin-top: var(--s2);
         font-size: var(--fs-2xs);
-    }
-    .stat-row {
-        padding: var(--s1) 0;
-    }
-    .stat-label-sm {
-        font-size: var(--fs-xs);
-    }
-    .stat-value-sm {
-        font-size: var(--fs-sm);
     }
     .category-badge {
         padding: var(--s1) var(--s2);
@@ -2423,9 +2347,6 @@ tbody {
     }
     #attacker-map {
         height: 320px !important;
-    }
-    .ip-stats-dropdown {
-        gap: var(--s3);
     }
     .radar-chart {
         width: 120px;
