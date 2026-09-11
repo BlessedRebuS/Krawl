@@ -616,6 +616,26 @@ async def attack_types_stats(
         return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
 
 
+def campaign_payload(clusters: list) -> list:
+    """Shape campaign clusters for the chart. Shared with dashboard warmup,
+    which writes this same payload into the cache the endpoint reads."""
+    return [
+        {
+            "id": c["id"],
+            "label": (c["rep_hash"] or "")[:8],
+            "path": c["path"],
+            "top_path": c["top_path"],
+            "sample": c["sample"],
+            "sources": c["sources"],
+            "captures": c["events"],
+            "ips": c["ips"],
+            "first_seen": c["first_seen"].isoformat() if c["first_seen"] else None,
+            "last_seen": c["last_seen"].isoformat() if c["last_seen"] else None,
+        }
+        for c in clusters
+    ]
+
+
 @router.get("/api/campaign-stats")
 async def campaign_stats(
     request: Request,
@@ -637,24 +657,7 @@ async def campaign_stats(
         if window is not None:
             kwargs["start"], kwargs["end"] = window
         clusters = await asyncio.to_thread(db.payloads.get_campaign_clusters, **kwargs)
-        campaigns = [
-            {
-                "id": c["id"],
-                "label": (c["rep_hash"] or "")[:8],
-                "path": c["path"],
-                "top_path": c["top_path"],
-                "sample": c["sample"],
-                "sources": c["sources"],
-                "captures": c["events"],
-                "ips": c["ips"],
-                "first_seen": (
-                    c["first_seen"].isoformat() if c["first_seen"] else None
-                ),
-                "last_seen": c["last_seen"].isoformat() if c["last_seen"] else None,
-            }
-            for c in clusters
-        ]
-        result = {"campaigns": campaigns}
+        result = {"campaigns": campaign_payload(clusters)}
         set_cached_table(cache_key, result)
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:

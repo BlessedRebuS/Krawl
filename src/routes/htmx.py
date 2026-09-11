@@ -871,10 +871,14 @@ async def htmx_global_filenames(
     page: int = Query(1),
 ):
     page = max(1, page)
-    db = get_db()
-    result = await asyncio.to_thread(
-        db.payloads.get_global_index, page=page, page_size=20
-    )
+    cache_key = f"filenames:{page}"
+    result = get_cached_table(cache_key)
+    if not result:
+        db = get_db()
+        result = await asyncio.to_thread(
+            db.payloads.get_global_index, page=page, page_size=20
+        )
+        set_cached_table(cache_key, result)
     templates = get_templates()
     return templates.TemplateResponse(
         request,
@@ -923,12 +927,20 @@ async def htmx_pattern_clusters(
     days: int = Query(0),
     offset: int = Query(0),
 ):
-    db = get_db()
-    window = _campaign_window(day, days=days, offset=offset)
-    kwargs: dict = {}
-    if window is not None:
-        kwargs["start"], kwargs["end"] = window
-    clusters = await asyncio.to_thread(db.payloads.get_campaign_clusters, **kwargs)
+    # Clustering scans every payload hash in the window, so it is the most
+    # expensive panel on the tab and the one warmup exists for.
+    cache_key = f"clusters:{day}:{days}:{offset}"
+    cached = get_cached_table(cache_key)
+    if cached:
+        clusters = cached["clusters"]
+    else:
+        db = get_db()
+        window = _campaign_window(day, days=days, offset=offset)
+        kwargs: dict = {}
+        if window is not None:
+            kwargs["start"], kwargs["end"] = window
+        clusters = await asyncio.to_thread(db.payloads.get_campaign_clusters, **kwargs)
+        set_cached_table(cache_key, {"clusters": clusters})
     templates = get_templates()
     return templates.TemplateResponse(
         request,
