@@ -237,6 +237,36 @@ dashboard:
 
 > **Scalable mode**: `warmup_aggregation` is enabled by default in Helm and Kubernetes deployments. In standalone mode it is disabled because SQLite handles the load without it.
 
+### Branding
+
+The top-left corner of the dashboard — mark, name, version and an optional
+contact — comes from config, so a deployment can carry your own team's name
+and a way to reach whoever runs it.
+
+```yaml
+dashboard:
+  branding:
+    name: "Krawl"
+    url: "https://github.com/BlessedRebuS/Krawl"  # null renders the name as plain text
+    logo: null             # image URL shown instead of the GitHub mark
+    show_version: true
+    contact: null          # "soc@example.com", a URL, or plain text
+```
+
+`name` also sets the page heading (`<name> Dashboard`). `contact` is rendered
+as a `mailto:` link if it looks like an address and as a link if it is an
+`http(s)` URL; anything else ("Ext. 4471") stays unlinked text. `url` and
+`logo` accept only `http(s)` or dashboard-relative paths — anything else is
+dropped rather than placed in the page.
+
+| Env var | Description | Default |
+|---|---|---|
+| `KRAWL_DASHBOARD_BRAND_NAME` | Wordmark and heading name | `Krawl` |
+| `KRAWL_DASHBOARD_BRAND_URL` | Where the wordmark links | Krawl's repository |
+| `KRAWL_DASHBOARD_BRAND_LOGO` | Image URL replacing the GitHub mark | Unset |
+| `KRAWL_DASHBOARD_BRAND_SHOW_VERSION` | Show the version next to the name | `true` |
+| `KRAWL_DASHBOARD_BRAND_CONTACT` | Contact shown under the wordmark | Unset |
+
 ### Map tiles
 
 The IP Origins Map fetches its basemap from a tile provider. The provider is

@@ -360,6 +360,11 @@ Dashboard access, cache warmup, Prometheus and log level.
 | `KRAWL_DASHBOARD_WARMUP_PAGES` | Number of pages to pre-warm per table panel | `10` |
 | `KRAWL_DASHBOARD_WARMUP_AGGREGATION` | Pre-compute full top_paths/top_ua aggregations for zero-query serving | `false` |
 | `KRAWL_DASHBOARD_TOP_N_MIN_COUNT` | Minimum access count for top paths/user agents panels (set to 1 to disable) | `5` |
+| `KRAWL_DASHBOARD_BRAND_NAME` | Name in the dashboard wordmark and heading | `Krawl` |
+| `KRAWL_DASHBOARD_BRAND_URL` | Where the wordmark links (empty renders it as plain text) | Krawl's repository |
+| `KRAWL_DASHBOARD_BRAND_LOGO` | Image URL shown instead of the GitHub mark | Unset |
+| `KRAWL_DASHBOARD_BRAND_SHOW_VERSION` | Show the version next to the name | `true` |
+| `KRAWL_DASHBOARD_BRAND_CONTACT` | Contact shown under the wordmark (address, URL, or plain text) | Unset |
 | `KRAWL_METRICS_ENABLED` | Expose Prometheus metrics at `/<dashboard_path>/metrics` | `true` |
 | `KRAWL_LOG_LEVEL` | Application log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) | `INFO` |
 
