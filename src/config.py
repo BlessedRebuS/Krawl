@@ -80,6 +80,12 @@ class Config:
     dashboard_warmup_pages: int = 10
     dashboard_warmup_aggregation: bool = False
     dashboard_top_n_min_count: int = 5
+    # Dashboard branding — the wordmark in the top-left corner.
+    dashboard_brand_name: str = "Krawl"
+    dashboard_brand_url: str | None = "https://github.com/BlessedRebuS/Krawl"
+    dashboard_brand_logo: str | None = None
+    dashboard_brand_show_version: bool = True
+    dashboard_brand_contact: str | None = None
     probability_error_codes: int = 0  # Percentage (0-100)
 
     # Prometheus metrics
@@ -261,6 +267,7 @@ class Config:
         links = data.get("links", {})
         canary = data.get("canary", {})
         dashboard = data.get("dashboard", {})
+        branding = dashboard.get("branding") or {}
         backups = data.get("backups", {})
         database = data.get("database", {})
         ipv6_cfg = data.get("ipv6", {})
@@ -347,6 +354,15 @@ class Config:
             dashboard_warmup_pages=int(dashboard.get("warmup_pages", 10)),
             dashboard_warmup_aggregation=dashboard.get("warmup_aggregation", False),
             dashboard_top_n_min_count=int(dashboard.get("top_n_min_count", 5)),
+            dashboard_brand_name=branding.get("name") or "Krawl",
+            dashboard_brand_url=(
+                branding["url"]
+                if "url" in branding
+                else "https://github.com/BlessedRebuS/Krawl"
+            ),
+            dashboard_brand_logo=branding.get("logo"),
+            dashboard_brand_show_version=branding.get("show_version", True),
+            dashboard_brand_contact=branding.get("contact"),
             metrics_enabled=metrics.get("enabled", True),
             probability_error_codes=behavior.get("probability_error_codes", 0),
             backups_path=backups.get("path", "backups"),

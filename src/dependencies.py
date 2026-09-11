@@ -7,6 +7,7 @@ Replaces Handler class variables with proper DI.
 
 import os
 from datetime import datetime
+from urllib.parse import quote
 
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
@@ -78,6 +79,33 @@ def _safe_url(value):
     if url.startswith("/") and not url.startswith("//"):
         return url
     return ""
+
+
+def build_brand(config, version: str) -> dict:
+    """Resolve the dashboard wordmark into the fields the template renders.
+
+    These come from the operator's config rather than from a crawler, but they
+    still land in an href and a src, so they go through the same scheme
+    allowlist as the attacker-controlled links.
+    """
+    # An address, a link, or neither — "Ext. 4471" stays unlinked text.
+    contact = str(config.dashboard_brand_contact or "").strip()
+    contact_href = ""
+    if contact:
+        local, _, domain = contact.rpartition("@")
+        if local and "." in domain and " " not in contact and "/" not in contact:
+            contact_href = "mailto:" + quote(contact, safe="@._+-")
+        else:
+            contact_href = _safe_url(contact)
+
+    return {
+        "name": config.dashboard_brand_name,
+        "url": _safe_url(config.dashboard_brand_url),
+        "logo": _safe_url(config.dashboard_brand_logo),
+        "version": version if config.dashboard_brand_show_version else "",
+        "contact": contact,
+        "contact_href": contact_href,
+    }
 
 
 def get_db() -> DatabaseManager:

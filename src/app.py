@@ -180,6 +180,13 @@ async def lifespan(app: FastAPI):
             if not load_published():
                 refresh_banlist_sources()
 
+    # The wordmark is identical on every dashboard page and never changes after
+    # startup, so it resolves once into the template env instead of per request.
+    from dependencies import build_brand, get_templates
+    from routes.dashboard import KRAWL_VERSION
+
+    get_templates().env.globals["brand"] = build_brand(config, KRAWL_VERSION)
+
     # Store in app.state for dependency injection
     app.state.config = config
     app.state.tracker = tracker

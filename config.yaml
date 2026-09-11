@@ -62,6 +62,17 @@ dashboard:
   # Hides top paths / user agents below this many accesses. 1 disables filtering.
   top_n_min_count: 5
 
+  # Top-left wordmark on the dashboard. Defaults are Krawl's own.
+  branding:
+    name: "Krawl"
+    # Where the wordmark links. null renders it as plain text instead.
+    url: "https://github.com/BlessedRebuS/Krawl"
+    # Image URL shown instead of the GitHub mark (http(s) or a dashboard path).
+    logo: null
+    show_version: true
+    # An address, a link, or neither — plain text is left unlinked.
+    contact: null
+
 backups:
   path: "backups"
   cron: "*/30 * * * *"
