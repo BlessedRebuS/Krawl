@@ -28,6 +28,14 @@ data:
       warmup_pages: {{ .Values.config.dashboard.warmup_pages }}
       warmup_aggregation: {{ .Values.config.dashboard.warmup_aggregation }}
       top_n_min_count: {{ .Values.config.dashboard.top_n_min_count }}
+      {{- with .Values.config.dashboard.branding }}
+      branding:
+        name: {{ .name | default "Krawl" | quote }}
+        url: {{ .url | toYaml }}
+        logo: {{ .logo | toYaml }}
+        show_version: {{ .show_version }}
+        contact: {{ .contact | toYaml }}
+      {{- end }}
     metrics:
       enabled: {{ .Values.config.metrics.enabled }}
     backups:
