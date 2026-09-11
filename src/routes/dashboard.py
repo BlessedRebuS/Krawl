@@ -117,7 +117,6 @@ async def dashboard_page(request: Request):
             "dashboard_path": dashboard_path,
             "stats": clean_stats,
             "suspicious_activities": suspicious,
-            "krawl_version": KRAWL_VERSION,
             "map_tiles": _map_tiles(config),
         },
     )

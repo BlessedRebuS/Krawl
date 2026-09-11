@@ -774,47 +774,7 @@ async def htmx_ip_insight(ip_address: str, request: Request):
     )
 
 
-# ── IP Detail ────────────────────────────────────────────────────────
-
-
-@router.get("/htmx/ip-detail/{ip_address:path}")
-async def htmx_ip_detail(ip_address: str, request: Request):
-    db = get_db()
-    stats = await asyncio.to_thread(db.ip_stats.get_ip_stats_by_ip, ip_address)
-
-    if not stats:
-        stats = {"ip": ip_address, "total_requests": "N/A"}
-
-    # Transform fields for template compatibility
-    list_on = stats.get("list_on") or {}
-    stats["blocklist_memberships"] = list(list_on.keys()) if list_on else []
-    stats["reverse_dns"] = stats.get("reverse")
-
-    # Filter out unhashable types (dicts, lists) for Jinja2 template engine compatibility
-    # but keep specific fields needed by the template (category_scores, category_history, blocklist_memberships)
-    _keep_keys = {"blocklist_memberships", "category_scores", "category_history"}
-    clean_stats = {}
-    for k, v in stats.items():
-        if isinstance(v, (int, str, float, type(None), bool)):
-            clean_stats[k] = v
-        elif k in _keep_keys:
-            clean_stats[k] = v
-
-    is_tracked = await asyncio.to_thread(db.ip_stats.is_ip_tracked, ip_address)
-
-    templates = get_templates()
-    return templates.TemplateResponse(
-        request,
-        "dashboard/partials/ip_detail.html",
-        {
-            "dashboard_path": _dashboard_path(request),
-            "stats": clean_stats,
-            "is_tracked": is_tracked,
-        },
-    )
-
-
-# ── IP Payloads (files uploaded by one IP) ───────────────────────────
+# ── IP referers and payloads (IP Insight) ──────────────────────────
 
 
 @router.get("/htmx/ip-referers")
@@ -871,10 +831,14 @@ async def htmx_global_filenames(
     page: int = Query(1),
 ):
     page = max(1, page)
-    db = get_db()
-    result = await asyncio.to_thread(
-        db.payloads.get_global_index, page=page, page_size=20
-    )
+    cache_key = f"filenames:{page}"
+    result = get_cached_table(cache_key)
+    if not result:
+        db = get_db()
+        result = await asyncio.to_thread(
+            db.payloads.get_global_index, page=page, page_size=20
+        )
+        set_cached_table(cache_key, result)
     templates = get_templates()
     return templates.TemplateResponse(
         request,
@@ -923,12 +887,20 @@ async def htmx_pattern_clusters(
     days: int = Query(0),
     offset: int = Query(0),
 ):
-    db = get_db()
-    window = _campaign_window(day, days=days, offset=offset)
-    kwargs: dict = {}
-    if window is not None:
-        kwargs["start"], kwargs["end"] = window
-    clusters = await asyncio.to_thread(db.payloads.get_campaign_clusters, **kwargs)
+    # Clustering scans every payload hash in the window, so it is the most
+    # expensive panel on the tab and the one warmup exists for.
+    cache_key = f"clusters:{day}:{days}:{offset}"
+    cached = get_cached_table(cache_key)
+    if cached:
+        clusters = cached["clusters"]
+    else:
+        db = get_db()
+        window = _campaign_window(day, days=days, offset=offset)
+        kwargs: dict = {}
+        if window is not None:
+            kwargs["start"], kwargs["end"] = window
+        clusters = await asyncio.to_thread(db.payloads.get_campaign_clusters, **kwargs)
+        set_cached_table(cache_key, {"clusters": clusters})
     templates = get_templates()
     return templates.TemplateResponse(
         request,

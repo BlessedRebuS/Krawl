@@ -15,7 +15,7 @@ A Helm chart for deploying the Krawl honeypot application on Kubernetes.
 
 ```bash
 helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
-  --version 2.3.1 \
+  --version 2.4.0 \
   --namespace krawl-system \
   --create-namespace \
   -f values.yaml  # optional
@@ -62,7 +62,7 @@ This deploys PostgreSQL and Redis StatefulSets with Services in the same namespa
 
 Minimal `values-minimal.yaml` for scalable mode:
 
-> **Tip**: For production deployments, pin the image tag to a specific version (e.g., `tag: "2.3.1"`) instead of `latest` to ensure reproducible deployments.
+> **Tip**: For production deployments, pin the image tag to a specific version (e.g., `tag: "2.4.0"`) instead of `latest` to ensure reproducible deployments.
 
 ```yaml
 mode: scalable
@@ -179,7 +179,7 @@ The following table lists the main configuration parameters of the Krawl chart a
 | `mode` | Deployment mode (`standalone` or `scalable`) | `scalable` |
 | `replicaCount` | Number of pod replicas (>1 only in scalable mode) | `1` |
 | `image.repository` | Image repository | `ghcr.io/blessedrebus/krawl` |
-| `image.tag` | Image tag | `2.3.1` |
+| `image.tag` | Image tag | `2.4.0` |
 | `image.pullPolicy` | Image pull policy | `Always` |
 
 ### Service Configuration
@@ -254,6 +254,15 @@ The Krawl service already includes `externalTrafficPolicy: Local` by default to 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `config.dashboard.secret_path` | Secret dashboard path (auto-generated if null) | `null` |
+| `config.dashboard.cache_warmup` | Pre-compute dashboard data every 5 minutes (`KRAWL_DASHBOARD_CACHE_WARMUP`) | `true` |
+| `config.dashboard.warmup_pages` | Pages pre-warmed per table panel (`KRAWL_DASHBOARD_WARMUP_PAGES`) | `10` |
+| `config.dashboard.warmup_aggregation` | Pre-compute full top_paths/top_ua aggregations (`KRAWL_DASHBOARD_WARMUP_AGGREGATION`) | `true` |
+| `config.dashboard.top_n_min_count` | Minimum access count to appear in top-N panels (`KRAWL_DASHBOARD_TOP_N_MIN_COUNT`) | `5` |
+| `config.dashboard.branding.name` | Name in the dashboard wordmark and heading (`KRAWL_DASHBOARD_BRAND_NAME`) | `Krawl` |
+| `config.dashboard.branding.url` | Where the wordmark links; `null` renders it as plain text (`KRAWL_DASHBOARD_BRAND_URL`) | Krawl's repository |
+| `config.dashboard.branding.logo` | Image URL shown instead of the GitHub mark (`KRAWL_DASHBOARD_BRAND_LOGO`) | `null` |
+| `config.dashboard.branding.show_version` | Show the version beside the name (`KRAWL_DASHBOARD_BRAND_SHOW_VERSION`) | `true` |
+| `config.dashboard.branding.contact` | Contact shown under the header icons: an address, a URL, or plain text (`KRAWL_DASHBOARD_BRAND_CONTACT`) | `null` |
 | `dashboardPassword` | Password for protected panels (injected via Secret as `KRAWL_DASHBOARD_PASSWORD` env, auto-generated if empty) | `""` |
 | `dashboardExistingSecret.name` | Externally-managed Secret holding the dashboard password (and optionally the path). When set, the chart-managed Secret is not created. | `""` |
 | `dashboardExistingSecret.passwordKey` | Key holding the dashboard password | `dashboard-password` |
@@ -503,7 +512,7 @@ kubectl get secret krawl-server -n krawl-system \
 ### Scalable with bundled PostgreSQL and Redis (default)
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.1 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
   --set replicaCount=3 \
   --set postgres.password=your-password \
   --set redis.password=your-redis-password \
@@ -513,7 +522,7 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.1 \
 ### Scalable with external PostgreSQL and Redis
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.1 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
   --set replicaCount=3 \
   --set postgres.enabled=false \
   --set postgres.host=your-postgres-host \
@@ -527,7 +536,7 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.1 \
 ### Standalone with custom settings
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.1 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
   --set mode=standalone \
   --set postgres.enabled=false \
   --set redis.enabled=false \
@@ -549,7 +558,7 @@ helm upgrade krawl ./helm \
 ## Upgrading
 
 ```bash
-helm upgrade krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.1 -f values.yaml
+helm upgrade krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 -f values.yaml
 ```
 
 ## Uninstalling

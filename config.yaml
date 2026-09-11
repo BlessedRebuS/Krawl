@@ -62,6 +62,17 @@ dashboard:
   # Hides top paths / user agents below this many accesses. 1 disables filtering.
   top_n_min_count: 5
 
+  # Top-left wordmark on the dashboard. Defaults are Krawl's own.
+  branding:
+    name: "Krawl"
+    # Where the wordmark links. null renders it as plain text instead.
+    url: "https://github.com/BlessedRebuS/Krawl"
+    # Image URL shown instead of the GitHub mark (http(s) or a dashboard path).
+    logo: null
+    show_version: true
+    # An address, a link, or neither — plain text is left unlinked.
+    contact: null
+
 backups:
   path: "backups"
   cron: "*/30 * * * *"
@@ -101,6 +112,8 @@ analyzer:
   attack_urls_threshold: 1
   # Compute TLSH fuzzy hashes for captured payloads/files (near-duplicate clustering).
   tlsh_enabled: true
+  # TLSH distance below which a payload joins an existing campaign.
+  tlsh_cluster_threshold: 150
   # A campaign shows only when its payload was seen more than this many times.
   tlsh_campaign_min_events: 10
   # Capture the inbound HTTP Referer header on access logs for bait-chain tracking.

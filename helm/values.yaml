@@ -6,7 +6,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/blessedrebus/krawl
   pullPolicy: Always
-  tag: "2.3.1"
+  tag: "2.4.0"
 
 imagePullSecrets: []
 nameOverride: "krawl"
@@ -175,6 +175,13 @@ config:
     warmup_pages: 10  # Number of pages to pre-warm per table panel (attacks, attackers, credentials, honeypot)
     warmup_aggregation: true  # Pre-compute full top_paths/top_ua aggregations for instant any-page serving (recommended for scalable)
     top_n_min_count: 5  # Minimum access count to include a path/user-agent in top-N panels (set to 1 to disable)
+    # Top-left wordmark on the dashboard. Defaults are Krawl's own.
+    branding:
+      name: "Krawl"
+      url: "https://github.com/BlessedRebuS/Krawl"  # null renders the wordmark as plain text
+      logo: null  # Image URL shown instead of the GitHub mark
+      show_version: true
+      contact: null  # "soc@example.com", a URL, or plain text like "Ext. 4471"
   metrics:
     enabled: true  # Expose Prometheus metrics at /<dashboard.secret_path>/metrics
   backups:

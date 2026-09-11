@@ -12,8 +12,16 @@ from config import get_config
 from dashboard_cache import set_cached, set_cached_list, set_cached_table
 from database import get_database
 from logger import get_app_logger
+from routes.api import _campaign_window, campaign_payload
 
 app_logger = get_app_logger()
+
+
+def _today_window() -> dict:
+    """The window the campaign chart opens on, as the API computes it."""
+    start, end = _campaign_window("", days=1, offset=0)
+    return {"start": start, "end": end}
+
 
 # ----------------------
 # TASK CONFIG
@@ -299,6 +307,33 @@ def main():
             page_size=5,
             key_fmt="honeypot:{p}:count:desc",
             clamp_pages=True,
+        )
+
+        # --- Threats tab ---
+        # The tab opens on an all-time cluster scan and the 1-day campaign
+        # chart, which are the two slowest reads in the dashboard. Warm the
+        # exact keys the tab requests on open; other spans stay on demand.
+        clusters = _timed(
+            "campaign_clusters_all",
+            lambda: db.payloads.get_campaign_clusters(),
+        )
+        set_cached_table("clusters:::0", {"clusters": clusters})
+
+        top_campaigns = _timed(
+            "campaign_stats_top",
+            lambda: db.payloads.get_campaign_clusters(limit=5, **_today_window()),
+        )
+        set_cached_table(
+            "api:campaign_stats:5:1:0", {"campaigns": campaign_payload(top_campaigns)}
+        )
+
+        _warm_pages(
+            "global_filenames_all",
+            lambda: db.payloads.get_global_index(page=1, page_size=20 * warmup_pages),
+            rows_key="index",
+            total_key="total",
+            page_size=20,
+            key_fmt="filenames:{p}",
         )
 
         # Derive credential count from the bulk credentials result

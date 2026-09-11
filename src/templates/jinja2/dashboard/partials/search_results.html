@@ -84,7 +84,8 @@
                 {% for ip in ips %}
                 <tr class="ip-row" data-ip="{{ ip.ip | e }}">
                     <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
-                    <td class="ip-clickable" @click="collapseSearch()">
+                    <td class="ip-clickable" title="Open in IP Insight"
+                        @click="openIpInsight('{{ ip.ip | e }}')">
                         {{ ip.ip | e }}
                     </td>
                     <td>{{ ip.total_requests }}</td>
@@ -132,7 +133,8 @@
                 {% for attack in attacks %}
                 <tr class="ip-row" data-ip="{{ attack.ip | e }}">
                     <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
-                    <td class="ip-clickable" @click="collapseSearch()">
+                    <td class="ip-clickable" title="Open in IP Insight"
+                        @click="openIpInsight('{{ attack.ip | e }}')">
                         {{ attack.ip | e }}
                     </td>
                     <td>

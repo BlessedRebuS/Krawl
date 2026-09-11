@@ -1044,16 +1044,6 @@ document.addEventListener('alpine:init', () => {
             document.body.removeChild(a);
         },
 
-        toggleIpDetail(event) {
-            const row = event.target.closest('tr');
-            if (!row) return;
-            const detailRow = row.nextElementSibling;
-            if (detailRow && detailRow.classList.contains('ip-stats-row')) {
-                detailRow.style.display =
-                    detailRow.style.display === 'table-row' ? 'none' : 'table-row';
-            }
-        },
-
         colorizeUrl(url) {
             const catColors = krawlCategoryColors();
             const escaped = url.replace(/[&<>"']/g, function(m) {

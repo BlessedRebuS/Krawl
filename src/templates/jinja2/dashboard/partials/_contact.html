@@ -1,0 +1,8 @@
+{# Who to reach about this deployment (dashboard.branding.contact).
+   Sits under the header icons, not in the wordmark: it is an action to take,
+   and those live in the right-hand corner. #}
+{% if brand.contact %}
+    <div class="brand-contact">
+        {% if brand.contact_href %}<a href="{{ brand.contact_href }}">{{ brand.contact }}</a>{% else %}{{ brand.contact }}{% endif %}
+    </div>
+{% endif %}
