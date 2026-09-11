@@ -774,6 +774,54 @@ async def htmx_ip_insight(ip_address: str, request: Request):
     )
 
 
+# ── IP referers and payloads (IP Insight) ──────────────────────────
+
+
+@router.get("/htmx/ip-referers")
+async def htmx_ip_referers(
+    request: Request,
+    ip_filter: str = Query(""),
+):
+    db = get_db()
+    items = await asyncio.to_thread(
+        db.payloads.get_referer_history, ip=ip_filter, limit=50
+    )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/referer_history_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "items": items,
+            "ip_filter": ip_filter,
+        },
+    )
+
+
+@router.get("/htmx/ip-payloads")
+async def htmx_ip_payloads(
+    request: Request,
+    ip_filter: str = Query(""),
+    page: int = Query(1),
+):
+    page = max(1, page)
+    db = get_db()
+    result = await asyncio.to_thread(
+        db.payloads.get_by_ip, ip=ip_filter, page=page, page_size=10
+    )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/payloads_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "items": result["payloads"],
+            "pagination": result["pagination"],
+            "ip_filter": ip_filter,
+        },
+    )
+
+
 # ── Global Filename Index (Threat tab) ───────────────────────────────
 
 
