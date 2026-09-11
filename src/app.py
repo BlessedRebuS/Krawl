@@ -185,7 +185,12 @@ async def lifespan(app: FastAPI):
     from dependencies import build_brand, get_templates
     from routes.dashboard import KRAWL_VERSION
 
-    get_templates().env.globals["brand"] = build_brand(config, KRAWL_VERSION)
+    templates = get_templates()
+    templates.env.globals["brand"] = build_brand(config, KRAWL_VERSION)
+    # Cache-buster on every static asset. Renaming a CSS class is a breaking
+    # change for a stylesheet a proxy still has from the last release, so the
+    # URL has to change when the release does.
+    templates.env.globals["krawl_version"] = KRAWL_VERSION
 
     # Store in app.state for dependency injection
     app.state.config = config
