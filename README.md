@@ -103,15 +103,21 @@ The dashboard is organized in six tabs:
 
 ![attack_types](img/attack_types.png)
 
-- **IP Insight**: in-depth forensic view of a selected IP: geolocation, ISP/ASN info, reputation flags, behavioral timeline, attack type distribution, and full access history.
+- **Threats**: payloads grouped into campaigns by TLSH fuzzy hash, so a webshell and its edited variants read as one campaign rather than unrelated hits, with an index of every captured file.
+
+- **IP Insight**: in-depth forensic view of a selected IP: geolocation, ISP/ASN info, reputation flags, behavioral timeline, attack type distribution, referer history, captured files and credentials, and full access history.
 
 ![ipinsight](img/ip_insight_dashboard.png)
 
-Additionally, after authenticating with the dashboard password, two protected tabs become available:
+Additionally, after authenticating with the dashboard password, protected tabs become available:
 
 - **Tracked IPs**: maintain a watchlist of IP addresses you want to monitor over time.
 - **IP Banlist**: manage IP bans, view detected attackers, and export the banlist in raw or IPTables format.
+- **Timed Out IPs**: review the IPs currently held in the tarpit, and exempt any that should not be.
 - **Deception**: manage AI generated pages, export them or import new ones.
+- **Webhooks**: forward bans to CloudFlare and other firewalls.
+
+The header icons open the API docs, the banlist export, and a settings panel showing the running configuration and a maintenance page for running scheduled tasks on demand.
 
 For more details, see the [Dashboard documentation](docs/dashboard.md).
 
@@ -287,7 +293,7 @@ For more details on both modes, see [Deployment Modes](docs/deployment-modes.md)
 The Helm chart **defaults to scalable mode** with bundled PostgreSQL and Redis:
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.1 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
   -n krawl-system --create-namespace \
   --set postgres.password=your-password \
   --set redis.password=your-redis-password \
@@ -326,7 +332,7 @@ The variable name is `KRAWL_` plus the setting path in upper case, so `dashboard
 becomes `KRAWL_DASHBOARD_PASSWORD`.
 
 <details>
-<summary><b>Server and link generation</b> (12 variables)</summary>
+<summary><b>Server and link generation</b> (11 variables)</summary>
 
 How Krawl presents itself and shapes the maze of generated pages.
 
@@ -348,7 +354,7 @@ How Krawl presents itself and shapes the maze of generated pages.
 </details>
 
 <details>
-<summary><b>Dashboard, metrics and logging</b> (8 variables)</summary>
+<summary><b>Dashboard, metrics and logging</b> (13 variables)</summary>
 
 Dashboard access, cache warmup, Prometheus and log level.
 
@@ -360,13 +366,18 @@ Dashboard access, cache warmup, Prometheus and log level.
 | `KRAWL_DASHBOARD_WARMUP_PAGES` | Number of pages to pre-warm per table panel | `10` |
 | `KRAWL_DASHBOARD_WARMUP_AGGREGATION` | Pre-compute full top_paths/top_ua aggregations for zero-query serving | `false` |
 | `KRAWL_DASHBOARD_TOP_N_MIN_COUNT` | Minimum access count for top paths/user agents panels (set to 1 to disable) | `5` |
+| `KRAWL_DASHBOARD_BRAND_NAME` | Name in the dashboard wordmark and heading | `Krawl` |
+| `KRAWL_DASHBOARD_BRAND_URL` | Where the wordmark links (empty renders it as plain text) | Krawl's repository |
+| `KRAWL_DASHBOARD_BRAND_LOGO` | Image URL shown instead of the GitHub mark | Unset |
+| `KRAWL_DASHBOARD_BRAND_SHOW_VERSION` | Show the version next to the name | `true` |
+| `KRAWL_DASHBOARD_BRAND_CONTACT` | Contact shown under the wordmark (address, URL, or plain text) | Unset |
 | `KRAWL_METRICS_ENABLED` | Expose Prometheus metrics at `/<dashboard_path>/metrics` | `true` |
 | `KRAWL_LOG_LEVEL` | Application log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) | `INFO` |
 
 </details>
 
 <details>
-<summary><b>Database, retention and backups</b> (6 variables)</summary>
+<summary><b>Database, retention and backups</b> (12 variables)</summary>
 
 Storage location, how long data is kept, and the dump job.
 
@@ -374,6 +385,12 @@ Storage location, how long data is kept, and the dump job.
 |----------------------|-------------|---------|
 | `KRAWL_DATABASE_PATH` | Database file location | `data/krawl.db` |
 | `KRAWL_DATABASE_PERSIST_SUSPICIOUS_ONLY` | Only persist suspicious requests to the access log | `false` |
+| `KRAWL_MAP_TILE_URL` | Tile URL template for the dashboard map (`{z}/{x}/{y}`, optional `{s}`/`{r}`) | Esri dark canvas |
+| `KRAWL_MAP_TILE_ATTRIBUTION` | Attribution shown on the map | Esri/OSM |
+| `KRAWL_MAP_API_KEY` | Appended to every tile request as a query parameter — required by CARTO | _(empty)_ |
+| `KRAWL_MAP_API_KEY_PARAM` | Name of that query parameter (`api_key`, `apikey`, `key`) | `api_key` |
+| `KRAWL_IPV6_IGNORE` | Drop IPv6 requests entirely: still logged to stdout, never persisted, ban-checked or exported | `false` |
+| `KRAWL_IPV6_PURGE_EXISTING` | Also delete existing IPv6 rows at the next startup (irreversible; requires `KRAWL_IPV6_IGNORE`) | `false` |
 | `KRAWL_DATABASE_RETENTION_DAYS` | Days to retain data in database | `30` |
 | `KRAWL_BACKUPS_PATH` | Path where database dump are saved | `backups` |
 | `KRAWL_BACKUPS_CRON` | cron expression to control backup job schedule | `*/30 * * * *` |
@@ -410,6 +427,27 @@ Thresholds that decide how an IP gets classified.
 | `KRAWL_UNEVEN_REQUEST_TIMING_TIME_WINDOW_SECONDS` | Time window for request timing analysis in seconds | `300` |
 | `KRAWL_USER_AGENTS_USED_THRESHOLD` | Threshold for detecting multiple user agents | `2` |
 | `KRAWL_ATTACK_URLS_THRESHOLD` | Threshold for attack URL detection | `1` |
+
+</details>
+
+<details>
+<summary><b>Threat-intel capture</b> (4 variables)</summary>
+
+Fuzzy-hash captured payloads (files and flagged request bodies) and group
+near-duplicate variants into campaign clusters. Requires `py-tlsh`.
+
+Hashing runs as the scheduled `hash-payloads` background task (see
+`src/tasks/hash_payloads.py`), which hashes each captured attack once — new
+hits at ingest time, and a one-time backward sweep of existing history
+tracked by a `payload_hash_watermark` high-water mark — then clusters the
+digests into recurring-pattern campaigns.
+
+| Environment Variable | Description | Default |
+|----------------------|-------------|---------|
+| `KRAWL_TLSH_ENABLED` | Hash uploaded files and flagged request bodies with TLSH for near-duplicate clustering | `true` |
+| `KRAWL_TLSH_CLUSTER_THRESHOLD` | TLSH distance below which a payload joins an existing campaign (0 = identical bytes; variants of a webshell typically diff < 100) | `150` |
+| `KRAWL_TLSH_CAMPAIGN_MIN_EVENTS` | Times a payload must be seen before its campaign appears in the Threats tab | `10` |
+| `KRAWL_REFERER_ENABLED` | Record the inbound HTTP Referer on access logs, for bait-chain tracking | `true` |
 
 </details>
 

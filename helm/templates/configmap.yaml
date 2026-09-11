@@ -28,6 +28,14 @@ data:
       warmup_pages: {{ .Values.config.dashboard.warmup_pages }}
       warmup_aggregation: {{ .Values.config.dashboard.warmup_aggregation }}
       top_n_min_count: {{ .Values.config.dashboard.top_n_min_count }}
+      {{- with .Values.config.dashboard.branding }}
+      branding:
+        name: {{ .name | default "Krawl" | quote }}
+        url: {{ .url | toYaml }}
+        logo: {{ .logo | toYaml }}
+        show_version: {{ .show_version }}
+        contact: {{ .contact | toYaml }}
+      {{- end }}
     metrics:
       enabled: {{ .Values.config.metrics.enabled }}
     backups:
@@ -49,6 +57,10 @@ data:
       uneven_request_timing_time_window_seconds: {{ .Values.config.analyzer.uneven_request_timing_time_window_seconds }}
       user_agents_used_threshold: {{ .Values.config.analyzer.user_agents_used_threshold }}
       attack_urls_threshold: {{ .Values.config.analyzer.attack_urls_threshold }}
+      tlsh_enabled: {{ .Values.config.analyzer.tlsh_enabled }}
+      tlsh_cluster_threshold: {{ .Values.config.analyzer.tlsh_cluster_threshold }}
+      tlsh_campaign_min_events: {{ .Values.config.analyzer.tlsh_campaign_min_events }}
+      referer_enabled: {{ .Values.config.analyzer.referer_enabled }}
     crawl:
       infinite_pages_for_malicious: {{ .Values.config.crawl.infinite_pages_for_malicious }}
       max_pages_limit: {{ .Values.config.crawl.max_pages_limit }}
@@ -80,6 +92,14 @@ data:
       sources:
         {{- toYaml .Values.config.banlist.sources | nindent 8 }}
       refresh_interval: {{ .Values.config.banlist.refresh_interval }}
+    ipv6:
+      ignore: {{ .Values.config.ipv6.ignore }}
+      purge_existing: {{ .Values.config.ipv6.purge_existing }}
+    map:
+      tile_url: {{ .Values.config.map.tile_url | quote }}
+      attribution: {{ .Values.config.map.attribution | quote }}
+      subdomains: {{ .Values.config.map.subdomains | quote }}
+      api_key_param: {{ .Values.config.map.api_key_param | default "api_key" | quote }}
     tarpit:
       enabled: {{ .Values.config.tarpit.enabled }}
       delay_seconds: {{ .Values.config.tarpit.delay_seconds }}

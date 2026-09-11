@@ -1,0 +1,178 @@
+{# Settings modal - Alpine.js controlled. Opened from the header action group.
+   Two tabs: run a scheduled job, or read the running configuration. #}
+<div class="auth-modal"
+     x-show="settingsModal.show"
+     x-cloak
+     x-data="settingsPanel()"
+     @settings-open.window="load()"
+     @click.self="settingsModal.show = false"
+     @keydown.escape.window="settingsModal.show && (settingsModal.show = false)"
+>
+    <div class="auth-modal-content settings-modal-content">
+        <div class="auth-modal-header">
+            <div class="auth-modal-title">
+                <svg class="icon-lg" viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M8 0a8.2 8.2 0 0 1 .701.031C9.444.095 9.99.645 10.16 1.29l.288 1.107c.018.066.079.158.212.224.231.114.454.243.668.386.123.082.233.09.299.071l1.103-.303c.644-.176 1.392.021 1.82.63.27.385.506.792.704 1.218.315.675.111 1.422-.364 1.891l-.814.806c-.049.048-.098.147-.088.294.016.257.016.515 0 .772-.01.147.038.246.088.294l.814.806c.475.469.679 1.216.364 1.891a7.977 7.977 0 0 1-.704 1.217c-.428.61-1.176.807-1.82.63l-1.102-.302c-.067-.019-.177-.011-.3.071a5.909 5.909 0 0 1-.668.386c-.133.066-.194.158-.211.224l-.29 1.106c-.168.646-.715 1.196-1.458 1.26a8.006 8.006 0 0 1-1.402 0c-.743-.064-1.289-.614-1.458-1.26l-.289-1.106c-.018-.066-.079-.158-.212-.224a5.738 5.738 0 0 1-.668-.386c-.123-.082-.233-.09-.299-.071l-1.103.303c-.644.176-1.392-.021-1.82-.63a8.12 8.12 0 0 1-.704-1.218c-.315-.675-.111-1.422.363-1.891l.815-.806c.05-.048.098-.147.088-.294a6.214 6.214 0 0 1 0-.772c.01-.147-.038-.246-.088-.294l-.815-.806C.635 6.045.431 5.298.746 4.623a7.92 7.92 0 0 1 .704-1.217c.428-.61 1.176-.807 1.82-.63l1.102.302c.067.019.177.011.3-.071.214-.143.437-.272.668-.386.133-.066.194-.158.211-.224l.29-1.106C6.009.645 6.556.095 7.299.03 7.53.01 7.764 0 8 0Zm-.571 1.525c-.036.003-.108.036-.137.146l-.289 1.105c-.147.561-.549.967-.998 1.189-.173.086-.34.183-.5.29-.417.278-.97.423-1.529.27l-1.103-.303c-.109-.03-.175.016-.195.045-.22.312-.412.644-.573.99-.014.031-.021.11.059.19l.815.806c.411.406.562.957.53 1.456a4.709 4.709 0 0 0 0 .582c.032.499-.119 1.05-.53 1.456l-.815.806c-.081.08-.073.159-.059.19.162.346.353.677.573.989.02.03.085.076.195.046l1.102-.303c.56-.153 1.113-.008 1.53.27.161.107.328.204.501.29.447.222.85.629.997 1.189l.289 1.105c.029.11.101.143.137.146a6.6 6.6 0 0 0 1.142 0c.036-.003.108-.036.137-.146l.289-1.105c.147-.561.549-.967.998-1.189.173-.086.34-.183.5-.29.417-.278.97-.423 1.529-.27l1.103.303c.109.03.175-.016.195-.045.22-.313.411-.644.573-.99.014-.031.021-.11-.059-.19l-.815-.806c-.411-.406-.562-.957-.53-1.456a4.709 4.709 0 0 0 0-.582c-.032-.499.119-1.05.53-1.456l.815-.806c.081-.08.073-.159.059-.19a6.464 6.464 0 0 0-.573-.989c-.02-.03-.085-.076-.195-.046l-1.102.303c-.56.153-1.113.008-1.53-.27a4.44 4.44 0 0 0-.501-.29c-.447-.222-.85-.629-.997-1.189l-.289-1.105c-.029-.11-.101-.143-.137-.146a6.6 6.6 0 0 0-1.142 0ZM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM9.5 8a1.5 1.5 0 1 0-3.001.001A1.5 1.5 0 0 0 9.5 8Z"/>
+                </svg>
+                <h3>Settings</h3>
+            </div>
+            <span class="auth-modal-close" @click="settingsModal.show = false">&times;</span>
+        </div>
+
+        <div class="tabs-container settings-tabs">
+            <button type="button" class="tab-button"
+                    :class="{ active: tab === 'maintenance' }"
+                    @click="tab = 'maintenance'">Maintenance</button>
+            <button type="button" class="tab-button"
+                    :class="{ active: tab === 'config' }"
+                    @click="showConfig()">Configuration</button>
+        </div>
+
+        <div class="auth-modal-body" x-show="tab === 'maintenance'">
+            <p class="auth-modal-description">
+                Run a scheduled job now. Running one here does not change when it next runs on its own,
+                and it always runs on the pod serving this page.
+            </p>
+
+            <p class="form-status" x-show="status" x-text="status" :class="statusOk ? 'text-ok' : 'text-danger'" x-cloak></p>
+
+            <template x-if="loading">
+                <p class="panel-note">Loading tasks…</p>
+            </template>
+
+            <div class="task-list" x-show="!loading" x-cloak>
+                <template x-for="task in tasks" :key="task.name">
+                    <div class="task-row">
+                        <div class="task-main">
+                            <div class="task-name" x-text="task.name"></div>
+                            <div class="task-meta">
+                                <span class="task-schedule">
+                                    {# A disabled task still carries TasksMaster's default cron. Showing it
+                                       would claim a schedule the task does not actually have. #}
+                                    <span x-text="!task.enabled ? 'on demand only'
+                                        : (task.interval_seconds ? `every ${task.interval_seconds}s` : task.cron)"></span>
+                                    <span x-show="task.next_run" x-cloak>
+                                        · next <span x-text="task.next_run ? new Date(task.next_run).toLocaleString() : ''"></span>
+                                    </span>
+                                    <span class="task-state" x-show="task.running" x-cloak>· running</span>
+                                </span>
+
+                                {# Which pod does the work. A chip means one pod owns each
+                                   occurrence; the plain words mean every pod runs it. The
+                                   chip is tinted when it names the pod serving this page. #}
+                                <span class="task-owner">
+                                    <template x-if="!task.single_pod">
+                                        <span>runs on every pod</span>
+                                    </template>
+                                    <template x-if="task.single_pod && !task.last_run">
+                                        <span>not yet run</span>
+                                    </template>
+                                    <template x-if="task.single_pod && task.last_run">
+                                        <span class="task-owner-run">
+                                            <span class="task-pod"
+                                                  :class="{ 'task-pod-self': task.last_run.pod === thisPod }"
+                                                  :title="task.last_run.pod === thisPod ? 'This pod' : 'Another pod'"
+                                                  x-text="task.last_run.pod"></span>
+                                            <span :class="{ 'task-owner-failed': !task.last_run.ok }"
+                                                  x-text="(task.last_run.ok ? '' : 'failed ') +
+                                                      new Date(task.last_run.at).toLocaleTimeString()"></span>
+                                        </span>
+                                    </template>
+                                </span>
+                            </div>
+
+                            {# Only the purge task takes arguments; render them as checkboxes. #}
+                            <template x-if="task.options">
+                                <div class="task-options">
+                                    <template x-for="opt in task.options" :key="opt.key">
+                                        <label class="export-check">
+                                            <input type="checkbox" :value="opt.key" x-model="selected[task.name]" />
+                                            <span x-text="opt.label"></span>
+                                        </label>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+
+                        <button type="button" class="task-run-btn"
+                                :disabled="task.running || busy === task.name"
+                                @click="runTask(task)"
+                                x-text="busy === task.name ? 'Running…' : 'Run now'"></button>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        {# Configuration tab. This reads as a structured echo of config.yaml —
+           the same section names, the same keys, mono throughout — so what an
+           operator sees here maps onto the file they would edit. #}
+        <div class="auth-modal-body cfg-body" x-show="tab === 'config'" x-cloak>
+            <p class="auth-modal-description">
+                What this instance is running right now. Read-only: change it in
+                <code class="cfg-inline">config.yaml</code> or with a
+                <code class="cfg-inline">KRAWL_*</code> variable, then restart.
+                Secrets show only whether they are set.
+            </p>
+
+            <div class="cfg-toolbar">
+                <input type="text"
+                       class="expand-overlay-search cfg-filter"
+                       placeholder="Filter settings..."
+                       x-model="configFilter"
+                       autocomplete="off" />
+                <div class="cfg-legend">
+                    <span class="cfg-badge cfg-badge-env">env</span>
+                    <span class="cfg-legend-note">set by a KRAWL_* variable</span>
+                    <span class="cfg-badge cfg-badge-custom">custom</span>
+                    <span class="cfg-legend-note">changed from the default</span>
+                </div>
+            </div>
+
+            <p class="form-status text-danger" x-show="configError" x-text="configError" x-cloak></p>
+
+            <template x-if="configLoading">
+                <p class="panel-note">Loading configuration...</p>
+            </template>
+
+            <div x-show="!configLoading && !configError" x-cloak>
+                <template x-for="section in configSections" :key="section.name">
+                    <section class="cfg-section" x-show="visibleFields(section).length">
+                        <h4 class="eyebrow cfg-section-title" x-text="section.name"></h4>
+                        <dl class="cfg-rows">
+                            <template x-for="f in visibleFields(section)" :key="f.key">
+                                <div class="cfg-row">
+                                    {# The full key and value go in the title, because both
+                                       are truncated to keep one line per setting. #}
+                                    <dt class="cfg-key" :title="f.key" x-text="f.label"></dt>
+                                    <dd class="cfg-value"
+                                        :title="f.sensitive ? '' : formatValue(f.value)">
+                                        <template x-if="f.sensitive">
+                                            <span class="cfg-secret" :class="{ 'is-set': f.set }"
+                                                  x-text="f.set ? 'Set' : 'Not set'"></span>
+                                        </template>
+                                        <template x-if="!f.sensitive">
+                                            <span :class="{ 'cfg-empty': isEmpty(f.value) }"
+                                                  x-text="formatValue(f.value)"></span>
+                                        </template>
+                                    </dd>
+                                    <dd class="cfg-source">
+                                        <span class="cfg-badge cfg-badge-env"
+                                              x-show="f.source === 'env'"
+                                              :title="f.env_var + ' is overriding config.yaml'">env</span>
+                                        <span class="cfg-badge cfg-badge-custom"
+                                              x-show="f.source === 'custom'"
+                                              title="Changed from the built-in default">custom</span>
+                                    </dd>
+                                </div>
+                            </template>
+                        </dl>
+                    </section>
+                </template>
+
+                <p class="panel-note" x-show="configSections.length && !anyVisible()" x-cloak>
+                    No setting matches that filter.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

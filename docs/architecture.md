@@ -14,7 +14,7 @@ Krawl is a cloud-native deception honeypot server built on **FastAPI**. It creat
 | **Reactivity** | Alpine.js 3.14 |
 | **Partial Updates** | HTMX 2.0 |
 | **Charts** | Chart.js 3.9 (doughnut), custom SVG radar |
-| **Maps** | Leaflet 1.9 + CartoDB dark tiles |
+| **Maps** | Leaflet 1.9 + configurable raster tiles (Esri dark canvas by default) |
 | **Scheduling** | APScheduler |
 | **Container** | Docker (python:3.11-slim), Helm/K8s ready |
 
@@ -304,9 +304,9 @@ Managed by `TasksMaster` (APScheduler). Tasks are auto-discovered from `src/task
 | `sync_cloudflare` | Every 1 min | Push banned IPs to a CloudFlare Account IP List (opt-in) |
 | `refresh_banlist` | `banlist.refresh_interval` (default 1 h) | Fetch and merge upstream community banlists |
 | `db_dump` | `backups.cron` | Export database backups |
-| `flag_stale_ips` | Daily (2 AM) | Flag stale IPs for reevaluation by the analyzer |
-| `pre_retention_cleanup` | Daily (2:30 AM) | Prune non-suspicious access rows ahead of retention |
-| `db_retention` | Daily (3 AM) | Clean up old records based on retention policy |
+| `flag_stale_ips` | Daily (8 AM) | Flag stale IPs for reevaluation by the analyzer |
+| `pre_retention_cleanup` | Daily (8:30 AM) | Prune non-suspicious access rows ahead of retention |
+| `db_retention` | Daily (9 AM) | Clean up old records based on retention policy |
 
 ### IP Categorization Model
 

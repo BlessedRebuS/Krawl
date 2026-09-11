@@ -108,12 +108,21 @@ class KrawlMetricsCollector:
         # Rising depth means the flush task is behind — visible as RSS growth
         # long before anything else. Alert on krawl_write_buffer_rows > 10000.
         try:
-            from database import get_dropped_rows, get_write_buffer_size
+            from database import (
+                get_dropped_rows,
+                get_write_buffer_bytes,
+                get_write_buffer_size,
+            )
 
             yield GaugeMetricFamily(
                 "krawl_write_buffer_rows",
                 "Access-log rows waiting to be flushed to the database",
                 value=get_write_buffer_size(),
+            )
+            yield GaugeMetricFamily(
+                "krawl_write_buffer_bytes",
+                "Approximate memory held by the access-log write buffer",
+                value=get_write_buffer_bytes(),
             )
             yield CounterMetricFamily(
                 "krawl_write_buffer_dropped",
@@ -122,6 +131,33 @@ class KrawlMetricsCollector:
             )
         except Exception as e:
             app_logger.error(f"collect write buffer metrics failed: {e}")
+
+        # Memory-growth diagnostics. Every one of these is a process-local
+        # structure that Redis is supposed to be holding instead; a non-zero
+        # reading in scalable mode means the shared backend is not in use and
+        # the pod is accumulating state it will never release.
+        try:
+            from dashboard_cache import get_backend
+            from ip_utils import get_seen_ledger_size
+            from metrics_counters import get_local_set_size
+
+            yield GaugeMetricFamily(
+                "krawl_cache_backend_redis",
+                "1 when the shared Redis backend is active, 0 when in-memory",
+                value=1 if get_backend() == "scalable" else 0,
+            )
+            yield GaugeMetricFamily(
+                "krawl_seen_ledger_entries",
+                "Entries in the process-local IPv6 first-sighting ledger",
+                value=get_seen_ledger_size(),
+            )
+            yield GaugeMetricFamily(
+                "krawl_local_paths_set_entries",
+                "Entries in the process-local distinct-paths set",
+                value=get_local_set_size("paths"),
+            )
+        except Exception as e:
+            app_logger.error(f"collect memory diagnostics failed: {e}")
 
         timed_out = GaugeMetricFamily(
             "krawl_timed_out_ips",

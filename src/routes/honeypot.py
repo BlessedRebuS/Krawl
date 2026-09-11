@@ -13,7 +13,7 @@ from urllib.parse import parse_qs
 from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 
-from config import Config
+from config import Config, get_config
 from deception_responses import (
     detect_xss_pattern,
     generate_server_error,
@@ -22,9 +22,9 @@ from deception_responses import (
     get_sql_response_with_data,
 )
 from dependencies import (
-    body_too_large,
     build_raw_request,
     get_client_ip,
+    read_body_capped,
 )
 from generative_ai import (
     generate_html_for_path,
@@ -47,13 +47,7 @@ from wordlists import get_wordlists
 
 async def _safe_body(request: Request) -> str:
     """Read the request body, bounded, empty on client disconnect."""
-    try:
-        if body_too_large(request):
-            return ""
-        body_bytes = await request.body()
-        return body_bytes.decode("utf-8", errors="replace")
-    except Exception:
-        return ""
+    return (await read_body_capped(request)).decode("utf-8", errors="replace")
 
 
 # --- Auto-tracking dependency ---
@@ -65,6 +59,7 @@ async def _track_honeypot_request(request: Request):
     tracker = request.app.state.tracker
     client_ip = get_client_ip(request)
     user_agent = request.headers.get("User-Agent", "")
+    referer = request.headers.get("Referer", "") if get_config().referer_enabled else ""
     path = request.url.path
     get_app_logger().debug(f"[HoneypotDep] {request.method} {path} from {client_ip}")
 
@@ -85,6 +80,15 @@ async def _track_honeypot_request(request: Request):
     if attack_findings or tracker.is_honeypot_path(path):
         import asyncio
 
+        raw_request = build_raw_request(request, body)
+
+        # Capture uploaded files (WebShells, etc.) as TLSH-indexed payloads.
+        file_payloads = None
+        if get_config().tlsh_enabled:
+            from tlsh_utils import extract_file_payloads
+
+            file_payloads = extract_file_payloads(raw_request)
+
         await asyncio.to_thread(
             tracker.record_access,
             ip=client_ip,
@@ -92,7 +96,9 @@ async def _track_honeypot_request(request: Request):
             user_agent=user_agent,
             body=body,
             method=request.method,
-            raw_request=build_raw_request(request, body),
+            raw_request=raw_request,
+            referer=referer,
+            file_payloads=file_payloads,
         )
 
 
@@ -463,7 +469,13 @@ async def trap_page(request: Request, path: str):
                 access_logger.info(
                     f"[AI GENERATED] {client_ip} - {full_path} - {provider}/{model}"
                 )
-            return HTMLResponse(content=html_content, status_code=status_code)
+            # Honour the generated content type: HTMLResponse would stamp
+            # text/html on a sourcemap or a .env dump and give the game away.
+            return Response(
+                content=html_content,
+                status_code=status_code,
+                media_type=content_type,
+            )
         except Exception as err:
             app_logger.warning(
                 f"AI generation failed for {full_path}, falling back to default: {err}"

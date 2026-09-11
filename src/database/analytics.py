@@ -473,11 +473,24 @@ class AnalyticsRepo:
                     "user_agent": log.user_agent,
                     "timestamp": log.timestamp.isoformat() if log.timestamp else None,
                     "attack_types": [d.attack_type for d in log.attack_detections],
+                    "tlsh_hash": next(
+                        (d.tlsh_hash for d in log.attack_detections if d.tlsh_hash),
+                        None,
+                    ),
+                    "cluster_id": next(
+                        (d.cluster_id for d in log.attack_detections if d.cluster_id),
+                        None,
+                    ),
                     "request_size": len(log.raw_request) if log.raw_request else 0,
                     "raw_request": log.raw_request,  # Keep for backward compatibility
                 }
                 for log in logs
             ]
+            hashes = self._db.payloads.rep_hash_map(
+                {r["cluster_id"] for r in paginated if r["cluster_id"]}
+            )
+            for row in paginated:
+                row["cluster_hash"] = (hashes.get(row["cluster_id"]) or "")[:12]
 
             return {
                 "attacks": paginated,

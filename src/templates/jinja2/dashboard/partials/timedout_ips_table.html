@@ -45,10 +45,8 @@
         <tr class="ip-row" data-ip="{{ ip.ip | e }}">
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
             <td class="ip-clickable"
-                hx-get="{{ dashboard_path }}/htmx/ip-detail/{{ ip.ip | e }}"
-                hx-target="next .ip-stats-row .ip-stats-dropdown"
-                hx-swap="innerHTML"
-                @click="toggleIpDetail($event)">
+                title="Open in IP Insight"
+                @click="openIpInsight('{{ ip.ip | e }}')">
                 {{ ip.ip | e }}
             </td>
             <td class="timeout-countdown" data-remaining="{{ ip.remaining_ban_seconds }}" data-ip="{{ ip.ip | e }}">&mdash;</td>
@@ -66,13 +64,6 @@
                         <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 16A8 8 0 1 1 8 0a8 8 0 0 1 0 16Zm3.78-9.72a.751.751 0 0 0-.018-1.042.751.751 0 0 0-1.042-.018L6.75 9.19 5.28 7.72a.751.751 0 0 0-1.042.018.751.751 0 0 0-.018 1.042l2 2a.75.75 0 0 0 1.06 0Z"/></svg>
                         <span class="ban-icon-tooltip">Exempt</span>
                     </button>
-                </div>
-            </td>
-        </tr>
-        <tr class="ip-stats-row" style="display: none;">
-            <td colspan="9" class="ip-stats-cell">
-                <div class="ip-stats-dropdown">
-                    <div class="loading">Loading stats...</div>
                 </div>
             </td>
         </tr>

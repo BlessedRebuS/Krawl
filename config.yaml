@@ -42,36 +42,36 @@ canary:
   token_tries: 10
 
 dashboard:
-  # if set to "null" this will Auto-generates random path if not set
-  # can be set to "/dashboard" or similar <-- note this MUST include a forward slash
-  # secret_path: super-secret-dashboard-path
+  # Random path generated when null. If set, must start with a forward slash.
   secret_path: null
 
-  # Password for accessing protected dashboard panels.
-  # If null, a random password will be generated and printed in the logs.
-  # Can also be set via KRAWL_DASHBOARD_PASSWORD env var.
+  # Protects the dashboard panels. Random and logged when null.
+  # Also KRAWL_DASHBOARD_PASSWORD.
   password: null
 
-  # Enable background cache warmup task for the dashboard.
-  # When enabled, dashboard data is pre-computed every 5 minutes for instant page loads.
-  # When disabled, all dashboard queries hit the database directly on each request.
-  # In scalable mode with Redis, consider disabling this — paginated table caching
-  # already reduces DB load without needing a background warmup task.
+  # Pre-computes dashboard data every 5 minutes instead of querying per request.
+  # Redundant in scalable mode, where table caching already covers it.
   cache_warmup: true
 
-  # Number of pages to pre-warm per table panel (attacks, attackers, credentials, honeypot).
-  # Only has effect in scalable mode (set_cached_table is a no-op in standalone).
+  # Pages pre-warmed per table panel. Scalable mode only.
   warmup_pages: 10
 
-  # Pre-compute full top_paths/top_ua aggregations so any page is served instantly
-  # with zero DB queries (works in both standalone and scalable modes).
-  # Disabled by default in standalone; enable in scalable via Helm values or this flag.
+  # Pre-computes full top_paths/top_ua aggregations so any page costs no queries.
   warmup_aggregation: false
 
-  # Minimum access count for top paths and top user agents to be shown or cached.
-  # Entries below this threshold are excluded at the database level, reducing noise
-  # and keeping the aggregation data compact. Set to 1 to disable filtering.
+  # Hides top paths / user agents below this many accesses. 1 disables filtering.
   top_n_min_count: 5
+
+  # Top-left wordmark on the dashboard. Defaults are Krawl's own.
+  branding:
+    name: "Krawl"
+    # Where the wordmark links. null renders it as plain text instead.
+    url: "https://github.com/BlessedRebuS/Krawl"
+    # Image URL shown instead of the GitHub mark (http(s) or a dashboard path).
+    logo: null
+    show_version: true
+    # An address, a link, or neither — plain text is left unlinked.
+    contact: null
 
 backups:
   path: "backups"
@@ -89,10 +89,16 @@ logging:
 database:
   path: "data/krawl.db"
   retention_days: 30
-  # Only persist suspicious requests to the access log.
-  # When enabled, non-suspicious requests still increment IP stats counters
-  # but won't be stored as individual access log entries, saving disk I/O.
+  # Log only suspicious requests. IP stats counters still count every request.
   persist_suspicious_only: false
+
+# Rotating IPv6 proxy pools burn a fresh address per request, so per-address
+# tracking is worthless and grows rows and memory without bound.
+ipv6:
+  # Drop IPv6: still logged to stdout, never persisted, ban-checked or exported.
+  ignore: false
+  # Also delete existing IPv6 rows at next startup. Irreversible; needs `ignore`.
+  purge_existing: false
 
 behavior:
   probability_error_codes: 0  # 0-100 percentage
@@ -104,17 +110,22 @@ analyzer:
   uneven_request_timing_time_window_seconds: 300
   user_agents_used_threshold: 2
   attack_urls_threshold: 1
+  # Compute TLSH fuzzy hashes for captured payloads/files (near-duplicate clustering).
+  tlsh_enabled: true
+  # TLSH distance below which a payload joins an existing campaign.
+  tlsh_cluster_threshold: 150
+  # A campaign shows only when its payload was seen more than this many times.
+  tlsh_campaign_min_events: 10
+  # Capture the inbound HTTP Referer header on access logs for bait-chain tracking.
+  referer_enabled: true
 
 crawl:
   infinite_pages_for_malicious: true
   max_pages_limit: 250
   ban_duration_seconds: 600
 
-# IPs / CIDR ranges to ignore everywhere: never tracked, banned, exported, and
-# purged from the database on startup. Accepts single IPs (e.g. 203.0.113.5) or
-# CIDR ranges (IPv4 and IPv6). Defaults cover loopback, RFC1918 private,
-# link-local and CGNAT ranges; add your own trusted networks (monitoring,
-# health checks, office egress, etc.) here.
+# Never tracked, banned or exported, and purged at startup. Single IPs or CIDRs.
+# Add your own trusted networks: monitoring, health checks, office egress.
 ignored_ips:
   - 127.0.0.0/8      # loopback
   - 10.0.0.0/8       # RFC1918 private
@@ -127,20 +138,38 @@ ignored_ips:
   - fc00::/7         # IPv6 unique local
   - fe80::/10        # IPv6 link-local
 
+# Basemap for the IP origins map. {z}/{x}/{y} required; {s} and {r} optional.
+map:
+  # Esri dark canvas: keyless, no watermark.
+  tile_url: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+  attribution: "&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors"
+
+  # CARTO dark: watermarks every tile unless api_key is set. Raster endpoint
+  # only -- CARTO's docs push vector style.json, which Leaflet cannot render.
+  # tile_url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+  # attribution: "&copy; CARTO | &copy; OpenStreetMap contributors"
+
+  # OpenStreetMap: keyless but light-themed, needs the CSS invert in the docs.
+  # tile_url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+  # attribution: "&copy; OpenStreetMap contributors"
+
+  subdomains: "abcd"
+  # Sent as ?key= on every tile request, and visible in the page source.
+  # Restrict it to your dashboard domain at the provider. Also KRAWL_MAP_API_KEY.
+  api_key: ""
+  # Query parameter the key rides on: CARTO and Stadia want api_key,
+  # Thunderforest apikey, MapTiler key. Also KRAWL_MAP_API_KEY_PARAM.
+  api_key_param: "api_key"
+
 tarpit:
   enabled: false  # Opt-in: trap AI agents with slow responses and random text
   delay_seconds: 5  # Extra delay (seconds) added to each response when tarpit is active
 
-# Custom page template settings
-# Operators can provide a custom HTML template file by setting
-# `custom_template_path`. If this key is present and not null, Krawl
-# will attempt to load the template from the provided path. The template
-# may include `{counter}` and `{content}` placeholders but they are
-# optional (no strict validation is performed).
+# Custom honeypot page. Optional {counter} and {content} placeholders.
 # custom_template_path: "/path/to/custom_page.html"
 
-### AI-Generated Deception pages. Here it can be used either OpenRouter or OpenAI as provider, but also self-hosted LLMs with an API-compatible endpoint 
-### by setting the provider to "openai" and pointing the openai_base_url to the local LLM server URL. Note that the krawl-llm is the service name of the llama.cpp server in the docker-compose.yaml.
+# AI-generated deception pages via OpenRouter or OpenAI. For a self-hosted LLM,
+# set provider to "openai" and point openai_base_url at its endpoint.
 ai:
   enabled: false
   provider: "openrouter"  # "openrouter" or "openai"
@@ -153,34 +182,41 @@ ai:
   reasoning: 
     enabled: false # Enable advanced reasoning for AI-generated responses (works only for OpenRouter's models with reasoning)
     effort: "medium"  # "none", "minimal", "low", "medium", "high", "xhigh" (doc: https://openrouter.ai/docs/guides/best-practices/reasoning-tokens)
+  # Only {path} and {query_part} are substituted — any other brace raises a
+  # KeyError and kills generation, so avoid literal braces in this prompt.
   prompt: |
-    You are a web server. Generate a realistic, plausible page for the requested path.
-    The page must look like it belongs to a real vulnerable server to deceive security scanners and attackers.
+    You are a real web server. Return the contents of this path, and nothing else:
+    {path}{query_part}
 
-    Rules:
-    1. Output ONLY the raw content, no markdown, no code blocks, no explanations, no comments
-    2. Never reveal the content is fake, simulated, or part of a honeypot
-    3. Never include HTML comments that hint at the nature of the page
-    4. Generate a single self-contained file with all CSS and JS inline, never reference external files.
-    5. Use proper HTML5 structure with head and body tags
-    6. Match the content to the path context:
-      - /admin, → login panels with realistic branding
-      - /api/, /.json → valid JSON out  put, no HTML wrapper
-      - /.env, /config, → raw file content, no HTML
-      - SQLi/XSS attack paths → respond with realistic error messages or data leaks
-    7. Include realistic details: version numbers, usernames, internal IPs, database names
-    8. If the path implies a file type, return that content type raw (JSON, XML, INI, PHP source)
+    No markdown, no code fences, no explanation, and never hint that the content
+    is generated, fake, or a honeypot.
 
-    Path: {path}{query_part}
+    Decide who runs this server and commit to it — a haulage firm, a dental
+    practice, a university lab, a council office, an ageing internal intranet.
+    Give it a specific, ordinary name. Never Acme, Example, Contoso, Foo, Widget
+    or "Your Company"; never lorem ipsum; never a generic "solutions for
+    business" landing page.
+
+    If the path ends in a file extension, return that file's raw contents — JSON
+    for .json and .map, the file itself for .env, .sql, .php, .log — with no
+    HTML around it. Otherwise return one self-contained HTML page, CSS and JS
+    inline, no external assets.
+
+    Make it look deployed, not designed: plain, dated, slightly inconsistent
+    markup reads as real, a centred hero on a blue header reads as fake. Vary
+    the layout between paths.
+
+    Include concrete detail — staff names, hostnames, version numbers, internal
+    IPs, ticket numbers, dates. If the path implies a login, admin panel, config
+    or export, produce that artefact itself, not a page describing it.
 
 banlist:
   export_path:  # Public banlist download path, e.g. "/public_banlist.txt". Unauthenticated, and supports the same ?categories= and ?fwtype= parameters as the main banlist API. Empty = disabled.
-  sources:
-    - "https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw" # Upstream banlist URLs to fetch, e.g. ["https://krawl.example.com/public_banlist.txt"]. You can add an array of URLs here. Even external "".txt" banlists are supported.
+#  sources:
+#    - "https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw" # Upstream banlist URLs to fetch, e.g. ["https://krawl.example.com/public_banlist.txt"]. You can add an array of URLs here. Even external "".txt" banlists are supported.
   refresh_interval: 3600  # Seconds between fetches
 
 deception:
-  # Enable automatic import of deception pages from src/templates/deception directory on startup
-  # Files are mapped to paths by replacing "/" with "_" (e.g., test_blabla.html -> /test/blabla)
-  # A zip file containing deception pages can also be uploaded via the dashboard
+  # Imports src/templates/deception at startup; "/" in a filename becomes a path
+  # separator (test_blabla.html -> /test/blabla). Zips upload via the dashboard.
   import_pages: true

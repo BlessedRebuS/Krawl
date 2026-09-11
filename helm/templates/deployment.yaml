@@ -88,6 +88,13 @@ spec:
               name: {{ (include "krawl.ai.secret" . | fromJson).name }}
               key: {{ (include "krawl.ai.secret" . | fromJson).key }}
         {{- end }}
+        {{- if or .Values.config.map.api_key .Values.mapExistingSecret.name }}
+        - name: KRAWL_MAP_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ (include "krawl.map.secret" . | fromJson).name }}
+              key: {{ (include "krawl.map.secret" . | fromJson).key }}
+        {{- end }}
         {{- $canary := include "krawl.canary.secret" . | fromJson }}
         {{- if $canary.name }}
         - name: KRAWL_CANARY_TOKEN_URL

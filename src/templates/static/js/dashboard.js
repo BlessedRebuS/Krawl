@@ -97,6 +97,132 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 
+    Alpine.data('settingsPanel', () => ({
+        tab: 'maintenance',
+        tasks: [],
+        // Which pod is serving this page, so a task's last-run pod can be shown
+        // as "this one" rather than just another hostname.
+        thisPod: '',
+        selected: {},
+        loading: true,
+        busy: null,
+        status: '',
+        statusOk: false,
+
+        // Configuration tab. Fetched on first open rather than with the
+        // modal, so opening Maintenance stays one request.
+        configSections: [],
+        configLoading: false,
+        configLoaded: false,
+        configError: '',
+        configFilter: '',
+
+        async load() {
+            const dp = window.__DASHBOARD_PATH__ || '';
+            this.loading = true;
+            try {
+                const resp = await fetch(`${dp}/api/tasks`, { credentials: 'same-origin' });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const data = await resp.json();
+                this.tasks = data.tasks || [];
+                this.thisPod = data.this_pod || '';
+                // Seed a selection array for every task exposing options, so
+                // x-model has something to bind to.
+                for (const t of this.tasks) {
+                    if (t.options && !this.selected[t.name]) this.selected[t.name] = [];
+                }
+            } catch (e) {
+                this.status = `Could not load tasks: ${e.message}`;
+                this.statusOk = false;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async runTask(task) {
+            const dp = window.__DASHBOARD_PATH__ || '';
+            const targets = task.options ? (this.selected[task.name] || []) : null;
+            if (task.options && targets.length === 0) {
+                this.status = 'Select at least one option before running.';
+                this.statusOk = false;
+                return;
+            }
+            this.busy = task.name;
+            this.status = '';
+            try {
+                const resp = await fetch(`${dp}/api/tasks/run`, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: task.name, targets }),
+                });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+                const detail = data.result
+                    ? ` — ${Object.entries(data.result).map(([k, v]) => `${k}: ${v}`).join(', ')}`
+                    : '';
+                this.status = `${task.name} finished in ${data.elapsed_seconds}s${detail}`;
+                this.statusOk = true;
+            } catch (e) {
+                this.status = `${task.name} failed: ${e.message}`;
+                this.statusOk = false;
+            } finally {
+                this.busy = null;
+                await this.load();
+            }
+        },
+
+        showConfig() {
+            this.tab = 'config';
+            if (!this.configLoaded) this.loadConfig();
+        },
+
+        async loadConfig() {
+            const dp = window.__DASHBOARD_PATH__ || '';
+            this.configLoading = true;
+            this.configError = '';
+            try {
+                const resp = await fetch(`${dp}/api/config`, { credentials: 'same-origin' });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const data = await resp.json();
+                this.configSections = data.sections || [];
+                this.configLoaded = true;
+            } catch (e) {
+                this.configError = `Could not load configuration: ${e.message}`;
+            } finally {
+                this.configLoading = false;
+            }
+        },
+
+        // Match on the full key, not the shortened label, so typing "postgres"
+        // finds the whole block even though the rows there read "host", "port".
+        visibleFields(section) {
+            const q = this.configFilter.trim().toLowerCase();
+            if (!q) return section.fields;
+            return section.fields.filter((f) =>
+                f.key.toLowerCase().includes(q) ||
+                section.name.toLowerCase().includes(q) ||
+                (!f.sensitive && this.formatValue(f.value).toLowerCase().includes(q))
+            );
+        },
+
+        anyVisible() {
+            return this.configSections.some((s) => this.visibleFields(s).length > 0);
+        },
+
+        isEmpty(value) {
+            return value === null || value === undefined || value === '' ||
+                (Array.isArray(value) && value.length === 0);
+        },
+
+        formatValue(value) {
+            if (this.isEmpty(value)) return 'not set';
+            if (Array.isArray(value)) return value.join(', ');
+            if (typeof value === 'boolean') return value ? 'true' : 'false';
+            return String(value);
+        },
+    }));
+
     Alpine.data('webhookManagement', () => ({
         accountId: '',
         authToken: '',
@@ -269,11 +395,15 @@ document.addEventListener('alpine:init', () => {
 
         // Export IPs modal
         exportModal: { show: false, categories: ['attacker'], fwtype: 'raw', error: '', loading: false, mergeBanlists: false, excludeCdn: ['cloudflare', 'fastly', 'cloudfront', 'google', 'bunny'] },
+        settingsModal: { show: false },
         banlistSources: [],
         showBanlistSources: false,
 
         // Raw request modal
         rawModal: { show: false, content: '', highlightedContent: '', logId: null, attachments: [], attachmentsShow: false, hasAttachments: false },
+
+        // Captured file viewer modal
+        fileModal: { show: false, content: '', filename: '', contentType: '', size: '', logId: null, index: null, binary: false },
 
         // Map state
         mapInitialized: false,
@@ -292,8 +422,18 @@ document.addEventListener('alpine:init', () => {
         // Expand overlay state
         expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false, method: '', attackType: '', attackTypes: [], ipFilter: '' },
 
+        // LIFO of active popups (raw/file modal can open over the expand
+        // overlay); ESC closes only the most recently opened one.
+        _popupStack: [],
+
         // Flag to prevent double-triggering during init
         _initializingHash: false,
+
+        _trackPopup(show, key) {
+            const idx = this._popupStack.indexOf(key);
+            if (show && idx === -1) this._popupStack.push(key);
+            else if (!show && idx !== -1) this._popupStack.splice(idx, 1);
+        },
 
         async init() {
             // Check if already authenticated (cookie-based)
@@ -305,6 +445,26 @@ document.addEventListener('alpine:init', () => {
             // Sync ban action button visibility with auth state
             this.$watch('authenticated', (val) => updateBanActionVisibility(val));
             updateBanActionVisibility(this.authenticated);
+
+            // Track popup z-order so Escape closes only the topmost one.
+            this.$watch('expandOverlay.show', (show) => {
+                document.body.style.overflow = show ? 'hidden' : '';
+                this._trackPopup(show, 'overlay');
+            });
+            this.$watch('rawModal.show', (show) => this._trackPopup(show, 'raw'));
+            this.$watch('fileModal.show', (show) => this._trackPopup(show, 'file'));
+            this.$watch('authModal.show', (show) => this._trackPopup(show, 'auth'));
+            this.$watch('exportModal.show', (show) => this._trackPopup(show, 'export'));
+            document.addEventListener('keydown', (e) => {
+                if (e.key !== 'Escape') return;
+                if (!this._popupStack.length) return;
+                const top = this._popupStack[this._popupStack.length - 1];
+                if (top === 'overlay') this.expandOverlay.show = false;
+                else if (top === 'raw') this.closeRawModal();
+                else if (top === 'file') this.closeFileModal();
+                else if (top === 'auth') this.authModal.show = false;
+                else if (top === 'export') this.exportModal.show = false;
+            });
 
             // Fetch banlist sources when export modal opens
             this.$watch('exportModal.show', async (show) => {
@@ -336,6 +496,9 @@ document.addEventListener('alpine:init', () => {
                 this.switchToDeception();
             } else if (hash === 'webhooks' && this.authenticated) {
                 this.switchToWebhooks();
+            } else if (hash === 'threats') {
+                this.switchToThreats();
+
             } else if (hash === 'overview' || !hash) {
                 this.switchToOverview();
             } else {
@@ -362,6 +525,8 @@ document.addEventListener('alpine:init', () => {
                         if (this.authenticated) this.switchToDeception();
                     } else if (h === 'webhooks') {
                         if (this.authenticated) this.switchToWebhooks();
+                    } else if (h === 'threats') {
+                        if (this.tab !== 'threats') this.switchToThreats();
                     } else if (h !== 'ip-insight') {
                         if (this.tab !== 'ip-insight') {
                             this.switchToOverview();
@@ -476,7 +641,31 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
+        switchToThreats() {
+            if (this.tab === 'threats') return;
+            this.tab = 'threats';
+            window.location.hash = '#threats';
+            this.$nextTick(() => {
+                if (typeof loadCampaignsChart === 'function') {
+                    loadCampaignsChart();
+                }
+                const container = document.getElementById('threats-htmx-container');
+                if (container && typeof htmx !== 'undefined') {
+                    htmx.ajax('GET', `${this.dashboardPath}/htmx/global-filenames?page=1`, {
+                        target: '#threats-htmx-container',
+                        swap: 'innerHTML'
+                    });
+                    htmx.ajax('GET', `${this.dashboardPath}/htmx/pattern-clusters`, {
+                        target: '#patterns-htmx-container',
+                        swap: 'innerHTML'
+                    });
+                }
+            });
+        },
+
         async logout() {
+            // Maintenance is privileged; never leave it open behind a logout.
+            this.settingsModal.show = false;
             try {
                 await fetch(`${this.dashboardPath}/api/auth/logout`, {
                     method: 'POST',
@@ -641,6 +830,10 @@ document.addEventListener('alpine:init', () => {
             // Collapse any open search results before switching to the insight tab
             this.collapseSearch();
 
+            // Close any popup overlaying the dashboard (campaign / similar
+            // panel) when navigating to the IP insight tab.
+            this.expandOverlay.show = false;
+
             // Set the IP and load the insight content
             this.insightIp = ip;
             this.tab = 'ip-insight';
@@ -793,14 +986,62 @@ document.addEventListener('alpine:init', () => {
             this.rawModal.attachmentsShow = false;
         },
 
-        toggleIpDetail(event) {
-            const row = event.target.closest('tr');
-            if (!row) return;
-            const detailRow = row.nextElementSibling;
-            if (detailRow && detailRow.classList.contains('ip-stats-row')) {
-                detailRow.style.display =
-                    detailRow.style.display === 'table-row' ? 'none' : 'table-row';
+        async viewPayload(logId, filename) {
+            try {
+                const resp = await fetch(
+                    `${this.dashboardPath}/api/attachments/${logId}`,
+                    { cache: 'no-store' }
+                );
+                const data = await resp.json();
+                const list = data.attachments || [];
+                let att = list.find(a => a.filename === filename);
+                if (!att && list.length) att = list[0];
+                if (!att) {
+                    krawlModal.error('No file content available');
+                    return;
+                }
+                const contentResp = await fetch(
+                    `${this.dashboardPath}/api/attachments/${logId}/download/${att.index}`,
+                    { cache: 'no-store' }
+                );
+                if (!contentResp.ok) throw new Error('download failed');
+                this.fileModal.logId = logId;
+                this.fileModal.index = att.index;
+                this.fileModal.filename = att.filename || filename || 'file';
+                this.fileModal.contentType = att.content_type || '';
+                this.fileModal.size = formatBytes(att.size);
+                const text = await contentResp.text();
+                // A webshell upload is often a binary or a megabyte of packed
+                // code: rendering it into a <pre> hangs the tab and tells the
+                // reader nothing. Download is the way to inspect those.
+                this.fileModal.binary = text.length > 512 * 1024
+                    || /[\x00-\x08\x0E-\x1F]/.test(text.slice(0, 4096));
+                this.fileModal.content = this.fileModal.binary ? '' : text;
+                this.fileModal.show = true;
+            } catch (err) {
+                krawlModal.error('Failed to load file content');
             }
+        },
+
+        closeFileModal() {
+            this.fileModal.show = false;
+            this.fileModal.content = '';
+            this.fileModal.filename = '';
+            this.fileModal.contentType = '';
+            this.fileModal.size = '';
+            this.fileModal.logId = null;
+            this.fileModal.index = null;
+            this.fileModal.binary = false;
+        },
+
+        downloadPayloadFile() {
+            if (this.fileModal.logId == null || this.fileModal.index == null) return;
+            const a = document.createElement('a');
+            a.href = `${this.dashboardPath}/api/attachments/${this.fileModal.logId}/download/${this.fileModal.index}`;
+            a.download = this.fileModal.filename || 'file';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         },
 
         colorizeUrl(url) {
@@ -1334,15 +1575,15 @@ window.submitUploadPage = async function() {
 };
 
 // === Expand overlay for Top X tables ===
-window.openExpandOverlay = function(title, endpoint, pageSize) {
+window.openExpandOverlay = function(title, endpoint, pageSize, cluster, searchVal) {
     const app = _getAlpineData();
     if (!app) return;
     Object.assign(app.expandOverlay, {
         show: true, title: title, endpoint: endpoint,
-        pageSize: pageSize || 25, search: '',
+        pageSize: pageSize || 25, search: searchVal || '',
         categories: [], honeypotOnly: false,
         method: '', attackType: '', attackTypes: [],
-        ipFilter: '',
+        ipFilter: '', cluster: cluster || '',
     });
     _reloadExpandOverlay();
     // For attacks, lazily load the list of distinct attack types for the
@@ -1350,6 +1591,12 @@ window.openExpandOverlay = function(title, endpoint, pageSize) {
     if (endpoint === 'attacks') {
         _loadExpandAttackTypes();
     }
+};
+
+window.jumpToPath = function(event) {
+    if (!window.openExpandOverlay) return;
+    const path = (event.currentTarget.getAttribute('data-path') || '').trim();
+    openExpandOverlay('Attacks on ' + path, 'attacks', 25, '', path);
 };
 
 window.triggerExpandSearch = function() {
@@ -1437,8 +1684,18 @@ function _reloadExpandOverlay() {
     }
 
     const url = `${dashboardPath}/htmx/${ov.endpoint}?${params}`;
+
+    let targetUrl = url;
+    if (ov.endpoint === 'campaign') {
+        const cv = ov.cluster ? `?cluster=${encodeURIComponent(ov.cluster)}` : '';
+        targetUrl = `${dashboardPath}/htmx/cluster-events${cv}`;
+    } else if (ov.endpoint === 'similar') {
+        const sv = ov.cluster ? `?tlsh=${encodeURIComponent(ov.cluster)}` : '';
+        targetUrl = `${dashboardPath}/htmx/similar-events${sv}`;
+    }
+
     container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-dim);">Loading...</div>';
-    htmx.ajax('GET', url, { target: container, swap: 'innerHTML' });
+    htmx.ajax('GET', targetUrl, { target: container, swap: 'innerHTML' });
 }
 
 // Escape HTML to prevent XSS when inserting into innerHTML
@@ -1674,6 +1931,14 @@ window.downloadCredentials = function() {
 };
 
 // Utility function for formatting timestamps (used by map popups)
+/** Byte count as B / KB / MB — mirrors the format_size Jinja filter. */
+function formatBytes(value) {
+    if (value == null) return '';
+    if (value < 1024) return `${value} B`;
+    if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+    return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 function formatTimestamp(isoTimestamp) {
     if (!isoTimestamp) return 'N/A';
     try {

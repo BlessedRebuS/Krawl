@@ -423,3 +423,228 @@ function filterAttackTableByType(attackType) {
         htmx.ajax('GET', DASHBOARD_PATH + '/htmx/attacks?page=1&attack_type_filter=' + encodeURIComponent(attackType), { target: container, swap: 'innerHTML' });
     }
 }
+
+/**
+ * Attack Campaigns horizontal bar chart (Threats tab).
+ * One bar per payload cluster, sized by captures; distinct IPs ride in the
+ * tooltip so the bars stay comparable. Bars are named by the target the
+ * campaign hits, since a TLSH prefix says nothing to a reader. Clicking a bar
+ * opens the campaign events overlay. Day-navigable like the attack trends
+ * chart: each view is the top campaigns active on the selected day.
+ */
+let campaignsChart = null;
+let _campaignDays = 1;
+let _campaignOffset = 0;
+
+function _campaignEndDate() {
+    const d = new Date();
+    d.setDate(d.getDate() - (_campaignOffset * _campaignDays));
+    return d;
+}
+
+function _campaignStartDate() {
+    const d = _campaignEndDate();
+    d.setDate(d.getDate() - (_campaignDays - 1));
+    return d;
+}
+
+function _campaignLabel() {
+    const label = document.getElementById('campaigns-period-label');
+    if (label) {
+        const end = _campaignEndDate();
+        if (_campaignDays === 1) {
+            label.textContent = end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        } else {
+            label.textContent = `${_campaignStartDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} — ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+        }
+    }
+    const next = document.getElementById('campaigns-period-next');
+    if (next) next.disabled = _campaignOffset === 0;
+}
+
+/** Human-readable bar name: the target hit, falling back to the digest prefix. */
+function _campaignTick(label) {
+    const max = 30;
+    return label.length > max ? '…' + label.slice(-(max - 1)) : label;
+}
+
+/** Campaigns shown, what they captured, and which one reached furthest.
+ *  Counts cover the charted campaigns only — distinct IPs cannot be summed
+ *  across campaigns without double-counting, so the widest one is named
+ *  instead of a total. */
+function _renderCampaignSummary(campaigns) {
+    const box = document.getElementById('campaigns-summary');
+    if (!box) return;
+    if (!campaigns.length) {
+        box.innerHTML = '';
+        return;
+    }
+    const captures = campaigns.reduce((sum, c) => sum + (c.captures || 0), 0);
+    const widest = campaigns.reduce((a, b) => ((b.ips || 0) > (a.ips || 0) ? b : a));
+    const stat = (value, label) =>
+        `<div class="chart-stat"><span class="chart-stat-value">${value.toLocaleString()}</span>` +
+        `<span class="chart-stat-label">${label}</span></div>`;
+    box.innerHTML =
+        stat(campaigns.length, campaigns.length === 1 ? 'campaign' : 'campaigns') +
+        stat(captures, captures === 1 ? 'capture' : 'captures') +
+        `<div class="chart-note">Widest reach<br><span class="data-mono">` +
+        `${_escapeHtml(_campaignTick(_campaignName(widest)))}</span><br>` +
+        `${widest.ips} distinct ${widest.ips === 1 ? 'IP' : 'IPs'}</div>`;
+}
+
+function _escapeHtml(value) {
+    const el = document.createElement('span');
+    el.textContent = value;
+    return el.innerHTML;
+}
+
+function _campaignName(c) {
+    const target = c.path || c.top_path || '';
+    if (!target) return `campaign ${c.label}`;
+    return target.length > 38 ? target.slice(0, 37) + '…' : target;
+}
+
+async function loadCampaignsChart() {
+    const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
+
+    try {
+        const canvas = document.getElementById('campaigns-chart');
+        if (!canvas) return;
+
+        _campaignLabel();
+
+        const response = await fetch(
+            DASHBOARD_PATH + `/api/campaign-stats?limit=5&days=${_campaignDays}&offset=${_campaignOffset}`,
+            {
+                cache: 'no-store',
+                headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+            }
+        );
+        if (!response.ok) throw new Error('Failed to fetch campaign stats');
+
+        const data = await response.json();
+        const campaigns = data.campaigns || [];
+
+        if (campaignsChart) campaignsChart.destroy();
+
+        // Toggle a sibling instead of replacing the wrapper's markup: blowing
+        // away the canvas left the next span switch with nothing to draw on.
+        const empty = document.getElementById('campaigns-chart-empty');
+        if (empty) empty.hidden = campaigns.length > 0;
+        canvas.hidden = campaigns.length === 0;
+        _renderCampaignSummary(campaigns);
+        if (campaigns.length === 0) return;
+
+        const labels = campaigns.map(_campaignName);
+
+        const ctx = canvas.getContext('2d');
+        campaignsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Captures',
+                        data: campaigns.map(c => c.captures),
+                        backgroundColor: krawlToken('--accent'),
+                        hoverBackgroundColor: krawlToken('--accent-hi'),
+                        borderRadius: 4,
+                        borderSkipped: false,
+                        // Thin bars with a gap, so five campaigns do not read
+                        // as one solid block.
+                        categoryPercentage: 0.7,
+                        barPercentage: 0.8
+                    }
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(22, 27, 34, 0.95)',
+                        titleColor: krawlToken('--accent'),
+                        bodyColor: krawlToken('--text'),
+                        borderColor: krawlToken('--accent'),
+                        borderWidth: 2,
+                        padding: 14,
+                        callbacks: {
+                            label: (context) =>
+                                `${context.parsed.x} captures`,
+                            afterLabel: (context) => {
+                                const c = campaigns[context.dataIndex];
+                                const parts = [
+                                    `distinct IPs: ${c.ips}`,
+                                    `source: ${c.sources}`,
+                                    `digest: ${c.label}`
+                                ];
+                                if (c.top_path && c.top_path !== c.path) parts.push(`most hit target: ${c.top_path}`);
+                                if (c.first_seen) parts.push(`first: ${new Date(c.first_seen).toLocaleString()}`);
+                                if (c.last_seen) parts.push(`last: ${new Date(c.last_seen).toLocaleString()}`);
+                                return parts;
+                            }
+                        }
+                    }
+                },
+                animation: { enabled: false },
+                onClick: (evt, elements) => {
+                    if (!elements.length) return;
+                    const c = campaigns[elements[0].index];
+                    window.openExpandOverlay(_campaignName(c), 'campaign', '', c.id);
+                },
+                onHover: (event, activeElements) => {
+                    const canvas = event.native && event.native.target;
+                    if (canvas) canvas.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.06)' },
+                        ticks: { color: krawlToken('--text-dim'), precision: 0 }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: {
+                            color: krawlToken('--text-dim'),
+                            font: { size: 11 },
+                            callback: function (value) {
+                                return _campaignTick(String(this.getLabelForValue(value)));
+                            }
+                        }
+                    }
+                }
+            },
+            plugins: [{
+                id: 'customCanvasBackgroundColor',
+                beforeDraw: (chart) => {
+                    if (chart.ctx) {
+                        chart.ctx.save();
+                        chart.ctx.globalCompositeOperation = 'destination-over';
+                        chart.ctx.fillStyle = 'rgba(0,0,0,0)';
+                        chart.ctx.fillRect(0, 0, chart.width, chart.height);
+                        chart.ctx.restore();
+                    }
+                }
+            }]
+        });
+    } catch (err) {
+        console.error('Error loading campaigns chart:', err);
+    }
+}
+
+/** Shift the campaigns chart period by N spans (negative = newer, towards now) */
+function shiftCampaignPeriod(direction) {
+    _campaignOffset = Math.max(0, _campaignOffset + direction);
+    loadCampaignsChart();
+}
+
+/** Switch the campaigns chart span (1, 7, 30 days) and reset to the current period */
+function setCampaignSpan(days, btn) {
+    _campaignDays = days;
+    _campaignOffset = 0;
+    document.querySelectorAll('#campaigns-span-selector .map-limit-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    loadCampaignsChart();
+}

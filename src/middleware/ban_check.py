@@ -11,6 +11,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
+import ban_cache
 from dependencies import get_client_ip
 from ip_utils import is_ignored_ip
 
@@ -37,8 +38,18 @@ class BanCheckMiddleware(BaseHTTPMiddleware):
         get_app_logger().debug(
             f"[BanCheck] Checking ban for {client_ip} - {request.url.path}"
         )
-        ban_info = await asyncio.to_thread(tracker.get_ban_info, client_ip)
-        if ban_info["is_banned"]:
+        # Fast path: the banned set is small and held in memory, so the common
+        # answer costs a set lookup instead of a thread and a database read.
+        # The set is a superset of the banned IPs, so a miss in it is
+        # conclusive -- but only once it is loaded. See ban_cache.
+        # This skips the lookup, not the rest of the middleware: the global
+        # banlist below is a separate source and still applies.
+        if not ban_cache.is_ready() or ban_cache.is_banned(client_ip):
+            ban_info = await asyncio.to_thread(tracker.get_ban_info, client_ip)
+        else:
+            ban_info = None
+
+        if ban_info is not None and ban_info["is_banned"]:
             from logger import get_access_logger
 
             get_access_logger().info(

@@ -8,6 +8,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 
+import task_lock
 from logger import get_app_logger
 
 app_logger = get_app_logger()
@@ -108,6 +109,7 @@ class TasksMaster:
                     "enabled": module.TASK_CONFIG.get("enabled", False),
                     "run_when_loaded": module.TASK_CONFIG.get("run_when_loaded", False),
                     "interval_seconds": module.TASK_CONFIG.get("interval_seconds"),
+                    "single_pod": module.TASK_CONFIG.get("single_pod", False),
                 }
 
                 tasks.append(task)
@@ -132,6 +134,7 @@ class TasksMaster:
             module_name = os.path.splitext(task_to_run.get("filename"))[0]
             task_enabled = task_to_run.get("enabled", False)
             interval_seconds = task_to_run.get("interval_seconds")
+            single_pod = task_to_run.get("single_pod", False)
 
             # if no crontab set for this task, we use 15 as the default.
             task_cron = task_to_run.get("cron") or self.TASK_DEFAULT_CRON
@@ -153,6 +156,7 @@ class TasksMaster:
                         task_cron,
                         run_when_loaded,
                         interval_seconds=interval_seconds,
+                        single_pod=single_pod,
                     )
                     if interval_seconds:
                         app_logger.info(
@@ -175,8 +179,70 @@ class TasksMaster:
                     f"Error scheduling task: {e}", extra={"tasks": task_to_run}
                 )
 
+    @staticmethod
+    def _trigger_period(trigger) -> int:
+        """Seconds between two consecutive unjittered fire times of `trigger`.
+
+        Jitter is applied by the scheduler after the trigger produces a time, so
+        what this measures is the schedule's true period.
+        """
+        if isinstance(trigger, IntervalTrigger):
+            return int(trigger.interval.total_seconds())
+
+        now = datetime.datetime.now(trigger.timezone)
+        first = trigger.get_next_fire_time(None, now)
+        second = trigger.get_next_fire_time(first, first)
+        return int((second - first).total_seconds())
+
+    @classmethod
+    def _lease_seconds(cls, trigger) -> int:
+        """How long a single_pod task holds its claim on one occurrence.
+
+        Two constraints pull in opposite directions. The lease must outlast
+        TASK_JITTER, or a pod firing late finds it expired and runs the same
+        occurrence a second time. And it must expire before the next occurrence,
+        or it blocks that one too.
+
+        Twice the jitter window satisfies the first with margin for clock skew;
+        clamping to just under the period satisfies the second. A daily task
+        therefore holds 480 seconds rather than 24 hours -- long enough to cover
+        jitter, short enough that a leader that died leaves no day-long tombstone.
+        """
+        period = cls._trigger_period(trigger)
+        return min(max(period - 5, 5), 2 * cls.TASK_JITTER)
+
+    @staticmethod
+    def _guarded(fn, module, job_id: str, lease_seconds: int):
+        """Wrap a single_pod task so exactly one pod runs each occurrence.
+
+        A pod that loses the claim calls the module's on_skip() when it defines
+        one. That hook exists for tasks where skipping silently would leave the
+        pod stale rather than merely idle: refresh_banlist adopts the leader's
+        published list through it, and analyze_ips refreshes its process-local
+        Prometheus gauges.
+        """
+
+        @functools.wraps(fn)
+        def run(*args, **kwargs):
+            if task_lock.claim(job_id, lease_seconds):
+                return fn(*args, **kwargs)
+
+            app_logger.debug(f"{job_id}: another pod holds this occurrence; skipping")
+            on_skip = getattr(module, "on_skip", None)
+            if on_skip is not None:
+                return on_skip()
+            return None
+
+        return run
+
     def _schedule_task(
-        self, task_name, module_name, task_cron, run_when_loaded, interval_seconds=None
+        self,
+        task_name,
+        module_name,
+        task_cron,
+        run_when_loaded,
+        interval_seconds=None,
+        single_pod=False,
     ):
         try:
             # Dynamically import the module
@@ -197,6 +263,19 @@ class TasksMaster:
                         task_cron = self.TASK_DEFAULT_CRON
                     trigger = CronTrigger.from_crontab(task_cron)
 
+                # The gate lives here rather than inside main(), so a manual run
+                # from the maintenance panel stays unconditional.
+                job_func = module.main
+                if single_pod:
+                    lease_seconds = self._lease_seconds(trigger)
+                    job_func = self._guarded(
+                        module.main, module, job_identifier, lease_seconds
+                    )
+                    app_logger.info(
+                        f"{task_name} runs on one pod per occurrence "
+                        f"({lease_seconds}s lease)"
+                    )
+
                 # schedule the task / job
                 if run_when_loaded:
                     app_logger.info(
@@ -204,7 +283,7 @@ class TasksMaster:
                     )
 
                     self.scheduler.add_job(
-                        module.main,
+                        job_func,
                         trigger,
                         id=job_identifier,
                         jitter=self.TASK_JITTER,
@@ -214,7 +293,7 @@ class TasksMaster:
                     )
                 else:
                     self.scheduler.add_job(
-                        module.main,
+                        job_func,
                         trigger,
                         id=job_identifier,
                         jitter=self.TASK_JITTER,
@@ -228,10 +307,24 @@ class TasksMaster:
             app_logger.error(f"Failed to load {module_name}: {e}")
 
     def job_listener(self, event):
-        if event.exception:
-            app_logger.error(f"Job {event.job_id} failed: {event.exception}")
-        else:
+        """Log every completion, and record which pod it happened on.
+
+        The job id is built as "<module>__<task name>" in _schedule_task, so the
+        task name the API and the dashboard use is its second half.
+        """
+        ok = event.exception is None
+        if ok:
             app_logger.info(f"Job {event.job_id} completed successfully.")
+        else:
+            app_logger.error(f"Job {event.job_id} failed: {event.exception}")
+
+        _, _, task_name = event.job_id.partition("__")
+        if task_name:
+            try:
+                task_lock.record_run(task_name, ok=ok)
+            except Exception as e:
+                # Never let bookkeeping turn a completed job into a failed one.
+                app_logger.error(f"Could not record run of {task_name}: {e}")
 
     def run_scheduled_tasks(self):
         """

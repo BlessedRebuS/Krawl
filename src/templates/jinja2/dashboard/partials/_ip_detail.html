@@ -225,6 +225,39 @@
 </div>
 {% endif %}
 
+{# Referer history – bait-chain tracking #}
+<div class="table-container alert-section mt-5">
+    <h2>Referer History</h2>
+    <div class="htmx-container"
+         hx-get="{{ dashboard_path }}/htmx/ip-referers?ip_filter={{ ip_address }}"
+         hx-trigger="revealed"
+         hx-swap="innerHTML">
+        <div class="htmx-indicator">Loading...</div>
+    </div>
+</div>
+
+{# Captured files uploaded by this IP #}
+<div class="table-container alert-section mt-5">
+    <h2>Captured Files</h2>
+    <div class="htmx-container"
+         hx-get="{{ dashboard_path }}/htmx/ip-payloads?ip_filter={{ ip_address }}&page=1"
+         hx-trigger="revealed"
+         hx-swap="innerHTML">
+        <div class="htmx-indicator">Loading...</div>
+    </div>
+</div>
+
+{# Credentials attempted / used by this IP #}
+<div class="table-container alert-section mt-5">
+    <h2>Captured Credentials</h2>
+    <div class="htmx-container"
+         hx-get="{{ dashboard_path }}/htmx/credentials?ip_filter={{ ip_address }}&page=1"
+         hx-trigger="revealed"
+         hx-swap="innerHTML">
+        <div class="htmx-indicator">Loading...</div>
+    </div>
+</div>
+
 {# Access History table #}
 <div class="table-container alert-section mt-5" id="access-history-section">
     <h2>Access History</h2>
@@ -285,18 +318,27 @@
             unknown: 'var(--text-dim)'
         };
 
+        // Same wheel feel and tile source as the dashboard map — this used to
+        // hardcode CARTO, so an operator who pointed Config.map_* somewhere
+        // else still got the old tiles here.
         var map = L.map(UID + '-ip-map', {
             center: [lat, lng],
             zoom: 6,
             zoomControl: true,
-            scrollWheelZoom: true
+            scrollWheelZoom: true,
+            zoomSnap: 0.5,
+            wheelPxPerZoomLevel: 120,
+            wheelDebounceTime: 40
         });
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; CartoDB | &copy; OpenStreetMap contributors',
-            maxZoom: 19,
-            subdomains: 'abcd'
-        }).addTo(map);
+        (typeof _tileLayer === 'function'
+            ? _tileLayer()
+            : L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; CartoDB | &copy; OpenStreetMap contributors',
+                maxZoom: 19,
+                subdomains: 'abcd'
+            })
+        ).addTo(map);
 
         var color = categoryColors[category] || 'var(--text-dim)';
         var markerHtml = '<div style="width:24px;height:24px;background:' + color +

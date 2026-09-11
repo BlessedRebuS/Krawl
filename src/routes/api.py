@@ -15,7 +15,7 @@ import re
 import secrets
 import time
 import zipfile
-from datetime import UTC
+from datetime import UTC, datetime, timedelta
 from email import policy
 
 from fastapi import APIRouter, Depends, Query, Request, Response
@@ -34,10 +34,10 @@ from auth_store import (
 from config import get_config
 from dashboard_cache import (
     get_cached,
+    get_cached_list_page,
     get_cached_table,
     invalidate_table_cache,
     is_warm,
-    paginate_cached_list,
     set_cached_table,
 )
 from dependencies import get_client_ip, get_db
@@ -58,6 +58,45 @@ def _no_cache_headers() -> dict:
         "Expires": "0",
         "Access-Control-Allow-Origin": "*",
     }
+
+
+def _parse_day(day: str):
+    """ISO date string -> datetime.date, or None when absent/invalid."""
+    if not day:
+        return None
+    try:
+        return datetime.fromisoformat(day.strip()).date()
+    except ValueError:
+        return None
+
+
+def _campaign_window(day: str = "", days: int = 0, offset: int = 0):
+    """Range window for the campaigns filter.
+
+    ``day``: explicit ISO date -> that single day.
+    ``days``: span length (1/7/30); window is the ``days`` days ending
+    ``offset*days`` days ago (mirrors the attack-trends period pager).
+    Returns (start_dt, end_dt) naive datetimes, or None for the global view.
+    """
+    from datetime import time
+
+    if day:
+        d = _parse_day(day)
+        if d is None:
+            return None
+        start = datetime.combine(d, time.min)
+        return start, start + timedelta(days=1)
+
+    if days:
+        days = min(max(1, days), 90)
+        offset = max(0, offset)
+        end_date = (datetime.now() - timedelta(days=offset * days)).date()
+        start_date = end_date - timedelta(days=days - 1)
+        start = datetime.combine(start_date, time.min)
+        end = datetime.combine(end_date, time.min) + timedelta(days=1)
+        return start, end
+
+    return None
 
 
 class AuthRequest(BaseModel):
@@ -333,9 +372,8 @@ async def all_ips(
         and sort_order == "desc"
         and is_warm()
     ):
-        agg = get_cached("agg:map_ips")
-        if agg is not None:
-            sliced = paginate_cached_list(agg, page=page, page_size=page_size)
+        sliced = get_cached_list_page("agg:map_ips", page=page, page_size=page_size)
+        if sliced is not None:
             return JSONResponse(
                 content={"ips": sliced["items"], "pagination": sliced["pagination"]},
                 headers=_no_cache_headers(),
@@ -575,6 +613,55 @@ async def attack_types_stats(
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
         get_app_logger().error(f"Error fetching attack types stats: {e}")
+        return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
+
+
+def campaign_payload(clusters: list) -> list:
+    """Shape campaign clusters for the chart. Shared with dashboard warmup,
+    which writes this same payload into the cache the endpoint reads."""
+    return [
+        {
+            "id": c["id"],
+            "label": (c["rep_hash"] or "")[:8],
+            "path": c["path"],
+            "top_path": c["top_path"],
+            "sample": c["sample"],
+            "sources": c["sources"],
+            "captures": c["events"],
+            "ips": c["ips"],
+            "first_seen": c["first_seen"].isoformat() if c["first_seen"] else None,
+            "last_seen": c["last_seen"].isoformat() if c["last_seen"] else None,
+        }
+        for c in clusters
+    ]
+
+
+@router.get("/api/campaign-stats")
+async def campaign_stats(
+    request: Request,
+    limit: int = Query(12),
+    day: str = Query(""),
+    days: int = Query(0),
+    offset: int = Query(0),
+):
+    limit = min(max(1, limit), 50)
+    window = _campaign_window(day, days=days, offset=offset)
+    cache_key = f"api:campaign_stats:{limit}:{day or days or 0}:{offset}"
+    cached = get_cached_table(cache_key)
+    if cached:
+        return JSONResponse(content=cached, headers=_no_cache_headers())
+
+    db = get_db()
+    try:
+        kwargs = {"limit": limit}
+        if window is not None:
+            kwargs["start"], kwargs["end"] = window
+        clusters = await asyncio.to_thread(db.payloads.get_campaign_clusters, **kwargs)
+        result = {"campaigns": campaign_payload(clusters)}
+        set_cached_table(cache_key, result)
+        return JSONResponse(content=result, headers=_no_cache_headers())
+    except Exception as e:
+        get_app_logger().error(f"Error fetching campaign stats: {e}")
         return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
 
 
@@ -1582,3 +1669,358 @@ async def webhook_cloudflare_delete(request: Request):
     }
     save_config(cfg)
     return JSONResponse(content={"ok": True})
+
+
+# ---------------------------------------------------------------------------
+# Maintenance panel: run the scheduled tasks on demand
+# ---------------------------------------------------------------------------
+# TasksMaster already discovers every module under src/tasks/ exposing
+# TASK_CONFIG + main(), and holds its schedule. These two endpoints are a thin
+# authenticated view over that registry — there is no separate job runner, and
+# adding a task file is all it takes to make it appear in the panel.
+
+_RUN_LOCK_TTL = 3600  # a stuck task must not block its own next run forever
+
+
+def _acquire_run_lock(name: str) -> bool:
+    """Claim the right to run `name`. False when it is already running.
+
+    One click must not start the task on every replica, and a second click must
+    not start it twice on this one. Both are the shared cross-pod lease; unlike
+    the scheduler's use of it, this one is released on completion.
+    """
+    import task_lock
+
+    return task_lock.claim(name, _RUN_LOCK_TTL)
+
+
+def _release_run_lock(name: str) -> None:
+    """Free the task for another manual run now that this one has finished."""
+    import task_lock
+
+    task_lock.release(name)
+
+
+def _is_running(name: str) -> bool:
+    """True while a manual run of `name` is in flight anywhere in the cluster."""
+    import task_lock
+
+    return task_lock.is_held(name)
+
+
+@router.get("/api/tasks", dependencies=[Depends(require_auth)])
+async def list_tasks():
+    """List every discovered task with its schedule and current state."""
+    import task_lock
+    from tasks_master import get_tasksmaster
+
+    tm = get_tasksmaster()
+    next_runs = {}
+    try:
+        for job in tm.scheduler.get_jobs():
+            next_runs[job.name] = (
+                job.next_run_time.isoformat() if job.next_run_time else None
+            )
+    except Exception as e:
+        get_app_logger().error(f"Could not read scheduled job times: {e}")
+
+    tasks = []
+    for t in tm.tasks:
+        name = t.get("name")
+        entry = {
+            "name": name,
+            "filename": t.get("filename"),
+            "cron": t.get("cron"),
+            "interval_seconds": t.get("interval_seconds"),
+            "enabled": bool(t.get("enabled")),
+            "next_run": next_runs.get(name),
+            "running": _is_running(name),
+            "single_pod": bool(t.get("single_pod")),
+            "last_run": task_lock.get_last_run(name),
+            "options": None,
+        }
+        # The purge task is the only one taking arguments; surface its targets
+        # so the panel can render them as checkboxes.
+        if t.get("filename") == "purge.py":
+            from tasks.purge import PURGE_TARGETS
+
+            entry["options"] = [
+                {"key": k, "label": v} for k, v in PURGE_TARGETS.items()
+            ]
+        tasks.append(entry)
+
+    return JSONResponse(
+        content={"tasks": tasks, "this_pod": task_lock.POD_UID},
+        headers=_no_cache_headers(),
+    )
+
+
+class RunTaskRequest(BaseModel):
+    name: str
+    targets: list[str] | None = None
+
+
+@router.post("/api/tasks/run", dependencies=[Depends(require_auth)])
+async def run_task(body: RunTaskRequest):
+    """Run one discovered task now, in a worker thread.
+
+    Only names already present in the TasksMaster registry are accepted, so
+    this cannot be used to import an arbitrary module.
+    """
+    import importlib
+    import os
+
+    from tasks_master import get_tasksmaster
+
+    task = next(
+        (t for t in get_tasksmaster().tasks if t.get("name") == body.name), None
+    )
+    if task is None:
+        return JSONResponse(content={"error": "Unknown task"}, status_code=404)
+
+    if not _acquire_run_lock(body.name):
+        return JSONResponse(
+            content={"error": "Task is already running"}, status_code=409
+        )
+
+    module_name = os.path.splitext(task["filename"])[0]
+    try:
+        module = importlib.import_module(f"tasks.{module_name}")
+        kwargs = {"targets": body.targets} if body.targets is not None else {}
+        get_app_logger().info(f"Manual run of task {body.name} requested")
+        started = time.monotonic()
+        result = await asyncio.to_thread(lambda: module.main(**kwargs))
+        elapsed = round(time.monotonic() - started, 2)
+        get_app_logger().info(f"Manual run of task {body.name} finished in {elapsed}s")
+        return JSONResponse(
+            content={
+                "ok": True,
+                "name": body.name,
+                "elapsed_seconds": elapsed,
+                "result": result if isinstance(result, dict) else None,
+            }
+        )
+    except Exception as e:
+        get_app_logger().error(f"Manual run of task {body.name} failed: {e}")
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+    finally:
+        _release_run_lock(body.name)
+
+
+# ---------------------------------------------------------------------------
+# Settings panel: the running configuration, read-only
+# ---------------------------------------------------------------------------
+# Config is a flat dataclass whose field names already carry the config.yaml
+# section as a prefix (postgres_*, ai_*, map_*), so both the grouping and the
+# redaction can be derived from the field name instead of a hand-kept map that
+# drifts the moment someone adds a field.
+
+# Substrings that make a field secret. This is the important half of the
+# redaction: an explicit list alone fails open — a secret added to Config next
+# year would leak until someone remembered to list it here. The pattern
+# catches it by default, and _SENSITIVE_FIELDS only covers what the pattern
+# cannot infer from the name.
+_SENSITIVE_PATTERNS = ("password", "secret", "api_key", "token")
+
+# The escape hatch for a secret the pattern would miss. Everything here is
+# also caught by _SENSITIVE_PATTERNS today; the entry stays because a canary
+# URL being secret is not obvious from its name, and a future rename should
+# not quietly turn it into a visible field.
+_SENSITIVE_FIELDS = frozenset(
+    {
+        "canary_token_url",  # the canary's callback URL is a live tripwire
+    }
+)
+
+# Fields the pattern flags but that hold no secret — a retry count and a
+# boolean. Redacting them would hide useful state behind a "Set" badge that
+# says nothing. Keep this list short: every entry is a hole in the backstop.
+_NOT_SENSITIVE_FIELDS = frozenset(
+    {
+        "canary_token_tries",
+        "dashboard_password_generated",
+        "dashboard_secret_path_generated",
+    }
+)
+
+# Generated at startup when config.yaml leaves them unset, so the running
+# value is not a choice anyone made and must not be badged as one. Each maps
+# to the flag that records whether it was generated this run.
+_GENERATED_WHEN = {
+    "dashboard_secret_path": "dashboard_secret_path_generated",
+    "dashboard_password": "dashboard_password_generated",
+}
+
+# Derived state, not settings: no config.yaml key sets these, so "changed from
+# the default" is not a thing that can be true of them. Shown, never badged.
+_DERIVED_FIELDS = frozenset(_GENERATED_WHEN.values())
+
+# Section order. Anything whose name starts with "<prefix>_" lands in that
+# section; whatever is left over goes to "server", which is where the
+# ungrouped top-level knobs (mode, port, delay, log_level) already belong.
+_CONFIG_SECTIONS = (
+    "server",
+    "dashboard",
+    "database",
+    "postgres",
+    "redis",
+    "crawl",
+    "analyzer",
+    "tarpit",
+    "ai",
+    "map",
+    "banlist",
+    "backups",
+    "deception",
+    "ipv6",
+    "metrics",
+    "links",
+    "canary",
+)
+
+# Every section except the catch-all is also a field-name prefix to match on.
+_SECTION_PREFIXES = tuple(s for s in _CONFIG_SECTIONS if s != "server")
+
+
+# Fields whose config.yaml section the name prefix cannot reveal: the
+# `analyzer:` and `crawl:` blocks are flattened into bare names.
+_FIELD_SECTIONS = {
+    "http_risky_methods_threshold": "analyzer",
+    "violated_robots_threshold": "analyzer",
+    "uneven_request_timing_threshold": "analyzer",
+    "uneven_request_timing_time_window_seconds": "analyzer",
+    "user_agents_used_threshold": "analyzer",
+    "attack_urls_threshold": "analyzer",
+    "max_pages_limit": "crawl",
+    "infinite_pages_for_malicious": "crawl",
+    "ban_duration_seconds": "crawl",
+}
+
+
+def _is_sensitive(name: str) -> bool:
+    """True when a field's value must never leave the server."""
+    if name in _NOT_SENSITIVE_FIELDS:
+        return False
+    if name in _SENSITIVE_FIELDS:
+        return True
+    return any(p in name for p in _SENSITIVE_PATTERNS)
+
+
+def _config_section(name: str) -> tuple[str, str]:
+    """Split a flat field name into (section, label within that section)."""
+    if name in _FIELD_SECTIONS:
+        return _FIELD_SECTIONS[name], name
+    for prefix in _SECTION_PREFIXES:
+        if name.startswith(f"{prefix}_"):
+            return prefix, name[len(prefix) + 1 :]
+    return "server", name
+
+
+def _is_unset(value) -> bool:
+    """True for every way this config says "no value"."""
+    return value is None or value == "" or value == [] or value == ()
+
+
+def _json_safe(value):
+    """Render a config value in a form JSON can carry and a table can show."""
+    if isinstance(value, tuple):
+        return list(value)
+    if isinstance(value, (str, int, float, bool, list, dict)) or value is None:
+        return value
+    return str(value)
+
+
+def _config_fields(cfg) -> list[dict]:
+    """Serialize a Config into the panel's rows, with every secret redacted.
+
+    Split out from the endpoint so the tests exercise this exact code rather
+    than a copy of it that can drift.
+    """
+    import dataclasses
+    import os
+
+    from config import Config
+    from config import __get_env_from_config as env_name_for
+
+    defaults = Config()
+    fields = []
+    for f in dataclasses.fields(cfg):
+        name = f.name
+        # Private bookkeeping (_server_ip, _server_ip_resolved) is not config.
+        if name.startswith("_"):
+            continue
+
+        value = getattr(cfg, name)
+        env_var = env_name_for(name)
+        default = getattr(defaults, name, None)
+        sensitive = _is_sensitive(name)
+
+        # Provenance. An env override is provable; beyond that all we can
+        # honestly say is whether the value still matches the built-in
+        # default, because from_yaml does not keep the raw document and the
+        # nested-to-flat mapping is hand-written per field.
+        #
+        # Unset is unset: a default of None against a config.yaml "" (or a
+        # bare key, which YAML reads as None) is the same thing to a reader
+        # but not to ==, and comparing raw badged untouched settings "custom".
+        generated_flag = _GENERATED_WHEN.get(name)
+        if name in _DERIVED_FIELDS:
+            source = "default"
+        elif env_var in os.environ:
+            source = "env"
+        elif generated_flag and getattr(cfg, generated_flag, False):
+            # Generated this run because config.yaml left it unset.
+            source = "default"
+        elif _is_unset(value) and _is_unset(default):
+            source = "default"
+        elif value != default:
+            source = "custom"
+        else:
+            source = "default"
+
+        section, label = _config_section(name)
+        entry = {
+            "key": name,
+            "label": label,
+            "section": section,
+            "source": source,
+            "env_var": env_var,
+            "sensitive": sensitive,
+        }
+        if sensitive:
+            # Truthiness, not the value: "" and None are unset, anything else
+            # is set. The value never enters the response, so it is not in the
+            # page source either.
+            entry["set"] = bool(value)
+        else:
+            entry["value"] = _json_safe(value)
+        fields.append(entry)
+
+    # Group by section, but keep declaration order inside one — it mirrors
+    # config.yaml, where provider/base_url/api_key/model sit together. Sorting
+    # by name would scatter them.
+    order = {s: i for i, s in enumerate(_CONFIG_SECTIONS)}
+    fields.sort(key=lambda e: order.get(e["section"], len(order)))
+    return fields
+
+
+@router.get("/api/config", dependencies=[Depends(require_auth)])
+async def get_current_config():
+    """The running configuration, with every secret redacted.
+
+    Sensitive fields report only whether they are set — that is the question
+    the panel exists to answer ("is my AI key actually loaded?") and it
+    discloses nothing.
+    """
+    cfg = get_config()
+
+    sections = []
+    for entry in _config_fields(cfg):
+        if not sections or sections[-1]["name"] != entry["section"]:
+            sections.append({"name": entry["section"], "fields": []})
+        sections[-1]["fields"].append(entry)
+
+    return JSONResponse(
+        content={"sections": sections, "mode": cfg.mode},
+        headers=_no_cache_headers(),
+    )

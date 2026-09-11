@@ -7,9 +7,12 @@ from logger import get_app_logger
 
 TASK_CONFIG = {
     "name": "flag-stale-ips",
-    "cron": "0 2 * * *",  # Run daily at 2 AM
+    "cron": "0 8 * * *",  # Run daily at 8 AM
     "enabled": True,
-    "run_when_loaded": True,
+    # a daily 08:00 job — running it on every restart makes a daily sweep happen N times a day.
+    "run_when_loaded": False,
+    # A shared-database sweep; the flags are global, not per pod.
+    "single_pod": True,
 }
 
 # Set to True to force all IPs to be flagged for reevaluation on next run.

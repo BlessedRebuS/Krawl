@@ -18,7 +18,10 @@ TASK_CONFIG = {
     "name": "analyze-ips",
     "cron": "*/1 * * * *",
     "enabled": True,
-    "run_when_loaded": True,
+    # runs every minute anyway; a boot run only duplicates it.
+    "run_when_loaded": False,
+    # One pod per minute analyses the batch; the others would redo the same rows.
+    "single_pod": True,
 }
 
 # Upper bound on IPs analysed per run; the remainder is picked up next minute.
@@ -120,8 +123,11 @@ def main():
                 parts[1] = parts[1].rstrip("/")
                 robots_disallows.append(parts[1].strip())
 
-    # Get IPs flagged for reevaluation (set when a suspicious request arrives)
-    ips_to_analyze = set(db_manager.ip_stats.get_ips_needing_reevaluation())
+    # IPs flagged for reevaluation, plus any never analysed at all — the
+    # ordering and the cap are both applied in SQL, see the repo method.
+    ips_to_analyze = db_manager.ip_stats.get_ips_needing_reevaluation(
+        limit=MAX_IPS_PER_RUN
+    )
 
     if not ips_to_analyze:
         app_logger.debug(
@@ -129,14 +135,10 @@ def main():
         )
         return
 
-    # flag-stale-ips flags every stale IP at once (daily), and each IP costs a
-    # 10,000-row read. Take a slice per run; the task fires every minute.
-    pending = len(ips_to_analyze)
-    if pending > MAX_IPS_PER_RUN:
-        ips_to_analyze = set(sorted(ips_to_analyze)[:MAX_IPS_PER_RUN])
+    if len(ips_to_analyze) == MAX_IPS_PER_RUN:
         app_logger.info(
-            f"[Background Task] analyze-ips: {pending} IPs pending, "
-            f"analysing {MAX_IPS_PER_RUN} this run"
+            f"[Background Task] analyze-ips: batch full at {MAX_IPS_PER_RUN}, "
+            "more IPs pending for the next run"
         )
 
     for ip in ips_to_analyze:
@@ -414,3 +416,19 @@ def main():
             ip, analyzed_metrics, category, category_scores, last_analysis
         )
     return
+
+
+def on_skip() -> None:
+    """Another pod owns this occurrence; still refresh this pod's gauges.
+
+    krawl_generated_pages_today, krawl_ips_needing_reevaluation,
+    krawl_unenriched_ips and krawl_auth_locked_ips are prometheus_client Gauges
+    living in this process's memory, not in Redis. A pod that never sets them
+    exports 0, and the dashboard's max() then reports whichever pod last held
+    the lease -- a stale high-water mark instead of the current value.
+
+    Four indexed COUNTs. Only the analysis loop above is worth deduplicating.
+    """
+    db_manager = get_database()
+    metrics.refresh_ai(db_manager)
+    metrics.refresh_system(db_manager)

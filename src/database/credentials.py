@@ -69,6 +69,7 @@ class CredentialRepo:
         page_size: int = 5,
         sort_by: str = "timestamp",
         sort_order: str = "desc",
+        ip_filter: str | None = None,
     ) -> dict[str, Any]:
         """
         Retrieve paginated list of credential attempts.
@@ -78,6 +79,7 @@ class CredentialRepo:
             page_size: Number of results per page
             sort_by: Field to sort by (timestamp, ip, username)
             sort_order: Sort order (asc or desc)
+            ip_filter: Optional IP to scope results to (IP Insight tab)
 
         Returns:
             Dictionary with credentials list and pagination info
@@ -93,12 +95,14 @@ class CredentialRepo:
                 sort_order.lower() if sort_order.lower() in {"asc", "desc"} else "desc"
             )
 
-            total_credentials = (
-                session.query(func.count(CredentialAttempt.id)).scalar() or 0
-            )
-
-            # Build query with sorting
+            count_query = session.query(func.count(CredentialAttempt.id))
             query = session.query(CredentialAttempt)
+            if ip_filter:
+                sanitized = sanitize_ip(ip_filter)
+                count_query = count_query.filter(CredentialAttempt.ip == sanitized)
+                query = query.filter(CredentialAttempt.ip == sanitized)
+
+            total_credentials = count_query.scalar() or 0
 
             if sort_by == "timestamp":
                 query = query.order_by(

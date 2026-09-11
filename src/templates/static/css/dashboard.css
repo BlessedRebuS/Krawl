@@ -89,6 +89,9 @@
     --s8: 32px;
     --s10: 40px;
 
+    /* Width at which a long value (payload body, path, digest) is ellipsised. */
+    --w-trunc: 320px;
+
     /* ── Radius ───────────────────────────────────────────────── */
     --r-sm: 4px;
     --r-md: 6px;
@@ -105,6 +108,18 @@
     --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.45);
     --dur: 0.15s;
     --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* ── Stacking layers ──────────────────────────────────────────
+       Equal z-index means DOM order decides, and the expand overlay
+       is the last partial in index.html — so it used to paint over
+       every modal opened from inside it. These are the only values
+       any fixed/absolute layer should use; pick the layer, not a
+       number. */
+    --z-sticky: 100;      /* in-flow chrome: sticky headers, tooltips */
+    --z-overlay: 1000;    /* fullscreen expand overlay */
+    --z-modal: 1200;      /* modals opened from a table or an overlay */
+    --z-popover: 1300;    /* menus anchored inside a modal */
+    --z-alert: 1400;      /* confirm/alert — always the top of the stack */
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -141,10 +156,17 @@ body {
     margin: 0 auto;
     position: relative;
 }
-.github-logo {
+/* ── Brand ────────────────────────────────────────────────────────
+   Operator-configurable (dashboard.branding): the mark carries the
+   weight, version and contact stay muted beneath it. All of it sits
+   over a centred <h1>, so the text has to stop before it collides. */
+.brand {
     position: absolute;
     top: 0;
     left: 0;
+    max-width: 40%;
+}
+.brand-mark {
     display: flex;
     align-items: center;
     gap: var(--s2);
@@ -152,27 +174,39 @@ body {
     color: var(--accent);
     transition: color 0.2s;
 }
-.github-logo:hover {
+a.brand-mark:hover {
     color: var(--accent-hi);
 }
-.github-logo svg {
-    width: 32px;
-    height: 32px;
+.brand-mark svg {
+    width: 38px;
+    height: 38px;
     fill: currentColor;
 }
-.github-logo-text {
-    font-size: var(--fs-md);
+/* Any image the operator points at, optically matched to the mark. */
+.brand-logo {
+    height: 38px;
+    width: auto;
+    max-width: 140px;
+    object-fit: contain;
+}
+.brand-name {
+    font-size: var(--fs-lg);
     font-weight: 600;
     text-decoration: none;
     line-height: 1;
+    max-width: 28ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
-.krawl-version {
-    font-size: var(--fs-sm);
+.brand-version {
+    font-size: var(--fs-md);
     color: color-mix(in srgb, var(--text-strong) 40%, transparent);
     font-weight: 400;
     margin-left: var(--s1);
     align-self: center;
     line-height: 1;
+    white-space: nowrap;
 }
 h1 {
     color: var(--text-strong);
@@ -192,10 +226,78 @@ h1 {
     letter-spacing: normal;
     color: var(--accent);
 }
-.download-section {
+/* ── Header actions ───────────────────────────────────────────────
+   Three controls of equal weight: docs, export, settings. They are
+   peers, so they get one shape and one hit target rather than a link
+   next to a filled button. Icon-only, with the name in the tooltip and
+   the accessible name on the control itself. */
+.header-corner {
     position: absolute;
     top: 0;
     right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--s2);
+}
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+}
+/* Right-aligned under the header icons, quiet enough that the icons stay
+   the corner's only real weight. */
+.brand-contact {
+    font-size: var(--fs-sm);
+    text-align: right;
+    max-width: 32ch;
+    line-height: 1.2;
+    color: color-mix(in srgb, var(--text-strong) 40%, transparent);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.brand-contact a {
+    color: inherit;
+    text-decoration: none;
+}
+.brand-contact a:hover {
+    color: var(--text-strong);
+    text-decoration: underline;
+}
+.header-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--r-md);
+    color: var(--text-faint);
+    cursor: pointer;
+    text-decoration: none;
+    transition: color var(--dur) var(--ease),
+        background var(--dur) var(--ease),
+        border-color var(--dur) var(--ease);
+}
+.header-action:hover:not(:disabled) {
+    color: var(--accent);
+    background: var(--tint-accent);
+    border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.header-action:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+/* Locked rather than hidden: the capability stays advertised, the tooltip
+   says how to unlock it. Dimmed enough to read as inert, not so dim it
+   reads as a rendering fault — --line is a border colour and disappears
+   against the page. */
+.header-action:disabled {
+    color: color-mix(in srgb, var(--text-faint) 55%, transparent);
+    cursor: not-allowed;
 }
 .download-btn {
     display: inline-block;
@@ -214,69 +316,6 @@ h1 {
 }
 .download-btn:active {
     background: var(--ok);
-}
-.banlist-dropdown {
-    position: relative;
-    display: inline-block;
-    width: 100%;
-}
-.banlist-dropdown-btn {
-    display: block;
-    width: 100%;
-    padding: var(--s2) var(--s4);
-    background: color-mix(in srgb, var(--ok) 40%, transparent);
-    color: color-mix(in srgb, var(--text-strong) 70%, transparent);
-    text-decoration: none;
-    border-radius: var(--r-md);
-    font-weight: 500;
-    font-size: var(--fs-sm);
-    transition: background 0.2s, color 0.2s;
-    border: 1px solid color-mix(in srgb, var(--ok) 40%, transparent);
-    cursor: pointer;
-    text-align: left;
-    box-sizing: border-box;
-}
-.banlist-dropdown-btn:hover {
-    background: color-mix(in srgb, var(--ok) 60%, transparent);
-    color: var(--text-strong);
-}
-.banlist-dropdown-menu {
-    display: none;
-    position: absolute;
-    right: 0;
-    left: 0;
-    background-color: var(--surface);
-    box-shadow: var(--shadow-2);
-    z-index: 1;
-    border: 1px solid var(--line);
-    border-radius: var(--r-md);
-    margin-top: var(--s1);
-    overflow: hidden;
-}
-.banlist-dropdown-menu.show {
-    display: block;
-}
-.banlist-dropdown-menu a {
-    color: var(--text);
-    padding: var(--s2) var(--s3);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: var(--s2);
-    transition: background 0.2s;
-    font-size: var(--fs-md);
-}
-.banlist-dropdown-menu a:hover {
-    background-color: var(--raised);
-    color: var(--accent);
-}
-.banlist-dropdown-menu a.disabled {
-    color: var(--text-faint);
-    cursor: not-allowed;
-    pointer-events: none;
-}
-.banlist-icon {
-    font-size: var(--fs-md);
 }
 .stats-grid {
     display: grid;
@@ -405,32 +444,6 @@ tbody {
     text-decoration-style: solid;
     background: var(--raised);
 }
-.ip-stats-row {
-    background: var(--bg);
-}
-.ip-stats-cell {
-    padding: 0 !important;
-}
-.ip-stats-dropdown {
-    margin-top: var(--s3);
-    padding: var(--s4);
-    background: var(--bg);
-    border: 1px solid var(--line);
-    border-radius: var(--r-md);
-    font-size: var(--fs-sm);
-    display: flex;
-    gap: var(--s5);
-}
-.stats-left {
-    flex: 1;
-}
-.stats-right {
-    flex: 0 0 200px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
 .radar-chart {
     position: relative;
     width: 280px;
@@ -452,27 +465,6 @@ tbody {
     width: 12px;
     height: 12px;
     border-radius: var(--r-sm);
-}
-.ip-stats-dropdown .loading {
-    color: var(--text-dim);
-    font-style: italic;
-}
-.stat-row {
-    display: flex;
-    justify-content: space-between;
-    padding: var(--s1) 0;
-    border-bottom: 1px solid var(--raised);
-}
-.stat-row:last-child {
-    border-bottom: none;
-}
-.stat-label-sm {
-    color: var(--text-dim);
-    font-weight: 500;
-}
-.stat-value-sm {
-    color: var(--accent);
-    font-weight: 600;
 }
 .category-badge {
     display: inline-block;
@@ -521,7 +513,7 @@ tbody {
     flex: 1;
     min-width: 0;
     overflow: auto;
-    max-height: 350px;
+    max-height: 560px;
 }
 .timeline-column:first-child {
     flex: 1.5;
@@ -771,7 +763,7 @@ tbody {
 
 /* Scrollable reputation container */
 .ip-rep-scroll {
-    max-height: 200px;
+    max-height: 420px;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--line) var(--surface);
@@ -791,9 +783,9 @@ tbody {
     background: var(--text-faint);
 }
 
-/* Scrollable behavior timeline – show ~5 entries max */
+/* Scrollable behavior timeline */
 .ip-timeline-scroll {
-    max-height: 230px;
+    max-height: 420px;
     overflow-y: auto;
     min-height: 0;
     scrollbar-width: thin;
@@ -860,6 +852,42 @@ tbody {
     font-size: var(--fs-xs);
     font-weight: 700;
     letter-spacing: 0.04em;
+}
+.badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2);
+    row-gap: var(--s1);
+}
+.badge-row .method-badge {
+    font-size: 0.8em;
+    padding: 1px 6px;
+}
+/* A diff of 0 is a byte-identical replay — the strongest campaign signal, so it
+   reads as a warning, not an "all clear". */
+.diff-exact {
+    color: var(--warn);
+    font-weight: 700;
+}
+.diff-near {
+    color: var(--text-dim);
+}
+.cluster-body {
+    display: inline-block;
+    max-width: var(--w-trunc);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: top;
+    font-family: var(--font-mono);
+    font-size: 0.78em;
+    color: var(--text-dim);
+}
+.cluster-body[href] {
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: none;
+    border-bottom: 1px dotted color-mix(in srgb, var(--accent) 40%, transparent);
 }
 .method-get {
     border-color: color-mix(in srgb, var(--accent) 30%, transparent);
@@ -1118,7 +1146,7 @@ tbody {
     width: 100%;
     height: 100%;
     background: var(--scrim);
-    z-index: 1000;
+    z-index: var(--z-modal);
     align-items: center;
     justify-content: center;
 }
@@ -1130,8 +1158,9 @@ tbody {
     border: 1px solid var(--line);
     border-radius: var(--r-md);
     padding: var(--s8);
-    max-width: 900px;
-    max-height: 90vh;
+    width: 1240px;
+    max-width: 94vw;
+    max-height: 92vh;
     overflow-y: auto;
     position: relative;
 }
@@ -1160,8 +1189,23 @@ tbody {
 .leaflet-container {
     background: var(--bg) !important;
 }
+/* ── Map: the basemap is substrate, the markers are the subject ────
+   This panel answers one question — where is hostile traffic coming
+   from — and the category colours are the answer. So everything that is
+   not a marker gets its colour taken away: the tiles are desaturated and
+   pushed down toward --bg until the five --cat-* hues are the only
+   saturated things on screen. Saturation means threat here.
+
+   It also makes the panel provider-agnostic. Esri, CARTO and OSM tiles
+   all land in roughly the same place, which matters now that the tile
+   source is configurable. A light provider needs a stronger treatment:
+   override the token, e.g.
+       #attacker-map { --map-tile-filter: invert(1) hue-rotate(180deg) brightness(.75) saturate(.4); } */
+#attacker-map {
+    --map-tile-filter: saturate(0.35) brightness(0.62) contrast(1.05);
+}
 .leaflet-tile {
-    filter: none;
+    filter: var(--map-tile-filter);
 }
 .leaflet-popup-content-wrapper {
     background-color: var(--bg);
@@ -1244,8 +1288,65 @@ tbody {
     background: none !important;
     border: none !important;
 }
-.leaflet-bottom.leaflet-right {
-    display: none !important;
+/* Attribution is a licence condition for every provider we ship a URL for,
+   so it is styled down rather than hidden — quiet, but present and legible. */
+.leaflet-control-attribution {
+    background: color-mix(in srgb, var(--bg) 78%, transparent) !important;
+    color: var(--text-faint) !important;
+    font-family: var(--font-ui);
+    font-size: var(--fs-2xs);
+    padding: 2px var(--s2);
+    border-top-left-radius: var(--r-md);
+}
+.leaflet-control-attribution a {
+    color: var(--text-dim);
+    text-decoration: none;
+}
+.leaflet-control-attribution a:hover { color: var(--accent); }
+
+/* Zoom control: stock Leaflet ships a white box with black glyphs, which on
+   this page was the brightest thing on screen — chrome outshouting the data.
+   Same shape and hit target as the header actions, so the dashboard's
+   controls read as one family. */
+.leaflet-control-zoom {
+    border: none !important;
+    box-shadow: none !important;
+}
+.leaflet-control-zoom a.leaflet-control-zoom-in,
+.leaflet-control-zoom a.leaflet-control-zoom-out {
+    width: 30px;
+    height: 30px;
+    line-height: 28px;
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    color: var(--text-dim);
+    border: 1px solid var(--line);
+    font-size: var(--fs-lg);
+    font-weight: 400;
+    transition: color var(--dur) var(--ease),
+        background var(--dur) var(--ease),
+        border-color var(--dur) var(--ease);
+}
+.leaflet-control-zoom a.leaflet-control-zoom-in {
+    border-radius: var(--r-md) var(--r-md) 0 0;
+}
+.leaflet-control-zoom a.leaflet-control-zoom-out {
+    border-radius: 0 0 var(--r-md) var(--r-md);
+    border-top: none;
+}
+.leaflet-control-zoom a:hover {
+    background: var(--raised);
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.leaflet-control-zoom a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    z-index: 1;
+}
+.leaflet-control-zoom a.leaflet-disabled {
+    background: color-mix(in srgb, var(--surface) 60%, transparent);
+    color: var(--line);
+    cursor: not-allowed;
 }
 .charts-container {
     display: grid;
@@ -1260,6 +1361,18 @@ tbody {
 .chart-wrapper {
     display: flex;
     flex-direction: column;
+}
+/* Sits beside the canvas (never replacing it) so a span switch can redraw. */
+.chart-empty {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+}
+.chart-empty[hidden] {
+    display: none;
 }
 #attack-types-chart {
     max-height: 350px;
@@ -1276,7 +1389,7 @@ tbody {
 /* Raw Request Modal */
 .raw-request-modal {
     position: fixed;
-    z-index: 1000;
+    z-index: var(--z-modal);
     left: 0;
     top: 0;
     width: 100%;
@@ -1332,7 +1445,7 @@ tbody {
     color: var(--text);
     white-space: pre-wrap;
     word-wrap: break-word;
-    max-height: 400px;
+    max-height: 60vh;
     overflow-y: auto;
 }
 .raw-token-method {
@@ -1418,7 +1531,7 @@ tbody {
     background: var(--raised);
     border: 1px solid var(--line);
     border-radius: var(--r-md);
-    z-index: 100;
+    z-index: var(--z-popover);
     box-shadow: 0 4px 12px color-mix(in srgb, black 40%, transparent);
 }
 .raw-attachment-item {
@@ -1450,7 +1563,7 @@ tbody {
 /* Auth Modal */
 .auth-modal {
     position: fixed;
-    z-index: 1000;
+    z-index: var(--z-modal);
     left: 0;
     top: 0;
     width: 100%;
@@ -1510,6 +1623,10 @@ tbody {
 .auth-modal-body {
     padding: var(--s6);
     overflow-y: auto;
+    /* A flex child defaults to min-height:auto, which lets it grow past the
+       parent's max-height instead of scrolling. Every modal needs this; only
+       the long ones showed it. */
+    min-height: 0;
 }
 
 /* Export modal: compact checkbox sections */
@@ -1763,7 +1880,7 @@ tbody {
 /* Custom confirm/alert modal */
 .krawl-modal-overlay {
     position: fixed;
-    z-index: 1100;
+    z-index: var(--z-alert);
     left: 0;
     top: 0;
     width: 100%;
@@ -1971,16 +2088,18 @@ tbody {
         font-size: var(--fs-xl);
         margin-bottom: var(--s5);
     }
-    .github-logo {
+    .brand {
         position: relative;
         top: auto;
         left: auto;
+        max-width: 100%;
         margin-bottom: var(--s4);
     }
-    .download-section {
+    .header-corner {
         position: relative;
         top: auto;
         right: auto;
+        align-items: flex-end;
         margin-bottom: var(--s5);
     }
     .stats-grid {
@@ -2017,14 +2136,6 @@ tbody {
         padding: var(--s3) var(--s4);
         font-size: var(--fs-xs);
     }
-    .ip-stats-dropdown {
-        flex-direction: column;
-        gap: var(--s4);
-    }
-    .stats-right {
-        flex: 0 0 auto;
-        width: 100%;
-    }
     .radar-chart {
         width: 160px;
         height: 160px;
@@ -2039,7 +2150,7 @@ tbody {
         max-height: 300px;
     }
     #attacker-map {
-        height: 350px !important;
+        height: 460px !important;
     }
     .leaflet-popup-content {
         min-width: 200px !important;
@@ -2132,18 +2243,6 @@ tbody {
     .ip-clickable {
         display: inline-block;
     }
-    .ip-stats-dropdown {
-        flex-direction: column;
-        gap: var(--s3);
-        font-size: var(--fs-xs);
-    }
-    .stats-left {
-        flex: 1;
-    }
-    .stats-right {
-        flex: 0 0 auto;
-        width: 100%;
-    }
     .radar-chart {
         width: 140px;
         height: 140px;
@@ -2151,15 +2250,6 @@ tbody {
     .radar-legend {
         margin-top: var(--s2);
         font-size: var(--fs-2xs);
-    }
-    .stat-row {
-        padding: var(--s1) 0;
-    }
-    .stat-label-sm {
-        font-size: var(--fs-xs);
-    }
-    .stat-value-sm {
-        font-size: var(--fs-sm);
     }
     .category-badge {
         padding: var(--s1) var(--s2);
@@ -2195,7 +2285,7 @@ tbody {
         font-size: var(--fs-2xs);
     }
     #attacker-map {
-        height: 300px !important;
+        height: 380px !important;
     }
     .leaflet-popup-content {
         min-width: 150px !important;
@@ -2218,12 +2308,21 @@ tbody {
         padding: var(--s2) var(--s3);
         font-size: var(--fs-2xs);
     }
-    .github-logo {
+    .brand {
         font-size: var(--fs-xs);
     }
-    .github-logo svg {
-        width: 24px;
-        height: 24px;
+    .brand-mark svg,
+    .brand-logo {
+        height: 28px;
+        width: 28px;
+    }
+    .brand-logo {
+        width: auto;
+        max-width: 100px;
+    }
+    /* Out of room: the mark identifies the deployment, contact does not. */
+    .brand-contact {
+        display: none;
     }
 }
 
@@ -2247,10 +2346,7 @@ tbody {
         padding: var(--s2);
     }
     #attacker-map {
-        height: 250px !important;
-    }
-    .ip-stats-dropdown {
-        gap: var(--s3);
+        height: 320px !important;
     }
     .radar-chart {
         width: 120px;
@@ -2324,6 +2420,78 @@ tbody {
 }
 .view-btn:hover .view-btn-tooltip {
     opacity: 1;
+}
+/* Info icon + tooltip next to a column header (TL Hash) */
+.th-hint {
+    position: relative;
+    display: inline-block;
+    margin-left: var(--s1);
+    vertical-align: middle;
+    cursor: help;
+    color: var(--text-dim);
+}
+.th-hint svg {
+    width: var(--icon-sm);
+    height: var(--icon-sm);
+    display: block;
+}
+.th-hint:hover,
+.th-hint:focus-visible {
+    color: var(--text-strong);
+}
+.th-hint-tip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: var(--s1) var(--s2);
+    background: var(--raised);
+    color: var(--text-strong);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    font-size: var(--fs-2xs);
+    font-weight: 400;
+    width: max-content;
+    max-width: var(--w-trunc);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+    z-index: var(--z-sticky);
+}
+.th-hint:hover .th-hint-tip,
+.th-hint:focus-visible .th-hint-tip {
+    opacity: 1;
+}
+/* Clickable table cells (IP Insight referers/paths, payload filenames, Threats) */
+.data-link {
+    color: var(--accent);
+    text-decoration: none;
+    cursor: pointer;
+    border-bottom: 1px dotted color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.data-link:hover {
+    color: var(--accent-hi);
+    border-bottom-style: solid;
+}
+.campaign-target-link {
+    display: block;
+    max-width: var(--w-trunc);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-decoration: none;
+    color: var(--accent);
+}
+.campaign-target-link:hover {
+    color: var(--accent-hi);
+    text-decoration: underline;
+}
+.file-modal-meta {
+    display: flex;
+    gap: var(--s2);
+    padding-bottom: var(--s2);
+    color: var(--text-dim);
+    font-size: var(--fs-2xs);
 }
 #access-history-section table tr:not(:last-child) td {
     border-bottom: 1px solid var(--line);
@@ -2726,7 +2894,7 @@ tbody {
 /* Expand overlay */
 .expand-overlay {
     position: fixed;
-    z-index: 1000;
+    z-index: var(--z-overlay);
     left: 0;
     top: 0;
     width: 100%;
@@ -2741,16 +2909,17 @@ tbody {
     background-color: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--r-lg);
-    width: 900px;
-    max-width: 92vw;
-    max-height: 85vh;
+    width: 1400px;
+    max-width: 94vw;
+    /* An expanded table is only reachable by asking for it, so give it the
+       screen. A fixed height beats max-height here: the body then owns the
+       one scrollbar, instead of the panel shrinking to a letterbox and
+       handing every inner block its own slider. */
+    height: 88vh;
     display: flex;
     flex-direction: column;
     box-shadow: 0 16px 48px var(--scrim);
     animation: authModalIn 0.2s ease-out;
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
 }
 .expand-overlay-header {
     padding: var(--s4) var(--s6);
@@ -2776,6 +2945,7 @@ tbody {
 .expand-overlay-body {
     padding: var(--s4) var(--s6) var(--s5);
     overflow-y: auto;
+    overscroll-behavior: contain;
     flex: 1;
 }
 .expand-btn {
@@ -3006,6 +3176,124 @@ tbody {
 
 /* ── Export modal ─────────────────────────────────────────────── */
 .export-modal-content { width: 480px; }
+
+/* ── Settings modal ───────────────────────────────────────────────
+   Two tabs. Maintenance: a task is a name, when it runs, and one
+   action. Rows, not a table — the run control needs to sit hard right
+   at every width, and only one task carries options. Configuration is
+   below. The width serves the wider of the two. */
+.settings-modal-content { width: 1080px; max-width: 94vw; }
+
+/* The tab strip reuses .tabs-container/.tab-button from the dashboard so
+   the modal speaks the same tab language; it only needs to lose the page
+   version's bottom margin and sit flush inside the modal frame. */
+.settings-tabs {
+    margin-bottom: 0;
+    padding: 0 var(--s6);
+    border-radius: 0;
+    flex-shrink: 0;
+}
+.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s2);
+}
+.task-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--s4);
+    padding: var(--s3);
+    background: var(--sunken);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--r-md);
+}
+.task-main { min-width: 0; }
+.task-name {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text-strong);
+}
+/* Schedule on the left, which pod does the work on the right. They wrap onto
+   separate lines before either has to truncate. */
+.task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s1) var(--s3);
+    margin-top: 2px;
+    font-size: var(--fs-2xs);
+    color: var(--text-faint);
+}
+.task-schedule { min-width: 0; }
+.task-state { color: var(--ok); }
+
+.task-owner,
+.task-owner-run {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s1);
+}
+
+/* A hostname is an identifier, so it is set in mono like every other piece of
+   log data here -- and left in its real case, unlike the uppercased .cfg-badge
+   labels elsewhere in this modal. */
+.task-pod {
+    font-family: var(--font-mono);
+    padding: 1px var(--s2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
+/* The pod serving this page. The only question the operator cannot answer from
+   any other view. */
+.task-pod-self {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    background: var(--tint-accent);
+}
+
+.task-owner-failed { color: var(--danger); }
+.task-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+    margin-top: var(--s2);
+}
+.task-run-btn {
+    flex: none;
+    padding: var(--s1) var(--s3);
+    background: var(--raised);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    font-size: var(--fs-xs);
+    cursor: pointer;
+    transition: background var(--dur) var(--ease),
+        color var(--dur) var(--ease),
+        border-color var(--dur) var(--ease);
+}
+.task-run-btn:hover:not(:disabled) {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.task-run-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+.task-run-btn:disabled {
+    color: var(--text-faint);
+    cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+    .task-row { flex-direction: column; align-items: stretch; }
+    .task-run-btn { align-self: flex-start; }
+    .task-meta { justify-content: flex-start; }
+}
 /* Category checkboxes carry their category's color. */
 .export-check input[value="attacker"] { accent-color: var(--cat-attacker); }
 .export-check input[value="bad_crawler"] { accent-color: var(--cat-bad-crawler); }
@@ -3107,13 +3395,6 @@ tbody {
 .form-status-error { color: var(--danger); }
 
 /* ── Dashboard header + trends ────────────────────────────────── */
-.icon-link-quiet {
-    display: flex;
-    align-items: center;
-    color: var(--text-faint);
-    transition: color var(--dur) var(--ease);
-}
-.icon-link-quiet:hover { color: var(--accent); }
 .chart-head {
     display: flex;
     align-items: center;
@@ -3124,6 +3405,38 @@ tbody {
     color: var(--text-dim);
     font-size: var(--fs-2xs);
     font-weight: 400;
+}
+/* Campaign chart summary: two counts and the campaign that reached furthest,
+   in the gutter beside the bars. Sized off the chart, not the page. */
+.chart-summary {
+    justify-content: center;
+    gap: var(--s4);
+    border-left: 1px solid var(--line);
+    padding-left: var(--s4);
+}
+.chart-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.chart-stat-value {
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    color: var(--text-strong);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+.chart-stat-label {
+    font-size: var(--fs-2xs);
+    color: var(--text-dim);
+}
+.chart-note {
+    font-size: var(--fs-2xs);
+    color: var(--text-dim);
+    line-height: 1.5;
+}
+.chart-note .data-mono {
+    color: var(--text);
 }
 .period-label {
     min-width: 160px;
@@ -3207,7 +3520,7 @@ tbody {
 .col-w-130 { width: 130px; }
 .map-frame { border: 1px solid var(--line); border-radius: var(--r-md); }
 .map-frame-sm { height: 300px; }
-.map-frame-lg { height: 450px; }
+.map-frame-lg { height: 620px; }
 .dot-inline {
     display: inline-block;
     width: var(--s3);
@@ -3318,4 +3631,166 @@ td:last-child {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+
+/* ── Settings > Configuration ─────────────────────────────────────
+   A structured echo of config.yaml: the same section names, the same
+   keys, in the same mono the rest of the dashboard reserves for data.
+   The operator is reading the file they would edit, so it is set like
+   a file — a hairline per row, keys dim, values bright — rather than
+   dressed up as a settings form it is not. Only a value that has
+   actually been changed carries a badge; a default earns no ink. */
+.cfg-body { padding-top: var(--s5); }
+
+.cfg-inline {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text);
+    background: var(--raised);
+    border-radius: var(--r-sm);
+    padding: 1px 4px;
+}
+
+.cfg-toolbar {
+    /* 71 rows scroll past quickly; the filter has to stay reachable. */
+    position: sticky;
+    top: calc(var(--s6) * -1);
+    z-index: 1;
+    margin: calc(var(--s6) * -1) calc(var(--s6) * -1) var(--s5);
+    padding: var(--s4) var(--s6);
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s4);
+    flex-wrap: wrap;
+}
+.cfg-filter { width: 240px; }
+.cfg-legend {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+    flex-wrap: wrap;
+}
+.cfg-legend-note {
+    font-size: var(--fs-2xs);
+    color: var(--text-dim);
+    margin-right: var(--s2);
+}
+
+.cfg-section + .cfg-section { margin-top: var(--s6); }
+.cfg-section-title {
+    /* The yaml block name, in the console register the dashboard already
+       uses for section labels. */
+    margin-bottom: 0;
+    padding-bottom: var(--s2);
+    border-bottom: 1px solid var(--line);
+    color: var(--accent);
+}
+.cfg-section { min-width: 0; }
+
+/* The grid lives on the list, not the row, and each row is display:contents.
+   Every section gets the SAME three column widths: sizing each section to its
+   own longest key made the value column start at a different x in every
+   block, so the panel read as a stack of unrelated little tables instead of
+   one file. 22rem clears the longest key there is
+   (uneven_request_timing_time_window_seconds); the badge column is fixed so
+   the hairlines all end together too. */
+.cfg-rows {
+    margin: 0;
+    display: grid;
+    grid-template-columns: 22rem minmax(0, 1fr) 5rem;
+    column-gap: var(--s5);
+    /* Cells stretch rather than centre so all three hairlines in a row sit at
+       the same height — a badge is taller than a line of text. */
+    align-items: stretch;
+}
+.cfg-row { display: contents; }
+
+/* One line per setting. The rule is drawn on the three cells rather than on
+   the row, because display:contents leaves the row itself with no box. */
+.cfg-key,
+.cfg-value,
+.cfg-source {
+    padding: var(--s2) 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+    /* Every value is one line: a config file is scanned down the key column,
+       and a wrapped tile URL would push the next key out of reach. The full
+       text is in the title attribute for the few that overflow. */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.6;
+}
+.cfg-row:last-child .cfg-key,
+.cfg-row:last-child .cfg-value,
+.cfg-row:last-child .cfg-source { border-bottom: none; }
+
+.cfg-key {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+.cfg-value {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-strong);
+}
+.cfg-empty { color: var(--text-faint); font-style: italic; }
+
+/* A secret reports only that it exists. */
+.cfg-secret {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--text-faint);
+}
+/* The word carries the meaning, so the colour is the only decoration here —
+   a dot as well would state the same bit a third time. */
+.cfg-secret.is-set { color: var(--ok); }
+
+.cfg-source {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+.cfg-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    padding: 1px var(--s2);
+    border-radius: var(--r-sm);
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+.cfg-badge-env {
+    /* An env override silently beats config.yaml, which is the surprise
+       this panel exists to explain. It gets the louder of the two. */
+    color: var(--warn);
+    border-color: color-mix(in srgb, var(--warn) 40%, transparent);
+    background: color-mix(in srgb, var(--warn) 12%, transparent);
+}
+.cfg-badge-custom {
+    color: var(--text-dim);
+    border-color: var(--line);
+}
+
+@media (max-width: 900px) {
+    .cfg-rows { grid-template-columns: 14rem minmax(0, 1fr) 5rem; }
+}
+@media (max-width: 640px) {
+    .cfg-rows { grid-template-columns: minmax(0, 1fr) 5rem; }
+    .cfg-key {
+        grid-column: 1 / -1;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+    .cfg-filter { width: 100%; }
 }

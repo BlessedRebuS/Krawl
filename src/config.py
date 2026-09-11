@@ -29,6 +29,17 @@ DEFAULT_IGNORED_IPS = [
 ]
 
 
+# Esri's dark canvas: no API key, no watermark, and a companion labels layer.
+# CARTO's equivalent now requires a key. Swap via the `map:` config section.
+_DEFAULT_TILE_URL = (
+    "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/"
+    "World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+)
+_DEFAULT_TILE_ATTRIBUTION = (
+    "&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors"
+)
+
+
 @dataclass
 class Config:
     """Configuration class for the deception server"""
@@ -64,10 +75,17 @@ class Config:
     dashboard_secret_path: str = None
     dashboard_password: str | None = None
     dashboard_password_generated: bool = False
+    dashboard_secret_path_generated: bool = False
     dashboard_cache_warmup: bool = True
     dashboard_warmup_pages: int = 10
     dashboard_warmup_aggregation: bool = False
     dashboard_top_n_min_count: int = 5
+    # Dashboard branding — the wordmark in the top-left corner.
+    dashboard_brand_name: str = "Krawl"
+    dashboard_brand_url: str | None = "https://github.com/BlessedRebuS/Krawl"
+    dashboard_brand_logo: str | None = None
+    dashboard_brand_show_version: bool = True
+    dashboard_brand_contact: str | None = None
     probability_error_codes: int = 0  # Percentage (0-100)
 
     # Prometheus metrics
@@ -75,7 +93,7 @@ class Config:
 
     # Crawl limiting settings - for legitimate vs malicious crawlers
     max_pages_limit: int = (
-        100  # Max pages limit for good crawlers and regular users (and bad crawlers/attackers if infinite_pages_for_malicious is False)
+        250  # Max pages limit for good crawlers and regular users (and bad crawlers/attackers if infinite_pages_for_malicious is False)
     )
     infinite_pages_for_malicious: bool = True  # Infinite pages for malicious crawlers
     ban_duration_seconds: int = 600  # Ban duration in seconds for IPs exceeding limits
@@ -93,17 +111,51 @@ class Config:
     database_retention_days: int = 30
     database_persist_suspicious_only: bool = False
 
+    # IPv6 settings — rotating IPv6 proxy pools burn a fresh address per
+    # request, which floods ip_stats with rows that are never seen again.
+    # `ignore` drops them entirely (still logged to stdout, never persisted,
+    # never ban-checked); `purge_existing` also deletes the IPv6 rows already
+    # in the database at the next startup.
+    ipv6_ignore: bool = False
+    ipv6_purge_existing: bool = False
+
+    # Map tiles. The default provider is keyless; set map_api_key when using a
+    # provider that requires one (CARTO started stamping "API KEY REQUIRED"
+    # across unkeyed tiles). See config.yaml for alternative tile_url values.
+    map_tile_url: str = _DEFAULT_TILE_URL
+    map_tile_attribution: str = _DEFAULT_TILE_ATTRIBUTION
+    map_tile_subdomains: str = "abcd"
+    map_api_key: str = ""
+    # Query parameter the key is sent as. Providers disagree: CARTO and Stadia
+    # want `api_key`, Thunderforest `apikey`, MapTiler `key`.
+    map_api_key_param: str = "api_key"
+
     # Analyzer settings
-    http_risky_methods_threshold: float = None
-    violated_robots_threshold: float = None
-    uneven_request_timing_threshold: float = None
-    uneven_request_timing_time_window_seconds: float = None
-    user_agents_used_threshold: float = None
-    attack_urls_threshold: float = None
+    http_risky_methods_threshold: float = 0.1
+    violated_robots_threshold: float = 0.1
+    uneven_request_timing_threshold: float = 0.5
+    uneven_request_timing_time_window_seconds: float = 300
+    user_agents_used_threshold: float = 2
+    attack_urls_threshold: float = 1
 
     # Tarpit settings - opt-in feature to slow down and confuse AI crawlers
     tarpit_enabled: bool = False
     tarpit_delay_seconds: int = 5
+
+    # Threat-intel capture settings
+    # TLSH fuzzy-hash captured payloads/files for near-duplicate variant clustering.
+    # Hashing runs as the scheduled hash-payloads task (see src/tasks/).
+    tlsh_enabled: bool = True
+    # TLSH distance below which a payload joins an existing cluster (< = same
+    # campaign family). 0 = byte-identical; 150 is the conservative default
+    # (variants of a webshell typically diff < 100).
+    tlsh_cluster_threshold: int = 150
+    # A cluster only counts as a campaign (shown on the Threats tab) when its
+    # payload was seen MORE than this many times. 1 = recurring pattern only;
+    # single-shot probes never form campaigns.
+    tlsh_campaign_min_events: int = 10
+    # Capture the inbound HTTP Referer header on access logs (bait-chain tracking).
+    referer_enabled: bool = True
 
     log_level: str = "INFO"
 
@@ -113,6 +165,8 @@ class Config:
     ai_openai_base_url: str | None = "https://api.openai.com/v1"
     ai_api_key: str | None = None
     ai_model: str = "nvidia/nemotron-3-super-120b-a12b:free"
+    # No default: the prompt is config.yaml's to own. Shipping a second copy
+    # here only creates a version that silently disagrees with the file.
     ai_prompt: str = ""
     ai_timeout: int = 60
     ai_max_daily_requests: int = 0
@@ -213,8 +267,11 @@ class Config:
         links = data.get("links", {})
         canary = data.get("canary", {})
         dashboard = data.get("dashboard", {})
+        branding = dashboard.get("branding") or {}
         backups = data.get("backups", {})
         database = data.get("database", {})
+        ipv6_cfg = data.get("ipv6", {})
+        map_cfg = data.get("map", {})
         behavior = data.get("behavior", {})
         analyzer = data.get("analyzer") or {}
         crawl = data.get("crawl", {})
@@ -233,8 +290,10 @@ class Config:
 
         # Handle dashboard_secret_path - auto-generate if null/not set
         dashboard_path = dashboard.get("secret_path")
+        dashboard_secret_path_generated = False
         if dashboard_path is None:
             dashboard_path = f"/{os.urandom(16).hex()}"
+            dashboard_secret_path_generated = True
         else:
             # ensure the dashboard path starts with a /
             if dashboard_path[:1] != "/":
@@ -290,20 +349,39 @@ class Config:
             dashboard_secret_path=dashboard_path,
             dashboard_password=dashboard_password,
             dashboard_password_generated=dashboard_password_generated,
+            dashboard_secret_path_generated=dashboard_secret_path_generated,
             dashboard_cache_warmup=dashboard.get("cache_warmup", True),
             dashboard_warmup_pages=int(dashboard.get("warmup_pages", 10)),
             dashboard_warmup_aggregation=dashboard.get("warmup_aggregation", False),
             dashboard_top_n_min_count=int(dashboard.get("top_n_min_count", 5)),
+            dashboard_brand_name=branding.get("name") or "Krawl",
+            dashboard_brand_url=(
+                branding["url"]
+                if "url" in branding
+                else "https://github.com/BlessedRebuS/Krawl"
+            ),
+            dashboard_brand_logo=branding.get("logo"),
+            dashboard_brand_show_version=branding.get("show_version", True),
+            dashboard_brand_contact=branding.get("contact"),
             metrics_enabled=metrics.get("enabled", True),
             probability_error_codes=behavior.get("probability_error_codes", 0),
             backups_path=backups.get("path", "backups"),
             backups_enabled=backups.get("enabled", False),
-            backups_cron=backups.get("cron"),
+            backups_cron=backups.get("cron", "*/30 * * * *"),
             database_path=database.get("path", "data/krawl.db"),
             database_retention_days=database.get("retention_days", 30),
             database_persist_suspicious_only=database.get(
                 "persist_suspicious_only", False
             ),
+            ipv6_ignore=ipv6_cfg.get("ignore", False),
+            ipv6_purge_existing=ipv6_cfg.get("purge_existing", False),
+            map_tile_url=map_cfg.get("tile_url") or _DEFAULT_TILE_URL,
+            map_tile_attribution=(
+                map_cfg.get("attribution") or _DEFAULT_TILE_ATTRIBUTION
+            ),
+            map_tile_subdomains=map_cfg.get("subdomains", "abcd"),
+            map_api_key=map_cfg.get("api_key", ""),
+            map_api_key_param=map_cfg.get("api_key_param") or "api_key",
             http_risky_methods_threshold=analyzer.get(
                 "http_risky_methods_threshold", 0.1
             ),
@@ -316,6 +394,10 @@ class Config:
             ),
             user_agents_used_threshold=analyzer.get("user_agents_used_threshold", 2),
             attack_urls_threshold=analyzer.get("attack_urls_threshold", 1),
+            tlsh_enabled=analyzer.get("tlsh_enabled", True),
+            tlsh_cluster_threshold=analyzer.get("tlsh_cluster_threshold", 150),
+            tlsh_campaign_min_events=analyzer.get("tlsh_campaign_min_events", 10),
+            referer_enabled=analyzer.get("referer_enabled", True),
             infinite_pages_for_malicious=crawl.get(
                 "infinite_pages_for_malicious", True
             ),
@@ -334,23 +416,7 @@ class Config:
             ai_model=ai.get("model", "nvidia/nemotron-3-super-120b-a12b:free"),
             ai_reasoning_enabled=ai.get("reasoning", {}).get("enabled", True),
             ai_reasoning_effort=ai.get("reasoning", {}).get("effort", "medium"),
-            ai_prompt=ai.get(
-                "prompt",
-                """Your goal is to create a plausible but fake intentionally vulnerable page that might appear on a real server, that can distract attackers. 
-Your input will be a query path, that the attacker asked for. 
-
-Follow this rules:
-1. You must output ONLY the HTML, nothing else
-2. Include realistic content if necessary (links, text, forms, etc.)
-3. Do not add markdown, code blocks, or explanations
-4. Do not include any file in the html, generate everything needed in one single file
-5. Include proper HTML structure with head and body tags
-6. If the request is a common attack vector (e.g., SQLi, XSS), include fake data in response
-7. If the request has a file extension, generate a RAW content relevant to that type (e.g. a fake json for .json requests)
-
-Path: {path}{query_part}
-Generate the complete HTML page.""",
-            ),
+            ai_prompt=ai.get("prompt", ""),
             ai_timeout=ai.get("timeout", 60),
             ai_max_daily_requests=ai.get("max_daily_requests", 0),
             deception_import_pages=deception.get("import_pages", True),

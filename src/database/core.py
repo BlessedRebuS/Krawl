@@ -20,6 +20,7 @@ from database.analytics import AnalyticsRepo
 from database.credentials import CredentialRepo
 from database.generated_pages import GeneratedPageRepo
 from database.ip_stats import IpStatsRepo
+from database.payloads import PayloadRepo
 from ip_utils import defer_persist
 from logger import get_app_logger
 from models import (
@@ -59,28 +60,70 @@ def _ban_multiplier_for(total_violations: int) -> int:
 
 # Statement size, not a per-flush ceiling: the flush loops until drained.
 _FLUSH_BATCH_SIZE = 200
-# ~60 MiB at 1.2 KB/entry. Hitting it means the flush task is behind; the
-# oldest rows are dropped and counted rather than growing until OOM.
+
+# Two ceilings, because a row count is not a memory bound. Entries carry
+# `raw_request`, capped at MAX_RAW_REQUEST (16 KiB), so 50k rows is anywhere
+# between ~60 MiB and ~800 MiB depending on what the traffic looks like — and
+# an attack flood is exactly the traffic that fills the buffer with large
+# entries. The byte budget is what actually holds RSS down; the row cap stays
+# as a cheap second guard.
 _MAX_BUFFER_ROWS = 50_000
+_MAX_BUFFER_BYTES = 64 * 1024 * 1024
 
 _write_buffer: collections.deque = collections.deque(maxlen=_MAX_BUFFER_ROWS)
 _write_lock = threading.Lock()
 _dropped_rows = 0
+_buffer_bytes = 0
+
+
+def _entry_bytes(entry: dict) -> int:
+    """Approximate heap cost of a buffered entry.
+
+    Only the string payloads are worth counting — they are the part that
+    varies by three orders of magnitude. The rest is a fixed dict overhead,
+    approximated by the constant.
+    """
+    raw = entry.get("raw_request") or ""
+    return (
+        len(raw)
+        + len(entry.get("path") or "")
+        + len(entry.get("user_agent") or "")
+        + len(entry.get("ip") or "")
+        + 512
+    )
 
 
 def _buffer_access_log_entry(**kwargs) -> None:
-    """Append an access-log entry to the in-memory write buffer."""
-    global _dropped_rows
+    """Append an access-log entry to the in-memory write buffer.
+
+    Evicts oldest-first when either ceiling is hit, and counts the losses, so
+    a flush task that falls behind degrades into dropped rows rather than an
+    OOM kill.
+    """
+    global _dropped_rows, _buffer_bytes
     kwargs["_buffered_at"] = datetime.now()
+    size = _entry_bytes(kwargs)
     with _write_lock:
         if len(_write_buffer) == _MAX_BUFFER_ROWS:
-            _dropped_rows += 1  # maxlen evicts from the left on append
+            # maxlen evicts from the left on append; account for it ourselves.
+            _buffer_bytes -= _entry_bytes(_write_buffer[0])
+            _dropped_rows += 1
         _write_buffer.append(kwargs)
+        _buffer_bytes += size
+
+        while _buffer_bytes > _MAX_BUFFER_BYTES and len(_write_buffer) > 1:
+            _buffer_bytes -= _entry_bytes(_write_buffer.popleft())
+            _dropped_rows += 1
 
 
 def get_write_buffer_size() -> int:
     """Return current buffer depth (for monitoring)."""
     return len(_write_buffer)
+
+
+def get_write_buffer_bytes() -> int:
+    """Approximate bytes held by the write buffer (for monitoring)."""
+    return _buffer_bytes
 
 
 def get_dropped_rows() -> int:
@@ -112,6 +155,7 @@ class DatabaseManager:
             cls._instance.analytics = AnalyticsRepo(cls._instance)
             cls._instance.ip_stats = IpStatsRepo(cls._instance)
             cls._instance.access_logs = AccessLogRepo(cls._instance)
+            cls._instance.payloads = PayloadRepo(cls._instance)
         return cls._instance
 
     def initialize(
@@ -192,6 +236,13 @@ class DatabaseManager:
 
         run_migrations(self._engine)
 
+        # Collect planner statistics if this database has never had any. Runs
+        # after the migrations so the autovacuum thresholds they set are in
+        # place first; a no-op on every boot but the first.
+        from database.maintenance import bootstrap_analyze
+
+        bootstrap_analyze(self._engine)
+
         # Set restrictive file permissions for SQLite (owner read/write only)
         if mode == "standalone" and os.path.exists(database_path):
             try:
@@ -210,6 +261,19 @@ class DatabaseManager:
             )
         return self._Session()
 
+    @property
+    def engine(self):
+        """The SQLAlchemy Engine, for statements that cannot run in a session.
+
+        ANALYZE and friends need connection-level control (AUTOCOMMIT), which a
+        thread-local ORM session does not give.
+        """
+        if not self._initialized:
+            raise RuntimeError(
+                "DatabaseManager not initialized. Call initialize() first."
+            )
+        return self._engine
+
     def close_session(self) -> None:
         """Close the current thread-local session."""
         if self._initialized:
@@ -226,6 +290,8 @@ class DatabaseManager:
         attack_types: list[str] | None = None,
         matched_patterns: dict[str, str] | None = None,
         raw_request: str | None = None,
+        referer: str | None = None,
+        file_payloads: list[dict] | None = None,
         increment_page_visit: bool = False,
         max_pages_limit: int = 0,
     ) -> int:
@@ -242,6 +308,9 @@ class DatabaseManager:
             attack_types: List of detected attack types
             matched_patterns: Dict mapping attack_type to matched pattern
             raw_request: Full raw HTTP request for forensic analysis
+            referer: Inbound HTTP Referer header (bait-chain tracking)
+            file_payloads: Uploaded-file dicts {filename, content_type, size,
+                content(bytes)} to persist as captured_payloads rows
             increment_page_visit: Also bump the page visit counter in the same tx
             max_pages_limit: Ban threshold (used with increment_page_visit)
 
@@ -270,6 +339,8 @@ class DatabaseManager:
                         attack_types=attack_types,
                         matched_patterns=matched_patterns,
                         raw_request=raw_request,
+                        referer=referer,
+                        file_payloads=file_payloads,
                     )
             else:
                 if not persist_suspicious_only or is_suspicious:
@@ -282,6 +353,7 @@ class DatabaseManager:
                         is_honeypot_trigger=is_honeypot_trigger,
                         timestamp=datetime.now(),
                         raw_request=raw_request,
+                        referer=sanitize_path(referer) if referer else None,
                     )
                     session.add(access_log)
                     session.flush()
@@ -297,6 +369,32 @@ class DatabaseManager:
                                 ),
                             )
                             session.add(detection)
+
+                    # Persist captured file payloads (WebShell/uploads) linked to this log.
+                    if file_payloads:
+                        from models import CapturedPayload
+
+                        for fp in file_payloads:
+                            session.add(
+                                CapturedPayload(
+                                    access_log_id=access_log.id,
+                                    ip=sanitize_ip(ip),
+                                    filename=(
+                                        fp.get("filename")[:255]
+                                        if fp.get("filename")
+                                        else None
+                                    ),
+                                    content_type=(
+                                        fp.get("content_type")[:128]
+                                        if fp.get("content_type")
+                                        else None
+                                    ),
+                                    size=fp.get("size", 0),
+                                    tlsh_hash=fp.get("tlsh_hash"),
+                                    cluster_id=fp.get("cluster_id"),
+                                    sha256=fp.get("sha256"),
+                                )
+                            )
 
             # Always update IP stats counters (+ optional page visit increment)
             page_visit_count, was_new_ip, was_first_honeypot = self._update_ip_stats(
@@ -326,8 +424,7 @@ class DatabaseManager:
                         mc.increment("honeypot_triggered")
                     if was_first_honeypot:
                         mc.increment("honeypot_ips")
-                    if mc.add_to_set("paths", sanitize_path(path)):
-                        mc.increment("unique_paths")
+                    mc.record_distinct("paths", sanitize_path(path), "unique_paths")
                     if attack_types:
                         for attack_type in attack_types:
                             mc.increment("attack_detections", attack_type[:50])
@@ -345,8 +442,11 @@ class DatabaseManager:
 
     def _pop_batch(self, n: int) -> list[dict]:
         """Remove up to n entries from the front of the write buffer."""
+        global _buffer_bytes
         with _write_lock:
-            return [_write_buffer.popleft() for _ in range(min(len(_write_buffer), n))]
+            batch = [_write_buffer.popleft() for _ in range(min(len(_write_buffer), n))]
+            _buffer_bytes -= sum(_entry_bytes(e) for e in batch)
+            return batch
 
     def flush_access_log_buffer(self, max_rows: int = 50_000) -> int:
         """
@@ -372,7 +472,7 @@ class DatabaseManager:
         """Insert one batch of buffered entries: two statements, not two per row."""
         session = self.session
         try:
-            logs, attacks_per_entry = [], []
+            logs, attacks_per_entry, payloads_per_entry = [], [], []
             for entry in entries:
                 ts = entry.pop("_buffered_at", datetime.now())
                 attacks_per_entry.append(
@@ -381,6 +481,8 @@ class DatabaseManager:
                         entry.pop("matched_patterns", None) or {},
                     )
                 )
+                file_payloads = entry.pop("file_payloads", None)
+                payloads_per_entry.append(file_payloads)
                 logs.append(
                     {
                         "ip": sanitize_ip(entry["ip"]),
@@ -391,6 +493,11 @@ class DatabaseManager:
                         "is_honeypot_trigger": entry.get("is_honeypot_trigger", False),
                         "timestamp": ts,
                         "raw_request": entry.get("raw_request"),
+                        "referer": (
+                            sanitize_path(entry.get("referer"))
+                            if entry.get("referer")
+                            else None
+                        ),
                     }
                 )
 
@@ -408,6 +515,8 @@ class DatabaseManager:
                     "matched_pattern": sanitize_attack_pattern(
                         patterns.get(attack_type, "")
                     ),
+                    "tlsh_hash": None,
+                    "cluster_id": None,
                 }
                 for log_id, (types, patterns) in zip(
                     log_ids, attacks_per_entry, strict=True
@@ -418,6 +527,33 @@ class DatabaseManager:
             if detections:
                 session.execute(insert(AttackDetection), detections)
 
+            # Insert captured file payloads, linked to their access logs.
+            from models import CapturedPayload
+
+            captured_rows = [
+                {
+                    "access_log_id": log_id,
+                    "ip": sanitize_ip(entry["ip"]),
+                    "filename": (
+                        fp.get("filename")[:255] if fp.get("filename") else None
+                    ),
+                    "content_type": (
+                        fp.get("content_type")[:128] if fp.get("content_type") else None
+                    ),
+                    "size": fp.get("size", 0),
+                    "tlsh_hash": fp.get("tlsh_hash"),
+                    "cluster_id": fp.get("cluster_id"),
+                    "sha256": fp.get("sha256"),
+                }
+                for log_id, (entry, file_payloads) in zip(
+                    log_ids, zip(entries, payloads_per_entry, strict=True), strict=True
+                )
+                if file_payloads
+                for fp in file_payloads
+            ]
+            if captured_rows:
+                session.execute(insert(CapturedPayload), captured_rows)
+
             session.commit()
             return len(logs)
 
@@ -427,8 +563,10 @@ class DatabaseManager:
                 f"Error flushing access log buffer ({len(entries)} entries): {e}"
             )
             # Re-queue failed entries so they aren't lost
+            global _buffer_bytes
             with _write_lock:
                 _write_buffer.extendleft(reversed(entries))
+                _buffer_bytes += sum(_entry_bytes(e) for e in entries)
             return 0
         finally:
             self.close_session()
@@ -552,6 +690,10 @@ class DatabaseManager:
 
                 delete_cached_short(f"ban:{sanitized_ip}")
 
+                import ban_cache
+
+                ban_cache.add(sanitized_ip)
+
         return page_visit_count, was_new_ip, was_first_honeypot
 
     def increment_page_visit(self, ip: str, max_pages_limit: int) -> int:
@@ -597,6 +739,10 @@ class DatabaseManager:
                 from dashboard_cache import delete_cached_short
 
                 delete_cached_short(f"ban:{sanitized_ip}")
+
+                import ban_cache
+
+                ban_cache.add(sanitized_ip)
 
             return ip_stats.page_visit_count
 

@@ -6,6 +6,7 @@ Server-rendered HTML partials for table pagination, sorting, IP details, and sea
 """
 
 import asyncio
+from datetime import datetime
 
 from fastapi import APIRouter, Query, Request, Response
 from fastapi.responses import HTMLResponse
@@ -13,13 +14,13 @@ from fastapi.responses import HTMLResponse
 from config import get_config
 from dashboard_cache import (
     get_cached,
+    get_cached_list_page,
     get_cached_table,
     is_warm,
-    paginate_cached_list,
     set_cached_table,
 )
 from dependencies import get_db, get_templates
-from routes.api import verify_auth
+from routes.api import _campaign_window, verify_auth
 
 router = APIRouter()
 
@@ -37,6 +38,16 @@ _INLINE_401 = "<p style='color:#f85149;'>Unauthorized</p>"
 def _dashboard_path(request: Request) -> str:
     config = request.app.state.config
     return "/" + config.dashboard_secret_path.lstrip("/")
+
+
+def _parse_day(day: str):
+    """ISO date string -> datetime.date, or None when absent/invalid."""
+    if not day:
+        return None
+    try:
+        return datetime.fromisoformat(day.strip()).date()
+    except ValueError:
+        return None
 
 
 # ── Honeypot Triggers ────────────────────────────────────────────────
@@ -60,9 +71,8 @@ async def htmx_honeypot(
         and sort_order == "desc"
         and is_warm()
     ):
-        agg = get_cached("agg:honeypot")
-        if agg is not None:
-            sliced = paginate_cached_list(agg, page=page, page_size=5)
+        sliced = get_cached_list_page("agg:honeypot", page=page, page_size=5)
+        if sliced is not None:
             result = {"honeypots": sliced["items"], "pagination": sliced["pagination"]}
 
     if result is None:
@@ -183,11 +193,10 @@ async def htmx_top_paths(
         and not is_honeypot
         and is_warm()
     ):
-        agg = get_cached("agg:top_paths")
-        if agg is not None:
-            sliced = paginate_cached_list(
-                agg, page=max(1, page), page_size=min(page_size, 100)
-            )
+        sliced = get_cached_list_page(
+            "agg:top_paths", page=max(1, page), page_size=min(page_size, 100)
+        )
+        if sliced is not None:
             result = {"paths": sliced["items"], "pagination": sliced["pagination"]}
 
     # Legacy page-1 warmup fallback
@@ -336,11 +345,10 @@ async def htmx_top_ua(
         and not search
         and is_warm()
     ):
-        agg = get_cached("agg:top_ua")
-        if agg is not None:
-            sliced = paginate_cached_list(
-                agg, page=max(1, page), page_size=min(page_size, 100)
-            )
+        sliced = get_cached_list_page(
+            "agg:top_ua", page=max(1, page), page_size=min(page_size, 100)
+        )
+        if sliced is not None:
             result = {
                 "user_agents": sliced["items"],
                 "pagination": sliced["pagination"],
@@ -407,9 +415,8 @@ async def htmx_attackers(
         and sort_order == "desc"
         and is_warm()
     ):
-        agg = get_cached("agg:attackers")
-        if agg is not None:
-            sliced = paginate_cached_list(agg, page=page, page_size=10)
+        sliced = get_cached_list_page("agg:attackers", page=page, page_size=10)
+        if sliced is not None:
             result = {"attackers": sliced["items"], "pagination": sliced["pagination"]}
 
     if result is None:
@@ -503,9 +510,10 @@ async def htmx_credentials(
     page: int = Query(1),
     sort_by: str = Query("timestamp"),
     sort_order: str = Query("desc"),
+    ip_filter: str = Query(""),
 ):
     page = max(1, page)
-    cache_key = f"credentials:{page}:{sort_by}:{sort_order}"
+    cache_key = f"credentials:{page}:{sort_by}:{sort_order}:{ip_filter}"
     cached = get_cached_table(cache_key)
     if cached:
         result = cached
@@ -517,6 +525,7 @@ async def htmx_credentials(
             page_size=5,
             sort_by=sort_by,
             sort_order=sort_order,
+            ip_filter=ip_filter or None,
         )
         set_cached_table(cache_key, result)
 
@@ -530,6 +539,7 @@ async def htmx_credentials(
             "pagination": result["pagination"],
             "sort_by": sort_by,
             "sort_order": sort_order,
+            "ip_filter": ip_filter,
         },
     )
 
@@ -593,6 +603,9 @@ async def htmx_attacks(
                 "user_agent": attack.get("user_agent", ""),
                 "timestamp": attack.get("timestamp"),
                 "log_id": attack.get("id"),
+                "tlsh_hash": attack.get("tlsh_hash"),
+                "cluster_id": attack.get("cluster_id"),
+                "cluster_hash": attack.get("cluster_hash"),
             }
         )
 
@@ -761,42 +774,159 @@ async def htmx_ip_insight(ip_address: str, request: Request):
     )
 
 
-# ── IP Detail ────────────────────────────────────────────────────────
+# ── IP referers and payloads (IP Insight) ──────────────────────────
 
 
-@router.get("/htmx/ip-detail/{ip_address:path}")
-async def htmx_ip_detail(ip_address: str, request: Request):
+@router.get("/htmx/ip-referers")
+async def htmx_ip_referers(
+    request: Request,
+    ip_filter: str = Query(""),
+):
     db = get_db()
-    stats = await asyncio.to_thread(db.ip_stats.get_ip_stats_by_ip, ip_address)
-
-    if not stats:
-        stats = {"ip": ip_address, "total_requests": "N/A"}
-
-    # Transform fields for template compatibility
-    list_on = stats.get("list_on") or {}
-    stats["blocklist_memberships"] = list(list_on.keys()) if list_on else []
-    stats["reverse_dns"] = stats.get("reverse")
-
-    # Filter out unhashable types (dicts, lists) for Jinja2 template engine compatibility
-    # but keep specific fields needed by the template (category_scores, category_history, blocklist_memberships)
-    _keep_keys = {"blocklist_memberships", "category_scores", "category_history"}
-    clean_stats = {}
-    for k, v in stats.items():
-        if isinstance(v, (int, str, float, type(None), bool)):
-            clean_stats[k] = v
-        elif k in _keep_keys:
-            clean_stats[k] = v
-
-    is_tracked = await asyncio.to_thread(db.ip_stats.is_ip_tracked, ip_address)
-
+    items = await asyncio.to_thread(
+        db.payloads.get_referer_history, ip=ip_filter, limit=50
+    )
     templates = get_templates()
     return templates.TemplateResponse(
         request,
-        "dashboard/partials/ip_detail.html",
+        "dashboard/partials/referer_history_table.html",
         {
             "dashboard_path": _dashboard_path(request),
-            "stats": clean_stats,
-            "is_tracked": is_tracked,
+            "items": items,
+            "ip_filter": ip_filter,
+        },
+    )
+
+
+@router.get("/htmx/ip-payloads")
+async def htmx_ip_payloads(
+    request: Request,
+    ip_filter: str = Query(""),
+    page: int = Query(1),
+):
+    page = max(1, page)
+    db = get_db()
+    result = await asyncio.to_thread(
+        db.payloads.get_by_ip, ip=ip_filter, page=page, page_size=10
+    )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/payloads_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "items": result["payloads"],
+            "pagination": result["pagination"],
+            "ip_filter": ip_filter,
+        },
+    )
+
+
+# ── Global Filename Index (Threat tab) ───────────────────────────────
+
+
+@router.get("/htmx/global-filenames")
+async def htmx_global_filenames(
+    request: Request,
+    page: int = Query(1),
+):
+    page = max(1, page)
+    cache_key = f"filenames:{page}"
+    result = get_cached_table(cache_key)
+    if not result:
+        db = get_db()
+        result = await asyncio.to_thread(
+            db.payloads.get_global_index, page=page, page_size=20
+        )
+        set_cached_table(cache_key, result)
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/filenames_index_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "index": result["index"],
+            "pagination": result["pagination"],
+        },
+    )
+
+
+# ── Similar events (fuzzy TLSH match across attacks + files) ─────────
+
+
+@router.get("/htmx/similar-events")
+async def htmx_similar_events(
+    request: Request,
+    tlsh: str = Query(""),
+):
+    db = get_db()
+    threshold = get_config().tlsh_cluster_threshold
+    items = await asyncio.to_thread(
+        db.payloads.get_similar_events, base_hash=tlsh, threshold=threshold
+    )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/similar_threats_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "items": items,
+            "tlsh": tlsh,
+            "threshold": threshold,
+        },
+    )
+
+
+# ── Recurring patterns / campaign clusters (Threats tab) ─────────────
+
+
+@router.get("/htmx/pattern-clusters")
+async def htmx_pattern_clusters(
+    request: Request,
+    day: str = Query(""),
+    days: int = Query(0),
+    offset: int = Query(0),
+):
+    # Clustering scans every payload hash in the window, so it is the most
+    # expensive panel on the tab and the one warmup exists for.
+    cache_key = f"clusters:{day}:{days}:{offset}"
+    cached = get_cached_table(cache_key)
+    if cached:
+        clusters = cached["clusters"]
+    else:
+        db = get_db()
+        window = _campaign_window(day, days=days, offset=offset)
+        kwargs: dict = {}
+        if window is not None:
+            kwargs["start"], kwargs["end"] = window
+        clusters = await asyncio.to_thread(db.payloads.get_campaign_clusters, **kwargs)
+        set_cached_table(cache_key, {"clusters": clusters})
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/pattern_clusters_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "clusters": clusters,
+        },
+    )
+
+
+@router.get("/htmx/cluster-events")
+async def htmx_cluster_events(
+    request: Request,
+    cluster: str = Query(""),
+):
+    db = get_db()
+    events = await asyncio.to_thread(db.payloads.get_cluster_events, cluster_id=cluster)
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/cluster_events_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "items": events,
+            "cluster": cluster,
         },
     )
 

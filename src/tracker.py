@@ -3,6 +3,7 @@
 import logging
 import re
 import urllib.parse
+from datetime import datetime
 
 from database import DatabaseManager, get_database
 from ip_utils import is_ignored_ip
@@ -151,6 +152,8 @@ class AccessTracker:
         method: str = "GET",
         raw_request: str = "",
         increment_page_visit: bool = False,
+        referer: str = "",
+        file_payloads: list[dict] | None = None,
     ) -> int:
         """
         Record an access attempt.
@@ -166,6 +169,8 @@ class AccessTracker:
             method: HTTP method
             raw_request: Full raw HTTP request for forensic analysis
             increment_page_visit: Also bump page visit counter in the same DB tx
+            referer: Inbound HTTP Referer header (bait-chain tracking)
+            file_payloads: Uploaded-file dicts to persist as captured_payloads rows
 
         Returns:
             The page visit count (0 when increment_page_visit is False or on error)
@@ -187,6 +192,18 @@ class AccessTracker:
         path_exclude = {"login_attempt"} if method != "POST" else None
         attack_findings = self.detect_attack_type(path, exclude=path_exclude)
 
+        # Bait-chain referer + file payloads are derived from the raw request so
+        # every recording path (honeypot dependency, catch-all POST, deception
+        # middleware) captures them even when the caller didn't thread them through.
+        if not referer and raw_request and config.referer_enabled:
+            _m = re.search(r"\r\nReferer:\s*([^\r\n]+)", raw_request, re.IGNORECASE)
+            if _m:
+                referer = _m.group(1).strip()
+        if file_payloads is None and raw_request and config.tlsh_enabled:
+            from tlsh_utils import extract_file_payloads
+
+            file_payloads = extract_file_payloads(raw_request)
+
         # common_probes and login_attempt are path-based — skip them on body to avoid
         # false positives from form fields like redirect_to=/wp-admin/
         if len(body) > 0:
@@ -198,15 +215,34 @@ class AccessTracker:
             )
             # If credentials were submitted (even on non-login paths like AI-generated pages),
             # tag as login_attempt
-            if method == "POST" and "login_attempt" not in attack_findings:
+            if method == "POST" and not any(
+                t == "login_attempt" for t, _ in attack_findings
+            ):
                 username, password = self.parse_credentials(decoded_body)
                 if username or password:
-                    attack_findings.append("login_attempt")
+                    attack_findings.append(("login_attempt", "/login"))
+
+        attack_types = [t for t, _ in attack_findings]
+        matched_patterns = {t: m for t, m in attack_findings}
+
+        # TLSH hashing + campaign clustering of attack bodies moved to the
+        # scheduled hash-payloads task (reads the persisted raw_request), so
+        # ingest stays cheap. Captured files stay inline: uploads are rare and
+        # already fully parsed.
+        if file_payloads and self.db:
+            _seen_ts = datetime.now()
+            for fp in file_payloads:
+                if fp.get("tlsh_hash") and not fp.get("cluster_id"):
+                    fp["cluster_id"] = self.db.payloads.assign_cluster(
+                        fp["tlsh_hash"],
+                        _seen_ts,
+                        threshold=config.tlsh_cluster_threshold,
+                    )
 
         is_suspicious = (
             self.is_suspicious_user_agent(user_agent)
             or self.is_honeypot_path(path)
-            or len(attack_findings) > 0
+            or len(attack_types) > 0
         )
         is_honeypot = self.is_honeypot_path(path)
 
@@ -220,8 +256,11 @@ class AccessTracker:
                     method=method,
                     is_suspicious=is_suspicious,
                     is_honeypot_trigger=is_honeypot,
-                    attack_types=attack_findings if attack_findings else None,
+                    attack_types=attack_types if attack_types else None,
+                    matched_patterns=matched_patterns if matched_patterns else None,
                     raw_request=raw_request if raw_request else None,
+                    referer=referer if referer else None,
+                    file_payloads=file_payloads,
                     increment_page_visit=increment_page_visit,
                     max_pages_limit=self.max_pages_limit if increment_page_visit else 0,
                 )
@@ -231,16 +270,17 @@ class AccessTracker:
 
     def detect_attack_type(
         self, data: str, exclude: set[str] | None = None
-    ) -> list[str]:
+    ) -> list[tuple[str, str]]:
         """
-        Returns a list of all attack types found in path data
+        Returns a list of (attack_type, matched_substring) tuples found in data.
         """
         findings = []
         for name, pattern in self.attack_types.items():
             if exclude and name in exclude:
                 continue
-            if re.search(pattern, data, re.IGNORECASE):
-                findings.append(name)
+            m = re.search(pattern, data, re.IGNORECASE)
+            if m:
+                findings.append((name, m.group(0)[:256]))
         return findings
 
     def is_honeypot_path(self, path: str) -> bool:

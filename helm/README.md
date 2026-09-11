@@ -15,7 +15,7 @@ A Helm chart for deploying the Krawl honeypot application on Kubernetes.
 
 ```bash
 helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
-  --version 2.3.1 \
+  --version 2.4.0 \
   --namespace krawl-system \
   --create-namespace \
   -f values.yaml  # optional
@@ -62,7 +62,7 @@ This deploys PostgreSQL and Redis StatefulSets with Services in the same namespa
 
 Minimal `values-minimal.yaml` for scalable mode:
 
-> **Tip**: For production deployments, pin the image tag to a specific version (e.g., `tag: "2.3.1"`) instead of `latest` to ensure reproducible deployments.
+> **Tip**: For production deployments, pin the image tag to a specific version (e.g., `tag: "2.4.0"`) instead of `latest` to ensure reproducible deployments.
 
 ```yaml
 mode: scalable
@@ -179,7 +179,7 @@ The following table lists the main configuration parameters of the Krawl chart a
 | `mode` | Deployment mode (`standalone` or `scalable`) | `scalable` |
 | `replicaCount` | Number of pod replicas (>1 only in scalable mode) | `1` |
 | `image.repository` | Image repository | `ghcr.io/blessedrebus/krawl` |
-| `image.tag` | Image tag | `2.3.1` |
+| `image.tag` | Image tag | `2.4.0` |
 | `image.pullPolicy` | Image pull policy | `Always` |
 
 ### Service Configuration
@@ -254,6 +254,15 @@ The Krawl service already includes `externalTrafficPolicy: Local` by default to 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `config.dashboard.secret_path` | Secret dashboard path (auto-generated if null) | `null` |
+| `config.dashboard.cache_warmup` | Pre-compute dashboard data every 5 minutes (`KRAWL_DASHBOARD_CACHE_WARMUP`) | `true` |
+| `config.dashboard.warmup_pages` | Pages pre-warmed per table panel (`KRAWL_DASHBOARD_WARMUP_PAGES`) | `10` |
+| `config.dashboard.warmup_aggregation` | Pre-compute full top_paths/top_ua aggregations (`KRAWL_DASHBOARD_WARMUP_AGGREGATION`) | `true` |
+| `config.dashboard.top_n_min_count` | Minimum access count to appear in top-N panels (`KRAWL_DASHBOARD_TOP_N_MIN_COUNT`) | `5` |
+| `config.dashboard.branding.name` | Name in the dashboard wordmark and heading (`KRAWL_DASHBOARD_BRAND_NAME`) | `Krawl` |
+| `config.dashboard.branding.url` | Where the wordmark links; `null` renders it as plain text (`KRAWL_DASHBOARD_BRAND_URL`) | Krawl's repository |
+| `config.dashboard.branding.logo` | Image URL shown instead of the GitHub mark (`KRAWL_DASHBOARD_BRAND_LOGO`) | `null` |
+| `config.dashboard.branding.show_version` | Show the version beside the name (`KRAWL_DASHBOARD_BRAND_SHOW_VERSION`) | `true` |
+| `config.dashboard.branding.contact` | Contact shown under the header icons: an address, a URL, or plain text (`KRAWL_DASHBOARD_BRAND_CONTACT`) | `null` |
 | `dashboardPassword` | Password for protected panels (injected via Secret as `KRAWL_DASHBOARD_PASSWORD` env, auto-generated if empty) | `""` |
 | `dashboardExistingSecret.name` | Externally-managed Secret holding the dashboard password (and optionally the path). When set, the chart-managed Secret is not created. | `""` |
 | `dashboardExistingSecret.passwordKey` | Key holding the dashboard password | `dashboard-password` |
@@ -314,7 +323,43 @@ The Krawl service already includes `externalTrafficPolicy: Local` by default to 
 | `postgres.persistence.size` | PVC size | `5Gi` |
 | `postgres.persistence.accessMode` | PVC access mode | `ReadWriteOnce` |
 | `postgres.persistence.storageClassName` | Storage class name | `` |
-| `postgres.resources` | CPU/memory resource requests and limits | `{}` |
+| `postgres.resources` | CPU/memory resource requests and limits | `1Gi` limit / `512Mi` request |
+| `postgres.config` | Server settings passed as `-c name=value` flags; set a key to `null` to drop it | see below |
+| `postgres.shmSize` | Size of `/dev/shm` (tmpfs); `""` leaves the Kubernetes 64Mi default | `256Mi` |
+
+#### PostgreSQL tuning
+
+The chart overrides a few server defaults that are far too small for the table
+sizes Krawl reaches on a busy sensor:
+
+| Setting | Chart default | Server default |
+|---------|---------------|----------------|
+| `shared_buffers` | `256MB` | `128MB` |
+| `effective_cache_size` | `512MB` | `4GB` |
+| `work_mem` | `16MB` | `4MB` |
+| `maintenance_work_mem` | `128MB` | `64MB` |
+| `random_page_cost` | `4` | `4` |
+| `effective_io_concurrency` | `1` | `1` |
+
+The last two are deliberately left at their rotational-disk defaults. On
+SSD-backed storage set `random_page_cost: "1.1"` and
+`effective_io_concurrency: "100"`; both are actively harmful on spinning or
+network-replicated volumes, so the chart does not assume SSD.
+
+`postgres.shmSize` mounts `/dev/shm` as an in-memory `emptyDir`. Kubernetes
+gives a container only 64Mi there, and PostgreSQL allocates dynamic shared
+memory segments per parallel worker — one per index during a parallel `VACUUM`.
+On a table with several large indexes the default is exhausted and the vacuum
+fails with `could not resize shared memory segment ... No space left on device`.
+Because tmpfs usage is charged to the container, `shmSize` comes out of the
+same memory limit as everything else.
+
+Keep the memory limit comfortably above `shared_buffers`. The kernel page cache
+counts against the container's cgroup, and PostgreSQL leans on it as a second
+caching tier — so a tight limit squeezes both tiers at once. An OOM kill also
+discards the cumulative statistics file, which resets the counters autovacuum
+uses to schedule itself; a database that keeps getting killed can stop being
+vacuumed or analyzed altogether.
 
 ### Redis Configuration (Scalable)
 
@@ -368,6 +413,10 @@ A one-shot Kubernetes Job that copies data from an existing SQLite PVC into Post
 | `config.analyzer.uneven_request_timing_time_window_seconds` | Time window for request timing analysis | `300` |
 | `config.analyzer.user_agents_used_threshold` | User agents threshold | `2` |
 | `config.analyzer.attack_urls_threshold` | Attack URLs threshold | `1` |
+| `config.analyzer.tlsh_enabled` | TLSH-hash captured payloads/files for near-duplicate campaign clustering (`KRAWL_TLSH_ENABLED`) | `true` |
+| `config.analyzer.tlsh_cluster_threshold` | TLSH distance below which a payload joins an existing campaign (`KRAWL_TLSH_CLUSTER_THRESHOLD`) | `150` |
+| `config.analyzer.tlsh_campaign_min_events` | A campaign shows only when its payload was seen more than this many times (`KRAWL_TLSH_CAMPAIGN_MIN_EVENTS`) | `10` |
+| `config.analyzer.referer_enabled` | Capture the inbound HTTP Referer header for bait-chain tracking (`KRAWL_REFERER_ENABLED`) | `true` |
 
 ### Crawl Configuration
 
@@ -463,7 +512,7 @@ kubectl get secret krawl-server -n krawl-system \
 ### Scalable with bundled PostgreSQL and Redis (default)
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.1 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
   --set replicaCount=3 \
   --set postgres.password=your-password \
   --set redis.password=your-redis-password \
@@ -473,7 +522,7 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.1 \
 ### Scalable with external PostgreSQL and Redis
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.1 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
   --set replicaCount=3 \
   --set postgres.enabled=false \
   --set postgres.host=your-postgres-host \
@@ -487,7 +536,7 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.1 \
 ### Standalone with custom settings
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.1 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
   --set mode=standalone \
   --set postgres.enabled=false \
   --set redis.enabled=false \
@@ -509,7 +558,7 @@ helm upgrade krawl ./helm \
 ## Upgrading
 
 ```bash
-helm upgrade krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.3.1 -f values.yaml
+helm upgrade krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 -f values.yaml
 ```
 
 ## Uninstalling

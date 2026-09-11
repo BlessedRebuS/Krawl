@@ -9,6 +9,7 @@ from database.core import (
     DatabaseManager,
     get_database,
     get_dropped_rows,
+    get_write_buffer_bytes,
     get_write_buffer_size,
     initialize_database,
 )
@@ -17,6 +18,7 @@ __all__ = [
     "DatabaseManager",
     "get_database",
     "get_dropped_rows",
+    "get_write_buffer_bytes",
     "get_write_buffer_size",
     "initialize_database",
 ]

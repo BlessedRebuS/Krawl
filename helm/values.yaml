@@ -6,7 +6,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/blessedrebus/krawl
   pullPolicy: Always
-  tag: "2.3.1"
+  tag: "2.4.0"
 
 imagePullSecrets: []
 nameOverride: "krawl"
@@ -113,6 +113,13 @@ aiExistingSecret:
   name: ""
   key: "ai-api-key"
 
+# Map tile API key from an externally-managed Secret instead of the
+# chart-managed one built from `config.map.api_key`. `name` empty =
+# chart-managed. Injected as KRAWL_MAP_API_KEY.
+mapExistingSecret:
+  name: ""
+  key: "map-api-key"
+
 # Canary token URL. Setting `canaryTokenUrl` creates a chart-managed Secret and
 # injects KRAWL_CANARY_TOKEN_URL from it, keeping the URL out of the ConfigMap.
 # Set `canaryExistingSecret.name` to read it from an external Secret instead.
@@ -168,6 +175,13 @@ config:
     warmup_pages: 10  # Number of pages to pre-warm per table panel (attacks, attackers, credentials, honeypot)
     warmup_aggregation: true  # Pre-compute full top_paths/top_ua aggregations for instant any-page serving (recommended for scalable)
     top_n_min_count: 5  # Minimum access count to include a path/user-agent in top-N panels (set to 1 to disable)
+    # Top-left wordmark on the dashboard. Defaults are Krawl's own.
+    branding:
+      name: "Krawl"
+      url: "https://github.com/BlessedRebuS/Krawl"  # null renders the wordmark as plain text
+      logo: null  # Image URL shown instead of the GitHub mark
+      show_version: true
+      contact: null  # "soc@example.com", a URL, or plain text like "Ext. 4471"
   metrics:
     enabled: true  # Expose Prometheus metrics at /<dashboard.secret_path>/metrics
   backups:
@@ -189,6 +203,11 @@ config:
     uneven_request_timing_time_window_seconds: 300
     user_agents_used_threshold: 2
     attack_urls_threshold: 1
+    # Threat-intel capture
+    tlsh_enabled: true  # TLSH-hash captured payloads/files (near-duplicate campaign clustering)
+    tlsh_cluster_threshold: 150  # TLSH distance below which a payload joins an existing campaign
+    tlsh_campaign_min_events: 10  # A campaign shows only when its payload was seen more than this many times
+    referer_enabled: true  # Capture the inbound HTTP Referer header (bait-chain tracking)
   crawl:
     infinite_pages_for_malicious: true
     max_pages_limit: 250
@@ -240,6 +259,24 @@ config:
     export_path: ""  # Public banlist download path, e.g. "/public_banlist.txt". Empty = disabled.
     sources: []      # Upstream banlist URLs to fetch, e.g. ["https://krawl1.example.com/public_banlist.txt"]
     refresh_interval: 3600  # Seconds between fetches
+
+  ipv6:
+    ignore: false          # Drop IPv6 requests: logged to stdout, never persisted or ban-checked
+    purge_existing: false  # Also delete existing IPv6 rows at next startup (irreversible)
+
+  map:
+    # Raster {z}/{x}/{y} template only -- not a vector style.json. CARTO
+    # watermarks unkeyed tiles; the default below is keyless. See
+    # docs/dashboard.md#map-tiles for alternative providers.
+    tile_url: "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+    attribution: "&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors"
+    subdomains: "abcd"
+    # Query parameter the key rides on. CARTO and Stadia want api_key,
+    # Thunderforest apikey, MapTiler key.
+    api_key_param: "api_key"
+    # Never lands in the ConfigMap: it becomes a chart-managed Secret injected
+    # as KRAWL_MAP_API_KEY. Use mapExistingSecret to supply your own instead.
+    api_key: ""   # served in the page source; restrict it by domain
 
   tarpit:
     enabled: false  # Opt-in: trap AI agents with slow responses and random text
@@ -302,13 +339,27 @@ postgres:
     size: 5Gi
     accessMode: ReadWriteOnce
     # storageClassName: ""
+  # Server settings, rendered as `-c name=value`. null drops a key.
+  # SSD-backed storage: set random_page_cost 1.1, effective_io_concurrency 100.
+  config:
+    shared_buffers: 256MB
+    effective_cache_size: 512MB
+    work_mem: 16MB
+    maintenance_work_mem: 128MB
+    random_page_cost: "4"
+    effective_io_concurrency: "1"
+  # /dev/shm size (tmpfs). The k8s default of 64Mi is too small for parallel
+  # VACUUM. "" leaves it at the default. Counts against the memory limit below.
+  shmSize: 256Mi
+  # Keep the limit well above shared_buffers + shmSize: the page cache is
+  # charged to the cgroup too, and an OOM kill wipes the stats autovacuum needs.
   resources:
     limits:
       cpu: 500m
-      memory: 512Mi
+      memory: 1Gi
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 512Mi
 
 # Redis settings (only used when mode=scalable)
 redis:
@@ -318,6 +369,12 @@ redis:
   port: 6379
   db: 0
   password: ""
+  # Memory ceiling; "" = unbounded (Redis then grows until OOM-killed).
+  # Keep at ~75% of resources.limits.memory to leave room for fragmentation.
+  # volatile-lru evicts only TTL'd keys, i.e. krawl:cache:* and never a
+  # krawl:counter:* metric. Do not use allkeys-lru.
+  maxmemory: "192mb"
+  maxmemoryPolicy: "volatile-lru"
   # Cache TTL settings (seconds)
   cache_ttl: 600    # Dashboard warmup data (default: 10 minutes)
   hot_ttl: 30       # Hot-path data like ban info (default: 30 seconds)
@@ -345,7 +402,7 @@ redis:
   resources:
     limits:
       cpu: 250m
-      memory: 128Mi
+      memory: 256Mi
     requests:
       cpu: 50m
       memory: 64Mi

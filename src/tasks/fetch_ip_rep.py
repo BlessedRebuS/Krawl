@@ -13,7 +13,10 @@ TASK_CONFIG = {
     "name": "fetch-ip-rep",
     "cron": "*/5 * * * *",
     "enabled": True,
-    "run_when_loaded": True,
+    # runs every 5 minutes anyway; enrichment is not needed to serve traffic.
+    "run_when_loaded": False,
+    # Calls a third-party reputation API; N pods means N times the quota.
+    "single_pod": True,
 }
 
 

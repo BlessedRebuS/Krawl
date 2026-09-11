@@ -18,7 +18,10 @@ TASK_CONFIG = {
     "name": "dump-krawl-data",
     "cron": f"{config.backups_cron}",
     "enabled": config.backups_enabled,
-    "run_when_loaded": True,
+    # a backup per pod restart is wasted I/O; the cron is the schedule.
+    "run_when_loaded": False,
+    # N pods would write N identical backups per schedule.
+    "single_pod": True,
 }
 
 

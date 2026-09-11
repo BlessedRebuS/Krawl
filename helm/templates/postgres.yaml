@@ -61,6 +61,17 @@ spec:
       - name: postgres
         image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
         imagePullPolicy: {{ .Values.postgres.image.pullPolicy }}
+        {{- with .Values.postgres.config }}
+        # Sorted so `helm upgrade` does not diff on Go map ordering.
+        args:
+          {{- range $key := (keys . | sortAlpha) }}
+          {{- $value := index $.Values.postgres.config $key }}
+          {{- if $value }}
+          - -c
+          - {{ printf "%s=%v" $key $value | quote }}
+          {{- end }}
+          {{- end }}
+        {{- end }}
         ports:
         - name: postgresql
           containerPort: 5432
@@ -77,10 +88,14 @@ spec:
               key: {{ (include "krawl.postgres.secret" . | fromJson).key }}
         - name: PGDATA
           value: /var/lib/postgresql/data/pgdata
-        {{- if .Values.postgres.persistence.enabled }}
         volumeMounts:
+        {{- if .Values.postgres.persistence.enabled }}
         - name: data
           mountPath: /var/lib/postgresql/data
+        {{- end }}
+        {{- if .Values.postgres.shmSize }}
+        - name: dshm
+          mountPath: /dev/shm
         {{- end }}
         {{- with .Values.postgres.resources }}
         resources:
@@ -108,10 +123,18 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 5
           timeoutSeconds: 3
-      {{- if .Values.postgres.persistence.enabled }}
       volumes:
+      {{- if .Values.postgres.persistence.enabled }}
       - name: data
         persistentVolumeClaim:
           claimName: {{ include "krawl.fullname" . }}-postgres
+      {{- end }}
+      {{- if .Values.postgres.shmSize }}
+      # The k8s default 64Mi is too small for PostgreSQL's parallel-worker
+      # shared memory (one segment per index during a parallel VACUUM).
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: {{ .Values.postgres.shmSize }}
       {{- end }}
 {{- end }}

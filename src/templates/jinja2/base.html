@@ -5,25 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Krawl Dashboard</title>
     <link rel="icon" type="image/svg+xml" href="{{ dashboard_path }}/static/krawl-svg.svg" />
-    <link rel="stylesheet" href="{{ dashboard_path }}/static/vendor/css/leaflet.min.css" />
-    <link rel="stylesheet" href="{{ dashboard_path }}/static/vendor/css/MarkerCluster.css" />
-    <link rel="stylesheet" href="{{ dashboard_path }}/static/vendor/css/MarkerCluster.Default.css" />
-    <link rel="stylesheet" href="{{ dashboard_path }}/static/css/dashboard.css" />
-    <script src="{{ dashboard_path }}/static/vendor/js/leaflet.min.js" defer></script>
-    <script src="{{ dashboard_path }}/static/vendor/js/leaflet.markercluster.js" defer></script>
-    <script src="{{ dashboard_path }}/static/vendor/js/chart.min.js" defer></script>
-    <script src="{{ dashboard_path }}/static/vendor/js/htmx.min.js" defer></script>
-    <script defer src="{{ dashboard_path }}/static/vendor/js/alpine.min.js"></script>
+    <link rel="stylesheet" href="{{ dashboard_path }}/static/vendor/css/leaflet.min.css?v={{ krawl_version }}" />
+    <link rel="stylesheet" href="{{ dashboard_path }}/static/vendor/css/MarkerCluster.css?v={{ krawl_version }}" />
+    <link rel="stylesheet" href="{{ dashboard_path }}/static/vendor/css/MarkerCluster.Default.css?v={{ krawl_version }}" />
+    <link rel="stylesheet" href="{{ dashboard_path }}/static/css/dashboard.css?v={{ krawl_version }}" />
+    <script src="{{ dashboard_path }}/static/vendor/js/leaflet.min.js?v={{ krawl_version }}" defer></script>
+    <script src="{{ dashboard_path }}/static/vendor/js/leaflet.markercluster.js?v={{ krawl_version }}" defer></script>
+    <script src="{{ dashboard_path }}/static/vendor/js/chart.min.js?v={{ krawl_version }}" defer></script>
+    <script src="{{ dashboard_path }}/static/vendor/js/htmx.min.js?v={{ krawl_version }}" defer></script>
+    <script defer src="{{ dashboard_path }}/static/vendor/js/alpine.min.js?v={{ krawl_version }}"></script>
     <script>window.__DASHBOARD_PATH__ = '{{ dashboard_path }}';</script>
+    {# Tile config is resolved server-side (see Config.map_*). The key is
+       necessarily public — the browser fetches tiles directly — so restrict it
+       by domain at the provider. #}
+    <script>window.__MAP_TILES__ = {{ (map_tiles or {}) | tojson }};</script>
 </head>
 <body>
     {% block content %}{% endblock %}
 
-    <script src="{{ dashboard_path }}/static/js/tokens.js"></script>
-    <script src="{{ dashboard_path }}/static/js/radar.js"></script>
-    <script src="{{ dashboard_path }}/static/js/dashboard.js"></script>
-    <script src="{{ dashboard_path }}/static/js/map.js"></script>
-    <script src="{{ dashboard_path }}/static/js/charts.js"></script>
+    <script src="{{ dashboard_path }}/static/js/tokens.js?v={{ krawl_version }}"></script>
+    <script src="{{ dashboard_path }}/static/js/radar.js?v={{ krawl_version }}"></script>
+    <script src="{{ dashboard_path }}/static/js/dashboard.js?v={{ krawl_version }}"></script>
+    <script src="{{ dashboard_path }}/static/js/map.js?v={{ krawl_version }}"></script>
+    <script src="{{ dashboard_path }}/static/js/charts.js?v={{ krawl_version }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -3,24 +3,37 @@
 {% block content %}
 <div class="container" x-data="dashboardApp()" x-init="init()">
 
-    {# GitHub logo #}
-    <a href="https://github.com/BlessedRebuS/Krawl" target="_blank" class="github-logo">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-        <span class="github-logo-text">Krawl</span>
-        <span class="krawl-version">v{{ krawl_version }}</span>
-    </a>
+    {% include "dashboard/partials/_brand.html" %}
 
-    {# Export IPs button + API Docs icon #}
-    <div class="download-section row">
-        <a href="{{ dashboard_path }}/docs" target="_blank" title="API documentation" class="icon-link-quiet">
+    {# Header actions: one icon group, same weight, same hit target, with the
+       contact line stacked beneath them. #}
+    <div class="header-corner">
+    <div class="header-actions">
+        <a href="{{ dashboard_path }}/docs" target="_blank" rel="noopener"
+           class="header-action" title="API documentation" aria-label="API documentation">
             <svg class="icon-lg" viewBox="0 0 16 16" aria-hidden="true"><path d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-5.073-.002-2.253A2.25 2.25 0 0 0 5.003 2.5H1.5v9h3.757a3.75 3.75 0 0 1 1.994.574ZM8.755 4.75l-.004 7.322a3.752 3.752 0 0 1 1.992-.572H14.5v-9h-3.495a2.25 2.25 0 0 0-2.25 2.25Z"/></svg>
         </a>
-        <button class="banlist-dropdown-btn" @click="exportModal.show = true; exportModal.error = ''">
-            Export IPs Banlist
+
+        <button type="button" class="header-action"
+                title="Export IPs banlist" aria-label="Export IPs banlist"
+                @click="exportModal.show = true; exportModal.error = ''">
+            <svg class="icon-lg" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06Z"/></svg>
+        </button>
+
+        {# Settings runs privileged jobs and shows the running config, so it
+           stays visible but inert until login. #}
+        <button type="button" class="header-action"
+                :disabled="!authenticated"
+                :title="authenticated ? 'Settings' : 'Log in to open settings'"
+                aria-label="Settings"
+                @click="settingsModal.show = true; $dispatch('settings-open')">
+            <svg class="icon-lg" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0a8.2 8.2 0 0 1 .701.031C9.444.095 9.99.645 10.16 1.29l.288 1.107c.018.066.079.158.212.224.231.114.454.243.668.386.123.082.233.09.299.071l1.103-.303c.644-.176 1.392.021 1.82.63.27.385.506.792.704 1.218.315.675.111 1.422-.364 1.891l-.814.806c-.049.048-.098.147-.088.294.016.257.016.515 0 .772-.01.147.038.246.088.294l.814.806c.475.469.679 1.216.364 1.891a7.977 7.977 0 0 1-.704 1.217c-.428.61-1.176.807-1.82.63l-1.102-.302c-.067-.019-.177-.011-.3.071a5.909 5.909 0 0 1-.668.386c-.133.066-.194.158-.211.224l-.29 1.106c-.168.646-.715 1.196-1.458 1.26a8.006 8.006 0 0 1-1.402 0c-.743-.064-1.289-.614-1.458-1.26l-.289-1.106c-.018-.066-.079-.158-.212-.224a5.738 5.738 0 0 1-.668-.386c-.123-.082-.233-.09-.299-.071l-1.103.303c-.644.176-1.392-.021-1.82-.63a8.12 8.12 0 0 1-.704-1.218c-.315-.675-.111-1.422.363-1.891l.815-.806c.05-.048.098-.147.088-.294a6.214 6.214 0 0 1 0-.772c.01-.147-.038-.246-.088-.294l-.815-.806C.635 6.045.431 5.298.746 4.623a7.92 7.92 0 0 1 .704-1.217c.428-.61 1.176-.807 1.82-.63l1.102.302c.067.019.177.011.3-.071.214-.143.437-.272.668-.386.133-.066.194-.158.211-.224l.29-1.106C6.009.645 6.556.095 7.299.03 7.53.01 7.764 0 8 0Zm-.571 1.525c-.036.003-.108.036-.137.146l-.289 1.105c-.147.561-.549.967-.998 1.189-.173.086-.34.183-.5.29-.417.278-.97.423-1.529.27l-1.103-.303c-.109-.03-.175.016-.195.045-.22.312-.412.644-.573.99-.014.031-.021.11.059.19l.815.806c.411.406.562.957.53 1.456a4.709 4.709 0 0 0 0 .582c.032.499-.119 1.05-.53 1.456l-.815.806c-.081.08-.073.159-.059.19.162.346.353.677.573.989.02.03.085.076.195.046l1.102-.303c.56-.153 1.113-.008 1.53.27.161.107.328.204.501.29.447.222.85.629.997 1.189l.289 1.105c.029.11.101.143.137.146a6.6 6.6 0 0 0 1.142 0c.036-.003.108-.036.137-.146l.289-1.105c.147-.561.549-.967.998-1.189.173-.086.34-.183.5-.29.417-.278.97-.423 1.529-.27l1.103.303c.109.03.175-.016.195-.045.22-.313.411-.644.573-.99.014-.031.021-.11-.059-.19l-.815-.806c-.411-.406-.562-.957-.53-1.456a4.709 4.709 0 0 0 0-.582c-.032-.499.119-1.05.53-1.456l.815-.806c.081-.08.073-.159.059-.19a6.464 6.464 0 0 0-.573-.989c-.02-.03-.085-.076-.195-.046l-1.102.303c-.56.153-1.113.008-1.53-.27a4.44 4.44 0 0 0-.501-.29c-.447-.222-.85-.629-.997-1.189l-.289-1.105c-.029-.11-.101-.143-.137-.146a6.6 6.6 0 0 0-1.142 0ZM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM9.5 8a1.5 1.5 0 1 0-3.001.001A1.5 1.5 0 0 0 9.5 8Z"/></svg>
         </button>
     </div>
+    {% include "dashboard/partials/_contact.html" %}
+    </div>
 
-    <h1 class="dashboard-title">Krawl Dashboard</h1>
+    <h1 class="dashboard-title">{{ brand.name }} Dashboard</h1>
 
     {# Stats cards - server-rendered #}
     {% include "dashboard/partials/stats_cards.html" %}
@@ -50,6 +63,7 @@
     <div class="tabs-container">
         <a class="tab-button" :class="{ active: tab === 'overview' }" @click.prevent="switchToOverview()" href="#overview">Overview</a>
         <a class="tab-button" :class="{ active: tab === 'attacks' }" @click.prevent="switchToAttacks()" href="#ip-stats">Attacks</a>
+        <a class="tab-button" :class="{ active: tab === 'threats' }" @click.prevent="switchToThreats()" href="#threats">Threats</a>
         <a class="tab-button" :class="{ active: tab === 'ip-insight', disabled: !insightIp }" @click.prevent="insightIp && switchToIpInsight()" href="#ip-insight">
             IP Insight<span x-show="insightIp" x-text="' (' + insightIp + ')'"></span>
         </a>
@@ -266,11 +280,62 @@
         <div id="webhooks-htmx-container"></div>
     </div>
 
+    {# ==================== THREAT TAB (global captured-file index) ==================== #}
+    <div x-show="tab === 'threats'" x-cloak>
+        <div class="table-container alert-section">
+            <div class="chart-head">
+                <h2 class="m-0">Attack Campaigns <span class="chart-head-hint">(click a bar to see its events)</span></h2>
+                <div class="row">
+                    <div class="row gap-1" id="campaigns-span-selector">
+                        <button class="map-limit-btn active" data-days="1" onclick="setCampaignSpan(1, this)">1D</button>
+                        <button class="map-limit-btn" data-days="7" onclick="setCampaignSpan(7, this)">7D</button>
+                        <button class="map-limit-btn" data-days="30" onclick="setCampaignSpan(30, this)">30D</button>
+                    </div>
+                    <div class="row">
+                        <button id="campaigns-period-prev" onclick="shiftCampaignPeriod(1)" class="pagination-btn fs-sm">&#8592;</button>
+                        <span id="campaigns-period-label" class="period-label"></span>
+                        <button id="campaigns-period-next" onclick="shiftCampaignPeriod(-1)" class="pagination-btn fs-sm" disabled>&#8594;</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-row">
+                <div class="chart-wrapper chart-main">
+                    <canvas id="campaigns-chart"></canvas>
+                    <div id="campaigns-chart-empty" class="chart-empty" hidden>No campaigns in this period</div>
+                </div>
+                {# Filled by _renderCampaignSummary: what the bars add up to. #}
+                <div id="campaigns-summary" class="chart-totals chart-summary"></div>
+            </div>
+        </div>
+        <div class="table-container alert-section">
+            <div class="row-top">
+                <h2>Campaigns</h2>
+            </div>
+            <div id="patterns-htmx-container" class="htmx-container">
+                <div class="htmx-indicator">Loading...</div>
+            </div>
+        </div>
+        <div class="table-container alert-section">
+            <div class="row-top">
+                <h2>Captured Files</h2>
+            </div>
+            <div id="threats-htmx-container" class="htmx-container">
+                <div class="htmx-indicator">Loading...</div>
+            </div>
+        </div>
+    </div>
+
     {# Export IPs modal - Alpine.js #}
     {% include "dashboard/partials/export_modal.html" %}
 
+    {# Maintenance modal - Alpine.js #}
+    {% include "dashboard/partials/settings_panel.html" %}
+
     {# Raw request modal - Alpine.js #}
     {% include "dashboard/partials/raw_request_modal.html" %}
+
+    {# Captured file viewer modal - Alpine.js #}
+    {% include "dashboard/partials/file_view_modal.html" %}
 
     {# Auth modal - Alpine.js #}
     {% include "dashboard/partials/auth_modal.html" %}

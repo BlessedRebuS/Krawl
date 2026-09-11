@@ -9,11 +9,19 @@ import time
 
 import metrics
 from config import get_config
-from dashboard_cache import set_cached, set_cached_table
+from dashboard_cache import set_cached, set_cached_list, set_cached_table
 from database import get_database
 from logger import get_app_logger
+from routes.api import _campaign_window, campaign_payload
 
 app_logger = get_app_logger()
+
+
+def _today_window() -> dict:
+    """The window the campaign chart opens on, as the API computes it."""
+    start, end = _campaign_window("", days=1, offset=0)
+    return {"start": start, "end": end}
+
 
 # ----------------------
 # TASK CONFIG
@@ -23,6 +31,8 @@ TASK_CONFIG = {
     "cron": "*/5 * * * *",
     "enabled": True,
     "run_when_loaded": True,
+    # Warms the shared Redis cache; N pods writing it is N times the work.
+    "single_pod": True,
 }
 
 
@@ -121,7 +131,7 @@ def main():
                 ),
             )
             agg_ua = [{"user_agent": ua, "count": c} for ua, c in top_ua_all]
-            set_cached("agg:top_ua", agg_ua)
+            set_cached_list("agg:top_ua", agg_ua)
             top_ua = {
                 "user_agents": agg_ua[:5],
                 "pagination": {
@@ -138,7 +148,7 @@ def main():
                 lambda: db.analytics.get_top_paths(limit=100_000, min_count=min_count),
             )
             agg_paths = [{"path": p, "count": c} for p, c in top_paths_all]
-            set_cached("agg:top_paths", agg_paths)
+            set_cached_list("agg:top_paths", agg_paths)
             top_paths = {
                 "paths": agg_paths[:5],
                 "pagination": {
@@ -159,7 +169,7 @@ def main():
                     sort_order="desc",
                 ),
             )
-            set_cached("agg:attackers", attackers_all["attackers"])
+            set_cached_list("agg:attackers", attackers_all["attackers"])
 
             honeypot_all = _timed(
                 "get_honeypot_all",
@@ -167,7 +177,7 @@ def main():
                     page=1, page_size=100_000, sort_by="count", sort_order="desc"
                 ),
             )
-            set_cached("agg:honeypot", honeypot_all["honeypots"])
+            set_cached_list("agg:honeypot", honeypot_all["honeypots"])
         else:
             top_ua = _timed(
                 "get_top_user_agents_paginated",
@@ -194,7 +204,7 @@ def main():
                     sort_order="desc",
                 ),
             )
-            set_cached("agg:map_ips", map_ips_all["ips"])
+            set_cached_list("agg:map_ips", map_ips_all["ips"])
             total_ips = map_ips_all["pagination"]["total"]
             map_ips = {
                 "ips": map_ips_all["ips"][:1000],
@@ -297,6 +307,33 @@ def main():
             page_size=5,
             key_fmt="honeypot:{p}:count:desc",
             clamp_pages=True,
+        )
+
+        # --- Threats tab ---
+        # The tab opens on an all-time cluster scan and the 1-day campaign
+        # chart, which are the two slowest reads in the dashboard. Warm the
+        # exact keys the tab requests on open; other spans stay on demand.
+        clusters = _timed(
+            "campaign_clusters_all",
+            lambda: db.payloads.get_campaign_clusters(),
+        )
+        set_cached_table("clusters:::0", {"clusters": clusters})
+
+        top_campaigns = _timed(
+            "campaign_stats_top",
+            lambda: db.payloads.get_campaign_clusters(limit=5, **_today_window()),
+        )
+        set_cached_table(
+            "api:campaign_stats:5:1:0", {"campaigns": campaign_payload(top_campaigns)}
+        )
+
+        _warm_pages(
+            "global_filenames_all",
+            lambda: db.payloads.get_global_index(page=1, page_size=20 * warmup_pages),
+            rows_key="index",
+            total_key="total",
+            page_size=20,
+            key_fmt="filenames:{p}",
         )
 
         # Derive credential count from the bulk credentials result

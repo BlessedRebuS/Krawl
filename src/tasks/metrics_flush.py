@@ -26,6 +26,10 @@ def main():
     task_name = TASK_CONFIG.get("name")
     try:
         db = get_database()
+        # unique_paths is not event-incremented in scalable mode (see
+        # metrics_counters.record_distinct); realign it from the estimator
+        # before snapshotting, or the flushed value never moves.
+        mc.sync_distinct_counter("paths", "unique_paths")
         values = {(metric, ""): mc.get(metric) for metric in mc.HEAVY_METRICS}
         db.analytics.upsert_metrics_summary(values)
         app_logger.info(
