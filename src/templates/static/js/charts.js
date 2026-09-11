@@ -463,6 +463,41 @@ function _campaignLabel() {
 }
 
 /** Human-readable bar name: the target hit, falling back to the digest prefix. */
+function _campaignTick(label) {
+    const max = 30;
+    return label.length > max ? '…' + label.slice(-(max - 1)) : label;
+}
+
+/** Campaigns shown, what they captured, and which one reached furthest.
+ *  Counts cover the charted campaigns only — distinct IPs cannot be summed
+ *  across campaigns without double-counting, so the widest one is named
+ *  instead of a total. */
+function _renderCampaignSummary(campaigns) {
+    const box = document.getElementById('campaigns-summary');
+    if (!box) return;
+    if (!campaigns.length) {
+        box.innerHTML = '';
+        return;
+    }
+    const captures = campaigns.reduce((sum, c) => sum + (c.captures || 0), 0);
+    const widest = campaigns.reduce((a, b) => ((b.ips || 0) > (a.ips || 0) ? b : a));
+    const stat = (value, label) =>
+        `<div class="chart-stat"><span class="chart-stat-value">${value.toLocaleString()}</span>` +
+        `<span class="chart-stat-label">${label}</span></div>`;
+    box.innerHTML =
+        stat(campaigns.length, campaigns.length === 1 ? 'campaign' : 'campaigns') +
+        stat(captures, captures === 1 ? 'capture' : 'captures') +
+        `<div class="chart-note">Widest reach<br><span class="data-mono">` +
+        `${_escapeHtml(_campaignTick(_campaignName(widest)))}</span><br>` +
+        `${widest.ips} distinct ${widest.ips === 1 ? 'IP' : 'IPs'}</div>`;
+}
+
+function _escapeHtml(value) {
+    const el = document.createElement('span');
+    el.textContent = value;
+    return el.innerHTML;
+}
+
 function _campaignName(c) {
     const target = c.path || c.top_path || '';
     if (!target) return `campaign ${c.label}`;
@@ -497,6 +532,7 @@ async function loadCampaignsChart() {
         const empty = document.getElementById('campaigns-chart-empty');
         if (empty) empty.hidden = campaigns.length > 0;
         canvas.hidden = campaigns.length === 0;
+        _renderCampaignSummary(campaigns);
         if (campaigns.length === 0) return;
 
         const labels = campaigns.map(_campaignName);
@@ -511,7 +547,13 @@ async function loadCampaignsChart() {
                         label: 'Captures',
                         data: campaigns.map(c => c.captures),
                         backgroundColor: krawlToken('--accent'),
-                        hoverBackgroundColor: krawlToken('--accent-hi')
+                        hoverBackgroundColor: krawlToken('--accent-hi'),
+                        borderRadius: 4,
+                        borderSkipped: false,
+                        // Thin bars with a gap, so five campaigns do not read
+                        // as one solid block.
+                        categoryPercentage: 0.7,
+                        barPercentage: 0.8
                     }
                 ]
             },
@@ -564,7 +606,13 @@ async function loadCampaignsChart() {
                     },
                     y: {
                         grid: { display: false },
-                        ticks: { color: krawlToken('--text-dim'), font: { size: 11 } }
+                        ticks: {
+                            color: krawlToken('--text-dim'),
+                            font: { size: 11 },
+                            callback: function (value) {
+                                return _campaignTick(String(this.getLabelForValue(value)));
+                            }
+                        }
                     }
                 }
             },

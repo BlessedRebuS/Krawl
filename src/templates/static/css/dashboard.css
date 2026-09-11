@@ -2552,12 +2552,6 @@ tbody {
     color: var(--accent-hi);
     border-bottom-style: solid;
 }
-.campaign-cell-link {
-    display: block;
-    cursor: pointer;
-    text-decoration: none;
-    color: var(--text);
-}
 .campaign-target-link {
     display: block;
     max-width: var(--w-trunc);
@@ -2570,18 +2564,6 @@ tbody {
 .campaign-target-link:hover {
     color: var(--accent-hi);
     text-decoration: underline;
-}
-.campaign-path-hint {
-    margin-top: var(--s1);
-    max-width: var(--w-trunc);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: var(--text-dim);
-    font-size: 0.85em;
-}
-.campaign-cell-link:hover .campaign-path-hint {
-    color: var(--accent);
 }
 .file-modal-meta {
     display: flex;
@@ -3502,6 +3484,38 @@ tbody {
     color: var(--text-dim);
     font-size: var(--fs-2xs);
     font-weight: 400;
+}
+/* Campaign chart summary: two counts and the campaign that reached furthest,
+   in the gutter beside the bars. Sized off the chart, not the page. */
+.chart-summary {
+    justify-content: center;
+    gap: var(--s4);
+    border-left: 1px solid var(--line);
+    padding-left: var(--s4);
+}
+.chart-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.chart-stat-value {
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    color: var(--text-strong);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+.chart-stat-label {
+    font-size: var(--fs-2xs);
+    color: var(--text-dim);
+}
+.chart-note {
+    font-size: var(--fs-2xs);
+    color: var(--text-dim);
+    line-height: 1.5;
+}
+.chart-note .data-mono {
+    color: var(--text);
 }
 .period-label {
     min-width: 160px;

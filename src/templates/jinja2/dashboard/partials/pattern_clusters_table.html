@@ -1,14 +1,18 @@
 {# HTMX fragment: campaign clusters (Threats tab Attack Campaigns).
- # Expects: clusters, dashboard_path. Clicking the rep hash opens the
- # campaign's events in the shared expand overlay viewbox. #}
+ # Expects: clusters, dashboard_path. Clicking a row opens the campaign's
+ # events in the shared expand overlay viewbox.
+ #
+ # The target path leads, because that is what a reader recognises — the TLSH
+ # digest identifies the campaign to the database, not to a person, so it stays
+ # in the row's tooltip. #}
 <div class="panel-header">
     <span class="pagination-info">Attacks or payloads grouped into campaigns</span>
 </div>
 <table>
     <thead>
         <tr>
-            <th title="Attack types that make up this campaign (click to see its events)">Attack Types</th>
             <th title="Most frequently targeted path within this campaign">Most Hit Target</th>
+            <th title="Attack types that make up this campaign">Attack Types</th>
             <th>Captures</th>
             <th title="Distinct source IPs">IPs</th>
             <th>First Seen</th>
@@ -18,26 +22,22 @@
     <tbody>
         {% for c in clusters %}
         <tr>
-            <td>
-                <a href="#"
-                   class="campaign-cell-link"
-                   @click.prevent="openExpandOverlay('{{ c.rep_hash[:12] }}', 'campaign', {{ c.events }}, '{{ c.id | e }}')"
-                   title="Campaign {{ c.rep_hash }} ({{ c.id }})">
-                    <div class="badge-row">
-                        {% for t in (c.attack_types or []) %}
-                        <span class="method-badge method-{{ t | lower | replace('_', '-') | e }}">{{ t | e }}</span>
-                        {% endfor %}
-                    </div>
-                    <div class="campaign-path-hint data-mono">{{ (c.rep_hash | default(''))[:8] | e }}</div>
-                </a>
-            </td>
-            <td>
+            <td class="data data-mono">
                 <a href="#"
                    class="campaign-target-link"
                    @click.prevent="openExpandOverlay('{{ c.rep_hash[:12] }}', 'campaign', {{ c.events }}, '{{ c.id | e }}')"
-                   title="Most hit target: {{ (c.top_path | default('')) | e }}">
+                   title="Campaign {{ c.rep_hash }} — most hit target: {{ (c.top_path | default('')) | e }}">
                     {{ (c.top_path | default('—')) | e }}
                 </a>
+            </td>
+            <td>
+                <div class="badge-row">
+                    {% for t in (c.attack_types or []) %}
+                    <span class="method-badge method-{{ t | lower | replace('_', '-') | e }}">{{ t | e }}</span>
+                    {% else %}
+                    <span class="faint">—</span>
+                    {% endfor %}
+                </div>
             </td>
             <td class="ts-cell">{{ c.events }}</td>
             <td class="ts-cell">{{ c.ips }}</td>
@@ -45,7 +45,7 @@
             <td class="ts-cell">{{ c.last_seen | format_ts }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="empty-state">No campaigns yet. A campaign appears once a second near-duplicate payload lands within TLSH threshold</td></tr>
+        <tr><td colspan="6" class="empty-state">No campaigns yet. One appears when a payload repeats.</td></tr>
         {% endfor %}
     </tbody>
 </table>
