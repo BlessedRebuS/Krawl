@@ -21,7 +21,7 @@ class DeceptionMiddleware(BaseHTTPMiddleware):
         # Skip deception detection for dashboard routes
         config = request.app.state.config
         dashboard_prefix = "/" + config.dashboard_secret_path.lstrip("/")
-        if path.startswith(dashboard_prefix):
+        if path == dashboard_prefix or path.startswith(dashboard_prefix + "/"):
             return await call_next(request)
 
         get_app_logger().debug(f"[Deception] Processing {request.method} {path}")

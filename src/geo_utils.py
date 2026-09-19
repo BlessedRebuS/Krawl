@@ -103,7 +103,11 @@ def _geo_cache_key(ip_address: str) -> str | None:
     """The /48 an IPv6 address belongs to, or None for IPv4 (no sharing)."""
     if ":" not in ip_address:
         return None
-    return ":".join(ip_address.split(":")[:3])
+    try:
+        address = ipaddress.IPv6Address(ip_address)
+    except ipaddress.AddressValueError:
+        return None
+    return str(ipaddress.IPv6Network((address, 48), strict=False).network_address)
 
 
 def extract_geolocation_shared(ip_address: str) -> dict[str, Any] | None:

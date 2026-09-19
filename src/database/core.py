@@ -8,6 +8,7 @@ Provides SQLAlchemy session management and database initialization.
 import collections
 import os
 import stat
+import sys
 import threading
 from datetime import datetime
 from typing import Optional
@@ -70,27 +71,38 @@ _FLUSH_BATCH_SIZE = 200
 _MAX_BUFFER_ROWS = 50_000
 _MAX_BUFFER_BYTES = 64 * 1024 * 1024
 
-_write_buffer: collections.deque = collections.deque(maxlen=_MAX_BUFFER_ROWS)
+_write_buffer: collections.deque = collections.deque()
 _write_lock = threading.Lock()
 _dropped_rows = 0
 _buffer_bytes = 0
 
 
 def _entry_bytes(entry: dict) -> int:
-    """Approximate heap cost of a buffered entry.
+    """Conservative heap estimate, including Unicode and nested metadata.
 
-    Only the string payloads are worth counting — they are the part that
-    varies by three orders of magnitude. The rest is a fixed dict overhead,
-    approximated by the constant.
+    Shared values are counted per reference to avoid underestimating the budget.
+    Entries contain only scalar values and shallow dict/list payload metadata.
     """
-    raw = entry.get("raw_request") or ""
-    return (
-        len(raw)
-        + len(entry.get("path") or "")
-        + len(entry.get("user_agent") or "")
-        + len(entry.get("ip") or "")
-        + 512
-    )
+
+    def size(value):
+        total = sys.getsizeof(value)
+        if isinstance(value, dict):
+            total += sum(size(k) + size(v) for k, v in value.items())
+        elif isinstance(value, (list, tuple)):
+            total += sum(size(v) for v in value)
+        return total
+
+    return size(entry)
+
+
+def _trim_write_buffer() -> None:
+    """Enforce both ceilings, oldest first. Caller holds _write_lock."""
+    global _buffer_bytes, _dropped_rows
+    while _write_buffer and (
+        len(_write_buffer) > _MAX_BUFFER_ROWS or _buffer_bytes > _MAX_BUFFER_BYTES
+    ):
+        _buffer_bytes -= _entry_bytes(_write_buffer.popleft())
+        _dropped_rows += 1
 
 
 def _buffer_access_log_entry(**kwargs) -> None:
@@ -104,16 +116,9 @@ def _buffer_access_log_entry(**kwargs) -> None:
     kwargs["_buffered_at"] = datetime.now()
     size = _entry_bytes(kwargs)
     with _write_lock:
-        if len(_write_buffer) == _MAX_BUFFER_ROWS:
-            # maxlen evicts from the left on append; account for it ourselves.
-            _buffer_bytes -= _entry_bytes(_write_buffer[0])
-            _dropped_rows += 1
         _write_buffer.append(kwargs)
         _buffer_bytes += size
-
-        while _buffer_bytes > _MAX_BUFFER_BYTES and len(_write_buffer) > 1:
-            _buffer_bytes -= _entry_bytes(_write_buffer.popleft())
-            _dropped_rows += 1
+        _trim_write_buffer()
 
 
 def get_write_buffer_size() -> int:
@@ -408,6 +413,17 @@ class DatabaseManager:
 
             session.commit()
 
+            if (
+                increment_page_visit
+                and max_pages_limit > 0
+                and page_visit_count >= max_pages_limit
+            ):
+                import ban_cache
+                from dashboard_cache import delete_cached_short
+
+                ban_cache.add(sanitize_ip(ip))
+                delete_cached_short(f"ban:{sanitize_ip(ip)}")
+
             # Update event-driven metric counters after the DB commit. A crash
             # between commit and here causes at most bounded drift, corrected by
             # the next startup reseed — acceptable per the design.
@@ -459,7 +475,7 @@ class DatabaseManager:
         """
         total = 0
         while total < max_rows:
-            entries = self._pop_batch(_FLUSH_BATCH_SIZE)
+            entries = self._pop_batch(min(_FLUSH_BATCH_SIZE, max_rows - total))
             if not entries:
                 break
             inserted = self._insert_access_log_batch(entries)
@@ -474,14 +490,14 @@ class DatabaseManager:
         try:
             logs, attacks_per_entry, payloads_per_entry = [], [], []
             for entry in entries:
-                ts = entry.pop("_buffered_at", datetime.now())
+                ts = entry.get("_buffered_at", datetime.now())
                 attacks_per_entry.append(
                     (
-                        entry.pop("attack_types", None),
-                        entry.pop("matched_patterns", None) or {},
+                        entry.get("attack_types"),
+                        entry.get("matched_patterns") or {},
                     )
                 )
-                file_payloads = entry.pop("file_payloads", None)
+                file_payloads = entry.get("file_payloads")
                 payloads_per_entry.append(file_payloads)
                 logs.append(
                     {
@@ -567,6 +583,7 @@ class DatabaseManager:
             with _write_lock:
                 _write_buffer.extendleft(reversed(entries))
                 _buffer_bytes += sum(_entry_bytes(e) for e in entries)
+                _trim_write_buffer()
             return 0
         finally:
             self.close_session()
@@ -685,15 +702,6 @@ class DatabaseManager:
                 ip_stats.total_violations = (ip_stats.total_violations or 0) + 1
                 ip_stats.ban_multiplier = _ban_multiplier_for(ip_stats.total_violations)
                 ip_stats.ban_timestamp = now
-                # Invalidate cached ban info so the new ban is enforced immediately
-                from dashboard_cache import delete_cached_short
-
-                delete_cached_short(f"ban:{sanitized_ip}")
-
-                import ban_cache
-
-                ban_cache.add(sanitized_ip)
-
         return page_visit_count, was_new_ip, was_first_honeypot
 
     def increment_page_visit(self, ip: str, max_pages_limit: int) -> int:
@@ -719,15 +727,13 @@ class DatabaseManager:
                     total_requests=0,
                     first_seen=now,
                     last_seen=now,
-                    page_visit_count=1,
+                    page_visit_count=0,
                 )
                 session.add(ip_stats)
-                session.commit()
-                return 1
 
             ip_stats.page_visit_count = (ip_stats.page_visit_count or 0) + 1
 
-            if ip_stats.page_visit_count >= max_pages_limit:
+            if max_pages_limit > 0 and ip_stats.page_visit_count >= max_pages_limit:
                 ip_stats.total_violations = (ip_stats.total_violations or 0) + 1
                 ip_stats.ban_multiplier = _ban_multiplier_for(ip_stats.total_violations)
                 ip_stats.ban_timestamp = datetime.now()

@@ -34,6 +34,7 @@ services:
     container_name: krawl-redis
     volumes:
       - redis_data:/data
+    command: ["redis-server", "--maxmemory", "192mb", "--maxmemory-policy", "volatile-lru"]
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -141,6 +142,7 @@ services:
       - ./logs:/app/logs
       - ./backups:/app/backups
     restart: unless-stopped
+    stop_grace_period: 45s
     depends_on:
       postgres:
         condition: service_healthy

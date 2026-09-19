@@ -27,6 +27,20 @@ ATTEMPT_TTL = 3600
 _lock = threading.Lock()
 _sessions: dict[str, float] = {}  # token -> expires_at
 _attempts: dict[str, tuple[dict, float]] = {}  # ip -> (record, expires_at)
+_next_prune = 0.0
+_PRUNE_INTERVAL = 60
+
+
+def _prune_expired(now: float) -> None:
+    """Sweep abandoned records too, at most once a minute under _lock."""
+    global _next_prune
+    if now < _next_prune:
+        return
+    for token in [token for token, expires in _sessions.items() if expires <= now]:
+        del _sessions[token]
+    for ip in [ip for ip, (_, expires) in _attempts.items() if expires <= now]:
+        del _attempts[ip]
+    _next_prune = now + _PRUNE_INTERVAL
 
 
 def _redis():
@@ -41,7 +55,9 @@ def create_session(token: str) -> None:
         r.setex(f"{_SESSION_PREFIX}{token}", SESSION_TTL, "1")
         return
     with _lock:
-        _sessions[token] = time.time() + SESSION_TTL
+        now = time.time()
+        _prune_expired(now)
+        _sessions[token] = now + SESSION_TTL
 
 
 def is_valid_session(token: str | None) -> bool:
@@ -52,10 +68,11 @@ def is_valid_session(token: str | None) -> bool:
     if r is not None:
         return bool(r.exists(f"{_SESSION_PREFIX}{token}"))
     with _lock:
+        _prune_expired(time.time())
         expires = _sessions.get(token)
         if expires is None:
             return False
-        if expires < time.time():
+        if expires <= time.time():
             del _sessions[token]
             return False
         return True
@@ -80,14 +97,15 @@ def get_attempts(ip: str) -> dict | None:
         raw = r.get(f"{_ATTEMPT_PREFIX}{ip}")
         return json.loads(raw) if raw else None
     with _lock:
+        _prune_expired(time.time())
         entry = _attempts.get(ip)
         if entry is None:
             return None
         record, expires = entry
-        if expires < time.time():
+        if expires <= time.time():
             del _attempts[ip]
             return None
-        return record
+        return dict(record)
 
 
 def save_attempts(ip: str, record: dict) -> None:
@@ -98,7 +116,9 @@ def save_attempts(ip: str, record: dict) -> None:
         r.setex(f"{_ATTEMPT_PREFIX}{ip}", ttl, json.dumps(record))
         return
     with _lock:
-        _attempts[ip] = (record, time.time() + ttl)
+        now = time.time()
+        _prune_expired(now)
+        _attempts[ip] = (dict(record), now + ttl)
 
 
 def clear_attempts(ip: str) -> None:
@@ -123,6 +143,7 @@ def count_locked() -> int:
                 locked += 1
         return locked
     with _lock:
+        _prune_expired(now)
         return sum(
             1
             for record, expires in _attempts.values()

@@ -142,6 +142,7 @@ def main():
                 },
             }
             set_cached("top_ua", top_ua)
+            del top_ua_all, agg_ua
 
             top_paths_all = _timed(
                 "get_top_paths_all",
@@ -159,6 +160,7 @@ def main():
                 },
             }
             set_cached("top_paths", top_paths)
+            del top_paths_all, agg_paths
 
             attackers_all = _timed(
                 "get_attackers_all",
@@ -170,6 +172,7 @@ def main():
                 ),
             )
             set_cached_list("agg:attackers", attackers_all["attackers"])
+            del attackers_all
 
             honeypot_all = _timed(
                 "get_honeypot_all",
@@ -178,6 +181,7 @@ def main():
                 ),
             )
             set_cached_list("agg:honeypot", honeypot_all["honeypots"])
+            del honeypot_all
         else:
             top_ua = _timed(
                 "get_top_user_agents_paginated",
@@ -215,6 +219,7 @@ def main():
                     "total_pages": max(1, (total_ips + 999) // 1000),
                 },
             }
+            del map_ips_all
         else:
             map_ips = _timed(
                 "get_all_ips_paginated",

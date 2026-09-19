@@ -19,9 +19,10 @@ from sanitizer import sanitize_ip
 # ~17 MiB. Raise it if the warning shows up and the pod has the headroom.
 MAX_BANNED_IPS = 200_000
 
-_banned: frozenset[str] = frozenset()
+_banned: set[str] = set()
 _ready = False  # no authoritative answers until the first successful refresh
 _lock = threading.Lock()
+_generation = 0
 
 
 def is_ready() -> bool:
@@ -39,7 +40,18 @@ def is_banned(ip: str) -> bool:
     Sanitized on the way in: the set holds IPs as the database stores them,
     and comparing a raw header value against those would miss a banned IP.
     """
-    return sanitize_ip(ip) in _banned
+    with _lock:
+        return sanitize_ip(ip) in _banned
+
+
+def needs_lookup(ip: str) -> bool:
+    """Atomically decide whether SQL must verify this address.
+
+    Checking readiness and membership separately can miss an overflow that
+    disables the fast path between the two reads.
+    """
+    with _lock:
+        return not _ready or sanitize_ip(ip) in _banned
 
 
 def add(ip: str) -> None:
@@ -48,11 +60,14 @@ def add(ip: str) -> None:
     Without this a freshly banned client keeps being served until the next
     refresh. Other replicas still wait for theirs.
     """
-    global _banned
+    global _ready, _generation
     safe = sanitize_ip(ip)
     with _lock:
-        if safe not in _banned:
-            _banned = _banned | {safe}
+        _generation += 1
+        if len(_banned) >= MAX_BANNED_IPS and safe not in _banned:
+            _ready = False
+            return
+        _banned.add(safe)
 
 
 def refresh(db=None, ban_duration_seconds: int = 600) -> int:
@@ -64,6 +79,8 @@ def refresh(db=None, ban_duration_seconds: int = 600) -> int:
 
         db = get_database()
 
+    with _lock:
+        generation = _generation
     ips = db.ip_stats.get_banned_ips(ban_duration_seconds, limit=MAX_BANNED_IPS + 1)
 
     if len(ips) > MAX_BANNED_IPS:
@@ -75,8 +92,12 @@ def refresh(db=None, ban_duration_seconds: int = 600) -> int:
         )
         return 0
 
-    # Frozen and swapped wholesale: the middleware reads this on every request.
+    # A local ban arriving during the query may not be in its snapshot. Keep
+    # the existing set and fall back to SQL until a quiet refresh succeeds.
     with _lock:
-        _banned = frozenset(ips)
+        if generation != _generation:
+            _ready = False
+            return len(_banned)
+        _banned = set(ips)
         _ready = True
     return len(_banned)

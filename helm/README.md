@@ -488,9 +488,18 @@ Deploy Ollama and/or llama.cpp alongside Krawl for AI deception pages without an
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `resources.limits.cpu` | CPU limit | `500m` |
-| `resources.limits.memory` | Memory limit | `256Mi` |
+| `resources.limits.memory` | Memory limit | `512Mi` |
 | `resources.requests.cpu` | CPU request | `100m` |
-| `resources.requests.memory` | Memory request | `64Mi` |
+| `resources.requests.memory` | Memory request | `128Mi` |
+| `runtime.limitConcurrency` | Maximum in-flight Uvicorn requests per pod before shedding with 503 | `512` |
+| `runtime.backlog` | TCP accept backlog per pod | `256` |
+| `runtime.keepAliveSeconds` | Idle HTTP keep-alive timeout | `5` |
+| `runtime.gracefulShutdownSeconds` | Uvicorn graceful shutdown deadline | `30` |
+| `runtime.limitMaxRequests` | Recycle a pod process after this many requests (`0` disables) | `0` |
+| `runtime.terminationGracePeriodSeconds` | Kubernetes termination grace period | `45` |
+| `runtime.preStopDelaySeconds` | Delay before SIGTERM so endpoints propagate | `5` |
+| `service.sessionAffinity` | Service affinity (`None` recommended because scalable state is shared) | `None` |
+| `probes.*` | Startup, readiness and liveness probe timing | see `values.yaml` |
 
 ### Network Policy
 

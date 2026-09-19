@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container" x-data="dashboardApp()" x-init="init()">
+<div class="container" x-data="dashboardApp()">
 
     {% include "dashboard/partials/_brand.html" %}
 
@@ -87,7 +87,7 @@
     </div>
 
     {# ==================== OVERVIEW TAB ==================== #}
-    <div x-show="tab === 'overview'" x-init="$nextTick(() => { if (!mapInitialized && typeof initializeAttackerMap === 'function') { initializeAttackerMap(); mapInitialized = true; } })">
+    <div x-show="tab === 'overview'" x-init="$nextTick(() => { if (typeof initializeAttackerMap === 'function') initializeAttackerMap().then(initialized => { mapInitialized = Boolean(initialized); }); })">
 
         {# Map section #}
         {% include "dashboard/partials/map_section.html" %}

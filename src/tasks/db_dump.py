@@ -4,6 +4,7 @@ import os
 import shutil
 import sqlite3
 import subprocess
+from contextlib import closing
 
 from config import get_config
 from logger import get_app_logger
@@ -38,11 +39,9 @@ def _dump_sqlite():
     tmp_file = output_file + ".tmp"
 
     try:
-        source = sqlite3.connect(db_path)
-        dest = sqlite3.connect(tmp_file)
-        source.backup(dest)
-        dest.close()
-        source.close()
+        with closing(sqlite3.connect(db_path)) as source:
+            with closing(sqlite3.connect(tmp_file)) as dest:
+                source.backup(dest)
 
         # Atomic rename so a partial backup never replaces a good one
         shutil.move(tmp_file, output_file)
@@ -70,6 +69,7 @@ def _dump_pg():
 
     os.makedirs(config.backups_path, exist_ok=True)
     output_file = os.path.join(config.backups_path, "db_dump.sql")
+    tmp_file = output_file + ".tmp"
 
     env = os.environ.copy()
     env["PGPASSWORD"] = password
@@ -87,7 +87,7 @@ def _dump_pg():
         "--no-owner",
         "--no-privileges",
         "-f",
-        output_file,
+        tmp_file,
     ]
 
     try:
@@ -95,6 +95,7 @@ def _dump_pg():
             cmd, env=env, capture_output=True, text=True, timeout=300
         )
         if result.returncode == 0:
+            os.replace(tmp_file, output_file)
             size = os.path.getsize(output_file)
             app_logger.info(
                 f"[Background Task] {task_name} PostgreSQL dump completed: "
@@ -112,6 +113,9 @@ def _dump_pg():
         )
     except subprocess.TimeoutExpired:
         app_logger.error(f"[Background Task] {task_name} pg_dump timed out after 300s")
+    finally:
+        if os.path.exists(tmp_file):
+            os.remove(tmp_file)
 
 
 def main():

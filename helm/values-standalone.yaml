@@ -44,10 +44,10 @@ dashboardPassword: ""
 resources:
   limits:
     cpu: 500m
-    memory: 256Mi
+    memory: 512Mi
   requests:
     cpu: 100m
-    memory: 64Mi
+    memory: 128Mi
 
 config:
   server:
