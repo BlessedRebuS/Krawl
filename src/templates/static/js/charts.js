@@ -4,6 +4,22 @@
 let attackTypesChart = null;
 let attackTypesChartLoaded = false;
 
+// Ordered for clear separation on the dark canvas.
+const KRAWL_CHART_SERIES_COLORS = [
+    '#3ad6d1', '#ff5c52', '#35d07f', '#ffc94d', '#b083f5',
+    '#4da3ff', '#f2649f', '#f28e2b', '#a0cbe8', '#9c755f'
+];
+
+function krawlSeriesColor(index, alpha) {
+    const hex = KRAWL_CHART_SERIES_COLORS[index % KRAWL_CHART_SERIES_COLORS.length];
+    if (alpha === undefined) return hex;
+    const value = parseInt(hex.slice(1), 16);
+    const red = (value >> 16) & 255;
+    const green = (value >> 8) & 255;
+    const blue = value & 255;
+    return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
 /**
  * Load an attack types doughnut chart into a canvas element.
  * @param {string} [canvasId='attack-types-chart'] - Canvas element ID
@@ -42,37 +58,7 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
 
         const labels = attackTypes.map(item => item.type);
         const counts = attackTypes.map(item => item.count);
-        const maxCount = Math.max(...counts);
-
-        // Hash function to generate consistent color from string
-        function hashCode(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                const char = str.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash; // Convert to 32bit integer
-            }
-            return Math.abs(hash);
-        }
-
-        // Dynamic color generator based on hash
-        function generateColorFromHash(label) {
-            const hash = hashCode(label);
-            const hue = (hash % 360); // 0-360 for hue
-            const saturation = 70 + (hash % 20); // 70-90 for vibrant colors
-            const lightness = 50 + (hash % 10); // 50-60 for brightness
-
-            const bgColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-            const borderColor = `hsl(${hue}, ${saturation + 5}%, ${lightness - 10}%)`; // Darker border
-            const hoverColor = `hsl(${hue}, ${saturation - 10}%, ${lightness + 8}%)`; // Lighter hover
-
-            return { bg: bgColor, border: borderColor, hover: hoverColor };
-        }
-
-        // Generate colors dynamically for each attack type
-        const backgroundColors = labels.map(label => generateColorFromHash(label).bg);
-        const borderColors = labels.map(label => generateColorFromHash(label).border);
-        const hoverColors = labels.map(label => generateColorFromHash(label).hover);
+        const backgroundColors = labels.map((_, index) => krawlSeriesColor(index));
 
         // Create or update chart (track per canvas)
         if (!loadAttackTypesChart._instances) loadAttackTypesChart._instances = {};
@@ -189,26 +175,6 @@ let attackTrendsChart = null;
 let _trendsOffsetDays = 0;
 let _trendsDays = 7;
 
-// Hash-based consistent colors (shared with doughnut chart)
-function _trendsHashCode(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = ((hash << 5) - hash) + str.charCodeAt(i);
-        hash = hash & hash;
-    }
-    return Math.abs(hash);
-}
-
-function _trendsColor(label, alpha) {
-    const h = _trendsHashCode(label);
-    const hue = h % 360;
-    const sat = 70 + (h % 20);
-    const lit = 50 + (h % 10);
-    return alpha !== undefined
-        ? `hsla(${hue}, ${sat}%, ${lit}%, ${alpha})`
-        : `hsl(${hue}, ${sat}%, ${lit}%)`;
-}
-
 async function loadAttackTrendsChart(canvasId) {
     canvasId = canvasId || 'attack-trends-chart';
     const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
@@ -272,16 +238,16 @@ async function loadAttackTrendsChart(canvasId) {
             return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         });
 
-        const datasets = attackTypes.map(at => ({
+        const datasets = attackTypes.map((at, index) => ({
             label: `${at.type} (${at.total})`,
             data: at.daily,
-            borderColor: _trendsColor(at.type),
-            backgroundColor: _trendsColor(at.type, 0.05),
+            borderColor: krawlSeriesColor(index),
+            backgroundColor: krawlSeriesColor(index, 0.05),
             borderWidth: 2,
             pointRadius: 0,
             pointHitRadius: 8,
             pointHoverRadius: 4,
-            pointHoverBackgroundColor: _trendsColor(at.type),
+            pointHoverBackgroundColor: krawlSeriesColor(index),
             tension: 0.15,
             fill: false,
             _attackType: at.type,
@@ -369,13 +335,16 @@ function _updateTrendsTotals(attackTypes) {
     if (!container) return;
 
     if (attackTypes.length === 0) {
-        container.innerHTML = '<span style="color: var(--text-dim); font-size: 0.8em;">No data</span>';
+        // The chart wrapper already renders the empty-state message. Keeping
+        // a second "No data" label in the totals gutter made the mobile chart
+        // look like two unrelated empty visualizations.
+        container.innerHTML = '';
         return;
     }
 
     let html = '<span style="color: var(--text-dim); font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Totals (period)</span>';
-    attackTypes.forEach(at => {
-        const color = _trendsColor(at.type);
+    attackTypes.forEach((at, index) => {
+        const color = krawlSeriesColor(index);
         html += `<div style="display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; border-radius: 4px; transition: background 0.15s;"
                       onmouseover="this.style.background='rgba(255,255,255,0.03)'"
                       onmouseout="this.style.background='transparent'"

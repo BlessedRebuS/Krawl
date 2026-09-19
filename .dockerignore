@@ -1,4 +1,5 @@
 __pycache__
+**/__pycache__
 *.pyc
 *.pyo
 *.pyd
@@ -10,5 +11,27 @@ dist
 build
 .git
 .gitignore
+.venv
+.pytest_cache
+.ruff_cache
 README.md
 *.md
+
+# Runtime state must never become part of an image layer or build context.
+data
+src/data
+logs
+src/logs
+backups
+exports
+
+# Not copied by the Dockerfile; excluding them keeps remote/CI builds small.
+tests
+docs
+img
+docker
+kubernetes
+plugins
+grafana-dashboard.json
+banlist.txt
+.github

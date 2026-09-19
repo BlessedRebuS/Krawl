@@ -7,6 +7,7 @@ Renders the main dashboard page with server-side data for initial load.
 
 import os
 from pathlib import Path
+from urllib.parse import urlencode
 
 import yaml
 from fastapi import APIRouter, HTTPException, Request
@@ -46,7 +47,9 @@ def _map_tiles(config) -> dict:
     url = config.map_tile_url
     if config.map_api_key:
         param = config.map_api_key_param or "api_key"
-        url += ("&" if "?" in url else "?") + f"{param}={config.map_api_key}"
+        base, separator, fragment = url.partition("#")
+        base += ("&" if "?" in base else "?") + urlencode({param: config.map_api_key})
+        url = base + (separator + fragment if separator else "")
     return {
         "url": url,
         "attribution": config.map_tile_attribution,

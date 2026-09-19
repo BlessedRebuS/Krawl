@@ -19,14 +19,57 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: {}
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
 
-securityContext: {}
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+# Uvicorn and pod lifecycle bounds. Keep one worker per pod; scale replicaCount
+# in scalable mode instead of creating multiple schedulers inside one pod.
+runtime:
+  limitConcurrency: 512
+  backlog: 256
+  keepAliveSeconds: 5
+  gracefulShutdownSeconds: 30
+  # Optional worker recycling; 0 disables it. Useful only when profiling shows
+  # long-term native allocation growth because recycling loses warm caches.
+  limitMaxRequests: 0
+  terminationGracePeriodSeconds: 45
+  preStopDelaySeconds: 5
+
+probes:
+  startup:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 60
+  readiness:
+    periodSeconds: 5
+    timeoutSeconds: 2
+    failureThreshold: 3
+  liveness:
+    periodSeconds: 15
+    timeoutSeconds: 3
+    failureThreshold: 3
 
 service:
   type: ClusterIP
   port: 5000
   annotations: {}
+  # Scalable mode stores sessions/cache in Redis, so stickiness only creates
+  # uneven hot pods. Standalone has one replica and does not need it either.
+  sessionAffinity: None
+  sessionAffinityTimeoutSeconds: 10800
   # Preserve source IP when using LoadBalancer
   externalTrafficPolicy: Local
 
@@ -78,10 +121,10 @@ ingress:
 resources:
   limits:
     cpu: 500m
-    memory: 256Mi
+    memory: 512Mi
   requests:
     cpu: 100m
-    memory: 64Mi
+    memory: 128Mi
 
 # Container timezone configuration
 # Set this to change timezone (e.g., "America/New_York", "Europe/Rome")
@@ -93,6 +136,8 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+topologySpreadConstraints: []
 
 # Dashboard password for protected panels
 # If empty, a random password will be auto-generated and printed in the logs

@@ -6,6 +6,10 @@ let allIps = [];
 let mapMarkers = [];       // all marker objects, each tagged with .options.category
 let clusterGroup = null;   // single shared MarkerClusterGroup
 let hiddenCategories = new Set();
+let mapResizeObserver = null;
+let mapResizeFrame = null;
+let mapInitializationPromise = null;
+let mapDataLoaded = false;
 
 const categoryColors = { ...krawlCategoryColors(), unknown: krawlToken('--text-dim') };
 
@@ -315,7 +319,9 @@ async function fetchAndBuildMap(limit, sortBy) {
         // Build markers for this batch with pop animation
         const batchMarkers = [];
         batch.forEach(ip => {
-            if (!ip.country_code || !ip.category) return;
+            // Coordinates are authoritative. A geolocated record can still be
+            // plotted when its provider did not return a country code.
+            if (!ip.category) return;
             const marker = _createIpMarker(ip, true);
             if (marker) {
                 mapMarkers.push(marker);
@@ -340,7 +346,8 @@ async function fetchAndBuildMap(limit, sortBy) {
         await new Promise(r => setTimeout(r, 80));
     }
 
-    fitToMarkers();
+    _setMapStatus(mapMarkers.length === 0 ? 'No IP location data available' : '');
+    await refreshAttackerMapLayout(true);
 }
 
 // Legacy wrapper kept for filter rebuilds
@@ -362,7 +369,7 @@ function buildMapMarkers(ips) {
     });
 
     ips.forEach(ip => {
-        if (!ip.country_code || !ip.category) return;
+        if (!ip.category) return;
         const marker = _createIpMarker(ip, false);
         if (marker) {
             mapMarkers.push(marker);
@@ -373,7 +380,8 @@ function buildMapMarkers(ips) {
     });
 
     attackerMap.addLayer(clusterGroup);
-    fitToMarkers();
+    _setMapStatus(mapMarkers.length === 0 ? 'No IP location data available' : '');
+    refreshAttackerMapLayout(true);
 }
 
 // Breathing room around the data. The map is wider than it is tall, so the
@@ -419,9 +427,131 @@ function _tileLayer() {
     );
 }
 
-async function initializeAttackerMap() {
+function _mapContainerIsVisible(mapContainer) {
+    return Boolean(
+        mapContainer &&
+        mapContainer.isConnected &&
+        mapContainer.getClientRects().length &&
+        mapContainer.clientWidth > 0 &&
+        mapContainer.clientHeight > 0
+    );
+}
+
+function _nextMapFrame() {
+    return new Promise(resolve => requestAnimationFrame(resolve));
+}
+
+// Keep status messages outside Leaflet's own panes. Replacing the map
+// container's innerHTML leaves the Leaflet instance alive but destroys the
+// DOM it owns, which makes every later reload appear permanently blank.
+function _setMapStatus(message, isError = false) {
     const mapContainer = document.getElementById('attacker-map');
-    if (!mapContainer || attackerMap) return;
+    if (!mapContainer) return;
+
+    let status = document.getElementById('map-status-overlay');
+    if (!message) {
+        if (status) status.remove();
+        return;
+    }
+
+    if (!status) {
+        status = document.createElement('div');
+        status.id = 'map-status-overlay';
+        status.className = 'map-status-overlay';
+        mapContainer.appendChild(status);
+    }
+    status.classList.toggle('is-error', isError);
+    status.textContent = message;
+}
+
+// Leaflet caches the container dimensions. If the map is created inside an
+// Alpine x-show panel, those dimensions can describe the hidden/narrow panel
+// and only one corner of the tile grid is requested. Two animation frames let
+// Alpine and the browser finish layout before Leaflet measures and reframes.
+async function refreshAttackerMapLayout(refitMarkers = true) {
+    if (!attackerMap) return false;
+    const mapContainer = attackerMap.getContainer();
+
+    await _nextMapFrame();
+    await _nextMapFrame();
+    if (!_mapContainerIsVisible(mapContainer)) return false;
+
+    attackerMap.invalidateSize({ animate: false, pan: false });
+    if (clusterGroup && typeof clusterGroup.refreshClusters === 'function') {
+        clusterGroup.refreshClusters();
+    }
+    if (refitMarkers) {
+        fitToMarkers();
+    }
+    return true;
+}
+
+function _observeMapContainer(mapContainer) {
+    if (mapResizeObserver || typeof ResizeObserver === 'undefined') return;
+
+    let previousWidth = 0;
+    let previousHeight = 0;
+    mapResizeObserver = new ResizeObserver(entries => {
+        const box = entries[0] && entries[0].contentRect;
+        if (!box || box.width < 1 || box.height < 1) return;
+        if (box.width === previousWidth && box.height === previousHeight) return;
+        previousWidth = box.width;
+        previousHeight = box.height;
+
+        if (mapResizeFrame) cancelAnimationFrame(mapResizeFrame);
+        mapResizeFrame = requestAnimationFrame(() => {
+            mapResizeFrame = null;
+            // Preserve a view the user has panned or zoomed while still
+            // requesting tiles for the map's new dimensions.
+            refreshAttackerMapLayout(false);
+        });
+    });
+    mapResizeObserver.observe(mapContainer);
+}
+
+async function initializeAttackerMap() {
+    // Alpine can invoke the tab method and x-init during the same render.
+    // Share one promise so both callers cannot create Leaflet on the same DOM
+    // node concurrently.
+    if (mapInitializationPromise) return mapInitializationPromise;
+    mapInitializationPromise = _initializeAttackerMap();
+    try {
+        return await mapInitializationPromise;
+    } finally {
+        mapInitializationPromise = null;
+    }
+}
+
+async function _initializeAttackerMap() {
+    const mapContainer = document.getElementById('attacker-map');
+    if (!mapContainer) return false;
+    if (attackerMap) {
+        const visible = await refreshAttackerMapLayout(true);
+        if (!visible) return false;
+
+        // Retry a request that failed during initial page load. The Leaflet
+        // instance remains intact, so recovery does not require a reload.
+        if (!mapDataLoaded) {
+            const activeBtn = document.querySelector('#map-limit-selector .map-limit-btn.active');
+            const limit = activeBtn ? activeBtn.dataset.value : '1000';
+            try {
+                await fetchAndBuildMap(limit, _getMapSortBy());
+                mapDataLoaded = true;
+                _setMapStatus(mapMarkers.length === 0 ? 'No IP location data available' : '');
+            } catch (err) {
+                console.error('Error loading IP locations:', err);
+                _setMapStatus(`Failed to load IP locations: ${err.message}`, true);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // x-init also runs for an x-show panel that starts hidden. Defer creation
+    // until switchToOverview calls us again with a measurable container.
+    await _nextMapFrame();
+    await _nextMapFrame();
+    if (!_mapContainerIsVisible(mapContainer)) return false;
 
     try {
         attackerMap = L.map('attacker-map', {
@@ -445,6 +575,7 @@ async function initializeAttackerMap() {
                 _tileLayer()
             ]
         });
+        _observeMapContainer(mapContainer);
 
         // Fit the inhabited latitude band to the frame. The right zoom depends
         // on the container, which changes with the breakpoint, so letting
@@ -455,26 +586,27 @@ async function initializeAttackerMap() {
         const limit = activeBtn ? activeBtn.dataset.value : '1000';
 
         await fetchAndBuildMap(limit, _getMapSortBy());
-
-        if (allIps.length === 0) {
-            mapContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-dim);">No IP location data available</div>';
-            return;
-        }
-
-        setTimeout(() => {
-            if (attackerMap) attackerMap.invalidateSize();
-        }, 300);
+        mapDataLoaded = true;
+        await refreshAttackerMapLayout(true);
+        return true;
 
     } catch (err) {
         console.error('Error initializing attacker map:', err);
-        mapContainer.innerHTML = '<div class="center text-danger" style="height:100%">Failed to load map: ' + err.message + '</div>';
+        _setMapStatus(`Failed to load map: ${err.message}`, true);
+        return false;
     }
 }
 
 async function reloadMapWithLimit(limit) {
-    if (!attackerMap) return;
+    if (!attackerMap) {
+        const initialized = await initializeAttackerMap();
+        if (!initialized) return;
+    }
 
     const mapContainer = document.getElementById('attacker-map');
+    const previousOverlay = document.getElementById('map-loading-overlay');
+    if (previousOverlay) previousOverlay.remove();
+    _setMapStatus('');
     const overlay = document.createElement('div');
     overlay.id = 'map-loading-overlay';
     overlay.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(13,17,23,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;color:var(--text-dim);font-size:14px;';
@@ -484,8 +616,11 @@ async function reloadMapWithLimit(limit) {
 
     try {
         await fetchAndBuildMap(limit);
+        mapDataLoaded = true;
     } catch (err) {
+        mapDataLoaded = false;
         console.error('Error reloading map:', err);
+        _setMapStatus(`Failed to load IP locations: ${err.message}`, true);
     } finally {
         const existing = document.getElementById('map-loading-overlay');
         if (existing) existing.remove();
@@ -513,6 +648,7 @@ function updateMapFilters() {
     clusterGroup.clearLayers();
     const visible = mapMarkers.filter(m => !hiddenCategories.has(m.options.category));
     clusterGroup.addLayers(visible);
+    if (visible.length > 0) fitToMarkers();
 }
 
 // Generate radar chart SVG for map panel popups

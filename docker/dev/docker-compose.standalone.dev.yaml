@@ -26,6 +26,7 @@ services:
       - ../../data:/app/data
       - ../../backups:/app/backups
     restart: unless-stopped
+    stop_grace_period: 45s
     develop:
       watch:
         - path: ../../Dockerfile

@@ -147,7 +147,13 @@ async def authenticate(request: Request, body: AuthRequest):
 
     config = request.app.state.config
     expected = config.dashboard_password.strip()
-    if hmac.compare_digest(body.password, expected):
+    # compare_digest only accepts ASCII str operands. Compare encoded bytes so
+    # non-ASCII passwords (including invalid JSON surrogate input) cannot turn
+    # a login attempt into an unhandled TypeError/UnicodeEncodeError.
+    if hmac.compare_digest(
+        body.password.encode("utf-8", errors="surrogatepass"),
+        expected.encode("utf-8", errors="surrogatepass"),
+    ):
         # Success — clear failed attempts
         clear_attempts(ip)
         get_app_logger().info(f"[AUTH] Successful login from {ip}")
@@ -210,9 +216,7 @@ async def logout(request: Request):
 @router.get("/api/auth/check")
 async def auth_check(request: Request):
     """Check if the current session is authenticated."""
-    if verify_auth(request):
-        return JSONResponse(content={"authenticated": True})
-    return JSONResponse(content={"authenticated": False}, status_code=401)
+    return JSONResponse(content={"authenticated": verify_auth(request)})
 
 
 # ── Protected Ban Management API ─────────────────────────────────────

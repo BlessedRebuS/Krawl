@@ -1,3 +1,6 @@
+{{- if and (eq .Values.mode "standalone") (gt (int .Values.replicaCount) 1) }}
+{{- fail "standalone mode supports only replicaCount=1 because SQLite and in-memory state cannot be shared" }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -25,6 +28,9 @@ spec:
         {{- include "krawl.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: krawl
     spec:
+      serviceAccountName: {{ include "krawl.serviceAccountName" . }}
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: {{ .Values.runtime.terminationGracePeriodSeconds }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -46,6 +52,19 @@ spec:
               sleep 2
             done
             echo "PostgreSQL is ready."
+      {{- if .Values.redis.enabled }}
+      - name: wait-for-redis
+        image: busybox:1.36
+        command:
+          - sh
+          - -c
+          - |
+            until nc -z {{ .Values.redis.host }} {{ .Values.redis.port }}; do
+              echo "Waiting for Redis at {{ .Values.redis.host }}:{{ .Values.redis.port }}..."
+              sleep 2
+            done
+            echo "Redis is ready."
+      {{- end }}
       {{- end }}
       containers:
       - name: krawl
@@ -62,6 +81,20 @@ spec:
         env:
         - name: CONFIG_LOCATION
           value: "config.yaml"
+        - name: KRAWL_PORT
+          value: {{ .Values.config.server.port | quote }}
+        - name: KRAWL_UVICORN_LIMIT_CONCURRENCY
+          value: {{ .Values.runtime.limitConcurrency | quote }}
+        - name: KRAWL_UVICORN_BACKLOG
+          value: {{ .Values.runtime.backlog | quote }}
+        - name: KRAWL_UVICORN_KEEP_ALIVE
+          value: {{ .Values.runtime.keepAliveSeconds | quote }}
+        - name: KRAWL_UVICORN_GRACEFUL_TIMEOUT
+          value: {{ .Values.runtime.gracefulShutdownSeconds | quote }}
+        {{- if gt (int .Values.runtime.limitMaxRequests) 0 }}
+        - name: KRAWL_UVICORN_LIMIT_MAX_REQUESTS
+          value: {{ .Values.runtime.limitMaxRequests | quote }}
+        {{- end }}
         {{- if .Values.timezone }}
         - name: TZ
           value: {{ .Values.timezone | quote }}
@@ -230,6 +263,13 @@ spec:
         resources:
           {{- toYaml . | nindent 12 }}
         {{- end }}
+        lifecycle:
+          preStop:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - {{ printf "sleep %v" .Values.runtime.preStopDelaySeconds | quote }}
         startupProbe:
           {{- $secret := .Values.config.dashboard.secret_path }}
           {{- if $secret }}
@@ -246,10 +286,22 @@ spec:
           tcpSocket:
             port: http
           {{- end }}
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 30
+          initialDelaySeconds: {{ .Values.probes.startup.initialDelaySeconds }}
+          periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+          timeoutSeconds: {{ .Values.probes.startup.timeoutSeconds }}
+          failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+        readinessProbe:
+          tcpSocket:
+            port: http
+          periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+          timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+          failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+        livenessProbe:
+          tcpSocket:
+            port: http
+          periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+          timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+          failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
       volumes:
       - name: config
         configMap:
@@ -278,6 +330,10 @@ spec:
       {{- end }}
       {{- with .Values.affinity }}
       affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.tolerations }}

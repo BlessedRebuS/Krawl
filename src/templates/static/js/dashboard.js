@@ -439,7 +439,8 @@ document.addEventListener('alpine:init', () => {
             // Check if already authenticated (cookie-based)
             try {
                 const resp = await fetch(`${this.dashboardPath}/api/auth/check`, { credentials: 'same-origin' });
-                if (resp.ok) this.authenticated = true;
+                const data = await resp.json();
+                this.authenticated = resp.ok && data.authenticated === true;
             } catch {}
 
             // Sync ban action button visibility with auth state
@@ -556,9 +557,21 @@ document.addEventListener('alpine:init', () => {
         },
 
         switchToOverview() {
-            if (this.tab === 'overview') return;  // Prevent duplicate loading
-            this.tab = 'overview';
-            window.location.hash = '#overview';
+            if (this.tab !== 'overview') {
+                this.tab = 'overview';
+                window.location.hash = '#overview';
+            }
+
+            // The map may have been initialized while this x-show panel was
+            // hidden. Re-measure it after Alpine has restored the panel so
+            // Leaflet requests the full tile grid and frames the IP markers.
+            this.$nextTick(() => {
+                if (typeof initializeAttackerMap === 'function') {
+                    initializeAttackerMap().then(initialized => {
+                        this.mapInitialized = Boolean(initialized);
+                    });
+                }
+            });
         },
 
         switchToBanlist() {

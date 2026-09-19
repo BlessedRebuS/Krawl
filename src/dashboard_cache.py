@@ -20,6 +20,7 @@ import json
 import threading
 from datetime import datetime
 from typing import Any
+from uuid import uuid4
 
 _backend: str = "standalone"
 _lock = threading.Lock()
@@ -132,20 +133,31 @@ def set_cached_list(key: str, items: list, ttl: int = None) -> None:
     """
     if _backend == "scalable" and _redis_client is not None:
         redis_key = f"{_REDIS_PREFIX}list:{key}"
-        encoded = [json.dumps(i, default=_json_serializer) for i in items]
-        pipe = _redis_client.pipeline()
         # Build under a temporary key and rename into place, so readers never
-        # observe a half-populated list mid-refresh.
-        staging = f"{redis_key}:staging"
-        pipe.delete(staging)
-        for start in range(0, len(encoded), _LIST_PUSH_BATCH):
-            pipe.rpush(staging, *encoded[start : start + _LIST_PUSH_BATCH])
-        if encoded:
+        # observe a half-populated list mid-refresh. Execute each batch now:
+        # accumulating commands in a pipeline still retains the entire list.
+        # Unique staging keys also isolate overlapping writers.
+        staging = f"{redis_key}:staging:{uuid4().hex}"
+        lifetime = ttl or _REDIS_TTL
+        if not items:
+            _redis_client.delete(redis_key)
+            return
+        try:
+            for start in range(0, len(items), _LIST_PUSH_BATCH):
+                encoded = [
+                    json.dumps(i, default=_json_serializer)
+                    for i in items[start : start + _LIST_PUSH_BATCH]
+                ]
+                with _redis_client.pipeline() as pipe:
+                    pipe.rpush(staging, *encoded)
+                    pipe.expire(staging, lifetime)
+                    pipe.execute()
+            pipe = _redis_client.pipeline()
             pipe.rename(staging, redis_key)
-            pipe.expire(redis_key, ttl or _REDIS_TTL)
-        else:
-            pipe.delete(redis_key)
-        pipe.execute()
+            pipe.expire(redis_key, lifetime)
+            pipe.execute()
+        finally:
+            _redis_client.delete(staging)
         return
 
     with _lock:
