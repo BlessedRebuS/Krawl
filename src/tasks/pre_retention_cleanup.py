@@ -141,7 +141,7 @@ def main():
     """
     try:
         from config import get_config
-        from models import AccessLog, AttackDetection, CapturedPayload
+        from models import AccessLog, AttackDetection, CapturedPayload, RequestAsset
 
         config = get_config()
         retention_days = config.database_retention_days
@@ -178,6 +178,9 @@ def main():
                     .exists(),
                     ~session.query(CapturedPayload.id)
                     .filter(CapturedPayload.access_log_id == AccessLog.id)
+                    .exists(),
+                    ~session.query(RequestAsset.id)
+                    .filter(RequestAsset.access_log_id == AccessLog.id)
                     .exists(),
                 )
                 .order_by(AccessLog.id)

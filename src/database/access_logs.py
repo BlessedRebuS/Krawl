@@ -12,7 +12,7 @@ from sqlalchemy.orm import joinedload
 
 from dashboard_cache import pagination
 from logger import get_app_logger
-from models import AccessLog, AttackDetection, IpStats
+from models import AccessLog, AttackDetection, IpStats, RequestAsset
 from sanitizer import sanitize_ip
 
 if TYPE_CHECKING:
@@ -26,6 +26,84 @@ class AccessLogRepo:
 
     def __init__(self, db: "DatabaseManager") -> None:
         self._db = db
+
+    def get_targeted_domains(
+        self, page: int = 1, page_size: int = 10
+    ) -> dict[str, Any]:
+        """Host-header targets ranked by retained request count."""
+        session = self._db.session
+        try:
+            base = (
+                session.query(
+                    AccessLog.target_host.label("domain"),
+                    func.count(AccessLog.id).label("count"),
+                    func.count(distinct(AccessLog.ip)).label("distinct_ips"),
+                    func.min(AccessLog.timestamp).label("first_seen"),
+                    func.max(AccessLog.timestamp).label("last_seen"),
+                )
+                .filter(AccessLog.target_host.isnot(None), AccessLog.target_host != "")
+                .group_by(AccessLog.target_host)
+            )
+            total = base.count()
+            rows = (
+                base.order_by(func.count(AccessLog.id).desc(), AccessLog.target_host)
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+                .all()
+            )
+            return {
+                "domains": [
+                    {
+                        "domain": row.domain,
+                        "count": row.count,
+                        "distinct_ips": row.distinct_ips,
+                        "first_seen": row.first_seen,
+                        "last_seen": row.last_seen,
+                    }
+                    for row in rows
+                ],
+                "pagination": pagination(page, page_size, total),
+            }
+        finally:
+            self._db.close_session()
+
+    def get_request_assets(self, page: int = 1, page_size: int = 20) -> dict[str, Any]:
+        """Absolute URL assets ranked by total occurrences in retained requests."""
+        session = self._db.session
+        try:
+            base = (
+                session.query(
+                    RequestAsset.url,
+                    func.count(RequestAsset.id).label("count"),
+                    func.count(distinct(AccessLog.ip)).label("distinct_ips"),
+                    func.min(AccessLog.timestamp).label("first_seen"),
+                    func.max(AccessLog.timestamp).label("last_seen"),
+                )
+                .join(AccessLog, AccessLog.id == RequestAsset.access_log_id)
+                .group_by(RequestAsset.url)
+            )
+            total = base.count()
+            rows = (
+                base.order_by(func.count(RequestAsset.id).desc(), RequestAsset.url)
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+                .all()
+            )
+            return {
+                "assets": [
+                    {
+                        "url": row.url,
+                        "count": row.count,
+                        "distinct_ips": row.distinct_ips,
+                        "first_seen": row.first_seen,
+                        "last_seen": row.last_seen,
+                    }
+                    for row in rows
+                ],
+                "pagination": pagination(page, page_size, total),
+            }
+        finally:
+            self._db.close_session()
 
     def get_paginated(
         self,

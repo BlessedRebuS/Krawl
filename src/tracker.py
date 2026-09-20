@@ -199,10 +199,12 @@ class AccessTracker:
             _m = re.search(r"\r\nReferer:\s*([^\r\n]+)", raw_request, re.IGNORECASE)
             if _m:
                 referer = _m.group(1).strip()
-        if file_payloads is None and raw_request and config.tlsh_enabled:
+        if file_payloads is None and raw_request:
             from tlsh_utils import extract_file_payloads
 
-            file_payloads = extract_file_payloads(raw_request)
+            file_payloads = extract_file_payloads(
+                raw_request, compute_tlsh=config.tlsh_enabled
+            )
 
         # common_probes and login_attempt are path-based — skip them on body to avoid
         # false positives from form fields like redirect_to=/wp-admin/
@@ -224,6 +226,10 @@ class AccessTracker:
 
         attack_types = [t for t, _ in attack_findings]
         matched_patterns = {t: m for t, m in attack_findings}
+
+        from request_metadata import extract_request_metadata
+
+        target_host, request_assets = extract_request_metadata(raw_request)
 
         # TLSH hashing + campaign clustering of attack bodies moved to the
         # scheduled hash-payloads task (reads the persisted raw_request), so
@@ -261,6 +267,8 @@ class AccessTracker:
                     raw_request=raw_request if raw_request else None,
                     referer=referer if referer else None,
                     file_payloads=file_payloads,
+                    target_host=target_host,
+                    request_assets=request_assets,
                     increment_page_visit=increment_page_visit,
                     max_pages_limit=self.max_pages_limit if increment_page_visit else 0,
                 )

@@ -30,6 +30,7 @@ from models import (
     Base,
     CredentialAttempt,
     IpStats,
+    RequestAsset,
 )
 from sanitizer import (
     sanitize_attack_pattern,
@@ -297,6 +298,8 @@ class DatabaseManager:
         raw_request: str | None = None,
         referer: str | None = None,
         file_payloads: list[dict] | None = None,
+        target_host: str | None = None,
+        request_assets: list[str] | None = None,
         increment_page_visit: bool = False,
         max_pages_limit: int = 0,
     ) -> int:
@@ -316,6 +319,8 @@ class DatabaseManager:
             referer: Inbound HTTP Referer header (bait-chain tracking)
             file_payloads: Uploaded-file dicts {filename, content_type, size,
                 content(bytes)} to persist as captured_payloads rows
+            target_host: Normalized hostname extracted from the Host header
+            request_assets: Absolute URL occurrences extracted from the request
             increment_page_visit: Also bump the page visit counter in the same tx
             max_pages_limit: Ban threshold (used with increment_page_visit)
 
@@ -327,6 +332,18 @@ class DatabaseManager:
         config = get_config()
         persist_suspicious_only = config.database_persist_suspicious_only
         scalable = config.mode == "scalable"
+
+        # Keep direct DatabaseManager callers (seeders/importers as well as the
+        # tracker) on the same metadata path. ``None`` means the caller did not
+        # pre-extract assets; an empty list means it did and found none.
+        if raw_request and (target_host is None or request_assets is None):
+            from request_metadata import extract_request_metadata
+
+            derived_host, derived_assets = extract_request_metadata(raw_request)
+            if target_host is None:
+                target_host = derived_host
+            if request_assets is None:
+                request_assets = derived_assets
 
         session = self.session
         try:
@@ -346,6 +363,8 @@ class DatabaseManager:
                         raw_request=raw_request,
                         referer=referer,
                         file_payloads=file_payloads,
+                        target_host=target_host,
+                        request_assets=request_assets,
                     )
             else:
                 if not persist_suspicious_only or is_suspicious:
@@ -359,6 +378,8 @@ class DatabaseManager:
                         timestamp=datetime.now(),
                         raw_request=raw_request,
                         referer=sanitize_path(referer) if referer else None,
+                        target_host=(target_host or "")[:255] or None,
+                        request_metadata_extracted=True,
                     )
                     session.add(access_log)
                     session.flush()
@@ -374,6 +395,14 @@ class DatabaseManager:
                                 ),
                             )
                             session.add(detection)
+
+                    for asset_url in request_assets or []:
+                        session.add(
+                            RequestAsset(
+                                access_log_id=access_log.id,
+                                url=sanitize_path(asset_url),
+                            )
+                        )
 
                     # Persist captured file payloads (WebShell/uploads) linked to this log.
                     if file_payloads:
@@ -488,7 +517,12 @@ class DatabaseManager:
         """Insert one batch of buffered entries: two statements, not two per row."""
         session = self.session
         try:
-            logs, attacks_per_entry, payloads_per_entry = [], [], []
+            logs, attacks_per_entry, payloads_per_entry, assets_per_entry = (
+                [],
+                [],
+                [],
+                [],
+            )
             for entry in entries:
                 ts = entry.get("_buffered_at", datetime.now())
                 attacks_per_entry.append(
@@ -499,6 +533,7 @@ class DatabaseManager:
                 )
                 file_payloads = entry.get("file_payloads")
                 payloads_per_entry.append(file_payloads)
+                assets_per_entry.append(entry.get("request_assets") or [])
                 logs.append(
                     {
                         "ip": sanitize_ip(entry["ip"]),
@@ -514,6 +549,8 @@ class DatabaseManager:
                             if entry.get("referer")
                             else None
                         ),
+                        "target_host": (entry.get("target_host") or "")[:255] or None,
+                        "request_metadata_extracted": True,
                     }
                 )
 
@@ -569,6 +606,17 @@ class DatabaseManager:
             ]
             if captured_rows:
                 session.execute(insert(CapturedPayload), captured_rows)
+
+            asset_rows = [
+                {
+                    "access_log_id": log_id,
+                    "url": sanitize_path(asset_url),
+                }
+                for log_id, asset_urls in zip(log_ids, assets_per_entry, strict=True)
+                for asset_url in asset_urls
+            ]
+            if asset_rows:
+                session.execute(insert(RequestAsset), asset_rows)
 
             session.commit()
             return len(logs)

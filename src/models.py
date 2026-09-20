@@ -70,6 +70,14 @@ class AccessLog(Base):
     raw_request: Mapped[str | None] = mapped_column(Text, nullable=True, deferred=True)
     # Inbound HTTP Referer header — which bait page/URL this request came from.
     referer: Mapped[str | None] = mapped_column(String(MAX_PATH_LENGTH), nullable=True)
+    # Host header normalized to a hostname (port removed), for target reporting.
+    target_host: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, index=True
+    )
+    # False only for retained rows awaiting request-metadata backfill.
+    request_metadata_extracted: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, index=True
+    )
 
     # Relationship to attack detections
     attack_detections: Mapped[list["AttackDetection"]] = relationship(
@@ -87,6 +95,26 @@ class AccessLog(Base):
 
     def __repr__(self) -> str:
         return f"<AccessLog(id={self.id}, ip='{self.ip}', path='{self.path[:50]}')>"
+
+
+class RequestAsset(Base):
+    """One absolute HTTP(S) URL occurrence extracted from a request."""
+
+    __tablename__ = "request_assets"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    access_log_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("access_logs.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    url: Mapped[str] = mapped_column(
+        String(MAX_PATH_LENGTH), nullable=False, index=True
+    )
+
+    def __repr__(self) -> str:
+        return f"<RequestAsset(id={self.id}, url='{self.url[:80]}')>"
 
 
 class CredentialAttempt(Base):
