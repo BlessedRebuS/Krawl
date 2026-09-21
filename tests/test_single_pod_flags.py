@@ -24,6 +24,7 @@ EXPECTED_SINGLE_POD = {
     "dashboard-warmup",
     "db-retention",
     "dump-krawl-data",
+    "extract-request-metadata",
     "fetch-ip-rep",
     "flag-stale-ips",
     "hash-payloads",
