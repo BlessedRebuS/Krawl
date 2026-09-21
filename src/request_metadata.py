@@ -4,8 +4,16 @@ import re
 from urllib.parse import urlsplit
 
 MAX_ASSETS_PER_REQUEST = 32
+CURRENT_METADATA_VERSION = 2
 
 _HOST_RE = re.compile(r"^Host:\s*([^\r\n]+)", re.IGNORECASE | re.MULTILINE)
+_FORWARDED_HOST_RE = re.compile(
+    r"^X-Forwarded-Host:\s*([^\r\n,]+)", re.IGNORECASE | re.MULTILINE
+)
+_FORWARDED_RE = re.compile(r"^Forwarded:\s*([^\r\n]+)", re.IGNORECASE | re.MULTILINE)
+_FORWARDED_HOST_PARAM_RE = re.compile(
+    r"(?:^|[;,])\s*host=(?:\"([^\"]+)\"|([^;,\s]+))", re.IGNORECASE
+)
 _REFERER_RE = re.compile(r"^Referer:\s*([^\r\n]+)", re.IGNORECASE | re.MULTILINE)
 _URL_RE = re.compile(r"https?://[^\s<>\"'\x00-\x1f]+", re.IGNORECASE)
 
@@ -32,8 +40,29 @@ def extract_request_metadata(raw_request: str) -> tuple[str | None, list[str]]:
     if not raw_request:
         return None, []
 
-    host_match = _HOST_RE.search(raw_request.partition("\r\n\r\n")[0])
-    target_host = normalize_target_host(host_match.group(1) if host_match else "")
+    headers = raw_request.partition("\r\n\r\n")[0]
+    forwarded = _FORWARDED_RE.search(headers)
+    forwarded_param = (
+        _FORWARDED_HOST_PARAM_RE.search(forwarded.group(1)) if forwarded else None
+    )
+    forwarded_host = _FORWARDED_HOST_RE.search(headers)
+    host = _HOST_RE.search(headers)
+    # The HTTP Host field is the requested target and therefore authoritative.
+    # Forwarded variants are fallbacks for proxy captures that omit Host.
+    raw_host = (
+        host.group(1)
+        if host
+        else (
+            forwarded_host.group(1)
+            if forwarded_host
+            else (
+                (forwarded_param.group(1) or forwarded_param.group(2))
+                if forwarded_param
+                else ""
+            )
+        )
+    )
+    target_host = normalize_target_host(raw_host)
 
     assets = []
     for match in _URL_RE.finditer(raw_request):

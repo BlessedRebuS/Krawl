@@ -78,6 +78,12 @@ class AccessLog(Base):
     request_metadata_extracted: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, index=True
     )
+    request_metadata_version: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, index=True
+    )
+    file_extraction_version: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, index=True
+    )
 
     # Relationship to attack detections
     attack_detections: Mapped[list["AttackDetection"]] = relationship(

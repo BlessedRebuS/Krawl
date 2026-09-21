@@ -668,10 +668,6 @@ document.addEventListener('alpine:init', () => {
                         target: '#threats-htmx-container',
                         swap: 'innerHTML'
                     });
-                    htmx.ajax('GET', `${this.dashboardPath}/htmx/request-assets?page=1`, {
-                        target: '#assets-htmx-container',
-                        swap: 'innerHTML'
-                    });
                     htmx.ajax('GET', `${this.dashboardPath}/htmx/pattern-clusters`, {
                         target: '#patterns-htmx-container',
                         swap: 'innerHTML'

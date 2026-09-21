@@ -154,6 +154,7 @@ class AccessTracker:
         increment_page_visit: bool = False,
         referer: str = "",
         file_payloads: list[dict] | None = None,
+        target_host: str | None = None,
     ) -> int:
         """
         Record an access attempt.
@@ -171,6 +172,7 @@ class AccessTracker:
             increment_page_visit: Also bump page visit counter in the same DB tx
             referer: Inbound HTTP Referer header (bait-chain tracking)
             file_payloads: Uploaded-file dicts to persist as captured_payloads rows
+            target_host: Host header captured directly from the live request
 
         Returns:
             The page visit count (0 when increment_page_visit is False or on error)
@@ -227,9 +229,10 @@ class AccessTracker:
         attack_types = [t for t, _ in attack_findings]
         matched_patterns = {t: m for t, m in attack_findings}
 
-        from request_metadata import extract_request_metadata
+        from request_metadata import extract_request_metadata, normalize_target_host
 
-        target_host, request_assets = extract_request_metadata(raw_request)
+        derived_host, request_assets = extract_request_metadata(raw_request)
+        target_host = normalize_target_host(target_host or "") or derived_host
 
         # TLSH hashing + campaign clustering of attack bodies moved to the
         # scheduled hash-payloads task (reads the persisted raw_request), so

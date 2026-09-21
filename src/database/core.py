@@ -32,6 +32,7 @@ from models import (
     IpStats,
     RequestAsset,
 )
+from request_metadata import CURRENT_METADATA_VERSION
 from sanitizer import (
     sanitize_attack_pattern,
     sanitize_credential,
@@ -345,6 +346,13 @@ class DatabaseManager:
             if request_assets is None:
                 request_assets = derived_assets
 
+        if file_payloads is None and raw_request:
+            from tlsh_utils import extract_file_payloads
+
+            file_payloads = extract_file_payloads(
+                raw_request, compute_tlsh=config.tlsh_enabled
+            )
+
         session = self.session
         try:
             # In scalable mode, buffer access log writes and flush in bulk later.
@@ -380,6 +388,8 @@ class DatabaseManager:
                         referer=sanitize_path(referer) if referer else None,
                         target_host=(target_host or "")[:255] or None,
                         request_metadata_extracted=True,
+                        request_metadata_version=CURRENT_METADATA_VERSION,
+                        file_extraction_version=1,
                     )
                     session.add(access_log)
                     session.flush()
@@ -551,6 +561,8 @@ class DatabaseManager:
                         ),
                         "target_host": (entry.get("target_host") or "")[:255] or None,
                         "request_metadata_extracted": True,
+                        "request_metadata_version": CURRENT_METADATA_VERSION,
+                        "file_extraction_version": 1,
                     }
                 )
 

@@ -12,12 +12,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import database as dbpkg
 
 
-def _raw(host: str, body: str, referer: str = "") -> str:
+def _raw(host: str, body: str, referer: str = "", forwarded_host: str = "") -> str:
     ref = f"Referer: {referer}\r\n" if referer else ""
+    forwarded = f"X-Forwarded-Host: {forwarded_host}\r\n" if forwarded_host else ""
     return (
         "POST /xmlrpc.php HTTP/1.1\r\n"
         f"Host: {host}\r\n"
         f"{ref}"
+        f"{forwarded}"
         "Content-Type: text/xml\r\n\r\n"
         f"{body}"
     )
@@ -37,7 +39,12 @@ def test_request_metadata_pipeline():
 
         repeated = "https://cdn.bad.test/dropper.js"
         referer = "https://origin.example/wp-login.php"
-        raw = _raw("Target.Example:443", f"{repeated} {repeated}", referer)
+        raw = _raw(
+            "Target.Example:443",
+            f"{repeated} {repeated}",
+            referer,
+            "backend.internal:8080",
+        )
         host, assets = extract_request_metadata(raw)
         assert host == "target.example"
         assert assets == [referer, repeated, repeated]
@@ -90,13 +97,40 @@ def test_request_metadata_pipeline():
                 request_metadata_extracted=False,
             )
         )
+        multipart = (
+            "--files\r\n"
+            'Content-Disposition: form-data; name="file"; filename="shell.php"\r\n'
+            "Content-Type: application/x-php\r\n\r\n"
+            "<?php echo 'generic'; ?>\r\n"
+            "--files--\r\n"
+        )
+        session.add(
+            AccessLog(
+                ip="192.0.2.25",
+                path="/legacy-upload",
+                method="POST",
+                is_suspicious=True,
+                is_honeypot_trigger=False,
+                raw_request=(
+                    "POST /legacy-upload HTTP/1.1\r\n"
+                    "Host: upload.example\r\n"
+                    "Content-Type: multipart/form-data; boundary=files\r\n\r\n"
+                    f"{multipart}"
+                ),
+                request_metadata_extracted=False,
+                file_extraction_version=0,
+            )
+        )
         session.commit()
         db.close_session()
 
         from tasks.extract_request_metadata import main as backfill
+        from tasks.extract_captured_files import main as file_backfill
 
         backfill()
         backfill()
+        file_backfill()
+        file_backfill()
         session = db.session
         try:
             legacy = session.query(AccessLog).filter_by(path="/legacy").one()
@@ -109,6 +143,11 @@ def test_request_metadata_pipeline():
                 .count()
                 == 1
             )
+            from models import CapturedPayload
+
+            files = session.query(CapturedPayload).filter_by(filename="shell.php").all()
+            assert len(files) == 1
+            assert files[0].size == len("<?php echo 'generic'; ?>")
         finally:
             db.close_session()
 
