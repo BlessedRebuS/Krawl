@@ -1,0 +1,32 @@
+{# HTMX fragment: Host-header targets ranked by request count. #}
+<div class="panel-header">
+    <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} domains</span>
+    <div class="row">
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/targeted-domains?page={{ pagination.page - 1 }}"
+                hx-target="closest .htmx-container" hx-swap="innerHTML"
+                {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/targeted-domains?page={{ pagination.page + 1 }}"
+                hx-target="closest .htmx-container" hx-swap="innerHTML"
+                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
+    </div>
+</div>
+<table>
+    <thead><tr>
+        <th>Targeted Domain</th><th>Requests</th><th>Distinct IPs</th><th>First Seen</th><th>Last Seen</th>
+    </tr></thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td class="data data-mono">{{ item.domain | e }}</td>
+            <td class="ts-cell">{{ item.count }}</td>
+            <td class="ts-cell">{{ item.distinct_ips }}</td>
+            <td class="ts-cell">{{ item.first_seen | format_ts }}</td>
+            <td class="ts-cell">{{ item.last_seen | format_ts }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="empty-state">No targeted domains extracted yet</td></tr>
+        {% endfor %}
+    </tbody>
+</table>

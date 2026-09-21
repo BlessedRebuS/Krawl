@@ -88,6 +88,12 @@ A paginated table listing all detected attackers ranked by total requests. Colum
 
 A table of usernames and passwords captured from honeypot login forms, with timestamps. Useful for analyzing common credential stuffing patterns.
 
+### Targeted Domains
+
+Ranks normalized HTTP `Host` targets by retained request count, including the
+number of distinct source IPs and first/last seen times. Ports and trailing root
+dots are removed, so `Example.org:443` and `example.org` aggregate together.
+
 ### Honeypot Triggers by IP
 
 Shows which IPs accessed honeypot endpoints and how many times, sorted by trigger count.
@@ -143,6 +149,14 @@ out of the table.
 
 An index of every file Krawl captured, across all IPs — name, size, type and the
 campaign it belongs to.
+
+### Assets
+
+Absolute HTTP(S) URLs extracted from raw request lines, headers, and bodies,
+ranked by total occurrences. Repeated appearances in one request count
+separately; the table also shows distinct source IPs and first/last seen times.
+The scheduled `extract-request-metadata` task backfills retained requests in
+bounded batches after an upgrade.
 
 ---
 

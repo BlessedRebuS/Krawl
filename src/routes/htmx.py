@@ -50,6 +50,31 @@ def _parse_day(day: str):
         return None
 
 
+# ── Targeted Domains ────────────────────────────────────────────────
+
+
+@router.get("/htmx/targeted-domains")
+async def htmx_targeted_domains(request: Request, page: int = Query(1)):
+    page = max(1, page)
+    cache_key = f"targeted-domains:{page}"
+    result = get_cached_table(cache_key)
+    if not result:
+        db = get_db()
+        result = await asyncio.to_thread(
+            db.access_logs.get_targeted_domains, page=page, page_size=10
+        )
+        set_cached_table(cache_key, result)
+    return get_templates().TemplateResponse(
+        request,
+        "dashboard/partials/targeted_domains_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "items": result["domains"],
+            "pagination": result["pagination"],
+        },
+    )
+
+
 # ── Honeypot Triggers ────────────────────────────────────────────────
 
 
@@ -846,6 +871,31 @@ async def htmx_global_filenames(
         {
             "dashboard_path": _dashboard_path(request),
             "index": result["index"],
+            "pagination": result["pagination"],
+        },
+    )
+
+
+# ── Request Assets (Threat tab) ──────────────────────────────────────
+
+
+@router.get("/htmx/request-assets")
+async def htmx_request_assets(request: Request, page: int = Query(1)):
+    page = max(1, page)
+    cache_key = f"request-assets:{page}"
+    result = get_cached_table(cache_key)
+    if not result:
+        db = get_db()
+        result = await asyncio.to_thread(
+            db.access_logs.get_request_assets, page=page, page_size=20
+        )
+        set_cached_table(cache_key, result)
+    return get_templates().TemplateResponse(
+        request,
+        "dashboard/partials/request_assets_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "items": result["assets"],
             "pagination": result["pagination"],
         },
     )

@@ -50,6 +50,7 @@ def main():
             IpStats,
             MetricsSummary,
             PayloadCluster,
+            RequestAsset,
         )
 
         config = get_config()
@@ -90,6 +91,9 @@ def main():
                 .filter(AttackDetection.access_log_id.in_(batch_ids))
                 .delete(synchronize_session=False)
             )
+            session.query(RequestAsset).filter(
+                RequestAsset.access_log_id.in_(batch_ids)
+            ).delete(synchronize_session=False)
             logs_deleted += (
                 session.query(AccessLog)
                 .filter(AccessLog.id.in_(batch_ids))
@@ -109,6 +113,12 @@ def main():
             )
             .delete(synchronize_session=False)
         )
+        session.commit()
+        session.query(RequestAsset).filter(
+            ~session.query(AccessLog.id)
+            .filter(AccessLog.id == RequestAsset.access_log_id)
+            .exists()
+        ).delete(synchronize_session=False)
         session.commit()
         orphan_clusters = (
             session.query(PayloadCluster)

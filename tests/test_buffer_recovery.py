@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import event
 
 from database import core, get_database, initialize_database
-from models import AccessLog, AttackDetection, CapturedPayload
+from models import AccessLog, AttackDetection, CapturedPayload, RequestAsset
 
 
 @pytest.fixture(autouse=True)
@@ -27,6 +27,8 @@ def entry(**overrides):
         "attack_types": ["command_injection"],
         "matched_patterns": {"command_injection": ";"},
         "file_payloads": [{"filename": "payload.php", "size": 7}],
+        "target_host": "target.example",
+        "request_assets": ["https://target.example/payload.php"],
     }
     result.update(overrides)
     return result
@@ -54,10 +56,14 @@ def test_retry_preserves_timestamp_detections_and_files(tmp_path):
     log = session.query(AccessLog).one()
     attack = session.query(AttackDetection).one()
     upload = session.query(CapturedPayload).one()
+    asset = session.query(RequestAsset).one()
     assert log.timestamp == original["_buffered_at"]
     assert attack.access_log_id == upload.access_log_id == log.id
     assert attack.matched_pattern == ";"
     assert upload.filename == "payload.php"
+    assert log.target_host == "target.example"
+    assert asset.access_log_id == log.id
+    assert asset.url == "https://target.example/payload.php"
 
 
 @pytest.mark.parametrize("ceiling", ["rows", "bytes"])
