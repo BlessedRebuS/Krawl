@@ -59,7 +59,6 @@ jobs:
           body: |
             Updated community banlist
           labels: banlist
-          reviewers: "carnivuth,Lore09"
 
       # GITHUB_TOKEN, not the app token: an actor cannot approve its own pull
       # request, and the app opened this one. github-actions[bot] is a separate
