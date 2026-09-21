@@ -1,11 +1,20 @@
 name: Banlist Check
 
+# Validates banlist.txt on pull requests that touch it. update_banlist.yml runs
+# the same script at fetch time; this one covers hand-edited banlists too.
+#
+# NOT A REQUIRED STATUS CHECK: it is path-filtered, and GitHub reports a skipped
+# workflow's checks as missing rather than passing.
 on:
   pull_request:
     paths:
       - 'banlist.txt'
       - 'scripts/check_banlist.sh'
       - '.github/workflows/banlist-check.yml'
+
+concurrency:
+  group: banlist-check-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
