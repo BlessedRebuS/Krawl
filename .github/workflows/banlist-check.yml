@@ -1,0 +1,19 @@
+name: Banlist Check
+
+on:
+  pull_request:
+    paths:
+      - 'banlist.txt'
+      - 'scripts/check_banlist.sh'
+      - '.github/workflows/banlist-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-banlist:
+    name: Validate banlist
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v5
+      - run: ./scripts/check_banlist.sh banlist.txt
