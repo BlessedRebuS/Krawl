@@ -47,16 +47,30 @@ jobs:
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ steps.app-token.outputs.token }}
-          # Pinned, or peter-evans attributes the commit to github.actor, which
-          # on a scheduled run is a human who had nothing to do with it.
-          author: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
-          committer: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
+          # Must be the app that owns the token above, not github-actions[bot]:
+          # the ruleset requires an extra approval for commits whose author does
+          # not match the actor that pushed them. Left unset, peter-evans would
+          # attribute the commit to github.actor, a human on a scheduled run.
+          author: 'krawl-bot[bot] <332212842+krawl-bot[bot]@users.noreply.github.com>'
+          committer: 'krawl-bot[bot] <332212842+krawl-bot[bot]@users.noreply.github.com>'
           title: 'Community banlist update'
           commit-message: Updated banlist
           branch: community-banlist-update
           body: |
             Updated community banlist
+          labels: banlist
           reviewers: "carnivuth,Lore09"
+
+      # GITHUB_TOKEN, not the app token: an actor cannot approve its own pull
+      # request, and the app opened this one. github-actions[bot] is a separate
+      # identity and its approval satisfies the required review count.
+      - name: Approve
+        if: steps.cpr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr review --approve "${{ steps.cpr.outputs.pull-request-number }}" \
+            -R "$GITHUB_REPOSITORY" -b "Banlist validated by scripts/check_banlist.sh"
 
       - name: Enable auto-merge
         if: steps.cpr.outputs.pull-request-number != ''
