@@ -1,16 +1,10 @@
 name: Banlist Check
 
-# Validates banlist.txt on pull requests that touch it. update_banlist.yml runs
-# the same script at fetch time; this one covers hand-edited banlists too.
-#
-# NOT A REQUIRED STATUS CHECK: it is path-filtered, and GitHub reports a skipped
-# workflow's checks as missing rather than passing.
+# No path or branch filter on the trigger: the job must always run so its check
+# always reports, or requiring it would make every other pull request hang on a
+# status that never arrives. The steps are what gets gated.
 on:
   pull_request:
-    paths:
-      - 'banlist.txt'
-      - 'scripts/check_banlist.sh'
-      - '.github/workflows/banlist-check.yml'
 
 concurrency:
   group: banlist-check-${{ github.ref }}
@@ -25,4 +19,6 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v5
-      - run: ./scripts/check_banlist.sh banlist.txt
+        if: github.head_ref == 'community-banlist-update'
+      - if: github.head_ref == 'community-banlist-update'
+        run: ./scripts/check_banlist.sh banlist.txt
