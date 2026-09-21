@@ -15,11 +15,15 @@ jobs:
 
       - name: Fetch data from API
         run: |
-          curl -sf \
-            "https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw" \
-            -o banlist.txt
-          if [ ! -s banlist.txt ]; then
-            echo "Error: API response is empty or request failed"
+          curl -sf "${{ vars.BANLIST_URL }}" -o banlist.txt
+          # deve essere roba vera: almeno 10 righe e tutte IP/CIDR
+          lines=$(grep -cve '^[[:space:]]*$' banlist.txt || true)
+          if [ "$lines" -lt 10 ]; then
+            echo "Error: banlist too small ($lines lines)"
+            exit 1
+          fi
+          if grep -ve '^[[:space:]]*$' banlist.txt | grep -qve '^[0-9a-fA-F:.]\+\(/[0-9]\+\)\?[[:space:]]*$'; then
+            echo "Error: banlist contains non-IP lines"
             exit 1
           fi
 
@@ -34,14 +38,22 @@ jobs:
           fi
 
       - name: Create Pull Request
+        id: cpr
         if: steps.diff.outputs.changed == 'true'
         env:
           HOME: ${{ runner.temp }}
         uses: peter-evans/create-pull-request@v8
         with:
+          token: ${{ secrets.BANLIST_PAT || secrets.GITHUB_TOKEN }}
           title: 'Community banlist update'
           commit-message: Updated banlist
           branch: community-banlist-update
           body: |
             Updated community banlist
           reviewers: "carnivuth,Lore09"
+
+      - name: Enable auto-merge
+        if: steps.cpr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ secrets.BANLIST_PAT || secrets.GITHUB_TOKEN }}
+        run: gh pr merge --squash --auto "${{ steps.cpr.outputs.pull-request-number }}" -R "$GITHUB_REPOSITORY"
