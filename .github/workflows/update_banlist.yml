@@ -16,16 +16,7 @@ jobs:
       - name: Fetch data from API
         run: |
           curl -sf "${{ vars.BANLIST_URL }}" -o banlist.txt
-          # deve essere roba vera: almeno 10 righe e tutte IP/CIDR
-          lines=$(grep -cve '^[[:space:]]*$' banlist.txt || true)
-          if [ "$lines" -lt 10 ]; then
-            echo "Error: banlist too small ($lines lines)"
-            exit 1
-          fi
-          if grep -ve '^[[:space:]]*$' banlist.txt | grep -qve '^[0-9a-fA-F:.]\+\(/[0-9]\+\)\?[[:space:]]*$'; then
-            echo "Error: banlist contains non-IP lines"
-            exit 1
-          fi
+          ./scripts/check_banlist.sh banlist.txt
 
       - name: Check for changes
         id: diff

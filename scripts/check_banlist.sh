@@ -2,7 +2,7 @@
 # Valida banlist.txt: non vuota, abbastanza righe, solo IP/CIDR (v4 o v6).
 set -eu
 FILE="${1:-banlist.txt}"
-MIN_LINES="${MIN_LINES:-10}"
+MIN_LINES="${MIN_LINES:-100}"
 
 [ -s "$FILE" ] || { echo "Error: $FILE missing or empty"; exit 1; }
 
