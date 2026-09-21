@@ -4,6 +4,15 @@ on:
   pull_request:
     branches:
       - dev
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'requirements.txt'
+      - 'pyproject.toml'
+      - 'Dockerfile'
+      - 'entrypoint.sh'
+      - 'config.yaml'
+      - '.github/workflows/pr-checks.yml'
 
 permissions:
   contents: write

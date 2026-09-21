@@ -5,6 +5,11 @@ on:
     branches:
       - main
       - dev
+    paths:
+      - 'src/**'
+      - 'requirements.txt'
+      - 'pyproject.toml'
+      - '.github/workflows/security-scan.yml'
 
 permissions:
   contents: read
