@@ -42,6 +42,8 @@ COLUMNS = [
     # Request metadata used by Targeted Domains and Assets dashboard tables.
     ("access_logs", "target_host", "VARCHAR(255)"),
     ("access_logs", "request_metadata_extracted", "BOOLEAN DEFAULT false"),
+    ("access_logs", "request_metadata_version", "INTEGER DEFAULT 0"),
+    ("access_logs", "file_extraction_version", "INTEGER DEFAULT 0"),
     # Threat-intel: TLSH fuzzy hash on attack detections for near-duplicate clustering.
     ("attack_detections", "tlsh_hash", "VARCHAR(72)"),
     # Campaign clustering: payload_clusters.id, assigned incrementally at ingest.
@@ -64,6 +66,16 @@ INDEXES = [
         "ix_access_logs_request_metadata_extracted",
         "access_logs",
         "request_metadata_extracted",
+    ),
+    (
+        "ix_access_logs_request_metadata_version",
+        "access_logs",
+        "request_metadata_version",
+    ),
+    (
+        "ix_access_logs_file_extraction_version",
+        "access_logs",
+        "file_extraction_version",
     ),
     ("ix_access_logs_is_suspicious", "access_logs", "is_suspicious"),
     ("ix_access_logs_is_honeypot_trigger", "access_logs", "is_honeypot_trigger"),

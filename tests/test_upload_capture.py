@@ -54,6 +54,7 @@ def _multipart_request(method: str, content: bytes, tracker: _Tracker) -> Reques
         + f"\r\n--{boundary}--\r\n".encode()
     )
     headers = {
+        "host": "uploads.example:8443",
         "content-type": f"multipart/form-data; boundary={boundary}",
         "content-length": str(len(body)),
         "x-forwarded-for": "203.0.113.44",
@@ -101,6 +102,7 @@ def test_unmatched_uploads_are_captured_with_tlsh_disabled():
     assert len(tracker.recorded) == 2
     for method, call in zip(("POST", "PUT"), tracker.recorded, strict=True):
         assert call["method"] == method
+        assert call["target_host"] == "uploads.example:8443"
         assert len(call["raw_request"]) == MAX_RAW_REQUEST
         assert len(call["file_payloads"]) == 1
         payload = call["file_payloads"][0]

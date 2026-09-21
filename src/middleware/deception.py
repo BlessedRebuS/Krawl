@@ -104,6 +104,7 @@ class DeceptionMiddleware(BaseHTTPMiddleware):
                 method=method,
                 raw_request=build_raw_request(request, body),
                 file_payloads=file_payloads,
+                target_host=request.headers.get("Host", ""),
             )
 
             return Response(

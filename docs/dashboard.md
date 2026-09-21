@@ -93,6 +93,8 @@ A table of usernames and passwords captured from honeypot login forms, with time
 Ranks normalized HTTP `Host` targets by retained request count, including the
 number of distinct source IPs and first/last seen times. Ports and trailing root
 dots are removed, so `Example.org:443` and `example.org` aggregate together.
+The standard `Forwarded` and `X-Forwarded-Host` fields are used only when the
+request has no `Host` field.
 
 ### Honeypot Triggers by IP
 
@@ -148,7 +150,9 @@ out of the table.
 ### Captured Files
 
 An index of every file Krawl captured, across all IPs — name, size, type and the
-campaign it belongs to.
+campaign it belongs to. New uploads are extracted inline; the scheduled
+`extract-captured-files` task scans retained historical raw requests in bounded
+batches after an upgrade.
 
 ### Assets
 

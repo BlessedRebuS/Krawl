@@ -60,6 +60,7 @@ async def _track_honeypot_request(request: Request):
     client_ip = get_client_ip(request)
     user_agent = request.headers.get("User-Agent", "")
     referer = request.headers.get("Referer", "") if get_config().referer_enabled else ""
+    target_host = request.headers.get("Host", "")
     path = request.url.path
     get_app_logger().debug(f"[HoneypotDep] {request.method} {path} from {client_ip}")
 
@@ -108,6 +109,7 @@ async def _track_honeypot_request(request: Request):
             raw_request=raw_request,
             referer=referer,
             file_payloads=file_payloads,
+            target_host=target_host,
         )
 
 
@@ -443,6 +445,7 @@ async def trap_page(request: Request, path: str):
             user_agent=user_agent,
             method=request.method,
             raw_request=build_raw_request(request) if is_suspicious else "",
+            target_host=request.headers.get("Host", ""),
             increment_page_visit=True,
         )
     else:

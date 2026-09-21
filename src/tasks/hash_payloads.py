@@ -18,7 +18,7 @@ re-extracted from their raw_request, retried until each has a digest.
 
 import urllib.parse
 
-from sqlalchemy import select, update
+from sqlalchemy import or_, select, update
 
 from config import get_config
 from database import get_database
@@ -180,11 +180,11 @@ def _hash_attack_bodies(
 
 
 def _hash_files(db, threshold: int, reps) -> int:
-    """Backward-hash captured_payloads rows still missing a digest.
+    """Backward-hash or cluster captured files missing either value.
 
-    The watermark does not gate this pass: files are only retried while they
-    lack a digest, and each run takes at most MAX_FILES_PER_RUN of them (oldest
-    first) so the raw_request bodies stay a bounded slice.
+    The watermark does not gate this pass: files are retried while they lack a
+    digest or cluster, and each run takes at most MAX_FILES_PER_RUN of them
+    (oldest first) so the raw_request bodies stay a bounded slice.
     """
     from tlsh_utils import extract_file_payloads
 
@@ -199,7 +199,11 @@ def _hash_files(db, threshold: int, reps) -> int:
             )
             .join(AccessLog, AccessLog.id == CapturedPayload.access_log_id)
             .where(
-                CapturedPayload.tlsh_hash.is_(None), AccessLog.raw_request.isnot(None)
+                or_(
+                    CapturedPayload.tlsh_hash.is_(None),
+                    CapturedPayload.cluster_id.is_(None),
+                ),
+                AccessLog.raw_request.isnot(None),
             )
             .order_by(CapturedPayload.id.asc())
             .limit(MAX_FILES_PER_RUN)
