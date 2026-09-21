@@ -10,18 +10,24 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      # A GitHub App, not a PAT: the ruleset bypass that lets this merge without
+      # a human approval is then scoped to an identity that can only ever do
+      # what this workflow does, instead of to a person's whole account. The
+      # token is minted per run and expires in an hour.
+      - name: Mint app token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.BANLIST_APP_ID }}
+          private-key: ${{ secrets.BANLIST_APP_PRIVATE_KEY }}
+
       - name: Checkout repository
         uses: actions/checkout@v5
 
       - name: Fetch data from API
         run: |
-          curl -sf \
-            "https://demo.krawlme.com/das_dashboard/api/export-ips?categories=attacker&fwtype=raw" \
-            -o banlist.txt
-          if [ ! -s banlist.txt ]; then
-            echo "Error: API response is empty or request failed"
-            exit 1
-          fi
+          curl -sf "${{ vars.BANLIST_URL }}" -o banlist.txt
+          ./scripts/check_banlist.sh banlist.txt
 
       - name: Check for changes
         id: diff
@@ -34,14 +40,26 @@ jobs:
           fi
 
       - name: Create Pull Request
+        id: cpr
         if: steps.diff.outputs.changed == 'true'
         env:
           HOME: ${{ runner.temp }}
         uses: peter-evans/create-pull-request@v8
         with:
+          token: ${{ steps.app-token.outputs.token }}
+          # Pinned, or peter-evans attributes the commit to github.actor, which
+          # on a scheduled run is a human who had nothing to do with it.
+          author: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
+          committer: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
           title: 'Community banlist update'
           commit-message: Updated banlist
           branch: community-banlist-update
           body: |
             Updated community banlist
           reviewers: "carnivuth,Lore09"
+
+      - name: Enable auto-merge
+        if: steps.cpr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: gh pr merge --squash --auto "${{ steps.cpr.outputs.pull-request-number }}" -R "$GITHUB_REPOSITORY"

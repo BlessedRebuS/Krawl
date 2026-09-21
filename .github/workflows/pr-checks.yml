@@ -1,9 +1,17 @@
 name: PR Checks
 
+# No path filter: GitHub reports a skipped workflow's checks as *missing*
+# rather than passing, which would make pull requests that touch no Python
+# unmergeable against the required checks. The `changes` job gates the steps
+# instead.
 on:
   pull_request:
     branches:
       - dev
+
+concurrency:
+  group: pr-checks-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -11,11 +19,37 @@ permissions:
   pull-requests: write
 
 jobs:
+  # The jobs below always run so their required status checks always report;
+  # they just skip their steps when nothing relevant changed.
+  changes:
+    name: Detect relevant changes
+    runs-on: self-hosted
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: filter
+        run: |
+          set -euo pipefail
+          git fetch -q origin "${{ github.base_ref }}"
+          BASE="$(git merge-base HEAD "origin/${{ github.base_ref }}")"
+          CHANGED="$(git diff --name-only "$BASE" HEAD)"
+          echo "$CHANGED"
+          if printf '%s\n' "$CHANGED" | grep -Eq '\.py$|^requirements\.txt$|^pyproject\.toml$|^Dockerfile$|^entrypoint\.sh$|^config\.yaml$|^\.github/workflows/pr-checks\.yml$'; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+
   lint-and-test:
     name: Lint & Dependency Checks
+    needs: changes
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v5
+        if: ${{ needs.changes.outputs.code == 'true' }}
         with:
           # Check out the PR head branch itself (not the detached merge commit)
           # so we can commit auto-fixes back to it. Using the head repo/ref means
@@ -28,11 +62,13 @@ jobs:
       # isolate installs in a venv (avoids PEP 668 / polluting the runner).
       # Prereq on the runner: python3 + python3-venv (matching 3.13).
       - name: Set up Python venv
+        if: ${{ needs.changes.outputs.code == 'true' }}
         run: |
           python3 -m venv "$RUNNER_TEMP/venv"
           echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
 
       - name: Install dependencies
+        if: ${{ needs.changes.outputs.code == 'true' }}
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
@@ -42,7 +78,7 @@ jobs:
         # Only auto-fix on same-repo PRs, where we can push the result back.
         # On fork PRs we skip this so the checks below validate the *submitted*
         # code rather than a locally-fixed tree (which would give a false pass).
-        if: github.event.pull_request.head.repo.full_name == github.repository
+        if: ${{ needs.changes.outputs.code == 'true' && github.event.pull_request.head.repo.full_name == github.repository }}
         run: |
           ruff check --fix src/ || true
           black src/
@@ -51,7 +87,7 @@ jobs:
         id: autofix
         # GITHUB_TOKEN is read-only for PRs from forks, so we can only push back
         # to branches that live in this repository.
-        if: github.event.pull_request.head.repo.full_name == github.repository
+        if: ${{ needs.changes.outputs.code == 'true' && github.event.pull_request.head.repo.full_name == github.repository }}
         run: |
           if [ -z "$(git status --porcelain)" ]; then
             echo "No formatting/lint changes to commit."
@@ -69,6 +105,7 @@ jobs:
 
       - name: Ruff lint & security check
         id: ruff
+        if: ${{ needs.changes.outputs.code == 'true' }}
         continue-on-error: true
         run: |
           ruff check src/ --output-format=grouped | tee "$RUNNER_TEMP/ruff-report.txt"
@@ -77,7 +114,7 @@ jobs:
       - name: Comment Ruff findings on PR
         # GITHUB_TOKEN is read-only for fork PRs, so commenting would 403.
         # Skip on forks; the Ruff/Black/deps checks below still gate the PR.
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        if: ${{ needs.changes.outputs.code == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         uses: actions/github-script@v8
         env:
           RUFF_REPORT_PATH: ${{ runner.temp }}/ruff-report.txt
@@ -151,22 +188,27 @@ jobs:
             }
 
       - name: Fail Ruff check
-        if: steps.ruff.outputs.exit_code != '0'
+        if: ${{ needs.changes.outputs.code == 'true' && steps.ruff.outputs.exit_code != '0' }}
         run: exit 1
 
       - name: Black format check
+        if: ${{ needs.changes.outputs.code == 'true' }}
         run: black --check src/
 
       - name: Check for unused requirements
+        if: ${{ needs.changes.outputs.code == 'true' }}
         run: |
           pip-missing-reqs src/
           pip-extra-reqs -r uvicorn -r psycopg2-binary src/
 
   build-docker:
     name: Build Docker
+    needs: changes
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v5
+        if: ${{ needs.changes.outputs.code == 'true' }}
 
       - name: Build Docker image
+        if: ${{ needs.changes.outputs.code == 'true' }}
         run: docker build -t krawl:test .
