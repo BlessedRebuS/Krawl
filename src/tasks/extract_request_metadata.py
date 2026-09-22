@@ -2,6 +2,7 @@
 
 from sqlalchemy import delete, insert, or_, select, update
 
+from config import get_config
 from database import get_database
 from logger import get_app_logger
 from models import AccessLog, RequestAsset
@@ -22,10 +23,9 @@ TASK_CONFIG = {
     "single_pod": True,
 }
 
-MAX_LOGS_PER_RUN = 500
-
 
 def main():
+    max_logs = get_config().tasks_extract_metadata_batch
     db = get_database()
     session = db.session
     try:
@@ -38,7 +38,7 @@ def main():
                 )
             )
             .order_by(AccessLog.id.asc())
-            .limit(MAX_LOGS_PER_RUN)
+            .limit(max_logs)
         ).all()
 
         for log_id, raw_request, existing_referer in rows:
@@ -71,11 +71,7 @@ def main():
         if rows:
             app_logger.info(
                 f"[Background Task] extract-request-metadata: processed {len(rows)} logs"
-                + (
-                    ", batch full, more pending"
-                    if len(rows) == MAX_LOGS_PER_RUN
-                    else ""
-                )
+                + (", batch full, more pending" if len(rows) == max_logs else "")
             )
     except Exception as exc:
         session.rollback()

@@ -308,6 +308,10 @@ Managed by `TasksMaster` (APScheduler). Tasks are auto-discovered from `src/task
 | `pre_retention_cleanup` | Daily (8:30 AM) | Prune non-suspicious access rows ahead of retention |
 | `db_retention` | Daily (9 AM) | Clean up old records based on retention policy |
 
+Each sweeping task takes a bounded slice per run and picks the rest up next
+run. The slice sizes live in the `tasks:` config section (see Configuration) —
+raise them when a backlog never drains, keeping the pod's memory limit in mind.
+
 ### IP Categorization Model
 
 Each IP is scored across 4 categories based on:
@@ -349,6 +353,16 @@ redis:
   cache_ttl: 600                # Dashboard warmup data TTL
   hot_ttl: 30                   # Ban info / IP category TTL
   table_ttl: 120                # Paginated table TTL
+
+tasks:                          # Rows each scheduled task handles per run
+  analyze_ips_batch: 2000
+  extract_metadata_batch: 500
+  extract_files_batch: 500
+  hash_payloads_batch: 500
+  hash_payloads_chunk: 50       # Raw requests held in memory at once
+  hash_files_batch: 50
+  cleanup_batch: 1000
+  retention_delete_batch: 10000
 
 crawl:
   infinite_pages_for_malicious: true

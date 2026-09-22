@@ -4,7 +4,7 @@ Runs every minute: picks up access logs that carry attack detections but have
 not been hashed yet, recomputes each digest from the persisted raw_request (or
 the path for bodyless hits), clusters it into a campaign, and stamps
 attack_detections.tlsh_hash / cluster_id. Each run takes a bounded slice
-(MAX_LOGS_PER_RUN) in CHUNK_SIZE pieces, so history is swept over many runs
+(`tasks.hash_payloads_batch`) in chunks, so history is swept over many runs
 rather than in one memory-hungry pass at boot.
 
 The watermark (payload_hash_watermark) makes each access log processed
@@ -43,15 +43,11 @@ TASK_CONFIG = {
     "single_pod": True,
 }
 
-# Upper bound on access logs hashed per run; the remainder is picked up next
-# minute. Deliberately modest: raw_request bodies are multi-KB and the pod
-# runs with a 256Mi limit, so history is swept a slice at a time.
-MAX_LOGS_PER_RUN = 500
-# Raw requests held in memory at once. The watermark advances per chunk, so a
-# restart mid-run resumes instead of replaying the whole batch.
-CHUNK_SIZE = 50
-# Captured files back-filled per run (each also loads a raw_request).
-MAX_FILES_PER_RUN = 50
+# Batch sizes live in config (`tasks.hash_payloads_batch`, `hash_payloads_chunk`,
+# `hash_files_batch`). The defaults are deliberately modest: raw_request bodies
+# are multi-KB and the pod runs with a 256Mi limit, so history is swept a slice
+# at a time. The watermark advances per chunk, so a restart mid-run resumes
+# instead of replaying the whole batch.
 
 
 def _parse_raw_request(raw: str) -> tuple[str, str]:
@@ -111,7 +107,7 @@ def _pending_log_ids(db, watermark: int) -> list[int]:
                 .where(AttackDetection.access_log_id > watermark)
                 .distinct()
                 .order_by(AttackDetection.access_log_id.asc())
-                .limit(MAX_LOGS_PER_RUN)
+                .limit(get_config().tasks_hash_payloads_batch)
             ).scalars()
         )
     finally:
@@ -121,7 +117,7 @@ def _pending_log_ids(db, watermark: int) -> list[int]:
 def _hash_attack_bodies(
     db, watermark: int, threshold: int
 ) -> tuple[int, int, int, int]:
-    """Hash + cluster attack bodies for logs above the watermark, CHUNK_SIZE
+    """Hash + cluster attack bodies for logs above the watermark, a chunk of
     raw requests in memory at a time.
 
     Returns (logs_seen, hashed, clustered, new_watermark).
@@ -132,8 +128,9 @@ def _hash_attack_bodies(
 
     reps = db.payloads.cluster_reps()
     hashed = clustered = 0
-    for start in range(0, len(log_ids), CHUNK_SIZE):
-        chunk = log_ids[start : start + CHUNK_SIZE]
+    chunk_size = get_config().tasks_hash_payloads_chunk
+    for start in range(0, len(log_ids), chunk_size):
+        chunk = log_ids[start : start + chunk_size]
         session = db.session
         try:
             rows = session.execute(
@@ -183,7 +180,7 @@ def _hash_files(db, threshold: int, reps) -> int:
     """Backward-hash or cluster captured files missing either value.
 
     The watermark does not gate this pass: files are retried while they lack a
-    digest or cluster, and each run takes at most MAX_FILES_PER_RUN of them
+    digest or cluster, and each run takes at most `tasks.hash_files_batch` of them
     (oldest first) so the raw_request bodies stay a bounded slice.
     """
     from tlsh_utils import extract_file_payloads
@@ -206,7 +203,7 @@ def _hash_files(db, threshold: int, reps) -> int:
                 AccessLog.raw_request.isnot(None),
             )
             .order_by(CapturedPayload.id.asc())
-            .limit(MAX_FILES_PER_RUN)
+            .limit(get_config().tasks_hash_files_batch)
         ).all()
     finally:
         db.close_session()
@@ -251,5 +248,9 @@ def main():
         app_logger.info(
             f"[Background Task] hash-payloads: {processed} logs, "
             f"{hashed} hashed, {clustered} clustered"
-            + (", batch full, more pending" if processed == MAX_LOGS_PER_RUN else "")
+            + (
+                ", batch full, more pending"
+                if processed == config.tasks_hash_payloads_batch
+                else ""
+            )
         )

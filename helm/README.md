@@ -422,6 +422,22 @@ A one-shot Kubernetes Job that copies data from an existing SQLite PVC into Post
 | `config.analyzer.tlsh_campaign_min_events` | A campaign shows only when its payload was seen more than this many times (`KRAWL_TLSH_CAMPAIGN_MIN_EVENTS`) | `10` |
 | `config.analyzer.referer_enabled` | Capture the inbound HTTP Referer header for bait-chain tracking (`KRAWL_REFERER_ENABLED`) | `true` |
 
+### Task Batch Sizes
+
+Rows each scheduled task handles per run; the remainder is picked up next run.
+Raise them when a backlog never drains — bigger batches cost pod memory.
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `config.tasks.analyze_ips_batch` | IPs scored per `analyze-ips` run (`KRAWL_TASKS_ANALYZE_IPS_BATCH`) | `2000` |
+| `config.tasks.extract_metadata_batch` | Logs parsed per `extract-request-metadata` run (`KRAWL_TASKS_EXTRACT_METADATA_BATCH`) | `500` |
+| `config.tasks.extract_files_batch` | Logs scanned per `extract-captured-files` run (`KRAWL_TASKS_EXTRACT_FILES_BATCH`) | `500` |
+| `config.tasks.hash_payloads_batch` | Logs hashed per `hash-payloads` run (`KRAWL_TASKS_HASH_PAYLOADS_BATCH`) | `500` |
+| `config.tasks.hash_payloads_chunk` | Raw requests held in memory at once inside a `hash-payloads` batch (`KRAWL_TASKS_HASH_PAYLOADS_CHUNK`) | `50` |
+| `config.tasks.hash_files_batch` | Captured files back-filled per `hash-payloads` run (`KRAWL_TASKS_HASH_FILES_BATCH`) | `50` |
+| `config.tasks.cleanup_batch` | Rows per `pre-retention-cleanup` pass (`KRAWL_TASKS_CLEANUP_BATCH`) | `1000` |
+| `config.tasks.retention_delete_batch` | Rows per `db-retention` delete transaction (`KRAWL_TASKS_RETENTION_DELETE_BATCH`) | `10000` |
+
 ### Crawl Configuration
 
 | Parameter | Description | Default |

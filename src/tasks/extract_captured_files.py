@@ -20,10 +20,11 @@ TASK_CONFIG = {
 }
 
 CURRENT_FILE_EXTRACTION_VERSION = 1
-MAX_LOGS_PER_RUN = 500
 
 
 def main():
+    config = get_config()
+    max_logs = config.tasks_extract_files_batch
     db = get_database()
     session = db.session
     try:
@@ -36,11 +37,11 @@ def main():
                 )
             )
             .order_by(AccessLog.id.asc())
-            .limit(MAX_LOGS_PER_RUN)
+            .limit(max_logs)
         ).all()
 
         inserted = 0
-        compute_tlsh = get_config().tlsh_enabled
+        compute_tlsh = config.tlsh_enabled
         for log_id, ip, raw_request in rows:
             payloads = extract_file_payloads(
                 raw_request or "", compute_tlsh=compute_tlsh
@@ -84,11 +85,7 @@ def main():
             app_logger.info(
                 f"[Background Task] extract-captured-files: processed {len(rows)} "
                 f"logs, inserted {inserted} files"
-                + (
-                    ", batch full, more pending"
-                    if len(rows) == MAX_LOGS_PER_RUN
-                    else ""
-                )
+                + (", batch full, more pending" if len(rows) == max_logs else "")
             )
     except Exception as exc:
         session.rollback()
