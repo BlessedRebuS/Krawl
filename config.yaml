@@ -119,6 +119,19 @@ analyzer:
   # Capture the inbound HTTP Referer header on access logs for bait-chain tracking.
   referer_enabled: true
 
+# Rows each scheduled task handles per run; the remainder is picked up next run.
+# Raise these when a backlog never drains. The defaults are sized for a 256Mi
+# pod — raw HTTP bodies are multi-KB, so bigger batches cost memory.
+tasks:
+  analyze_ips_batch: 2000          # IPs scored per analyze-ips run
+  extract_metadata_batch: 500      # Logs parsed per extract-request-metadata run
+  extract_files_batch: 500         # Logs scanned per extract-captured-files run
+  hash_payloads_batch: 500         # Logs hashed per hash-payloads run
+  hash_payloads_chunk: 50          # Raw requests held in memory at once
+  hash_files_batch: 50             # Captured files back-filled per run
+  cleanup_batch: 1000              # Rows per pre-retention-cleanup pass
+  retention_delete_batch: 10000    # Rows per db-retention delete transaction
+
 crawl:
   infinite_pages_for_malicious: true
   max_pages_limit: 250
