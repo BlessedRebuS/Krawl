@@ -61,6 +61,15 @@ data:
       tlsh_cluster_threshold: {{ .Values.config.analyzer.tlsh_cluster_threshold }}
       tlsh_campaign_min_events: {{ .Values.config.analyzer.tlsh_campaign_min_events }}
       referer_enabled: {{ .Values.config.analyzer.referer_enabled }}
+    tasks:
+      analyze_ips_batch: {{ .Values.config.tasks.analyze_ips_batch }}
+      extract_metadata_batch: {{ .Values.config.tasks.extract_metadata_batch }}
+      extract_files_batch: {{ .Values.config.tasks.extract_files_batch }}
+      hash_payloads_batch: {{ .Values.config.tasks.hash_payloads_batch }}
+      hash_payloads_chunk: {{ .Values.config.tasks.hash_payloads_chunk }}
+      hash_files_batch: {{ .Values.config.tasks.hash_files_batch }}
+      cleanup_batch: {{ .Values.config.tasks.cleanup_batch }}
+      retention_delete_batch: {{ .Values.config.tasks.retention_delete_batch }}
     crawl:
       infinite_pages_for_malicious: {{ .Values.config.crawl.infinite_pages_for_malicious }}
       max_pages_limit: {{ .Values.config.crawl.max_pages_limit }}
