@@ -1,8 +1,14 @@
 {# Map section with filter legend #}
-<div class="table-container">
+<div class="table-container map-panel" id="ip-origins-panel">
     <div class="row-top mb-3 map-toolbar">
         <h2 class="m-0">IP Origins Map</h2>
         <div class="row gap-3 map-toolbar-controls">
+            <button type="button" id="map-live-toggle" class="dashboard-live-toggle"
+                    role="switch" aria-checked="false" aria-describedby="map-live-status"
+                    onclick="toggleMapLiveMode()">
+                <span class="map-live-toggle-light" aria-hidden="true"></span>
+                <span>Live</span>
+            </button>
             <div class="row">
                 <span class="muted fs-xs">Sort</span>
                 <div class="row gap-1" id="map-sort-selector">
@@ -37,6 +43,11 @@
                 </div>
                 <span class="muted fs-xs">IPs</span>
             </div>
+            <button type="button" id="map-expand-toggle" class="expand-btn map-expand-btn"
+                    onclick="toggleMapExpanded()" aria-pressed="false"
+                    aria-label="Expand IP Origins Map" title="Expand map">
+                <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5H4.56l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L3.5 4.56v2.69a.75.75 0 0 1-1.5 0v-3.5A1.75 1.75 0 0 1 3.75 2Zm8.5 12h-3.5a.75.75 0 0 1 0-1.5h2.69l-2.72-2.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.72 2.72v-2.69a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14Z"/></svg>
+            </button>
         </div>
     </div>
     <div class="row row-wrap mb-3">
@@ -56,5 +67,16 @@
         </div>
         {% endfor %}
     </div>
-    <div id="attacker-map" class="map-frame map-frame-lg"></div>
+    <div class="map-live-stage">
+        <div id="attacker-map" class="map-frame map-frame-lg"></div>
+        <button type="button" id="map-live-readout" class="map-live-readout"
+                onclick="openLiveAttackInsight()" aria-live="polite" hidden>
+            <span class="map-live-readout-kicker">Incoming attack</span>
+            <strong id="map-live-readout-ip"></strong>
+            <span id="map-live-readout-location"></span>
+        </button>
+    </div>
+    <p id="map-live-status" class="map-live-status muted fs-xs" aria-live="polite">
+        Live mode is off
+    </p>
 </div>

@@ -1097,6 +1097,64 @@ class IpStatsRepo:
         finally:
             self._db.close_session()
 
+    def get_live_attackers(self, limit: int = 100) -> list[dict[str, Any]]:
+        """Return the newest geolocated attackers for the map's live feed.
+
+        This deliberately avoids the paginated attacker query: live mode polls
+        often and does not need a ``COUNT(*)`` on every tick.  Rows only become
+        eligible once both coordinates are present, so an attack that is
+        enriched a few seconds after it was recorded will appear on the next
+        poll rather than being lost behind a timestamp cursor. A direct
+        honeypot hit is eligible immediately; the analyzer's ``attacker``
+        classification is also accepted for hostile behavior detected away
+        from a generated honeypot path.
+        """
+        session = self._db.session
+        try:
+            limit = min(max(1, limit), 250)
+            rows = (
+                session.query(
+                    IpStats.ip,
+                    IpStats.total_requests,
+                    IpStats.first_seen,
+                    IpStats.last_seen,
+                    IpStats.country_code,
+                    IpStats.city,
+                    IpStats.latitude,
+                    IpStats.longitude,
+                    IpStats.category,
+                )
+                .filter(
+                    or_(
+                        IpStats.has_triggered_honeypot.is_(True),
+                        IpStats.category == "attacker",
+                    ),
+                    IpStats.latitude.is_not(None),
+                    IpStats.longitude.is_not(None),
+                )
+                .order_by(IpStats.last_seen.desc(), IpStats.ip.asc())
+                .limit(limit)
+                .all()
+            )
+            return [
+                {
+                    "ip": row.ip,
+                    "total_requests": row.total_requests,
+                    "first_seen": (
+                        row.first_seen.isoformat() if row.first_seen else None
+                    ),
+                    "last_seen": row.last_seen.isoformat() if row.last_seen else None,
+                    "country_code": row.country_code,
+                    "city": row.city,
+                    "latitude": row.latitude,
+                    "longitude": row.longitude,
+                    "category": row.category,
+                }
+                for row in rows
+            ]
+        finally:
+            self._db.close_session()
+
     def _timedout_candidates(self, session, ban_duration_seconds: int) -> list[IpStats]:
         """
         Rows currently serving an automatic time-ban, newest ban first.

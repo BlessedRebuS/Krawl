@@ -8,6 +8,15 @@
         <div class="expand-overlay-header">
             <h2 class="panel-title" x-text="expandOverlay.title"></h2>
             <div class="row gap-3">
+                <button type="button" id="expanded-suspicious-live-toggle"
+                        class="dashboard-live-toggle"
+                        role="switch" aria-checked="false"
+                        aria-label="Toggle live suspicious activity"
+                        onclick="toggleMapLiveMode()"
+                        x-show="expandOverlay.endpoint === 'suspicious'" x-cloak>
+                    <span class="map-live-toggle-light" aria-hidden="true"></span>
+                    <span>Live</span>
+                </button>
                 <input type="text"
                        class="expand-overlay-search"
                        placeholder="Filter..."

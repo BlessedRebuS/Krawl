@@ -6,7 +6,8 @@ replicaCount: 1
 image:
   repository: ghcr.io/blessedrebus/krawl
   pullPolicy: Always
-  tag: "2.4.0"
+  # Empty uses Chart.yaml appVersion. Override only to pin another image tag.
+  tag: ""
 
 imagePullSecrets: []
 nameOverride: "krawl"
@@ -18,6 +19,11 @@ serviceAccount:
   name: ""
 
 podAnnotations: {}
+
+# Include the Helm release revision in the pod template. This makes every
+# `helm upgrade` restart the application pods, which is required when an image
+# tag is deliberately reused (imagePullPolicy only applies when a pod starts).
+rolloutOnUpgrade: true
 
 podSecurityContext:
   runAsNonRoot: true

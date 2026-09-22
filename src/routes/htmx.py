@@ -662,13 +662,15 @@ async def htmx_suspicious(
     page_size: int = Query(25),
     search: str = Query(""),
     sort_order: str = Query("desc"),
+    live: bool = Query(False),
 ):
     page = max(1, page)
     page_size = max(1, min(int(page_size), 200))
     search = search.strip() or None
 
     cache_key = f"suspicious:{page}:{page_size}:{sort_order}:{search or ''}"
-    cached = get_cached_table(cache_key)
+    # Live mode must bypass the table cache; normal pagination retains it.
+    cached = None if live else get_cached_table(cache_key)
     if cached:
         result = cached
     else:
@@ -680,7 +682,8 @@ async def htmx_suspicious(
             search=search,
             sort_order=sort_order,
         )
-        set_cached_table(cache_key, result)
+        if not live:
+            set_cached_table(cache_key, result)
 
     templates = get_templates()
     return templates.TemplateResponse(
@@ -693,6 +696,7 @@ async def htmx_suspicious(
             "sort_order": sort_order,
             "search": search or "",
         },
+        headers={"Cache-Control": "no-store"} if live else None,
     )
 
 
