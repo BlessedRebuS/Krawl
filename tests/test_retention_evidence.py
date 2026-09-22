@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from types import SimpleNamespace
 
+from config import get_config
 from database import get_database, initialize_database
 from models import AccessLog, AttackDetection, CapturedPayload, RequestAsset
 from tasks import pre_retention_cleanup
@@ -11,7 +12,7 @@ def test_cleanup_progresses_past_suspicious_batch_and_preserves_evidence(
 ):
     initialize_database(str(tmp_path / "cleanup.db"))
     db = get_database()
-    monkeypatch.setattr(pre_retention_cleanup, "BATCH_SIZE", 2)
+    monkeypatch.setattr(get_config(), "tasks_cleanup_batch", 2)
     monkeypatch.setattr(
         pre_retention_cleanup,
         "get_wordlists",

@@ -29,9 +29,6 @@ TASK_CONFIG = {
     "single_pod": True,
 }
 
-# Batch size for processing old logs to limit memory usage
-BATCH_SIZE = 1000
-
 app_logger = get_app_logger()
 
 
@@ -145,6 +142,8 @@ def main():
 
         config = get_config()
         retention_days = config.database_retention_days
+        # Rows per pass, to limit memory usage.
+        batch_size = config.tasks_cleanup_batch
 
         db = get_database()
         session = db.session
@@ -184,7 +183,7 @@ def main():
                     .exists(),
                 )
                 .order_by(AccessLog.id)
-                .limit(BATCH_SIZE)
+                .limit(batch_size)
                 .all()
             )
 

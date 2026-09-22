@@ -24,15 +24,15 @@ TASK_CONFIG = {
     "single_pod": True,
 }
 
-# Upper bound on IPs analysed per run; the remainder is picked up next minute.
-# Sized from the real workload: the vast majority of flagged IPs have under 100
-# rows to read, so 2000 fits comfortably inside the one-minute window while
-# still capping the worst case at 2000 x 10,000 rows.
-MAX_IPS_PER_RUN = 2000
+# Upper bound on IPs analysed per run (config `tasks.analyze_ips_batch`); the
+# remainder is picked up next minute. The default is sized from the real
+# workload: the vast majority of flagged IPs have under 100 rows to read, so
+# 2000 fits comfortably inside the one-minute window.
 
 
 def main():
     config = get_config()
+    max_ips = config.tasks_analyze_ips_batch
     db_manager = get_database()
     app_logger = get_app_logger()
 
@@ -125,9 +125,7 @@ def main():
 
     # IPs flagged for reevaluation, plus any never analysed at all — the
     # ordering and the cap are both applied in SQL, see the repo method.
-    ips_to_analyze = db_manager.ip_stats.get_ips_needing_reevaluation(
-        limit=MAX_IPS_PER_RUN
-    )
+    ips_to_analyze = db_manager.ip_stats.get_ips_needing_reevaluation(limit=max_ips)
 
     if not ips_to_analyze:
         app_logger.debug(
@@ -135,9 +133,9 @@ def main():
         )
         return
 
-    if len(ips_to_analyze) == MAX_IPS_PER_RUN:
+    if len(ips_to_analyze) == max_ips:
         app_logger.info(
-            f"[Background Task] analyze-ips: batch full at {MAX_IPS_PER_RUN}, "
+            f"[Background Task] analyze-ips: batch full at {max_ips}, "
             "more IPs pending for the next run"
         )
 
