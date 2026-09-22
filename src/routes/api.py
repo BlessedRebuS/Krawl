@@ -418,6 +418,31 @@ async def all_ips(
         return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
 
 
+@router.get("/api/live-attacks")
+async def live_attacks(request: Request, limit: int = Query(100)):
+    """Small uncached snapshot used by the IP map's opt-in live mode."""
+    db = get_db()
+    try:
+        attacks = await asyncio.to_thread(
+            db.ip_stats.get_live_attackers,
+            limit=min(max(1, limit), 250),
+        )
+        return JSONResponse(
+            content={
+                "attacks": attacks,
+                "server_time": datetime.now(UTC).isoformat(),
+            },
+            headers=_no_cache_headers(),
+        )
+    except Exception as e:
+        get_app_logger().error(f"Error fetching live map attacks: {e}")
+        return JSONResponse(
+            content={"error": str(e)},
+            status_code=500,
+            headers=_no_cache_headers(),
+        )
+
+
 @router.get("/api/ip-stats/{ip_address:path}")
 async def ip_stats(ip_address: str, request: Request):
     db = get_db()

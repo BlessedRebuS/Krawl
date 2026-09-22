@@ -10,6 +10,20 @@ let mapResizeObserver = null;
 let mapResizeFrame = null;
 let mapInitializationPromise = null;
 let mapDataLoaded = false;
+let liveModeEnabled = false;
+let livePollTimer = null;
+let liveRequestController = null;
+let liveRequestGeneration = 0;
+let liveAttackLayer = null;
+let liveReadoutTimer = null;
+let liveLastAttackLabel = null;
+let mapExpanded = false;
+let mapPreviousBodyOverflow = '';
+const liveAttackSignatures = new Map();
+
+const LIVE_POLL_INTERVAL_MS = 2500;
+const LIVE_ATTACK_LIMIT = 100;
+const LIVE_PULSE_LIFETIME_MS = 6500;
 
 const categoryColors = { ...krawlCategoryColors(), unknown: krawlToken('--text-dim') };
 
@@ -162,6 +176,317 @@ function getIPCoordinates(ip) {
         return countryCoordinates[ip.country_code];
     }
     return null;
+}
+
+function _setLiveStatus(message) {
+    const status = document.getElementById('map-live-status');
+    if (status) status.textContent = message;
+}
+
+function _setLiveToggleState(enabled, busy = false) {
+    document.querySelectorAll('.dashboard-live-toggle').forEach(toggle => {
+        toggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+        toggle.disabled = busy;
+    });
+}
+
+function _liveAttackSignature(attack) {
+    return `${attack.last_seen || ''}|${attack.total_requests || 0}|${attack.latitude}|${attack.longitude}`;
+}
+
+function _liveAttackLocation(attack) {
+    if (attack.city && attack.country_code) return `${attack.city}, ${attack.country_code}`;
+    if (attack.city) return attack.city;
+    if (attack.country_code) return attack.country_code;
+    return `${Number(attack.latitude).toFixed(2)}, ${Number(attack.longitude).toFixed(2)}`;
+}
+
+function _showLiveReadout(attack) {
+    const readout = document.getElementById('map-live-readout');
+    const ip = document.getElementById('map-live-readout-ip');
+    const location = document.getElementById('map-live-readout-location');
+    if (!readout || !ip || !location) return;
+
+    // These values ultimately come from remote traffic and GeoIP providers;
+    // use textContent so the live presentation never becomes an HTML sink.
+    ip.textContent = attack.ip;
+    location.textContent = _liveAttackLocation(attack);
+    readout.dataset.ip = attack.ip;
+    readout.setAttribute('aria-label', `Inspect incoming attack from ${attack.ip}, ${location.textContent}`);
+    readout.hidden = false;
+    if (liveReadoutTimer) clearTimeout(liveReadoutTimer);
+    liveReadoutTimer = setTimeout(() => {
+        readout.hidden = true;
+        liveReadoutTimer = null;
+    }, LIVE_PULSE_LIFETIME_MS);
+}
+
+function openLiveAttackInsight() {
+    const readout = document.getElementById('map-live-readout');
+    const ip = readout && readout.dataset.ip;
+    if (!ip || typeof window.openIpInsight !== 'function') return;
+    if (mapExpanded) toggleMapExpanded(false);
+    window.openIpInsight(ip);
+}
+
+function _suspiciousLogIds(root) {
+    if (!root) return new Set();
+    return new Set(
+        Array.from(root.querySelectorAll('[data-log-id]'))
+            .map(row => row.dataset.logId)
+            .filter(Boolean)
+    );
+}
+
+function _animateNewSuspiciousRows(root, previousIds) {
+    if (!root) return;
+    const rows = Array.from(root.querySelectorAll('[data-log-id]'))
+        .filter(row => row.dataset.logId && !previousIds.has(row.dataset.logId));
+
+    // Newest rows are first. A small capped stagger makes a burst readable
+    // without turning a busy attack feed into a long animation queue.
+    rows.forEach((row, index) => {
+        row.style.setProperty('--arrival-index', String(Math.min(index, 6)));
+        row.classList.add('is-live-arrival');
+    });
+}
+
+function _scheduleSuspiciousArrival(root, previousIds) {
+    // Let the freshly swapped table paint once before applying the class.
+    // This avoids the animation being coalesced with the HTMX DOM update,
+    // especially in the expanded overlay where a larger table takes longer
+    // to lay out.
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => _animateNewSuspiciousRows(root, previousIds));
+    });
+}
+
+async function _refreshLiveSuspicious(highlightNew = true) {
+    const target = document.getElementById('recent-suspicious-body');
+    if (!target) return;
+    const previousIds = _suspiciousLogIds(target);
+    const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
+    const response = await fetch(`${DASHBOARD_PATH}/htmx/suspicious?page=1&page_size=10&live=1`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+    });
+    if (!response.ok) throw new Error('Suspicious activity feed unavailable');
+    const html = await response.text();
+    const parsed = new DOMParser().parseFromString(html, 'text/html');
+    const fragmentMarker = parsed.querySelector('[data-suspicious-fragment="true"]');
+    const sourceBody = parsed.querySelector('table tbody');
+    // Never swap arbitrary HTML into the table. This specifically protects
+    // the dashboard if a bad/missing route falls through to a deception page.
+    if (!fragmentMarker || !sourceBody) {
+        throw new Error('Invalid suspicious activity response');
+    }
+    const rowsHtml = sourceBody.innerHTML;
+    if (typeof htmx !== 'undefined' && typeof htmx.swap === 'function') {
+        htmx.swap(target, rowsHtml, { swapStyle: 'innerHTML' });
+    } else {
+        target.innerHTML = rowsHtml;
+    }
+    if (highlightNew) {
+        _scheduleSuspiciousArrival(target, previousIds);
+    }
+
+    const app = typeof _getAlpineData === 'function' ? _getAlpineData() : null;
+    const overlayTarget = document.getElementById('expand-overlay-table');
+    if (app && overlayTarget && app.expandOverlay.show && app.expandOverlay.endpoint === 'suspicious') {
+        const overlayPreviousIds = _suspiciousLogIds(overlayTarget);
+        const params = new URLSearchParams({
+            page: '1',
+            page_size: String(app.expandOverlay.pageSize || 25),
+            search: app.expandOverlay.search || '',
+            live: '1'
+        });
+        const overlayResponse = await fetch(`${DASHBOARD_PATH}/htmx/suspicious?${params}`, {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+        });
+        if (!overlayResponse.ok) throw new Error('Expanded suspicious activity feed unavailable');
+        const overlayHtml = await overlayResponse.text();
+        const overlayParsed = new DOMParser().parseFromString(overlayHtml, 'text/html');
+        if (!overlayParsed.querySelector('[data-suspicious-fragment="true"]') ||
+            !overlayParsed.querySelector('table tbody')) {
+            throw new Error('Invalid expanded suspicious activity response');
+        }
+        if (typeof htmx !== 'undefined' && typeof htmx.swap === 'function') {
+            htmx.swap(overlayTarget, overlayHtml, { swapStyle: 'innerHTML' });
+        } else {
+            overlayTarget.innerHTML = overlayHtml;
+        }
+        if (highlightNew) {
+            _scheduleSuspiciousArrival(overlayTarget, overlayPreviousIds);
+        }
+    }
+}
+
+function toggleMapExpanded(force) {
+    const panel = document.getElementById('ip-origins-panel');
+    const toggle = document.getElementById('map-expand-toggle');
+    if (!panel) return;
+    const next = typeof force === 'boolean' ? force : !mapExpanded;
+    if (next === mapExpanded) return;
+    mapExpanded = next;
+    panel.classList.toggle('is-expanded', next);
+    if (toggle) {
+        toggle.setAttribute('aria-pressed', next ? 'true' : 'false');
+        toggle.setAttribute('aria-label', next ? 'Close expanded IP Origins Map' : 'Expand IP Origins Map');
+        toggle.title = next ? 'Close expanded map' : 'Expand map';
+    }
+    if (next) {
+        mapPreviousBodyOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = mapPreviousBodyOverflow;
+    }
+    refreshAttackerMapLayout(false);
+}
+
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && mapExpanded) toggleMapExpanded(false);
+});
+
+function _renderLiveAttack(attack) {
+    if (!attackerMap || !liveAttackLayer || !liveModeEnabled) return;
+    const coords = [Number(attack.latitude), Number(attack.longitude)];
+    if (!Number.isFinite(coords[0]) || !Number.isFinite(coords[1])) return;
+
+    const marker = L.marker(coords, {
+        interactive: false,
+        keyboard: false,
+        zIndexOffset: 1000,
+        icon: L.divIcon({
+            html: '<div class="map-live-event" aria-hidden="true"></div>',
+            className: 'map-live-event-icon',
+            iconSize: [18, 18],
+            iconAnchor: [9, 9]
+        })
+    });
+    liveAttackLayer.addLayer(marker);
+    _showLiveReadout(attack);
+    liveLastAttackLabel = formatTimestamp(attack.last_seen);
+    _setLiveStatus(`Live · last attack ${liveLastAttackLabel}`);
+    setTimeout(() => {
+        if (liveAttackLayer) liveAttackLayer.removeLayer(marker);
+    }, LIVE_PULSE_LIFETIME_MS);
+}
+
+async function _fetchLiveAttacks() {
+    if (liveRequestController) liveRequestController.abort();
+    liveRequestController = new AbortController();
+    const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
+    const response = await fetch(
+        `${DASHBOARD_PATH}/api/live-attacks?limit=${LIVE_ATTACK_LIMIT}`,
+        {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
+            signal: liveRequestController.signal
+        }
+    );
+    if (!response.ok) throw new Error('Live feed unavailable');
+    const data = await response.json();
+    return data.attacks || [];
+}
+
+function _scheduleLivePoll(generation, delay = LIVE_POLL_INTERVAL_MS) {
+    if (livePollTimer) clearTimeout(livePollTimer);
+    if (!liveModeEnabled || generation !== liveRequestGeneration) return;
+    livePollTimer = setTimeout(() => _pollLiveAttacks(generation), delay);
+}
+
+async function _pollLiveAttacks(generation) {
+    if (!liveModeEnabled || generation !== liveRequestGeneration) return;
+    const suspiciousRefresh = _refreshLiveSuspicious(true).catch(err => {
+        console.error('Error refreshing live suspicious activity:', err);
+    });
+    try {
+        const attacks = await _fetchLiveAttacks();
+        if (!liveModeEnabled || generation !== liveRequestGeneration) return;
+
+        const changed = [];
+        const currentIps = new Set();
+        attacks.forEach(attack => {
+            currentIps.add(attack.ip);
+            const signature = _liveAttackSignature(attack);
+            if (liveAttackSignatures.get(attack.ip) !== signature) changed.push(attack);
+            liveAttackSignatures.set(attack.ip, signature);
+        });
+        // Bound client memory to the same small rolling window as the API.
+        // An IP that later re-enters the window necessarily has new activity.
+        liveAttackSignatures.forEach((_signature, ip) => {
+            if (!currentIps.has(ip)) liveAttackSignatures.delete(ip);
+        });
+
+        // The endpoint is newest-first. Play a bounded batch oldest-first so
+        // simultaneous activity reads as a sequence rather than one bright blob.
+        changed.slice(0, 12).reverse().forEach((attack, index) => {
+            setTimeout(() => _renderLiveAttack(attack), index * 140);
+        });
+        if (changed.length === 0) {
+            _setLiveStatus(liveLastAttackLabel
+                ? `Live · last attack ${liveLastAttackLabel}`
+                : 'Live · waiting for a geolocated attack');
+        }
+    } catch (err) {
+        if (err.name !== 'AbortError' && liveModeEnabled) {
+            console.error('Error polling live map attacks:', err);
+            _setLiveStatus('Live · reconnecting…');
+        }
+    } finally {
+        await suspiciousRefresh;
+        _scheduleLivePoll(generation);
+    }
+}
+
+async function toggleMapLiveMode() {
+    if (liveModeEnabled) {
+        liveModeEnabled = false;
+        liveRequestGeneration++;
+        if (livePollTimer) clearTimeout(livePollTimer);
+        livePollTimer = null;
+        if (liveRequestController) liveRequestController.abort();
+        liveRequestController = null;
+        if (liveAttackLayer) liveAttackLayer.clearLayers();
+        liveLastAttackLabel = null;
+        const readout = document.getElementById('map-live-readout');
+        if (readout) readout.hidden = true;
+        _setLiveToggleState(false);
+        _setLiveStatus('Live mode is off');
+        return;
+    }
+
+    _setLiveToggleState(false, true);
+    _setLiveStatus('Connecting to live attacks…');
+    const initialized = attackerMap || await initializeAttackerMap();
+    if (!initialized) {
+        _setLiveToggleState(false);
+        _setLiveStatus('Open the overview to start live mode');
+        return;
+    }
+
+    const generation = ++liveRequestGeneration;
+    try {
+        // Establish a baseline without replaying historical attacks. An IP
+        // absent here because GeoIP is pending will still pulse once enriched.
+        const attacks = await _fetchLiveAttacks();
+        await _refreshLiveSuspicious(false);
+        if (generation !== liveRequestGeneration) return;
+        liveAttackSignatures.clear();
+        liveLastAttackLabel = null;
+        attacks.forEach(attack => {
+            liveAttackSignatures.set(attack.ip, _liveAttackSignature(attack));
+        });
+        liveModeEnabled = true;
+        _setLiveToggleState(true);
+        _setLiveStatus('Live · waiting for a geolocated attack');
+        _scheduleLivePoll(generation, 0);
+    } catch (err) {
+        if (err.name !== 'AbortError') console.error('Error starting live map:', err);
+        _setLiveToggleState(false);
+        _setLiveStatus('Live mode could not connect');
+    }
 }
 
 // Shared coordinate-dedup state (reset per full build)
@@ -575,6 +900,7 @@ async function _initializeAttackerMap() {
                 _tileLayer()
             ]
         });
+        liveAttackLayer = L.layerGroup().addTo(attackerMap);
         _observeMapContainer(mapContainer);
 
         // Fit the inhabited latitude band to the frame. The right zoom depends

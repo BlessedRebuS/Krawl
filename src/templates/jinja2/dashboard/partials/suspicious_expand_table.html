@@ -1,6 +1,6 @@
 {# HTMX fragment: paginated recent suspicious activity (used in expand overlay) #}
 {% set filter_qs %}{% if search %}&search={{ search | e }}{% endif %}&sort_order={{ sort_order }}{% endset %}
-<div class="panel-header">
+<div class="panel-header" data-suspicious-fragment="true">
     <div class="row row-wrap">
         <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} suspicious</span>
         {% if search %}
@@ -38,7 +38,9 @@
     </thead>
     <tbody>
         {% for activity in items %}
-        <tr class="ip-row" data-ip="{{ activity.ip | e }}">
+        <tr class="ip-row recent-suspicious-row"
+            data-ip="{{ activity.ip | e }}"
+            data-log-id="{{ activity.log_id | default('') }}">
             <td class="ip-clickable"
                 title="Open in IP Insight"
                 @click="openIpInsight('{{ activity.ip | e }}')">

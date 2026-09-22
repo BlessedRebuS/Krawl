@@ -9,7 +9,8 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/blessedrebus/krawl
-  tag: "2.4.0"
+  # Empty uses the chart's appVersion.
+  tag: ""
   pullPolicy: Always
 
 ingress:

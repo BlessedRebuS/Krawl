@@ -307,6 +307,7 @@ class AccessLogRepo:
             return [
                 {
                     "ip": log.ip,
+                    "method": log.method,
                     "path": log.path,
                     "user_agent": log.user_agent,
                     "timestamp": log.timestamp.isoformat(),

@@ -38,15 +38,20 @@ jobs:
         run: |
           CHART_NAME=$(grep '^name:' ./helm/Chart.yaml | awk '{print $2}')
           BASE_VERSION=$(grep '^version:' ./helm/Chart.yaml | awk '{print $2}')
+          BASE_APP_VERSION=$(grep '^appVersion:' ./helm/Chart.yaml | awk '{print $2}' | tr -d '"')
           
           if [[ "${{ github.ref_name }}" == "main" ]]; then
             CHART_VERSION="${BASE_VERSION}"
+            APP_VERSION="${BASE_APP_VERSION}"
           else
             CHART_VERSION="${BASE_VERSION}-${{ github.ref_name }}"
+            APP_VERSION="${BASE_APP_VERSION}-${{ github.ref_name }}"
           fi
           
-          # Update Chart.yaml temporarily with the versioned name
+          # Keep the packaged chart and the image produced by
+          # docker-build-push.yml on the same branch-specific tag.
           sed -i "s/^version:.*/version: ${CHART_VERSION}/" ./helm/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: ${APP_VERSION}/" ./helm/Chart.yaml
           
           # Package the helm chart
           helm package ./helm
@@ -62,8 +67,4 @@ jobs:
         run: |
           CHART_VERSION=$(grep '^version:' ./helm/Chart.yaml | awk '{print $2}')
           CHART_FILE=$(grep '^name:' ./helm/Chart.yaml | awk '{print $2}')
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
-            echo "Chart pushed: ${CHART_FILE}:${CHART_VERSION}"
-          else
-            echo "Chart pushed: ${CHART_FILE}:${CHART_VERSION}-${{ github.ref_name }}"
-          fi
+          echo "Chart pushed: ${CHART_FILE}:${CHART_VERSION}"

@@ -62,7 +62,10 @@ This deploys PostgreSQL and Redis StatefulSets with Services in the same namespa
 
 Minimal `values-minimal.yaml` for scalable mode:
 
-> **Tip**: For production deployments, pin the image tag to a specific version (e.g., `tag: "2.4.0"`) instead of `latest` to ensure reproducible deployments.
+> **Tip**: By default the image tag follows the chart's `appVersion`. Override
+> `image.tag` only when you intentionally want another image. Every Helm upgrade
+> rolls the application pods by default, so a reused tag is pulled again; immutable
+> version or digest-based deployments remain preferable for reproducibility.
 
 ```yaml
 mode: scalable
@@ -179,8 +182,9 @@ The following table lists the main configuration parameters of the Krawl chart a
 | `mode` | Deployment mode (`standalone` or `scalable`) | `scalable` |
 | `replicaCount` | Number of pod replicas (>1 only in scalable mode) | `1` |
 | `image.repository` | Image repository | `ghcr.io/blessedrebus/krawl` |
-| `image.tag` | Image tag | `2.4.0` |
+| `image.tag` | Image tag (empty uses the chart `appVersion`) | `""` |
 | `image.pullPolicy` | Image pull policy | `Always` |
+| `rolloutOnUpgrade` | Restart application pods on every Helm upgrade, including when an image tag is reused | `true` |
 
 ### Service Configuration
 
