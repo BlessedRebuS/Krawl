@@ -1,0 +1,26 @@
+<section class="investigation-panel" aria-label="Matching requests">
+    <div class="investigation-heading">
+        <div><h3>Matching requests</h3><p class="data-mono">{{ value | e }}</p></div>
+    </div>
+    <form class="artifact-list-search" hx-get="{{ dashboard_path }}/htmx/artifact-requests" hx-target="#expand-overlay-table" hx-swap="innerHTML">
+        <input type="hidden" name="kind" value="{{ kind | e }}">
+        <input type="hidden" name="value" value="{{ value | e }}">
+        <label for="investigation-ip-{{ kind }}">Source IP</label>
+        <input id="investigation-ip-{{ kind }}" type="search" name="ip_filter" value="{{ ip_filter | e }}" placeholder="IP address or prefix" autocomplete="off">
+        <button type="submit" class="pagination-btn">Filter</button>
+    </form>
+    <div class="panel-header">
+        <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} requests</span>
+        <div class="row">
+            <button class="pagination-btn" hx-get="{{ dashboard_path }}/htmx/artifact-requests?page={{ pagination.page - 1 }}" hx-include="closest .investigation-panel" hx-target="#expand-overlay-table" hx-swap="innerHTML" {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
+            <button class="pagination-btn" hx-get="{{ dashboard_path }}/htmx/artifact-requests?page={{ pagination.page + 1 }}" hx-include="closest .investigation-panel" hx-target="#expand-overlay-table" hx-swap="innerHTML" {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
+        </div>
+    </div>
+    <table><thead><tr><th>Source IP</th><th>Method</th><th>Path</th><th>Time</th><th>Request</th></tr></thead>
+    <tbody>{% for item in items %}<tr>
+        <td class="data data-mono"><a href="{{ dashboard_path }}/ip/{{ item.ip | urlencode }}" class="data-link" data-ip="{{ item.ip | e }}" onclick="event.preventDefault(); openIpInsight(this.dataset.ip)" title="Open IP insight">{{ item.ip | e }}</a></td>
+        <td>{{ item.method | e }}</td><td class="data data-mono">{{ item.path | e }}</td>
+        <td class="ts-cell">{{ item.timestamp | format_ts }}</td>
+        <td><button type="button" class="pagination-btn" @click="viewRawRequest({{ item.id }})">View request</button>{% if kind == 'file' %} <button type="button" class="pagination-btn" data-filename="{{ value | e }}" @click="viewPayload({{ item.id }}, $event.currentTarget.dataset.filename)">View file</button>{% endif %}</td>
+    </tr>{% else %}<tr><td colspan="5" class="empty-state">No retained requests match this selection.</td></tr>{% endfor %}</tbody></table>
+</section>

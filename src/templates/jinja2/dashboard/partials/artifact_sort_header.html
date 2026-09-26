@@ -1,0 +1,11 @@
+{% macro header(field, label, endpoint, sort_by, sort_order, search, tooltip='') %}
+{% set next_order = 'asc' if sort_by == field and sort_order == 'desc' else 'desc' %}
+<th class="sortable {% if sort_by == field %}{{ sort_order }}{% endif %}"
+    aria-sort="{% if sort_by == field %}{{ 'ascending' if sort_order == 'asc' else 'descending' }}{% else %}none{% endif %}"
+    hx-get="{{ dashboard_path }}/htmx/{{ endpoint }}?page=1&amp;sort_by={{ field }}&amp;sort_order={{ next_order }}&amp;search={{ search | urlencode }}"
+    hx-target="closest .htmx-container" hx-swap="innerHTML"
+    {% if tooltip %}title="{{ tooltip | e }}"{% endif %}>
+    <button type="button" class="artifact-sort-button"
+            aria-label="Sort by {{ label | lower }}, {{ next_order }}ending">{{ label }}</button>
+</th>
+{% endmacro %}

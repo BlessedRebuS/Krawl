@@ -137,6 +137,7 @@ class PayloadRepo:
         filename: str | None = None,
         ip: str | None = None,
         sort_by: str = "last_seen",
+        sort_order: str = "desc",
     ) -> dict[str, Any]:
         """Global filename index across all IPs (Threat tab).
 
@@ -170,10 +171,12 @@ class PayloadRepo:
                 "first_seen": func.min(CapturedPayload.timestamp),
                 "filename": CapturedPayload.filename,
                 "distinct_ips": func.count(func.distinct(CapturedPayload.ip)),
+                "total": func.count(CapturedPayload.id),
             }
             order = valid_sort.get(sort_by, valid_sort["last_seen"])
+            direction = order.asc() if sort_order == "asc" else order.desc()
             rows = (
-                base.order_by(order.desc())
+                base.order_by(direction, CapturedPayload.filename.asc())
                 .offset((page - 1) * page_size)
                 .limit(page_size)
                 .all()

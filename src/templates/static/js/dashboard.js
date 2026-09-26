@@ -420,7 +420,7 @@ document.addEventListener('alpine:init', () => {
         uploadModal: { show: false, path: '', fileName: '', fileContent: '', error: '', success: '', loading: false, dragging: false },
 
         // Expand overlay state
-        expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false, method: '', attackType: '', attackTypes: [], ipFilter: '' },
+        expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false, method: '', attackType: '', attackTypes: [], ipFilter: '', artifactKind: '', artifactValue: '' },
 
         // LIFO of active popups (raw/file modal can open over the expand
         // overlay); ESC closes only the most recently opened one.
@@ -1587,6 +1587,148 @@ window.submitUploadPage = async function() {
     modal.loading = false;
 };
 
+// D3 force graph for Targeted Domains. The popup is HTMX-swapped, so each
+// simulation is stopped before its SVG is replaced.
+(function setupDomainMaps() {
+    const activeMaps = new WeakMap();
+
+    function init(map) {
+        if (activeMaps.has(map) || typeof d3 === 'undefined') return;
+        const svgElement = map.querySelector('.domain-map-svg');
+        const dataElement = map.querySelector('.domain-map-data');
+        if (!svgElement || !dataElement) return;
+        const data = JSON.parse(dataElement.textContent);
+        const width = svgElement.clientWidth || map.clientWidth || 700;
+        const height = svgElement.clientHeight || 420;
+        const nodes = data.nodes.map(node => ({
+            id: node.domain,
+            label: node.label,
+            depth: node.depth,
+            observed: node.observed,
+            ownCount: node.own_count,
+            total: node.total,
+            isCurrent: node.domain === data.root,
+            x: width / 2 + (node.x - 500) * 0.65,
+            y: height / 2 + (node.y - 450) * 0.65,
+        }));
+        const edges = data.edges.map(edge => ({ source: edge.source, target: edge.target }));
+        const svg = d3.select(svgElement).attr('viewBox', `0 0 ${width} ${height}`);
+        svg.selectAll('*').remove();
+        const canvas = svg.append('g').attr('class', 'domain-map-canvas');
+        const zoom = d3.zoom().scaleExtent([0.25, 3]).on('zoom', event => {
+            canvas.attr('transform', event.transform);
+        });
+        svg.call(zoom);
+
+        const marker = svg.append('defs').append('marker')
+            .attr('id', 'domain-map-arrow')
+            .attr('viewBox', '0 0 10 10')
+            .attr('refX', 18).attr('refY', 5)
+            .attr('markerWidth', 6).attr('markerHeight', 6)
+            .attr('orient', 'auto-start-reverse');
+        marker.append('path').attr('d', 'M2 1L8 5L2 9');
+
+        const linkForce = d3.forceLink(edges).id(node => node.id).distance(120).strength(0.6);
+        const simulation = d3.forceSimulation(nodes)
+            .force('link', linkForce)
+            .force('charge', d3.forceManyBody().strength(-280))
+            .force('center', d3.forceCenter(width / 2, height / 2))
+            .force('collide', d3.forceCollide(30));
+
+        const edge = canvas.append('g').selectAll('path')
+            .data(edges).join('path')
+            .attr('class', 'domain-map-edge')
+            .attr('marker-end', 'url(#domain-map-arrow)');
+        const node = canvas.append('g').selectAll('g')
+            .data(nodes).join('g')
+            .attr('class', d => `domain-map-node ${d.isCurrent ? 'is-current' : d.observed ? 'is-internal' : 'is-external'} depth-${Math.min(d.depth, 3)}`)
+            .attr('data-domain', d => d.id)
+            .attr('tabindex', d => d.observed ? 0 : null)
+            .attr('role', d => d.observed ? 'link' : null)
+            .attr('aria-label', d => d.observed ? `Inspect ${d.id}, ${d.ownCount} requests` : null)
+            .on('click', (event, d) => {
+                if (d.observed && !event.defaultPrevented) {
+                    openArtifactInvestigation('domain', d.id);
+                }
+            })
+            .on('keydown', (event, d) => {
+                if (d.observed && (event.key === 'Enter' || event.key === ' ')) {
+                    event.preventDefault();
+                    openArtifactInvestigation('domain', d.id);
+                }
+            })
+            .call(d3.drag()
+                .on('start', function(event, d) {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
+                    d3.select(this).classed('is-dragging', true);
+                })
+                .on('drag', (event, d) => {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                })
+                .on('end', function(event, d) {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                    d3.select(this).classed('is-dragging', false);
+                }));
+        node.append('circle').attr('r', d => d.isCurrent ? 14 : 10);
+        node.append('text')
+            .attr('x', d => d.isCurrent ? 18 : 14)
+            .text(d => d.label.length > 22 ? `${d.label.slice(0, 21)}…` : d.label);
+        node.append('title').text(d => `${d.id}\n${d.ownCount} direct requests` +
+            (d.total !== d.ownCount ? `\n${d.total} including branches` : ''));
+
+        simulation.on('tick', () => {
+            edge.attr('d', d => {
+                const sx = d.source.x, sy = d.source.y;
+                const tx = d.target.x, ty = d.target.y;
+                return `M${sx},${sy} Q${(sx + tx) / 2},${(sy + ty) / 2 - 30} ${tx},${ty}`;
+            });
+            node.attr('transform', d => `translate(${d.x},${d.y})`);
+        });
+        const observer = new ResizeObserver(() => {
+            const nextWidth = svgElement.clientWidth;
+            const nextHeight = svgElement.clientHeight;
+            if (!nextWidth || !nextHeight ||
+                (nextWidth === Number(svg.attr('data-width')) && nextHeight === Number(svg.attr('data-height')))) return;
+            svg.attr('viewBox', `0 0 ${nextWidth} ${nextHeight}`)
+                .attr('data-width', nextWidth).attr('data-height', nextHeight);
+            simulation.force('center', d3.forceCenter(nextWidth / 2, nextHeight / 2));
+            simulation.alpha(0.3).restart();
+        });
+        svg.attr('data-width', width).attr('data-height', height);
+        observer.observe(svgElement);
+        activeMaps.set(map, { simulation, observer });
+        map._domainMap = { simulation, nodes, edges, svg: svgElement };
+    }
+
+    function initAll() {
+        document.querySelectorAll('.domain-map').forEach(init);
+    }
+    document.addEventListener('htmx:beforeSwap', event => {
+        const target = event.detail?.target;
+        if (!target) return;
+        const maps = target.matches?.('.domain-map') ? [target] : target.querySelectorAll('.domain-map');
+        maps.forEach(map => {
+            const entry = activeMaps.get(map);
+            if (!entry) return;
+            entry.simulation.stop();
+            entry.observer.disconnect();
+            activeMaps.delete(map);
+            delete map._domainMap;
+        });
+    });
+    document.addEventListener('htmx:afterSwap', initAll);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAll);
+    } else {
+        initAll();
+    }
+})();
+
 // === Expand overlay for Top X tables ===
 window.openExpandOverlay = function(title, endpoint, pageSize, cluster, searchVal) {
     const app = _getAlpineData();
@@ -1596,7 +1738,7 @@ window.openExpandOverlay = function(title, endpoint, pageSize, cluster, searchVa
         pageSize: pageSize || 25, search: searchVal || '',
         categories: [], honeypotOnly: false,
         method: '', attackType: '', attackTypes: [],
-        ipFilter: '', cluster: cluster || '',
+        ipFilter: '', cluster: cluster || '', artifactKind: '', artifactValue: '',
     });
     _reloadExpandOverlay();
     // For attacks, lazily load the list of distinct attack types for the
@@ -1604,6 +1746,19 @@ window.openExpandOverlay = function(title, endpoint, pageSize, cluster, searchVa
     if (endpoint === 'attacks') {
         _loadExpandAttackTypes();
     }
+};
+
+window.openArtifactInvestigation = function(kind, value) {
+    if (!['domain', 'file', 'asset'].includes(kind) || !value) return;
+    const app = _getAlpineData();
+    if (!app) return;
+    const titles = { domain: 'Targeted Domain', file: 'Captured File', asset: 'Asset' };
+    Object.assign(app.expandOverlay, {
+        show: true, title: titles[kind], endpoint: 'artifact',
+        artifactKind: kind, artifactValue: value,
+        search: '', ipFilter: '', cluster: '',
+    });
+    _reloadExpandOverlay();
 };
 
 window.jumpToPath = function(event) {
@@ -1705,6 +1860,9 @@ function _reloadExpandOverlay() {
     } else if (ov.endpoint === 'similar') {
         const sv = ov.cluster ? `?tlsh=${encodeURIComponent(ov.cluster)}` : '';
         targetUrl = `${dashboardPath}/htmx/similar-events${sv}`;
+    } else if (ov.endpoint === 'artifact') {
+        const artifactParams = new URLSearchParams({ kind: ov.artifactKind, value: ov.artifactValue });
+        targetUrl = `${dashboardPath}/htmx/artifact-requests?${artifactParams}`;
     }
 
     container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-dim);">Loading...</div>';

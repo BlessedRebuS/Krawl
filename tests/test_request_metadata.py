@@ -78,6 +78,18 @@ def test_request_metadata_pipeline():
         }
         assert asset_rows[repeated]["count"] == 3
         assert asset_rows[referer]["count"] == 1
+        assert db.access_logs.get_request_assets(sort_by="count", sort_order="asc")["assets"][0]["url"] == referer
+        assert db.access_logs.get_request_assets(sort_by="count", sort_order="desc")["assets"][0]["url"] == repeated
+        assert db.access_logs.get_request_assets(sort_by="url", sort_order="asc", page_size=1)["assets"][0]["url"] == repeated
+
+        assert [row["domain"] for row in db.access_logs.get_targeted_domains(search="TARGET")["domains"]] == ["target.example"]
+        assert [row["url"] for row in db.access_logs.get_request_assets(search="dropper")["assets"]] == [repeated]
+        domain_requests = db.access_logs.get_artifact_requests("domain", "target.example")
+        assert {row["ip"] for row in domain_requests["requests"]} == {"203.0.113.38", "198.51.100.90"}
+        asset_requests = db.access_logs.get_artifact_requests("asset", repeated)
+        assert asset_requests["pagination"]["total"] == 2  # duplicate URL in one request
+        assert [row["ip"] for row in db.access_logs.get_artifact_requests("asset", repeated, ip_filter="203.0.113.38")["requests"]] == ["203.0.113.38"]
+        assert [row["ip"] for row in db.access_logs.get_artifact_requests("asset", repeated, ip_filter="203.0.113")["requests"]] == ["203.0.113.38"]
 
         # A retained row from before this feature is picked up by the bounded
         # scheduled task and is not duplicated on its next run.
@@ -148,6 +160,19 @@ def test_request_metadata_pipeline():
             files = session.query(CapturedPayload).filter_by(filename="shell.php").all()
             assert len(files) == 1
             assert files[0].size == len("<?php echo 'generic'; ?>")
+            file_requests = db.access_logs.get_artifact_requests("file", "shell.php")
+            assert file_requests["pagination"]["total"] == 1
+            assert file_requests["requests"][0]["ip"] == "192.0.2.25"
+            assert db.access_logs.get_artifact_requests("file", "shell.php", ip_filter="203.0.113.38")["requests"] == []
+            assert db.access_logs.get_targeted_domains(sort_by="count", sort_order="desc")["domains"][0]["domain"] == "target.example"
+            assert db.access_logs.get_targeted_domains(sort_by="domain", sort_order="asc")["domains"][0]["domain"] == "legacy.example"
+            session = db.session
+            session.add(CapturedPayload(access_log_id=files[0].access_log_id, ip="192.0.2.25", filename="alpha.php", size=1))
+            session.add(CapturedPayload(access_log_id=files[0].access_log_id, ip="192.0.2.25", filename="alpha.php", size=1))
+            session.commit()
+            db.close_session()
+            assert db.payloads.get_global_index(sort_by="total", sort_order="desc")["index"][0]["filename"] == "alpha.php"
+            assert db.payloads.get_global_index(sort_by="total", sort_order="asc")["index"][0]["filename"] == "shell.php"
         finally:
             db.close_session()
 

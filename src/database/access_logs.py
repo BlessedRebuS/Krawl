@@ -12,7 +12,7 @@ from sqlalchemy.orm import joinedload
 
 from dashboard_cache import pagination
 from logger import get_app_logger
-from models import AccessLog, AttackDetection, IpStats, RequestAsset
+from models import AccessLog, AttackDetection, CapturedPayload, IpStats, RequestAsset
 from sanitizer import sanitize_ip
 
 if TYPE_CHECKING:
@@ -28,7 +28,8 @@ class AccessLogRepo:
         self._db = db
 
     def get_targeted_domains(
-        self, page: int = 1, page_size: int = 10
+        self, page: int = 1, page_size: int = 10, search: str = "",
+        sort_by: str = "count", sort_order: str = "desc",
     ) -> dict[str, Any]:
         """Host-header targets ranked by retained request count."""
         session = self._db.session
@@ -44,9 +45,20 @@ class AccessLogRepo:
                 .filter(AccessLog.target_host.isnot(None), AccessLog.target_host != "")
                 .group_by(AccessLog.target_host)
             )
+            if search:
+                base = base.filter(AccessLog.target_host.ilike(f"%{search}%"))
             total = base.count()
+            sort_columns = {
+                "domain": AccessLog.target_host,
+                "count": func.count(AccessLog.id),
+                "distinct_ips": func.count(distinct(AccessLog.ip)),
+                "first_seen": func.min(AccessLog.timestamp),
+                "last_seen": func.max(AccessLog.timestamp),
+            }
+            column = sort_columns.get(sort_by, sort_columns["count"])
+            order = column.asc() if sort_order == "asc" else column.desc()
             rows = (
-                base.order_by(func.count(AccessLog.id).desc(), AccessLog.target_host)
+                base.order_by(order, AccessLog.target_host.asc())
                 .offset((page - 1) * page_size)
                 .limit(page_size)
                 .all()
@@ -67,7 +79,10 @@ class AccessLogRepo:
         finally:
             self._db.close_session()
 
-    def get_request_assets(self, page: int = 1, page_size: int = 20) -> dict[str, Any]:
+    def get_request_assets(
+        self, page: int = 1, page_size: int = 20, search: str = "",
+        sort_by: str = "count", sort_order: str = "desc",
+    ) -> dict[str, Any]:
         """Absolute URL assets ranked by total occurrences in retained requests."""
         session = self._db.session
         try:
@@ -82,9 +97,20 @@ class AccessLogRepo:
                 .join(AccessLog, AccessLog.id == RequestAsset.access_log_id)
                 .group_by(RequestAsset.url)
             )
+            if search:
+                base = base.filter(RequestAsset.url.ilike(f"%{search}%"))
             total = base.count()
+            sort_columns = {
+                "url": RequestAsset.url,
+                "count": func.count(RequestAsset.id),
+                "distinct_ips": func.count(distinct(AccessLog.ip)),
+                "first_seen": func.min(AccessLog.timestamp),
+                "last_seen": func.max(AccessLog.timestamp),
+            }
+            column = sort_columns.get(sort_by, sort_columns["count"])
+            order = column.asc() if sort_order == "asc" else column.desc()
             rows = (
-                base.order_by(func.count(RequestAsset.id).desc(), RequestAsset.url)
+                base.order_by(order, RequestAsset.url.asc())
                 .offset((page - 1) * page_size)
                 .limit(page_size)
                 .all()
@@ -100,6 +126,62 @@ class AccessLogRepo:
                     }
                     for row in rows
                 ],
+                "pagination": pagination(page, page_size, total),
+            }
+        finally:
+            self._db.close_session()
+
+    def get_domain_map_hosts(self, limit: int = 2000) -> list[dict[str, Any]]:
+        """Most-targeted distinct Host values for the bounded link map."""
+        session = self._db.session
+        try:
+            rows = (
+                session.query(
+                    AccessLog.target_host.label("domain"),
+                    func.count(AccessLog.id).label("count"),
+                )
+                .filter(AccessLog.target_host.isnot(None), AccessLog.target_host != "")
+                .group_by(AccessLog.target_host)
+                .order_by(func.count(AccessLog.id).desc(), AccessLog.target_host.asc())
+                .limit(limit)
+                .all()
+            )
+            return [{"domain": row.domain, "count": row.count} for row in rows]
+        finally:
+            self._db.close_session()
+
+    def get_artifact_requests(
+        self, kind: str, value: str, ip_filter: str = "",
+        page: int = 1, page_size: int = 20,
+    ) -> dict[str, Any]:
+        """Retained requests associated with one exact domain, file, or URL."""
+        if kind not in {"domain", "file", "asset"}:
+            raise ValueError("Invalid artifact kind")
+        session = self._db.session
+        try:
+            query = session.query(AccessLog)
+            if kind == "domain":
+                query = query.filter(AccessLog.target_host == value)
+            elif kind == "file":
+                matched = session.query(CapturedPayload.access_log_id).filter(
+                    CapturedPayload.filename == value,
+                    CapturedPayload.access_log_id.isnot(None),
+                )
+                query = query.filter(AccessLog.id.in_(matched))
+            else:
+                matched = session.query(RequestAsset.access_log_id).filter(
+                    RequestAsset.url == value
+                )
+                query = query.filter(AccessLog.id.in_(matched))
+            if ip_filter:
+                query = query.filter(AccessLog.ip.contains(sanitize_ip(ip_filter), autoescape=True))
+            total = query.count()
+            rows = (query.order_by(AccessLog.timestamp.desc(), AccessLog.id.desc())
+                    .offset((page - 1) * page_size).limit(page_size).all())
+            return {
+                "requests": [{"id": row.id, "ip": row.ip, "method": row.method,
+                              "path": row.path, "timestamp": row.timestamp}
+                             for row in rows],
                 "pagination": pagination(page, page_size, total),
             }
         finally:
