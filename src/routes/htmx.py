@@ -12,7 +12,6 @@ from fastapi import APIRouter, Query, Request, Response
 from fastapi.responses import HTMLResponse
 
 from config import get_config
-from domain_map import build_domain_map
 from dashboard_cache import (
     get_cached,
     get_cached_list_page,
@@ -21,6 +20,7 @@ from dashboard_cache import (
     set_cached_table,
 )
 from dependencies import get_db, get_templates
+from domain_map import build_domain_map
 from routes.api import _campaign_window, verify_auth
 
 router = APIRouter()
@@ -56,12 +56,18 @@ def _parse_day(day: str):
 
 @router.get("/htmx/targeted-domains")
 async def htmx_targeted_domains(
-    request: Request, page: int = Query(1), search: str = Query(""),
+    request: Request,
+    page: int = Query(1),
+    search: str = Query(""),
     sort_by: str = Query("count"),
-    sort_order: str = Query("desc")
+    sort_order: str = Query("desc"),
 ):
     search = search.strip()[:255]
-    sort_by = sort_by if sort_by in {"domain", "count", "distinct_ips", "first_seen", "last_seen"} else "count"
+    sort_by = (
+        sort_by
+        if sort_by in {"domain", "count", "distinct_ips", "first_seen", "last_seen"}
+        else "count"
+    )
     sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
     page = max(1, page)
     cache_key = f"targeted-domains:{page}:{search}:{sort_by}:{sort_order}"
@@ -69,7 +75,12 @@ async def htmx_targeted_domains(
     if not result:
         db = get_db()
         result = await asyncio.to_thread(
-            db.access_logs.get_targeted_domains, page=page, page_size=10, search=search, sort_by=sort_by, sort_order=sort_order
+            db.access_logs.get_targeted_domains,
+            page=page,
+            page_size=10,
+            search=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         if not search:
             set_cached_table(cache_key, result)
@@ -889,19 +900,29 @@ async def htmx_global_filenames(
     sort_by: str = Query("last_seen"),
     sort_order: str = Query("desc"),
 ):
-    sort_by = sort_by if sort_by in {"filename", "total", "distinct_ips", "first_seen", "last_seen"} else "last_seen"
+    sort_by = (
+        sort_by
+        if sort_by in {"filename", "total", "distinct_ips", "first_seen", "last_seen"}
+        else "last_seen"
+    )
     sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
     page = max(1, page)
     search = search.strip()[:255]
     cache_key = (
-        f"filenames:{page}" if not search and sort_by == "last_seen" and sort_order == "desc"
+        f"filenames:{page}"
+        if not search and sort_by == "last_seen" and sort_order == "desc"
         else f"filenames:{page}:{search}:{sort_by}:{sort_order}"
     )
     result = get_cached_table(cache_key) if not search else None
     if not result:
         db = get_db()
         result = await asyncio.to_thread(
-            db.payloads.get_global_index, page=page, page_size=20, filename=search, sort_by=sort_by, sort_order=sort_order
+            db.payloads.get_global_index,
+            page=page,
+            page_size=20,
+            filename=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         if not search:
             set_cached_table(cache_key, result)
@@ -925,12 +946,18 @@ async def htmx_global_filenames(
 
 @router.get("/htmx/request-assets")
 async def htmx_request_assets(
-    request: Request, page: int = Query(1), search: str = Query(""),
+    request: Request,
+    page: int = Query(1),
+    search: str = Query(""),
     sort_by: str = Query("count"),
-    sort_order: str = Query("desc")
+    sort_order: str = Query("desc"),
 ):
     search = search.strip()[:255]
-    sort_by = sort_by if sort_by in {"url", "count", "distinct_ips", "first_seen", "last_seen"} else "count"
+    sort_by = (
+        sort_by
+        if sort_by in {"url", "count", "distinct_ips", "first_seen", "last_seen"}
+        else "count"
+    )
     sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
     page = max(1, page)
     cache_key = f"request-assets:{page}:{search}:{sort_by}:{sort_order}"
@@ -938,7 +965,12 @@ async def htmx_request_assets(
     if not result:
         db = get_db()
         result = await asyncio.to_thread(
-            db.access_logs.get_request_assets, page=page, page_size=20, search=search, sort_by=sort_by, sort_order=sort_order
+            db.access_logs.get_request_assets,
+            page=page,
+            page_size=20,
+            search=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         if not search:
             set_cached_table(cache_key, result)
@@ -970,14 +1002,23 @@ async def htmx_artifact_requests(
     db = get_db()
     result = await asyncio.to_thread(
         db.access_logs.get_artifact_requests,
-        kind=kind, value=value, ip_filter=ip_filter,
-        page=max(1, page), page_size=20,
+        kind=kind,
+        value=value,
+        ip_filter=ip_filter,
+        page=max(1, page),
+        page_size=20,
     )
     return get_templates().TemplateResponse(
-        request, "dashboard/partials/artifact_requests.html",
-        {"dashboard_path": _dashboard_path(request), "kind": kind,
-         "value": value, "ip_filter": ip_filter,
-         "items": result["requests"], "pagination": result["pagination"]},
+        request,
+        "dashboard/partials/artifact_requests.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "kind": kind,
+            "value": value,
+            "ip_filter": ip_filter,
+            "items": result["requests"],
+            "pagination": result["pagination"],
+        },
     )
 
 

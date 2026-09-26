@@ -1,20 +1,48 @@
 """Build a bounded DNS hierarchy for the Targeted Domains link map."""
 
+import re
 from collections import defaultdict
 from ipaddress import ip_address
 from math import cos, pi, sin
-import re
 
 # Common two-label public suffixes. The map is a DNS visualization rather than
 # a public-suffix authority; these keep the most common country domains intact.
 _TWO_LABEL_SUFFIXES = {
-    "ac.uk", "co.uk", "gov.uk", "org.uk", "net.uk", "sch.uk",
-    "com.au", "net.au", "org.au", "edu.au", "gov.au",
-    "co.nz", "net.nz", "org.nz", "govt.nz",
-    "com.br", "net.br", "org.br", "com.mx", "com.ar",
-    "co.jp", "ne.jp", "or.jp", "co.kr", "or.kr",
-    "co.in", "net.in", "org.in", "co.za", "org.za",
-    "com.sg", "com.hk", "com.tr", "com.tw", "com.cn",
+    "ac.uk",
+    "co.uk",
+    "gov.uk",
+    "org.uk",
+    "net.uk",
+    "sch.uk",
+    "com.au",
+    "net.au",
+    "org.au",
+    "edu.au",
+    "gov.au",
+    "co.nz",
+    "net.nz",
+    "org.nz",
+    "govt.nz",
+    "com.br",
+    "net.br",
+    "org.br",
+    "com.mx",
+    "com.ar",
+    "co.jp",
+    "ne.jp",
+    "or.jp",
+    "co.kr",
+    "or.kr",
+    "co.in",
+    "net.in",
+    "org.in",
+    "co.za",
+    "org.za",
+    "com.sg",
+    "com.hk",
+    "com.tr",
+    "com.tw",
+    "com.cn",
 }
 _LABEL = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
 _CENTER = (500, 450)
@@ -38,7 +66,9 @@ def root_domain(host: str) -> str | None:
 
 
 def build_domain_map(
-    rows: list[dict], selected_root: str = "", root_limit: int = 8,
+    rows: list[dict],
+    selected_root: str = "",
+    root_limit: int = 8,
     host_limit: int = 28,
 ) -> dict:
     """Summarize roots and lay out the selected root's observed host tree."""
@@ -52,13 +82,21 @@ def build_domain_map(
     for host, count in counts.items():
         groups[root_domain(host)].append((host, count))
     roots = sorted(
-        ({"name": root, "count": sum(c for _, c in hosts), "hosts": len(hosts)}
-         for root, hosts in groups.items()),
+        (
+            {"name": root, "count": sum(c for _, c in hosts), "hosts": len(hosts)}
+            for root, hosts in groups.items()
+        ),
         key=lambda item: (-item["count"], item["name"]),
     )
     if not roots:
-        return {"roots": [], "selected_root": "", "nodes": [], "edges": [],
-                "hidden_hosts": 0, "total_requests": 0}
+        return {
+            "roots": [],
+            "selected_root": "",
+            "nodes": [],
+            "edges": [],
+            "hidden_hosts": 0,
+            "total_requests": 0,
+        }
 
     selected = selected_root if selected_root in groups else roots[0]["name"]
     visible_roots = roots[:root_limit]
@@ -74,9 +112,16 @@ def build_domain_map(
     shown = ranked[:host_limit]
     if selected in counts and selected not in {host for host, _ in shown}:
         shown[-1] = (selected, counts[selected])
-    tree = {selected: {"domain": selected, "label": selected, "parent": None,
-                       "depth": 0, "own_count": counts.get(selected, 0),
-                       "children": []}}
+    tree = {
+        selected: {
+            "domain": selected,
+            "label": selected,
+            "parent": None,
+            "depth": 0,
+            "own_count": counts.get(selected, 0),
+            "children": [],
+        }
+    }
     for host, count in shown:
         if host == selected:
             continue
@@ -85,9 +130,14 @@ def build_domain_map(
         for label in reversed(prefix):
             domain = f"{label}.{parent}"
             if domain not in tree:
-                tree[domain] = {"domain": domain, "label": label,
-                                "parent": parent, "depth": tree[parent]["depth"] + 1,
-                                "own_count": 0, "children": []}
+                tree[domain] = {
+                    "domain": domain,
+                    "label": label,
+                    "parent": parent,
+                    "depth": tree[parent]["depth"] + 1,
+                    "own_count": 0,
+                    "children": [],
+                }
                 tree[parent]["children"].append(domain)
             parent = domain
         tree[host]["own_count"] = count
@@ -129,10 +179,15 @@ def build_domain_map(
     for node in tree.values():
         if not node["parent"]:
             continue
-        edges.append({"source": node["parent"], "target": node["domain"],
-                      "depth": node["depth"]})
+        edges.append(
+            {"source": node["parent"], "target": node["domain"], "depth": node["depth"]}
+        )
 
-    return {"roots": visible_roots, "selected_root": selected,
-            "nodes": sorted(tree.values(), key=lambda node: node["depth"]),
-            "edges": edges, "hidden_hosts": max(0, len(hosts) - len(shown)),
-            "total_requests": sum(count for _, count in hosts)}
+    return {
+        "roots": visible_roots,
+        "selected_root": selected,
+        "nodes": sorted(tree.values(), key=lambda node: node["depth"]),
+        "edges": edges,
+        "hidden_hosts": max(0, len(hosts) - len(shown)),
+        "total_requests": sum(count for _, count in hosts),
+    }

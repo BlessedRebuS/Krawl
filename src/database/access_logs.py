@@ -28,8 +28,12 @@ class AccessLogRepo:
         self._db = db
 
     def get_targeted_domains(
-        self, page: int = 1, page_size: int = 10, search: str = "",
-        sort_by: str = "count", sort_order: str = "desc",
+        self,
+        page: int = 1,
+        page_size: int = 10,
+        search: str = "",
+        sort_by: str = "count",
+        sort_order: str = "desc",
     ) -> dict[str, Any]:
         """Host-header targets ranked by retained request count."""
         session = self._db.session
@@ -80,8 +84,12 @@ class AccessLogRepo:
             self._db.close_session()
 
     def get_request_assets(
-        self, page: int = 1, page_size: int = 20, search: str = "",
-        sort_by: str = "count", sort_order: str = "desc",
+        self,
+        page: int = 1,
+        page_size: int = 20,
+        search: str = "",
+        sort_by: str = "count",
+        sort_order: str = "desc",
     ) -> dict[str, Any]:
         """Absolute URL assets ranked by total occurrences in retained requests."""
         session = self._db.session
@@ -151,8 +159,12 @@ class AccessLogRepo:
             self._db.close_session()
 
     def get_artifact_requests(
-        self, kind: str, value: str, ip_filter: str = "",
-        page: int = 1, page_size: int = 20,
+        self,
+        kind: str,
+        value: str,
+        ip_filter: str = "",
+        page: int = 1,
+        page_size: int = 20,
     ) -> dict[str, Any]:
         """Retained requests associated with one exact domain, file, or URL."""
         if kind not in {"domain", "file", "asset"}:
@@ -174,14 +186,27 @@ class AccessLogRepo:
                 )
                 query = query.filter(AccessLog.id.in_(matched))
             if ip_filter:
-                query = query.filter(AccessLog.ip.contains(sanitize_ip(ip_filter), autoescape=True))
+                query = query.filter(
+                    AccessLog.ip.contains(sanitize_ip(ip_filter), autoescape=True)
+                )
             total = query.count()
-            rows = (query.order_by(AccessLog.timestamp.desc(), AccessLog.id.desc())
-                    .offset((page - 1) * page_size).limit(page_size).all())
+            rows = (
+                query.order_by(AccessLog.timestamp.desc(), AccessLog.id.desc())
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+                .all()
+            )
             return {
-                "requests": [{"id": row.id, "ip": row.ip, "method": row.method,
-                              "path": row.path, "timestamp": row.timestamp}
-                             for row in rows],
+                "requests": [
+                    {
+                        "id": row.id,
+                        "ip": row.ip,
+                        "method": row.method,
+                        "path": row.path,
+                        "timestamp": row.timestamp,
+                    }
+                    for row in rows
+                ],
                 "pagination": pagination(page, page_size, total),
             }
         finally:
