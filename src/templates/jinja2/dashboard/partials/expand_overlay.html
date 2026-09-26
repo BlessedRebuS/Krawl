@@ -19,11 +19,12 @@
                 </button>
                 <input type="text"
                        class="expand-overlay-search"
-                       placeholder="Filter..."
+                       :placeholder="({ 'targeted-domains': 'Filter domains', 'global-filenames': 'Filter filenames', 'request-assets': 'Filter URLs' })[expandOverlay.endpoint] || 'Filter...'"
+                       :aria-label="({ 'targeted-domains': 'Filter domains', 'global-filenames': 'Filter filenames', 'request-assets': 'Filter URLs' })[expandOverlay.endpoint] || 'Filter results'"
                        x-model="expandOverlay.search"
                        @input.debounce.300ms="triggerExpandSearch()"
                        autocomplete="off"
-                       x-show="expandOverlay.endpoint !== 'campaign' && expandOverlay.endpoint !== 'similar'"
+                       x-show="expandOverlay.endpoint !== 'campaign' && expandOverlay.endpoint !== 'similar' && expandOverlay.endpoint !== 'artifact' && expandOverlay.endpoint !== 'domain-map'"
                        x-cloak />
                 <span class="auth-modal-close overlay-close" @click="expandOverlay.show = false">&times;</span>
             </div>

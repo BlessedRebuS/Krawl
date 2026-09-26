@@ -1,0 +1,34 @@
+{# Targeted Host hierarchy. Every node comes from retained Host values. #}
+{% if graph.roots %}
+<div class="domain-map">
+    <div class="domain-map-roots" role="group" aria-label="Top domains">
+        {% for root in graph.roots %}
+        <button type="button" class="domain-map-root{% if root.name == graph.selected_root %} active{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/domain-map?root={{ root.name | urlencode }}"
+                hx-target="#expand-overlay-table" hx-swap="innerHTML"
+                aria-pressed="{{ 'true' if root.name == graph.selected_root else 'false' }}">
+            <span class="domain-map-root-name">{{ root.name | e }}</span>
+            <span class="domain-map-root-count">{{ root.count }} requests</span>
+        </button>
+        {% endfor %}
+    </div>
+    <div class="domain-map-summary" title="Built from up to 2,000 most-targeted captured hostnames">
+        <span><strong>{{ graph.selected_root | e }}</strong> · {{ graph.total_requests }} requests</span>
+        <span>{{ graph.nodes | length }} nodes shown{% if graph.hidden_hosts %} · {{ graph.hidden_hosts }} more hosts not drawn{% endif %}</span>
+    </div>
+    <div class="domain-map-viewport">
+        <svg class="domain-map-svg" role="img"
+             aria-label="Interactive subdomain link map for {{ graph.selected_root | e }}"></svg>
+        <script type="application/json" class="domain-map-data">{{ {"nodes": graph.nodes, "edges": graph.edges, "root": graph.selected_root} | tojson }}</script>
+    </div>
+    <div class="domain-map-legend" aria-label="Domain levels">
+        <span><i class="depth-0"></i>Root domain</span>
+        <span><i class="depth-1"></i>Third level</span>
+        <span><i class="depth-2"></i>Fourth level</span>
+        <span><i class="depth-3"></i>Deeper</span>
+        <span class="domain-map-help">Drag nodes to rearrange · drag the background to pan · scroll to zoom · click a captured node for requests and IPs.</span>
+    </div>
+</div>
+{% else %}
+<div class="empty-state">No DNS hostnames have been captured yet.</div>
+{% endif %}

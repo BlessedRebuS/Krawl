@@ -1,28 +1,32 @@
+{% from "dashboard/partials/artifact_sort_header.html" import header with context %}
 {# HTMX fragment: absolute URLs extracted from retained raw requests. #}
 <div class="panel-header">
     <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} URLs</span>
     <div class="row">
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/request-assets?page={{ pagination.page - 1 }}"
+                hx-get="{{ dashboard_path }}/htmx/request-assets?page={{ pagination.page - 1 }}&amp;search={{ search | urlencode }}&amp;sort_by={{ sort_by }}&amp;sort_order={{ sort_order }}"
                 hx-target="closest .htmx-container" hx-swap="innerHTML"
                 {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/request-assets?page={{ pagination.page + 1 }}"
+                hx-get="{{ dashboard_path }}/htmx/request-assets?page={{ pagination.page + 1 }}&amp;search={{ search | urlencode }}&amp;sort_by={{ sort_by }}&amp;sort_order={{ sort_order }}"
                 hx-target="closest .htmx-container" hx-swap="innerHTML"
                 {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
     </div>
 </div>
 <table>
     <thead><tr>
-        <th>URL</th><th>Occurrences</th><th>Distinct IPs</th><th>First Seen</th><th>Last Seen</th>
+        {{ header('url', 'URL', 'request-assets', sort_by, sort_order, search) }}
+        {{ header('count', 'Occurrences', 'request-assets', sort_by, sort_order, search) }}
+        {{ header('distinct_ips', 'Distinct IPs', 'request-assets', sort_by, sort_order, search, 'Distinct source IPs') }}
+        {{ header('first_seen', 'First Seen', 'request-assets', sort_by, sort_order, search) }}
+        {{ header('last_seen', 'Last Seen', 'request-assets', sort_by, sort_order, search) }}
     </tr></thead>
     <tbody>
         {% for item in items %}
         <tr>
             <td class="data data-mono">
-                {% set asset_url = item.url | safe_url %}
-                {% if asset_url %}<a href="{{ asset_url | e }}" target="_blank" rel="noopener noreferrer" class="data-link">{{ item.url | e }}</a>
-                {% else %}{{ item.url | e }}{% endif %}
+                <div class="asset-link-cell"><a href="{{ dashboard_path }}/htmx/artifact-requests?kind=asset&amp;value={{ item.url | urlencode }}" class="campaign-target-link" data-value="{{ item.url | e }}" @click.prevent="openArtifactInvestigation('asset', $event.currentTarget.dataset.value)" title="Inspect requests containing this URL">{{ item.url | e }}</a>
+                {% set asset_url = item.url | safe_url %}{% if asset_url %}<a href="{{ asset_url | e }}" target="_blank" rel="noopener noreferrer" class="artifact-external-link" title="Open URL in a new tab" aria-label="Open {{ item.url | e }} in a new tab">↗</a>{% endif %}</div>
             </td>
             <td class="ts-cell">{{ item.count }}</td>
             <td class="ts-cell">{{ item.distinct_ips }}</td>

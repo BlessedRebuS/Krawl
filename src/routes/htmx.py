@@ -20,6 +20,7 @@ from dashboard_cache import (
     set_cached_table,
 )
 from dependencies import get_db, get_templates
+from domain_map import build_domain_map
 from routes.api import _campaign_window, verify_auth
 
 router = APIRouter()
@@ -54,16 +55,35 @@ def _parse_day(day: str):
 
 
 @router.get("/htmx/targeted-domains")
-async def htmx_targeted_domains(request: Request, page: int = Query(1)):
+async def htmx_targeted_domains(
+    request: Request,
+    page: int = Query(1),
+    search: str = Query(""),
+    sort_by: str = Query("count"),
+    sort_order: str = Query("desc"),
+):
+    search = search.strip()[:255]
+    sort_by = (
+        sort_by
+        if sort_by in {"domain", "count", "distinct_ips", "first_seen", "last_seen"}
+        else "count"
+    )
+    sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
     page = max(1, page)
-    cache_key = f"targeted-domains:{page}"
-    result = get_cached_table(cache_key)
+    cache_key = f"targeted-domains:{page}:{search}:{sort_by}:{sort_order}"
+    result = get_cached_table(cache_key) if not search else None
     if not result:
         db = get_db()
         result = await asyncio.to_thread(
-            db.access_logs.get_targeted_domains, page=page, page_size=10
+            db.access_logs.get_targeted_domains,
+            page=page,
+            page_size=10,
+            search=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
-        set_cached_table(cache_key, result)
+        if not search:
+            set_cached_table(cache_key, result)
     return get_templates().TemplateResponse(
         request,
         "dashboard/partials/targeted_domains_table.html",
@@ -71,7 +91,25 @@ async def htmx_targeted_domains(request: Request, page: int = Query(1)):
             "dashboard_path": _dashboard_path(request),
             "items": result["domains"],
             "pagination": result["pagination"],
+            "search": search,
+            "sort_by": sort_by,
+            "sort_order": sort_order,
         },
+    )
+
+
+@router.get("/htmx/domain-map")
+async def htmx_domain_map(request: Request, root: str = Query("")):
+    rows = get_cached_table("domain-map-hosts")
+    if rows is None:
+        db = get_db()
+        rows = await asyncio.to_thread(db.access_logs.get_domain_map_hosts)
+        set_cached_table("domain-map-hosts", rows)
+    graph = build_domain_map(rows, selected_root=root.strip()[:255])
+    return get_templates().TemplateResponse(
+        request,
+        "dashboard/partials/domain_link_map.html",
+        {"dashboard_path": _dashboard_path(request), "graph": graph},
     )
 
 
@@ -858,16 +896,36 @@ async def htmx_ip_payloads(
 async def htmx_global_filenames(
     request: Request,
     page: int = Query(1),
+    search: str = Query(""),
+    sort_by: str = Query("last_seen"),
+    sort_order: str = Query("desc"),
 ):
+    sort_by = (
+        sort_by
+        if sort_by in {"filename", "total", "distinct_ips", "first_seen", "last_seen"}
+        else "last_seen"
+    )
+    sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
     page = max(1, page)
-    cache_key = f"filenames:{page}"
-    result = get_cached_table(cache_key)
+    search = search.strip()[:255]
+    cache_key = (
+        f"filenames:{page}"
+        if not search and sort_by == "last_seen" and sort_order == "desc"
+        else f"filenames:{page}:{search}:{sort_by}:{sort_order}"
+    )
+    result = get_cached_table(cache_key) if not search else None
     if not result:
         db = get_db()
         result = await asyncio.to_thread(
-            db.payloads.get_global_index, page=page, page_size=20
+            db.payloads.get_global_index,
+            page=page,
+            page_size=20,
+            filename=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
-        set_cached_table(cache_key, result)
+        if not search:
+            set_cached_table(cache_key, result)
     templates = get_templates()
     return templates.TemplateResponse(
         request,
@@ -876,6 +934,9 @@ async def htmx_global_filenames(
             "dashboard_path": _dashboard_path(request),
             "index": result["index"],
             "pagination": result["pagination"],
+            "search": search,
+            "sort_by": sort_by,
+            "sort_order": sort_order,
         },
     )
 
@@ -884,22 +945,78 @@ async def htmx_global_filenames(
 
 
 @router.get("/htmx/request-assets")
-async def htmx_request_assets(request: Request, page: int = Query(1)):
+async def htmx_request_assets(
+    request: Request,
+    page: int = Query(1),
+    search: str = Query(""),
+    sort_by: str = Query("count"),
+    sort_order: str = Query("desc"),
+):
+    search = search.strip()[:255]
+    sort_by = (
+        sort_by
+        if sort_by in {"url", "count", "distinct_ips", "first_seen", "last_seen"}
+        else "count"
+    )
+    sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
     page = max(1, page)
-    cache_key = f"request-assets:{page}"
-    result = get_cached_table(cache_key)
+    cache_key = f"request-assets:{page}:{search}:{sort_by}:{sort_order}"
+    result = get_cached_table(cache_key) if not search else None
     if not result:
         db = get_db()
         result = await asyncio.to_thread(
-            db.access_logs.get_request_assets, page=page, page_size=20
+            db.access_logs.get_request_assets,
+            page=page,
+            page_size=20,
+            search=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
-        set_cached_table(cache_key, result)
+        if not search:
+            set_cached_table(cache_key, result)
     return get_templates().TemplateResponse(
         request,
         "dashboard/partials/request_assets_table.html",
         {
             "dashboard_path": _dashboard_path(request),
             "items": result["assets"],
+            "pagination": result["pagination"],
+            "search": search,
+            "sort_by": sort_by,
+            "sort_order": sort_order,
+        },
+    )
+
+
+@router.get("/htmx/artifact-requests")
+async def htmx_artifact_requests(
+    request: Request,
+    kind: str = Query(""),
+    value: str = Query(""),
+    ip_filter: str = Query(""),
+    page: int = Query(1),
+):
+    if kind not in {"domain", "file", "asset"} or not value or len(value) > 4096:
+        return HTMLResponse("Invalid artifact", status_code=400)
+    ip_filter = ip_filter.strip()[:64]
+    db = get_db()
+    result = await asyncio.to_thread(
+        db.access_logs.get_artifact_requests,
+        kind=kind,
+        value=value,
+        ip_filter=ip_filter,
+        page=max(1, page),
+        page_size=20,
+    )
+    return get_templates().TemplateResponse(
+        request,
+        "dashboard/partials/artifact_requests.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "kind": kind,
+            "value": value,
+            "ip_filter": ip_filter,
+            "items": result["requests"],
             "pagination": result["pagination"],
         },
     )

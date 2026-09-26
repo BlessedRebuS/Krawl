@@ -1,25 +1,30 @@
+{% from "dashboard/partials/artifact_sort_header.html" import header with context %}
 {# HTMX fragment: Host-header targets ranked by request count. #}
 <div class="panel-header">
     <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} domains</span>
     <div class="row">
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/targeted-domains?page={{ pagination.page - 1 }}"
+                hx-get="{{ dashboard_path }}/htmx/targeted-domains?page={{ pagination.page - 1 }}&amp;search={{ search | urlencode }}&amp;sort_by={{ sort_by }}&amp;sort_order={{ sort_order }}"
                 hx-target="closest .htmx-container" hx-swap="innerHTML"
                 {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/targeted-domains?page={{ pagination.page + 1 }}"
+                hx-get="{{ dashboard_path }}/htmx/targeted-domains?page={{ pagination.page + 1 }}&amp;search={{ search | urlencode }}&amp;sort_by={{ sort_by }}&amp;sort_order={{ sort_order }}"
                 hx-target="closest .htmx-container" hx-swap="innerHTML"
                 {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
     </div>
 </div>
 <table>
     <thead><tr>
-        <th>Targeted Domain</th><th>Requests</th><th>Distinct IPs</th><th>First Seen</th><th>Last Seen</th>
+        {{ header('domain', 'Targeted Domain', 'targeted-domains', sort_by, sort_order, search) }}
+        {{ header('count', 'Requests', 'targeted-domains', sort_by, sort_order, search) }}
+        {{ header('distinct_ips', 'Distinct IPs', 'targeted-domains', sort_by, sort_order, search, 'Distinct source IPs') }}
+        {{ header('first_seen', 'First Seen', 'targeted-domains', sort_by, sort_order, search) }}
+        {{ header('last_seen', 'Last Seen', 'targeted-domains', sort_by, sort_order, search) }}
     </tr></thead>
     <tbody>
         {% for item in items %}
         <tr>
-            <td class="data data-mono">{{ item.domain | e }}</td>
+            <td class="data data-mono"><a href="{{ dashboard_path }}/htmx/artifact-requests?kind=domain&amp;value={{ item.domain | urlencode }}" class="campaign-target-link" data-value="{{ item.domain | e }}" @click.prevent="openArtifactInvestigation('domain', $event.currentTarget.dataset.value)" title="Inspect requests for {{ item.domain | e }}">{{ item.domain | e }}</a></td>
             <td class="ts-cell">{{ item.count }}</td>
             <td class="ts-cell">{{ item.distinct_ips }}</td>
             <td class="ts-cell">{{ item.first_seen | format_ts }}</td>
