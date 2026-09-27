@@ -54,6 +54,7 @@ def _parse_day(day: str):
 
 # ── Advanced request search ─────────────────────────────────────────
 
+
 @router.get("/htmx/advanced-search")
 async def htmx_advanced_search(
     request: Request,
@@ -68,11 +69,18 @@ async def htmx_advanced_search(
     header_name: list[str] = Query(default=[]),
     header_value: list[str] = Query(default=[]),
 ):
-    filters = {key: value.strip()[:255] for key, value in {
-        "path": path, "host": host, "referer": referer, "ip": ip,
-        "method": method, "user_agent": user_agent,
-        "raw_text": raw_text,
-    }.items()}
+    filters = {
+        key: value.strip()[:255]
+        for key, value in {
+            "path": path,
+            "host": host,
+            "referer": referer,
+            "ip": ip,
+            "method": method,
+            "user_agent": user_agent,
+            "raw_text": raw_text,
+        }.items()
+    }
     headers = []
     for name, value in zip(header_name[:8], header_value[:8]):
         name = name.strip()[:100]
@@ -81,10 +89,14 @@ async def htmx_advanced_search(
     db = get_db()
     result = await asyncio.to_thread(
         db.access_logs.search_requests,
-        page=max(1, page), page_size=25, headers=headers, **filters,
+        page=max(1, page),
+        page_size=25,
+        headers=headers,
+        **filters,
     )
     return get_templates().TemplateResponse(
-        request, "dashboard/partials/advanced_search_results.html",
+        request,
+        "dashboard/partials/advanced_search_results.html",
         {"dashboard_path": _dashboard_path(request), **result},
     )
 

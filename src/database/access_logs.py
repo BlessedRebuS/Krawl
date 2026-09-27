@@ -32,8 +32,13 @@ def _matches_headers(raw_request: str | None, headers: list[tuple[str, str]]) ->
         if ":" in line:
             name, value = line.split(":", 1)
             parsed.append((name.strip().casefold(), value.strip().casefold()))
-    return all(any(actual == name.casefold() and value.casefold() in content
-                   for actual, content in parsed) for name, value in headers)
+    return all(
+        any(
+            actual == name.casefold() and value.casefold() in content
+            for actual, content in parsed
+        )
+        for name, value in headers
+    )
 
 
 class AccessLogRepo:
@@ -43,9 +48,17 @@ class AccessLogRepo:
         self._db = db
 
     def search_requests(
-        self, *, page: int = 1, page_size: int = 25, path: str = "",
-        host: str = "", referer: str = "", ip: str = "", method: str = "",
-        user_agent: str = "", raw_text: str = "",
+        self,
+        *,
+        page: int = 1,
+        page_size: int = 25,
+        path: str = "",
+        host: str = "",
+        referer: str = "",
+        ip: str = "",
+        method: str = "",
+        user_agent: str = "",
+        raw_text: str = "",
         headers: list[tuple[str, str]] | None = None,
     ) -> dict[str, Any]:
         """Search retained requests, including arbitrary captured HTTP headers."""
@@ -54,8 +67,10 @@ class AccessLogRepo:
         try:
             query = session.query(AccessLog)
             for column, value in (
-                (AccessLog.path, path), (AccessLog.target_host, host),
-                (AccessLog.referer, referer), (AccessLog.ip, ip),
+                (AccessLog.path, path),
+                (AccessLog.target_host, host),
+                (AccessLog.referer, referer),
+                (AccessLog.ip, ip),
                 (AccessLog.user_agent, user_agent),
             ):
                 if value:
@@ -64,10 +79,14 @@ class AccessLogRepo:
                 query = query.filter(func.upper(AccessLog.method) == method.upper())
             if raw_text:
                 # Treat %, _ and backslash as text, not SQL LIKE wildcards.
-                escaped = (raw_text.replace("\\", "\\\\")
-                           .replace("%", "\\%")
-                           .replace("_", "\\_"))
-                query = query.filter(AccessLog.raw_request.ilike(f"%{escaped}%", escape="\\"))
+                escaped = (
+                    raw_text.replace("\\", "\\\\")
+                    .replace("%", "\\%")
+                    .replace("_", "\\_")
+                )
+                query = query.filter(
+                    AccessLog.raw_request.ilike(f"%{escaped}%", escape="\\")
+                )
             if headers:
                 # Narrow in SQL, then check the header block so another header
                 # or the request body cannot satisfy the value filter.
@@ -76,29 +95,47 @@ class AccessLogRepo:
                 selected_ids = []
                 total = 0
                 start = (page - 1) * page_size
-                candidates = (query.with_entities(AccessLog.id, AccessLog.raw_request)
-                              .order_by(AccessLog.timestamp.desc(), AccessLog.id.desc())
-                              .yield_per(500))
+                candidates = (
+                    query.with_entities(AccessLog.id, AccessLog.raw_request)
+                    .order_by(AccessLog.timestamp.desc(), AccessLog.id.desc())
+                    .yield_per(500)
+                )
                 for row in candidates:
                     if _matches_headers(row.raw_request, headers):
                         if start <= total < start + page_size:
                             selected_ids.append(row.id)
                         total += 1
-                results = (session.query(AccessLog)
-                           .filter(AccessLog.id.in_(selected_ids))
-                           .order_by(AccessLog.timestamp.desc(), AccessLog.id.desc()).all()
-                           if selected_ids else [])
+                results = (
+                    session.query(AccessLog)
+                    .filter(AccessLog.id.in_(selected_ids))
+                    .order_by(AccessLog.timestamp.desc(), AccessLog.id.desc())
+                    .all()
+                    if selected_ids
+                    else []
+                )
             else:
                 total = query.count()
-                results = (query.order_by(AccessLog.timestamp.desc(), AccessLog.id.desc())
-                           .offset((page - 1) * page_size).limit(page_size).all())
+                results = (
+                    query.order_by(AccessLog.timestamp.desc(), AccessLog.id.desc())
+                    .offset((page - 1) * page_size)
+                    .limit(page_size)
+                    .all()
+                )
             return {
                 "requests": [
-                    {"id": row.id, "ip": row.ip, "method": row.method,
-                     "path": row.path, "host": row.target_host,
-                     "referer": row.referer, "user_agent": row.user_agent,
-                     "timestamp": row.timestamp.isoformat() if row.timestamp else None,
-                     "is_suspicious": row.is_suspicious}
+                    {
+                        "id": row.id,
+                        "ip": row.ip,
+                        "method": row.method,
+                        "path": row.path,
+                        "host": row.target_host,
+                        "referer": row.referer,
+                        "user_agent": row.user_agent,
+                        "timestamp": (
+                            row.timestamp.isoformat() if row.timestamp else None
+                        ),
+                        "is_suspicious": row.is_suspicious,
+                    }
                     for row in results
                 ],
                 "pagination": pagination(page, page_size, total),
