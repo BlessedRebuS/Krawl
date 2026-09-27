@@ -2629,20 +2629,122 @@ tbody {
     font-size: var(--fs-xs);
 }
 
-/* HTMX loading indicator */
+/* ── Busy feedback ────────────────────────────────────────────────
+   One signal for "data is on its way", everywhere: the search bar's
+   ring. loading.js puts .krawl-pending on the control that was pressed
+   and .krawl-loading on the region that will change; charts and the map
+   mark their own region. Both wait a beat before showing, so a cached
+   response that lands at once never flashes a spinner. Under reduced
+   motion the global rule stops the spin and the ring shows still. */
+@keyframes krawl-busy-in { to { opacity: 1; } }
+@keyframes krawl-busy-label { to { color: transparent; } }
+
+.search-spinner,
+.krawl-loading::after,
+.krawl-pending::after,
+.htmx-indicator::before {
+    box-sizing: border-box;
+    border: 2px solid var(--line);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+/* The region being filled: content steps back, the ring sits at its top
+   where the new rows will start, and clicks wait for the swap. */
+.krawl-loading { position: relative; }
+.krawl-loading > * {
+    opacity: 0.45;
+    pointer-events: none;
+    transition: opacity var(--dur) var(--ease) 150ms;
+}
+.krawl-loading::after {
+    content: '';
+    position: absolute;
+    top: var(--s4);
+    left: 50%;
+    width: 18px;
+    height: 18px;
+    margin-left: -9px;
+    z-index: var(--z-sticky);
+    /* A raised disc behind the ring, so it floats above the dimmed rows
+       instead of printing over their text. */
+    background: var(--raised);
+    box-shadow: 0 0 0 7px var(--raised), var(--shadow-2);
+    opacity: 0;
+    animation: spin 0.6s linear infinite, krawl-busy-in 0s linear 150ms forwards;
+}
+/* A first load has nothing to dim: the placeholder carries the ring. */
+.krawl-loading > .htmx-indicator { opacity: 1; }
+.krawl-loading:has(> .htmx-indicator:only-child)::after { display: none; }
+
+/* The pressed control. Buttons keep their size: the label steps aside
+   for a ring in the middle. */
+.krawl-pending { cursor: progress; }
+:is(button, [role="button"], [role="switch"]).krawl-pending {
+    position: relative;
+    animation: krawl-busy-label 0s linear 150ms forwards;
+}
+:is(button, [role="button"], [role="switch"]).krawl-pending > * { animation: krawl-busy-label 0s linear 150ms forwards; }
+:is(button, [role="button"], [role="switch"]).krawl-pending::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 14px;
+    margin: -7px 0 0 -7px;
+    border-color: color-mix(in srgb, var(--text) 25%, transparent);
+    border-top-color: var(--text-strong);
+    opacity: 0;
+    animation: spin 0.6s linear infinite, krawl-busy-in 0s linear 150ms forwards;
+}
+/* Links and legend items keep their words; the ring trails them. */
+:is(a, .map-legend-item).krawl-pending::after {
+    content: '';
+    display: inline-block;
+    width: 0.8em;
+    height: 0.8em;
+    margin-left: 6px;
+    vertical-align: -0.1em;
+    opacity: 0;
+    animation: spin 0.6s linear infinite, krawl-busy-in 0s linear 150ms forwards;
+}
+/* Sort headers: the ring takes the sort glyph's place. */
+th.sortable.krawl-pending::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    margin-top: -5px;
+    transform: none;
+    opacity: 0;
+    animation: spin 0.6s linear infinite, krawl-busy-in 0s linear 150ms forwards;
+}
+th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; vertical-align: -1px; }
+
+/* htmx placeholders ("Loading...") and indicators: ring plus words. */
 .htmx-indicator {
     display: none;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s2);
     color: var(--text-dim);
-    font-style: italic;
     padding: var(--s5);
-    text-align: center;
 }
-.htmx-request .htmx-indicator {
-    display: block;
+.htmx-indicator:not(.search-spinner)::before {
+    content: '';
+    flex: none;
+    width: 16px;
+    height: 16px;
 }
-.htmx-request.htmx-indicator {
-    display: block;
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator,
+.krawl-loading > .htmx-indicator {
+    display: flex;
 }
+.search-spinner.htmx-indicator { display: none; padding: 0; }
+.htmx-request .search-spinner.htmx-indicator,
+.search-spinner.htmx-request { display: block; }
 
 /* Alpine.js cloak */
 [x-cloak] {
@@ -2699,10 +2801,6 @@ tbody {
     width: 16px;
     height: 16px;
     padding: 0;
-    border: 2px solid var(--line);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
 }
 @keyframes spin {
     to { transform: rotate(360deg); }
