@@ -1,40 +1,54 @@
 {% from "dashboard/partials/artifact_sort_header.html" import header with context %}
-{# HTMX fragment: absolute URLs extracted from retained raw requests. #}
-<div class="panel-header">
-    <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} URLs</span>
-    <div class="row">
-        <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/request-assets?page={{ pagination.page - 1 }}&amp;search={{ search | urlencode }}&amp;sort_by={{ sort_by }}&amp;sort_order={{ sort_order }}"
-                hx-target="closest .htmx-container" hx-swap="innerHTML"
-                {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
-        <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/request-assets?page={{ pagination.page + 1 }}&amp;search={{ search | urlencode }}&amp;sort_by={{ sort_by }}&amp;sort_order={{ sort_order }}"
-                hx-target="closest .htmx-container" hx-swap="innerHTML"
-                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
-    </div>
-</div>
-<table>
+{# HTMX fragment: absolute URLs extracted from retained raw requests.
+ # `compact` is the in-panel view (10 rows, first seen in the tooltip); the
+ # expand overlay renders the full table. #}
+{% set qs = '&search=' ~ (search | urlencode) ~ '&sort_by=' ~ sort_by ~ '&sort_order=' ~ sort_order ~ extra_qs %}
+<div class="threat-table" data-sort-by="{{ sort_by }}" data-sort-order="{{ sort_order }}">
+<table class="table-compact">
     <thead><tr>
         {{ header('url', 'URL', 'request-assets', sort_by, sort_order, search) }}
-        {{ header('count', 'Occurrences', 'request-assets', sort_by, sort_order, search) }}
-        {{ header('distinct_ips', 'Distinct IPs', 'request-assets', sort_by, sort_order, search, 'Distinct source IPs') }}
-        {{ header('first_seen', 'First Seen', 'request-assets', sort_by, sort_order, search) }}
-        {{ header('last_seen', 'Last Seen', 'request-assets', sort_by, sort_order, search) }}
+        {{ header('count', 'Hits', 'request-assets', sort_by, sort_order, search, 'Requests containing this URL', 'num') }}
+        {{ header('distinct_ips', 'IPs', 'request-assets', sort_by, sort_order, search, 'Distinct source IPs', 'num') }}
+        {% if not compact %}{{ header('first_seen', 'First seen', 'request-assets', sort_by, sort_order, search) }}{% endif %}
+        {{ header('last_seen', 'Last seen', 'request-assets', sort_by, sort_order, search, '', 'num') }}
     </tr></thead>
     <tbody>
         {% for item in items %}
         <tr>
-            <td class="data data-mono">
-                <div class="asset-link-cell"><a href="{{ dashboard_path }}/htmx/artifact-requests?kind=asset&amp;value={{ item.url | urlencode }}" class="campaign-target-link" data-value="{{ item.url | e }}" @click.prevent="openArtifactInvestigation('asset', $event.currentTarget.dataset.value)" title="Inspect requests containing this URL">{{ item.url | e }}</a>
+            <td class="data data-mono cell-target">
+                <div class="asset-link-cell"><a href="{{ dashboard_path }}/htmx/artifact-requests?kind=asset&amp;value={{ item.url | urlencode }}" class="campaign-target-link" data-value="{{ item.url | e }}" @click.prevent="openArtifactInvestigation('asset', $event.currentTarget.dataset.value)" title="Inspect requests containing {{ item.url | e }}">{{ item.url | e }}</a>
                 {% set asset_url = item.url | safe_url %}{% if asset_url %}<a href="{{ asset_url | e }}" target="_blank" rel="noopener noreferrer" class="artifact-external-link" title="Open URL in a new tab" aria-label="Open {{ item.url | e }} in a new tab">↗</a>{% endif %}</div>
             </td>
-            <td class="ts-cell">{{ item.count }}</td>
-            <td class="ts-cell">{{ item.distinct_ips }}</td>
-            <td class="ts-cell">{{ item.first_seen | format_ts }}</td>
+            <td class="num">{{ item.count }}</td>
+            <td class="num {% if item.distinct_ips > 1 %}num-strong{% endif %}">{{ item.distinct_ips }}</td>
+            {% if not compact %}<td class="ts-cell">{{ item.first_seen | format_ts }}</td>{% endif %}
+            {% if compact %}
+            <td class="num ts-cell" title="First {{ item.first_seen | format_ts }}&#10;Last {{ item.last_seen | format_ts }}">{{ item.last_seen | format_ago }}</td>
+            {% else %}
             <td class="ts-cell">{{ item.last_seen | format_ts }}</td>
+            {% endif %}
         </tr>
         {% else %}
-        <tr><td colspan="5" class="empty-state">No URL assets extracted yet</td></tr>
+        <tr><td colspan="{{ 4 if compact else 5 }}" class="empty-state">
+            {% if search or 'min_ips=2' in extra_qs %}No URLs match this filter.
+            {% else %}No URL assets extracted yet. They appear when a request carries an absolute URL.{% endif %}
+        </td></tr>
         {% endfor %}
     </tbody>
 </table>
+{% if pagination.total_pages > 1 %}
+<div class="table-foot">
+    <span class="pagination-info">{{ (pagination.page - 1) * pagination.page_size + 1 }}–{{ [pagination.page * pagination.page_size, pagination.total] | min }} of {{ pagination.total }}</span>
+    <div class="row">
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/request-assets?page={{ pagination.page - 1 }}{{ qs }}"
+                hx-target="closest .htmx-container" hx-swap="innerHTML"
+                {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
+        <button class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/request-assets?page={{ pagination.page + 1 }}{{ qs }}"
+                hx-target="closest .htmx-container" hx-swap="innerHTML"
+                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
+    </div>
+</div>
+{% endif %}
+</div>

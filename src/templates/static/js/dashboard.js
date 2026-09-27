@@ -1729,6 +1729,43 @@ window.submitUploadPage = async function() {
     }
 })();
 
+// === Threats tab panels: inline filters ===
+// The search box and the 2+ IPs toggle live outside the swapped fragment so
+// typing never loses focus. The fragment carries the rest of the state (sort,
+// attack type) on its .threat-table root, and every reload reads it back.
+function _threatPanelReload(panel) {
+    const container = panel.querySelector('.htmx-container');
+    if (!container || typeof htmx === 'undefined') return;
+    const state = container.querySelector('.threat-table');
+    const params = new URLSearchParams({ page: '1' });
+    const search = panel.querySelector('.panel-search');
+    if (search && search.value.trim()) params.set('search', search.value.trim());
+    if (state) {
+        if (state.dataset.sortBy) params.set('sort_by', state.dataset.sortBy);
+        if (state.dataset.sortOrder) params.set('sort_order', state.dataset.sortOrder);
+        if (state.dataset.attackType) params.set('attack_type', state.dataset.attackType);
+    }
+    const shared = panel.querySelector('[data-min-ips]');
+    if (shared && shared.getAttribute('aria-pressed') === 'true') params.set('min_ips', '2');
+    const dashboardPath = window.__DASHBOARD_PATH__ || '';
+    htmx.ajax('GET', `${dashboardPath}/htmx/${panel.dataset.endpoint}?${params}`, {
+        target: container,
+        swap: 'innerHTML',
+    });
+}
+
+window.threatPanelSearch = function(input) {
+    clearTimeout(input._threatTimer);
+    input._threatTimer = setTimeout(() => _threatPanelReload(input.closest('.threat-panel')), 300);
+};
+
+window.threatPanelToggleShared = function(btn) {
+    const on = btn.getAttribute('aria-pressed') !== 'true';
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.classList.toggle('active', on);
+    _threatPanelReload(btn.closest('.threat-panel'));
+};
+
 // === Expand overlay for Top X tables ===
 window.openExpandOverlay = function(title, endpoint, pageSize, cluster, searchVal) {
     const app = _getAlpineData();

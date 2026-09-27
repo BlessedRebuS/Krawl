@@ -13,6 +13,7 @@ from dashboard_cache import set_cached, set_cached_list, set_cached_table
 from database import get_database
 from logger import get_app_logger
 from routes.api import _campaign_window, campaign_payload
+from routes.htmx import CAMPAIGN_TABLE_LIMIT
 
 app_logger = get_app_logger()
 
@@ -320,9 +321,9 @@ def main():
         # exact keys the tab requests on open; other spans stay on demand.
         clusters = _timed(
             "campaign_clusters_all",
-            lambda: db.payloads.get_campaign_clusters(),
+            lambda: db.payloads.get_campaign_clusters(limit=CAMPAIGN_TABLE_LIMIT),
         )
-        set_cached_table("clusters:::0", {"clusters": clusters})
+        set_cached_table("clusters:all", {"clusters": clusters})
 
         top_campaigns = _timed(
             "campaign_stats_top",
@@ -334,10 +335,10 @@ def main():
 
         _warm_pages(
             "global_filenames_all",
-            lambda: db.payloads.get_global_index(page=1, page_size=20 * warmup_pages),
+            lambda: db.payloads.get_global_index(page=1, page_size=10 * warmup_pages),
             rows_key="index",
             total_key="total",
-            page_size=20,
+            page_size=10,
             key_fmt="filenames:{p}",
         )
 
