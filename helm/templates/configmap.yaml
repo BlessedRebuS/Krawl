@@ -28,6 +28,7 @@ data:
       warmup_pages: {{ .Values.config.dashboard.warmup_pages }}
       warmup_aggregation: {{ .Values.config.dashboard.warmup_aggregation }}
       top_n_min_count: {{ .Values.config.dashboard.top_n_min_count }}
+      domain_map_host_limit: {{ .Values.config.dashboard.domain_map_host_limit }}
       {{- with .Values.config.dashboard.branding }}
       branding:
         name: {{ .name | default "Krawl" | quote }}

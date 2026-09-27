@@ -499,6 +499,8 @@ document.addEventListener('alpine:init', () => {
                 this.switchToWebhooks();
             } else if (hash === 'threats') {
                 this.switchToThreats();
+            } else if (hash === 'advanced-search') {
+                this.switchToAdvancedSearch();
 
             } else if (hash === 'overview' || !hash) {
                 this.switchToOverview();
@@ -528,6 +530,8 @@ document.addEventListener('alpine:init', () => {
                         if (this.authenticated) this.switchToWebhooks();
                     } else if (h === 'threats') {
                         if (this.tab !== 'threats') this.switchToThreats();
+                    } else if (h === 'advanced-search') {
+                        if (this.tab !== 'advanced-search') this.switchToAdvancedSearch();
                     } else if (h !== 'ip-insight') {
                         if (this.tab !== 'ip-insight') {
                             this.switchToOverview();
@@ -652,6 +656,12 @@ document.addEventListener('alpine:init', () => {
                     });
                 }
             });
+        },
+
+        switchToAdvancedSearch() {
+            if (this.tab === 'advanced-search') return;
+            this.tab = 'advanced-search';
+            window.location.hash = '#advanced-search';
         },
 
         switchToThreats() {
@@ -2160,4 +2170,28 @@ function formatTimestamp(isoTimestamp) {
     } catch {
         return isoTimestamp;
     }
+}
+
+function addAdvancedHeader() {
+    const container = document.getElementById('advanced-search-headers');
+    if (!container || container.children.length >= 8) return;
+    const row = container.firstElementChild.cloneNode(true);
+    row.querySelectorAll('input').forEach(input => { input.value = ''; });
+    container.appendChild(row);
+    row.querySelector('input').focus();
+}
+
+function removeAdvancedHeader(button) {
+    const container = document.getElementById('advanced-search-headers');
+    if (!container) return;
+    const row = button.closest('.advanced-search-header-row');
+    if (container.children.length > 1) row.remove();
+    else row.querySelectorAll('input').forEach(input => { input.value = ''; });
+}
+
+function resetAdvancedSearch() {
+    const container = document.getElementById('advanced-search-headers');
+    if (container) while (container.children.length > 1) container.lastElementChild.remove();
+    const results = document.getElementById('advanced-search-results');
+    if (results) results.innerHTML = `<div class="advanced-search-empty" role="status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 1 0 4.64 13.39l4.24 4.23 1.41-1.41-4.24-4.24A7.5 7.5 0 0 0 10.5 3Zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z"/></svg><p>Start with a path, host, IP, header, or raw text to find requests.</p></div>`;
 }

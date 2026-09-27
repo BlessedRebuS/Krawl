@@ -300,6 +300,7 @@ dashboard:
   warmup_pages: 10         # pages to pre-warm per table panel
   warmup_aggregation: false  # pre-compute full top_paths/top_ua aggregations
   top_n_min_count: 5       # minimum access count to appear in top paths/user-agents panels
+  domain_map_host_limit: 200 # maximum hosts drawn for the selected root (1-2000)
 ```
 
 | Env var | Description | Default |
@@ -308,6 +309,7 @@ dashboard:
 | `KRAWL_DASHBOARD_WARMUP_PAGES` | Pages to pre-warm per table panel | `10` |
 | `KRAWL_DASHBOARD_WARMUP_AGGREGATION` | Pre-compute full top_paths/top_ua aggregations for zero-query serving | `false` |
 | `KRAWL_DASHBOARD_TOP_N_MIN_COUNT` | Minimum access count for top paths/user-agents (set to `1` to disable filtering) | `5` |
+| `KRAWL_DASHBOARD_DOMAIN_MAP_HOST_LIMIT` | Maximum hostnames drawn for the selected root in the domain link map (1–2000) | `200` |
 
 > **Scalable mode**: `warmup_aggregation` is enabled by default in Helm and Kubernetes deployments. In standalone mode it is disabled because SQLite handles the load without it.
 

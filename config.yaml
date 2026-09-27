@@ -62,6 +62,10 @@ dashboard:
   # Hides top paths / user agents below this many accesses. 1 disables filtering.
   top_n_min_count: 5
 
+  # Maximum observed hostnames drawn for the selected root in the domain link map.
+  # Values are bounded to 1-2000; hosts beyond the limit are summarized as hidden.
+  domain_map_host_limit: 200
+
   # Top-left wordmark on the dashboard. Defaults are Krawl's own.
   branding:
     name: "Krawl"

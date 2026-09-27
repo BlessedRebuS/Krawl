@@ -1,0 +1,36 @@
+{% if pagination.total == 0 %}
+<div class="advanced-search-empty" role="status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 1 0 4.64 13.39l4.24 4.23 1.41-1.41-4.24-4.24A7.5 7.5 0 0 0 10.5 3Zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z"/></svg><p>No matching requests. Try a different path, host, IP, header, or raw text.</p></div>
+{% else %}
+<div class="panel-header">
+    <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} matching requests</span>
+    <div class="row">
+        <button type="button" class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/advanced-search?page={{ pagination.page - 1 }}"
+                hx-include="#advanced-search-form" hx-target="#advanced-search-results" hx-swap="innerHTML"
+                {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
+        <button type="button" class="pagination-btn"
+                hx-get="{{ dashboard_path }}/htmx/advanced-search?page={{ pagination.page + 1 }}"
+                hx-include="#advanced-search-form" hx-target="#advanced-search-results" hx-swap="innerHTML"
+                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
+    </div>
+</div>
+<div class="advanced-search-table-wrap">
+<table class="table-compact advanced-search-table">
+    <thead><tr><th>Time</th><th>Source IP</th><th>Method</th><th>Host</th><th>Path</th><th>Referer</th><th>User agent</th><th>Request</th></tr></thead>
+    <tbody>
+    {% for item in requests %}
+    <tr>
+        <td class="ts-cell">{{ item.timestamp | format_ts }}</td>
+        <td class="data-mono"><a href="#ip-insight" class="data-link" data-ip="{{ item.ip | e }}" onclick="event.preventDefault(); openIpInsight(this.dataset.ip)">{{ item.ip | e }}</a></td>
+        <td>{{ item.method | e }}</td>
+        <td class="data-mono" title="{{ item.host | default('', true) | e }}">{{ item.host | default('', true) | e }}</td>
+        <td class="data-mono advanced-search-path" title="{{ item.path | e }}">{{ item.path | e }}</td>
+        <td class="advanced-search-truncate" title="{{ item.referer | default('', true) | e }}">{{ item.referer | default('', true) | e }}</td>
+        <td class="advanced-search-truncate" title="{{ item.user_agent | default('', true) | e }}">{{ item.user_agent | default('', true) | e }}</td>
+        <td class="advanced-search-action"><button type="button" class="view-btn" @click="viewRawRequest({{ item.id }})" title="View request" aria-label="View request"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m11.28 3.22 4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L13.94 8l-3.72-3.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215Zm-6.56 0a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L2.06 8l3.72 3.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L.47 8.53a.75.75 0 0 1 0-1.06Z"/></svg><span class="view-btn-tooltip">View request</span></button></td>
+    </tr>
+    {% else %}<tr><td colspan="8" class="empty-state">No retained requests match these filters.</td></tr>{% endfor %}
+    </tbody>
+</table>
+</div>
+{% endif %}

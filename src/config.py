@@ -80,6 +80,8 @@ class Config:
     dashboard_warmup_pages: int = 10
     dashboard_warmup_aggregation: bool = False
     dashboard_top_n_min_count: int = 5
+    # Maximum observed hostnames drawn for the selected root in the link map.
+    dashboard_domain_map_host_limit: int = 200
     # Dashboard branding — the wordmark in the top-left corner.
     dashboard_brand_name: str = "Krawl"
     dashboard_brand_url: str | None = "https://github.com/BlessedRebuS/Krawl"
@@ -368,6 +370,9 @@ class Config:
             dashboard_warmup_pages=int(dashboard.get("warmup_pages", 10)),
             dashboard_warmup_aggregation=dashboard.get("warmup_aggregation", False),
             dashboard_top_n_min_count=int(dashboard.get("top_n_min_count", 5)),
+            dashboard_domain_map_host_limit=max(
+                1, min(2000, int(dashboard.get("domain_map_host_limit", 200)))
+            ),
             dashboard_brand_name=branding.get("name") or "Krawl",
             dashboard_brand_url=(
                 branding["url"]
@@ -476,7 +481,10 @@ def override_config_from_env(config: Config = None):
                 if field == "dashboard_password":
                     config.dashboard_password_generated = False
                 if field_type is int:
-                    setattr(config, field, int(env_value))
+                    parsed_value = int(env_value)
+                    if field == "dashboard_domain_map_host_limit":
+                        parsed_value = max(1, min(2000, parsed_value))
+                    setattr(config, field, parsed_value)
                 elif field_type is float:
                     setattr(config, field, float(env_value))
                 elif field_type is bool:

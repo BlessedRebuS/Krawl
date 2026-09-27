@@ -64,6 +64,7 @@
         <a class="tab-button" :class="{ active: tab === 'overview' }" @click.prevent="switchToOverview()" href="#overview">Overview</a>
         <a class="tab-button" :class="{ active: tab === 'attacks' }" @click.prevent="switchToAttacks()" href="#ip-stats">Attacks</a>
         <a class="tab-button" :class="{ active: tab === 'threats' }" @click.prevent="switchToThreats()" href="#threats">Threats</a>
+        <a class="tab-button" :class="{ active: tab === 'advanced-search' }" @click.prevent="switchToAdvancedSearch()" href="#advanced-search">Advanced Search</a>
         <a class="tab-button" :class="{ active: tab === 'ip-insight', disabled: !insightIp }" @click.prevent="insightIp && switchToIpInsight()" href="#ip-insight">
             IP Insight<span x-show="insightIp" x-text="' (' + insightIp + ')'"></span>
         </a>
@@ -295,6 +296,50 @@
     {# ==================== WEBHOOKS TAB (protected, webhook configs) ==================== #}
     <div x-show="tab === 'webhooks'" x-cloak>
         <div id="webhooks-htmx-container"></div>
+    </div>
+
+    {# ==================== ADVANCED SEARCH TAB ==================== #}
+    <div x-show="tab === 'advanced-search'" x-cloak class="advanced-search-tab">
+        <div class="table-container threat-panel advanced-search-card advanced-search-form-card">
+            <div class="threat-panel-bar"><h2>Advanced Search</h2></div>
+            <form id="advanced-search-form" class="advanced-search-form"
+                  hx-get="{{ dashboard_path }}/htmx/advanced-search"
+                  hx-target="#advanced-search-results" hx-swap="innerHTML">
+                <div class="advanced-search-grid">
+                    <label>Path<input class="panel-search" type="search" name="path" placeholder="/git/objects/" autocomplete="off"></label>
+                    <label>Host<input class="panel-search" type="search" name="host" placeholder="demo.krawlme.com" autocomplete="off"></label>
+                    <label>Source IP<input class="panel-search" type="search" name="ip" placeholder="93.69.70.20" autocomplete="off"></label>
+                    <label>Referer<input class="panel-search" type="search" name="referer" placeholder="/das_dashboard" autocomplete="off"></label>
+                    <label>User agent<input class="panel-search" type="search" name="user_agent" placeholder="Firefox" autocomplete="off"></label>
+                    <label>Method<select class="panel-search" name="method"><option value="">Any method</option><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>HEAD</option><option>OPTIONS</option></select></label>
+                    <label class="advanced-search-raw">Raw request text<input class="panel-search" type="search" name="raw_text" placeholder="xleet" autocomplete="off"><span class="advanced-search-field-hint">Search captured headers and body</span></label>
+                </div>
+                <div class="advanced-search-headers">
+                    <div class="advanced-search-headers-title"><span>HTTP headers</span><span>Value is optional; leave it blank to match any value.</span></div>
+                    <div id="advanced-search-headers">
+                        <div class="advanced-search-header-row">
+                            <input class="panel-search" type="text" name="header_name" placeholder="Header name (e.g. priority)" aria-label="Header name" autocomplete="off">
+                            <input class="panel-search" type="search" name="header_value" placeholder="Value contains" aria-label="Header value contains" autocomplete="off">
+                            <button type="button" class="advanced-search-remove" onclick="removeAdvancedHeader(this)" aria-label="Remove header filter" title="Remove header filter">&times;</button>
+                        </div>
+                    </div>
+                    <button type="button" class="facet-chip advanced-search-add" onclick="addAdvancedHeader()">+ Add header</button>
+                </div>
+                <div class="advanced-search-actions">
+                    <button type="reset" class="pagination-btn advanced-search-clear" onclick="resetAdvancedSearch()">Clear</button>
+                    <button type="submit" class="pagination-btn advanced-search-submit">Search</button>
+                </div>
+            </form>
+        </div>
+        <div class="table-container threat-panel advanced-search-card advanced-search-results-card">
+            <div class="threat-panel-bar"><h2>Results</h2></div>
+            <div id="advanced-search-results" class="htmx-container" aria-live="polite">
+                <div class="advanced-search-empty" role="status">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 1 0 4.64 13.39l4.24 4.23 1.41-1.41-4.24-4.24A7.5 7.5 0 0 0 10.5 3Zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z"/></svg>
+                    <p>Start with a path, host, IP, header, or raw text to find requests.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     {# ==================== THREAT TAB (global captured-file index) ==================== #}
