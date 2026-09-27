@@ -735,7 +735,8 @@ async def campaign_stats(
     days: int = Query(1),
     offset: int = Query(0),
 ):
-    limit = min(max(1, limit), 50)
+    # Up to every campaign the builder considers (it scans 200), for "All".
+    limit = min(max(1, limit), 200)
     days = min(max(1, days), 90)
     offset = max(0, offset)
     cache_key = f"api:campaign_stats:{limit}:{day or days}:{offset}"

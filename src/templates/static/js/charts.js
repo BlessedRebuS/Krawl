@@ -389,7 +389,10 @@ function filterAttackTableByType(attackType) {
 let _campaignDays = 1;
 let _campaignOffset = 0;
 let _campaignRequest = 0;
-const CAMPAIGN_ROWS = 8;
+// Rows the heatmap offers: a glanceable top, a longer list, and every
+// campaign the API ranks (it considers up to 200).
+const CAMPAIGN_ROW_OPTIONS = [[8, 'Top 8'], [20, 'Top 20'], [200, 'All']];
+let _campaignRows = 8;
 const CAMPAIGN_SHADES = 5;
 
 function _campaignEndDate() {
@@ -456,6 +459,12 @@ function _campaignTickLabel(iso, index, slotHours) {
     return index % 7 === 0 ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
 }
 
+/** Attack type -> inline style setting --atk to its token (grey if unknown). */
+function _atkStyle(type) {
+    const name = String(type || 'other').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    return `--atk: var(--atk-${name}, var(--atk-other))`;
+}
+
 /** Hits -> shade 1..5. Square-root scale: one loud campaign would otherwise
  *  flatten every other row to the lightest shade. */
 function _campaignShade(count, max) {
@@ -512,29 +521,48 @@ function _renderCampaignActivity(data) {
 
     const rows = campaigns.map((c, row) => {
         const name = _campaignName(c);
-        const types = (c.attack_types || []).map(t => t.replace(/_/g, ' '));
-        const typeText = types.length > 2 ? `${types.slice(0, 2).join(', ')} +${types.length - 2}` : types.join(', ');
+        const types = c.attack_types || [];
+        // The row takes the hue of its main attack type (types arrive sorted
+        // by count); file-only campaigns stay in the neutral bucket.
+        const hue = _atkStyle(types.length ? types[0] : 'other');
+        const typeList = types.slice(0, 3).map(t =>
+            `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t)}"></span>${_escapeHtml(t.replace(/_/g, ' '))}</span>`
+        ).join('') + (types.length > 3 ? `<span class="atk-tag">+${types.length - 3}</span>` : '');
         const cells = c.activity.map((n, i) =>
             `<span class="activity-cell shade-${_campaignShade(n, max)}${future[i] ? ' is-future' : ''}" data-row="${row}" data-slot="${i}"></span>`
         ).join('');
-        return `<div class="activity-row" role="row" tabindex="0" data-row="${row}"` +
+        return `<div class="activity-row" style="${hue}" role="row" tabindex="0" data-row="${row}"` +
             ` aria-label="${_escapeHtml(name)}: ${c.hits} hits from ${c.ips} IPs. Open events.">` +
             `<span class="activity-name" role="cell" title="${_escapeHtml(name)}">` +
             `<span class="activity-target">${_escapeHtml(_middleEllipsis(name, 44))}</span>` +
-            `<span class="activity-types">${_escapeHtml(typeText || c.sources)}</span></span>` +
+            `<span class="activity-types">${typeList || _escapeHtml(c.sources)}</span></span>` +
             `<span class="activity-strip" role="cell">${cells}</span>` +
             `<span class="num activity-hits" role="cell"><span class="num-bar" style="--pct:${(c.hits / maxHits * 100).toFixed(1)}%">${c.hits.toLocaleString()}</span></span>` +
             `<span class="num" role="cell">${c.ips.toLocaleString()}</span></div>`;
     }).join('');
 
+    // Legend: the intensity ramp, then one swatch per row colour on screen.
+    // Probes and uploads share the grey bucket, so they share one entry.
+    const shown = [...new Set(campaigns.map(c => {
+        const t = (c.attack_types || [])[0];
+        return !t || t === 'common_probes' ? 'other' : t;
+    }))];
     const legend =
-        `<div class="activity-legend" aria-hidden="true"><span>Fewer hits</span>` +
+        `<div class="activity-foot">` +
+        `<span class="activity-legend" aria-hidden="true"><span>Fewer hits</span>` +
         Array.from({ length: CAMPAIGN_SHADES }, (_, i) => `<span class="activity-cell shade-${i + 1}"></span>`).join('') +
         `<span>More</span>` +
-        (data.total_campaigns > campaigns.length
-            ? `<span class="activity-more">Top ${campaigns.length} of ${data.total_campaigns} by hits. The table below lists every campaign.</span>`
-            : '') +
-        `</div>`;
+        shown.map(t => `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t)}"></span>${_escapeHtml(t === 'other' ? 'probes, uploads, other' : t.replace(/_/g, ' '))}</span>`).join('') +
+        `</span>` +
+        `<span class="activity-rows"><span class="activity-rows-label">${campaigns.length} of ${data.total_campaigns}</span>` +
+        `<span class="row gap-1" role="group" aria-label="Campaigns shown">` +
+        CAMPAIGN_ROW_OPTIONS.map(([n, label], i) => {
+            // An option that would show nothing new stays visible but off.
+            const idle = i > 0 && data.total_campaigns <= CAMPAIGN_ROW_OPTIONS[i - 1][0] && _campaignRows !== n;
+            return `<button type="button" class="map-limit-btn${_campaignRows === n ? ' active' : ''}"` +
+                ` aria-pressed="${_campaignRows === n}" data-rows="${n}"${idle ? ' disabled' : ''}>${label}</button>`;
+        }).join('') +
+        `</span></span></div>`;
 
     grid.innerHTML = head + rows + legend;
     grid._campaignData = data;
@@ -552,6 +580,12 @@ function _bindCampaignActivity() {
         if (c && window.openExpandOverlay) window.openExpandOverlay(_campaignName(c), 'campaign', '', c.id);
     };
     grid.addEventListener('click', (e) => {
+        const rowsBtn = e.target.closest('[data-rows]');
+        if (rowsBtn) {
+            _campaignRows = Number(rowsBtn.dataset.rows);
+            loadCampaignsChart();
+            return;
+        }
         const rowEl = e.target.closest('.activity-row[data-row]');
         if (rowEl) open(rowEl);
     });
@@ -576,6 +610,7 @@ function _bindCampaignActivity() {
         tip.innerHTML =
             `<div class="activity-tooltip-title">${_escapeHtml(_campaignSlotText(data.slots[i], data.slot_hours))}</div>` +
             `<div class="data-mono">${_escapeHtml(_middleEllipsis(_campaignName(c), 56))}</div>` +
+            ((c.attack_types || []).length ? `<div class="activity-tooltip-title">${_escapeHtml(c.attack_types.join(', ').replace(/_/g, ' '))}</div>` : '') +
             `<div><strong>${n.toLocaleString()}</strong> ${n === 1 ? 'hit' : 'hits'}</div>`;
         tip.hidden = false;
         const host = tip.offsetParent || grid;
@@ -607,7 +642,7 @@ async function loadCampaignsChart() {
 
     try {
         const response = await fetch(
-            DASHBOARD_PATH + `/api/campaign-stats?limit=${CAMPAIGN_ROWS}&days=${_campaignDays}&offset=${_campaignOffset}`,
+            DASHBOARD_PATH + `/api/campaign-stats?limit=${_campaignRows}&days=${_campaignDays}&offset=${_campaignOffset}`,
             { cache: 'no-store', headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } }
         );
         if (!response.ok) throw new Error('Failed to fetch campaign stats');

@@ -4272,8 +4272,9 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
 
 
 /* Campaign activity grid. Columns: target | strip | hits | IPs.
-   Shades step one hue from the panel surface to the accent; empty
-   slots sit on a faint track so gaps in activity read as gaps. */
+   Each row steps its main attack type's hue (--atk, set inline) from
+   the panel surface up to full strength; empty slots sit on a faint
+   track so gaps in activity read as gaps. */
 .alert-section:has(> .activity) { position: relative; }
 .activity {
     --slots: 24;
@@ -4329,24 +4330,36 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
 .activity-axis { height: auto; }
 .activity-axis > span { white-space: nowrap; overflow: visible; font-variant-numeric: tabular-nums; }
 .activity-cell { border-radius: 2px; background: var(--line-soft); min-width: 0; }
-.activity-cell.shade-1 { background: color-mix(in oklab, var(--accent) 24%, var(--surface)); }
-.activity-cell.shade-2 { background: color-mix(in oklab, var(--accent) 42%, var(--surface)); }
-.activity-cell.shade-3 { background: color-mix(in oklab, var(--accent) 60%, var(--surface)); }
-.activity-cell.shade-4 { background: color-mix(in oklab, var(--accent) 80%, var(--surface)); }
-.activity-cell.shade-5 { background: var(--accent-hi); }
+.activity-cell.shade-1 { background: color-mix(in oklab, var(--atk, var(--accent)) 24%, var(--surface)); }
+.activity-cell.shade-2 { background: color-mix(in oklab, var(--atk, var(--accent)) 42%, var(--surface)); }
+.activity-cell.shade-3 { background: color-mix(in oklab, var(--atk, var(--accent)) 60%, var(--surface)); }
+.activity-cell.shade-4 { background: color-mix(in oklab, var(--atk, var(--accent)) 80%, var(--surface)); }
+.activity-cell.shade-5 { background: var(--atk, var(--accent)); }
 .activity-cell.is-future { background: transparent; box-shadow: inset 0 0 0 1px var(--line-soft); }
 .activity-strip .activity-cell:hover { outline: 2px solid var(--text-strong); outline-offset: 0; }
 .activity-hits .num-bar { min-width: 0; width: 100%; }
-.activity-legend {
+.activity-foot {
     grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s4);
+    margin-top: var(--s3);
+}
+.activity-legend {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 3px;
-    margin-top: var(--s3);
     font-size: var(--fs-2xs);
     color: var(--text-dim);
 }
+.activity-legend .atk-tag { margin-left: var(--s3); }
+.activity-rows { display: flex; align-items: center; gap: var(--s2); }
+.activity-rows-label { font-size: var(--fs-2xs); color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.activity-types { display: flex; gap: var(--s2); }
+.atk-tag { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .atk-swatch {
     display: inline-block;
     flex: none;
@@ -4356,9 +4369,8 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
     background: var(--atk, var(--atk-other));
 }
 .activity-legend > span:first-child { margin-right: var(--s1); }
-.activity-legend .activity-cell { width: 14px; height: 10px; }
+.activity-legend .activity-cell { --atk: var(--text-dim); width: 14px; height: 10px; }
 .activity-legend .activity-cell + span:not(.activity-cell) { margin-left: var(--s1); }
-.activity-more { margin-left: auto; }
 .activity-empty { min-height: 160px; }
 .activity-summary {
     display: flex;
@@ -4400,7 +4412,6 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
     .activity-head > span:first-child { display: none; }
     .activity-strip { grid-column: 1; }
     .activity-axis > span { font-size: 9px; }
-    .activity-more { margin-left: 0; flex-basis: 100%; }
     .panel-search { width: 100%; }
     .threat-panel-tools { width: 100%; }
     .threat-panel-tools .panel-search { flex: 1; width: auto; }
