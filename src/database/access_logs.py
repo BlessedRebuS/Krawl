@@ -90,8 +90,10 @@ class AccessLogRepo:
         search: str = "",
         sort_by: str = "count",
         sort_order: str = "desc",
+        min_ips: int = 0,
     ) -> dict[str, Any]:
-        """Absolute URL assets ranked by total occurrences in retained requests."""
+        """Absolute URL assets ranked by total occurrences in retained requests.
+        ``min_ips`` keeps only URLs seen from at least that many IPs."""
         session = self._db.session
         try:
             base = (
@@ -107,6 +109,8 @@ class AccessLogRepo:
             )
             if search:
                 base = base.filter(RequestAsset.url.ilike(f"%{search}%"))
+            if min_ips > 1:
+                base = base.having(func.count(distinct(AccessLog.ip)) >= min_ips)
             total = base.count()
             sort_columns = {
                 "url": RequestAsset.url,
