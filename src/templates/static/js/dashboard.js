@@ -1904,7 +1904,7 @@ function _reloadExpandOverlay() {
         targetUrl = `${dashboardPath}/htmx/artifact-requests?${artifactParams}`;
     }
 
-    container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-dim);">Loading...</div>';
+    container.innerHTML = '<div class="htmx-indicator">Loading...</div>';
     htmx.ajax('GET', targetUrl, { target: container, swap: 'innerHTML' });
 }
 

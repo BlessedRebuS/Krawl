@@ -2802,6 +2802,16 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
     height: 16px;
     padding: 0;
 }
+#map-loading-overlay { gap: var(--s2); }
+#map-loading-overlay::before {
+    content: '';
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--line);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
@@ -4381,7 +4391,6 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
     column-gap: var(--s4);
     transition: opacity var(--dur) var(--ease);
 }
-.activity.is-loading { opacity: 0.55; }
 .activity-row {
     display: grid;
     grid-template-columns: subgrid;

@@ -15,9 +15,11 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
     legendPosition = legendPosition || 'right';
     const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
 
+    let release = () => {};
     try {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
+        release = window.krawlBusy ? krawlBusy(canvas.parentElement) : release;
 
         let url = DASHBOARD_PATH + '/api/attack-types-stats?limit=10';
         if (ipFilter) url += '&ip_filter=' + encodeURIComponent(ipFilter);
@@ -147,6 +149,8 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
         attackTypesChartLoaded = true;
     } catch (err) {
         console.error('Error loading attack types chart:', err);
+    } finally {
+        release();
     }
 }
 
@@ -163,9 +167,11 @@ async function loadAttackTrendsChart(canvasId) {
     canvasId = canvasId || 'attack-trends-chart';
     const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
 
+    let release = () => {};
     try {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
+        release = window.krawlBusy ? krawlBusy(canvas.parentElement) : release;
 
         const url = `${DASHBOARD_PATH}/api/attack-types-daily?limit=10&days=${_trendsDays}&offset_days=${_trendsOffsetDays}`;
         const response = await fetch(url, {
@@ -281,6 +287,8 @@ async function loadAttackTrendsChart(canvasId) {
 
     } catch (err) {
         console.error('Error loading attack trends chart:', err);
+    } finally {
+        release();
     }
 }
 
@@ -639,8 +647,7 @@ async function loadCampaignsChart() {
     _campaignLabel();
     // Rapid period clicks race; only the latest response may paint.
     const request = ++_campaignRequest;
-    grid.setAttribute('aria-busy', 'true');
-    grid.classList.add('is-loading');
+    const release = window.krawlBusy ? krawlBusy(grid) : () => {};
 
     try {
         const response = await fetch(
@@ -661,10 +668,7 @@ async function loadCampaignsChart() {
     } catch (err) {
         console.error('Error loading campaign activity:', err);
     } finally {
-        if (request === _campaignRequest) {
-            grid.removeAttribute('aria-busy');
-            grid.classList.remove('is-loading');
-        }
+        release();
     }
 }
 
