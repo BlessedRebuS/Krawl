@@ -154,7 +154,7 @@
                             {% endif %}
                         </div>
                     </td>
-                    <td class="ua-cell">{{ (attack.user_agent | default(''))[:50] | e }}</td>
+                    <td class="ua-cell">{{ (attack.user_agent | default('', true))[:50] | e }}</td>
                     <td class="ts-cell">{{ attack.timestamp | format_ts }}</td>
                     <td><div class="table-action-btns">
                         <button class="inspect-btn" @click="openIpInsight('{{ attack.ip | e }}')" title="Inspect IP">

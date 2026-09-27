@@ -12,7 +12,7 @@
         <span class="method-badge method-{{ method | lower | e }}">{{ method | e }}</span>
     </td>
     <td><a href="#" class="data-link path-jump" data-path="{{ activity.path | e }}" @click.prevent="jumpToPath($event)">{{ activity.path | e }}</a></td>
-    <td class="break-all">{{ (activity.user_agent | default(''))[:80] | e }}</td>
+    <td class="break-all">{{ (activity.user_agent | default('', true))[:80] | e }}</td>
     <td class="ts-cell">{{ activity.timestamp | format_ts(time_only=True) }}</td>
     <td>
         <div class="table-action-btns">
