@@ -12,16 +12,10 @@ from config import get_config
 from dashboard_cache import set_cached, set_cached_list, set_cached_table
 from database import get_database
 from logger import get_app_logger
-from routes.api import _campaign_window, campaign_payload
+from routes.api import build_campaign_stats
 from routes.htmx import CAMPAIGN_TABLE_LIMIT
 
 app_logger = get_app_logger()
-
-
-def _today_window() -> dict:
-    """The window the campaign chart opens on, as the API computes it."""
-    start, end = _campaign_window("", days=1, offset=0)
-    return {"start": start, "end": end}
 
 
 # ----------------------
@@ -327,11 +321,9 @@ def main():
 
         top_campaigns = _timed(
             "campaign_stats_top",
-            lambda: db.payloads.get_campaign_clusters(limit=5, **_today_window()),
+            lambda: build_campaign_stats(db, 8, days=1, offset=0),
         )
-        set_cached_table(
-            "api:campaign_stats:5:1:0", {"campaigns": campaign_payload(top_campaigns)}
-        )
+        set_cached_table("api:campaign_stats:8:1:0", top_campaigns)
 
         _warm_pages(
             "global_filenames_all",

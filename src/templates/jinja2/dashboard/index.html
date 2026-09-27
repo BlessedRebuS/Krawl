@@ -299,31 +299,30 @@
 
     {# ==================== THREAT TAB (global captured-file index) ==================== #}
     <div x-show="tab === 'threats'" x-cloak>
+        {# Campaign activity: one row per campaign, one cell per hour (1D),
+           quarter-day (7D) or day (30D). Filled by loadCampaignsChart. #}
         <div class="table-container alert-section">
             <div class="chart-head">
-                <h2 class="m-0">Attack Campaigns <span class="chart-head-hint">(click a bar to see its events)</span></h2>
+                <h2 class="m-0">Campaign activity</h2>
                 <div class="row">
-                    <div class="row gap-1" id="campaigns-span-selector">
+                    <div class="row gap-1" id="campaigns-span-selector" role="group" aria-label="Period length">
                         <button class="map-limit-btn active" data-days="1" onclick="setCampaignSpan(1, this)">1D</button>
                         <button class="map-limit-btn" data-days="7" onclick="setCampaignSpan(7, this)">7D</button>
                         <button class="map-limit-btn" data-days="30" onclick="setCampaignSpan(30, this)">30D</button>
                     </div>
                     <div class="row">
-                        <button id="campaigns-period-prev" onclick="shiftCampaignPeriod(1)" class="pagination-btn fs-sm">&#8592;</button>
-                        <span id="campaigns-period-label" class="period-label"></span>
-                        <button id="campaigns-period-next" onclick="shiftCampaignPeriod(-1)" class="pagination-btn fs-sm" disabled>&#8594;</button>
+                        <button id="campaigns-period-prev" onclick="shiftCampaignPeriod(1)" class="pagination-btn fs-sm" aria-label="Previous period">&#8592;</button>
+                        <span id="campaigns-period-label" class="period-label" aria-live="polite"></span>
+                        <button id="campaigns-period-next" onclick="shiftCampaignPeriod(-1)" class="pagination-btn fs-sm" aria-label="Next period" disabled>&#8594;</button>
                     </div>
                 </div>
             </div>
-            <div class="chart-row">
-                <div class="chart-wrapper chart-main">
-                    <canvas id="campaigns-chart"></canvas>
-                    <div id="campaigns-chart-empty" class="chart-empty" hidden>No campaigns in this period</div>
-                </div>
-                {# Filled by _renderCampaignSummary: what the bars add up to. #}
-                <div id="campaigns-summary" class="chart-totals chart-summary"></div>
-            </div>
+            <div id="campaigns-summary" class="activity-summary"></div>
+            <div id="campaigns-activity" class="activity" role="table" aria-label="Campaign hits over time"></div>
+            <div id="campaigns-chart-empty" class="chart-empty activity-empty" hidden>No campaign hits in this period. Try a longer span or step back a period.</div>
+            <div id="campaigns-tooltip" class="activity-tooltip" role="tooltip" hidden></div>
         </div>
+
         <div class="table-container alert-section threat-panel" data-endpoint="pattern-clusters">
             <div class="threat-panel-bar">
                 <h2>Campaigns</h2>
