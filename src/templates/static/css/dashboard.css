@@ -48,6 +48,24 @@
     --cat-regular-user: var(--accent);
     --cat-timed-out: var(--pink);
 
+    /* ── Attack types ─────────────────────────────────────────
+       One fixed hue per detected attack type, shared by badges, the
+       campaign heatmap and the overview charts, so a type looks the
+       same everywhere. Validated as a set on --surface: every pair is
+       apart for normal vision (OKLab dE >= 15). Nine hues cannot all
+       stay apart under colour-blindness, so every coloured mark also
+       names its type. Grey is the low-signal bucket (probes, uploads,
+       anything unknown). */
+    --atk-command-injection: #ff5c52;
+    --atk-sql-injection: #f2a63b;
+    --atk-ldap-injection: #9fd356;
+    --atk-xxe-injection: #3ad6d1;
+    --atk-login-attempt: #3b7cf0;
+    --atk-path-traversal: #c77dff;
+    --atk-xss-attempt: #ffa3d1;
+    --atk-lfi-rfi: #f3e2b0;
+    --atk-other: #8b9bb0;
+
     /* ── Tints (badges, rails, hover washes) ──────────────────── */
     --tint-accent: rgba(77, 163, 255, 0.13);
     --tint-danger: rgba(255, 92, 82, 0.13);
@@ -888,6 +906,23 @@ tbody {
     cursor: pointer;
     text-decoration: none;
     border-bottom: 1px dotted color-mix(in srgb, var(--accent) 40%, transparent);
+}
+/* Attack-type badges: tinted in the type's hue, see --atk-* above. */
+.method-command-injection { --atk: var(--atk-command-injection); }
+.method-sql-injection { --atk: var(--atk-sql-injection); }
+.method-ldap-injection { --atk: var(--atk-ldap-injection); }
+.method-xxe-injection { --atk: var(--atk-xxe-injection); }
+.method-login-attempt { --atk: var(--atk-login-attempt); }
+.method-path-traversal { --atk: var(--atk-path-traversal); }
+.method-xss-attempt { --atk: var(--atk-xss-attempt); }
+.method-lfi-rfi { --atk: var(--atk-lfi-rfi); }
+.method-common-probes { --atk: var(--atk-other); }
+.method-command-injection, .method-sql-injection, .method-ldap-injection,
+.method-xxe-injection, .method-login-attempt, .method-path-traversal,
+.method-xss-attempt, .method-lfi-rfi, .method-common-probes {
+    border-color: color-mix(in srgb, var(--atk) 40%, transparent);
+    background: color-mix(in srgb, var(--atk) 14%, transparent);
+    color: color-mix(in srgb, var(--atk) 85%, var(--text-strong));
 }
 .method-get {
     border-color: color-mix(in srgb, var(--accent) 30%, transparent);

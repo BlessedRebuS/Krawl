@@ -4,22 +4,6 @@
 let attackTypesChart = null;
 let attackTypesChartLoaded = false;
 
-// Ordered for clear separation on the dark canvas.
-const KRAWL_CHART_SERIES_COLORS = [
-    '#3ad6d1', '#ff5c52', '#35d07f', '#ffc94d', '#b083f5',
-    '#4da3ff', '#f2649f', '#f28e2b', '#a0cbe8', '#9c755f'
-];
-
-function krawlSeriesColor(index, alpha) {
-    const hex = KRAWL_CHART_SERIES_COLORS[index % KRAWL_CHART_SERIES_COLORS.length];
-    if (alpha === undefined) return hex;
-    const value = parseInt(hex.slice(1), 16);
-    const red = (value >> 16) & 255;
-    const green = (value >> 8) & 255;
-    const blue = value & 255;
-    return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-}
-
 /**
  * Load an attack types doughnut chart into a canvas element.
  * @param {string} [canvasId='attack-types-chart'] - Canvas element ID
@@ -58,7 +42,7 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
 
         const labels = attackTypes.map(item => item.type);
         const counts = attackTypes.map(item => item.count);
-        const backgroundColors = labels.map((_, index) => krawlSeriesColor(index));
+        const backgroundColors = labels.map(type => krawlAttackColor(type));
 
         // Create or update chart (track per canvas)
         if (!loadAttackTypesChart._instances) loadAttackTypesChart._instances = {};
@@ -238,16 +222,16 @@ async function loadAttackTrendsChart(canvasId) {
             return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         });
 
-        const datasets = attackTypes.map((at, index) => ({
+        const datasets = attackTypes.map(at => ({
             label: `${at.type} (${at.total})`,
             data: at.daily,
-            borderColor: krawlSeriesColor(index),
-            backgroundColor: krawlSeriesColor(index, 0.05),
+            borderColor: krawlAttackColor(at.type),
+            backgroundColor: krawlAttackColor(at.type, 0.05),
             borderWidth: 2,
             pointRadius: 0,
             pointHitRadius: 8,
             pointHoverRadius: 4,
-            pointHoverBackgroundColor: krawlSeriesColor(index),
+            pointHoverBackgroundColor: krawlAttackColor(at.type),
             tension: 0.15,
             fill: false,
             _attackType: at.type,
@@ -343,8 +327,8 @@ function _updateTrendsTotals(attackTypes) {
     }
 
     let html = '<span style="color: var(--text-dim); font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Totals (period)</span>';
-    attackTypes.forEach((at, index) => {
-        const color = krawlSeriesColor(index);
+    attackTypes.forEach(at => {
+        const color = krawlAttackColor(at.type);
         html += `<div style="display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; border-radius: 4px; transition: background 0.15s;"
                       onmouseover="this.style.background='rgba(255,255,255,0.03)'"
                       onmouseout="this.style.background='transparent'"
