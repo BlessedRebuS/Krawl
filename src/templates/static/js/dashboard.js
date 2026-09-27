@@ -1732,7 +1732,8 @@ window.submitUploadPage = async function() {
 // === Threats tab panels: inline filters ===
 // The search box and the 2+ IPs toggle live outside the swapped fragment so
 // typing never loses focus. The fragment carries the rest of the state (sort,
-// attack type) on its .threat-table root, and every reload reads it back.
+// attack type, page size) on its .threat-table root, and every reload reads
+// it back.
 function _threatPanelReload(panel) {
     const container = panel.querySelector('.htmx-container');
     if (!container || typeof htmx === 'undefined') return;
@@ -1744,6 +1745,7 @@ function _threatPanelReload(panel) {
         if (state.dataset.sortBy) params.set('sort_by', state.dataset.sortBy);
         if (state.dataset.sortOrder) params.set('sort_order', state.dataset.sortOrder);
         if (state.dataset.attackType) params.set('attack_type', state.dataset.attackType);
+        if (state.dataset.pageSize) params.set('page_size', state.dataset.pageSize);
     }
     const shared = panel.querySelector('[data-min-ips]');
     if (shared && shared.getAttribute('aria-pressed') === 'true') params.set('min_ips', '2');

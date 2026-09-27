@@ -909,7 +909,7 @@ async def htmx_global_filenames(
     )
     sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
     page = max(1, page)
-    page_size = 20 if page_size >= 20 else 10
+    page_size = page_size if page_size in (*THREAT_PAGE_SIZES, 20) else 10
     min_ips = 2 if min_ips > 1 else 0
     search = search.strip()[:255]
     # Only the panel's opening view matches the keys warmup writes.
@@ -951,7 +951,8 @@ async def htmx_global_filenames(
             "sort_by": sort_by,
             "sort_order": sort_order,
             "extra_qs": f"&page_size={page_size}&min_ips={min_ips}",
-            "compact": page_size == 10,
+            "min_ips": min_ips,
+            "page_sizes": THREAT_PAGE_SIZES,
         },
     )
 
@@ -977,7 +978,7 @@ async def htmx_request_assets(
     )
     sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
     page = max(1, page)
-    page_size = 20 if page_size >= 20 else 10
+    page_size = page_size if page_size in (*THREAT_PAGE_SIZES, 20) else 10
     min_ips = 2 if min_ips > 1 else 0
     cache_key = (
         f"request-assets:{page}:{page_size}:{min_ips}:{search}:{sort_by}:{sort_order}"
@@ -1007,7 +1008,8 @@ async def htmx_request_assets(
             "sort_by": sort_by,
             "sort_order": sort_order,
             "extra_qs": f"&page_size={page_size}&min_ips={min_ips}",
-            "compact": page_size == 10,
+            "min_ips": min_ips,
+            "page_sizes": THREAT_PAGE_SIZES,
         },
     )
 
@@ -1079,7 +1081,8 @@ async def htmx_similar_events(
 # expensive read on the tab, so it runs once (cached, and pre-warmed) and the
 # table filters, sorts and pages that list in Python.
 CAMPAIGN_TABLE_LIMIT = 200
-CAMPAIGN_PAGE_SIZE = 10
+# Rows per page the Threats tab tables offer; anything else snaps to 10.
+THREAT_PAGE_SIZES = (10, 25, 50)
 _CAMPAIGN_SORTS = {
     "events": lambda c: c["events"] or 0,
     "ips": lambda c: c["ips"] or 0,
@@ -1093,6 +1096,7 @@ _CAMPAIGN_SORTS = {
 async def htmx_pattern_clusters(
     request: Request,
     page: int = Query(1),
+    page_size: int = Query(10),
     search: str = Query(""),
     attack_type: str = Query(""),
     sort_by: str = Query("events"),
@@ -1102,6 +1106,7 @@ async def htmx_pattern_clusters(
     attack_type = attack_type.strip()[:64]
     sort_by = sort_by if sort_by in _CAMPAIGN_SORTS else "events"
     sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
+    page_size = page_size if page_size in THREAT_PAGE_SIZES else 10
 
     cached = get_cached_table("clusters:all")
     if cached:
@@ -1136,16 +1141,16 @@ async def htmx_pattern_clusters(
     rows.sort(key=_CAMPAIGN_SORTS[sort_by], reverse=sort_order == "desc")
 
     total = len(rows)
-    total_pages = max(1, (total + CAMPAIGN_PAGE_SIZE - 1) // CAMPAIGN_PAGE_SIZE)
+    total_pages = max(1, (total + page_size - 1) // page_size)
     page = min(max(1, page), total_pages)
-    offset = (page - 1) * CAMPAIGN_PAGE_SIZE
+    offset = (page - 1) * page_size
     templates = get_templates()
     return templates.TemplateResponse(
         request,
         "dashboard/partials/pattern_clusters_table.html",
         {
             "dashboard_path": _dashboard_path(request),
-            "clusters": rows[offset : offset + CAMPAIGN_PAGE_SIZE],
+            "clusters": rows[offset : offset + page_size],
             "facets": facets,
             "all_count": len(clusters),
             "search": search,
@@ -1154,9 +1159,11 @@ async def htmx_pattern_clusters(
             "sort_order": sort_order,
             "pagination": {
                 "page": page,
+                "page_size": page_size,
                 "total": total,
                 "total_pages": total_pages,
             },
+            "page_sizes": THREAT_PAGE_SIZES,
         },
     )
 

@@ -337,43 +337,41 @@
             </div>
         </div>
 
-        <div class="threat-split">
-            <div class="table-container alert-section threat-panel" data-endpoint="global-filenames">
-                <div class="threat-panel-bar">
-                    <h2>Captured files</h2>
-                    <div class="threat-panel-tools">
-                        <input type="search" class="panel-search" name="search"
-                               placeholder="Filter filenames" aria-label="Filter captured filenames"
-                               autocomplete="off" oninput="threatPanelSearch(this)">
-                        <button type="button" class="facet-chip" aria-pressed="false" data-min-ips
-                                onclick="threatPanelToggleShared(this)"
-                                title="Only names sent by two or more IPs, which points to a shared tool or campaign">2+ IPs</button>
-                        <button type="button" class="expand-btn" onclick="openExpandOverlay('Captured Files', 'global-filenames', 20)" aria-label="Open all captured files" title="Open all captured files"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5H4.56l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L3.5 4.56v2.69a.75.75 0 0 1-1.5 0v-3.5A1.75 1.75 0 0 1 3.75 2Zm8.5 12h-3.5a.75.75 0 0 1 0-1.5h2.69l-2.72-2.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.72 2.72v-2.69a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14Z"/></svg></button>
-                    </div>
-                </div>
-                <div id="threats-htmx-container" class="htmx-container">
-                    <div class="htmx-indicator">Loading...</div>
+        <div class="table-container alert-section threat-panel" data-endpoint="global-filenames">
+            <div class="threat-panel-bar">
+                <h2>Captured files</h2>
+                <div class="threat-panel-tools">
+                    <input type="search" class="panel-search" name="search"
+                           placeholder="Filter filenames" aria-label="Filter captured filenames"
+                           autocomplete="off" oninput="threatPanelSearch(this)">
+                    <button type="button" class="facet-chip" aria-pressed="false" data-min-ips
+                            onclick="threatPanelToggleShared(this)"
+                            title="Only names sent by two or more IPs, which points to a shared tool or campaign">2+ IPs</button>
+                    <button type="button" class="expand-btn" onclick="openExpandOverlay('Captured Files', 'global-filenames', 20)" aria-label="Open all captured files" title="Open all captured files"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5H4.56l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L3.5 4.56v2.69a.75.75 0 0 1-1.5 0v-3.5A1.75 1.75 0 0 1 3.75 2Zm8.5 12h-3.5a.75.75 0 0 1 0-1.5h2.69l-2.72-2.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.72 2.72v-2.69a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14Z"/></svg></button>
                 </div>
             </div>
-            <div class="table-container alert-section threat-panel" data-endpoint="request-assets">
-                <div class="threat-panel-bar">
-                    <h2>Assets</h2>
-                    <div class="threat-panel-tools">
-                        <input type="search" class="panel-search" name="search"
-                               placeholder="Filter URLs" aria-label="Filter asset URLs"
-                               autocomplete="off" oninput="threatPanelSearch(this)">
-                        <button type="button" class="facet-chip" aria-pressed="false" data-min-ips
-                                onclick="threatPanelToggleShared(this)"
-                                title="Only URLs sent by two or more IPs">2+ IPs</button>
-                        <button type="button" class="expand-btn" onclick="openExpandOverlay('Assets', 'request-assets', 20)" aria-label="Open all assets" title="Open all assets"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5H4.56l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L3.5 4.56v2.69a.75.75 0 0 1-1.5 0v-3.5A1.75 1.75 0 0 1 3.75 2Zm8.5 12h-3.5a.75.75 0 0 1 0-1.5h2.69l-2.72-2.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.72 2.72v-2.69a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14Z"/></svg></button>
-                    </div>
+            <div id="threats-htmx-container" class="htmx-container">
+                <div class="htmx-indicator">Loading...</div>
+            </div>
+        </div>
+        <div class="table-container alert-section threat-panel" data-endpoint="request-assets">
+            <div class="threat-panel-bar">
+                <h2>Assets</h2>
+                <div class="threat-panel-tools">
+                    <input type="search" class="panel-search" name="search"
+                           placeholder="Filter URLs" aria-label="Filter asset URLs"
+                           autocomplete="off" oninput="threatPanelSearch(this)">
+                    <button type="button" class="facet-chip" aria-pressed="false" data-min-ips
+                            onclick="threatPanelToggleShared(this)"
+                            title="Only URLs sent by two or more IPs">2+ IPs</button>
+                    <button type="button" class="expand-btn" onclick="openExpandOverlay('Assets', 'request-assets', 20)" aria-label="Open all assets" title="Open all assets"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5H4.56l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L3.5 4.56v2.69a.75.75 0 0 1-1.5 0v-3.5A1.75 1.75 0 0 1 3.75 2Zm8.5 12h-3.5a.75.75 0 0 1 0-1.5h2.69l-2.72-2.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.72 2.72v-2.69a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14Z"/></svg></button>
                 </div>
-                <div id="assets-htmx-container" class="htmx-container"
-                     hx-get="{{ dashboard_path }}/htmx/request-assets?page=1"
-                     hx-trigger="load"
-                     hx-swap="innerHTML">
-                    <div class="htmx-indicator">Loading...</div>
-                </div>
+            </div>
+            <div id="assets-htmx-container" class="htmx-container"
+                 hx-get="{{ dashboard_path }}/htmx/request-assets?page=1"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                <div class="htmx-indicator">Loading...</div>
             </div>
         </div>
     </div>

@@ -3083,6 +3083,12 @@ tbody {
     background: var(--tint-neutral);
     color: var(--text);
 }
+.map-limit-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+    background: transparent;
+    color: var(--text-dim);
+}
 .map-limit-btn.active {
     background: var(--accent);
     color: var(--bg);
@@ -4180,7 +4186,6 @@ th.num { text-align: right; white-space: nowrap; }
 th.sortable.num { padding-right: var(--s3); }
 th.num .artifact-sort-button { display: inline; width: auto; }
 th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
-.num-strong { color: var(--text-strong); font-weight: 600; }
 .num-bar {
     display: inline-block;
     min-width: 64px;
@@ -4205,13 +4210,6 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-.table-foot {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--s3);
-    padding-top: var(--s3);
 }
 .badge-more {
     align-self: center;
@@ -4272,12 +4270,6 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
 .facet-count { color: var(--text-faint); font-variant-numeric: tabular-nums; }
 .facet-chip.active .facet-count { color: var(--accent); }
 
-/* Files and assets side by side once each can hold four columns. */
-.threat-split { display: grid; grid-template-columns: 1fr; gap: 0 var(--s5); }
-@media (min-width: 1200px) {
-    .threat-split { grid-template-columns: 1fr 1fr; }
-}
-.threat-split > .table-container { min-width: 0; }
 
 /* Campaign activity grid. Columns: target | strip | hits | IPs.
    Shades step one hue from the panel surface to the accent; empty
@@ -4354,6 +4346,14 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
     margin-top: var(--s3);
     font-size: var(--fs-2xs);
     color: var(--text-dim);
+}
+.atk-swatch {
+    display: inline-block;
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--atk, var(--atk-other));
 }
 .activity-legend > span:first-child { margin-right: var(--s1); }
 .activity-legend .activity-cell { width: 14px; height: 10px; }

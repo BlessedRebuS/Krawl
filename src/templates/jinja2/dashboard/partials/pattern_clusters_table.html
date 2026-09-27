@@ -1,12 +1,15 @@
+{% from "dashboard/partials/threat_pager.html" import pager %}
 {# HTMX fragment: campaign clusters (Threats tab Campaigns table).
  # Expects: clusters (one page), facets [(type, n)], all_count, search,
- # attack_type, sort_by, sort_order, pagination, dashboard_path.
+ # attack_type, sort_by, sort_order, pagination, page_sizes, dashboard_path.
  # Clicking a target opens the campaign's events in the expand overlay.
  #
  # The target path leads, because that is what a reader recognises — the TLSH
  # digest identifies the campaign to the database, not to a person, so it stays
  # in the row's tooltip. State rides on the root's data-* attributes so the
- # panel's search box can reload without dropping the sort or the type filter. #}
+ # panel's search box can reload without dropping the sort, the type filter
+ # or the page size. #}
+{% set size_qs = '&page_size=' ~ pagination.page_size %}
 {% set base = dashboard_path ~ '/htmx/pattern-clusters?search=' ~ (search | urlencode) %}
 {% set with_type = base ~ '&attack_type=' ~ (attack_type | urlencode) %}
 {% set with_sort = with_type ~ '&sort_by=' ~ sort_by ~ '&sort_order=' ~ sort_order %}
@@ -15,7 +18,7 @@
 {% set next_order = 'asc' if sort_by == field and sort_order == 'desc' else 'desc' %}
 <th class="sortable {{ cls }} {% if sort_by == field %}{{ sort_order }}{% endif %}"
     aria-sort="{% if sort_by == field %}{{ 'ascending' if sort_order == 'asc' else 'descending' }}{% else %}none{% endif %}"
-    hx-get="{{ with_type }}&amp;sort_by={{ field }}&amp;sort_order={{ next_order }}"
+    hx-get="{{ with_type }}&amp;sort_by={{ field }}&amp;sort_order={{ next_order }}{{ size_qs }}"
     hx-target="closest .htmx-container" hx-swap="innerHTML"
     {% if tooltip %}title="{{ tooltip }}"{% endif %}>
     <button type="button" class="artifact-sort-button" aria-label="Sort by {{ label | lower }}, {{ next_order }}ending">{{ label }}</button>
@@ -23,25 +26,26 @@
 {% endmacro %}
 <div class="threat-table"
      data-sort-by="{{ sort_by }}" data-sort-order="{{ sort_order }}"
-     data-attack-type="{{ attack_type | e }}">
+     data-attack-type="{{ attack_type | e }}" data-page-size="{{ pagination.page_size }}">
     {% if facets %}
     <div class="facet-row" role="group" aria-label="Filter campaigns by attack type">
         <button type="button" class="facet-chip {% if not attack_type %}active{% endif %}"
                 aria-pressed="{{ 'true' if not attack_type else 'false' }}"
-                hx-get="{{ base }}&amp;sort_by={{ sort_by }}&amp;sort_order={{ sort_order }}"
+                hx-get="{{ base }}&amp;sort_by={{ sort_by }}&amp;sort_order={{ sort_order }}{{ size_qs }}"
                 hx-target="closest .htmx-container" hx-swap="innerHTML">
             All <span class="facet-count">{{ all_count }}</span>
         </button>
         {% for t, n in facets %}
         <button type="button" class="facet-chip {% if attack_type == t %}active{% endif %}"
                 aria-pressed="{{ 'true' if attack_type == t else 'false' }}"
-                hx-get="{{ base }}&amp;attack_type={{ (t if attack_type != t else '') | urlencode }}&amp;sort_by={{ sort_by }}&amp;sort_order={{ sort_order }}"
+                hx-get="{{ base }}&amp;attack_type={{ (t if attack_type != t else '') | urlencode }}&amp;sort_by={{ sort_by }}&amp;sort_order={{ sort_order }}{{ size_qs }}"
                 hx-target="closest .htmx-container" hx-swap="innerHTML">
-            {{ t | replace('_', ' ') }} <span class="facet-count">{{ n }}</span>
+            <span class="atk-swatch" style="--atk: var(--atk-{{ t | lower | replace('_', '-') | e }}, var(--atk-other))" aria-hidden="true"></span>{{ t | replace('_', ' ') }} <span class="facet-count">{{ n }}</span>
         </button>
         {% endfor %}
     </div>
     {% endif %}
+    {{ pager(with_sort, pagination, page_sizes, 'campaigns') }}
     <table class="table-compact">
         <thead>
             <tr>
@@ -91,17 +95,4 @@
             {% endfor %}
         </tbody>
     </table>
-    {% if pagination.total_pages > 1 %}
-    <div class="table-foot">
-        <span class="pagination-info">{{ (pagination.page - 1) * 10 + 1 }}–{{ [pagination.page * 10, pagination.total] | min }} of {{ pagination.total }}</span>
-        <div class="row">
-            <button class="pagination-btn" hx-get="{{ with_sort }}&amp;page={{ pagination.page - 1 }}"
-                    hx-target="closest .htmx-container" hx-swap="innerHTML"
-                    {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
-            <button class="pagination-btn" hx-get="{{ with_sort }}&amp;page={{ pagination.page + 1 }}"
-                    hx-target="closest .htmx-container" hx-swap="innerHTML"
-                    {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
-        </div>
-    </div>
-    {% endif %}
 </div>
