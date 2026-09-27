@@ -32,6 +32,7 @@ def get_templates() -> Jinja2Templates:
             default=True,
         )
         _templates.env.filters["format_ts"] = _format_ts
+        _templates.env.filters["format_ago"] = _format_ago
         _templates.env.filters["format_size"] = _format_size
         _templates.env.filters["safe_url"] = _safe_url
     return _templates
@@ -51,6 +52,29 @@ def _format_ts(value, time_only=False):
     if value.date() == datetime.now().date():
         return value.strftime("%H:%M:%S")
     return value.strftime("%d/%m/%Y %H:%M:%S")
+
+
+def _format_ago(value):
+    """Compact age for dense tables ("42s", "5m", "3h", "12d", "4mo"). The
+    absolute timestamp belongs in the cell's title via format_ts."""
+    if not value:
+        return "—"
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value)
+        except (ValueError, TypeError):
+            return value
+    seconds = max(0, int((datetime.now() - value).total_seconds()))
+    for size, unit in (
+        (86400 * 365, "y"),
+        (86400 * 30, "mo"),
+        (86400, "d"),
+        (3600, "h"),
+        (60, "m"),
+    ):
+        if seconds >= size:
+            return f"{seconds // size}{unit} ago"
+    return f"{seconds}s ago"
 
 
 def _format_size(value):

@@ -1,23 +1,13 @@
 {% from "dashboard/partials/artifact_sort_header.html" import header with context %}
+{% from "dashboard/partials/threat_pager.html" import pager %}
 {# HTMX fragment: Global captured-file index (Threats tab) #
- # Groups captured payload filenames across all IPs; same name from many IPs # 
+ # Groups captured payload filenames across all IPs; same name from many IPs #
  # signals a recurring campaign artifact (WebShell / script upload name).
- # Clicking a filename shows its retained source requests and IPs. #}
-<div class="panel-header">
-    <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} filenames</span>
-    <div class="row">
-        <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/global-filenames?page={{ pagination.page - 1 }}&amp;search={{ search | urlencode }}&amp;sort_by={{ sort_by }}&amp;sort_order={{ sort_order }}"
-                hx-target="closest .htmx-container"
-                hx-swap="innerHTML"
-                {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
-        <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/global-filenames?page={{ pagination.page + 1 }}&amp;search={{ search | urlencode }}&amp;sort_by={{ sort_by }}&amp;sort_order={{ sort_order }}"
-                hx-target="closest .htmx-container"
-                hx-swap="innerHTML"
-                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
-    </div>
-</div>
+ # Clicking a filename shows its retained source requests and IPs.
+ # State rides on .threat-table so the panel's search box and 2+ IPs toggle
+ # can reload without dropping the sort or the page size. #}
+<div class="threat-table" data-sort-by="{{ sort_by }}" data-sort-order="{{ sort_order }}" data-page-size="{{ pagination.page_size }}">
+{{ pager(dashboard_path ~ '/htmx/global-filenames?search=' ~ (search | urlencode) ~ '&sort_by=' ~ sort_by ~ '&sort_order=' ~ sort_order ~ '&min_ips=' ~ min_ips, pagination, page_sizes, 'filenames') }}
 <table>
     <thead><tr>
         {{ header('filename', 'Filename', 'global-filenames', sort_by, sort_order, search) }}
@@ -38,7 +28,11 @@
             <td class="ts-cell">{{ item.last_seen | format_ts }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="5" class="empty-state">No captured files yet. Uploads land here when attackers send them.</td></tr>
+        <tr><td colspan="5" class="empty-state">
+            {% if search or min_ips %}No filenames match this filter.
+            {% else %}No captured files yet. Uploads land here when attackers send them.{% endif %}
+        </td></tr>
         {% endfor %}
     </tbody>
 </table>
+</div>

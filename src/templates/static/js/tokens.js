@@ -15,3 +15,13 @@ function krawlCategoryColors() {
         timed_out: krawlToken('--cat-timed-out'),
     };
 }
+
+// Attack-type hue from the --atk-* tokens: a type keeps its colour in every
+// chart, whatever its rank. Unknown types fall back to the grey bucket.
+function krawlAttackColor(type, alpha) {
+    const name = String(type || '').toLowerCase().replace(/_/g, '-');
+    const hex = krawlToken(`--atk-${name}`) || krawlToken('--atk-other');
+    if (alpha === undefined) return hex;
+    const value = parseInt(hex.slice(1), 16);
+    return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`;
+}

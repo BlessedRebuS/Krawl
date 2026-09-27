@@ -48,6 +48,24 @@
     --cat-regular-user: var(--accent);
     --cat-timed-out: var(--pink);
 
+    /* ── Attack types ─────────────────────────────────────────
+       One fixed hue per detected attack type, shared by badges, the
+       campaign heatmap and the overview charts, so a type looks the
+       same everywhere. Validated as a set on --surface: every pair is
+       apart for normal vision (OKLab dE >= 15). Nine hues cannot all
+       stay apart under colour-blindness, so every coloured mark also
+       names its type. Grey is the low-signal bucket (probes, uploads,
+       anything unknown). */
+    --atk-command-injection: #ff5c52;
+    --atk-sql-injection: #f2a63b;
+    --atk-ldap-injection: #9fd356;
+    --atk-xxe-injection: #3ad6d1;
+    --atk-login-attempt: #3b7cf0;
+    --atk-path-traversal: #c77dff;
+    --atk-xss-attempt: #ffa3d1;
+    --atk-lfi-rfi: #f3e2b0;
+    --atk-other: #8b9bb0;
+
     /* ── Tints (badges, rails, hover washes) ──────────────────── */
     --tint-accent: rgba(77, 163, 255, 0.13);
     --tint-danger: rgba(255, 92, 82, 0.13);
@@ -888,6 +906,23 @@ tbody {
     cursor: pointer;
     text-decoration: none;
     border-bottom: 1px dotted color-mix(in srgb, var(--accent) 40%, transparent);
+}
+/* Attack-type badges: tinted in the type's hue, see --atk-* above. */
+.method-command-injection { --atk: var(--atk-command-injection); }
+.method-sql-injection { --atk: var(--atk-sql-injection); }
+.method-ldap-injection { --atk: var(--atk-ldap-injection); }
+.method-xxe-injection { --atk: var(--atk-xxe-injection); }
+.method-login-attempt { --atk: var(--atk-login-attempt); }
+.method-path-traversal { --atk: var(--atk-path-traversal); }
+.method-xss-attempt { --atk: var(--atk-xss-attempt); }
+.method-lfi-rfi { --atk: var(--atk-lfi-rfi); }
+.method-common-probes { --atk: var(--atk-other); }
+.method-command-injection, .method-sql-injection, .method-ldap-injection,
+.method-xxe-injection, .method-login-attempt, .method-path-traversal,
+.method-xss-attempt, .method-lfi-rfi, .method-common-probes {
+    border-color: color-mix(in srgb, var(--atk) 40%, transparent);
+    background: color-mix(in srgb, var(--atk) 14%, transparent);
+    color: color-mix(in srgb, var(--atk) 85%, var(--text-strong));
 }
 .method-get {
     border-color: color-mix(in srgb, var(--accent) 30%, transparent);
@@ -2594,20 +2629,122 @@ tbody {
     font-size: var(--fs-xs);
 }
 
-/* HTMX loading indicator */
+/* ── Busy feedback ────────────────────────────────────────────────
+   One signal for "data is on its way", everywhere: the search bar's
+   ring. loading.js puts .krawl-pending on the control that was pressed
+   and .krawl-loading on the region that will change; charts and the map
+   mark their own region. Both wait a beat before showing, so a cached
+   response that lands at once never flashes a spinner. Under reduced
+   motion the global rule stops the spin and the ring shows still. */
+@keyframes krawl-busy-in { to { opacity: 1; } }
+@keyframes krawl-busy-label { to { color: transparent; } }
+
+.search-spinner,
+.krawl-loading::after,
+.krawl-pending::after,
+.htmx-indicator::before {
+    box-sizing: border-box;
+    border: 2px solid var(--line);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+/* The region being filled: content steps back, the ring sits at its top
+   where the new rows will start, and clicks wait for the swap. */
+.krawl-loading { position: relative; }
+.krawl-loading > * {
+    opacity: 0.45;
+    pointer-events: none;
+    transition: opacity var(--dur) var(--ease) 150ms;
+}
+.krawl-loading::after {
+    content: '';
+    position: absolute;
+    top: var(--s4);
+    left: 50%;
+    width: 18px;
+    height: 18px;
+    margin-left: -9px;
+    z-index: var(--z-sticky);
+    /* A raised disc behind the ring, so it floats above the dimmed rows
+       instead of printing over their text. */
+    background: var(--raised);
+    box-shadow: 0 0 0 7px var(--raised), var(--shadow-2);
+    opacity: 0;
+    animation: spin 0.6s linear infinite, krawl-busy-in 0s linear 150ms forwards;
+}
+/* A first load has nothing to dim: the placeholder carries the ring. */
+.krawl-loading > .htmx-indicator { opacity: 1; }
+.krawl-loading:has(> .htmx-indicator:only-child)::after { display: none; }
+
+/* The pressed control. Buttons keep their size: the label steps aside
+   for a ring in the middle. */
+.krawl-pending { cursor: progress; }
+:is(button, [role="button"], [role="switch"]).krawl-pending {
+    position: relative;
+    animation: krawl-busy-label 0s linear 150ms forwards;
+}
+:is(button, [role="button"], [role="switch"]).krawl-pending > * { animation: krawl-busy-label 0s linear 150ms forwards; }
+:is(button, [role="button"], [role="switch"]).krawl-pending::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 14px;
+    margin: -7px 0 0 -7px;
+    border-color: color-mix(in srgb, var(--text) 25%, transparent);
+    border-top-color: var(--text-strong);
+    opacity: 0;
+    animation: spin 0.6s linear infinite, krawl-busy-in 0s linear 150ms forwards;
+}
+/* Links and legend items keep their words; the ring trails them. */
+:is(a, .map-legend-item).krawl-pending::after {
+    content: '';
+    display: inline-block;
+    width: 0.8em;
+    height: 0.8em;
+    margin-left: 6px;
+    vertical-align: -0.1em;
+    opacity: 0;
+    animation: spin 0.6s linear infinite, krawl-busy-in 0s linear 150ms forwards;
+}
+/* Sort headers: the ring takes the sort glyph's place. */
+th.sortable.krawl-pending::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    margin-top: -5px;
+    transform: none;
+    opacity: 0;
+    animation: spin 0.6s linear infinite, krawl-busy-in 0s linear 150ms forwards;
+}
+th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; vertical-align: -1px; }
+
+/* htmx placeholders ("Loading...") and indicators: ring plus words. */
 .htmx-indicator {
     display: none;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s2);
     color: var(--text-dim);
-    font-style: italic;
     padding: var(--s5);
-    text-align: center;
 }
-.htmx-request .htmx-indicator {
-    display: block;
+.htmx-indicator:not(.search-spinner)::before {
+    content: '';
+    flex: none;
+    width: 16px;
+    height: 16px;
 }
-.htmx-request.htmx-indicator {
-    display: block;
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator,
+.krawl-loading > .htmx-indicator {
+    display: flex;
 }
+.search-spinner.htmx-indicator { display: none; padding: 0; }
+.htmx-request .search-spinner.htmx-indicator,
+.search-spinner.htmx-request { display: block; }
 
 /* Alpine.js cloak */
 [x-cloak] {
@@ -2664,6 +2801,12 @@ tbody {
     width: 16px;
     height: 16px;
     padding: 0;
+}
+#map-loading-overlay { gap: var(--s2); }
+#map-loading-overlay::before {
+    content: '';
+    width: 16px;
+    height: 16px;
     border: 2px solid var(--line);
     border-top-color: var(--accent);
     border-radius: 50%;
@@ -3047,6 +3190,12 @@ tbody {
 .map-limit-btn:hover {
     background: var(--tint-neutral);
     color: var(--text);
+}
+.map-limit-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+    background: transparent;
+    color: var(--text-dim);
 }
 .map-limit-btn.active {
     background: var(--accent);
@@ -4132,3 +4281,248 @@ td:last-child {
 .domain-map-legend i { width: 10px; height: 10px; border-radius: 50%; }
 .domain-map-help { margin-left: auto; }
 @media (max-width: 700px) { .domain-map-help { width: 100%; margin-left: 0; } }
+
+/* ── Threats tab ──────────────────────────────────────────────────
+   Campaign activity grid, then compact filterable tables. Numbers
+   right-align in tabular figures so columns compare at a glance. */
+
+/* Shared: numeric cells and the in-cell magnitude bar. */
+.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Numeric headers right-align with their figures; the sort glyph follows
+   the label inline instead of pinning to the cell's far edge. */
+th.num { text-align: right; white-space: nowrap; }
+th.sortable.num { padding-right: var(--s3); }
+th.num .artifact-sort-button { display: inline; width: auto; }
+th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
+.num-bar {
+    display: inline-block;
+    min-width: 64px;
+    padding: 1px var(--s2) 1px 0;
+    background: linear-gradient(to left, var(--tint-accent) var(--pct, 0%), transparent var(--pct, 0%));
+    border-radius: 2px;
+}
+
+/* Compact table: the panels list, the overlay is for reading everything. */
+.table-compact th,
+.table-compact td { padding: var(--s2) var(--s3); font-size: var(--fs-sm); }
+.table-compact th { font-size: var(--fs-xs); }
+.table-compact .cell-target {
+    max-width: 0;
+    width: 45%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.table-compact .cell-target .campaign-target-link {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.badge-more {
+    align-self: center;
+    font-size: var(--fs-2xs);
+    color: var(--text-dim);
+    cursor: help;
+}
+
+/* Panel bar: title left, filters right, on one line when there is room. */
+.threat-panel-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s3);
+    margin-bottom: var(--s3);
+}
+.threat-panel-bar h2 { margin: 0; }
+.threat-panel-tools { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
+.panel-search {
+    width: 220px;
+    max-width: 100%;
+    padding: 6px var(--s3);
+    background: var(--sunken);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    color: var(--text);
+    font: inherit;
+    font-size: var(--fs-sm);
+}
+.panel-search::placeholder { color: var(--text-faint); }
+.panel-search:focus { outline: none; border-color: var(--accent); }
+
+/* Facet chips: attack-type filter and the 2+ IPs toggle. */
+.facet-row { display: flex; flex-wrap: wrap; gap: var(--s2); margin-bottom: var(--s3); }
+.facet-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: var(--fs-xs);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background var(--dur) var(--ease), color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.facet-chip:hover { color: var(--text); background: var(--tint-neutral); }
+.facet-chip.active {
+    color: var(--accent-hi);
+    border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+    background: var(--tint-accent);
+}
+.facet-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.facet-count { color: var(--text-faint); font-variant-numeric: tabular-nums; }
+.facet-chip.active .facet-count { color: var(--accent); }
+
+
+/* Campaign activity grid. Columns: target | strip | hits | IPs.
+   Each row steps its main attack type's hue (--atk, set inline) from
+   the panel surface up to full strength; empty slots sit on a faint
+   track so gaps in activity read as gaps. */
+.alert-section:has(> .activity) { position: relative; }
+.activity {
+    --slots: 24;
+    display: grid;
+    grid-template-columns: minmax(180px, 280px) minmax(0, 1fr) 84px 48px;
+    column-gap: var(--s4);
+    transition: opacity var(--dur) var(--ease);
+}
+.activity-row {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    align-items: center;
+    padding: 6px var(--s2);
+    margin: 0 calc(-1 * var(--s2));
+    border-radius: var(--r-sm);
+    font-size: var(--fs-sm);
+}
+.activity-row[data-row] { cursor: pointer; }
+.activity-row[data-row]:hover,
+.activity-row[data-row]:focus-visible { background: var(--raised); }
+.activity-row[data-row]:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.activity-row[data-row]:hover .activity-target { color: var(--accent-hi); }
+.activity-head {
+    font-size: var(--fs-2xs);
+    color: var(--text-dim);
+    padding-bottom: var(--s1);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: var(--s1);
+}
+.activity-name { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+.activity-target {
+    font-family: var(--font-mono);
+    color: var(--accent);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.activity-types {
+    font-size: var(--fs-2xs);
+    color: var(--text-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.activity-strip {
+    display: grid;
+    grid-template-columns: repeat(var(--slots), minmax(0, 1fr));
+    gap: 2px;
+    height: 22px;
+}
+.activity-axis { height: auto; }
+.activity-axis > span { white-space: nowrap; overflow: visible; font-variant-numeric: tabular-nums; }
+.activity-cell { border-radius: 2px; background: var(--line-soft); min-width: 0; }
+.activity-cell.shade-1 { background: color-mix(in oklab, var(--atk, var(--accent)) 24%, var(--surface)); }
+.activity-cell.shade-2 { background: color-mix(in oklab, var(--atk, var(--accent)) 42%, var(--surface)); }
+.activity-cell.shade-3 { background: color-mix(in oklab, var(--atk, var(--accent)) 60%, var(--surface)); }
+.activity-cell.shade-4 { background: color-mix(in oklab, var(--atk, var(--accent)) 80%, var(--surface)); }
+.activity-cell.shade-5 { background: var(--atk, var(--accent)); }
+.activity-cell.is-future { background: transparent; box-shadow: inset 0 0 0 1px var(--line-soft); }
+.activity-strip .activity-cell:hover { outline: 2px solid var(--text-strong); outline-offset: 0; }
+.activity-hits .num-bar { min-width: 0; width: 100%; }
+.activity-foot {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--s2) var(--s4);
+    margin-top: var(--s3);
+}
+.activity-legend {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 3px;
+    font-size: var(--fs-2xs);
+    color: var(--text-dim);
+}
+.activity-legend-key { margin-left: var(--s4); }
+.activity-legend .atk-tag { margin-left: var(--s2); }
+.activity-rows { display: flex; align-items: center; gap: var(--s2); }
+.activity-rows-label { font-size: var(--fs-2xs); color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.activity-types { display: flex; gap: var(--s2); }
+.atk-tag { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.atk-swatch {
+    display: inline-block;
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--atk, var(--atk-other));
+}
+.activity-legend > span:first-child { margin-right: var(--s1); }
+.activity-legend .activity-cell { --atk: var(--text-dim); width: 14px; height: 10px; }
+.activity-legend .activity-cell + span:not(.activity-cell) { margin-left: var(--s1); }
+.activity-empty { min-height: 160px; }
+.activity-summary {
+    margin: var(--s1) 0 var(--s4);
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    line-height: var(--lh-normal);
+}
+.activity-summary:empty { display: none; }
+.activity-summary strong { color: var(--text-strong); font-weight: 600; font-variant-numeric: tabular-nums; }
+.activity-tooltip {
+    position: absolute;
+    z-index: var(--z-sticky);
+    pointer-events: none;
+    min-width: 160px;
+    max-width: 320px;
+    padding: var(--s2) var(--s3);
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-2);
+    font-size: var(--fs-xs);
+    color: var(--text);
+    line-height: var(--lh-normal);
+}
+.activity-tooltip[hidden] { display: none; }
+.activity-tooltip-title { color: var(--text-dim); }
+.activity-tooltip .data-mono { overflow-wrap: anywhere; }
+
+@media (max-width: 760px) {
+    .activity { grid-template-columns: minmax(0, 1fr) 64px 40px; }
+    .activity-row > .activity-name { grid-column: 1 / -1; }
+    .activity-head > span:first-child { display: none; }
+    .activity-strip { grid-column: 1; }
+    .activity-axis > span { font-size: 9px; }
+    .activity-legend-key { margin-left: 0; flex-basis: 100%; margin-top: var(--s1); }
+    .activity-legend .atk-tag { margin-left: 0; margin-right: var(--s2); }
+    .panel-search { width: 100%; }
+    .threat-panel-tools { width: 100%; }
+    .threat-panel-tools .panel-search { flex: 1; width: auto; }
+    /* The target is what identifies a row: wrap it rather than cut it. */
+    .table-compact .cell-target,
+    .table-compact .cell-target .campaign-target-link { width: auto; max-width: none; white-space: normal; overflow-wrap: anywhere; }
+    .table-compact .col-optional { display: none; }
+    .table-compact .num-bar { min-width: 0; }
+    /* Compact tables shed columns instead of scrolling sideways. */
+    .table-container table.table-compact { min-width: 0; }
+}

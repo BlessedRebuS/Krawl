@@ -1,18 +1,10 @@
 {% from "dashboard/partials/artifact_sort_header.html" import header with context %}
-{# HTMX fragment: absolute URLs extracted from retained raw requests. #}
-<div class="panel-header">
-    <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} URLs</span>
-    <div class="row">
-        <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/request-assets?page={{ pagination.page - 1 }}&amp;search={{ search | urlencode }}&amp;sort_by={{ sort_by }}&amp;sort_order={{ sort_order }}"
-                hx-target="closest .htmx-container" hx-swap="innerHTML"
-                {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
-        <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/request-assets?page={{ pagination.page + 1 }}&amp;search={{ search | urlencode }}&amp;sort_by={{ sort_by }}&amp;sort_order={{ sort_order }}"
-                hx-target="closest .htmx-container" hx-swap="innerHTML"
-                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
-    </div>
-</div>
+{% from "dashboard/partials/threat_pager.html" import pager %}
+{# HTMX fragment: absolute URLs extracted from retained raw requests.
+ # State rides on .threat-table so the panel's search box and 2+ IPs toggle
+ # can reload without dropping the sort or the page size. #}
+<div class="threat-table" data-sort-by="{{ sort_by }}" data-sort-order="{{ sort_order }}" data-page-size="{{ pagination.page_size }}">
+{{ pager(dashboard_path ~ '/htmx/request-assets?search=' ~ (search | urlencode) ~ '&sort_by=' ~ sort_by ~ '&sort_order=' ~ sort_order ~ '&min_ips=' ~ min_ips, pagination, page_sizes, 'URLs') }}
 <table>
     <thead><tr>
         {{ header('url', 'URL', 'request-assets', sort_by, sort_order, search) }}
@@ -34,7 +26,11 @@
             <td class="ts-cell">{{ item.last_seen | format_ts }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="5" class="empty-state">No URL assets extracted yet</td></tr>
+        <tr><td colspan="5" class="empty-state">
+            {% if search or min_ips %}No URLs match this filter.
+            {% else %}No URL assets extracted yet. They appear when a request carries an absolute URL.{% endif %}
+        </td></tr>
         {% endfor %}
     </tbody>
 </table>
+</div>

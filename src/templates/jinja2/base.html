@@ -24,6 +24,7 @@
 <body>
     {% block content %}{% endblock %}
 
+    <script src="{{ dashboard_path }}/static/js/loading.js?v={{ krawl_version }}"></script>
     <script src="{{ dashboard_path }}/static/js/tokens.js?v={{ krawl_version }}"></script>
     <script src="{{ dashboard_path }}/static/js/radar.js?v={{ krawl_version }}"></script>
     <script src="{{ dashboard_path }}/static/js/dashboard.js?v={{ krawl_version }}"></script>

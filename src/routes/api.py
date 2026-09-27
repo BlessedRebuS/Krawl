@@ -645,48 +645,110 @@ async def attack_types_stats(
         return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
 
 
-def campaign_payload(clusters: list) -> list:
-    """Shape campaign clusters for the chart. Shared with dashboard warmup,
-    which writes this same payload into the cache the endpoint reads."""
-    return [
-        {
-            "id": c["id"],
-            "label": (c["rep_hash"] or "")[:8],
-            "path": c["path"],
-            "top_path": c["top_path"],
-            "sample": c["sample"],
-            "sources": c["sources"],
-            "captures": c["events"],
-            "ips": c["ips"],
-            "first_seen": c["first_seen"].isoformat() if c["first_seen"] else None,
-            "last_seen": c["last_seen"].isoformat() if c["last_seen"] else None,
-        }
-        for c in clusters
+# Width of one activity-strip cell per span: hours for a day, quarter-days
+# for a week, whole days beyond that. Keeps every span near 24-30 cells.
+def _campaign_slot_hours(days: int) -> int:
+    if days <= 1:
+        return 1
+    if days <= 7:
+        return 6
+    return 24
+
+
+def build_campaign_stats(db, limit: int, day: str = "", days: int = 0, offset: int = 0):
+    """Top campaigns in a window with their per-slot activity, for the Threats
+    tab chart. Shared with dashboard warmup, which writes this same payload
+    into the cache the endpoint reads.
+
+    Campaigns are ranked by hits inside the window, not by their lifetime
+    capture count, so a quiet campaign with a long history does not outrank
+    one that is active right now."""
+    window = _campaign_window(day, days=days, offset=offset)
+    if window is None:
+        window = _campaign_window("", days=1, offset=0)
+    start, end = window
+    span_days = max(1, round((end - start).total_seconds() / 86400))
+    slot_hours = _campaign_slot_hours(span_days)
+
+    # Wide net, then rank by windowed hits: get_campaign_clusters orders by
+    # lifetime captures, which is the ordering this chart must not inherit.
+    clusters = db.payloads.get_campaign_clusters(limit=200, start=start, end=end)
+    activity = db.payloads.get_campaign_activity(
+        [c["id"] for c in clusters], start, end, hourly=slot_hours < 24
+    )
+
+    slot_starts = [
+        start + timedelta(hours=i * slot_hours)
+        for i in range(int((end - start).total_seconds() // 3600) // slot_hours)
     ]
+
+    def fold(cid: str) -> list[int]:
+        counts = [0] * len(slot_starts)
+        for key, cnt in activity.get(cid, {}).items():
+            try:
+                ts = datetime.fromisoformat(key if len(key) > 10 else key + " 00:00")
+            except ValueError:
+                continue
+            idx = int((ts - start).total_seconds() // 3600) // slot_hours
+            if 0 <= idx < len(counts):
+                counts[idx] += cnt
+        return counts
+
+    rows = []
+    for c in clusters:
+        series = fold(c["id"])
+        hits = sum(series)
+        if not hits:
+            continue
+        rows.append(
+            {
+                "id": c["id"],
+                "label": (c["rep_hash"] or "")[:8],
+                "path": c["path"],
+                "top_path": c["top_path"],
+                "attack_types": c.get("attack_types") or [],
+                "sources": c["sources"],
+                "hits": hits,
+                "captures": c["events"],
+                "ips": c["ips"],
+                "activity": series,
+                "first_seen": c["first_seen"].isoformat() if c["first_seen"] else None,
+                "last_seen": c["last_seen"].isoformat() if c["last_seen"] else None,
+            }
+        )
+    rows.sort(key=lambda r: (-r["hits"], -r["ips"]))
+    return {
+        "campaigns": rows[:limit],
+        "total_campaigns": len(rows),
+        "slot_hours": slot_hours,
+        "slots": [s.isoformat() for s in slot_starts],
+        "start": start.isoformat(),
+        "end": end.isoformat(),
+    }
 
 
 @router.get("/api/campaign-stats")
 async def campaign_stats(
     request: Request,
-    limit: int = Query(12),
+    limit: int = Query(8),
     day: str = Query(""),
-    days: int = Query(0),
+    days: int = Query(1),
     offset: int = Query(0),
 ):
-    limit = min(max(1, limit), 50)
-    window = _campaign_window(day, days=days, offset=offset)
-    cache_key = f"api:campaign_stats:{limit}:{day or days or 0}:{offset}"
+    # Up to every campaign the builder considers (it scans 200), for "All".
+    limit = min(max(1, limit), 200)
+    days = min(max(1, days), 90)
+    offset = max(0, offset)
+    cache_key = f"api:campaign_stats:{limit}:{day or days}:{offset}"
     cached = get_cached_table(cache_key)
     if cached:
         return JSONResponse(content=cached, headers=_no_cache_headers())
 
     db = get_db()
     try:
-        kwargs = {"limit": limit}
-        if window is not None:
-            kwargs["start"], kwargs["end"] = window
-        clusters = await asyncio.to_thread(db.payloads.get_campaign_clusters, **kwargs)
-        result = {"campaigns": campaign_payload(clusters)}
+        result = await asyncio.to_thread(
+            build_campaign_stats, db, limit, day=day, days=days, offset=offset
+        )
         set_cached_table(cache_key, result)
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:

@@ -41,7 +41,7 @@
                     {% endif %}
                 </div>
             </td>
-            <td class="ua-cell">{{ (log.user_agent | default(''))[:50] | e }}</td>
+            <td class="ua-cell">{{ (log.user_agent | default('', true))[:50] | e }}</td>
             <td class="ts-cell">{{ log.timestamp | format_ts }}</td>
             <td><div class="table-action-btns">
                 {% if log.is_suspicious and log.id %}

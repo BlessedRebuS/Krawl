@@ -21,7 +21,7 @@ from dashboard_cache import (
 )
 from dependencies import get_db, get_templates
 from domain_map import build_domain_map
-from routes.api import _campaign_window, verify_auth
+from routes.api import verify_auth
 
 router = APIRouter()
 
@@ -896,7 +896,9 @@ async def htmx_ip_payloads(
 async def htmx_global_filenames(
     request: Request,
     page: int = Query(1),
+    page_size: int = Query(10),
     search: str = Query(""),
+    min_ips: int = Query(0),
     sort_by: str = Query("last_seen"),
     sort_order: str = Query("desc"),
 ):
@@ -907,11 +909,21 @@ async def htmx_global_filenames(
     )
     sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
     page = max(1, page)
+    page_size = page_size if page_size in (*THREAT_PAGE_SIZES, 20) else 10
+    min_ips = 2 if min_ips > 1 else 0
     search = search.strip()[:255]
+    # Only the panel's opening view matches the keys warmup writes.
+    default_view = (
+        not search
+        and not min_ips
+        and page_size == 10
+        and sort_by == "last_seen"
+        and sort_order == "desc"
+    )
     cache_key = (
         f"filenames:{page}"
-        if not search and sort_by == "last_seen" and sort_order == "desc"
-        else f"filenames:{page}:{search}:{sort_by}:{sort_order}"
+        if default_view
+        else f"filenames:{page}:{page_size}:{min_ips}:{sort_by}:{sort_order}"
     )
     result = get_cached_table(cache_key) if not search else None
     if not result:
@@ -919,10 +931,11 @@ async def htmx_global_filenames(
         result = await asyncio.to_thread(
             db.payloads.get_global_index,
             page=page,
-            page_size=20,
+            page_size=page_size,
             filename=search,
             sort_by=sort_by,
             sort_order=sort_order,
+            min_ips=min_ips,
         )
         if not search:
             set_cached_table(cache_key, result)
@@ -937,6 +950,9 @@ async def htmx_global_filenames(
             "search": search,
             "sort_by": sort_by,
             "sort_order": sort_order,
+            "extra_qs": f"&page_size={page_size}&min_ips={min_ips}",
+            "min_ips": min_ips,
+            "page_sizes": THREAT_PAGE_SIZES,
         },
     )
 
@@ -948,7 +964,9 @@ async def htmx_global_filenames(
 async def htmx_request_assets(
     request: Request,
     page: int = Query(1),
+    page_size: int = Query(10),
     search: str = Query(""),
+    min_ips: int = Query(0),
     sort_by: str = Query("count"),
     sort_order: str = Query("desc"),
 ):
@@ -960,17 +978,22 @@ async def htmx_request_assets(
     )
     sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
     page = max(1, page)
-    cache_key = f"request-assets:{page}:{search}:{sort_by}:{sort_order}"
+    page_size = page_size if page_size in (*THREAT_PAGE_SIZES, 20) else 10
+    min_ips = 2 if min_ips > 1 else 0
+    cache_key = (
+        f"request-assets:{page}:{page_size}:{min_ips}:{search}:{sort_by}:{sort_order}"
+    )
     result = get_cached_table(cache_key) if not search else None
     if not result:
         db = get_db()
         result = await asyncio.to_thread(
             db.access_logs.get_request_assets,
             page=page,
-            page_size=20,
+            page_size=page_size,
             search=search,
             sort_by=sort_by,
             sort_order=sort_order,
+            min_ips=min_ips,
         )
         if not search:
             set_cached_table(cache_key, result)
@@ -984,6 +1007,9 @@ async def htmx_request_assets(
             "search": search,
             "sort_by": sort_by,
             "sort_order": sort_order,
+            "extra_qs": f"&page_size={page_size}&min_ips={min_ips}",
+            "min_ips": min_ips,
+            "page_sizes": THREAT_PAGE_SIZES,
         },
     )
 
@@ -1051,34 +1077,93 @@ async def htmx_similar_events(
 # ── Recurring patterns / campaign clusters (Threats tab) ─────────────
 
 
+# Campaigns the table can page through. The cluster scan is the most
+# expensive read on the tab, so it runs once (cached, and pre-warmed) and the
+# table filters, sorts and pages that list in Python.
+CAMPAIGN_TABLE_LIMIT = 200
+# Rows per page the Threats tab tables offer; anything else snaps to 10.
+THREAT_PAGE_SIZES = (10, 25, 50)
+_CAMPAIGN_SORTS = {
+    "events": lambda c: c["events"] or 0,
+    "ips": lambda c: c["ips"] or 0,
+    "first_seen": lambda c: c["first_seen"] or datetime.min,
+    "last_seen": lambda c: c["last_seen"] or datetime.min,
+    "target": lambda c: (c["top_path"] or "").lower(),
+}
+
+
 @router.get("/htmx/pattern-clusters")
 async def htmx_pattern_clusters(
     request: Request,
-    day: str = Query(""),
-    days: int = Query(0),
-    offset: int = Query(0),
+    page: int = Query(1),
+    page_size: int = Query(10),
+    search: str = Query(""),
+    attack_type: str = Query(""),
+    sort_by: str = Query("events"),
+    sort_order: str = Query("desc"),
 ):
-    # Clustering scans every payload hash in the window, so it is the most
-    # expensive panel on the tab and the one warmup exists for.
-    cache_key = f"clusters:{day}:{days}:{offset}"
-    cached = get_cached_table(cache_key)
+    search = search.strip()[:255]
+    attack_type = attack_type.strip()[:64]
+    sort_by = sort_by if sort_by in _CAMPAIGN_SORTS else "events"
+    sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
+    page_size = page_size if page_size in THREAT_PAGE_SIZES else 10
+
+    cached = get_cached_table("clusters:all")
     if cached:
         clusters = cached["clusters"]
     else:
         db = get_db()
-        window = _campaign_window(day, days=days, offset=offset)
-        kwargs: dict = {}
-        if window is not None:
-            kwargs["start"], kwargs["end"] = window
-        clusters = await asyncio.to_thread(db.payloads.get_campaign_clusters, **kwargs)
-        set_cached_table(cache_key, {"clusters": clusters})
+        clusters = await asyncio.to_thread(
+            db.payloads.get_campaign_clusters, limit=CAMPAIGN_TABLE_LIMIT
+        )
+        set_cached_table("clusters:all", {"clusters": clusters})
+
+    # Facets count campaigns per type over the whole list, so the chips stay
+    # put while the reader narrows the table.
+    type_counts: dict[str, int] = {}
+    for c in clusters:
+        for t in c.get("attack_types") or []:
+            type_counts[t] = type_counts.get(t, 0) + 1
+    facets = sorted(type_counts.items(), key=lambda kv: (-kv[1], kv[0]))
+
+    needle = search.lower()
+    rows = [
+        c
+        for c in clusters
+        if (not attack_type or attack_type in (c.get("attack_types") or []))
+        and (
+            not needle
+            or needle in (c.get("top_path") or "").lower()
+            or needle in (c.get("path") or "").lower()
+            or needle in (c.get("rep_hash") or "").lower()
+        )
+    ]
+    rows.sort(key=_CAMPAIGN_SORTS[sort_by], reverse=sort_order == "desc")
+
+    total = len(rows)
+    total_pages = max(1, (total + page_size - 1) // page_size)
+    page = min(max(1, page), total_pages)
+    offset = (page - 1) * page_size
     templates = get_templates()
     return templates.TemplateResponse(
         request,
         "dashboard/partials/pattern_clusters_table.html",
         {
             "dashboard_path": _dashboard_path(request),
-            "clusters": clusters,
+            "clusters": rows[offset : offset + page_size],
+            "facets": facets,
+            "all_count": len(clusters),
+            "search": search,
+            "attack_type": attack_type,
+            "sort_by": sort_by,
+            "sort_order": sort_order,
+            "pagination": {
+                "page": page,
+                "page_size": page_size,
+                "total": total,
+                "total_pages": total_pages,
+            },
+            "page_sizes": THREAT_PAGE_SIZES,
         },
     )
 

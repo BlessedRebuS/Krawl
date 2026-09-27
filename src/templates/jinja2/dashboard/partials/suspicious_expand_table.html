@@ -58,7 +58,7 @@
                     {% endif %}
                 </div>
             </td>
-            <td class="break-all">{{ (activity.user_agent | default(''))[:80] | e }}</td>
+            <td class="break-all">{{ (activity.user_agent | default('', true))[:80] | e }}</td>
             <td class="ts-cell">{{ activity.timestamp | format_ts }}</td>
             <td>
                 <div class="table-action-btns">
