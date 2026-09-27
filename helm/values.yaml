@@ -226,6 +226,7 @@ config:
     warmup_pages: 10  # Number of pages to pre-warm per table panel (attacks, attackers, credentials, honeypot)
     warmup_aggregation: true  # Pre-compute full top_paths/top_ua aggregations for instant any-page serving (recommended for scalable)
     top_n_min_count: 5  # Minimum access count to include a path/user-agent in top-N panels (set to 1 to disable)
+    domain_map_host_limit: 200  # Maximum hosts shown for the selected root in the domain link map (1-2000)
     # Top-left wordmark on the dashboard. Defaults are Krawl's own.
     branding:
       name: "Krawl"

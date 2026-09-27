@@ -6,6 +6,7 @@ Server-rendered HTML partials for table pagination, sorting, IP details, and sea
 """
 
 import asyncio
+import re
 from datetime import datetime
 
 from fastapi import APIRouter, Query, Request, Response
@@ -49,6 +50,55 @@ def _parse_day(day: str):
         return datetime.fromisoformat(day.strip()).date()
     except ValueError:
         return None
+
+
+# ── Advanced request search ─────────────────────────────────────────
+
+
+@router.get("/htmx/advanced-search")
+async def htmx_advanced_search(
+    request: Request,
+    page: int = Query(1),
+    path: str = Query(""),
+    host: str = Query(""),
+    referer: str = Query(""),
+    ip: str = Query(""),
+    method: str = Query(""),
+    user_agent: str = Query(""),
+    raw_text: str = Query(""),
+    header_name: list[str] = Query(default=[]),
+    header_value: list[str] = Query(default=[]),
+):
+    filters = {
+        key: value.strip()[:255]
+        for key, value in {
+            "path": path,
+            "host": host,
+            "referer": referer,
+            "ip": ip,
+            "method": method,
+            "user_agent": user_agent,
+            "raw_text": raw_text,
+        }.items()
+    }
+    headers = []
+    for name, value in zip(header_name[:8], header_value[:8]):
+        name = name.strip()[:100]
+        if name and re.fullmatch(r"[!#$%&'*+.^_`|~0-9A-Za-z-]+", name):
+            headers.append((name, value.strip()[:255]))
+    db = get_db()
+    result = await asyncio.to_thread(
+        db.access_logs.search_requests,
+        page=max(1, page),
+        page_size=25,
+        headers=headers,
+        **filters,
+    )
+    return get_templates().TemplateResponse(
+        request,
+        "dashboard/partials/advanced_search_results.html",
+        {"dashboard_path": _dashboard_path(request), **result},
+    )
 
 
 # ── Targeted Domains ────────────────────────────────────────────────
@@ -105,7 +155,11 @@ async def htmx_domain_map(request: Request, root: str = Query("")):
         db = get_db()
         rows = await asyncio.to_thread(db.access_logs.get_domain_map_hosts)
         set_cached_table("domain-map-hosts", rows)
-    graph = build_domain_map(rows, selected_root=root.strip()[:255])
+    graph = build_domain_map(
+        rows,
+        selected_root=root.strip()[:255],
+        host_limit=max(1, min(2000, get_config().dashboard_domain_map_host_limit)),
+    )
     return get_templates().TemplateResponse(
         request,
         "dashboard/partials/domain_link_map.html",
