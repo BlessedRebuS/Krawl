@@ -485,16 +485,18 @@ function _renderCampaignSummary(data) {
     const slotTotals = (data.slots || []).map((_, i) => campaigns.reduce((s, c) => s + (c.activity[i] || 0), 0));
     let peak = 0;
     slotTotals.forEach((v, i) => { if (v > slotTotals[peak]) peak = i; });
-    const stat = (value, label) =>
-        `<div class="activity-stat"><span class="activity-stat-value">${value}</span>` +
-        `<span class="activity-stat-label">${label}</span></div>`;
+    // One sentence, not a row of stat tiles: the grid below is the figure,
+    // this only says what it adds up to and when it peaked.
+    const b = (v) => `<strong>${v}</strong>`;
     const total = data.total_campaigns || campaigns.length;
-    box.innerHTML =
-        stat(total.toLocaleString(), total === 1 ? 'campaign active' : 'campaigns active') +
-        stat(hits.toLocaleString(), campaigns.length < total ? `hits from the top ${campaigns.length}` : 'hits') +
-        (slotTotals[peak]
-            ? stat(_escapeHtml(_campaignSlotText(data.slots[peak], data.slot_hours)), `busiest, ${slotTotals[peak].toLocaleString()} hits`)
-            : '');
+    const noun = (n, one, many) => (n === 1 ? one : many);
+    let text = campaigns.length < total
+        ? `${b(total.toLocaleString())} campaigns active; the ${b(campaigns.length)} shown hit ${b(hits.toLocaleString())} times.`
+        : `${b(total.toLocaleString())} ${noun(total, 'campaign', 'campaigns')} hit ${b(hits.toLocaleString())} ${noun(hits, 'time', 'times')}.`;
+    if (slotTotals[peak]) {
+        text += ` Busiest: ${b(_escapeHtml(_campaignSlotText(data.slots[peak], data.slot_hours)))}, with ${slotTotals[peak].toLocaleString()} ${noun(slotTotals[peak], 'hit', 'hits')}.`;
+    }
+    box.innerHTML = text;
 }
 
 function _renderCampaignActivity(data) {
@@ -551,10 +553,10 @@ function _renderCampaignActivity(data) {
         `<div class="activity-foot">` +
         `<span class="activity-legend" aria-hidden="true"><span>Fewer hits</span>` +
         Array.from({ length: CAMPAIGN_SHADES }, (_, i) => `<span class="activity-cell shade-${i + 1}"></span>`).join('') +
-        `<span>More</span>` +
+        `<span>More</span><span class="activity-legend-key">Row colour is the main attack type:</span>` +
         shown.map(t => `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t)}"></span>${_escapeHtml(t === 'other' ? 'probes, uploads, other' : t.replace(/_/g, ' '))}</span>`).join('') +
         `</span>` +
-        `<span class="activity-rows"><span class="activity-rows-label">${campaigns.length} of ${data.total_campaigns}</span>` +
+        `<span class="activity-rows"><span class="activity-rows-label">${campaigns.length} of ${data.total_campaigns} shown</span>` +
         `<span class="row gap-1" role="group" aria-label="Campaigns shown">` +
         CAMPAIGN_ROW_OPTIONS.map(([n, label], i) => {
             // An option that would show nothing new stays visible but off.

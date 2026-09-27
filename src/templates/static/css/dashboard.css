@@ -4191,7 +4191,7 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
     min-width: 64px;
     padding: 1px var(--s2) 1px 0;
     background: linear-gradient(to left, var(--tint-accent) var(--pct, 0%), transparent var(--pct, 0%));
-    border-right: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+    border-radius: 2px;
 }
 
 /* Compact table: the panels list, the overlay is for reading everything. */
@@ -4355,7 +4355,8 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
     font-size: var(--fs-2xs);
     color: var(--text-dim);
 }
-.activity-legend .atk-tag { margin-left: var(--s3); }
+.activity-legend-key { margin-left: var(--s4); }
+.activity-legend .atk-tag { margin-left: var(--s2); }
 .activity-rows { display: flex; align-items: center; gap: var(--s2); }
 .activity-rows-label { font-size: var(--fs-2xs); color: var(--text-dim); font-variant-numeric: tabular-nums; }
 .activity-types { display: flex; gap: var(--s2); }
@@ -4373,20 +4374,13 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
 .activity-legend .activity-cell + span:not(.activity-cell) { margin-left: var(--s1); }
 .activity-empty { min-height: 160px; }
 .activity-summary {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s2) var(--s8);
-    margin: var(--s2) 0 var(--s4);
+    margin: var(--s1) 0 var(--s4);
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    line-height: var(--lh-normal);
 }
 .activity-summary:empty { display: none; }
-.activity-stat { display: flex; align-items: baseline; gap: var(--s2); }
-.activity-stat-value {
-    font-size: var(--fs-lg);
-    font-weight: 600;
-    color: var(--text-strong);
-    font-variant-numeric: tabular-nums;
-}
-.activity-stat-label { font-size: var(--fs-xs); color: var(--text-dim); }
+.activity-summary strong { color: var(--text-strong); font-weight: 600; font-variant-numeric: tabular-nums; }
 .activity-tooltip {
     position: absolute;
     z-index: var(--z-sticky);
@@ -4412,6 +4406,8 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
     .activity-head > span:first-child { display: none; }
     .activity-strip { grid-column: 1; }
     .activity-axis > span { font-size: 9px; }
+    .activity-legend-key { margin-left: 0; flex-basis: 100%; margin-top: var(--s1); }
+    .activity-legend .atk-tag { margin-left: 0; margin-right: var(--s2); }
     .panel-search { width: 100%; }
     .threat-panel-tools { width: 100%; }
     .threat-panel-tools .panel-search { flex: 1; width: auto; }
