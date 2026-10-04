@@ -1,31 +1,26 @@
-{# Stats cards - server-rendered on initial page load #}
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-value">{{ stats.total_accesses }}</div>
-        <div class="stat-label">Total Accesses</div>
+{# Summary ledger, server-rendered. Hostile figures in danger, trap figures
+   in honey, so colour carries meaning. #}
+<section class="ledger" aria-label="Summary">
+    <div class="ledger-group">
+        <h2 class="ledger-title">Traffic</h2>
+        <div class="ledger-figs">
+            <div class="ledger-fig"><span class="ledger-value">{{ stats.total_accesses }}</span><span class="ledger-label">Requests</span></div>
+            <div class="ledger-fig"><span class="ledger-value">{{ stats.unique_ips }}</span><span class="ledger-label">Source IPs</span></div>
+            <div class="ledger-fig"><span class="ledger-value">{{ stats.unique_paths }}</span><span class="ledger-label">Paths</span></div>
+        </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ stats.unique_ips }}</div>
-        <div class="stat-label">Unique IPs</div>
+    <div class="ledger-group is-hostile">
+        <h2 class="ledger-title"><span class="ledger-dot" aria-hidden="true"></span>Hostile</h2>
+        <div class="ledger-figs">
+            <div class="ledger-fig"><span class="ledger-value">{{ stats.suspicious_accesses }}</span><span class="ledger-label">Suspicious requests</span></div>
+            <div class="ledger-fig"><span class="ledger-value">{{ stats.unique_attackers | default(0) }}</span><span class="ledger-label">Attackers</span></div>
+        </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ stats.unique_paths }}</div>
-        <div class="stat-label">Unique Paths</div>
+    <div class="ledger-group is-trapped">
+        <h2 class="ledger-title"><span class="ledger-dot" aria-hidden="true"></span>Trapped</h2>
+        <div class="ledger-figs">
+            <div class="ledger-fig"><span class="ledger-value">{{ stats.honeypot_ips | default(0) }}</span><span class="ledger-label">IPs hit a honeypot</span></div>
+            <div class="ledger-fig"><span class="ledger-value">{{ stats.credential_count | default(0) }}</span><span class="ledger-label">Credentials captured</span></div>
+        </div>
     </div>
-    <div class="stat-card alert">
-        <div class="stat-value alert">{{ stats.suspicious_accesses }}</div>
-        <div class="stat-label">Suspicious Accesses</div>
-    </div>
-    <div class="stat-card honeypot">
-        <div class="stat-value honeypot">{{ stats.honeypot_ips | default(0) }}</div>
-        <div class="stat-label">Honeypot Caught</div>
-    </div>
-    <div class="stat-card honeypot">
-        <div class="stat-value honeypot">{{ stats.credential_count | default(0) }}</div>
-        <div class="stat-label">Credentials Captured</div>
-    </div>
-    <div class="stat-card alert">
-        <div class="stat-value alert">{{ stats.unique_attackers | default(0) }}</div>
-        <div class="stat-label">Unique Attackers</div>
-    </div>
-</div>
+</section>

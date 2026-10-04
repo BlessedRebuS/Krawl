@@ -1,0 +1,73 @@
+{# Left rail: brand, grouped navigation, deployment actions at the foot.
+   Collapses to icons on desktop and becomes a drawer on narrow screens. #}
+{% from "dashboard/partials/_icons.html" import icon %}
+{% macro nav(id, label, shortcut='', protected=false) -%}
+<a class="nav-item" href="#{{ id }}"
+   :class="{ active: tab === '{{ id }}' }"
+   :aria-current="tab === '{{ id }}' ? 'page' : null"
+   {% if protected %}x-show="authenticated" x-cloak{% endif %}
+   @click.prevent="go('{{ id }}')"
+   title="{{ label }}{% if shortcut %} (g {{ shortcut }}){% endif %}">
+    {{ icon(id) }}<span class="nav-label">{{ label }}</span>
+    {%- if caller is defined %}{{ caller() }}{% endif %}
+</a>
+{%- endmacro %}
+
+<div class="sidebar-scrim" x-show="navOpen" x-cloak @click="navOpen = false"></div>
+<aside class="sidebar" :class="{ 'is-open': navOpen }" aria-label="Dashboard navigation">
+    <div class="sidebar-head">
+        {% include "dashboard/partials/_brand.html" %}
+        <button type="button" class="rail-btn sidebar-collapse" @click="toggleNavCollapsed()"
+                :aria-label="navCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+                :title="navCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">{{ icon('collapse') }}</button>
+        <button type="button" class="rail-btn sidebar-close" @click="navOpen = false" aria-label="Close navigation">{{ icon('close') }}</button>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-group">
+            <span class="nav-group-label">Monitor</span>
+            {% call nav('overview', 'Overview', 'o') %}<span class="nav-live" aria-label="Live mode on" title="Live mode is on"></span>{% endcall %}
+            {{ nav('attacks', 'Attacks', 'a') }}
+            {{ nav('threats', 'Threats', 't') }}
+        </div>
+        <div class="nav-group">
+            <span class="nav-group-label">Investigate</span>
+            {{ nav('advanced-search', 'Advanced search', 's') }}
+            <a class="nav-item" href="#ip-insight"
+               :class="{ active: tab === 'ip-insight', disabled: !insightIp }"
+               :aria-disabled="!insightIp"
+               @click.prevent="insightIp && go('ip-insight')"
+               :title="insightIp ? 'IP Insight: ' + insightIp + ' (g i)' : 'Select an IP in any table to inspect it'">
+                {{ icon('ip-insight') }}
+                <span class="nav-label">IP Insight<span class="nav-sub" x-show="insightIp" x-text="insightIp"></span></span>
+            </a>
+        </div>
+        <div class="nav-group" x-show="authenticated" x-cloak>
+            <span class="nav-group-label">Respond</span>
+            {{ nav('tracked-ips', 'Tracked IPs', protected=true) }}
+            {{ nav('banlist', 'Banlist', protected=true) }}
+            {{ nav('timedout', 'Timed out', protected=true) }}
+            {{ nav('deception', 'Deception', protected=true) }}
+            {{ nav('webhooks', 'Webhooks', protected=true) }}
+        </div>
+    </nav>
+
+    <div class="sidebar-foot">
+        <div class="sidebar-actions">
+            <a href="{{ dashboard_path }}/docs" target="_blank" rel="noopener"
+               class="rail-btn" title="API documentation" aria-label="API documentation">{{ icon('docs') }}</a>
+            <button type="button" class="rail-btn" title="Export IPs banlist" aria-label="Export IPs banlist"
+                    @click="exportModal.show = true; exportModal.error = ''">{{ icon('export') }}</button>
+            {# Settings runs privileged jobs and shows the running config, so it
+               stays visible but inert until login. #}
+            <button type="button" class="rail-btn" :disabled="!authenticated"
+                    :title="authenticated ? 'Settings' : 'Log in to open settings'" aria-label="Settings"
+                    @click="settingsModal.show = true; $dispatch('settings-open')">{{ icon('settings') }}</button>
+            <button type="button" class="rail-btn rail-lock" x-show="!authenticated" @click="promptAuth()"
+                    title="Unlock protected panels" aria-label="Unlock protected panels">{{ icon('lock') }}</button>
+            <button type="button" class="rail-btn" x-show="authenticated" x-cloak @click="logout()"
+                    title="Log out" aria-label="Log out">{{ icon('logout') }}</button>
+        </div>
+        {% include "dashboard/partials/_contact.html" %}
+    </div>
+</aside>

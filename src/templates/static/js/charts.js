@@ -272,7 +272,7 @@ async function loadAttackTrendsChart(canvasId) {
                 },
                 scales: {
                     x: {
-                        ticks: { color: krawlToken('--text-dim'), font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 15 },
+                        ticks: { color: krawlToken('--text-dim'), font: { size: 10 }, maxRotation: 0, autoSkip: true, autoSkipPadding: 16, maxTicksLimit: 8 },
                         grid: { color: 'rgba(48, 54, 61, 0.3)' },
                     },
                     y: {
