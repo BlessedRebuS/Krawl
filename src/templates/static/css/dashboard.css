@@ -556,7 +556,8 @@ h1 {
     font-size: var(--fs-xs);
     color: var(--text-faint);
 }
-.palette-hints span { display: inline-flex; align-items: center; gap: 3px; }
+.palette-hints span { display: inline-flex; align-items: center; gap: 4px; }
+.palette-hints .kbd { min-width: 0; }
 .palette-results:not(:empty) + .palette-hints { display: none; }
 
 @media (max-width: 960px) {
