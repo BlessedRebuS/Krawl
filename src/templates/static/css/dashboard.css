@@ -262,7 +262,7 @@ button, input, select, textarea { font-family: inherit; }
 .nav-item.active {
     background: color-mix(in srgb, var(--nav-c, var(--accent)) 13%, transparent);
     color: var(--text-strong);
-    box-shadow: inset 2px 0 0 var(--nav-c, var(--accent));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--nav-c, var(--accent)) 55%, transparent);
 }
 .nav-item.active .nav-icon { color: var(--nav-c, var(--accent)); }
 /* The panel being filled shows the busy ring; the nav link doesn't need one. */
