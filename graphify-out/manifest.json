@@ -32,8 +32,8 @@
   "pyproject.toml": {
     "mtime": 1789218773.3419352,
     "seen": 1791108172.3292909,
-    "ast_hash": "a64aea432985ce9a8622ed3247f8ff67",
-    "semantic_hash": "a64aea432985ce9a8622ed3247f8ff67"
+    "ast_hash": "",
+    "semantic_hash": ""
   },
   "scripts/build_grafana_dashboard.py": {
     "mtime": 1789218773.3419352,
@@ -108,10 +108,10 @@
     "semantic_hash": "a723f32fa829824e5a08841fb5fb617f"
   },
   "src/database/access_logs.py": {
-    "mtime": 1791107249.2080593,
-    "seen": 1791108172.3292978,
-    "ast_hash": "3e7b50cc2c7c68cf4d8372082782bb72",
-    "semantic_hash": "3e7b50cc2c7c68cf4d8372082782bb72"
+    "mtime": 1791116303.3070152,
+    "seen": 1791117062.2034955,
+    "ast_hash": "544e949e7837b17574ff79fea9a23876",
+    "semantic_hash": ""
   },
   "src/database/analytics.py": {
     "mtime": 1789218773.3427758,
@@ -432,16 +432,16 @@
     "semantic_hash": "523c0a72d792df458eae59247d19b1c7"
   },
   "src/templates/static/js/charts.js": {
-    "mtime": 1791107249.2135038,
-    "seen": 1791108172.3293304,
-    "ast_hash": "78336d45c1fbf9bc26c2952133e1249b",
-    "semantic_hash": "78336d45c1fbf9bc26c2952133e1249b"
+    "mtime": 1791116770.979175,
+    "seen": 1791117062.2060683,
+    "ast_hash": "d755e019bd4d117c203ead64b3d2b133",
+    "semantic_hash": ""
   },
   "src/templates/static/js/dashboard.js": {
-    "mtime": 1791107249.213799,
-    "seen": 1791108172.329331,
-    "ast_hash": "a3130fb76f7a1e39fa4a954fcc6c5d9d",
-    "semantic_hash": "a3130fb76f7a1e39fa4a954fcc6c5d9d"
+    "mtime": 1791116477.7198918,
+    "seen": 1791117062.2060704,
+    "ast_hash": "0cb7a6a13f03ab362edb7a1dfc128d2a",
+    "semantic_hash": ""
   },
   "src/templates/static/js/loading.js": {
     "mtime": 1791107249.2140288,
@@ -450,10 +450,10 @@
     "semantic_hash": "bd917e2276a9083f032e5247274b93e5"
   },
   "src/templates/static/js/map.js": {
-    "mtime": 1791107249.2144125,
-    "seen": 1791108172.3293319,
-    "ast_hash": "a4eabd7fee102a1efd0c7063110ebdd6",
-    "semantic_hash": "a4eabd7fee102a1efd0c7063110ebdd6"
+    "mtime": 1791116476.6683536,
+    "seen": 1791117062.206136,
+    "ast_hash": "e78fd9f93ad2b8dbdd0c93194a1e7ca6",
+    "semantic_hash": ""
   },
   "src/templates/static/js/radar.js": {
     "mtime": 1789218773.4082975,
@@ -462,10 +462,10 @@
     "semantic_hash": "bfede4e696a3aabd641d5e77729ba898"
   },
   "src/templates/static/js/tokens.js": {
-    "mtime": 1791107249.21457,
-    "seen": 1791108172.3293328,
-    "ast_hash": "9b6db8d31ebfd6df374a523798c6a99a",
-    "semantic_hash": "9b6db8d31ebfd6df374a523798c6a99a"
+    "mtime": 1791116770.9820583,
+    "seen": 1791117062.2061996,
+    "ast_hash": "8daee7ab8e7cd8a06d0ea31bb9173073",
+    "semantic_hash": ""
   },
   "src/tlsh_utils.py": {
     "mtime": 1790505787.4274604,
@@ -630,10 +630,10 @@
     "semantic_hash": "44989fdf2679f8f9ab2b155d31c9326d"
   },
   "tests/test_live_attack_map.py": {
-    "mtime": 1790505787.4277694,
-    "seen": 1791108172.3293493,
-    "ast_hash": "b9e3d4776f2e358df30d1d871b564c36",
-    "semantic_hash": "b9e3d4776f2e358df30d1d871b564c36"
+    "mtime": 1791116987.9951584,
+    "seen": 1791117062.2074678,
+    "ast_hash": "9096bc8b62c4d4f45f82d517482a1354",
+    "semantic_hash": ""
   },
   "tests/test_map_tiles.py": {
     "mtime": 1790505787.4277956,
@@ -1164,16 +1164,16 @@
     "semantic_hash": "45942e75158e73f295b6ad616cbdb036"
   },
   "src/templates/jinja2/dashboard/index.html": {
-    "mtime": 1791107249.21115,
-    "seen": 1791108172.3293996,
-    "ast_hash": "ff6da87593186b549dce1a0d04d6a11a",
-    "semantic_hash": "ff6da87593186b549dce1a0d04d6a11a"
+    "mtime": 1791117013.8420205,
+    "seen": 1791117062.2115924,
+    "ast_hash": "453c397839b1dd24ccd56ba0573a851c",
+    "semantic_hash": ""
   },
   "src/templates/jinja2/dashboard/ip.html": {
-    "mtime": 1790505787.425083,
-    "seen": 1791108172.3294,
-    "ast_hash": "94e246d0c8bfd0374c0fcf1dee9851f0",
-    "semantic_hash": "94e246d0c8bfd0374c0fcf1dee9851f0"
+    "mtime": 1791116506.841156,
+    "seen": 1791117062.2115948,
+    "ast_hash": "d1903f677b32d80df35d28a79b5bf7fe",
+    "semantic_hash": ""
   },
   "src/templates/jinja2/dashboard/partials/_brand.html": {
     "mtime": 1789218773.4063792,
@@ -1218,10 +1218,10 @@
     "semantic_hash": "2f6c91c1b8ddfb1c13516109bc1c84bd"
   },
   "src/templates/jinja2/dashboard/partials/attack_types_table.html": {
-    "mtime": 1791107249.2118075,
-    "seen": 1791108172.3294039,
-    "ast_hash": "11835aae840badd1d53b551c1e47ed01",
-    "semantic_hash": "11835aae840badd1d53b551c1e47ed01"
+    "mtime": 1791116863.7888792,
+    "seen": 1791117062.2120328,
+    "ast_hash": "99919c4449a8517a465926fa887ed515",
+    "semantic_hash": ""
   },
   "src/templates/jinja2/dashboard/partials/attackers_table.html": {
     "mtime": 1789218773.406428,
@@ -1386,22 +1386,22 @@
     "semantic_hash": "c9e6bd90bdb4a140287fe2c3de5d8298"
   },
   "src/templates/jinja2/dashboard/partials/stats_cards.html": {
-    "mtime": 1789218773.406428,
-    "seen": 1791108172.329417,
-    "ast_hash": "b75271a39cd94419b61025d7123a6001",
-    "semantic_hash": "b75271a39cd94419b61025d7123a6001"
+    "mtime": 1791116879.4934652,
+    "seen": 1791117062.2136903,
+    "ast_hash": "41709af8190162558948270bfb210f24",
+    "semantic_hash": ""
   },
   "src/templates/jinja2/dashboard/partials/suspicious_expand_table.html": {
-    "mtime": 1791107249.2123177,
-    "seen": 1791108172.3294175,
-    "ast_hash": "c29c23cb2103ba71b07d25596d46c25c",
-    "semantic_hash": "c29c23cb2103ba71b07d25596d46c25c"
+    "mtime": 1791116501.3833528,
+    "seen": 1791117062.2136922,
+    "ast_hash": "8abd57d66cd057e06a1a63f24184c28b",
+    "semantic_hash": ""
   },
   "src/templates/jinja2/dashboard/partials/suspicious_rows.html": {
-    "mtime": 1791107249.2124891,
-    "seen": 1791108172.329418,
-    "ast_hash": "a7e1d5f7375b6319bfda230580c31a0a",
-    "semantic_hash": "a7e1d5f7375b6319bfda230580c31a0a"
+    "mtime": 1791116501.3832998,
+    "seen": 1791117062.2136939,
+    "ast_hash": "b4a7972ff235e05fb7bd003ba9c04ae2",
+    "semantic_hash": ""
   },
   "src/templates/jinja2/dashboard/partials/suspicious_table.html": {
     "mtime": 1790505787.4253993,
@@ -1618,5 +1618,17 @@
     "seen": 1791108172.3294349,
     "ast_hash": "25f2324f56155ee8eaef6ca8b06bd478",
     "semantic_hash": "25f2324f56155ee8eaef6ca8b06bd478"
+  },
+  "src/templates/jinja2/dashboard/partials/_icons.html": {
+    "mtime": 1791116386.0085523,
+    "seen": 1791117062.2117214,
+    "ast_hash": "e243da5694cdf605ea61f2892b298d87",
+    "semantic_hash": ""
+  },
+  "src/templates/jinja2/dashboard/partials/_sidebar.html": {
+    "mtime": 1791116879.4933481,
+    "seen": 1791117062.2117846,
+    "ast_hash": "5ac0be8254e3e6b5be73859010f0a321",
+    "semantic_hash": ""
   }
 }
