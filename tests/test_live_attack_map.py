@@ -139,5 +139,5 @@ def test_live_suspicious_arrivals_are_animated_in_both_tables():
     assert "requestAnimationFrame(() => {" in script
     assert "suspicious-live-row-enter" in styles
     assert "--arrival-index" in styles
-    assert 'class="ip-row recent-suspicious-row"' in expanded
+    assert 'class="ip-row recent-suspicious-row' in expanded
     assert "data-log-id=" in expanded

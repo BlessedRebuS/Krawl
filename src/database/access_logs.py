@@ -539,6 +539,7 @@ class AccessLogRepo:
                     "user_agent": log.user_agent,
                     "timestamp": log.timestamp.isoformat(),
                     "log_id": log.id,
+                    "honeypot": bool(log.is_honeypot_trigger),
                 }
                 for log in logs
             ]
@@ -612,6 +613,7 @@ class AccessLogRepo:
                     "timestamp": log.timestamp.isoformat() if log.timestamp else None,
                     "log_id": log.id,
                     "attack_types": [d.attack_type for d in log.attack_detections],
+                    "honeypot": bool(log.is_honeypot_trigger),
                 }
                 for log in logs
             ]
