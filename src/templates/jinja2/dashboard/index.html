@@ -172,10 +172,12 @@
         <div class="table-container alert-section">
             <div class="row-top">
                 <h2>Targeted Domains</h2>
-                <button type="button" class="expand-btn" onclick="openExpandOverlay('Targeted Domains', 'targeted-domains', 10)" aria-label="Open targeted domains filter" title="Open targeted domains filter"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5H4.56l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L3.5 4.56v2.69a.75.75 0 0 1-1.5 0v-3.5A1.75 1.75 0 0 1 3.75 2Zm8.5 12h-3.5a.75.75 0 0 1 0-1.5h2.69l-2.72-2.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.72 2.72v-2.69a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14Z"/></svg></button>
-                <button type="button" class="pagination-btn domain-map-open"
-                        onclick="openExpandOverlay('Link map', 'domain-map', 25)"
-                        aria-label="Open targeted domains link map">Link map</button>
+                <div class="row gap-2">
+                    <button type="button" class="pagination-btn domain-map-open"
+                            onclick="openExpandOverlay('Link map', 'domain-map', 25)"
+                            aria-label="Open targeted domains link map">Link map</button>
+                    <button type="button" class="expand-btn" onclick="openExpandOverlay('Targeted Domains', 'targeted-domains', 10)" aria-label="Open targeted domains filter" title="Open targeted domains filter"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5H4.56l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L3.5 4.56v2.69a.75.75 0 0 1-1.5 0v-3.5A1.75 1.75 0 0 1 3.75 2Zm8.5 12h-3.5a.75.75 0 0 1 0-1.5h2.69l-2.72-2.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.72 2.72v-2.69a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14Z"/></svg></button>
+                </div>
             </div>
             <div class="htmx-container"
                  hx-get="{{ dashboard_path }}/htmx/targeted-domains?page=1"

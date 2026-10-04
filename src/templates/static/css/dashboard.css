@@ -4412,7 +4412,6 @@ td:last-child {
 .asset-link-cell .artifact-external-link { flex: none; margin-left: 0; }
 
 /* Targeted Domains link map */
-.domain-map-open { margin-left: var(--s2); }
 .domain-map-roots { display: flex; gap: var(--s2); overflow-x: auto; padding-bottom: var(--s3); }
 .domain-map-root { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 126px; max-width: 220px; padding: var(--s2) var(--s3); border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--raised); color: var(--text); cursor: pointer; }
 .domain-map-root:hover, .domain-map-root.active { border-color: var(--accent); background: var(--tint-accent); }
