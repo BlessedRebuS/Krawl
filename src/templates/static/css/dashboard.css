@@ -1431,8 +1431,10 @@ tbody {
 .map-status-overlay.is-error {
     color: var(--danger);
 }
+/* Contain Leaflet's z-indexes (400-1000) so maps scroll under the sticky top bar. */
 .leaflet-container {
     background: var(--bg) !important;
+    isolation: isolate;
 }
 /* ── Map: the basemap is substrate, the markers are the subject ────
    This panel answers one question — where is hostile traffic coming
@@ -3021,6 +3023,7 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
 /* Live map mode: one high-signal motion language for incoming attacks. */
 .map-live-stage {
     position: relative;
+    isolation: isolate;
 }
 .dashboard-live-toggle {
     display: inline-flex;
