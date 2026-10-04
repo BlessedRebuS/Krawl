@@ -256,15 +256,21 @@ button, input, select, textarea { font-family: inherit; }
     white-space: nowrap;
     transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
 }
+/* Each item carries its own hue (--nav-c, set inline): icon on hover, tint when selected. */
 .nav-item:hover { background: var(--tint-neutral); color: var(--text); }
-.nav-item.active { background: var(--raised); color: var(--text-strong); }
-.nav-item.active .nav-icon { color: var(--accent); }
+.nav-item:hover .nav-icon { color: var(--nav-c, var(--accent)); }
+.nav-item.active {
+    background: color-mix(in srgb, var(--nav-c, var(--accent)) 13%, transparent);
+    color: var(--text-strong);
+    box-shadow: inset 2px 0 0 var(--nav-c, var(--accent));
+}
+.nav-item.active .nav-icon { color: var(--nav-c, var(--accent)); }
 /* The panel being filled shows the busy ring; the nav link doesn't need one. */
 .sidebar .nav-item.krawl-pending { cursor: pointer; }
 .sidebar .nav-item.krawl-pending::after { content: none; }
 .nav-item.disabled { color: var(--text-faint); cursor: default; }
 .nav-item.disabled:hover { background: transparent; }
-.nav-icon { width: 18px; height: 18px; flex: none; }
+.nav-icon { width: 18px; height: 18px; flex: none; transition: color var(--dur) var(--ease); }
 .nav-label { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
 .nav-sub {
     font-family: var(--font-mono);

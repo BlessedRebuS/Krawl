@@ -1,8 +1,8 @@
 {# Left rail: brand, grouped navigation, deployment actions at the foot.
    Collapses to icons on desktop and becomes a drawer on narrow screens. #}
 {% from "dashboard/partials/_icons.html" import icon %}
-{% macro nav(id, label, shortcut='', protected=false) -%}
-<a class="nav-item" href="#{{ id }}"
+{% macro nav(id, label, color, shortcut='', protected=false) -%}
+<a class="nav-item" href="#{{ id }}" style="--nav-c: var({{ color }})"
    :class="{ active: tab === '{{ id }}' }"
    :aria-current="tab === '{{ id }}' ? 'page' : null"
    {% if protected %}x-show="authenticated" x-cloak{% endif %}
@@ -26,14 +26,14 @@
     <nav class="sidebar-nav">
         <div class="nav-group">
             <span class="nav-group-label">Monitor</span>
-            {% call nav('overview', 'Overview', 'o') %}<span class="nav-live" aria-label="Live mode on" title="Live mode is on"></span>{% endcall %}
-            {{ nav('attacks', 'Attacks', 'a') }}
-            {{ nav('threats', 'Threats', 't') }}
+            {% call nav('overview', 'Overview', '--cyan', 'o') %}<span class="nav-live" aria-label="Live mode on" title="Live mode is on"></span>{% endcall %}
+            {{ nav('attacks', 'Attacks', '--danger', 'a') }}
+            {{ nav('threats', 'Threats', '--violet', 't') }}
         </div>
         <div class="nav-group">
             <span class="nav-group-label">Investigate</span>
-            {{ nav('advanced-search', 'Advanced search', 's') }}
-            <a class="nav-item" href="#ip-insight"
+            {{ nav('advanced-search', 'Advanced search', '--atk-ldap-injection', 's') }}
+            <a class="nav-item" href="#ip-insight" style="--nav-c: var(--accent)"
                :class="{ active: tab === 'ip-insight', disabled: !insightIp }"
                :aria-disabled="!insightIp"
                @click.prevent="insightIp && go('ip-insight')"
@@ -44,11 +44,11 @@
         </div>
         <div class="nav-group" x-show="authenticated" x-cloak>
             <span class="nav-group-label">Respond</span>
-            {{ nav('tracked-ips', 'Tracked IPs', protected=true) }}
-            {{ nav('banlist', 'Banlist', protected=true) }}
-            {{ nav('timedout', 'Timed out', protected=true) }}
-            {{ nav('deception', 'Deception', protected=true) }}
-            {{ nav('webhooks', 'Webhooks', protected=true) }}
+            {{ nav('tracked-ips', 'Tracked IPs', '--ok', protected=true) }}
+            {{ nav('banlist', 'Banlist', '--danger', protected=true) }}
+            {{ nav('timedout', 'Timed out', '--cat-timed-out', protected=true) }}
+            {{ nav('deception', 'Deception', '--honey', protected=true) }}
+            {{ nav('webhooks', 'Webhooks', '--warn', protected=true) }}
         </div>
     </nav>
 
