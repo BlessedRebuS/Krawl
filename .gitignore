@@ -89,3 +89,10 @@ personal-values.yaml
 
 # AI Coding Agents
 .claude/
+
+# graphify (local-only artifacts)
+graphify-out/cache/
+graphify-out/cost.json
+graphify-out/graph.html
+graphify-out/.graphify_python
+graphify-out/.graphify_root
