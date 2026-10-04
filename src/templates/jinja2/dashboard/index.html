@@ -384,12 +384,13 @@
             </div>
             <div id="search-results-container" class="palette-results"></div>
             <div class="palette-hints">
-                <span>Jump to a tab: press <kbd class="kbd">G</kbd> then</span>
-                <span><kbd class="kbd">O</kbd> Overview</span>
-                <span><kbd class="kbd">A</kbd> Attacks</span>
-                <span><kbd class="kbd">T</kbd> Threats</span>
-                <span><kbd class="kbd">S</kbd> Advanced search</span>
-                <span><kbd class="kbd">I</kbd> IP Insight</span>
+                <span class="palette-hints-label">Go to</span>
+                <button type="button" class="palette-go" @click="go('overview')">Overview <span class="palette-keys"><kbd class="kbd">G</kbd><kbd class="kbd">O</kbd></span></button>
+                <button type="button" class="palette-go" @click="go('attacks')">Attacks <span class="palette-keys"><kbd class="kbd">G</kbd><kbd class="kbd">A</kbd></span></button>
+                <button type="button" class="palette-go" @click="go('threats')">Threats <span class="palette-keys"><kbd class="kbd">G</kbd><kbd class="kbd">T</kbd></span></button>
+                <button type="button" class="palette-go" @click="go('advanced-search')">Advanced search <span class="palette-keys"><kbd class="kbd">G</kbd><kbd class="kbd">S</kbd></span></button>
+                <button type="button" class="palette-go" @click="go('ip-insight')" :disabled="!insightIp">IP Insight <span class="palette-keys"><kbd class="kbd">G</kbd><kbd class="kbd">I</kbd></span></button>
+                <span class="palette-hints-note">Keys work with search closed: press G, then the letter.</span>
             </div>
         </div>
     </div>
