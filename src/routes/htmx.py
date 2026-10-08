@@ -8,6 +8,7 @@ Server-rendered HTML partials for table pagination, sorting, IP details, and sea
 import asyncio
 import re
 from datetime import datetime
+from typing import Annotated
 
 from fastapi import APIRouter, Query, Request, Response
 from fastapi.responses import HTMLResponse
@@ -66,8 +67,8 @@ async def htmx_advanced_search(
     method: str = Query(""),
     user_agent: str = Query(""),
     raw_text: str = Query(""),
-    header_name: list[str] = Query(default=[]),
-    header_value: list[str] = Query(default=[]),
+    header_name: Annotated[list[str] | None, Query()] = None,
+    header_value: Annotated[list[str] | None, Query()] = None,
 ):
     filters = {
         key: value.strip()[:255]
@@ -82,7 +83,10 @@ async def htmx_advanced_search(
         }.items()
     }
     headers = []
-    for name, value in zip(header_name[:8], header_value[:8]):
+    # Unpaired names or values are dropped, not an error.
+    for name, value in zip(
+        (header_name or [])[:8], (header_value or [])[:8], strict=False
+    ):
         name = name.strip()[:100]
         if name and re.fullmatch(r"[!#$%&'*+.^_`|~0-9A-Za-z-]+", name):
             headers.append((name, value.strip()[:255]))
