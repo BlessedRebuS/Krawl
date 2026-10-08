@@ -8,6 +8,10 @@
     <link rel="stylesheet" href="{{ dashboard_path }}/static/vendor/css/leaflet.min.css?v={{ krawl_version }}" />
     <link rel="stylesheet" href="{{ dashboard_path }}/static/vendor/css/MarkerCluster.css?v={{ krawl_version }}" />
     <link rel="stylesheet" href="{{ dashboard_path }}/static/vendor/css/MarkerCluster.Default.css?v={{ krawl_version }}" />
+    {# IBM Plex from Google Fonts; offline, the system stacks in --font-ui/--font-mono take over. #}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" />
     <link rel="stylesheet" href="{{ dashboard_path }}/static/css/dashboard.css?v={{ krawl_version }}" />
     <script src="{{ dashboard_path }}/static/vendor/js/leaflet.min.js?v={{ krawl_version }}" defer></script>
     <script src="{{ dashboard_path }}/static/vendor/js/leaflet.markercluster.js?v={{ krawl_version }}" defer></script>

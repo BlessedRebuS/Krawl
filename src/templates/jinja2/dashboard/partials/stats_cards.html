@@ -1,31 +1,25 @@
-{# Stats cards - server-rendered on initial page load #}
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-value">{{ stats.total_accesses }}</div>
-        <div class="stat-label">Total Accesses</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ stats.unique_ips }}</div>
-        <div class="stat-label">Unique IPs</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value">{{ stats.unique_paths }}</div>
-        <div class="stat-label">Unique Paths</div>
-    </div>
-    <div class="stat-card alert">
-        <div class="stat-value alert">{{ stats.suspicious_accesses }}</div>
-        <div class="stat-label">Suspicious Accesses</div>
-    </div>
-    <div class="stat-card honeypot">
-        <div class="stat-value honeypot">{{ stats.honeypot_ips | default(0) }}</div>
-        <div class="stat-label">Honeypot Caught</div>
-    </div>
-    <div class="stat-card honeypot">
-        <div class="stat-value honeypot">{{ stats.credential_count | default(0) }}</div>
-        <div class="stat-label">Credentials Captured</div>
-    </div>
-    <div class="stat-card alert">
-        <div class="stat-value alert">{{ stats.unique_attackers | default(0) }}</div>
-        <div class="stat-label">Unique Attackers</div>
-    </div>
+{# Summary tiles, server-rendered: one row of identical cards, figure over
+   label. Colour carries meaning: traffic in accent, hostile in danger,
+   traps in honey, active time-bans in ok. #}
+{# Thousands grouped with dots, so big figures read at a glance. #}
+{% macro n(v) %}{{ '{:,}'.format((v or 0) | int).replace(',', '.') }}{% endmacro %}
+{% macro tile(value, label, cls='', sub='') -%}
+<div class="tile {{ cls }}"{% if sub %} tabindex="0"{% endif %}>
+    <span class="tile-value">{{ value }}</span>
+    <span class="tile-label">{{ label }}</span>
+    {%- if sub %}<span class="tile-sub">{{ sub }}</span>{% endif %}
 </div>
+{%- endmacro %}
+{% set total = (stats.total_accesses or 0) | int %}
+{% set share = ((stats.suspicious_accesses or 0) | int) * 100 / total if total else 0 %}
+<section class="tiles" aria-label="Summary">
+    {{ tile(n(stats.total_accesses), 'Requests') }}
+    {{ tile(n(stats.unique_ips), 'Source IPs') }}
+    {{ tile(n(stats.unique_paths), 'Paths') }}
+    {{ tile(n(stats.suspicious_accesses), 'Suspicious requests', 'is-hostile',
+            ('%.1f' | format(share)).replace('.', ',') ~ '% of all requests') }}
+    {{ tile(n(stats.unique_attackers), 'Attackers', 'is-hostile',
+            n(stats.active_attackers_24h) ~ ' active in the last 24h') }}
+    {{ tile(n(stats.timed_out_ips), 'Timed out now', 'is-defence', 'IPs on an automatic ban') }}
+    {{ tile(n(stats.credential_count), 'Credentials captured', 'is-trapped') }}
+</section>

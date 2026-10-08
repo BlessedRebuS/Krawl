@@ -422,6 +422,72 @@ document.addEventListener('alpine:init', () => {
         // Expand overlay state
         expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false, method: '', attackType: '', attackTypes: [], ipFilter: '', artifactKind: '', artifactValue: '' },
 
+        // ⌘K search palette, opened from the header button.
+        palette: { open: false },
+        isMac: /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent),
+
+        // One entry point for every nav control, so protected tabs stay
+        // behind auth whichever way they were reached.
+        go(tab) {
+            const routes = {
+                'overview': () => this.switchToOverview(),
+                'attacks': () => this.switchToAttacks(),
+                'threats': () => this.switchToThreats(),
+                'advanced-search': () => this.switchToAdvancedSearch(),
+                'ip-insight': () => this.switchToIpInsight(),
+                'tracked-ips': () => this.switchToTrackedIps(),
+                'banlist': () => this.switchToBanlist(),
+                'timedout': () => this.switchToTimedOut(),
+                'deception': () => this.switchToDeception(),
+                'webhooks': () => this.switchToWebhooks(),
+            };
+            (routes[tab] || routes.overview)();
+            window.scrollTo({ top: 0 });
+        },
+
+        // ⌘K / Ctrl K or / opens search; "g" then a letter jumps to a tab.
+        // Ignored while typing, and while a modal other than the palette is up.
+        _bindShortcuts() {
+            let pendingG = 0;
+            const jumps = { o: 'overview', a: 'attacks', t: 'threats', s: 'advanced-search', i: 'ip-insight' };
+            document.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                    e.preventDefault();
+                    this.palette.open ? this.closePalette() : this.openPalette();
+                    return;
+                }
+                const el = e.target;
+                const typing = el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+                if (typing || e.metaKey || e.ctrlKey || e.altKey || this._popupStack.length) return;
+                if (e.key === '/') {
+                    e.preventDefault();
+                    this.openPalette();
+                } else if (e.key === 'g') {
+                    pendingG = Date.now();
+                } else if (pendingG && Date.now() - pendingG < 1200 && jumps[e.key]) {
+                    pendingG = 0;
+                    this.go(jumps[e.key]);
+                } else {
+                    pendingG = 0;
+                }
+            });
+        },
+
+        openPalette() {
+            this.palette.open = true;
+            // Results collapsed when a result was opened; show them again.
+            const results = document.querySelector('#search-results-container .search-results');
+            if (results) results.classList.remove('search-collapsed');
+            this.$nextTick(() => {
+                const input = document.getElementById('search-input');
+                if (input) { input.focus(); input.select(); }
+            });
+        },
+
+        closePalette() {
+            this.palette.open = false;
+        },
+
         // LIFO of active popups (raw/file modal can open over the expand
         // overlay); ESC closes only the most recently opened one.
         _popupStack: [],
@@ -456,11 +522,18 @@ document.addEventListener('alpine:init', () => {
             this.$watch('fileModal.show', (show) => this._trackPopup(show, 'file'));
             this.$watch('authModal.show', (show) => this._trackPopup(show, 'auth'));
             this.$watch('exportModal.show', (show) => this._trackPopup(show, 'export'));
+            this.$watch('palette.open', (open) => this._trackPopup(open, 'palette'));
+            // Anything opened from a search result (attack overlay, insight)
+            // replaces the palette rather than stacking under it.
+            this.$watch('expandOverlay.show', (show) => { if (show) this.palette.open = false; });
+            this.$watch('tab', () => { this.palette.open = false; });
+            this._bindShortcuts();
             document.addEventListener('keydown', (e) => {
                 if (e.key !== 'Escape') return;
                 if (!this._popupStack.length) return;
                 const top = this._popupStack[this._popupStack.length - 1];
-                if (top === 'overlay') this.expandOverlay.show = false;
+                if (top === 'palette') this.closePalette();
+                else if (top === 'overlay') this.expandOverlay.show = false;
                 else if (top === 'raw') this.closeRawModal();
                 else if (top === 'file') this.closeFileModal();
                 else if (top === 'auth') this.authModal.show = false;
@@ -852,6 +925,7 @@ document.addEventListener('alpine:init', () => {
         openIpInsight(ip) {
             // Collapse any open search results before switching to the insight tab
             this.collapseSearch();
+            this.palette.open = false;
 
             // Close any popup overlaying the dashboard (campaign / similar
             // panel) when navigating to the IP insight tab.

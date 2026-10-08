@@ -188,6 +188,8 @@ function _setLiveToggleState(enabled, busy = false) {
         toggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
         toggle.disabled = busy;
     });
+    // The Overview tab shows a live dot on Overview while the feed is running.
+    document.documentElement.classList.toggle('is-live', enabled);
 }
 
 function _liveAttackSignature(attack) {

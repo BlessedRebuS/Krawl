@@ -3,15 +3,13 @@
 {% block content %}
 <div class="container" x-data="dashboardApp()">
 
-    {% include "dashboard/partials/_brand.html" %}
-
-    {# Back to dashboard link #}
-    <div class="header-corner">
-        <a href="{{ dashboard_path }}/" class="download-btn" style="text-decoration: none;">
-            &larr; Back to Dashboard
-        </a>
-        {% include "dashboard/partials/_contact.html" %}
-    </div>
+    <header class="page-header">
+        {% include "dashboard/partials/_brand.html" %}
+        <div class="page-header-end">
+            <a href="{{ dashboard_path }}/" class="btn-secondary">Back to dashboard</a>
+            {% include "dashboard/partials/_contact.html" %}
+        </div>
+    </header>
 
     {% set uid = "ip" %}
     {% include "dashboard/partials/_ip_detail.html" %}

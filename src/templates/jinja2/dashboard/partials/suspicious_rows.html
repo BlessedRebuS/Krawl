@@ -1,11 +1,11 @@
 {% for activity in suspicious_activities %}
-<tr class="ip-row recent-suspicious-row"
+<tr class="ip-row recent-suspicious-row{% if activity.honeypot %} is-trap{% endif %}"
     data-ip="{{ activity.ip | e }}"
     data-log-id="{{ activity.log_id | default('') }}">
     <td class="ip-clickable"
         title="Open in IP Insight"
         @click="openIpInsight('{{ activity.ip | e }}')">
-        {{ activity.ip | e }}
+        {{ activity.ip | e }}{% if activity.honeypot %} <span class="trap-mark" title="This request hit a honeypot">trap</span>{% endif %}
     </td>
     <td>
         {% set method = activity.method | default('GET') | upper %}
@@ -13,7 +13,7 @@
     </td>
     <td><a href="#" class="data-link path-jump" data-path="{{ activity.path | e }}" @click.prevent="jumpToPath($event)">{{ activity.path | e }}</a></td>
     <td class="break-all">{{ (activity.user_agent | default('', true))[:80] | e }}</td>
-    <td class="ts-cell">{{ activity.timestamp | format_ts(time_only=True) }}</td>
+    <td class="ts-cell" title="{{ activity.timestamp | format_ts }}">{{ activity.timestamp | format_ago }}</td>
     <td>
         <div class="table-action-btns">
         {% if activity.log_id %}

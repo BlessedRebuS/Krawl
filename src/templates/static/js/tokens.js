@@ -25,3 +25,11 @@ function krawlAttackColor(type, alpha) {
     const value = parseInt(hex.slice(1), 16);
     return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`;
 }
+
+// Charts set their text in the UI face. Chart.js is a deferred script and
+// this file is not, so apply the default once deferred scripts have run.
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.Chart && Chart.defaults && Chart.defaults.font) {
+        Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+    }
+});

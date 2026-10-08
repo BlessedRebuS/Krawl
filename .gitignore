@@ -89,3 +89,7 @@ personal-values.yaml
 
 # AI Coding Agents
 .claude/
+
+# graphify (local-only knowledge graph)
+graphify-out/
+.graphifyignore
