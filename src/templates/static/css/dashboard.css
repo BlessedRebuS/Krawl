@@ -1001,7 +1001,6 @@ tbody {
     word-break: break-word;
 }
 .ip-dl-mono {
-    font-family: var(--font-mono);
     font-size: var(--fs-xs);
 }
 
@@ -1139,7 +1138,6 @@ tbody {
     text-overflow: ellipsis;
     white-space: nowrap;
     vertical-align: top;
-    font-family: var(--font-mono);
     font-size: 0.78em;
     color: var(--text-dim);
 }
@@ -3482,7 +3480,6 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
 
 /* Section eyebrow: small, spaced, mono — the console register. */
 .eyebrow {
-    font-family: var(--font-mono);
     font-size: var(--fs-2xs);
     letter-spacing: var(--tracking-label);
     text-transform: uppercase;
@@ -3709,7 +3706,6 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
 }
 .task-main { min-width: 0; }
 .task-name {
-    font-family: var(--font-mono);
     font-size: var(--fs-sm);
     color: var(--text-strong);
 }
@@ -3739,7 +3735,6 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
    log data here -- and left in its real case, unlike the uppercased .cfg-badge
    labels elsewhere in this modal. */
 .task-pod {
-    font-family: var(--font-mono);
     padding: 1px var(--s2);
     border: 1px solid var(--line);
     border-radius: var(--r-sm);
@@ -3828,7 +3823,6 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
 .url-row .auth-modal-input {
     flex: 1;
     min-width: 0;
-    font-family: var(--font-mono);
     font-size: var(--fs-xs);
 }
 .url-row .auth-modal-btn { flex: none; display: inline-flex; align-items: center; padding: 0 var(--s3); }
@@ -3859,7 +3853,6 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
 .field-label-caps {
     display: block;
     margin-bottom: var(--s2);
-    font-family: var(--font-mono);
     font-size: var(--fs-2xs);
     letter-spacing: var(--tracking-label);
     text-transform: uppercase;
@@ -3873,7 +3866,6 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
     border-right: none;
     border-radius: var(--r-md) 0 0 var(--r-md);
     color: var(--text-dim);
-    font-family: var(--font-mono);
     font-size: var(--fs-md);
     white-space: nowrap;
 }
@@ -4081,7 +4073,6 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
 .ip-clickable,
 .path-cell-container,
 .ip-dl dd {
-    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
 }
 
@@ -4242,7 +4233,6 @@ td:last-child {
 .cfg-body { padding-top: var(--s5); }
 
 .cfg-inline {
-    font-family: var(--font-mono);
     font-size: var(--fs-xs);
     color: var(--text);
     background: var(--raised);
@@ -4327,13 +4317,11 @@ td:last-child {
 .cfg-row:last-child .cfg-source { border-bottom: none; }
 
 .cfg-key {
-    font-family: var(--font-mono);
     font-size: var(--fs-xs);
     color: var(--text-dim);
 }
 .cfg-value {
     margin: 0;
-    font-family: var(--font-mono);
     font-size: var(--fs-xs);
     color: var(--text-strong);
 }
@@ -4341,7 +4329,6 @@ td:last-child {
 
 /* A secret reports only that it exists. */
 .cfg-secret {
-    font-family: var(--font-mono);
     font-size: var(--fs-2xs);
     letter-spacing: var(--tracking-label);
     text-transform: uppercase;
@@ -4359,7 +4346,6 @@ td:last-child {
 }
 .cfg-badge {
     display: inline-block;
-    font-family: var(--font-mono);
     font-size: var(--fs-2xs);
     letter-spacing: var(--tracking-label);
     text-transform: uppercase;
@@ -4416,12 +4402,12 @@ td:last-child {
 .domain-map-root { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 126px; max-width: 220px; padding: var(--s2) var(--s3); border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--raised); color: var(--text); cursor: pointer; }
 .domain-map-root:hover, .domain-map-root.active { border-color: var(--accent); background: var(--tint-accent); }
 .domain-map-root:focus-visible { outline: 2px solid var(--accent-hi); outline-offset: 3px; }
-.domain-map-root-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 600 var(--fs-sm) var(--font-mono); }
+.domain-map-root-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: var(--fs-sm); }
 .domain-map-root-count { color: var(--text-dim); font-size: var(--fs-xs); }
 .domain-map-summary { display: flex; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; padding: var(--s3) 0; color: var(--text-dim); font-size: var(--fs-sm); }
-.domain-map-summary strong { color: var(--text-strong); font-family: var(--font-mono); }
+.domain-map-summary strong { color: var(--text-strong); }
 .domain-map-viewport { --domain-map-edge: #8f9ab3; position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-md); background-color: var(--bg); background-image: radial-gradient(circle, var(--line) 1px, transparent 1.5px); background-size: 24px 24px; background-position: 12px 12px; }
-.domain-map-svg { display: block; width: 100%; height: min(62vh, 650px); min-height: 420px; font-family: var(--font-mono); cursor: grab; touch-action: none; }
+.domain-map-svg { display: block; width: 100%; height: min(62vh, 650px); min-height: 420px; cursor: grab; touch-action: none; }
 .domain-map-svg.is-panning { cursor: grabbing; }
 .domain-map-edge { fill: none; stroke: var(--domain-map-edge); stroke-width: 1.3; opacity: .75; }
 .domain-map-svg marker path { fill: none; stroke: var(--domain-map-edge); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
@@ -4579,7 +4565,6 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
 }
 .activity-name { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
 .activity-target {
-    font-family: var(--font-mono);
     color: var(--accent);
     overflow: hidden;
     text-overflow: ellipsis;
