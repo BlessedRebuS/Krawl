@@ -880,6 +880,21 @@ class IpStatsRepo:
         finally:
             self._db.close_session()
 
+    def count_category_seen_since(self, category: str, since: datetime) -> int:
+        """Count IPs in a category whose last request is at or after ``since``."""
+        session = self._db.session
+        try:
+            return (
+                session.query(IpStats)
+                .filter(IpStats.category == category, IpStats.last_seen >= since)
+                .count()
+            )
+        except Exception as e:
+            applogger.error(f"Error counting recent {category}: {e}")
+            return 0
+        finally:
+            self._db.close_session()
+
     def get_attackers_paginated(
         self,
         page: int = 1,

@@ -791,6 +791,7 @@ class AccessLogRepo:
         performs.
         """
         import metrics_counters as mc
+        from config import get_config
 
         return {
             "total_accesses": mc.get("total_accesses"),
@@ -802,6 +803,12 @@ class AccessLogRepo:
             # clients_total is current-state (recomputed live), not a cumulative
             # counter — read it straight from the indexed category count.
             "unique_attackers": self._db.ip_stats.count_category("attacker"),
+            "active_attackers_24h": self._db.ip_stats.count_category_seen_since(
+                "attacker", datetime.now() - timedelta(hours=24)
+            ),
+            "timed_out_ips": self._db.ip_stats.count_timed_out(
+                get_config().ban_duration_seconds
+            ),
         }
 
     def _compute_dashboard_counts_sql(self) -> dict[str, int]:
