@@ -1,5 +1,0 @@
-# Honeypot bait pages: ~2,100 generated files with no architectural content
-src/templates/deception/
-
-# Vendored minified JS/CSS (d3, Chart.js, HTMX, Alpine, Leaflet)
-src/templates/static/vendor/
