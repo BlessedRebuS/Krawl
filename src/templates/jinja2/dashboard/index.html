@@ -2,31 +2,13 @@
 
 {% block content %}
 {% from "dashboard/partials/_icons.html" import icon %}
-<div class="app" x-data="dashboardApp()" :class="{ 'nav-collapsed': navCollapsed }">
-
-    {% include "dashboard/partials/_sidebar.html" %}
-
-    <div class="main">
-    {# Top bar: where you are, and the way to anything else (⌘K). #}
-    <header class="topbar">
-        <button type="button" class="rail-btn topbar-menu" @click="navOpen = true" aria-label="Open navigation">{{ icon('menu') }}</button>
-        <h1 class="page-title">
-            <span x-text="pageTitle">Overview</span>
-            <span class="page-title-sub" x-show="tab === 'ip-insight' && insightIp" x-text="insightIp" x-cloak></span>
-        </h1>
-        <button type="button" class="search-trigger" @click="openPalette()" aria-keyshortcuts="Control+K Meta+K /">
-            {{ icon('search', 'search-trigger-icon') }}
-            <span class="search-trigger-label">Search attacks, IPs, paths…</span>
-            <kbd class="kbd" x-text="isMac ? '⌘K' : 'Ctrl K'">⌘K</kbd>
-        </button>
-    </header>
+<div class="app" x-data="dashboardApp()">
 
     <div class="content">
+    {% include "dashboard/partials/_header.html" %}
+
     {# ==================== OVERVIEW TAB ==================== #}
     <div x-show="tab === 'overview'" x-init="$nextTick(() => { if (typeof initializeAttackerMap === 'function') initializeAttackerMap().then(initialized => { mapInitialized = Boolean(initialized); }); })">
-
-        {# Summary ledger - server-rendered #}
-        {% include "dashboard/partials/stats_cards.html" %}
 
         {# Map section #}
         {% include "dashboard/partials/map_section.html" %}
@@ -362,9 +344,8 @@
     </div>
 
     </div>{# /.content #}
-    </div>{# /.main #}
 
-    {# ⌘K palette: the global search, opened from the top bar, ⌘K/Ctrl K or /.
+    {# ⌘K palette: the global search, opened from the header button, ⌘K/Ctrl K or /.
        Results are the same HTMX fragment the inline search used. #}
     <div class="palette" x-show="palette.open" x-cloak
          @click.self="closePalette()" role="dialog" aria-modal="true" aria-label="Search">

@@ -1,0 +1,72 @@
+{# Dashboard head, top to bottom: brand / title / actions, the tab strip,
+   then summary tiles. Search opens in the ⌘K palette. Tab groups (monitor / investigate /
+   respond) are split by a hairline; on narrow screens the strip scrolls. #}
+{% from "dashboard/partials/_icons.html" import icon %}
+{% macro nav(id, label, color, shortcut='', protected=false) -%}
+<a class="nav-item" href="#{{ id }}" style="--nav-c: var({{ color }})"
+   :class="{ active: tab === '{{ id }}' }"
+   :aria-current="tab === '{{ id }}' ? 'page' : null"
+   {% if protected %}x-show="authenticated" x-cloak{% endif %}
+   @click.prevent="go('{{ id }}')"
+   title="{{ label }}{% if shortcut %} (g {{ shortcut }}){% endif %}">
+    {{ label }}
+    {%- if caller is defined %}{{ caller() }}{% endif %}
+</a>
+{%- endmacro %}
+
+<header class="topbar">
+    {% include "dashboard/partials/_brand.html" %}
+    <h1 class="dashboard-title">{{ brand.name }} Dashboard</h1>
+    <div class="topbar-end">
+        <div class="topbar-actions">
+            <button type="button" class="search-trigger" @click="openPalette()" aria-keyshortcuts="Control+K Meta+K /">
+                {{ icon('search', 'search-trigger-icon') }}
+                <span class="search-trigger-label">Search attacks, IPs, paths…</span>
+                <kbd class="kbd" x-text="isMac ? '⌘K' : 'Ctrl K'">⌘K</kbd>
+            </button>
+            <a href="{{ dashboard_path }}/docs" target="_blank" rel="noopener"
+               class="rail-btn" title="API documentation" aria-label="API documentation">{{ icon('docs') }}</a>
+            <button type="button" class="rail-btn" title="Export IPs banlist" aria-label="Export IPs banlist"
+                    @click="exportModal.show = true; exportModal.error = ''">{{ icon('export') }}</button>
+            {# Settings runs privileged jobs and shows the running config, so it
+               stays visible but inert until login. #}
+            <button type="button" class="rail-btn" :disabled="!authenticated"
+                    :title="authenticated ? 'Settings' : 'Log in to open settings'" aria-label="Settings"
+                    @click="settingsModal.show = true; $dispatch('settings-open')">{{ icon('settings') }}</button>
+            <button type="button" class="rail-btn rail-lock" x-show="!authenticated" @click="promptAuth()"
+                    title="Unlock protected panels" aria-label="Unlock protected panels">{{ icon('lock') }}</button>
+            <button type="button" class="rail-btn" x-show="authenticated" x-cloak @click="logout()"
+                    title="Log out" aria-label="Log out">{{ icon('logout') }}</button>
+        </div>
+        {% include "dashboard/partials/_contact.html" %}
+    </div>
+</header>
+
+<nav class="tabbar" aria-label="Dashboard sections">
+    <div class="nav-group" role="group" aria-label="Monitor">
+        {% call nav('overview', 'Overview', '--cyan', 'o') %}<span class="nav-live" aria-label="Live mode on" title="Live mode is on"></span>{% endcall %}
+        {{ nav('attacks', 'Attacks', '--danger', 'a') }}
+        {{ nav('threats', 'Threats', '--violet', 't') }}
+    </div>
+    <div class="nav-group" role="group" aria-label="Investigate">
+        {{ nav('advanced-search', 'Advanced search', '--atk-ldap-injection', 's') }}
+        <a class="nav-item" href="#ip-insight" style="--nav-c: var(--accent)"
+           :class="{ active: tab === 'ip-insight', disabled: !insightIp }"
+           :aria-disabled="!insightIp"
+           @click.prevent="insightIp && go('ip-insight')"
+           :title="insightIp ? 'IP Insight: ' + insightIp + ' (g i)' : 'Select an IP in any table to inspect it'">
+            IP Insight<span class="nav-sub" x-show="insightIp" x-text="insightIp" x-cloak></span>
+        </a>
+    </div>
+    <div class="nav-group" role="group" aria-label="Respond" x-show="authenticated" x-cloak>
+        {{ nav('tracked-ips', 'Tracked IPs', '--ok', protected=true) }}
+        {{ nav('banlist', 'Banlist', '--danger', protected=true) }}
+        {{ nav('timedout', 'Timed out', '--cat-timed-out', protected=true) }}
+        {{ nav('deception', 'Deception', '--honey', protected=true) }}
+        {{ nav('webhooks', 'Webhooks', '--warn', protected=true) }}
+    </div>
+</nav>
+
+{# Summary tiles - server-rendered, visible on every tab. #}
+{% include "dashboard/partials/stats_cards.html" %}
+

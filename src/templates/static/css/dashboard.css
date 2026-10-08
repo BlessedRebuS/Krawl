@@ -24,7 +24,6 @@
 :root {
     /* ── Surfaces ─────────────────────────────────────────────── */
     --bg: #0b0f15;
-    --rail: #080b10;
     --surface: #121822;
     --raised: #1a2230;
     --sunken: #070a0f;
@@ -135,11 +134,6 @@
     --icon: 16px;
     --icon-lg: 20px;
 
-    /* ── Shell ────────────────────────────────────────────────── */
-    --sidebar-w: 232px;
-    --sidebar-w-collapsed: 64px;
-    --topbar-h: 60px;
-
     /* ── Elevation + motion ───────────────────────────────────── */
     --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.45);
@@ -191,346 +185,53 @@ body {
 /* Form controls default to the system face; keep them in Plex. */
 button, input, select, textarea { font-family: inherit; }
 
-/* ── App shell: fixed left rail + scrolling main column ───────────
-   The rail collapses to icons (remembered) and is a drawer below 960px. */
-.app {
-    min-height: 100vh;
-    padding-left: var(--sidebar-w);
-    transition: padding-left 0.2s var(--ease);
-}
-.app.nav-collapsed { padding-left: var(--sidebar-w-collapsed); }
-.main { min-width: 0; }
+/* ── App shell: brand / title / actions, tiles, search, tab strip,
+   then the active tab's panels. */
+.app { min-height: 100vh; }
 .content {
     max-width: 1440px;
     margin: 0 auto;
-    padding: var(--s6) var(--s6) var(--s10);
+    padding: var(--s5) var(--s6) var(--s10);
 }
 
-.sidebar {
-    position: fixed;
-    inset: 0 auto 0 0;
-    z-index: var(--z-sticky);
-    width: var(--sidebar-w);
-    display: flex;
-    flex-direction: column;
-    background: var(--rail);
-    border-right: 1px solid var(--line-soft);
-    transition: width 0.2s var(--ease), transform 0.2s var(--ease);
-}
-.sidebar-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--s2);
-    height: var(--topbar-h);
-    padding: 0 var(--s3) 0 var(--s4);
-    flex: none;
-}
-.sidebar-nav {
-    flex: 1;
-    overflow-y: auto;
-    padding: var(--s2) var(--s3);
-    display: flex;
-    flex-direction: column;
-    gap: var(--s5);
-}
-.nav-group { display: flex; flex-direction: column; gap: 2px; }
-.nav-group-label {
-    padding: 0 var(--s3) var(--s1);
-    font-size: var(--fs-xs);
-    font-weight: 500;
-    color: var(--text-faint);
-}
-.nav-item {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: var(--s3);
-    min-height: 36px;
-    padding: 0 var(--s3);
-    border-radius: var(--r-md);
-    color: var(--text-dim);
-    font-size: var(--fs-md);
-    font-weight: 500;
-    text-decoration: none;
-    white-space: nowrap;
-    transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
-}
-/* Each item carries its own hue (--nav-c, set inline): icon on hover, tint when selected. */
-.nav-item:hover { background: var(--tint-neutral); color: var(--text); }
-.nav-item:hover .nav-icon { color: var(--nav-c, var(--accent)); }
-.nav-item.active {
-    background: color-mix(in srgb, var(--nav-c, var(--accent)) 13%, transparent);
-    color: var(--text-strong);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--nav-c, var(--accent)) 55%, transparent);
-}
-.nav-item.active .nav-icon { color: var(--nav-c, var(--accent)); }
-/* The panel being filled shows the busy ring; the nav link doesn't need one. */
-.sidebar .nav-item.krawl-pending { cursor: pointer; }
-.sidebar .nav-item.krawl-pending::after { content: none; }
-.nav-item.disabled { color: var(--text-faint); cursor: default; }
-.nav-item.disabled:hover { background: transparent; }
-.nav-icon { width: 18px; height: 18px; flex: none; transition: color var(--dur) var(--ease); }
-.nav-label { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
-.nav-sub {
-    font-family: var(--font-mono);
-    font-size: var(--fs-2xs);
-    font-weight: 400;
-    color: var(--text-dim);
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-/* Live dot on Overview while the live feed polls (map.js toggles .is-live). */
-.nav-live {
-    display: none;
-    width: 7px;
-    height: 7px;
-    margin-left: auto;
-    border-radius: 50%;
-    background: var(--ok);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 22%, transparent);
-    animation: nav-live-pulse 2s ease-in-out infinite;
-}
-.is-live .nav-live { display: block; }
-@keyframes nav-live-pulse { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--ok) 0%, transparent); } }
-
-.sidebar-foot {
-    flex: none;
-    display: flex;
-    flex-direction: column;
-    gap: var(--s2);
-    padding: var(--s3);
-    border-top: 1px solid var(--line-soft);
-}
-.sidebar-actions { display: flex; gap: var(--s1); }
-.rail-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    padding: 0;
-    flex: none;
-    background: transparent;
-    border: 0;
-    border-radius: var(--r-md);
-    color: var(--text-dim);
-    cursor: pointer;
-    text-decoration: none;
-    transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
-}
-.rail-btn .nav-icon { width: 18px; height: 18px; }
-.rail-btn:hover:not(:disabled) { color: var(--text-strong); background: var(--tint-neutral); }
-.rail-btn.rail-lock:hover { color: var(--warn); }
-/* Locked rather than hidden: the capability stays advertised, the tooltip
-   says how to unlock it. */
-.rail-btn:disabled { color: color-mix(in srgb, var(--text-faint) 60%, transparent); cursor: not-allowed; }
-.sidebar-close, .topbar-menu { display: none; }
-
-/* Collapsed rail (desktop only): icons, labels in the native tooltip. */
-@media (min-width: 961px) {
-    .nav-collapsed .sidebar { width: var(--sidebar-w-collapsed); }
-    .nav-collapsed .sidebar-head { flex-direction: column; justify-content: center; height: auto; padding: var(--s3) 0; gap: var(--s2); }
-    .nav-collapsed .brand-name,
-    .nav-collapsed .brand-version,
-    .nav-collapsed .nav-label,
-    .nav-collapsed .nav-group-label,
-    .nav-collapsed .brand-contact { display: none; }
-    .nav-collapsed .nav-item { justify-content: center; padding: 0; }
-    .nav-collapsed .nav-live { position: absolute; top: 7px; right: 9px; }
-    .nav-collapsed .sidebar-actions { flex-direction: column; align-items: center; }
-    .nav-collapsed .nav-group { padding-top: var(--s2); border-top: 1px solid var(--line-soft); }
-    .nav-collapsed .nav-group:first-child { border-top: 0; }
-}
-
-/* ── Brand (dashboard.branding) ───────────────────────────────────
-   The mark carries the weight; version and contact stay muted. */
-.brand { min-width: 0; }
-.brand-mark {
-    display: flex;
-    align-items: center;
-    gap: var(--s2);
-    min-width: 0;
-    text-decoration: none;
-    color: var(--text-strong);
-}
-a.brand-mark:hover .brand-name { color: var(--accent-hi); }
-.brand-mark svg { width: 26px; height: 26px; flex: none; fill: var(--accent); }
-/* Any image the operator points at, optically matched to the mark. */
-.brand-logo { height: 26px; width: auto; max-width: 120px; object-fit: contain; }
-.brand-name {
-    font-size: var(--fs-lg);
-    font-weight: 600;
-    line-height: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    transition: color var(--dur) var(--ease);
-}
-.brand-version {
-    font-family: var(--font-mono);
-    font-size: var(--fs-2xs);
-    color: var(--text-faint);
-    line-height: 1;
-    white-space: nowrap;
-}
-.brand-contact {
-    font-size: var(--fs-xs);
-    line-height: 1.3;
-    color: var(--text-faint);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.brand-contact a { color: inherit; text-decoration: none; }
-.brand-contact a:hover { color: var(--text-strong); text-decoration: underline; }
-
-/* ── Top bar ──────────────────────────────────────────────────── */
+/* Brand | title | actions: the outer columns share the slack so the
+   title sits on the page's axis. */
 .topbar {
-    position: sticky;
-    top: 0;
-    z-index: calc(var(--z-sticky) - 1);
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     gap: var(--s4);
-    height: var(--topbar-h);
-    padding: 0 var(--s6);
-    background: color-mix(in srgb, var(--bg) 86%, transparent);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--line-soft);
+    margin-bottom: var(--s6);
 }
-h1 {
-    color: var(--text-strong);
-    font-size: var(--fs-2xl);
-    font-weight: 600;
-    letter-spacing: -0.015em;
-    margin: 0 0 var(--s6);
-}
-.page-title {
+.dashboard-title { margin: 0; font-size: 36px; letter-spacing: -0.02em; text-align: center; }
+.topbar-end {
     display: flex;
-    align-items: baseline;
-    gap: var(--s3);
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--s1);
     min-width: 0;
-    margin: 0;
-    font-size: var(--fs-xl);
-    line-height: 1.2;
 }
-.page-title-sub {
-    font-family: var(--font-mono);
-    font-size: var(--fs-md);
-    font-weight: 400;
-    color: var(--text-dim);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+.topbar-actions { display: flex; align-items: center; gap: var(--s1); }
 .search-trigger {
     display: flex;
     align-items: center;
     gap: var(--s2);
-    width: min(360px, 40vw);
-    margin-left: auto;
-    height: 36px;
+    width: 240px;
+    height: 34px;
     padding: 0 var(--s2) 0 var(--s3);
     background: var(--surface);
     border: 1px solid var(--line-soft);
     border-radius: var(--r-md);
     color: var(--text-faint);
     font: inherit;
-    font-size: var(--fs-sm);
+    font-size: var(--fs-xs);
     cursor: pointer;
     transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 .search-trigger:hover { border-color: var(--line); color: var(--text-dim); }
 .search-trigger-icon { width: 16px; height: 16px; flex: none; }
 .search-trigger-label { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.kbd {
-    display: inline-flex;
-    align-items: center;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 5px;
-    border: 1px solid var(--line);
-    border-bottom-width: 2px;
-    border-radius: var(--r-sm);
-    background: var(--raised);
-    color: var(--text-dim);
-    font-family: var(--font-ui);
-    font-size: var(--fs-2xs);
-    line-height: 1;
-    white-space: nowrap;
-}
-
-/* Standalone IP page header: brand left, back link right. */
-.container { max-width: 1400px; margin: 0 auto; padding: var(--s5); }
-.page-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--s4);
-    margin-bottom: var(--s6);
-}
-.page-header-end { display: flex; flex-direction: column; align-items: flex-end; gap: var(--s1); min-width: 0; }
-.btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    height: 32px;
-    padding: 0 var(--s3);
-    border-radius: var(--r-md);
-    background: var(--raised);
-    color: var(--text);
-    font-size: var(--fs-sm);
-    font-weight: 500;
-    text-decoration: none;
-}
-.btn-secondary:hover { background: color-mix(in srgb, var(--raised) 70%, var(--line)); color: var(--text-strong); }
-
-/* ── Summary ledger: three groups on one surface ──────────────────
-   Hostile in danger, trapped in honey, traffic neutral. */
-.ledger {
-    display: grid;
-    grid-template-columns: 1.2fr 1fr 1fr;
-    margin-bottom: var(--s5);
-    background: var(--surface);
-    border-radius: var(--r-panel);
-    box-shadow: var(--panel-edge);
-}
-.ledger-group {
-    display: flex;
-    flex-direction: column;
-    gap: var(--s2);
-    padding: var(--s4) var(--s5);
-    min-width: 0;
-}
-.ledger-group + .ledger-group { border-left: 1px solid var(--line-soft); }
-.ledger-title {
-    display: flex;
-    align-items: center;
-    gap: var(--s2);
-    margin: 0;
-    font-size: var(--fs-sm);
-    font-weight: 500;
-    color: var(--text-dim);
-}
-.ledger-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-.is-hostile .ledger-dot { color: var(--danger); }
-.is-trapped .ledger-dot { color: var(--honey); }
-.ledger-figs { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s6); }
-.ledger-fig { display: flex; flex-direction: column; min-width: 0; }
-.ledger-value {
-    font-family: var(--font-mono);
-    font-size: var(--fs-2xl);
-    font-weight: 500;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-    color: var(--text-strong);
-    font-variant-numeric: tabular-nums;
-}
-.is-hostile .ledger-value { color: var(--danger); }
-.is-trapped .ledger-value { color: var(--honey); }
-.ledger-label { font-size: var(--fs-xs); color: var(--text-dim); }
-
+.search-trigger { margin-right: var(--s2); }
 /* ── ⌘K palette ───────────────────────────────────────────────── */
 .palette {
     position: fixed;
@@ -586,29 +287,287 @@ h1 {
 .palette-keys .kbd { min-width: 0; height: 18px; }
 .palette-results:not(:empty) + .palette-hints { display: none; }
 
-@media (max-width: 960px) {
-    .app, .app.nav-collapsed { padding-left: 0; }
-    .sidebar {
-        width: min(280px, 86vw);
-        transform: translateX(-100%);
-        z-index: var(--z-modal);
-    }
-    .sidebar.is-open { transform: none; box-shadow: var(--shadow-2); }
-    .sidebar-collapse { display: none; }
-    .sidebar-close, .topbar-menu { display: inline-flex; }
-    .sidebar-scrim { position: fixed; inset: 0; z-index: calc(var(--z-modal) - 1); background: var(--scrim); }
-    .topbar { padding: 0 var(--s4); gap: var(--s2); }
-    .content { padding: var(--s4); }
-    .search-trigger { width: auto; flex: none; }
-    .search-trigger-label, .search-trigger .kbd { display: none; }
+
+/* Floats at the top while scrolling: a frosted pill that hugs the tabs.
+   Sits above in-flow layers (map overlays reach 700), below the overlay. */
+.tabbar {
+    position: sticky;
+    top: var(--s2);
+    z-index: calc(var(--z-overlay) - 1);
+    display: flex;
+    align-items: center;
+    gap: var(--s4);
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto var(--s5);
+    padding: var(--s2);
+    background: color-mix(in srgb, var(--surface) 85%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: var(--r-panel);
+    box-shadow: var(--shadow-2);
+    overflow-x: auto;
+    scrollbar-width: none;
 }
-@media (max-width: 760px) {
-    .ledger { grid-template-columns: 1fr; }
-    .ledger-group + .ledger-group { border-left: 0; border-top: 1px solid var(--line-soft); }
-    .ledger-value { font-size: var(--fs-xl); }
+.tabbar::-webkit-scrollbar { display: none; }
+/* Groups (monitor / investigate / respond) split by a hairline. */
+.nav-group { display: flex; align-items: center; gap: var(--s2); flex: none; }
+.nav-group + .nav-group { padding-left: var(--s4); border-left: 1px solid var(--line-soft); }
+.nav-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+    min-height: 34px;
+    padding: 0 var(--s4);
+    border-radius: var(--r-md);
+    color: var(--text-dim);
+    font-size: var(--fs-md);
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    /* Each tab is its own raised key: lit top edge, short shadow beneath. */
+    background: color-mix(in srgb, var(--raised) 70%, var(--surface));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        0 1px 2px rgba(0, 0, 0, 0.45);
+    transition: background var(--dur) var(--ease), color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.nav-item:hover { background: var(--raised); color: var(--text); }
+/* Selected: framed in the tab's own hue (--nav-c, set inline), faint tint. */
+.nav-item.active {
+    background: color-mix(in srgb, var(--nav-c, var(--accent)) 8%, var(--raised));
+    color: var(--text-strong);
+    box-shadow:
+        inset 0 0 0 1px color-mix(in srgb, var(--nav-c, var(--accent)) 45%, transparent),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 1px 2px rgba(0, 0, 0, 0.45);
+}
+/* The panel being filled shows the busy ring; the tab doesn't need one. */
+.tabbar .nav-item.krawl-pending { cursor: pointer; }
+.tabbar .nav-item.krawl-pending::after { content: none; }
+.nav-item.disabled,
+.nav-item.disabled:hover { background: transparent; box-shadow: none; color: var(--text-faint); cursor: default; }
+.nav-icon { width: 16px; height: 16px; flex: none; transition: color var(--dur) var(--ease); }
+.nav-sub {
+    max-width: 16ch;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 400;
+    color: var(--text-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* Live dot on Overview while the live feed polls (map.js toggles .is-live). */
+.nav-live {
+    display: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 22%, transparent);
+    animation: nav-live-pulse 2s ease-in-out infinite;
+}
+.is-live .nav-live { display: block; }
+@keyframes nav-live-pulse { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--ok) 0%, transparent); } }
+
+.rail-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    flex: none;
+    background: transparent;
+    border: 0;
+    border-radius: var(--r-md);
+    color: var(--text-dim);
+    cursor: pointer;
+    text-decoration: none;
+    transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.rail-btn .nav-icon { width: 18px; height: 18px; }
+.rail-btn:hover:not(:disabled) { color: var(--text-strong); background: var(--tint-neutral); }
+.rail-btn.rail-lock:hover { color: var(--warn); }
+/* Locked rather than hidden: the capability stays advertised, the tooltip
+   says how to unlock it. */
+.rail-btn:disabled { color: color-mix(in srgb, var(--text-faint) 60%, transparent); cursor: not-allowed; }
+
+/* ── Brand (dashboard.branding) ───────────────────────────────────
+   The mark carries the weight; version and contact stay muted. */
+.brand { min-width: 0; }
+.brand-mark {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+    min-width: 0;
+    text-decoration: none;
+    color: var(--text-strong);
+}
+a.brand-mark:hover .brand-name { color: var(--accent-hi); }
+.brand-mark svg { width: 26px; height: 26px; flex: none; fill: var(--accent); }
+/* Any image the operator points at, optically matched to the mark. */
+.brand-logo { height: 26px; width: auto; max-width: 120px; object-fit: contain; }
+.brand-name {
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    line-height: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color var(--dur) var(--ease);
+}
+.brand-version {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    color: var(--text-faint);
+    line-height: 1;
+    white-space: nowrap;
+}
+.brand-contact {
+    font-size: var(--fs-xs);
+    line-height: 1.3;
+    color: var(--text-faint);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.brand-contact a { color: inherit; text-decoration: none; }
+.brand-contact a:hover { color: var(--text-strong); text-decoration: underline; }
+
+h1 {
+    color: var(--text-strong);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin: 0 0 var(--s6);
+}
+.kbd {
+    display: inline-flex;
+    align-items: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: var(--r-sm);
+    background: var(--raised);
+    color: var(--text-dim);
+    font-family: var(--font-ui);
+    font-size: var(--fs-2xs);
+    line-height: 1;
+    white-space: nowrap;
+}
+
+/* Standalone IP page header: brand left, back link right. */
+.container { max-width: 1400px; margin: 0 auto; padding: var(--s5); }
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s4);
+    margin-bottom: var(--s6);
+}
+.page-header-end { display: flex; flex-direction: column; align-items: flex-end; gap: var(--s1); min-width: 0; }
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 var(--s3);
+    border-radius: var(--r-md);
+    background: var(--raised);
+    color: var(--text);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    text-decoration: none;
+}
+.btn-secondary:hover { background: color-mix(in srgb, var(--raised) 70%, var(--line)); color: var(--text-strong); }
+
+/* ── Summary tiles: one row of identical cards, figure over label ─
+   --tile-c is the group colour: it draws the border and the figure. */
+.tiles {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-auto-rows: minmax(108px, auto);
+    gap: var(--s5);
+    margin-bottom: var(--s5);
+}
+.tile {
+    --tile-c: var(--accent);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    padding: var(--s4) var(--s3);
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    /* Lifted off the page: lit top edge, close contact shadow, soft drop. */
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 2px 4px rgba(0, 0, 0, 0.45),
+        0 10px 24px -8px rgba(0, 0, 0, 0.7);
+}
+.tile.is-hostile { --tile-c: var(--danger); }
+.tile.is-trapped { --tile-c: var(--honey); }
+.tile.is-defence { --tile-c: var(--ok); }
+.tile.is-hostile,
+.tile.is-trapped,
+.tile.is-defence { border-color: var(--tile-c); }
+.tile-value {
+    max-width: 100%;
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--tile-c);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tile-label { margin-top: var(--s1); font-size: var(--fs-sm); color: var(--text); }
+.tile-sub { max-width: 100%; font-size: var(--fs-2xs); color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* With a pointer, details wait for hover/focus: the figure and label slide
+   up and the detail line opens beneath them. The fixed row height keeps the
+   grid still. Touch screens can't hover, so they keep details visible. */
+@media (hover: hover) {
+    .tile-sub {
+        max-height: 0;
+        opacity: 0;
+        transform: translateY(4px);
+        transition: max-height 0.2s var(--ease), opacity 0.2s var(--ease), transform 0.2s var(--ease);
+    }
+    .tile:hover .tile-sub,
+    .tile:focus-visible .tile-sub { max-height: 1.6em; opacity: 1; transform: none; }
+}
+/* Narrower: four then three; on phones Requests leads a full row and
+   the rest pair up. */
+@media (max-width: 1200px) {
+    .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s4); }
+    .search-trigger { width: auto; }
+    .search-trigger-label { display: none; }
+}
+@media (max-width: 640px) {
+    .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(92px, auto); gap: var(--s3); }
+    .tile:first-child { grid-column: span 2; }
+    .tile-value { font-size: var(--fs-xl); }
+    .tile-label { font-size: var(--fs-xs); }
+    .tile-sub { white-space: normal; }
     .palette { padding-top: var(--s4); }
     .palette-panel { max-height: calc(100vh - 32px); }
     .palette-esc { display: none; }
+}
+
+@media (max-width: 960px) {
+    .topbar { grid-template-columns: minmax(0, 1fr) auto; }
+    .dashboard-title, .brand-contact { display: none; }
+    .content { padding: var(--s4); }
+    .search-trigger { width: auto; margin-right: 0; }
+    .search-trigger-label, .search-trigger .kbd { display: none; }
 }
 .table-container {
     background: var(--surface);
@@ -2872,7 +2831,7 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
 }
 .search-icon {
     position: absolute;
-    left: 18px;
+    left: 14px;
     width: 18px;
     height: 18px;
     color: var(--text-dim);
@@ -2880,23 +2839,19 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
 }
 .search-bar input[type="search"] {
     width: 100%;
-    height: 56px;
-    padding: 0 96px 0 48px;
+    padding: var(--s3) 88px var(--s3) 42px;
     background: transparent;
     border: 0;
-    border-bottom: 1px solid var(--line-soft);
-    color: var(--text-strong);
-    font: inherit;
-    font-size: var(--fs-lg);
+    color: var(--text);
+    font-size: var(--fs-md);
     outline: none;
 }
 .search-bar input[type="search"]::placeholder {
     color: var(--text-faint);
 }
-.search-bar input[type="search"]:focus-visible {
-    outline: none;
-}
 .palette-esc { position: absolute; right: var(--s4); }
+/* In the palette the bar is the panel's header row. */
+.palette .search-bar input[type="search"] { height: 52px; border-bottom: 1px solid var(--line-soft); font-size: var(--fs-lg); }
 .search-bar input[type="search"]::-webkit-search-cancel-button {
     -webkit-appearance: none;
     appearance: none;
@@ -2907,7 +2862,7 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
 }
 .search-spinner {
     position: absolute;
-    right: 64px;
+    right: 56px;
     width: 16px;
     height: 16px;
     padding: 0;
@@ -4130,8 +4085,8 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
     }
 }
 
-/* Secondary columns give way when the sidebar narrows the content. */
-@media (max-width: 1500px) { .col-wide { display: none; } }
+/* Secondary columns give way on narrower screens. */
+@media (max-width: 1280px) { .col-wide { display: none; } }
 
 /* Long tables in the expand overlay keep their headers in view. */
 #expand-overlay-table th {

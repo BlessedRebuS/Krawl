@@ -422,25 +422,13 @@ document.addEventListener('alpine:init', () => {
         // Expand overlay state
         expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false, method: '', attackType: '', attackTypes: [], ipFilter: '', artifactKind: '', artifactValue: '' },
 
-        // Shell: ⌘K search palette, mobile nav drawer, collapsed rail.
+        // ⌘K search palette, opened from the header button.
         palette: { open: false },
-        navOpen: false,
-        navCollapsed: (() => { try { return localStorage.getItem('krawl.navCollapsed') === '1'; } catch { return false; } })(),
         isMac: /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent),
 
-        get pageTitle() {
-            return {
-                'overview': 'Overview', 'attacks': 'Attacks', 'threats': 'Threats',
-                'advanced-search': 'Advanced search', 'ip-insight': 'IP Insight',
-                'tracked-ips': 'Tracked IPs', 'banlist': 'Banlist', 'timedout': 'Timed out',
-                'deception': 'Deception', 'webhooks': 'Webhooks',
-            }[this.tab] || 'Overview';
-        },
-
-        // One entry point for every nav control, so the drawer closes and
-        // protected tabs stay behind auth whichever way they were reached.
+        // One entry point for every nav control, so protected tabs stay
+        // behind auth whichever way they were reached.
         go(tab) {
-            this.navOpen = false;
             const routes = {
                 'overview': () => this.switchToOverview(),
                 'attacks': () => this.switchToAttacks(),
@@ -485,15 +473,7 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
-        toggleNavCollapsed() {
-            this.navCollapsed = !this.navCollapsed;
-            try { localStorage.setItem('krawl.navCollapsed', this.navCollapsed ? '1' : '0'); } catch {}
-            // Leaflet measures its container once; a wider column needs a re-measure.
-            setTimeout(() => window.dispatchEvent(new Event('resize')), 220);
-        },
-
         openPalette() {
-            this.navOpen = false;
             this.palette.open = true;
             // Results collapsed when a result was opened; show them again.
             const results = document.querySelector('#search-results-container .search-results');
@@ -550,7 +530,6 @@ document.addEventListener('alpine:init', () => {
             this._bindShortcuts();
             document.addEventListener('keydown', (e) => {
                 if (e.key !== 'Escape') return;
-                if (this.navOpen) { this.navOpen = false; return; }
                 if (!this._popupStack.length) return;
                 const top = this._popupStack[this._popupStack.length - 1];
                 if (top === 'palette') this.closePalette();
