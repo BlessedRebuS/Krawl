@@ -1,6 +1,7 @@
 {# Shared IP detail content – included by ip.html and ip_insight.html.
    Expects: stats, ip_address, dashboard_path, uid (unique prefix for element IDs) #}
 
+{% from "dashboard/partials/_icons.html" import icon %}
 {# Page header #}
 <div class="ip-page-header">
     <div class="ip-page-header-row">
@@ -12,31 +13,37 @@
             </span>
             {% endif %}
         </h1>
-        {# Ban/Unban + Track/Untrack actions — visible only when authenticated #}
-        <span class="ip-ban-actions">
-            {% if stats.category and stats.category | lower == 'attacker' %}
-            <button class="ban-icon-btn ban-icon-unban" onclick="ipBanAction('{{ ip_address | e }}', 'unban')" title="Unban">
-                <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M7.467.133a1.748 1.748 0 0 1 1.066 0l5.25 1.68A1.75 1.75 0 0 1 15 3.48V7c0 1.566-.32 3.182-1.303 4.682-.983 1.498-2.585 2.813-5.032 3.855a1.7 1.7 0 0 1-1.33 0c-2.447-1.042-4.049-2.357-5.032-3.855C1.32 10.182 1 8.566 1 7V3.48a1.75 1.75 0 0 1 1.217-1.667Zm.61 1.429a.25.25 0 0 0-.153 0l-5.25 1.68a.25.25 0 0 0-.174.238V7c0 1.358.275 2.666 1.057 3.86.784 1.194 2.121 2.34 4.366 3.297a.2.2 0 0 0 .154 0c2.245-.956 3.582-2.104 4.366-3.298C13.225 9.666 13.5 8.36 13.5 7V3.48a.25.25 0 0 0-.174-.237l-5.25-1.68ZM8.75 4.75v3a.75.75 0 0 1-1.5 0v-3a.75.75 0 0 1 1.5 0ZM9 10.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>
-                <span class="ban-icon-tooltip">Unban</span>
+        {# Ban + track. Always shown, so a logged-out visitor learns these
+           exist; when locked, pressing one asks for the password first.
+           On the banlist means: forced on, or an attacker nobody exempted. #}
+        {% set is_attacker = (stats.category or '') | lower == 'attacker' %}
+        {% set on_banlist = stats.ban_override == true or (stats.ban_override is none and is_attacker) %}
+        <div class="ip-ban-actions">
+            <span class="ban-state{% if on_banlist %} is-banned{% endif %}">
+                {%- if on_banlist %}On banlist{% if stats.ban_override == true %} (manual){% endif %}
+                {%- elif stats.ban_override == false %}Exempt from banlist
+                {%- else %}Not banned{% endif -%}
+            </span>
+            {% if on_banlist %}
+            <button type="button" class="ip-action" onclick="ipBanAction('{{ ip_address | e }}', 'unban')">
+                {{ icon('shield') }}Remove from banlist
             </button>
             {% else %}
-            <button class="ban-icon-btn ban-icon-ban" onclick="ipBanAction('{{ ip_address | e }}', 'ban')" title="Add to banlist">
-                <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.28 6.78a.75.75 0 0 0-1.06-1.06L8.75 7.19 6.31 4.75l1.47-1.47a.75.75 0 0 0-1.06-1.06L2.47 6.47a.75.75 0 0 0 1.06 1.06L5 6.06l2.44 2.44-4.72 4.72a.75.75 0 1 0 1.06 1.06l4.72-4.72L11 12l-1.47 1.47a.75.75 0 1 0 1.06 1.06l4.25-4.25a.75.75 0 0 0-1.06-1.06L12.31 10.7 9.87 8.25l1.41-1.47Z"/></svg>
-                <span class="ban-icon-tooltip">Add to banlist</span>
+            <button type="button" class="ip-action ip-action-danger" onclick="ipBanAction('{{ ip_address | e }}', 'ban')">
+                {{ icon('ban') }}Add to banlist
             </button>
             {% endif %}
             {% if is_tracked %}
-            <button class="ban-icon-btn track-icon-untrack" onclick="ipTrackAction('{{ ip_address | e }}', 'untrack')" title="Untrack IP">
-                <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M.143 2.31a.75.75 0 0 1 1.047-.167l14.5 10.5a.75.75 0 1 1-.88 1.214l-2.248-1.628C11.346 13.19 9.792 14 8 14c-1.981 0-3.67-.992-4.933-2.078C1.797 10.832.88 9.577.43 8.9a1.62 1.62 0 0 1 0-1.797c.353-.533.995-1.42 1.868-2.305L.31 3.357A.75.75 0 0 1 .143 2.31Zm1.536 5.622A.12.12 0 0 0 1.657 8c0 .021.006.045.022.068.412.621 1.242 1.75 2.366 2.717C5.175 11.758 6.527 12.5 8 12.5c1.195 0 2.31-.488 3.29-1.191L9.063 9.695A2.5 2.5 0 0 1 5.2 6.821ZM8 3.5c-.516 0-1.017.09-1.499.251a.75.75 0 1 1-.473-1.423A6.23 6.23 0 0 1 8 2c1.981 0 3.67.992 4.933 2.078 1.27 1.09 2.187 2.345 2.637 3.022a1.62 1.62 0 0 1 0 1.8c-.11.166-.248.365-.41.587a.75.75 0 1 1-1.21-.887c.148-.201.272-.382.371-.53a.119.119 0 0 0 0-.137c-.412-.621-1.242-1.75-2.366-2.717C10.825 4.242 9.473 3.5 8 3.5Z"/></svg>
-                <span class="ban-icon-tooltip">Untrack</span>
+            <button type="button" class="ip-action" onclick="ipTrackAction('{{ ip_address | e }}', 'untrack')">
+                {{ icon('eye-off') }}Stop tracking
             </button>
             {% else %}
-            <button class="ban-icon-btn track-icon-track" onclick="ipTrackAction('{{ ip_address | e }}', 'track')" title="Track IP">
-                <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2c1.981 0 3.671.992 4.933 2.078 1.27 1.091 2.187 2.345 2.637 3.023a1.62 1.62 0 0 1 0 1.798c-.45.678-1.367 1.932-2.637 3.023C11.67 13.008 9.981 14 8 14c-1.981 0-3.671-.992-4.933-2.078C1.797 10.83.88 9.576.43 8.898a1.62 1.62 0 0 1 0-1.798c.45-.677 1.367-1.931 2.637-3.022C4.33 2.992 6.019 2 8 2ZM1.679 7.932a.12.12 0 0 0 0 .136c.411.622 1.241 1.75 2.366 2.717C5.176 11.758 6.527 12.5 8 12.5c1.473 0 2.825-.742 3.955-1.715 1.124-.967 1.954-2.096 2.366-2.717a.12.12 0 0 0 0-.136c-.412-.621-1.242-1.75-2.366-2.717C10.824 4.242 9.473 3.5 8 3.5c-1.473 0-2.825.742-3.955 1.715-1.124.967-1.954 2.096-2.366 2.717ZM8 10a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 10Z"/></svg>
-                <span class="ban-icon-tooltip">Track</span>
+            <button type="button" class="ip-action" onclick="ipTrackAction('{{ ip_address | e }}', 'track')">
+                {{ icon('eye') }}Track
             </button>
             {% endif %}
-        </span>
+            <span class="ip-actions-lock">{{ icon('lock') }}Log in to act</span>
+        </div>
     </div>
     {% if stats.city or stats.country %}
     <p class="ip-location-subtitle">

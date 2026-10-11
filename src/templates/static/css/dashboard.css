@@ -4089,7 +4089,86 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
 }
 
 /* Hooks that carry behaviour, styled here rather than inline. */
-.ip-ban-actions { display: none; gap: var(--s1); }
+/* IP Insight actions: the ban state in words, then labelled buttons. The
+   state chip is the source of truth; the buttons only offer the change. */
+.ip-ban-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--s2);
+}
+.ban-state {
+    padding: 3px var(--s2);
+    border-radius: var(--r-sm);
+    background: var(--tint-neutral);
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+}
+.ban-state.is-banned { background: var(--tint-danger); color: var(--danger); }
+.ip-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 var(--s3);
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    color: var(--text);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.ip-action .nav-icon { width: var(--icon); height: var(--icon); flex: none; }
+.ip-action:hover { background: color-mix(in srgb, var(--raised) 60%, var(--line)); color: var(--text-strong); }
+.ip-action-danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 35%, transparent); }
+.ip-action-danger:hover { background: var(--tint-danger); color: var(--danger); }
+.ip-actions-lock {
+    display: none;
+    align-items: center;
+    gap: var(--s1);
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+}
+.ip-actions-lock .nav-icon { width: 14px; height: 14px; }
+.ip-ban-actions.is-locked .ip-actions-lock { display: inline-flex; }
+.ip-ban-actions.is-locked .ip-action { color: var(--text-dim); border-color: var(--line-soft); }
+@media (max-width: 720px) {
+    .ip-page-header-row { flex-direction: column; align-items: flex-start; }
+    .ip-ban-actions { justify-content: flex-start; }
+}
+
+/* Routine confirmations: a short note bottom-right that leaves the page usable. */
+.krawl-toasts {
+    position: fixed;
+    right: var(--s4);
+    bottom: var(--s4);
+    z-index: var(--z-alert);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s2);
+    pointer-events: none;
+}
+.krawl-toast {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+    max-width: min(360px, calc(100vw - 2 * var(--s4)));
+    padding: var(--s3) var(--s4);
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-2);
+    color: var(--text-strong);
+    font-size: var(--fs-sm);
+    animation: toast-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.krawl-toast svg { width: 18px; height: 18px; flex: none; fill: var(--ok); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(6px); } }
+.krawl-modal-note { display: block; margin-top: var(--s2); color: var(--text-dim); font-size: var(--fs-sm); }
 .banlist-sources-hint {
     position: relative;
     display: inline-flex;

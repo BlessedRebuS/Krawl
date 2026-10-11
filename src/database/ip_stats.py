@@ -241,6 +241,11 @@ class IpStatsRepo:
         try:
             session.commit()
             _publish_ban_change(sanitized_ip, banned=override is True)
+            # IP Insight reads ban state through this cache; drop it so the
+            # page reloaded after the action shows the new state.
+            from dashboard_cache import delete_cached_short
+
+            delete_cached_short(f"ipstats:{sanitized_ip}")
             return True
         except Exception as e:
             session.rollback()
@@ -858,6 +863,7 @@ class IpStatsRepo:
                 "category": stat.category,
                 "category_scores": stat.category_scores or {},
                 "manual_category": stat.manual_category,
+                "ban_override": stat.ban_override,
                 "last_analysis": (
                     stat.last_analysis.isoformat() if stat.last_analysis else None
                 ),

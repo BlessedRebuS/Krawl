@@ -2021,33 +2021,68 @@ window.krawlModal = {
         return new Promise(resolve => {
             const overlay = document.createElement('div');
             overlay.className = 'krawl-modal-overlay';
+            const opener = document.activeElement;
             overlay.innerHTML = `
-                <div class="krawl-modal-box">
+                <div class="krawl-modal-box" role="alertdialog" aria-modal="true" aria-describedby="krawl-modal-message">
                     <div class="krawl-modal-icon ${iconClass}">
                         ${KRAWL_ICONS[icon]}
                     </div>
-                    <div class="krawl-modal-message">${message}</div>
+                    <div class="krawl-modal-message" id="krawl-modal-message">${message}</div>
                     <div class="krawl-modal-actions" id="krawl-modal-actions"></div>
                 </div>`;
             const actions = overlay.querySelector('#krawl-modal-actions');
+            // Escape and a click outside both mean "no"; focus goes back to
+            // the control that opened the dialog.
+            const close = (value) => {
+                document.removeEventListener('keydown', onKey, true);
+                overlay.remove();
+                if (opener && typeof opener.focus === 'function') opener.focus();
+                resolve(value);
+            };
+            const onKey = (e) => {
+                if (e.key === 'Escape') { e.stopPropagation(); close(false); }
+            };
             buttons.forEach(btn => {
                 const el = document.createElement('button');
+                el.type = 'button';
                 el.className = `auth-modal-btn ${btn.cls}`;
                 el.textContent = btn.label;
-                el.onclick = () => { overlay.remove(); resolve(btn.value); };
+                el.onclick = () => close(btn.value);
                 actions.appendChild(el);
             });
             overlay.addEventListener('click', e => {
-                if (e.target === overlay) { overlay.remove(); resolve(false); }
+                if (e.target === overlay) close(false);
             });
+            document.addEventListener('keydown', onKey, true);
             document.body.appendChild(overlay);
+            // Focus the safe choice: Enter on a confirm cancels unless the
+            // user moves to the action on purpose.
+            actions.firstElementChild?.focus();
         });
     },
-    confirm(message) {
+    // `confirmLabel` names the action ("Add to banlist"), never a bare "Confirm".
+    confirm(message, confirmLabel = 'Confirm') {
         return this._create('alert', 'krawl-modal-icon-warn', message, [
             { label: 'Cancel', cls: 'auth-modal-btn-cancel', value: false },
-            { label: 'Confirm', cls: 'auth-modal-btn-submit', value: true },
+            { label: confirmLabel, cls: 'auth-modal-btn-submit', value: true },
         ]);
+    },
+    // Routine success: a short note that leaves the page usable, not a dialog.
+    toast(message) {
+        let region = document.getElementById('krawl-toasts');
+        if (!region) {
+            region = document.createElement('div');
+            region.id = 'krawl-toasts';
+            region.className = 'krawl-toasts';
+            region.setAttribute('role', 'status');
+            region.setAttribute('aria-live', 'polite');
+            document.body.appendChild(region);
+        }
+        const note = document.createElement('div');
+        note.className = 'krawl-toast';
+        note.innerHTML = `${KRAWL_ICONS.check}<span>${message}</span>`;
+        region.appendChild(note);
+        setTimeout(() => note.remove(), 4000);
     },
     success(message) {
         return this._create('check', 'krawl-modal-icon-success', message, [
@@ -2061,17 +2096,47 @@ window.krawlModal = {
     },
 };
 
-// Global ban action for IP insight page (auth-gated)
+// Ban copy says what changes, not just "are you sure". The banlist is what
+// exports and firewall webhooks read, so that is the consequence to name.
+const BAN_ACTIONS = {
+    ban: {
+        ask: ip => `Add <strong>${ip}</strong> to the banlist?<br><span class="krawl-modal-note">Banlist exports and firewall webhooks will include it until you remove it.</span>`,
+        button: 'Add to banlist',
+        done: ip => `${ip} added to the banlist`,
+    },
+    unban: {
+        ask: ip => `Remove <strong>${ip}</strong> from the banlist?<br><span class="krawl-modal-note">It keeps its category, but exports and firewall webhooks will leave it out.</span>`,
+        button: 'Remove from banlist',
+        done: ip => `${ip} removed from the banlist`,
+    },
+    reset: {
+        ask: ip => `Return <strong>${ip}</strong> to automatic banning?<br><span class="krawl-modal-note">Its category will decide again whether it is on the banlist.</span>`,
+        button: 'Return to automatic',
+        done: ip => `${ip} is back to automatic banning`,
+    },
+};
+
+// Reload the open IP Insight page so its ban/track state matches the server.
+function refreshIpInsight(ip) {
+    const data = getAlpineData('[x-data="dashboardApp()"]');
+    if (!data || data.tab !== 'ip-insight' || data.insightIp !== ip) return;
+    htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/ip-insight/${encodeURIComponent(ip)}`, {
+        target: '#ip-insight-htmx-container',
+        swap: 'innerHTML'
+    });
+}
+
+// Global ban action for IP insight page and banlist tables (auth-gated)
 window.ipBanAction = async function(ip, action) {
-    // Check if authenticated
     const data = getAlpineData('[x-data="dashboardApp()"]');
     if (!data || !data.authenticated) {
         if (data && typeof data.promptAuth === 'function') data.promptAuth();
         return;
     }
+    const copy = BAN_ACTIONS[action];
+    if (!copy) return;
     const safeIp = escapeHtml(ip);
-    const safeAction = escapeHtml(action);
-    const confirmed = await krawlModal.confirm(`Are you sure you want to ${safeAction} IP <strong>${safeIp}</strong>?`);
+    const confirmed = await krawlModal.confirm(copy.ask(safeIp), copy.button);
     if (!confirmed) return;
     try {
         const resp = await fetch(`${window.__DASHBOARD_PATH__}/api/ban-override`, {
@@ -2082,7 +2147,8 @@ window.ipBanAction = async function(ip, action) {
         });
         const result = await resp.json().catch(() => ({}));
         if (resp.ok) {
-            krawlModal.success(escapeHtml(result.message || `${action} successful for ${ip}`));
+            krawlModal.toast(copy.done(safeIp));
+            refreshIpInsight(ip);
             const overrides = document.getElementById('overrides-container');
             if (overrides) {
                 htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/ban/overrides?page=1`, {
@@ -2091,10 +2157,10 @@ window.ipBanAction = async function(ip, action) {
                 });
             }
         } else {
-            krawlModal.error(escapeHtml(result.error || `Failed to ${action} IP ${ip}`));
+            krawlModal.error(escapeHtml(result.error || `Could not update the banlist for ${ip}. Try again.`));
         }
     } catch {
-        krawlModal.error('Request failed');
+        krawlModal.error('Krawl did not respond, so the banlist was not changed. Check the connection and try again.');
     }
 };
 
@@ -2185,9 +2251,14 @@ window.ipTrackAction = async function(ip, action) {
         return;
     }
     const safeIp = escapeHtml(ip);
-    const label = action === 'track' ? 'track' : 'untrack';
-    const confirmed = await krawlModal.confirm(`Are you sure you want to ${label} IP <strong>${safeIp}</strong>?`);
-    if (!confirmed) return;
+    const tracking = action === 'track';
+    // Tracking is harmless and reversible, so it skips the confirm step.
+    if (!tracking) {
+        const confirmed = await krawlModal.confirm(
+            `Stop tracking <strong>${safeIp}</strong>?<br><span class="krawl-modal-note">It leaves the Tracked IPs list. Its history stays.</span>`,
+            'Stop tracking');
+        if (!confirmed) return;
+    }
     try {
         const resp = await fetch(`${window.__DASHBOARD_PATH__}/api/track-ip`, {
             method: 'POST',
@@ -2197,7 +2268,8 @@ window.ipTrackAction = async function(ip, action) {
         });
         const result = await resp.json().catch(() => ({}));
         if (resp.ok) {
-            krawlModal.success(escapeHtml(result.message || `${label} successful for ${ip}`));
+            krawlModal.toast(tracking ? `Tracking ${safeIp}` : `Stopped tracking ${safeIp}`);
+            refreshIpInsight(ip);
             // Refresh tracked IPs list if visible
             const container = document.getElementById('tracked-ips-container');
             if (container && typeof htmx !== 'undefined') {
@@ -2207,17 +2279,19 @@ window.ipTrackAction = async function(ip, action) {
                 });
             }
         } else {
-            krawlModal.error(escapeHtml(result.error || `Failed to ${label} IP ${ip}`));
+            krawlModal.error(escapeHtml(result.error || `Could not ${tracking ? 'track' : 'untrack'} ${ip}. Try again.`));
         }
     } catch {
-        krawlModal.error('Request failed');
+        krawlModal.error('Krawl did not respond, so nothing changed. Check the connection and try again.');
     }
 };
 
 // Show/hide ban action buttons based on auth state
+// Logged out, the actions stay visible but locked: pressing one asks for the
+// password instead of hiding that banning and tracking exist at all.
 function updateBanActionVisibility(authenticated) {
     document.querySelectorAll('.ip-ban-actions').forEach(el => {
-        el.style.display = authenticated ? 'inline-flex' : 'none';
+        el.classList.toggle('is-locked', !authenticated);
     });
 }
 // Update visibility after HTMX swaps in new content
