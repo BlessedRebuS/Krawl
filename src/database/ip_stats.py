@@ -886,6 +886,21 @@ class IpStatsRepo:
         finally:
             self._db.close_session()
 
+    def count_by_category(self) -> dict[str | None, int]:
+        """IPs per category in one pass, instead of one COUNT per category."""
+        session = self._db.session
+        try:
+            return dict(
+                session.query(IpStats.category, func.count())
+                .group_by(IpStats.category)
+                .all()
+            )
+        except Exception as e:
+            applogger.error(f"Error counting categories: {e}")
+            return {}
+        finally:
+            self._db.close_session()
+
     def count_category_seen_since(self, category: str, since: datetime) -> int:
         """Count IPs in a category whose last request is at or after ``since``."""
         session = self._db.session
