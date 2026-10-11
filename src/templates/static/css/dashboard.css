@@ -1070,8 +1070,10 @@ tbody {
     row-gap: var(--s1);
 }
 .badge-row .method-badge {
-    font-size: 0.8em;
-    padding: 1px 6px;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0;
+    padding: 1px 8px;
 }
 /* A diff of 0 is a byte-identical replay — the strongest campaign signal, so it
    reads as a warning, not an "all clear". */
@@ -4608,7 +4610,7 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
     .activity-row > .activity-name { grid-column: 1 / -1; }
     .activity-head > span:first-child { display: none; }
     .activity-strip { grid-column: 1; }
-    .activity-axis > span { font-size: 9px; }
+    .activity-axis > span { font-size: var(--fs-2xs); }
     .activity-legend-key { margin-left: 0; flex-basis: 100%; margin-top: var(--s1); }
     .activity-legend .atk-tag { margin-left: 0; margin-right: var(--s2); }
     .panel-search { width: 100%; }

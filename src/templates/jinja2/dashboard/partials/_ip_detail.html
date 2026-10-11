@@ -144,10 +144,27 @@
                 <div class="ip-rep-row">
                     <span class="ip-rep-label">Listed On</span>
                     {% if stats.blocklist_memberships %}
+                    {# Feed keys arrive as "feed__attribute" (stopforumspam__last_seen,
+                       stopforumspam__frequency...). One chip per feed, not per key,
+                       and the long tail folds away. #}
+                    {% set feeds = [] %}
+                    {% for bl in stats.blocklist_memberships %}
+                        {% set feed = (bl | string).split('__')[0] %}
+                        {% if feed not in feeds %}{% set _ = feeds.append(feed) %}{% endif %}
+                    {% endfor %}
                     <div class="ip-rep-tags">
-                        {% for bl in stats.blocklist_memberships %}
-                        <span class="reputation-badge">{{ bl | e }}</span>
+                        <span class="ip-rep-summary">{{ feeds | length }} {{ 'feed' if feeds | length == 1 else 'feeds' }}</span>
+                        {% for feed in feeds[:6] %}
+                        <span class="reputation-badge">{{ feed | replace('_', ' ') | e }}</span>
                         {% endfor %}
+                        {% if feeds | length > 6 %}
+                        <details class="ip-rep-more">
+                            <summary>{{ feeds | length - 6 }} more</summary>
+                            {% for feed in feeds[6:] %}
+                            <span class="reputation-badge">{{ feed | replace('_', ' ') | e }}</span>
+                            {% endfor %}
+                        </details>
+                        {% endif %}
                     </div>
                     {% else %}
                     <span class="reputation-clean">Clean</span>

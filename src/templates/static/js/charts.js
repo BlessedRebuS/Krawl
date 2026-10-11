@@ -38,7 +38,7 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
         const attackTypes = data.attack_types || [];
 
         if (attackTypes.length === 0) {
-            canvas.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-dim);font-size:13px;">No attack data</div>';
+            canvas.parentElement.innerHTML = '<div class="chart-empty">No attacks detected for this IP yet.</div>';
             return;
         }
 
@@ -56,7 +56,7 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
         const chartInstance = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: labels,
+                labels: labels.map(krawlAttackLabel),
                 datasets: [{
                     data: counts,
                     backgroundColor: backgroundColors,
@@ -77,8 +77,7 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
                             color: krawlToken('--text'),
                             font: {
                                 size: 12,
-                                weight: '500',
-                                family: "'Segoe UI', Tahoma, Geneva, Verdana"
+                                weight: '500'
                             },
                             padding: 16,
                             usePointStyle: true,
@@ -229,7 +228,7 @@ async function loadAttackTrendsChart(canvasId) {
         });
 
         const datasets = attackTypes.map(at => ({
-            label: `${at.type} (${at.total})`,
+            label: `${krawlAttackLabel(at.type)} (${at.total})`,
             data: at.daily,
             borderColor: krawlAttackColor(at.type),
             backgroundColor: krawlAttackColor(at.type, 0.05),
@@ -536,7 +535,7 @@ function _renderCampaignActivity(data) {
         // by count); file-only campaigns stay in the neutral bucket.
         const hue = _atkStyle(types.length ? types[0] : 'other');
         const typeList = types.slice(0, 3).map(t =>
-            `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t)}"></span>${_escapeHtml(t.replace(/_/g, ' '))}</span>`
+            `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t)}"></span>${_escapeHtml(krawlAttackLabel(t))}</span>`
         ).join('') + (types.length > 3 ? `<span class="atk-tag">+${types.length - 3}</span>` : '');
         const cells = c.activity.map((n, i) =>
             `<span class="activity-cell shade-${_campaignShade(n, max)}${future[i] ? ' is-future' : ''}" data-row="${row}" data-slot="${i}"></span>`
@@ -562,7 +561,7 @@ function _renderCampaignActivity(data) {
         `<span class="activity-legend" aria-hidden="true"><span>Fewer hits</span>` +
         Array.from({ length: CAMPAIGN_SHADES }, (_, i) => `<span class="activity-cell shade-${i + 1}"></span>`).join('') +
         `<span>More</span><span class="activity-legend-key">Row colour is the main attack type:</span>` +
-        shown.map(t => `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t)}"></span>${_escapeHtml(t === 'other' ? 'probes, uploads, other' : t.replace(/_/g, ' '))}</span>`).join('') +
+        shown.map(t => `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t)}"></span>${_escapeHtml(t === 'other' ? 'Probes, uploads, other' : krawlAttackLabel(t))}</span>`).join('') +
         `</span>` +
         `<span class="activity-rows"><span class="activity-rows-label">${campaigns.length} of ${data.total_campaigns} shown</span>` +
         `<span class="row gap-1" role="group" aria-label="Campaigns shown">` +
@@ -620,7 +619,7 @@ function _bindCampaignActivity() {
         tip.innerHTML =
             `<div class="activity-tooltip-title">${_escapeHtml(_campaignSlotText(data.slots[i], data.slot_hours))}</div>` +
             `<div class="data-mono">${_escapeHtml(_middleEllipsis(_campaignName(c), 56))}</div>` +
-            ((c.attack_types || []).length ? `<div class="activity-tooltip-title">${_escapeHtml(c.attack_types.join(', ').replace(/_/g, ' '))}</div>` : '') +
+            ((c.attack_types || []).length ? `<div class="activity-tooltip-title">${_escapeHtml(c.attack_types.map(krawlAttackLabel).join(', '))}</div>` : '') +
             `<div><strong>${n.toLocaleString()}</strong> ${n === 1 ? 'hit' : 'hits'}</div>`;
         tip.hidden = false;
         const host = tip.offsetParent || grid;

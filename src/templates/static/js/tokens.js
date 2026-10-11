@@ -26,6 +26,20 @@ function krawlAttackColor(type, alpha) {
     return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`;
 }
 
+// Detector ids as people say them; mirrors the attack_label Jinja filter.
+const KRAWL_ATTACK_LABELS = {
+    sql_injection: 'SQL injection', command_injection: 'Command injection',
+    ldap_injection: 'LDAP injection', xxe_injection: 'XXE injection',
+    xss_attempt: 'XSS attempt', lfi_rfi: 'LFI / RFI', path_traversal: 'Path traversal',
+    login_attempt: 'Login attempt', common_probes: 'Common probes',
+};
+function krawlAttackLabel(type) {
+    const key = String(type || '').trim().toLowerCase();
+    if (KRAWL_ATTACK_LABELS[key]) return KRAWL_ATTACK_LABELS[key];
+    const words = key.replace(/[_-]/g, ' ');
+    return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 // Charts set their text in the UI face. Chart.js is a deferred script and
 // this file is not, so apply the default once deferred scripts have run.
 document.addEventListener('DOMContentLoaded', () => {

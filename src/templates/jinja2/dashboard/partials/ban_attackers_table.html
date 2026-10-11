@@ -31,7 +31,7 @@
         <tr>
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
             <td>{{ ip.ip | e }}</td>
-            <td>{{ ip.total_requests }}</td>
+            <td>{{ ip.total_requests | num }}</td>
             <td><span class="category-badge category-{{ ip.category | default('unknown') | replace('_', '-') }}">{{ ip.category | default('unknown') | replace('_', ' ') | title }}</span></td>
             <td>{{ ip.city | default('') | e }}{% if ip.city and ip.country_code %}, {% endif %}{{ ip.country_code | default('N/A') | e }}</td>
             <td class="ts-cell">{{ ip.last_seen | format_ts }}</td>
