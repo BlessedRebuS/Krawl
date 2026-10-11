@@ -859,8 +859,7 @@ async function _initializeAttackerMap() {
         // Retry a request that failed during initial page load. The Leaflet
         // instance remains intact, so recovery does not require a reload.
         if (!mapDataLoaded) {
-            const activeBtn = document.querySelector('#map-limit-selector .map-limit-btn.active');
-            const limit = activeBtn ? activeBtn.dataset.value : '1000';
+            const limit = _getMapLimit();
             try {
                 await fetchAndBuildMap(limit, _getMapSortBy());
                 mapDataLoaded = true;
@@ -910,8 +909,7 @@ async function _initializeAttackerMap() {
         // Leaflet solve it beats a hardcoded value that only suits one width.
         attackerMap.fitBounds(INHABITED_BOUNDS, { animate: false, padding: [0, 0] });
 
-        const activeBtn = document.querySelector('#map-limit-selector .map-limit-btn.active');
-        const limit = activeBtn ? activeBtn.dataset.value : '1000';
+        const limit = _getMapLimit();
 
         await fetchAndBuildMap(limit, _getMapSortBy());
         mapDataLoaded = true;
@@ -956,11 +954,15 @@ async function reloadMapWithLimit(limit) {
     }
 }
 
+// How many IPs the map draws: the toolbar's "Show" select.
+function _getMapLimit() {
+    const select = document.getElementById('map-limit-select');
+    return select ? select.value : '1000';
+}
+
 async function reloadMapWithSort() {
     if (!attackerMap) return;
-    const activeBtn = document.querySelector('#map-limit-selector .map-limit-btn.active');
-    const limit = activeBtn ? activeBtn.dataset.value : '1000';
-    await reloadMapWithLimit(limit);
+    await reloadMapWithLimit(_getMapLimit());
 }
 
 // Update map filters based on checkbox selection

@@ -443,6 +443,29 @@ document.addEventListener('alpine:init', () => {
             };
             (routes[tab] || routes.overview)();
             window.scrollTo({ top: 0 });
+            this._revealActiveTab();
+        },
+
+        // On a phone the tab strip scrolls sideways. Keep the active tab in
+        // view, and fade whichever edge still hides tabs so the strip reads
+        // as scrollable rather than cut off.
+        _revealActiveTab() {
+            this.$nextTick(() => {
+                const active = document.querySelector('.tabbar .nav-item.active');
+                if (active) active.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+            });
+        },
+        _bindTabbarEdges() {
+            const bar = document.querySelector('.tabbar');
+            if (!bar) return;
+            const edges = () => {
+                bar.classList.toggle('more-left', bar.scrollLeft > 4);
+                bar.classList.toggle('more-right', bar.scrollLeft + bar.clientWidth < bar.scrollWidth - 4);
+            };
+            bar.addEventListener('scroll', edges, { passive: true });
+            window.addEventListener('resize', edges);
+            this.$watch('authenticated', () => this.$nextTick(edges));
+            edges();
         },
 
         // ⌘K / Ctrl K or / opens search; "g" then a letter jumps to a tab.
@@ -528,6 +551,7 @@ document.addEventListener('alpine:init', () => {
             this.$watch('expandOverlay.show', (show) => { if (show) this.palette.open = false; });
             this.$watch('tab', () => { this.palette.open = false; });
             this._bindShortcuts();
+            this._bindTabbarEdges();
             document.addEventListener('keydown', (e) => {
                 if (e.key !== 'Escape') return;
                 if (!this._popupStack.length) return;
