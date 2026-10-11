@@ -233,10 +233,21 @@ async def htmx_honeypot(
 async def htmx_attention(request: Request, full: bool = Query(False)):
     """Overview side panel: attackers active in the last 24 hours. `full`
     is the expanded view: more attackers, every column."""
-    db = get_db()
-    summary = await asyncio.to_thread(
-        db.ip_stats.get_attention_summary, limit=100 if full else 6
+    limit = 100 if full else 6
+    # The warmup task refreshes this every 5 minutes; on a big database the
+    # live query walks every IP seen in the last day, so never run it per view.
+    summary = (
+        get_cached("attention")
+        if get_config().dashboard_cache_warmup and is_warm()
+        else None
     )
+    if summary:
+        summary = {**summary, "attackers": summary["attackers"][:limit]}
+    else:
+        db = get_db()
+        summary = await asyncio.to_thread(
+            db.ip_stats.get_attention_summary, limit=limit
+        )
     templates = get_templates()
     return templates.TemplateResponse(
         request,

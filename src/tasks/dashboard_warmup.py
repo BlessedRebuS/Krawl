@@ -334,6 +334,13 @@ def main():
             key_fmt="filenames:{p}",
         )
 
+        # Last-24-hours panel: the expanded view's 100 rows; the collapsed
+        # panel slices the first few from the same entry.
+        attention = _timed(
+            "get_attention_summary",
+            lambda: db.ip_stats.get_attention_summary(limit=100),
+        )
+
         # Derive credential count from the bulk credentials result
         stats["credential_count"] = credentials_bulk.get("pagination", {}).get(
             "total", 0
@@ -347,6 +354,7 @@ def main():
             set_cached("top_ua", top_ua)
             set_cached("top_paths", top_paths)
         set_cached("map_ips", map_ips)
+        set_cached("attention", attention)
 
         # Attack trends cache (used by API endpoint)
         set_cached_table("api:attack_daily:10:7:0", attack_trends)
