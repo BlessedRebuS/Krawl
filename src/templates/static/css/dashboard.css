@@ -8,6 +8,12 @@
 
    Panels separate by tone, not outlines; hairlines are for rows and overlays.
 
+   Colour comes from the logo: a black spider in plum with a gold eye.
+   Neutrals carry a trace of that plum (OKLCH hue 330, chroma ~0.01), the
+   interactive accent is the plum lifted for a dark canvas, and gold is
+   honey. Nothing interactive shares a hue with a threat category, so a
+   link never reads as "regular user".
+
    Threat category is the spine. The same five categories appear in
    tables, the map, the radar chart and the charts, so their colors are
    tokens, not literals. Everything else stays quiet.
@@ -15,26 +21,31 @@
 
 :root {
     /* ── Surfaces ─────────────────────────────────────────────── */
-    --bg: #0b0f15;
-    --surface: #121822;
-    --raised: #1a2230;
-    --sunken: #070a0f;
-    --line: #212c3b;
-    --line-soft: #19222e;
+    --bg: #110d10;
+    --surface: #191419;
+    --raised: #221c22;
+    --sunken: #0a070a;
+    --line: #342c33;
+    --line-soft: #261f25;
     /* A panel's only edge: a faint top highlight, no outline. */
     --panel-edge: inset 0 1px 0 rgba(255, 255, 255, 0.035);
-    --scrim: rgba(4, 7, 11, 0.72);
+    --scrim: rgba(8, 5, 8, 0.74);
 
     /* ── Text ─────────────────────────────────────────────────── */
-    --text: #dde5f0;
-    --text-strong: #f2f7ff;
-    --text-dim: #8b9bb0;
-    --text-faint: #5d6b7d;
-    --text-on-solid: #06090e;
+    --text: #e9e4e9;
+    --text-strong: #f8f6f8;
+    --text-dim: #a89ca6;
+    /* Lowest text tier still clears WCAG AA (4.8:1 on --raised, the worst case). */
+    --text-faint: #928690;
+    --text-on-solid: #0a070a;
 
     /* ── Brand + semantics ────────────────────────────────────── */
-    --accent: #4da3ff;
-    --accent-hi: #8cc4ff;
+    /* Logo plum (#985289) lifted to 7.5:1 on --surface. Links, focus,
+       selection and the current tab; never decoration, never a category. */
+    --accent: #df8cc8;
+    --accent-hi: #f0b3dd;
+    /* Benign-traffic blue, now only the regular-user category. */
+    --blue: #4da3ff;
     --danger: #ff5c52;
     --warn: #f2a63b;
     --ok: #35d07f;
@@ -49,8 +60,10 @@
     --cat-attacker: var(--danger);
     --cat-bad-crawler: var(--warn);
     --cat-good-crawler: var(--ok);
-    --cat-regular-user: var(--accent);
-    --cat-timed-out: var(--pink);
+    --cat-regular-user: var(--blue);
+    /* Sky cyan: >= 15 OKLab dE from every other category, the accent and
+       honey (pink sat 9 from the accent). */
+    --cat-timed-out: #3adaf2;
 
     /* ── Attack types ─────────────────────────────────────────
        One fixed hue per detected attack type, shared by badges, the
@@ -71,7 +84,8 @@
     --atk-other: #8b9bb0;
 
     /* ── Tints (badges, rails, hover washes) ──────────────────── */
-    --tint-accent: rgba(77, 163, 255, 0.13);
+    --tint-accent: rgba(223, 140, 200, 0.13);
+    --tint-blue: rgba(77, 163, 255, 0.13);
     --tint-danger: rgba(255, 92, 82, 0.13);
     --tint-warn: rgba(242, 166, 59, 0.13);
     --tint-ok: rgba(53, 208, 127, 0.13);
@@ -771,9 +785,9 @@ tbody {
     border: 1px solid var(--warn);
 }
 .category-regular-user {
-    background: color-mix(in srgb, var(--accent) 10%, transparent);
-    color: var(--accent);
-    border: 1px solid var(--accent);
+    background: color-mix(in srgb, var(--cat-regular-user) 10%, transparent);
+    color: var(--cat-regular-user);
+    border: 1px solid var(--cat-regular-user);
 }
 .category-unknown {
     background: color-mix(in srgb, var(--text-dim) 10%, transparent);
@@ -881,7 +895,7 @@ tbody {
 .timeline-marker.attacker { background: var(--danger); }
 .timeline-marker.good-crawler { background: var(--ok); }
 .timeline-marker.bad-crawler { background: var(--warn); }
-.timeline-marker.regular-user { background: var(--accent); }
+.timeline-marker.regular-user { background: var(--cat-regular-user); }
 .timeline-marker.unknown { background: var(--text-dim); }
 
 /* ── IP Insight Page Layout ─────────────────────── */
@@ -1306,7 +1320,7 @@ tbody {
 .ip-tl-dot.attacker { background: var(--danger); box-shadow: 0 0 6px color-mix(in srgb, var(--danger) 50%, transparent); }
 .ip-tl-dot.good-crawler { background: var(--ok); box-shadow: 0 0 6px color-mix(in srgb, var(--ok) 50%, transparent); }
 .ip-tl-dot.bad-crawler { background: var(--warn); box-shadow: 0 0 6px color-mix(in srgb, var(--warn) 50%, transparent); }
-.ip-tl-dot.regular-user { background: var(--accent); box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent); }
+.ip-tl-dot.regular-user { background: var(--cat-regular-user); box-shadow: 0 0 6px color-mix(in srgb, var(--cat-regular-user) 50%, transparent); }
 .ip-tl-dot.unknown { background: var(--text-dim); }
 .ip-tl-content {
     display: flex;
@@ -1564,11 +1578,11 @@ tbody {
     box-shadow: 0 0 15px color-mix(in srgb, var(--ok) 100%, transparent), inset 0 0 6px color-mix(in srgb, var(--ok) 70%, transparent);
 }
 .marker-regular_user {
-    background: var(--accent);
-    box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 80%, transparent), inset 0 0 4px color-mix(in srgb, var(--accent) 50%, transparent);
+    background: var(--cat-regular-user);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--cat-regular-user) 80%, transparent), inset 0 0 4px color-mix(in srgb, var(--cat-regular-user) 50%, transparent);
 }
 .marker-regular_user:hover {
-    box-shadow: 0 0 15px color-mix(in srgb, var(--accent) 100%, transparent), inset 0 0 6px color-mix(in srgb, var(--accent) 70%, transparent);
+    box-shadow: 0 0 15px color-mix(in srgb, var(--cat-regular-user) 100%, transparent), inset 0 0 6px color-mix(in srgb, var(--cat-regular-user) 70%, transparent);
 }
 .marker-unknown {
     background: var(--text-dim);
@@ -4539,13 +4553,13 @@ td:last-child {
 /* Inline artifact investigations */
 .investigation-heading { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 14px; }
 .investigation-heading h3 { margin: 0 0 5px; font-size: 16px; }
-.investigation-heading p { margin: 0; color: #8b949e; overflow-wrap: anywhere; }
+.investigation-heading p { margin: 0; color: var(--text-dim); overflow-wrap: anywhere; }
 .artifact-list-search { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 12px; }
-.artifact-list-search label { color: #8b949e; font-size: 13px; }
-.artifact-list-search input { min-width: 170px; max-width: 100%; padding: 6px 9px; background: #0d1117; color: #c9d1d9; border: 1px solid #30363d; border-radius: 5px; }
-.artifact-list-search input:focus-visible, .investigation-panel button:focus-visible, .data-link:focus-visible { outline: 2px solid #58a6ff; outline-offset: 2px; }
-.artifact-external-link { margin-left: 8px; color: #8b949e; }
-.artifact-external-link:focus-visible { outline: 2px solid #58a6ff; outline-offset: 2px; }
+.artifact-list-search label { color: var(--text-dim); font-size: 13px; }
+.artifact-list-search input { min-width: 170px; max-width: 100%; padding: 6px 9px; background: var(--sunken); color: var(--text); border: 1px solid var(--line); border-radius: 5px; }
+.artifact-list-search input:focus-visible, .investigation-panel button:focus-visible, .data-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.artifact-external-link { margin-left: 8px; color: var(--text-dim); }
+.artifact-external-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Sort controls keep the table header treatment used across the dashboard. */
 .artifact-sort-button { display: block; width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: inherit; text-align: left; cursor: pointer; }
@@ -4839,15 +4853,15 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
     --color-accent-hover: var(--accent-hi);
     --color-bg: var(--bg);
     --color-surface: var(--surface);
-    --color-input: #0a111b;
+    --color-input: var(--sunken);
     --color-header-row: var(--raised);
     --color-border: var(--line);
-    --color-input-border: #39506b;
+    --color-input-border: var(--line);
     --color-text: var(--text);
     --color-muted: var(--text-dim);
     --color-danger: var(--danger);
     --color-danger-tint: var(--tint-danger);
-    --color-focus-glow: rgba(77, 163, 255, 0.22);
+    --color-focus-glow: color-mix(in srgb, var(--accent) 22%, transparent);
     --radius: var(--r-md);
     --space-1: var(--s1);
     --space-2: var(--s2);

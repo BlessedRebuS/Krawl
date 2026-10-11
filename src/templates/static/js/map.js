@@ -570,8 +570,8 @@ function _createIpMarker(ip, animate) {
                     <span style="color: var(--text-dim); font-size: 12px;">${ip.city ? (ip.country_code ? `${ip.city}, ${ip.country_code}` : ip.city) : (ip.country_code || 'Unknown')}</span><br/>
                     <div style="margin-top: 8px; border-top: 1px solid var(--line); padding-top: 8px;">
                         <div style="margin-bottom: 4px;"><span style="color: var(--text-dim);">Requests:</span> <span style="color: ${categoryColor}; font-weight: bold;">${ip.total_requests}</span></div>
-                        <div style="margin-bottom: 4px;"><span style="color: var(--text-dim);">First Seen:</span> <span style="color: var(--accent); font-size: 11px;">${formatTimestamp(ip.first_seen)}</span></div>
-                        <div style="margin-bottom: 4px;"><span style="color: var(--text-dim);">Last Seen:</span> <span style="color: var(--accent); font-size: 11px;">${formatTimestamp(ip.last_seen)}</span></div>
+                        <div style="margin-bottom: 4px;"><span style="color: var(--text-dim);">First Seen:</span> <span style="color: var(--text); font-size: 11px;">${formatTimestamp(ip.first_seen)}</span></div>
+                        <div style="margin-bottom: 4px;"><span style="color: var(--text-dim);">Last Seen:</span> <span style="color: var(--text); font-size: 11px;">${formatTimestamp(ip.last_seen)}</span></div>
                     </div>`;
 
             if (stats.category_scores && Object.keys(stats.category_scores).length > 0) {

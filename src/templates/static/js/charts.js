@@ -96,7 +96,7 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
                     },
                     tooltip: {
                         enabled: true,
-                        backgroundColor: 'rgba(22, 27, 34, 0.95)',
+                        backgroundColor: krawlToken('--raised'),
                         titleColor: krawlToken('--accent'),
                         bodyColor: krawlToken('--text'),
                         borderColor: krawlToken('--accent'),
@@ -252,7 +252,7 @@ async function loadAttackTrendsChart(canvasId) {
                     legend: { display: false },
                     tooltip: {
                         enabled: true,
-                        backgroundColor: 'rgba(22, 27, 34, 0.95)',
+                        backgroundColor: krawlToken('--raised'),
                         titleColor: krawlToken('--accent'),
                         bodyColor: krawlToken('--text'),
                         borderColor: krawlToken('--line'),
