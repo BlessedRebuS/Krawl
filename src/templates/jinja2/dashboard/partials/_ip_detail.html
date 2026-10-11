@@ -47,7 +47,7 @@
     </div>
     {% if stats.city or stats.country %}
     <p class="ip-location-subtitle">
-        {{ stats.city | default('') }}{% if stats.city and stats.country %}, {% endif %}{{ stats.country | default(stats.country_code | default('')) }}
+        {{ stats.city | default('', true) }}{% if stats.city and stats.country %}, {% endif %}{{ stats.country | default(stats.country_code | default('')) }}
     </p>
     {% endif %}
 </div>

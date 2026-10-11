@@ -41,7 +41,7 @@
             </td>
             <td><span class="category-badge category-{{ ip.category | default('unknown') | replace('_', '-') }}">{{ ip.category | default('unknown') | replace('_', ' ') | title }}</span></td>
             <td>{{ ip.total_requests | num }}</td>
-            <td>{{ ip.city | default('') | e }}{% if ip.city and ip.country_code %}, {% endif %}{{ ip.country_code | default('N/A') | e }}</td>
+            <td>{{ ip.city | default('', true) | e }}{% if ip.city and ip.country_code %}, {% endif %}{{ ip.country_code | default('N/A', true) | e }}</td>
             <td class="ts-cell">{{ ip.last_seen | format_ts }}</td>
             <td><div class="table-action-btns">
                 <button class="ban-icon-btn ban-icon-reset" onclick="ipBanAction('{{ ip.ip | e }}', 'reset')" title="Reset to automatic">
