@@ -1,5 +1,5 @@
-{# Dashboard head, top to bottom: brand / title / actions, the tab strip,
-   then summary tiles. Search opens in the ⌘K palette. Tab groups (monitor / investigate /
+{# Dashboard head, top to bottom: brand / actions, then the tab strip.
+   Summary tiles live on Overview, not here. Search opens in the ⌘K palette. Tab groups (monitor / investigate /
    respond) are split by a hairline; on narrow screens the strip scrolls. #}
 {% from "dashboard/partials/_icons.html" import icon %}
 {% macro nav(id, label, color, shortcut='', protected=false) -%}
@@ -16,7 +16,9 @@
 
 <header class="topbar">
     {% include "dashboard/partials/_brand.html" %}
-    <h1 class="dashboard-title">{{ brand.name }} Dashboard</h1>
+    {# The wordmark already names the product; the page heading is for
+       screen readers and the document outline. #}
+    <h1 class="sr-only">{{ brand.name }} dashboard</h1>
     <div class="topbar-end">
         <div class="topbar-actions">
             <button type="button" class="search-trigger" @click="openPalette()" aria-keyshortcuts="Control+K Meta+K /">
@@ -66,7 +68,4 @@
         {{ nav('webhooks', 'Webhooks', '--warn', protected=true) }}
     </div>
 </nav>
-
-{# Summary tiles - server-rendered, visible on every tab. #}
-{% include "dashboard/partials/stats_cards.html" %}
 

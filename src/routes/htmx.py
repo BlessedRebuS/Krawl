@@ -229,6 +229,19 @@ async def htmx_honeypot(
 # ── Top IPs ──────────────────────────────────────────────────────────
 
 
+@router.get("/htmx/attention")
+async def htmx_attention(request: Request):
+    """Overview lead panel: attackers active in the last 24 hours."""
+    db = get_db()
+    summary = await asyncio.to_thread(db.ip_stats.get_attention_summary)
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/attention_panel.html",
+        {"dashboard_path": _dashboard_path(request), "summary": summary},
+    )
+
+
 @router.get("/htmx/top-ips")
 async def htmx_top_ips(
     request: Request,

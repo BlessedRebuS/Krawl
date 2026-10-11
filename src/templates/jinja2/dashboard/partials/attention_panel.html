@@ -1,0 +1,52 @@
+{# Overview lead: what happened in the last 24 hours and who to look at.
+   Lifetime totals sit under it; this answers "what changed" first.
+   Each attacker opens in IP Insight, where it can be tracked or banned. #}
+{% set s = summary %}
+<div class="attention-counts">
+    <p class="attention-count{% if s.active_attackers %} is-hot{% endif %}">
+        <span class="attention-figure">{{ s.active_attackers | num }}</span>
+        {{ 'attacker' if s.active_attackers == 1 else 'attackers' }} active
+    </p>
+    <p class="attention-count">
+        <span class="attention-figure">{{ s.new_ips | num }}</span>
+        new {{ 'IP' if s.new_ips == 1 else 'IPs' }} seen
+    </p>
+    <p class="attention-count{% if s.credentials %} is-trapped{% endif %}">
+        <span class="attention-figure">{{ s.credentials | num }}</span>
+        {{ 'credential' if s.credentials == 1 else 'credentials' }} captured
+    </p>
+</div>
+
+{% if s.attackers %}
+<table class="attention-list">
+    <caption class="sr-only">Attackers active in the last {{ s.hours }} hours, most recent first</caption>
+    <thead>
+        <tr>
+            <th scope="col">Attacker</th>
+            <th scope="col" class="attention-from">From</th>
+            <th scope="col" class="num">Requests</th>
+            <th scope="col" class="num">Last seen</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for a in s.attackers %}
+        <tr>
+            <td>
+                <a class="ip-link" href="#ip-insight/{{ a.ip | e }}" title="Open in IP Insight" @click.prevent="openIpInsight('{{ a.ip | e }}')">{{ a.ip | e }}</a>
+                {% if a.is_new %}<span class="attention-new" title="First seen in the last {{ s.hours }} hours">new</span>{% endif %}
+            </td>
+            <td class="attention-from">{{ a.city | default('', true) | e }}{% if a.city and a.country %}, {% endif %}{{ a.country | default(a.country_code or '—', true) | e }}</td>
+            <td class="num">{{ a.total_requests | num }}</td>
+            <td class="num" title="{{ a.last_seen | format_ts }}">{{ a.last_seen | format_ago }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% if s.active_attackers > s.attackers | length %}
+<button type="button" class="attention-more" @click="go('attacks')">
+    See all {{ s.active_attackers | num }} on Attacks
+</button>
+{% endif %}
+{% else %}
+<p class="attention-quiet">No attackers in the last {{ s.hours }} hours. The traps are set and Krawl is still listening.</p>
+{% endif %}

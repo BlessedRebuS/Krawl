@@ -186,16 +186,25 @@ button, input, select, textarea { font-family: inherit; }
     padding: var(--s5) var(--s6) var(--s10);
 }
 
-/* Brand | title | actions: the outer columns share the slack so the
-   title sits on the page's axis. */
+/* Brand left, actions right; the tab strip below carries the centre. */
 .topbar {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    display: flex;
+    justify-content: space-between;
     align-items: center;
     gap: var(--s4);
     margin-bottom: var(--s6);
 }
-.dashboard-title { margin: 0; font-size: 36px; letter-spacing: -0.02em; text-align: center; }
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
 .topbar-end {
     display: flex;
     flex-direction: column;
@@ -476,17 +485,91 @@ h1 {
 }
 .btn-secondary:hover { background: color-mix(in srgb, var(--raised) 70%, var(--line)); color: var(--text-strong); }
 
+/* ── Last 24 hours: the Overview lead ─────────────────────────────
+   Three counts in a column beside the attackers active in the window.
+   It answers "what changed" before the lifetime tiles answer "how much". */
+.attention-panel .row-top { margin-bottom: var(--s3); }
+.attention-body:not(:has(> .htmx-indicator)) {
+    display: grid;
+    grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+    grid-template-areas: "counts list" "counts more";
+    column-gap: var(--s8);
+    align-items: start;
+}
+.attention-counts { grid-area: counts; display: flex; flex-direction: column; gap: var(--s3); }
+.attention-count { margin: 0; color: var(--text-dim); font-size: var(--fs-sm); }
+.attention-figure {
+    display: block;
+    color: var(--text-strong);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+.attention-count.is-hot .attention-figure { color: var(--danger); }
+.attention-count.is-trapped .attention-figure { color: var(--honey); }
+/* Beats the generic 600px table floor: this list is built to fit a phone. */
+.table-container .attention-list { grid-area: list; width: 100%; min-width: 0; border-collapse: collapse; }
+.attention-list th {
+    padding: 0 var(--s3) var(--s2);
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    text-align: left;
+}
+.attention-list td {
+    padding: var(--s2) var(--s3);
+    border-top: 1px solid var(--line-soft);
+    font-size: var(--fs-sm);
+}
+.attention-list .num { text-align: right; font-variant-numeric: tabular-nums; }
+.attention-list th:first-child, .attention-list td:first-child { padding-left: 0; }
+.attention-list th:last-child, .attention-list td:last-child { padding-right: 0; }
+.attention-from { color: var(--text-dim); }
+.attention-new {
+    margin-left: var(--s2);
+    padding: 1px 6px;
+    border-radius: var(--r-sm);
+    background: var(--tint-danger);
+    color: var(--danger);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+}
+.attention-more {
+    grid-area: more;
+    justify-self: start;
+    margin-top: var(--s3);
+    padding: 0;
+    background: none;
+    border: 0;
+    color: var(--accent);
+    font-size: var(--fs-sm);
+    cursor: pointer;
+}
+.attention-more:hover { color: var(--accent-hi); text-decoration: underline; }
+.attention-quiet { grid-area: list; margin: 0; align-self: center; color: var(--text-dim); }
+@media (max-width: 720px) {
+    .attention-body:not(:has(> .htmx-indicator)) {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: "counts" "list" "more";
+        row-gap: var(--s4);
+    }
+    .attention-counts { flex-direction: row; flex-wrap: wrap; gap: var(--s3) var(--s5); }
+    .attention-figure { font-size: var(--fs-xl); }
+    .attention-from { display: none; }
+}
+
 /* ── Summary tiles: one row of identical cards, figure over label ─
    --tile-c is the group colour: it draws the border and the figure. */
 .tiles {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    grid-auto-rows: minmax(108px, auto);
-    gap: var(--s5);
+    grid-auto-rows: minmax(88px, auto);
+    gap: var(--s3);
     margin-bottom: var(--s5);
 }
 .tile {
-    --tile-c: var(--accent);
+    --tile-c: var(--text-strong);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -506,9 +589,6 @@ h1 {
 .tile.is-hostile { --tile-c: var(--danger); }
 .tile.is-trapped { --tile-c: var(--honey); }
 .tile.is-defence { --tile-c: var(--ok); }
-.tile.is-hostile,
-.tile.is-trapped,
-.tile.is-defence { border-color: var(--tile-c); }
 .tile-value {
     max-width: 100%;
     font-size: 24px;
@@ -522,20 +602,9 @@ h1 {
     text-overflow: ellipsis;
 }
 .tile-label { margin-top: var(--s1); font-size: var(--fs-sm); color: var(--text); }
-.tile-sub { max-width: 100%; font-size: var(--fs-2xs); color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* With a pointer, details wait for hover/focus: the figure and label slide
-   up and the detail line opens beneath them. The fixed row height keeps the
-   grid still. Touch screens can't hover, so they keep details visible. */
-@media (hover: hover) {
-    .tile-sub {
-        max-height: 0;
-        opacity: 0;
-        transform: translateY(4px);
-        transition: max-height 0.2s var(--ease), opacity 0.2s var(--ease), transform 0.2s var(--ease);
-    }
-    .tile:hover .tile-sub,
-    .tile:focus-visible .tile-sub { max-height: 1.6em; opacity: 1; transform: none; }
-}
+.tile-sub { max-width: 100%; font-size: var(--fs-xs); color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Detail lines stay visible: a fact that needs a hover is a fact most
+   people never see, and touch screens cannot hover at all. */
 /* Narrower: four then three; on phones Requests leads a full row and
    the rest pair up. */
 @media (max-width: 1200px) {
@@ -555,8 +624,7 @@ h1 {
 }
 
 @media (max-width: 960px) {
-    .topbar { grid-template-columns: minmax(0, 1fr) auto; }
-    .dashboard-title, .brand-contact { display: none; }
+    .brand-contact { display: none; }
     .content { padding: var(--s4); }
     .search-trigger { width: auto; margin-right: 0; }
     .search-trigger-label, .search-trigger .kbd { display: none; }
