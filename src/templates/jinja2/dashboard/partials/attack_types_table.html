@@ -83,10 +83,8 @@
         <tr class="ip-row" data-ip="{{ attack.ip | e }}">
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
             {% if not ip_filter %}
-            <td class="ip-clickable"
-                title="Open in IP Insight"
-                @click="openIpInsight('{{ attack.ip | e }}')">
-                {{ attack.ip | e }}
+            <td class="ip-clickable">
+                <a class="ip-link" href="#ip-insight/{{ attack.ip | e }}" title="Open in IP Insight" @click.prevent="openIpInsight('{{ attack.ip | e }}')">{{ attack.ip | e }}</a>
             </td>
             {% endif %}
             <td>
@@ -104,9 +102,9 @@
             </td>
             <td>
                 <div class="attack-types-cell">
-                    <span class="attack-types-truncated">{{ attack.attack_type | e }}</span>
+                    <span class="attack-types-truncated">{{ attack.attack_type | attack_label }}</span>
                     {% if attack.attack_type | length > 30 %}
-                    <div class="attack-types-tooltip">{{ attack.attack_type | e }}</div>
+                    <div class="attack-types-tooltip">{{ attack.attack_type | attack_label }}</div>
                     {% endif %}
                 </div>
             </td>
@@ -133,7 +131,7 @@
                     <span class="view-btn-tooltip">View Request</span>
                 </button>
                 {% endif %}
-                <button class="inspect-btn" @click="openIpInsight('{{ attack.ip | e }}')" title="Inspect IP">
+                <button class="inspect-btn" @click="openIpInsight('{{ attack.ip | e }}')" title="Inspect IP" aria-label="Inspect {{ attack.ip | e }} in IP Insight">
                     <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
                 </button>
                 </div>

@@ -41,10 +41,8 @@
         <tr class="ip-row recent-suspicious-row{% if activity.honeypot %} is-trap{% endif %}"
             data-ip="{{ activity.ip | e }}"
             data-log-id="{{ activity.log_id | default('') }}">
-            <td class="ip-clickable"
-                title="Open in IP Insight"
-                @click="openIpInsight('{{ activity.ip | e }}')">
-                {{ activity.ip | e }}{% if activity.honeypot %} <span class="trap-mark" title="This request hit a honeypot">trap</span>{% endif %}
+            <td class="ip-clickable">
+                <a class="ip-link" href="#ip-insight/{{ activity.ip | e }}" title="Open in IP Insight" @click.prevent="openIpInsight('{{ activity.ip | e }}')">{{ activity.ip | e }}</a>{% if activity.honeypot %} <span class="trap-mark" title="This request hit a honeypot">trap</span>{% endif %}
             </td>
             <td>
                 {% set method = activity.method | default('GET') | upper %}
@@ -68,7 +66,7 @@
                     <span class="view-btn-tooltip">View Request</span>
                 </button>
                 {% endif %}
-                <button class="inspect-btn" @click="openIpInsight('{{ activity.ip | e }}')" title="Inspect IP">
+                <button class="inspect-btn" @click="openIpInsight('{{ activity.ip | e }}')" title="Inspect IP" aria-label="Inspect {{ activity.ip | e }} in IP Insight">
                     <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
                 </button>
                 </div>

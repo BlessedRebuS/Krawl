@@ -574,7 +574,8 @@ document.addEventListener('alpine:init', () => {
                 this.switchToThreats();
             } else if (hash === 'advanced-search') {
                 this.switchToAdvancedSearch();
-
+            } else if (hash.startsWith('ip-insight/') && hash.length > 11) {
+                this.openIpInsight(decodeURIComponent(hash.slice(11)));
             } else if (hash === 'overview' || !hash) {
                 this.switchToOverview();
             } else {
@@ -605,6 +606,9 @@ document.addEventListener('alpine:init', () => {
                         if (this.tab !== 'threats') this.switchToThreats();
                     } else if (h === 'advanced-search') {
                         if (this.tab !== 'advanced-search') this.switchToAdvancedSearch();
+                    } else if (h.startsWith('ip-insight/')) {
+                        const ip = decodeURIComponent(h.slice(11));
+                        if (ip && (ip !== this.insightIp || this.tab !== 'ip-insight')) this.openIpInsight(ip);
                     } else if (h !== 'ip-insight') {
                         if (this.tab !== 'ip-insight') {
                             this.switchToOverview();
@@ -906,7 +910,7 @@ document.addEventListener('alpine:init', () => {
             // Only allow switching if an IP is selected
             if (!this.insightIp) return;
             this.tab = 'ip-insight';
-            window.location.hash = '#ip-insight';
+            window.location.hash = '#ip-insight/' + this.insightIp;
         },
 
         collapseSearch() {
@@ -931,10 +935,14 @@ document.addEventListener('alpine:init', () => {
             // panel) when navigating to the IP insight tab.
             this.expandOverlay.show = false;
 
-            // Set the IP and load the insight content
+            // Set the IP and load the insight content. The IP rides in the
+            // hash, so back/forward walk between inspected IPs and a reload
+            // or a pasted link reopens the same one.
             this.insightIp = ip;
             this.tab = 'ip-insight';
-            window.location.hash = '#ip-insight';
+            if (window.location.hash !== '#ip-insight/' + ip) {
+                window.location.hash = '#ip-insight/' + ip;
+            }
 
             // Load IP insight content via HTMX
             this.$nextTick(() => {

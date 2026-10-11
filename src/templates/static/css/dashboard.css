@@ -642,18 +642,17 @@ tbody {
 .ip-row {
     transition: background-color 0.2s;
 }
-.ip-clickable {
-    cursor: pointer;
-    color: var(--accent) !important;
+/* An IP in any table is a real link to its IP Insight page: reachable by
+   Tab, opens with Enter, and middle-click opens it in a new tab. */
+.ip-link {
+    color: var(--accent);
     font-weight: 500;
-    text-decoration: underline;
-    text-decoration-style: dotted;
+    text-decoration: underline dotted;
     text-underline-offset: 3px;
 }
-.ip-clickable:hover {
-    color: var(--accent-hi) !important;
+.ip-link:hover {
+    color: var(--accent-hi);
     text-decoration-style: solid;
-    background: var(--raised);
 }
 .radar-chart {
     position: relative;
@@ -2488,7 +2487,7 @@ tbody {
 
 /* Touch-friendly optimizations */
 @media (hover: none) and (pointer: coarse) {
-    .ip-clickable {
+    .ip-link {
         -webkit-user-select: none;
         user-select: none;
         -webkit-tap-highlight-color: color-mix(in srgb, var(--accent) 20%, transparent);
@@ -4019,7 +4018,7 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
 
 /* Log data reads in mono wherever it appears — the IP columns, the request
    paths, the credential pairs and the raw request view all share one face. */
-.ip-clickable,
+.ip-link,
 .path-cell-container,
 .ip-dl dd {
     font-variant-numeric: tabular-nums;
