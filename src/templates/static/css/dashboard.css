@@ -8,12 +8,6 @@
 
    Panels separate by tone, not outlines; hairlines are for rows and overlays.
 
-   Colour comes from the logo: a black spider in plum with a gold eye.
-   Neutrals carry a trace of that plum (OKLCH hue 330, chroma ~0.01), the
-   interactive accent is the plum lifted for a dark canvas, and gold is
-   honey. Nothing interactive shares a hue with a threat category, so a
-   link never reads as "regular user".
-
    Threat category is the spine. The same five categories appear in
    tables, the map, the radar chart and the charts, so their colors are
    tokens, not literals. Everything else stays quiet.
@@ -21,30 +15,29 @@
 
 :root {
     /* ── Surfaces ─────────────────────────────────────────────── */
-    --bg: #110d10;
-    --surface: #191419;
-    --raised: #221c22;
-    --sunken: #0a070a;
-    --line: #342c33;
-    --line-soft: #261f25;
+    --bg: #0b0f15;
+    --surface: #121822;
+    --raised: #1a2230;
+    --sunken: #070a0f;
+    --line: #212c3b;
+    --line-soft: #19222e;
     /* A panel's only edge: a faint top highlight, no outline. */
     --panel-edge: inset 0 1px 0 rgba(255, 255, 255, 0.035);
-    --scrim: rgba(8, 5, 8, 0.74);
+    --scrim: rgba(4, 7, 11, 0.72);
 
     /* ── Text ─────────────────────────────────────────────────── */
-    --text: #e9e4e9;
-    --text-strong: #f8f6f8;
-    --text-dim: #a89ca6;
-    /* Lowest text tier still clears WCAG AA (4.8:1 on --raised, the worst case). */
-    --text-faint: #928690;
-    --text-on-solid: #0a070a;
+    --text: #dde5f0;
+    --text-strong: #f2f7ff;
+    --text-dim: #8b9bb0;
+    /* Lowest text tier still clears WCAG AA (4.5:1) on every surface. */
+    --text-faint: #7d8ca0;
+    --text-on-solid: #06090e;
 
     /* ── Brand + semantics ────────────────────────────────────── */
-    /* Logo plum (#985289) lifted to 7.5:1 on --surface. Links, focus,
-       selection and the current tab; never decoration, never a category. */
-    --accent: #df8cc8;
-    --accent-hi: #f0b3dd;
-    /* Benign-traffic blue, now only the regular-user category. */
+    --accent: #4da3ff;
+    --accent-hi: #8cc4ff;
+    /* Regular-user category; the same blue as the accent today, but a
+       separate token so the two can part without touching every rule. */
     --blue: #4da3ff;
     --danger: #ff5c52;
     --warn: #f2a63b;
@@ -61,9 +54,7 @@
     --cat-bad-crawler: var(--warn);
     --cat-good-crawler: var(--ok);
     --cat-regular-user: var(--blue);
-    /* Sky cyan: >= 15 OKLab dE from every other category, the accent and
-       honey (pink sat 9 from the accent). */
-    --cat-timed-out: #3adaf2;
+    --cat-timed-out: var(--pink);
 
     /* ── Attack types ─────────────────────────────────────────
        One fixed hue per detected attack type, shared by badges, the
@@ -84,7 +75,7 @@
     --atk-other: #8b9bb0;
 
     /* ── Tints (badges, rails, hover washes) ──────────────────── */
-    --tint-accent: rgba(223, 140, 200, 0.13);
+    --tint-accent: rgba(77, 163, 255, 0.13);
     --tint-blue: rgba(77, 163, 255, 0.13);
     --tint-danger: rgba(255, 92, 82, 0.13);
     --tint-warn: rgba(242, 166, 59, 0.13);
