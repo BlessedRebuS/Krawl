@@ -71,7 +71,7 @@ dashboard:
     name: "Krawl"
     # Where the wordmark links. null renders it as plain text instead.
     url: "https://github.com/BlessedRebuS/Krawl"
-    # Image URL shown instead of the GitHub mark (http(s) or a dashboard path).
+    # Image URL shown instead of the Krawl mark (http(s) or a dashboard path).
     logo: null
     show_version: true
     # An address, a link, or neither — plain text is left unlinked.

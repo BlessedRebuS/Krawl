@@ -231,7 +231,7 @@ config:
     branding:
       name: "Krawl"
       url: "https://github.com/BlessedRebuS/Krawl"  # null renders the wordmark as plain text
-      logo: null  # Image URL shown instead of the GitHub mark
+      logo: null  # Image URL shown instead of the Krawl mark
       show_version: true
       contact: null  # "soc@example.com", a URL, or plain text like "Ext. 4471"
   metrics:
