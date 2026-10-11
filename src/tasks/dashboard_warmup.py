@@ -9,7 +9,12 @@ import time
 
 import metrics
 from config import get_config
-from dashboard_cache import set_cached, set_cached_list, set_cached_table
+from dashboard_cache import (
+    get_cached_table,
+    set_cached,
+    set_cached_list,
+    set_cached_table,
+)
 from database import get_database
 from logger import get_app_logger
 from routes.api import build_campaign_stats
@@ -21,6 +26,7 @@ app_logger = get_app_logger()
 # 2-minute table TTL they went cold for 3 minutes of every 5, and the next
 # visitor paid the full query.
 WARM_TTL = 600
+TARGETED_DOMAINS_TTL = 2400
 
 
 # ----------------------
@@ -348,10 +354,6 @@ def main():
                 lambda: db.analytics.get_attack_types_paginated(page=1, page_size=15),
             ),
             (
-                "targeted-domains:1::count:desc",
-                lambda: db.access_logs.get_targeted_domains(page=1, page_size=10),
-            ),
-            (
                 "suspicious:1:25:desc:",
                 lambda: db.access_logs.get_recent_suspicious_paginated(
                     page=1, page_size=25
@@ -359,6 +361,16 @@ def main():
             ),
         ):
             set_cached_table(key, _timed(key, fetch), ttl=WARM_TTL)
+
+        # Targeted Domains groups the whole access log by host with a distinct
+        # IP count (75s on the demo's 7M rows) and its ranking barely moves:
+        # refresh every 6th run (30 min), or at once when the entry is missing.
+        key = "targeted-domains:1::count:desc"
+        if int(time.time() // 300) % 6 == 0 or get_cached_table(key) is None:
+            domains = _timed(
+                key, lambda: db.access_logs.get_targeted_domains(page=1, page_size=10)
+            )
+            set_cached_table(key, domains, ttl=TARGETED_DOMAINS_TTL)
 
         # Last-24-hours panel: the expanded view's 100 rows; the collapsed
         # panel slices the first few from the same entry.
