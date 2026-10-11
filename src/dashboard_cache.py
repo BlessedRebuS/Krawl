@@ -246,17 +246,18 @@ def get_cached_table(key: str) -> Any | None:
     return None
 
 
-def set_cached_table(key: str, value: Any) -> None:
+def set_cached_table(key: str, value: Any, ttl: int | None = None) -> None:
     """Cache a paginated table result with medium TTL (scalable mode only).
 
     Uses a 2-minute TTL for dashboard table data that doesn't need to be
-    real-time but benefits from caching across multiple replicas.
+    real-time but benefits from caching across multiple replicas. The warmup
+    task passes a longer `ttl` so its entries outlive the gap between runs.
     In standalone mode, this is a no-op.
     """
     if _backend == "scalable" and _redis_client is not None:
         _redis_client.setex(
             f"{_REDIS_PREFIX}table:{key}",
-            _REDIS_TABLE_TTL,
+            ttl or _REDIS_TABLE_TTL,
             json.dumps(value, default=_json_serializer),
         )
 

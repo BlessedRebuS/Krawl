@@ -13,6 +13,7 @@ from typing import Annotated
 from fastapi import APIRouter, Query, Request, Response
 from fastapi.responses import HTMLResponse
 
+import metrics_counters as mc
 from config import get_config
 from dashboard_cache import (
     get_cached,
@@ -728,6 +729,12 @@ async def htmx_attacks(
         result = cached
     else:
         db = get_db()
+        # Unfiltered, reuse the total the warmup counted for page 1.
+        warm = (
+            None
+            if ip_filter or attack_type_filter or search or method_filter
+            else get_cached_table("attacks:1:timestamp:desc::::")
+        )
         result = await asyncio.to_thread(
             db.analytics.get_attack_types_paginated,
             page=page,
@@ -738,6 +745,7 @@ async def htmx_attacks(
             attack_type_filter=attack_type_filter,
             search=search,
             method_filter=method_filter,
+            total=warm["pagination"]["total"] if warm else None,
         )
         if use_cache:
             set_cached_table(cache_key, result)
@@ -808,6 +816,9 @@ async def htmx_suspicious(
             page_size=page_size,
             search=search,
             sort_order=sort_order,
+            # Unfiltered, the total is the Suspicious requests tile counter:
+            # no need to count millions of rows to label the pager.
+            total=None if search else mc.get("suspicious_accesses"),
         )
         if not live:
             set_cached_table(cache_key, result)

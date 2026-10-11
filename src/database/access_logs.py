@@ -552,6 +552,7 @@ class AccessLogRepo:
         page_size: int = 25,
         search: str | None = None,
         sort_order: str = "desc",
+        total: int | None = None,
     ) -> dict[str, Any]:
         """
         Paginated recent suspicious access attempts (excludes local/private IPs and server IP).
@@ -599,7 +600,9 @@ class AccessLogRepo:
                     )
                 )
 
-            total = query.count()
+            # A caller-supplied total skips counting every suspicious row.
+            if total is None:
+                total = query.count()
             offset = (page - 1) * page_size
             logs = query.offset(offset).limit(page_size).all()
             total_pages = (total + page_size - 1) // page_size
