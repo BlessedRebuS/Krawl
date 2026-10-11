@@ -87,11 +87,13 @@
     --tint-neutral: rgba(255, 255, 255, 0.04);
 
     /* ── Type ─────────────────────────────────────────────────── */
-    --font-ui: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system,
+    /* Google Sans Flex: the face the Krawl Dashboard title has always had,
+       now carrying the whole UI; Google Sans Code is its mono sibling. */
+    --font-ui: "Google Sans Flex", ui-sans-serif, system-ui, -apple-system,
         "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     /* Log data — IPs, paths, user agents, timestamps — is read in mono:
        columns align and 0/O, 1/l stop being ambiguous. */
-    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, "SF Mono",
+    --font-mono: "Google Sans Code", ui-monospace, SFMono-Regular, "SF Mono",
         Menlo, Consolas, "Liberation Mono", monospace;
 
     --fs-2xs: 11px;
@@ -179,7 +181,7 @@ body {
     color: var(--text);
     margin: 0;
 }
-/* Form controls default to the system face; keep them in Plex. */
+/* Form controls default to the system face; keep them in the UI face. */
 button, input, select, textarea { font-family: inherit; }
 
 /* ── App shell: brand / title / actions, tiles, search, tab strip,
@@ -193,13 +195,23 @@ button, input, select, textarea { font-family: inherit; }
     padding: var(--s5) var(--s5) var(--s10);
 }
 
-/* Brand left, actions right; the tab strip below carries the centre. */
+/* Brand | title | actions: the outer columns share the slack so the
+   title sits on the page's axis. */
 .topbar {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     gap: var(--s4);
     margin-bottom: var(--s6);
+}
+/* The Krawl voice: heavy, blue, centred. */
+.dashboard-title {
+    margin: 0;
+    color: var(--accent);
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    text-align: center;
 }
 .sr-only {
     position: absolute;
@@ -590,7 +602,7 @@ h1 {
     margin-bottom: var(--s5);
 }
 .tile {
-    --tile-c: var(--text-strong);
+    --tile-c: var(--accent);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -610,10 +622,13 @@ h1 {
 .tile.is-hostile { --tile-c: var(--danger); }
 .tile.is-trapped { --tile-c: var(--honey); }
 .tile.is-defence { --tile-c: var(--ok); }
+.tile.is-hostile,
+.tile.is-trapped,
+.tile.is-defence { border-color: var(--tile-c); }
 .tile-value {
     max-width: 100%;
-    font-size: 24px;
-    font-weight: 600;
+    font-size: 28px;
+    font-weight: 700;
     line-height: 1.2;
     letter-spacing: -0.01em;
     color: var(--tile-c);
@@ -645,7 +660,8 @@ h1 {
 }
 
 @media (max-width: 960px) {
-    .brand-contact { display: none; }
+    .topbar { grid-template-columns: minmax(0, 1fr) auto; }
+    .dashboard-title, .brand-contact { display: none; }
     .content { padding: var(--s4); }
     .search-trigger { width: auto; margin-right: 0; }
     .search-trigger-label, .search-trigger .kbd { display: none; }
@@ -658,26 +674,28 @@ h1 {
     margin-bottom: var(--s5);
 }
 h2 {
-    color: var(--text-strong);
-    font-size: var(--fs-lg);
-    font-weight: 600;
+    color: var(--accent);
+    font-size: var(--fs-xl);
+    font-weight: 700;
     letter-spacing: -0.005em;
     margin-top: 0;
 }
+    border: 1px solid var(--line);
 table {
     width: 100%;
     border-collapse: collapse;
 }
 th, td {
+/* Panel titles in Krawl blue, as they have always been. */
     padding: 10px var(--s3);
     text-align: left;
     border-bottom: 1px solid var(--line-soft);
 }
-/* Headers are labels, not a band: quiet, small, and they stay put when a
-   table scrolls inside an overlay. */
+/* Headers sit on a darker band in blue, and stay put when a table
+   scrolls inside an overlay. */
 th {
-    background: var(--surface);
-    color: var(--text-dim);
+    background: var(--sunken);
+    color: var(--accent);
     font-size: var(--fs-xs);
     font-weight: 500;
     white-space: nowrap;
@@ -689,7 +707,7 @@ tbody tr:hover {
 }
 .rank {
     color: var(--text-faint);
-    font-weight: 500;
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
     padding-right: var(--s1);
 }
@@ -747,6 +765,8 @@ tbody {
     position: relative;
     width: 280px;
     height: 280px;
+    /* IPs read in mono, as they always have: every dot and digit apart. */
+    font-family: var(--font-mono);
     overflow: visible;
 }
 .radar-legend {
