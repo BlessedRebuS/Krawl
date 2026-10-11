@@ -634,9 +634,10 @@ document.addEventListener('alpine:init', () => {
                         const ip = decodeURIComponent(h.slice(11));
                         if (ip && (ip !== this.insightIp || this.tab !== 'ip-insight')) this.openIpInsight(ip);
                     } else if (h !== 'ip-insight') {
-                        if (this.tab !== 'ip-insight') {
-                            this.switchToOverview();
-                        }
+                        // Overview, an empty hash (Back to the first page) or
+                        // anything unknown. IP Insight now owns its own hash,
+                        // so leaving it this way must switch tabs too.
+                        this.switchToOverview();
                     }
                 });
             });
