@@ -88,17 +88,17 @@
         {# Attack Trends line chart with period navigation and totals sidebar #}
         <div class="table-container alert-section">
             <div class="chart-head">
-                <h2 class="m-0">Attack Trends <span class="chart-head-hint">(click legend to filter table)</span></h2>
+                <h2 class="m-0">Attack Trends</h2>
                 <div class="row gap-3">
-                    <div class="row gap-1" id="trends-span-selector">
+                    <div class="row gap-1" id="trends-span-selector" role="group" aria-label="Period length">
                         <button class="map-limit-btn" data-days="1" onclick="setTrendsSpan(1, this)">1D</button>
                         <button class="map-limit-btn active" data-days="7" onclick="setTrendsSpan(7, this)">7D</button>
                         <button class="map-limit-btn" data-days="30" onclick="setTrendsSpan(30, this)">30D</button>
                     </div>
                     <div class="row">
-                        <button id="trends-prev" onclick="shiftTrendsPeriod(-1)" class="pagination-btn fs-sm">&#8592;</button>
-                        <span id="trends-period-label" class="period-label">Last 30 days</span>
-                        <button id="trends-next" onclick="shiftTrendsPeriod(1)" class="pagination-btn fs-sm" disabled>&#8594;</button>
+                        <button id="trends-prev" onclick="shiftTrendsPeriod(-1)" class="pagination-btn fs-sm" aria-label="Previous period">&#8592;</button>
+                        <span id="trends-period-label" class="period-label" aria-live="polite">Last 7 days</span>
+                        <button id="trends-next" onclick="shiftTrendsPeriod(1)" class="pagination-btn fs-sm" aria-label="Next period" disabled>&#8594;</button>
                     </div>
                 </div>
             </div>
@@ -106,9 +106,7 @@
                 <div class="chart-wrapper chart-main">
                     <canvas id="attack-trends-chart"></canvas>
                 </div>
-                <div id="trends-totals" class="chart-totals">
-                    <span class="eyebrow">Totals (period)</span>
-                </div>
+                <div id="trends-totals" class="chart-totals" aria-label="Totals in period; press one to filter the table below"></div>
             </div>
         </div>
 

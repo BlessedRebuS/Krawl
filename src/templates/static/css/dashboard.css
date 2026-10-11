@@ -2804,8 +2804,24 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
 }
 .htmx-request .htmx-indicator,
 .htmx-request.htmx-indicator,
-.krawl-loading > .htmx-indicator {
+.krawl-loading > .htmx-indicator,
+/* A lazy panel that has not fetched yet still says something is coming,
+   instead of a heading with nothing under it. */
+.htmx-container > .htmx-indicator:only-child {
     display: flex;
+}
+
+/* A panel whose request failed: what happened, and a way to retry. */
+.load-error {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s3);
+    padding: var(--s5) var(--s4);
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+    text-align: center;
 }
 .search-spinner.htmx-indicator { display: none; padding: 0; }
 .htmx-request .search-spinner.htmx-indicator,
@@ -2978,7 +2994,7 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
 /* ── Empty State (no data rows) ───────────────────── */
 .empty-state {
     text-align: center;
-    color: var(--line);
+    color: var(--text-dim);
     padding: var(--s5) var(--s3);
 }
 
@@ -3840,11 +3856,6 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
     justify-content: space-between;
     margin-bottom: var(--s2);
 }
-.chart-head-hint {
-    color: var(--text-dim);
-    font-size: var(--fs-2xs);
-    font-weight: 400;
-}
 /* Campaign chart summary: two counts and the campaign that reached furthest,
    in the gutter beside the bars. Sized off the chart, not the page. */
 .chart-summary {
@@ -3888,13 +3899,42 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
 .chart-totals {
     display: flex;
     flex-direction: column;
-    gap: var(--s2);
+    gap: 2px;
     min-width: 180px;
     max-width: 220px;
     max-height: 300px;
     padding-top: var(--s1);
     overflow-y: auto;
 }
+.trends-totals-title {
+    margin-bottom: var(--s1);
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+}
+/* A total doubles as the table filter; pressed shows which one is on. */
+.trends-total {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+    width: 100%;
+    padding: 5px var(--s2);
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--r-sm);
+    color: var(--text);
+    font-size: var(--fs-sm);
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--dur) var(--ease);
+}
+.trends-total:hover { background: var(--tint-neutral); }
+.trends-total[aria-pressed="true"] { background: var(--tint-neutral); border-color: var(--line); }
+.trends-total-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--type-c); flex: none; }
+.trends-total-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trends-total-count { color: var(--text-strong); font-weight: 600; font-variant-numeric: tabular-nums; }
+.trends-empty-msg { height: 100%; gap: var(--s2); flex-wrap: wrap; text-align: center; padding: var(--s4); }
+.trends-empty-msg[hidden] { display: none; }
 .chart-summary:empty {
     display: none;
 }
@@ -3909,11 +3949,6 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
         width: 100%;
         flex-wrap: wrap;
         justify-content: flex-start;
-    }
-    .chart-head-hint {
-        display: block;
-        margin-top: var(--s1);
-        line-height: var(--lh-normal);
     }
     .period-label {
         min-width: 0;
