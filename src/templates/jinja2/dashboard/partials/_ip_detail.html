@@ -52,193 +52,187 @@
     {% endif %}
 </div>
 
-{# ── Two-column layout: Info + Radar/Timeline ───── #}
-<div class="ip-page-grid">
-    {# Left column: single IP Information card #}
-    <div class="ip-page-left">
-        <div class="table-container ip-detail-card ip-info-card">
-            <h2>IP Information</h2>
+{# ── Overview grid: the facts on the left, the read-outs beside them ──
+   IP Information spans two rows; Category Analysis, Attack Types, the
+   Behavior Timeline and a card-sized Location map fill the two columns
+   next to it, so the whole profile sits on one screen. #}
+<div class="ip-overview">
+    <div class="table-container ip-detail-card ip-info-card">
+        <h2>IP Information</h2>
 
-            {# Activity section #}
-            <h3 class="ip-section-heading">Activity</h3>
-            <dl class="ip-dl">
-                <div class="ip-dl-row">
-                    <dt>Total Requests</dt>
-                    <dd>{{ stats.total_requests | default('N/A') }}</dd>
-                </div>
-                <div class="ip-dl-row">
-                    <dt>First Seen</dt>
-                    <dd class="ip-dl-highlight">{{ stats.first_seen | format_ts }}</dd>
-                </div>
-                <div class="ip-dl-row">
-                    <dt>Last Seen</dt>
-                    <dd class="ip-dl-highlight">{{ stats.last_seen | format_ts }}</dd>
-                </div>
-                {% if stats.last_analysis %}
-                <div class="ip-dl-row">
-                    <dt>Last Analysis</dt>
-                    <dd class="ip-dl-highlight">{{ stats.last_analysis | format_ts }}</dd>
-                </div>
-                {% endif %}
-            </dl>
+        {# Activity section #}
+        <h3 class="ip-section-heading">Activity</h3>
+        <dl class="ip-dl">
+            <div class="ip-dl-row">
+                <dt>Total Requests</dt>
+                <dd>{{ stats.total_requests | default('N/A') }}</dd>
+            </div>
+            <div class="ip-dl-row">
+                <dt>First Seen</dt>
+                <dd class="ip-dl-highlight">{{ stats.first_seen | format_ts }}</dd>
+            </div>
+            <div class="ip-dl-row">
+                <dt>Last Seen</dt>
+                <dd class="ip-dl-highlight">{{ stats.last_seen | format_ts }}</dd>
+            </div>
+            {% if stats.last_analysis %}
+            <div class="ip-dl-row">
+                <dt>Last Analysis</dt>
+                <dd class="ip-dl-highlight">{{ stats.last_analysis | format_ts }}</dd>
+            </div>
+            {% endif %}
+        </dl>
 
-            {# Geo & Network section #}
-            <h3 class="ip-section-heading">Geo & Network</h3>
-            <dl class="ip-dl">
-                {% if stats.city or stats.country %}
-                <div class="ip-dl-row">
-                    <dt>Location</dt>
-                    <dd>{{ stats.city | default('') | e }}{% if stats.city and stats.country %}, {% endif %}{{ stats.country | default(stats.country_code | default('')) | e }}</dd>
-                </div>
-                {% endif %}
-                {% if stats.region_name %}
-                <div class="ip-dl-row">
-                    <dt>Region</dt>
-                    <dd>{{ stats.region_name | e }}</dd>
-                </div>
-                {% endif %}
-                {% if stats.timezone %}
-                <div class="ip-dl-row">
-                    <dt>Timezone</dt>
-                    <dd>{{ stats.timezone | e }}</dd>
-                </div>
-                {% endif %}
-                {% if stats.isp %}
-                <div class="ip-dl-row">
-                    <dt>ISP</dt>
-                    <dd>{{ stats.isp | e }}</dd>
-                </div>
-                {% endif %}
-                {% if stats.asn_org %}
-                <div class="ip-dl-row">
-                    <dt>Organization</dt>
-                    <dd>{{ stats.asn_org | e }}</dd>
-                </div>
-                {% endif %}
-                {% if stats.asn %}
-                <div class="ip-dl-row">
-                    <dt>ASN</dt>
-                    <dd>AS{{ stats.asn }}</dd>
-                </div>
-                {% endif %}
-                {% if stats.reverse_dns %}
-                <div class="ip-dl-row">
-                    <dt>Reverse DNS</dt>
-                    <dd class="ip-dl-mono">{{ stats.reverse_dns | e }}</dd>
-                </div>
-                {% endif %}
-            </dl>
+        {# Geo & Network section #}
+        <h3 class="ip-section-heading">Geo & Network</h3>
+        <dl class="ip-dl">
+            {% if stats.city or stats.country %}
+            <div class="ip-dl-row">
+                <dt>Location</dt>
+                <dd>{{ stats.city | default('', true) | e }}{% if stats.city and stats.country %}, {% endif %}{{ stats.country | default(stats.country_code | default('')) | e }}</dd>
+            </div>
+            {% endif %}
+            {% if stats.region_name %}
+            <div class="ip-dl-row">
+                <dt>Region</dt>
+                <dd>{{ stats.region_name | e }}</dd>
+            </div>
+            {% endif %}
+            {% if stats.timezone %}
+            <div class="ip-dl-row">
+                <dt>Timezone</dt>
+                <dd>{{ stats.timezone | e }}</dd>
+            </div>
+            {% endif %}
+            {% if stats.isp %}
+            <div class="ip-dl-row">
+                <dt>ISP</dt>
+                <dd>{{ stats.isp | e }}</dd>
+            </div>
+            {% endif %}
+            {% if stats.asn_org %}
+            <div class="ip-dl-row">
+                <dt>Organization</dt>
+                <dd>{{ stats.asn_org | e }}</dd>
+            </div>
+            {% endif %}
+            {% if stats.asn %}
+            <div class="ip-dl-row">
+                <dt>ASN</dt>
+                <dd>AS{{ stats.asn }}</dd>
+            </div>
+            {% endif %}
+            {% if stats.reverse_dns %}
+            <div class="ip-dl-row">
+                <dt>Reverse DNS</dt>
+                <dd class="ip-dl-mono">{{ stats.reverse_dns | e }}</dd>
+            </div>
+            {% endif %}
+        </dl>
 
-            {# Reputation section #}
-            <h3 class="ip-section-heading">Reputation</h3>
-            <div class="ip-rep-scroll">
-                {# Flags #}
-                {% set flags = [] %}
-                {% if stats.is_proxy %}{% set _ = flags.append('Proxy') %}{% endif %}
-                {% if stats.is_hosting %}{% set _ = flags.append('Hosting') %}{% endif %}
-                {% if flags %}
-                <div class="ip-rep-row">
-                    <span class="ip-rep-label">Flags</span>
-                    <div class="ip-rep-tags">
-                        {% for flag in flags %}
-                        <span class="ip-flag">{{ flag }}</span>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-
-                {# Blocklists #}
-                <div class="ip-rep-row">
-                    <span class="ip-rep-label">Listed On</span>
-                    {% if stats.blocklist_memberships %}
-                    {# Feed keys arrive as "feed__attribute" (stopforumspam__last_seen,
-                       stopforumspam__frequency...). One chip per feed, not per key,
-                       and the long tail folds away. #}
-                    {% set feeds = [] %}
-                    {% for bl in stats.blocklist_memberships %}
-                        {% set feed = (bl | string).split('__')[0] %}
-                        {% if feed not in feeds %}{% set _ = feeds.append(feed) %}{% endif %}
+        {# Reputation section #}
+        <h3 class="ip-section-heading">Reputation</h3>
+        <div class="ip-rep-scroll">
+            {# Flags #}
+            {% set flags = [] %}
+            {% if stats.is_proxy %}{% set _ = flags.append('Proxy') %}{% endif %}
+            {% if stats.is_hosting %}{% set _ = flags.append('Hosting') %}{% endif %}
+            {% if flags %}
+            <div class="ip-rep-row">
+                <span class="ip-rep-label">Flags</span>
+                <div class="ip-rep-tags">
+                    {% for flag in flags %}
+                    <span class="ip-flag">{{ flag }}</span>
                     {% endfor %}
-                    <div class="ip-rep-tags">
-                        <span class="ip-rep-summary">{{ feeds | length }} {{ 'feed' if feeds | length == 1 else 'feeds' }}</span>
-                        {% for feed in feeds[:6] %}
-                        <span class="reputation-badge">{{ feed | replace('_', ' ') | e }}</span>
-                        {% endfor %}
-                        {% if feeds | length > 6 %}
-                        <details class="ip-rep-more">
-                            <summary>{{ feeds | length - 6 }} more</summary>
-                            {% for feed in feeds[6:] %}
-                            <span class="reputation-badge">{{ feed | replace('_', ' ') | e }}</span>
-                            {% endfor %}
-                        </details>
-                        {% endif %}
-                    </div>
-                    {% else %}
-                    <span class="reputation-clean">Clean</span>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {# Right column: Category Analysis + Timeline + Attack Types #}
-    <div class="ip-page-right">
-        {% if stats.category_scores %}
-        <div class="table-container ip-detail-card">
-            <h2>Category Analysis</h2>
-            <div class="radar-chart-container">
-                <div class="radar-chart" id="{{ uid }}-radar-chart"></div>
-            </div>
-        </div>
-        {% endif %}
-
-        {# Bottom row: Behavior Timeline + Attack Types side by side #}
-        <div class="ip-bottom-row">
-            {% if stats.category_history %}
-            <div class="table-container ip-detail-card ip-timeline-card">
-                <h2>Behavior Timeline</h2>
-                <div class="ip-timeline-scroll">
-                    <div class="ip-timeline-hz">
-                        {% for entry in stats.category_history %}
-                        <div class="ip-tl-entry">
-                            <div class="ip-tl-dot {{ entry.new_category | default('unknown') | replace('_', '-') }}"></div>
-                            <div class="ip-tl-content">
-                                <span class="ip-tl-cat">{{ entry.new_category | default('unknown') | replace('_', ' ') | title }}</span>
-                                {% if entry.old_category %}
-                                <span class="ip-tl-from">from {{ entry.old_category | replace('_', ' ') | title }}</span>
-                                {% else %}
-                                <span class="ip-tl-from">initial classification</span>
-                                {% endif %}
-                                <span class="ip-tl-time">{{ entry.timestamp | format_ts }}</span>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
                 </div>
             </div>
             {% endif %}
 
-            <div class="table-container ip-detail-card ip-attack-types-card">
-                <h2>Attack Types</h2>
-                <div class="ip-attack-chart-wrapper">
-                    <canvas id="{{ uid }}-attack-types-chart"></canvas>
+            {# Blocklists #}
+            <div class="ip-rep-row">
+                <span class="ip-rep-label">Listed On</span>
+                {% if stats.blocklist_memberships %}
+                {# Feed keys arrive as "feed__attribute" (stopforumspam__last_seen,
+                   stopforumspam__frequency...). One chip per feed, not per key,
+                   and the long tail folds away. #}
+                {% set feeds = [] %}
+                {% for bl in stats.blocklist_memberships %}
+                    {% set feed = (bl | string).split('__')[0] %}
+                    {% if feed not in feeds %}{% set _ = feeds.append(feed) %}{% endif %}
+                {% endfor %}
+                <div class="ip-rep-tags">
+                    <span class="ip-rep-summary">{{ feeds | length }} {{ 'feed' if feeds | length == 1 else 'feeds' }}</span>
+                    {% for feed in feeds[:6] %}
+                    <span class="reputation-badge">{{ feed | replace('_', ' ') | e }}</span>
+                    {% endfor %}
+                    {% if feeds | length > 6 %}
+                    <details class="ip-rep-more">
+                        <summary>{{ feeds | length - 6 }} more</summary>
+                        {% for feed in feeds[6:] %}
+                        <span class="reputation-badge">{{ feed | replace('_', ' ') | e }}</span>
+                        {% endfor %}
+                    </details>
+                    {% endif %}
                 </div>
+                {% else %}
+                <span class="reputation-clean">Clean</span>
+                {% endif %}
             </div>
         </div>
     </div>
+
+    {% if stats.category_scores %}
+    <div class="table-container ip-detail-card ip-radar-card">
+        <h2>Category Analysis</h2>
+        <div class="radar-chart-container">
+            <div class="radar-chart" id="{{ uid }}-radar-chart"></div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="table-container ip-detail-card ip-attack-types-card">
+        <h2>Attack Types</h2>
+        <div class="ip-attack-chart-wrapper">
+            <canvas id="{{ uid }}-attack-types-chart"></canvas>
+        </div>
+    </div>
+
+    {% if stats.category_history %}
+    <div class="table-container ip-detail-card ip-timeline-card">
+        <h2>Behavior Timeline</h2>
+        <div class="ip-timeline-scroll">
+            <div class="ip-timeline-hz">
+                {% for entry in stats.category_history %}
+                <div class="ip-tl-entry">
+                    <div class="ip-tl-dot {{ entry.new_category | default('unknown') | replace('_', '-') }}"></div>
+                    <div class="ip-tl-content">
+                        <span class="ip-tl-cat">{{ entry.new_category | default('unknown') | replace('_', ' ') | title }}</span>
+                        {% if entry.old_category %}
+                        <span class="ip-tl-from">from {{ entry.old_category | replace('_', ' ') | title }}</span>
+                        {% else %}
+                        <span class="ip-tl-from">initial classification</span>
+                        {% endif %}
+                        <span class="ip-tl-time">{{ entry.timestamp | format_ts }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if stats.latitude and stats.longitude %}
+    <div class="table-container ip-detail-card ip-location-card">
+        <h2>Location</h2>
+        <div id="{{ uid }}-ip-map" class="map-frame ip-map-frame"></div>
+    </div>
+    {% endif %}
 </div>
 
-{# Location map #}
-{% if stats.latitude and stats.longitude %}
-<div class="table-container mt-5">
-    <h2>Location</h2>
-    <div id="{{ uid }}-ip-map" class="map-frame map-frame-sm"></div>
-</div>
-{% endif %}
-
-{# Detected Attack Types table – only for attackers #}
+{# ── Evidence, most telling first. A section with nothing in it shrinks
+   to its heading and one line (see .ip-section:has(.empty-state)). ── #}
 {% if stats.category and stats.category | lower == 'attacker' %}
-<div class="table-container alert-section mt-5">
+<div class="table-container alert-section ip-section">
     <h2>Detected Attack Types</h2>
     <div class="htmx-container"
          hx-get="{{ dashboard_path }}/htmx/attacks?page=1&ip_filter={{ ip_address }}"
@@ -249,30 +243,7 @@
 </div>
 {% endif %}
 
-{# Referer history – bait-chain tracking #}
-<div class="table-container alert-section mt-5">
-    <h2>Referer History</h2>
-    <div class="htmx-container"
-         hx-get="{{ dashboard_path }}/htmx/ip-referers?ip_filter={{ ip_address }}"
-         hx-trigger="revealed"
-         hx-swap="innerHTML">
-        <div class="htmx-indicator">Loading...</div>
-    </div>
-</div>
-
-{# Captured files uploaded by this IP #}
-<div class="table-container alert-section mt-5">
-    <h2>Captured Files</h2>
-    <div class="htmx-container"
-         hx-get="{{ dashboard_path }}/htmx/ip-payloads?ip_filter={{ ip_address }}&page=1"
-         hx-trigger="revealed"
-         hx-swap="innerHTML">
-        <div class="htmx-indicator">Loading...</div>
-    </div>
-</div>
-
-{# Credentials attempted / used by this IP #}
-<div class="table-container alert-section mt-5">
+<div class="table-container alert-section ip-section">
     <h2>Captured Credentials</h2>
     <div class="htmx-container"
          hx-get="{{ dashboard_path }}/htmx/credentials?ip_filter={{ ip_address }}&page=1"
@@ -282,8 +253,28 @@
     </div>
 </div>
 
-{# Access History table #}
-<div class="table-container alert-section mt-5" id="access-history-section">
+<div class="table-container alert-section ip-section">
+    <h2>Captured Files</h2>
+    <div class="htmx-container"
+         hx-get="{{ dashboard_path }}/htmx/ip-payloads?ip_filter={{ ip_address }}&page=1"
+         hx-trigger="revealed"
+         hx-swap="innerHTML">
+        <div class="htmx-indicator">Loading...</div>
+    </div>
+</div>
+
+{# Referer history – bait-chain tracking #}
+<div class="table-container alert-section ip-section">
+    <h2>Referer History</h2>
+    <div class="htmx-container"
+         hx-get="{{ dashboard_path }}/htmx/ip-referers?ip_filter={{ ip_address }}"
+         hx-trigger="revealed"
+         hx-swap="innerHTML">
+        <div class="htmx-indicator">Loading...</div>
+    </div>
+</div>
+
+<div class="table-container alert-section ip-section" id="access-history-section">
     <h2>Access History</h2>
     <div class="htmx-container"
          hx-get="{{ dashboard_path }}/htmx/access-logs?page=1&ip_filter={{ ip_address }}"
@@ -303,7 +294,7 @@
     var scores = {{ stats.category_scores | tojson }};
     var radarEl = document.getElementById(UID + '-radar-chart');
     if (radarEl && typeof generateRadarChart === 'function') {
-        radarEl.innerHTML = generateRadarChart(scores, 280, true, 'side');
+        radarEl.innerHTML = generateRadarChart(scores, 230, true, 'side');
     }
     {% endif %}
 

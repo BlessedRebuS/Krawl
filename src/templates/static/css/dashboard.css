@@ -967,43 +967,31 @@ tbody {
     font-weight: 500;
 }
 
-/* Two-column grid */
-.ip-page-grid {
+/* IP Insight overview: IP Information spans two rows on the left; the
+   radar, attack types, timeline and a card-sized map fill two columns
+   beside it, so the profile reads on one screen. */
+.ip-overview {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--s5);
-    align-items: stretch;
-}
-.ip-page-left,
-.ip-page-right {
-    display: flex;
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-auto-flow: row dense;
     gap: var(--s5);
     min-height: 0;
 }
-/* Left card fills column height */
-.ip-info-card {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+.ip-overview > .table-container { margin: 0; min-width: 0; display: flex; flex-direction: column; }
+.ip-overview .ip-info-card { grid-row: span 2; }
+.ip-map-frame { flex: 1; min-height: 180px; }
+@media (max-width: 1100px) {
+    .ip-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-/* Timeline card grows to fill remaining space */
-.ip-timeline-card {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
+@media (max-width: 720px) {
+    .ip-overview { grid-template-columns: minmax(0, 1fr); }
+    .ip-overview .ip-info-card { grid-row: auto; }
 }
 
 /* Detail cards */
 .ip-detail-card h2 {
     margin-top: 0;
     margin-bottom: var(--s4);
-}
-/* Remove bottom margin inside grid columns (gap handles spacing) */
-.ip-page-left .table-container,
-.ip-page-right .table-container {
-    margin-bottom: 0;
 }
 
 /* Definition list for IP info */
@@ -1027,6 +1015,22 @@ tbody {
 .ip-dl dt {
     color: var(--text-dim);
     font-size: var(--fs-sm);
+/* Facts read label-then-value, side by side, instead of label at one
+   edge and value at the other. */
+.ip-info-card .ip-dl-row { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: var(--s3); padding: 6px 0; }
+.ip-info-card .ip-dl dt { min-width: 0; }
+.ip-info-card .ip-dl dd { text-align: left; font-family: var(--font-mono); font-weight: 400; }
+.ip-info-card .ip-section-heading { margin: var(--s4) 0 var(--s1); font-size: var(--fs-sm); }
+.ip-info-card .ip-section-heading:first-of-type { margin-top: 0; }
+
+/* An evidence section with no rows shrinks to its heading and the one
+   empty-state line: no column headers, pager or row padding. */
+.ip-section:has(.empty-state) { padding-block: var(--s3); }
+.ip-section:has(.empty-state) h2 { margin-bottom: 0; }
+.ip-section:has(.empty-state) :is(thead, .panel-header, .pagination-info) { display: none; }
+.ip-section:has(.empty-state) table { min-width: 0; }
+.ip-section:has(.empty-state) .empty-state { padding: var(--s1) 0 0; text-align: left; }
+
     font-weight: 500;
     flex-shrink: 0;
     min-width: 100px;
@@ -1253,26 +1257,10 @@ tbody {
     gap: var(--s2);
 }
 
-/* Bottom row: Timeline + Attack Types side by side */
-.ip-bottom-row {
-    display: flex;
-    gap: var(--s5);
-    flex: 1;
-    min-height: 0;
-}
-.ip-bottom-row .ip-timeline-card {
-    flex: 1;
-    min-width: 0;
-}
-.ip-attack-types-card {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
 .ip-attack-chart-wrapper {
     position: relative;
-    height: 220px;
+    flex: 1;
+    min-height: 220px;
 }
 
 /* Radar chart */
@@ -1352,17 +1340,11 @@ tbody {
 /* Legacy compat (unused) */
 
 @media (max-width: 900px) {
-    .ip-page-grid {
-        grid-template-columns: 1fr;
-    }
     .ip-stats-bar {
         flex-direction: column;
     }
     .ip-stat-chip {
         flex: 1 1 auto;
-    }
-    .ip-bottom-row {
-        flex-direction: column;
     }
     .ip-tl-content {
         flex-direction: column;
