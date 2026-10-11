@@ -1,10 +1,10 @@
-{# Lifetime totals on Overview, under the last-24-hours panel: one row,
-   figure over label. Colour carries meaning on the figure only: traffic in
-   accent, hostile in danger, traps in honey, active time-bans in ok. #}
+{# Lifetime totals at the top of Overview, above the map and the
+   last-24-hours panel: one row, figure over label. Traffic in accent,
+   hostile in danger, traps in honey, active time-bans in ok. #}
 {# Thousands grouped with dots, so big figures read at a glance. #}
 {% macro n(v) %}{{ '{:,}'.format((v or 0) | int).replace(',', '.') }}{% endmacro %}
 {% macro tile(value, label, cls='', sub='') -%}
-<div class="tile {{ cls }}">
+<div class="tile {{ cls }}"{% if sub %} tabindex="0"{% endif %}>
     <span class="tile-value">{{ value }}</span>
     <span class="tile-label">{{ label }}</span>
     {%- if sub %}<span class="tile-sub">{{ sub }}</span>{% endif %}

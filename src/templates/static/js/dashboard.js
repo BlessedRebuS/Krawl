@@ -2378,3 +2378,24 @@ function resetAdvancedSearch() {
     const results = document.getElementById('advanced-search-results');
     if (results) results.innerHTML = `<div class="advanced-search-empty" role="status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 1 0 4.64 13.39l4.24 4.23 1.41-1.41-4.24-4.24A7.5 7.5 0 0 0 10.5 3Zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z"/></svg><p>Start with a path, host, IP, header, or raw text to find requests.</p></div>`;
 }
+
+// Summary tiles count up to their value once, when the dashboard opens.
+// The server already rendered the real figures, so a failed script or
+// reduced motion simply shows them as they are.
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const tiles = [...document.querySelectorAll('.tile-value')];
+    const targets = tiles.map(el => ({ el, text: el.textContent.trim(), n: parseInt(el.textContent.replace(/\D/g, ''), 10) }))
+        .filter(t => Number.isFinite(t.n) && t.n > 0);
+    if (!targets.length) return;
+    const group = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const DURATION = 600;
+    const start = performance.now();
+    const ease = t => 1 - Math.pow(2, -10 * t); // fast start, soft landing
+    const frame = (now) => {
+        const p = Math.min(1, (now - start) / DURATION);
+        targets.forEach(t => { t.el.textContent = p < 1 ? group(Math.round(t.n * ease(p))) : t.text; });
+        if (p < 1) requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+});

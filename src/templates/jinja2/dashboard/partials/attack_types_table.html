@@ -101,11 +101,14 @@
                 </div>
             </td>
             <td>
-                <div class="attack-types-cell">
-                    <span class="attack-types-truncated">{{ attack.attack_type | attack_label }}</span>
-                    {% if attack.attack_type | length > 30 %}
-                    <div class="attack-types-tooltip">{{ attack.attack_type | attack_label }}</div>
-                    {% endif %}
+                {# One badge per type in its own --atk-* hue, as in Campaigns; two
+                   shown, the rest counted, all of them in the title. #}
+                {% set types = (attack.attack_type or '').split(',') | map('trim') | select | list %}
+                <div class="badge-row" title="{{ attack.attack_type | attack_label }}">
+                    {% for t in types[:2] %}
+                    <span class="method-badge method-{{ t | lower | replace('_', '-') | e }}">{{ t | attack_label }}</span>
+                    {% endfor %}
+                    {% if types | length > 2 %}<span class="badge-more">+{{ types | length - 2 }}</span>{% endif %}
                 </div>
             </td>
             <td class="data-mono col-wide">

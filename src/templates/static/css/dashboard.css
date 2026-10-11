@@ -597,9 +597,11 @@ h1 {
 .tiles {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    grid-auto-rows: minmax(88px, auto);
-    gap: var(--s3);
-    margin-bottom: var(--s5);
+    /* Tall enough to hold the hover detail line, so revealing it never
+       changes the row height and nothing below moves. */
+    grid-auto-rows: minmax(108px, auto);
+    gap: var(--s4);
+    margin-bottom: var(--s6);
 }
 .tile {
     --tile-c: var(--accent);
@@ -639,8 +641,29 @@ h1 {
 }
 .tile-label { margin-top: var(--s1); font-size: var(--fs-sm); color: var(--text); }
 .tile-sub { max-width: 100%; font-size: var(--fs-xs); color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* Detail lines stay visible: a fact that needs a hover is a fact most
-   people never see, and touch screens cannot hover at all. */
+/* With a pointer, details wait for hover/focus: the figure and label slide
+   up and the detail line opens beneath them. The fixed row height keeps the
+   grid still. Touch screens can't hover, so they keep details visible. */
+@media (hover: hover) {
+    /* The detail line overlays the tile's foot rather than taking space,
+       so revealing it can never change the row height. */
+    .tile { position: relative; }
+    .tile-value, .tile-label { transition: transform 0.2s var(--ease); }
+    .tile-sub {
+        position: absolute;
+        left: var(--s3);
+        right: var(--s3);
+        bottom: var(--s3);
+        opacity: 0;
+        transform: translateY(4px);
+        transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+    }
+    .tile:has(.tile-sub):hover :is(.tile-value, .tile-label),
+    .tile:has(.tile-sub):focus-visible :is(.tile-value, .tile-label) { transform: translateY(-9px); }
+    .tile:hover .tile-sub,
+    .tile:focus-visible .tile-sub { opacity: 1; transform: none; }
+}
+
 /* Narrower: four then three; on phones Requests leads a full row and
    the rest pair up. */
 @media (max-width: 1200px) {
@@ -668,11 +691,13 @@ h1 {
 }
 .table-container {
     background: var(--surface);
+    border: 1px solid var(--line);
     border-radius: var(--r-panel);
     box-shadow: var(--panel-edge);
     padding: var(--s4);
-    margin-bottom: var(--s5);
+    margin-bottom: var(--s6);
 }
+/* Panel titles in Krawl blue, as they have always been. */
 h2 {
     color: var(--accent);
     font-size: var(--fs-xl);
@@ -680,13 +705,11 @@ h2 {
     letter-spacing: -0.005em;
     margin-top: 0;
 }
-    border: 1px solid var(--line);
 table {
     width: 100%;
     border-collapse: collapse;
 }
 th, td {
-/* Panel titles in Krawl blue, as they have always been. */
     padding: 10px var(--s3);
     text-align: left;
     border-bottom: 1px solid var(--line-soft);
@@ -697,7 +720,7 @@ th {
     background: var(--sunken);
     color: var(--accent);
     font-size: var(--fs-xs);
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
     border-bottom-color: var(--line);
 }
@@ -707,7 +730,7 @@ tbody tr:hover {
 }
 .rank {
     color: var(--text-faint);
-    font-weight: 600;
+    font-weight: 500;
     font-variant-numeric: tabular-nums;
     padding-right: var(--s1);
 }
@@ -753,6 +776,8 @@ tbody {
    Tab, opens with Enter, and middle-click opens it in a new tab. */
 .ip-link {
     color: var(--accent);
+    /* IPs read in mono, as they always have: every dot and digit apart. */
+    font-family: var(--font-mono);
     font-weight: 500;
     text-decoration: underline dotted;
     text-underline-offset: 3px;
@@ -765,8 +790,6 @@ tbody {
     position: relative;
     width: 280px;
     height: 280px;
-    /* IPs read in mono, as they always have: every dot and digit apart. */
-    font-family: var(--font-mono);
     overflow: visible;
 }
 .radar-legend {
@@ -995,7 +1018,7 @@ tbody {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
     grid-auto-flow: row dense;
     gap: var(--s5);
-    min-height: 0;
+    margin-bottom: var(--s6);
 }
 .ip-overview > .table-container { margin: 0; min-width: 0; display: flex; flex-direction: column; }
 .ip-overview .ip-info-card { grid-row: span 2; }
@@ -1007,6 +1030,22 @@ tbody {
     .ip-overview { grid-template-columns: minmax(0, 1fr); }
     .ip-overview .ip-info-card { grid-row: auto; }
 }
+
+/* Facts read label-then-value, side by side, instead of label at one
+   edge and value at the other. */
+.ip-info-card .ip-dl-row { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: var(--s3); padding: 6px 0; }
+.ip-info-card .ip-dl dt { min-width: 0; }
+.ip-info-card .ip-dl dd { text-align: left; font-family: var(--font-mono); font-weight: 400; }
+.ip-info-card .ip-section-heading { margin: var(--s4) 0 var(--s1); font-size: var(--fs-sm); }
+.ip-info-card .ip-section-heading:first-of-type { margin-top: 0; }
+
+/* An evidence section with no rows shrinks to its heading and the one
+   empty-state line: no column headers, pager or row padding. */
+.ip-section:has(.empty-state) { padding-block: var(--s3); }
+.ip-section:has(.empty-state) h2 { margin-bottom: 0; }
+.ip-section:has(.empty-state) :is(thead, .panel-header, .pagination-info) { display: none; }
+.ip-section:has(.empty-state) table { min-width: 0; }
+.ip-section:has(.empty-state) .empty-state { padding: var(--s1) 0 0; text-align: left; }
 
 /* Detail cards */
 .ip-detail-card h2 {
@@ -1035,22 +1074,6 @@ tbody {
 .ip-dl dt {
     color: var(--text-dim);
     font-size: var(--fs-sm);
-/* Facts read label-then-value, side by side, instead of label at one
-   edge and value at the other. */
-.ip-info-card .ip-dl-row { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: var(--s3); padding: 6px 0; }
-.ip-info-card .ip-dl dt { min-width: 0; }
-.ip-info-card .ip-dl dd { text-align: left; font-family: var(--font-mono); font-weight: 400; }
-.ip-info-card .ip-section-heading { margin: var(--s4) 0 var(--s1); font-size: var(--fs-sm); }
-.ip-info-card .ip-section-heading:first-of-type { margin-top: 0; }
-
-/* An evidence section with no rows shrinks to its heading and the one
-   empty-state line: no column headers, pager or row padding. */
-.ip-section:has(.empty-state) { padding-block: var(--s3); }
-.ip-section:has(.empty-state) h2 { margin-bottom: 0; }
-.ip-section:has(.empty-state) :is(thead, .panel-header, .pagination-info) { display: none; }
-.ip-section:has(.empty-state) table { min-width: 0; }
-.ip-section:has(.empty-state) .empty-state { padding: var(--s1) 0 0; text-align: left; }
-
     font-weight: 500;
     flex-shrink: 0;
     min-width: 100px;
@@ -2142,6 +2165,45 @@ tbody {
     align-items: center;
     gap: var(--s1);
 }
+
+/* A count with its row action beside it (Top IPs). */
+.count-with-action { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
+.count-with-action .num-bar { flex: 1; }
+
+/* Ranked counts: the Campaigns bar, full width, so the biggest hitters
+   stand out before you read a number. The bar grows in once when the
+   table lands (reduced motion: it is simply there). Hostile counts in
+   danger, honeypot counts in honey; everything else in accent. */
+.num-bar.is-fill {
+    position: relative;
+    isolation: isolate;
+    display: block;
+    max-width: 240px;
+    padding: 2px var(--s2);
+    background: none;
+    font-variant-numeric: tabular-nums;
+}
+.num-bar.is-fill::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    z-index: -1;
+    width: var(--pct, 0%);
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--bar-c, var(--accent)) 22%, transparent);
+    transform-origin: left center;
+    animation: bar-grow 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.num-bar.is-hostile { --bar-c: var(--danger); }
+.num-bar.is-honey { --bar-c: var(--honey); }
+@keyframes bar-grow { from { transform: scaleX(0); } }
+
+/* A request that sprang a trap: the row takes a faint honey wash. Honey
+   only ever means "the honeypot worked"; the trap tag stays as the text cue. */
+.recent-suspicious-row.is-trap > td { background: color-mix(in srgb, var(--honey) 6%, transparent); }
+.recent-suspicious-row.is-trap:hover > td { background: color-mix(in srgb, var(--honey) 10%, transparent); }
+
+.badge-more { color: var(--text-dim); font-size: var(--fs-xs); align-self: center; }
 
 /* IP Tracking buttons */
 .track-form-btn {
