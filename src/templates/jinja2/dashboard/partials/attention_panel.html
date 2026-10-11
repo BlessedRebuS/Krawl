@@ -1,52 +1,84 @@
-{# Overview lead: what happened in the last 24 hours and who to look at.
-   Lifetime totals sit under it; this answers "what changed" first.
-   Each attacker opens in IP Insight, where it can be tracked or banned. #}
+{# Overview side panel: what happened in the last 24 hours and who to look
+   at. Beside the map it is a narrow list: IP and requests on one line,
+   where and when on a quieter second line. In the expand overlay (`full`)
+   it is a table of every attacker in the window, every column. Each
+   attacker opens in IP Insight, where it can be tracked or banned. #}
 {% set s = summary %}
 <div class="attention-counts">
     <p class="attention-count{% if s.active_attackers %} is-hot{% endif %}">
         <span class="attention-figure">{{ s.active_attackers | num }}</span>
-        {{ 'attacker' if s.active_attackers == 1 else 'attackers' }} active
+        {{ 'attacker' if s.active_attackers == 1 else 'attackers' }}
     </p>
     <p class="attention-count">
         <span class="attention-figure">{{ s.new_ips | num }}</span>
-        new {{ 'IP' if s.new_ips == 1 else 'IPs' }} seen
+        new {{ 'IP' if s.new_ips == 1 else 'IPs' }}
     </p>
     <p class="attention-count{% if s.credentials %} is-trapped{% endif %}">
         <span class="attention-figure">{{ s.credentials | num }}</span>
-        {{ 'credential' if s.credentials == 1 else 'credentials' }} captured
+        {{ 'credential' if s.credentials == 1 else 'credentials' }}
     </p>
 </div>
 
-{% if s.attackers %}
-<table class="attention-list">
-    <caption class="sr-only">Attackers active in the last {{ s.hours }} hours, most recent first</caption>
-    <thead>
-        <tr>
-            <th scope="col">Attacker</th>
-            <th scope="col" class="attention-from">From</th>
-            <th scope="col" class="num">Requests</th>
-            <th scope="col" class="num">Last seen</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for a in s.attackers %}
-        <tr>
-            <td>
-                <a class="ip-link" href="#ip-insight/{{ a.ip | e }}" title="Open in IP Insight" @click.prevent="openIpInsight('{{ a.ip | e }}')">{{ a.ip | e }}</a>
-                {% if a.is_new %}<span class="attention-new" title="First seen in the last {{ s.hours }} hours">new</span>{% endif %}
-            </td>
-            <td class="attention-from">{{ a.city | default('', true) | e }}{% if a.city and a.country %}, {% endif %}{{ a.country | default(a.country_code or '—', true) | e }}</td>
-            <td class="num">{{ a.total_requests | num }}</td>
-            <td class="num" title="{{ a.last_seen | format_ts }}">{{ a.last_seen | format_ago }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+{% macro from(a) -%}
+{{ a.city | default('', true) | e }}{% if a.city and a.country %}, {% endif %}{{ a.country | default(a.country_code or 'Unknown location', true) | e }}
+{%- endmacro %}
+{% macro ip(a) -%}
+<a class="ip-link" href="#ip-insight/{{ a.ip | e }}" title="Open in IP Insight" @click.prevent="openIpInsight('{{ a.ip | e }}')">{{ a.ip | e }}</a>
+{%- if a.is_new %} <span class="attention-new" title="First seen in the last {{ s.hours }} hours">new</span>{% endif %}
+{%- endmacro %}
+
+{% if not s.attackers %}
+<p class="attention-quiet">No attackers in the last {{ s.hours }} hours. The traps are set and Krawl is still listening.</p>
+
+{% elif full %}
+<div class="attention-scroll">
+    <table class="attention-table">
+        <caption class="sr-only">Attackers active in the last {{ s.hours }} hours, most recent first</caption>
+        <thead>
+            <tr>
+                <th scope="col">Attacker</th>
+                <th scope="col">From</th>
+                <th scope="col" class="num">Requests</th>
+                <th scope="col" class="num">First seen</th>
+                <th scope="col" class="num">Last seen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in s.attackers %}
+            <tr>
+                <td>{{ ip(a) }}</td>
+                <td class="attention-from">{{ from(a) }}</td>
+                <td class="num">{{ a.total_requests | num }}</td>
+                <td class="num" title="{{ a.first_seen | format_ts }}">{{ a.first_seen | format_ago }}</td>
+                <td class="num" title="{{ a.last_seen | format_ts }}">{{ a.last_seen | format_ago }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% if s.active_attackers > s.attackers | length %}
-<button type="button" class="attention-more" @click="go('attacks')">
-    See all {{ s.active_attackers | num }} on Attacks
+<p class="attention-quiet">Showing the {{ s.attackers | length }} most recent of {{ s.active_attackers | num }}.
+    <button type="button" class="attention-more" @click="expandOverlay.show = false; go('attacks')">See all on Attacks</button></p>
+{% endif %}
+
+{% else %}
+<ol class="attention-list" aria-label="Attackers active in the last {{ s.hours }} hours, most recent first">
+    {% for a in s.attackers %}
+    <li class="attention-item">
+        <div class="attention-line">
+            {{ ip(a) }}
+            <span class="attention-req">{{ a.total_requests | num }} <span class="attention-unit">req</span></span>
+        </div>
+        <div class="attention-meta">
+            <span class="attention-from">{{ from(a) }}</span>
+            <span title="{{ a.last_seen | format_ts }}">{{ a.last_seen | format_ago }}</span>
+        </div>
+    </li>
+    {% endfor %}
+</ol>
+{% if s.active_attackers > s.attackers | length %}
+<button type="button" class="attention-more" onclick="openExpandOverlay('Last 24 hours', 'attention', 100)">
+    Show all {{ s.active_attackers | num }}
 </button>
 {% endif %}
-{% else %}
-<p class="attention-quiet">No attackers in the last {{ s.hours }} hours. The traps are set and Krawl is still listening.</p>
 {% endif %}

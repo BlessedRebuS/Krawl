@@ -2010,7 +2010,9 @@ function _reloadExpandOverlay() {
     const url = `${dashboardPath}/htmx/${ov.endpoint}?${params}`;
 
     let targetUrl = url;
-    if (ov.endpoint === 'campaign') {
+    if (ov.endpoint === 'attention') {
+        targetUrl = `${dashboardPath}/htmx/attention?full=1`;
+    } else if (ov.endpoint === 'campaign') {
         const cv = ov.cluster ? `?cluster=${encodeURIComponent(ov.cluster)}` : '';
         targetUrl = `${dashboardPath}/htmx/cluster-events${cv}`;
     } else if (ov.endpoint === 'similar') {

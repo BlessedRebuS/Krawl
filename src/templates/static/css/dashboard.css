@@ -186,9 +186,11 @@ button, input, select, textarea { font-family: inherit; }
    then the active tab's panels. */
 .app { min-height: 100vh; }
 .content {
-    max-width: 1440px;
+    /* Capped so panels keep a margin of page around them on a laptop;
+       1360 still fits the widest table (Detected Attack Types, 9 columns). */
+    max-width: 1360px;
     margin: 0 auto;
-    padding: var(--s5) var(--s6) var(--s10);
+    padding: var(--s5) var(--s5) var(--s10);
 }
 
 /* Brand left, actions right; the tab strip below carries the centre. */
@@ -493,50 +495,61 @@ h1 {
 }
 .btn-secondary:hover { background: color-mix(in srgb, var(--raised) 70%, var(--line)); color: var(--text-strong); }
 
-/* ── Last 24 hours: the Overview lead ─────────────────────────────
-   Three counts in a column beside the attackers active in the window.
-   It answers "what changed" before the lifetime tiles answer "how much". */
-.attention-panel .row-top { margin-bottom: var(--s3); }
-.attention-body:not(:has(> .htmx-indicator)) {
+/* Short-column tables sit in pairs instead of stretching across the page. */
+.table-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s6); margin-bottom: var(--s6); }
+.table-pair > .table-container { margin: 0; min-width: 0; }
+.table-pair .table-container table { min-width: 0; }
+@media (max-width: 1000px) { .table-pair { grid-template-columns: minmax(0, 1fr); } }
+
+/* ── Overview: the map beside the last day ─────────────────────────
+   Where (the map, wide) next to who (the last 24 hours, a narrow list),
+   so the map is on the first screen. Both panels share the row height. */
+.overview-main {
     display: grid;
-    grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
-    grid-template-areas: "counts list" "counts more";
-    column-gap: var(--s8);
-    align-items: start;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 270px);
+    gap: var(--s6);
+    margin-bottom: var(--s6);
 }
-.attention-counts { grid-area: counts; display: flex; flex-direction: column; gap: var(--s3); }
-.attention-count { margin: 0; color: var(--text-dim); font-size: var(--fs-sm); }
+.overview-main > .table-container { margin: 0; min-width: 0; }
+.overview-main .map-frame-lg { height: clamp(420px, calc(100vh - 470px), 640px); }
+@media (max-width: 1100px) {
+    .overview-main { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* The last-24-hours list: three counts, then one two-line entry per
+   attacker. Line one is what you act on, line two is context. */
+.attention-panel { display: flex; flex-direction: column; }
+.attention-panel .row-top { margin-bottom: var(--s3); }
+.attention-body { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.attention-counts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s2);
+    padding-bottom: var(--s3);
+    margin-bottom: var(--s1);
+    border-bottom: 1px solid var(--line-soft);
+}
+.attention-count { margin: 0; color: var(--text-dim); font-size: var(--fs-xs); line-height: 1.3; }
 .attention-figure {
     display: block;
     color: var(--text-strong);
-    font-size: var(--fs-2xl);
+    font-size: var(--fs-xl);
     font-weight: 600;
-    line-height: 1.1;
+    line-height: 1.2;
     font-variant-numeric: tabular-nums;
 }
 .attention-count.is-hot .attention-figure { color: var(--danger); }
 .attention-count.is-trapped .attention-figure { color: var(--honey); }
-/* Beats the generic 600px table floor: this list is built to fit a phone. */
-.table-container .attention-list { grid-area: list; width: 100%; min-width: 0; border-collapse: collapse; }
-.attention-list th {
-    padding: 0 var(--s3) var(--s2);
-    color: var(--text-dim);
-    font-size: var(--fs-xs);
-    font-weight: 500;
-    text-align: left;
-}
-.attention-list td {
-    padding: var(--s2) var(--s3);
-    border-top: 1px solid var(--line-soft);
-    font-size: var(--fs-sm);
-}
-.attention-list .num { text-align: right; font-variant-numeric: tabular-nums; }
-.attention-list th:first-child, .attention-list td:first-child { padding-left: 0; }
-.attention-list th:last-child, .attention-list td:last-child { padding-right: 0; }
-.attention-from { color: var(--text-dim); }
+.attention-list { margin: 0; padding: 0; list-style: none; overflow-y: auto; }
+.attention-item { padding: var(--s2) 0; border-bottom: 1px solid var(--line-soft); }
+.attention-line, .attention-meta { display: flex; align-items: baseline; gap: var(--s2); }
+.attention-line .ip-link { font-size: var(--fs-sm); }
+.attention-req { margin-left: auto; color: var(--text-strong); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+.attention-unit { color: var(--text-dim); font-size: var(--fs-xs); }
+.attention-meta { margin-top: 2px; color: var(--text-dim); font-size: var(--fs-xs); }
+.attention-from { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .attention-new {
-    margin-left: var(--s2);
-    padding: 1px 6px;
+    padding: 0 6px;
     border-radius: var(--r-sm);
     background: var(--tint-danger);
     color: var(--danger);
@@ -544,8 +557,7 @@ h1 {
     font-weight: 500;
 }
 .attention-more {
-    grid-area: more;
-    justify-self: start;
+    align-self: flex-start;
     margin-top: var(--s3);
     padding: 0;
     background: none;
@@ -555,17 +567,18 @@ h1 {
     cursor: pointer;
 }
 .attention-more:hover { color: var(--accent-hi); text-decoration: underline; }
-.attention-quiet { grid-area: list; margin: 0; align-self: center; color: var(--text-dim); }
-@media (max-width: 720px) {
-    .attention-body:not(:has(> .htmx-indicator)) {
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-areas: "counts" "list" "more";
-        row-gap: var(--s4);
-    }
-    .attention-counts { flex-direction: row; flex-wrap: wrap; gap: var(--s3) var(--s5); }
-    .attention-figure { font-size: var(--fs-xl); }
-    .attention-from { display: none; }
-}
+.attention-quiet { margin: var(--s3) 0 0; color: var(--text-dim); }
+.attention-quiet .attention-more { margin: 0 0 0 var(--s2); }
+/* Expanded view: every attacker in the window, one row each. */
+.attention-scroll { overflow-x: auto; }
+.table-container .attention-table { width: 100%; min-width: 560px; border-collapse: collapse; }
+.attention-table th { padding: var(--s2) var(--s3); text-align: left; }
+.attention-table td { padding: var(--s2) var(--s3); border-top: 1px solid var(--line-soft); font-size: var(--fs-sm); }
+.attention-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.attention-table th:first-child, .attention-table td:first-child { padding-left: 0; }
+.attention-table th:last-child, .attention-table td:last-child { padding-right: 0; }
+.attention-table .attention-from { color: var(--text-dim); white-space: normal; }
+#expand-overlay-table .attention-counts { grid-template-columns: repeat(3, minmax(0, 180px)); }
 
 /* ── Summary tiles: one row of identical cards, figure over label ─
    --tile-c is the group colour: it draws the border and the figure. */

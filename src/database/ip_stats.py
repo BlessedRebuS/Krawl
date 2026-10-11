@@ -935,6 +935,7 @@ class IpStatsRepo:
                         "city": r.city,
                         "country": r.country,
                         "country_code": r.country_code,
+                        "first_seen": r.first_seen,
                         "last_seen": r.last_seen,
                         "is_new": bool(r.first_seen and r.first_seen >= since),
                     }

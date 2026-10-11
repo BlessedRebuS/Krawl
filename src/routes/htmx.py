@@ -230,15 +230,22 @@ async def htmx_honeypot(
 
 
 @router.get("/htmx/attention")
-async def htmx_attention(request: Request):
-    """Overview lead panel: attackers active in the last 24 hours."""
+async def htmx_attention(request: Request, full: bool = Query(False)):
+    """Overview side panel: attackers active in the last 24 hours. `full`
+    is the expanded view: more attackers, every column."""
     db = get_db()
-    summary = await asyncio.to_thread(db.ip_stats.get_attention_summary)
+    summary = await asyncio.to_thread(
+        db.ip_stats.get_attention_summary, limit=100 if full else 6
+    )
     templates = get_templates()
     return templates.TemplateResponse(
         request,
         "dashboard/partials/attention_panel.html",
-        {"dashboard_path": _dashboard_path(request), "summary": summary},
+        {
+            "dashboard_path": _dashboard_path(request),
+            "summary": summary,
+            "full": full,
+        },
     )
 
 
