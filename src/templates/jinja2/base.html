@@ -8,10 +8,15 @@
     <link rel="stylesheet" href="{{ dashboard_path }}/static/vendor/css/leaflet.min.css?v={{ krawl_version }}" />
     <link rel="stylesheet" href="{{ dashboard_path }}/static/vendor/css/MarkerCluster.css?v={{ krawl_version }}" />
     <link rel="stylesheet" href="{{ dashboard_path }}/static/vendor/css/MarkerCluster.Default.css?v={{ krawl_version }}" />
+    {# Google Sans Flex and Google Sans Code from Google Fonts; offline, the system stacks in --font-ui/--font-mono take over. #}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400;500&family=Google+Sans+Flex:wght@400;500;600;700;900&display=swap" />
     <link rel="stylesheet" href="{{ dashboard_path }}/static/css/dashboard.css?v={{ krawl_version }}" />
     <script src="{{ dashboard_path }}/static/vendor/js/leaflet.min.js?v={{ krawl_version }}" defer></script>
     <script src="{{ dashboard_path }}/static/vendor/js/leaflet.markercluster.js?v={{ krawl_version }}" defer></script>
     <script src="{{ dashboard_path }}/static/vendor/js/chart.min.js?v={{ krawl_version }}" defer></script>
+    <script src="{{ dashboard_path }}/static/vendor/js/d3.min.js?v={{ krawl_version }}" defer></script>
     <script src="{{ dashboard_path }}/static/vendor/js/htmx.min.js?v={{ krawl_version }}" defer></script>
     <script defer src="{{ dashboard_path }}/static/vendor/js/alpine.min.js?v={{ krawl_version }}"></script>
     <script>window.__DASHBOARD_PATH__ = '{{ dashboard_path }}';</script>
@@ -23,6 +28,7 @@
 <body>
     {% block content %}{% endblock %}
 
+    <script src="{{ dashboard_path }}/static/js/loading.js?v={{ krawl_version }}"></script>
     <script src="{{ dashboard_path }}/static/js/tokens.js?v={{ krawl_version }}"></script>
     <script src="{{ dashboard_path }}/static/js/radar.js?v={{ krawl_version }}"></script>
     <script src="{{ dashboard_path }}/static/js/dashboard.js?v={{ krawl_version }}"></script>

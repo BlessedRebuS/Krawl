@@ -35,7 +35,7 @@ class FakeDB:
 
 
 def reset():
-    ban_cache._banned = frozenset()
+    ban_cache._banned = set()
     ban_cache._ready = False
 
 
@@ -98,6 +98,34 @@ def test_lookup_is_sanitized():
     assert ban_cache.is_banned(raw) is True, (
         f"{raw!r} must match its stored form {stored!r}"
     )
+
+
+def test_local_add_enforces_cap_without_copying(monkeypatch):
+    reset()
+    monkeypatch.setattr(ban_cache, "MAX_BANNED_IPS", 2)
+    ban_cache.refresh(db=FakeDB(["203.0.113.1"]))
+    resident = ban_cache._banned
+    ban_cache.add("203.0.113.2")
+    assert ban_cache._banned is resident
+    ban_cache.add("203.0.113.3")
+    assert len(ban_cache._banned) == 2
+    assert not ban_cache.is_ready()
+
+
+def test_refresh_cannot_overwrite_a_concurrent_ban():
+    reset()
+    ban_cache.refresh(db=FakeDB([]))
+
+    class ConcurrentRepo:
+        def get_banned_ips(self, *args, **kwargs):
+            ban_cache.add("203.0.113.9")
+            return []  # Snapshot taken before the new ban committed.
+
+    db = FakeDB([])
+    db.ip_stats = ConcurrentRepo()
+    ban_cache.refresh(db=db)
+    assert ban_cache.is_banned("203.0.113.9")
+    assert not ban_cache.is_ready()
 
 
 if __name__ == "__main__":

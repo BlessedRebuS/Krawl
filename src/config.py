@@ -80,6 +80,8 @@ class Config:
     dashboard_warmup_pages: int = 10
     dashboard_warmup_aggregation: bool = False
     dashboard_top_n_min_count: int = 5
+    # Maximum observed hostnames drawn for the selected root in the link map.
+    dashboard_domain_map_host_limit: int = 200
     # Dashboard branding — the wordmark in the top-left corner.
     dashboard_brand_name: str = "Krawl"
     dashboard_brand_url: str | None = "https://github.com/BlessedRebuS/Krawl"
@@ -179,6 +181,19 @@ class Config:
 
     # Deception pages import settings
     deception_import_pages: bool = True
+
+    # Scheduled-task batch sizes: rows each task handles per run, the rest is
+    # picked up next run. Raise when a backlog never drains; the pod's memory
+    # ceiling is what bounds them (raw_request bodies are multi-KB).
+    tasks_analyze_ips_batch: int = 2000
+    tasks_extract_metadata_batch: int = 500
+    tasks_extract_files_batch: int = 500
+    tasks_hash_payloads_batch: int = 500
+    # Raw requests held in memory at once inside a hash-payloads batch.
+    tasks_hash_payloads_chunk: int = 50
+    tasks_hash_files_batch: int = 50
+    tasks_cleanup_batch: int = 1000
+    tasks_retention_delete_batch: int = 10_000
 
     # Banlist export/import settings
     banlist_export_path: str = ""
@@ -281,6 +296,7 @@ class Config:
         metrics = data.get("metrics", {})
         deception = data.get("deception", {})
         banlist = data.get("banlist", {})
+        tasks_cfg = data.get("tasks") or {}
         # Support legacy nested `page_template` or top-level `custom_template_path`.
         page_template = data.get("page_template", {})
         custom_template_path = data.get("custom_template_path", None)
@@ -354,6 +370,9 @@ class Config:
             dashboard_warmup_pages=int(dashboard.get("warmup_pages", 10)),
             dashboard_warmup_aggregation=dashboard.get("warmup_aggregation", False),
             dashboard_top_n_min_count=int(dashboard.get("top_n_min_count", 5)),
+            dashboard_domain_map_host_limit=max(
+                1, min(2000, int(dashboard.get("domain_map_host_limit", 200)))
+            ),
             dashboard_brand_name=branding.get("name") or "Krawl",
             dashboard_brand_url=(
                 branding["url"]
@@ -424,6 +443,18 @@ class Config:
             banlist_export_path=banlist.get("export_path", ""),
             banlist_sources=banlist.get("sources") or None,
             banlist_refresh_interval=banlist.get("refresh_interval", 3600),
+            tasks_analyze_ips_batch=int(tasks_cfg.get("analyze_ips_batch", 2000)),
+            tasks_extract_metadata_batch=int(
+                tasks_cfg.get("extract_metadata_batch", 500)
+            ),
+            tasks_extract_files_batch=int(tasks_cfg.get("extract_files_batch", 500)),
+            tasks_hash_payloads_batch=int(tasks_cfg.get("hash_payloads_batch", 500)),
+            tasks_hash_payloads_chunk=int(tasks_cfg.get("hash_payloads_chunk", 50)),
+            tasks_hash_files_batch=int(tasks_cfg.get("hash_files_batch", 50)),
+            tasks_cleanup_batch=int(tasks_cfg.get("cleanup_batch", 1000)),
+            tasks_retention_delete_batch=int(
+                tasks_cfg.get("retention_delete_batch", 10_000)
+            ),
         )
 
 
@@ -450,7 +481,10 @@ def override_config_from_env(config: Config = None):
                 if field == "dashboard_password":
                     config.dashboard_password_generated = False
                 if field_type is int:
-                    setattr(config, field, int(env_value))
+                    parsed_value = int(env_value)
+                    if field == "dashboard_domain_map_host_limit":
+                        parsed_value = max(1, min(2000, parsed_value))
+                    setattr(config, field, parsed_value)
                 elif field_type is float:
                     setattr(config, field, float(env_value))
                 elif field_type is bool:

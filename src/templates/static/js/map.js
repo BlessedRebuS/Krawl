@@ -6,6 +6,24 @@ let allIps = [];
 let mapMarkers = [];       // all marker objects, each tagged with .options.category
 let clusterGroup = null;   // single shared MarkerClusterGroup
 let hiddenCategories = new Set();
+let mapResizeObserver = null;
+let mapResizeFrame = null;
+let mapInitializationPromise = null;
+let mapDataLoaded = false;
+let liveModeEnabled = false;
+let livePollTimer = null;
+let liveRequestController = null;
+let liveRequestGeneration = 0;
+let liveAttackLayer = null;
+let liveReadoutTimer = null;
+let liveLastAttackLabel = null;
+let mapExpanded = false;
+let mapPreviousBodyOverflow = '';
+const liveAttackSignatures = new Map();
+
+const LIVE_POLL_INTERVAL_MS = 2500;
+const LIVE_ATTACK_LIMIT = 100;
+const LIVE_PULSE_LIFETIME_MS = 6500;
 
 const categoryColors = { ...krawlCategoryColors(), unknown: krawlToken('--text-dim') };
 
@@ -160,6 +178,319 @@ function getIPCoordinates(ip) {
     return null;
 }
 
+function _setLiveStatus(message) {
+    const status = document.getElementById('map-live-status');
+    if (status) status.textContent = message;
+}
+
+function _setLiveToggleState(enabled, busy = false) {
+    document.querySelectorAll('.dashboard-live-toggle').forEach(toggle => {
+        toggle.setAttribute('aria-checked', enabled ? 'true' : 'false');
+        toggle.disabled = busy;
+    });
+    // The Overview tab shows a live dot on Overview while the feed is running.
+    document.documentElement.classList.toggle('is-live', enabled);
+}
+
+function _liveAttackSignature(attack) {
+    return `${attack.last_seen || ''}|${attack.total_requests || 0}|${attack.latitude}|${attack.longitude}`;
+}
+
+function _liveAttackLocation(attack) {
+    if (attack.city && attack.country_code) return `${attack.city}, ${attack.country_code}`;
+    if (attack.city) return attack.city;
+    if (attack.country_code) return attack.country_code;
+    return `${Number(attack.latitude).toFixed(2)}, ${Number(attack.longitude).toFixed(2)}`;
+}
+
+function _showLiveReadout(attack) {
+    const readout = document.getElementById('map-live-readout');
+    const ip = document.getElementById('map-live-readout-ip');
+    const location = document.getElementById('map-live-readout-location');
+    if (!readout || !ip || !location) return;
+
+    // These values ultimately come from remote traffic and GeoIP providers;
+    // use textContent so the live presentation never becomes an HTML sink.
+    ip.textContent = attack.ip;
+    location.textContent = _liveAttackLocation(attack);
+    readout.dataset.ip = attack.ip;
+    readout.setAttribute('aria-label', `Inspect incoming attack from ${attack.ip}, ${location.textContent}`);
+    readout.hidden = false;
+    if (liveReadoutTimer) clearTimeout(liveReadoutTimer);
+    liveReadoutTimer = setTimeout(() => {
+        readout.hidden = true;
+        liveReadoutTimer = null;
+    }, LIVE_PULSE_LIFETIME_MS);
+}
+
+function openLiveAttackInsight() {
+    const readout = document.getElementById('map-live-readout');
+    const ip = readout && readout.dataset.ip;
+    if (!ip || typeof window.openIpInsight !== 'function') return;
+    if (mapExpanded) toggleMapExpanded(false);
+    window.openIpInsight(ip);
+}
+
+function _suspiciousLogIds(root) {
+    if (!root) return new Set();
+    return new Set(
+        Array.from(root.querySelectorAll('[data-log-id]'))
+            .map(row => row.dataset.logId)
+            .filter(Boolean)
+    );
+}
+
+function _animateNewSuspiciousRows(root, previousIds) {
+    if (!root) return;
+    const rows = Array.from(root.querySelectorAll('[data-log-id]'))
+        .filter(row => row.dataset.logId && !previousIds.has(row.dataset.logId));
+
+    // Newest rows are first. A small capped stagger makes a burst readable
+    // without turning a busy attack feed into a long animation queue.
+    rows.forEach((row, index) => {
+        row.style.setProperty('--arrival-index', String(Math.min(index, 6)));
+        row.classList.add('is-live-arrival');
+    });
+}
+
+function _scheduleSuspiciousArrival(root, previousIds) {
+    // Let the freshly swapped table paint once before applying the class.
+    // This avoids the animation being coalesced with the HTMX DOM update,
+    // especially in the expanded overlay where a larger table takes longer
+    // to lay out.
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => _animateNewSuspiciousRows(root, previousIds));
+    });
+}
+
+async function _refreshLiveSuspicious(highlightNew = true) {
+    const target = document.getElementById('recent-suspicious-body');
+    if (!target) return;
+    const previousIds = _suspiciousLogIds(target);
+    const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
+    const response = await fetch(`${DASHBOARD_PATH}/htmx/suspicious?page=1&page_size=10&live=1`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+    });
+    if (!response.ok) throw new Error('Suspicious activity feed unavailable');
+    const html = await response.text();
+    const parsed = new DOMParser().parseFromString(html, 'text/html');
+    const fragmentMarker = parsed.querySelector('[data-suspicious-fragment="true"]');
+    const sourceBody = parsed.querySelector('table tbody');
+    // Never swap arbitrary HTML into the table. This specifically protects
+    // the dashboard if a bad/missing route falls through to a deception page.
+    if (!fragmentMarker || !sourceBody) {
+        throw new Error('Invalid suspicious activity response');
+    }
+    const rowsHtml = sourceBody.innerHTML;
+    if (typeof htmx !== 'undefined' && typeof htmx.swap === 'function') {
+        htmx.swap(target, rowsHtml, { swapStyle: 'innerHTML' });
+    } else {
+        target.innerHTML = rowsHtml;
+    }
+    if (highlightNew) {
+        _scheduleSuspiciousArrival(target, previousIds);
+    }
+
+    const app = typeof _getAlpineData === 'function' ? _getAlpineData() : null;
+    const overlayTarget = document.getElementById('expand-overlay-table');
+    if (app && overlayTarget && app.expandOverlay.show && app.expandOverlay.endpoint === 'suspicious') {
+        const overlayPreviousIds = _suspiciousLogIds(overlayTarget);
+        const params = new URLSearchParams({
+            page: '1',
+            page_size: String(app.expandOverlay.pageSize || 25),
+            search: app.expandOverlay.search || '',
+            live: '1'
+        });
+        const overlayResponse = await fetch(`${DASHBOARD_PATH}/htmx/suspicious?${params}`, {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+        });
+        if (!overlayResponse.ok) throw new Error('Expanded suspicious activity feed unavailable');
+        const overlayHtml = await overlayResponse.text();
+        const overlayParsed = new DOMParser().parseFromString(overlayHtml, 'text/html');
+        if (!overlayParsed.querySelector('[data-suspicious-fragment="true"]') ||
+            !overlayParsed.querySelector('table tbody')) {
+            throw new Error('Invalid expanded suspicious activity response');
+        }
+        if (typeof htmx !== 'undefined' && typeof htmx.swap === 'function') {
+            htmx.swap(overlayTarget, overlayHtml, { swapStyle: 'innerHTML' });
+        } else {
+            overlayTarget.innerHTML = overlayHtml;
+        }
+        if (highlightNew) {
+            _scheduleSuspiciousArrival(overlayTarget, overlayPreviousIds);
+        }
+    }
+}
+
+function toggleMapExpanded(force) {
+    const panel = document.getElementById('ip-origins-panel');
+    const toggle = document.getElementById('map-expand-toggle');
+    if (!panel) return;
+    const next = typeof force === 'boolean' ? force : !mapExpanded;
+    if (next === mapExpanded) return;
+    mapExpanded = next;
+    panel.classList.toggle('is-expanded', next);
+    if (toggle) {
+        toggle.setAttribute('aria-pressed', next ? 'true' : 'false');
+        toggle.setAttribute('aria-label', next ? 'Close expanded IP Origins Map' : 'Expand IP Origins Map');
+        toggle.title = next ? 'Close expanded map' : 'Expand map';
+    }
+    if (next) {
+        mapPreviousBodyOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = mapPreviousBodyOverflow;
+    }
+    refreshAttackerMapLayout(false);
+}
+
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && mapExpanded) toggleMapExpanded(false);
+});
+
+function _renderLiveAttack(attack) {
+    if (!attackerMap || !liveAttackLayer || !liveModeEnabled) return;
+    const coords = [Number(attack.latitude), Number(attack.longitude)];
+    if (!Number.isFinite(coords[0]) || !Number.isFinite(coords[1])) return;
+
+    const marker = L.marker(coords, {
+        interactive: false,
+        keyboard: false,
+        zIndexOffset: 1000,
+        icon: L.divIcon({
+            html: '<div class="map-live-event" aria-hidden="true"></div>',
+            className: 'map-live-event-icon',
+            iconSize: [18, 18],
+            iconAnchor: [9, 9]
+        })
+    });
+    liveAttackLayer.addLayer(marker);
+    _showLiveReadout(attack);
+    liveLastAttackLabel = formatTimestamp(attack.last_seen);
+    _setLiveStatus(`Live · last attack ${liveLastAttackLabel}`);
+    setTimeout(() => {
+        if (liveAttackLayer) liveAttackLayer.removeLayer(marker);
+    }, LIVE_PULSE_LIFETIME_MS);
+}
+
+async function _fetchLiveAttacks() {
+    if (liveRequestController) liveRequestController.abort();
+    liveRequestController = new AbortController();
+    const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
+    const response = await fetch(
+        `${DASHBOARD_PATH}/api/live-attacks?limit=${LIVE_ATTACK_LIMIT}`,
+        {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
+            signal: liveRequestController.signal
+        }
+    );
+    if (!response.ok) throw new Error('Live feed unavailable');
+    const data = await response.json();
+    return data.attacks || [];
+}
+
+function _scheduleLivePoll(generation, delay = LIVE_POLL_INTERVAL_MS) {
+    if (livePollTimer) clearTimeout(livePollTimer);
+    if (!liveModeEnabled || generation !== liveRequestGeneration) return;
+    livePollTimer = setTimeout(() => _pollLiveAttacks(generation), delay);
+}
+
+async function _pollLiveAttacks(generation) {
+    if (!liveModeEnabled || generation !== liveRequestGeneration) return;
+    const suspiciousRefresh = _refreshLiveSuspicious(true).catch(err => {
+        console.error('Error refreshing live suspicious activity:', err);
+    });
+    try {
+        const attacks = await _fetchLiveAttacks();
+        if (!liveModeEnabled || generation !== liveRequestGeneration) return;
+
+        const changed = [];
+        const currentIps = new Set();
+        attacks.forEach(attack => {
+            currentIps.add(attack.ip);
+            const signature = _liveAttackSignature(attack);
+            if (liveAttackSignatures.get(attack.ip) !== signature) changed.push(attack);
+            liveAttackSignatures.set(attack.ip, signature);
+        });
+        // Bound client memory to the same small rolling window as the API.
+        // An IP that later re-enters the window necessarily has new activity.
+        liveAttackSignatures.forEach((_signature, ip) => {
+            if (!currentIps.has(ip)) liveAttackSignatures.delete(ip);
+        });
+
+        // The endpoint is newest-first. Play a bounded batch oldest-first so
+        // simultaneous activity reads as a sequence rather than one bright blob.
+        changed.slice(0, 12).reverse().forEach((attack, index) => {
+            setTimeout(() => _renderLiveAttack(attack), index * 140);
+        });
+        if (changed.length === 0) {
+            _setLiveStatus(liveLastAttackLabel
+                ? `Live · last attack ${liveLastAttackLabel}`
+                : 'Live · waiting for a geolocated attack');
+        }
+    } catch (err) {
+        if (err.name !== 'AbortError' && liveModeEnabled) {
+            console.error('Error polling live map attacks:', err);
+            _setLiveStatus('Live · reconnecting…');
+        }
+    } finally {
+        await suspiciousRefresh;
+        _scheduleLivePoll(generation);
+    }
+}
+
+async function toggleMapLiveMode() {
+    if (liveModeEnabled) {
+        liveModeEnabled = false;
+        liveRequestGeneration++;
+        if (livePollTimer) clearTimeout(livePollTimer);
+        livePollTimer = null;
+        if (liveRequestController) liveRequestController.abort();
+        liveRequestController = null;
+        if (liveAttackLayer) liveAttackLayer.clearLayers();
+        liveLastAttackLabel = null;
+        const readout = document.getElementById('map-live-readout');
+        if (readout) readout.hidden = true;
+        _setLiveToggleState(false);
+        _setLiveStatus('Live mode is off');
+        return;
+    }
+
+    _setLiveToggleState(false, true);
+    _setLiveStatus('Connecting to live attacks…');
+    const initialized = attackerMap || await initializeAttackerMap();
+    if (!initialized) {
+        _setLiveToggleState(false);
+        _setLiveStatus('Open the overview to start live mode');
+        return;
+    }
+
+    const generation = ++liveRequestGeneration;
+    try {
+        // Establish a baseline without replaying historical attacks. An IP
+        // absent here because GeoIP is pending will still pulse once enriched.
+        const attacks = await _fetchLiveAttacks();
+        await _refreshLiveSuspicious(false);
+        if (generation !== liveRequestGeneration) return;
+        liveAttackSignatures.clear();
+        liveLastAttackLabel = null;
+        attacks.forEach(attack => {
+            liveAttackSignatures.set(attack.ip, _liveAttackSignature(attack));
+        });
+        liveModeEnabled = true;
+        _setLiveToggleState(true);
+        _setLiveStatus('Live · waiting for a geolocated attack');
+        _scheduleLivePoll(generation, 0);
+    } catch (err) {
+        if (err.name !== 'AbortError') console.error('Error starting live map:', err);
+        _setLiveToggleState(false);
+        _setLiveStatus('Live mode could not connect');
+    }
+}
+
 // Shared coordinate-dedup state (reset per full build)
 let _usedCoordinates = {};
 
@@ -239,8 +570,8 @@ function _createIpMarker(ip, animate) {
                     <span style="color: var(--text-dim); font-size: 12px;">${ip.city ? (ip.country_code ? `${ip.city}, ${ip.country_code}` : ip.city) : (ip.country_code || 'Unknown')}</span><br/>
                     <div style="margin-top: 8px; border-top: 1px solid var(--line); padding-top: 8px;">
                         <div style="margin-bottom: 4px;"><span style="color: var(--text-dim);">Requests:</span> <span style="color: ${categoryColor}; font-weight: bold;">${ip.total_requests}</span></div>
-                        <div style="margin-bottom: 4px;"><span style="color: var(--text-dim);">First Seen:</span> <span style="color: var(--accent); font-size: 11px;">${formatTimestamp(ip.first_seen)}</span></div>
-                        <div style="margin-bottom: 4px;"><span style="color: var(--text-dim);">Last Seen:</span> <span style="color: var(--accent); font-size: 11px;">${formatTimestamp(ip.last_seen)}</span></div>
+                        <div style="margin-bottom: 4px;"><span style="color: var(--text-dim);">First Seen:</span> <span style="color: var(--text); font-size: 11px;">${formatTimestamp(ip.first_seen)}</span></div>
+                        <div style="margin-bottom: 4px;"><span style="color: var(--text-dim);">Last Seen:</span> <span style="color: var(--text); font-size: 11px;">${formatTimestamp(ip.last_seen)}</span></div>
                     </div>`;
 
             if (stats.category_scores && Object.keys(stats.category_scores).length > 0) {
@@ -315,7 +646,9 @@ async function fetchAndBuildMap(limit, sortBy) {
         // Build markers for this batch with pop animation
         const batchMarkers = [];
         batch.forEach(ip => {
-            if (!ip.country_code || !ip.category) return;
+            // Coordinates are authoritative. A geolocated record can still be
+            // plotted when its provider did not return a country code.
+            if (!ip.category) return;
             const marker = _createIpMarker(ip, true);
             if (marker) {
                 mapMarkers.push(marker);
@@ -340,7 +673,8 @@ async function fetchAndBuildMap(limit, sortBy) {
         await new Promise(r => setTimeout(r, 80));
     }
 
-    fitToMarkers();
+    _setMapStatus(mapMarkers.length === 0 ? 'No IP location data available' : '');
+    await refreshAttackerMapLayout(true);
 }
 
 // Legacy wrapper kept for filter rebuilds
@@ -362,7 +696,7 @@ function buildMapMarkers(ips) {
     });
 
     ips.forEach(ip => {
-        if (!ip.country_code || !ip.category) return;
+        if (!ip.category) return;
         const marker = _createIpMarker(ip, false);
         if (marker) {
             mapMarkers.push(marker);
@@ -373,7 +707,8 @@ function buildMapMarkers(ips) {
     });
 
     attackerMap.addLayer(clusterGroup);
-    fitToMarkers();
+    _setMapStatus(mapMarkers.length === 0 ? 'No IP location data available' : '');
+    refreshAttackerMapLayout(true);
 }
 
 // Breathing room around the data. The map is wider than it is tall, so the
@@ -419,9 +754,130 @@ function _tileLayer() {
     );
 }
 
-async function initializeAttackerMap() {
+function _mapContainerIsVisible(mapContainer) {
+    return Boolean(
+        mapContainer &&
+        mapContainer.isConnected &&
+        mapContainer.getClientRects().length &&
+        mapContainer.clientWidth > 0 &&
+        mapContainer.clientHeight > 0
+    );
+}
+
+function _nextMapFrame() {
+    return new Promise(resolve => requestAnimationFrame(resolve));
+}
+
+// Keep status messages outside Leaflet's own panes. Replacing the map
+// container's innerHTML leaves the Leaflet instance alive but destroys the
+// DOM it owns, which makes every later reload appear permanently blank.
+function _setMapStatus(message, isError = false) {
     const mapContainer = document.getElementById('attacker-map');
-    if (!mapContainer || attackerMap) return;
+    if (!mapContainer) return;
+
+    let status = document.getElementById('map-status-overlay');
+    if (!message) {
+        if (status) status.remove();
+        return;
+    }
+
+    if (!status) {
+        status = document.createElement('div');
+        status.id = 'map-status-overlay';
+        status.className = 'map-status-overlay';
+        mapContainer.appendChild(status);
+    }
+    status.classList.toggle('is-error', isError);
+    status.textContent = message;
+}
+
+// Leaflet caches the container dimensions. If the map is created inside an
+// Alpine x-show panel, those dimensions can describe the hidden/narrow panel
+// and only one corner of the tile grid is requested. Two animation frames let
+// Alpine and the browser finish layout before Leaflet measures and reframes.
+async function refreshAttackerMapLayout(refitMarkers = true) {
+    if (!attackerMap) return false;
+    const mapContainer = attackerMap.getContainer();
+
+    await _nextMapFrame();
+    await _nextMapFrame();
+    if (!_mapContainerIsVisible(mapContainer)) return false;
+
+    attackerMap.invalidateSize({ animate: false, pan: false });
+    if (clusterGroup && typeof clusterGroup.refreshClusters === 'function') {
+        clusterGroup.refreshClusters();
+    }
+    if (refitMarkers) {
+        fitToMarkers();
+    }
+    return true;
+}
+
+function _observeMapContainer(mapContainer) {
+    if (mapResizeObserver || typeof ResizeObserver === 'undefined') return;
+
+    let previousWidth = 0;
+    let previousHeight = 0;
+    mapResizeObserver = new ResizeObserver(entries => {
+        const box = entries[0] && entries[0].contentRect;
+        if (!box || box.width < 1 || box.height < 1) return;
+        if (box.width === previousWidth && box.height === previousHeight) return;
+        previousWidth = box.width;
+        previousHeight = box.height;
+
+        if (mapResizeFrame) cancelAnimationFrame(mapResizeFrame);
+        mapResizeFrame = requestAnimationFrame(() => {
+            mapResizeFrame = null;
+            // Preserve a view the user has panned or zoomed while still
+            // requesting tiles for the map's new dimensions.
+            refreshAttackerMapLayout(false);
+        });
+    });
+    mapResizeObserver.observe(mapContainer);
+}
+
+async function initializeAttackerMap() {
+    // Alpine can invoke the tab method and x-init during the same render.
+    // Share one promise so both callers cannot create Leaflet on the same DOM
+    // node concurrently.
+    if (mapInitializationPromise) return mapInitializationPromise;
+    mapInitializationPromise = _initializeAttackerMap();
+    try {
+        return await mapInitializationPromise;
+    } finally {
+        mapInitializationPromise = null;
+    }
+}
+
+async function _initializeAttackerMap() {
+    const mapContainer = document.getElementById('attacker-map');
+    if (!mapContainer) return false;
+    if (attackerMap) {
+        const visible = await refreshAttackerMapLayout(true);
+        if (!visible) return false;
+
+        // Retry a request that failed during initial page load. The Leaflet
+        // instance remains intact, so recovery does not require a reload.
+        if (!mapDataLoaded) {
+            const limit = _getMapLimit();
+            try {
+                await fetchAndBuildMap(limit, _getMapSortBy());
+                mapDataLoaded = true;
+                _setMapStatus(mapMarkers.length === 0 ? 'No IP location data available' : '');
+            } catch (err) {
+                console.error('Error loading IP locations:', err);
+                _setMapStatus(`Failed to load IP locations: ${err.message}`, true);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // x-init also runs for an x-show panel that starts hidden. Defer creation
+    // until switchToOverview calls us again with a measurable container.
+    await _nextMapFrame();
+    await _nextMapFrame();
+    if (!_mapContainerIsVisible(mapContainer)) return false;
 
     try {
         attackerMap = L.map('attacker-map', {
@@ -445,58 +901,68 @@ async function initializeAttackerMap() {
                 _tileLayer()
             ]
         });
+        liveAttackLayer = L.layerGroup().addTo(attackerMap);
+        _observeMapContainer(mapContainer);
 
         // Fit the inhabited latitude band to the frame. The right zoom depends
         // on the container, which changes with the breakpoint, so letting
         // Leaflet solve it beats a hardcoded value that only suits one width.
         attackerMap.fitBounds(INHABITED_BOUNDS, { animate: false, padding: [0, 0] });
 
-        const activeBtn = document.querySelector('#map-limit-selector .map-limit-btn.active');
-        const limit = activeBtn ? activeBtn.dataset.value : '1000';
+        const limit = _getMapLimit();
 
         await fetchAndBuildMap(limit, _getMapSortBy());
-
-        if (allIps.length === 0) {
-            mapContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-dim);">No IP location data available</div>';
-            return;
-        }
-
-        setTimeout(() => {
-            if (attackerMap) attackerMap.invalidateSize();
-        }, 300);
+        mapDataLoaded = true;
+        await refreshAttackerMapLayout(true);
+        return true;
 
     } catch (err) {
         console.error('Error initializing attacker map:', err);
-        mapContainer.innerHTML = '<div class="center text-danger" style="height:100%">Failed to load map: ' + err.message + '</div>';
+        _setMapStatus(`Failed to load map: ${err.message}`, true);
+        return false;
     }
 }
 
 async function reloadMapWithLimit(limit) {
-    if (!attackerMap) return;
+    if (!attackerMap) {
+        const initialized = await initializeAttackerMap();
+        if (!initialized) return;
+    }
 
     const mapContainer = document.getElementById('attacker-map');
+    const previousOverlay = document.getElementById('map-loading-overlay');
+    if (previousOverlay) previousOverlay.remove();
+    _setMapStatus('');
     const overlay = document.createElement('div');
     overlay.id = 'map-loading-overlay';
     overlay.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(13,17,23,0.7);display:flex;align-items:center;justify-content:center;z-index:1000;color:var(--text-dim);font-size:14px;';
     overlay.textContent = 'Loading IPs...';
+    overlay.setAttribute('role', 'status');
     mapContainer.style.position = 'relative';
     mapContainer.appendChild(overlay);
 
     try {
         await fetchAndBuildMap(limit);
+        mapDataLoaded = true;
     } catch (err) {
+        mapDataLoaded = false;
         console.error('Error reloading map:', err);
+        _setMapStatus(`Failed to load IP locations: ${err.message}`, true);
     } finally {
         const existing = document.getElementById('map-loading-overlay');
         if (existing) existing.remove();
     }
 }
 
+// How many IPs the map draws: the toolbar's "Show" select.
+function _getMapLimit() {
+    const select = document.getElementById('map-limit-select');
+    return select ? select.value : '1000';
+}
+
 async function reloadMapWithSort() {
     if (!attackerMap) return;
-    const activeBtn = document.querySelector('#map-limit-selector .map-limit-btn.active');
-    const limit = activeBtn ? activeBtn.dataset.value : '1000';
-    await reloadMapWithLimit(limit);
+    await reloadMapWithLimit(_getMapLimit());
 }
 
 // Update map filters based on checkbox selection
@@ -513,6 +979,7 @@ function updateMapFilters() {
     clusterGroup.clearLayers();
     const visible = mapMarkers.filter(m => !hiddenCategories.has(m.options.category));
     clusterGroup.addLayers(visible);
+    if (visible.length > 0) fitToMarkers();
 }
 
 // Generate radar chart SVG for map panel popups

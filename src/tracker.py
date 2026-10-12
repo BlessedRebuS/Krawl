@@ -154,6 +154,7 @@ class AccessTracker:
         increment_page_visit: bool = False,
         referer: str = "",
         file_payloads: list[dict] | None = None,
+        target_host: str | None = None,
     ) -> int:
         """
         Record an access attempt.
@@ -171,6 +172,7 @@ class AccessTracker:
             increment_page_visit: Also bump page visit counter in the same DB tx
             referer: Inbound HTTP Referer header (bait-chain tracking)
             file_payloads: Uploaded-file dicts to persist as captured_payloads rows
+            target_host: Host header captured directly from the live request
 
         Returns:
             The page visit count (0 when increment_page_visit is False or on error)
@@ -199,10 +201,12 @@ class AccessTracker:
             _m = re.search(r"\r\nReferer:\s*([^\r\n]+)", raw_request, re.IGNORECASE)
             if _m:
                 referer = _m.group(1).strip()
-        if file_payloads is None and raw_request and config.tlsh_enabled:
+        if file_payloads is None and raw_request:
             from tlsh_utils import extract_file_payloads
 
-            file_payloads = extract_file_payloads(raw_request)
+            file_payloads = extract_file_payloads(
+                raw_request, compute_tlsh=config.tlsh_enabled
+            )
 
         # common_probes and login_attempt are path-based — skip them on body to avoid
         # false positives from form fields like redirect_to=/wp-admin/
@@ -224,6 +228,11 @@ class AccessTracker:
 
         attack_types = [t for t, _ in attack_findings]
         matched_patterns = {t: m for t, m in attack_findings}
+
+        from request_metadata import extract_request_metadata, normalize_target_host
+
+        derived_host, request_assets = extract_request_metadata(raw_request)
+        target_host = normalize_target_host(target_host or "") or derived_host
 
         # TLSH hashing + campaign clustering of attack bodies moved to the
         # scheduled hash-payloads task (reads the persisted raw_request), so
@@ -261,6 +270,8 @@ class AccessTracker:
                     raw_request=raw_request if raw_request else None,
                     referer=referer if referer else None,
                     file_payloads=file_payloads,
+                    target_host=target_host,
+                    request_assets=request_assets,
                     increment_page_visit=increment_page_visit,
                     max_pages_limit=self.max_pages_limit if increment_page_visit else 0,
                 )

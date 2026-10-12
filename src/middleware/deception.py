@@ -21,7 +21,7 @@ class DeceptionMiddleware(BaseHTTPMiddleware):
         # Skip deception detection for dashboard routes
         config = request.app.state.config
         dashboard_prefix = "/" + config.dashboard_secret_path.lstrip("/")
-        if path.startswith(dashboard_prefix):
+        if path == dashboard_prefix or path.startswith(dashboard_prefix + "/"):
             return await call_next(request)
 
         get_app_logger().debug(f"[Deception] Processing {request.method} {path}")
@@ -29,9 +29,11 @@ class DeceptionMiddleware(BaseHTTPMiddleware):
         method = request.method
 
         # Read body for POST requests, bounded — see read_body_capped.
+        body_bytes = b""
         body = ""
         if method == "POST":
-            body = (await read_body_capped(request)).decode("utf-8", errors="replace")
+            body_bytes = await read_body_capped(request)
+            body = body_bytes.decode("utf-8", errors="replace")
 
         result = detect_and_respond_deception(path, query, body, method)
 
@@ -83,6 +85,16 @@ class DeceptionMiddleware(BaseHTTPMiddleware):
             import asyncio
 
             tracker = request.app.state.tracker
+            file_payloads = []
+            if body_bytes:
+                from tlsh_utils import extract_file_payloads_from_body
+
+                file_payloads = extract_file_payloads_from_body(
+                    body_bytes,
+                    request.headers.get("Content-Type", ""),
+                    compute_tlsh=config.tlsh_enabled,
+                    filename_hint=path.rstrip("/").rsplit("/", 1)[-1],
+                )
             await asyncio.to_thread(
                 tracker.record_access,
                 ip=client_ip,
@@ -91,6 +103,8 @@ class DeceptionMiddleware(BaseHTTPMiddleware):
                 body=body,
                 method=method,
                 raw_request=build_raw_request(request, body),
+                file_payloads=file_payloads,
+                target_host=request.headers.get("Host", ""),
             )
 
             return Response(

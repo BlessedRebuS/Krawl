@@ -55,17 +55,20 @@ async def _safe_body(request: Request) -> str:
 
 
 async def _track_honeypot_request(request: Request):
-    """Record access for requests with attack patterns or honeypot path hits."""
+    """Record attacks, honeypot hits, and bounded file uploads."""
     tracker = request.app.state.tracker
     client_ip = get_client_ip(request)
     user_agent = request.headers.get("User-Agent", "")
     referer = request.headers.get("Referer", "") if get_config().referer_enabled else ""
+    target_host = request.headers.get("Host", "")
     path = request.url.path
     get_app_logger().debug(f"[HoneypotDep] {request.method} {path} from {client_ip}")
 
+    body_bytes = b""
     body = ""
     if request.method in ("POST", "PUT"):
-        body = await _safe_body(request)
+        body_bytes = await read_body_capped(request)
+        body = body_bytes.decode("utf-8", errors="replace")
 
     # Check attack patterns in path and body
     attack_findings = tracker.detect_attack_type(path)
@@ -76,18 +79,25 @@ async def _track_honeypot_request(request: Request):
         decoded_body = urllib.parse.unquote(body)
         attack_findings.extend(tracker.detect_attack_type(decoded_body))
 
-    # Record if attack pattern detected OR path is a honeypot trap
-    if attack_findings or tracker.is_honeypot_path(path):
+    # File capture is independent of attack matching and TLSH. Hashing is the
+    # optional part; exact SHA-256 metadata is still retained when TLSH is off.
+    file_payloads = []
+    if body_bytes:
+        from tlsh_utils import extract_file_payloads_from_body
+
+        file_payloads = extract_file_payloads_from_body(
+            body_bytes,
+            request.headers.get("Content-Type", ""),
+            compute_tlsh=get_config().tlsh_enabled,
+            filename_hint=path.rstrip("/").rsplit("/", 1)[-1],
+        )
+
+    # A real upload is evidence in its own right, even when neither its path nor
+    # its content happens to match an attack signature.
+    if attack_findings or tracker.is_honeypot_path(path) or file_payloads:
         import asyncio
 
         raw_request = build_raw_request(request, body)
-
-        # Capture uploaded files (WebShells, etc.) as TLSH-indexed payloads.
-        file_payloads = None
-        if get_config().tlsh_enabled:
-            from tlsh_utils import extract_file_payloads
-
-            file_payloads = extract_file_payloads(raw_request)
 
         await asyncio.to_thread(
             tracker.record_access,
@@ -99,6 +109,7 @@ async def _track_honeypot_request(request: Request):
             raw_request=raw_request,
             referer=referer,
             file_payloads=file_payloads,
+            target_host=target_host,
         )
 
 
@@ -191,8 +202,9 @@ async def contact_post(request: Request):
 
 
 @router.post("/{path:path}")
+@router.put("/{path:path}")
 async def credential_capture_post(request: Request, path: str):
-    """Catch-all POST handler for credential capture."""
+    """Catch-all POST/PUT handler for credential and upload capture."""
     client_ip = get_client_ip(request)
     user_agent = request.headers.get("User-Agent", "")
     tracker = request.app.state.tracker
@@ -433,6 +445,7 @@ async def trap_page(request: Request, path: str):
             user_agent=user_agent,
             method=request.method,
             raw_request=build_raw_request(request) if is_suspicious else "",
+            target_host=request.headers.get("Host", ""),
             increment_page_visit=True,
         )
     else:

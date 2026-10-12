@@ -9,18 +9,24 @@ import time
 
 import metrics
 from config import get_config
-from dashboard_cache import set_cached, set_cached_list, set_cached_table
+from dashboard_cache import (
+    get_cached_table,
+    set_cached,
+    set_cached_list,
+    set_cached_table,
+)
 from database import get_database
 from logger import get_app_logger
-from routes.api import _campaign_window, campaign_payload
+from routes.api import build_campaign_stats
+from routes.htmx import CAMPAIGN_TABLE_LIMIT
 
 app_logger = get_app_logger()
 
-
-def _today_window() -> dict:
-    """The window the campaign chart opens on, as the API computes it."""
-    start, end = _campaign_window("", days=1, offset=0)
-    return {"start": start, "end": end}
+# Warmed table pages must outlive the 5-minute schedule: with the default
+# 2-minute table TTL they went cold for 3 minutes of every 5, and the next
+# visitor paid the full query.
+WARM_TTL = 600
+TARGETED_DOMAINS_TTL = 2400
 
 
 # ----------------------
@@ -99,7 +105,8 @@ def main():
                 chunk = rows[(p - 1) * page_size : p * page_size]
                 set_cached_table(
                     key_fmt.format(p=p),
-                    {
+                    ttl=WARM_TTL,
+                    value={
                         rows_key: chunk,
                         "pagination": {
                             "page": p,
@@ -142,6 +149,7 @@ def main():
                 },
             }
             set_cached("top_ua", top_ua)
+            del top_ua_all, agg_ua
 
             top_paths_all = _timed(
                 "get_top_paths_all",
@@ -159,6 +167,7 @@ def main():
                 },
             }
             set_cached("top_paths", top_paths)
+            del top_paths_all, agg_paths
 
             attackers_all = _timed(
                 "get_attackers_all",
@@ -170,6 +179,7 @@ def main():
                 ),
             )
             set_cached_list("agg:attackers", attackers_all["attackers"])
+            del attackers_all
 
             honeypot_all = _timed(
                 "get_honeypot_all",
@@ -178,6 +188,7 @@ def main():
                 ),
             )
             set_cached_list("agg:honeypot", honeypot_all["honeypots"])
+            del honeypot_all
         else:
             top_ua = _timed(
                 "get_top_user_agents_paginated",
@@ -215,6 +226,7 @@ def main():
                     "total_pages": max(1, (total_ips + 999) // 1000),
                 },
             }
+            del map_ips_all
         else:
             map_ips = _timed(
                 "get_all_ips_paginated",
@@ -315,25 +327,56 @@ def main():
         # exact keys the tab requests on open; other spans stay on demand.
         clusters = _timed(
             "campaign_clusters_all",
-            lambda: db.payloads.get_campaign_clusters(),
+            lambda: db.payloads.get_campaign_clusters(limit=CAMPAIGN_TABLE_LIMIT),
         )
-        set_cached_table("clusters:::0", {"clusters": clusters})
+        set_cached_table("clusters:all", {"clusters": clusters}, ttl=WARM_TTL)
 
         top_campaigns = _timed(
             "campaign_stats_top",
-            lambda: db.payloads.get_campaign_clusters(limit=5, **_today_window()),
+            lambda: build_campaign_stats(db, 8, days=1, offset=0),
         )
-        set_cached_table(
-            "api:campaign_stats:5:1:0", {"campaigns": campaign_payload(top_campaigns)}
-        )
+        set_cached_table("api:campaign_stats:8:1:0", top_campaigns, ttl=WARM_TTL)
 
         _warm_pages(
             "global_filenames_all",
-            lambda: db.payloads.get_global_index(page=1, page_size=20 * warmup_pages),
+            lambda: db.payloads.get_global_index(page=1, page_size=10 * warmup_pages),
             rows_key="index",
             total_key="total",
-            page_size=20,
+            page_size=10,
             key_fmt="filenames:{p}",
+        )
+
+        # First pages of the panels whose totals scan the whole access log,
+        # under the exact keys their routes read (dashboard defaults).
+        for key, fetch in (
+            (
+                "attacks:1:timestamp:desc::::",
+                lambda: db.analytics.get_attack_types_paginated(page=1, page_size=15),
+            ),
+            (
+                "suspicious:1:25:desc:",
+                lambda: db.access_logs.get_recent_suspicious_paginated(
+                    page=1, page_size=25
+                ),
+            ),
+        ):
+            set_cached_table(key, _timed(key, fetch), ttl=WARM_TTL)
+
+        # Targeted Domains groups the whole access log by host with a distinct
+        # IP count (75s on the demo's 7M rows) and its ranking barely moves:
+        # refresh every 6th run (30 min), or at once when the entry is missing.
+        key = "targeted-domains:1::count:desc"
+        if int(time.time() // 300) % 6 == 0 or get_cached_table(key) is None:
+            domains = _timed(
+                key, lambda: db.access_logs.get_targeted_domains(page=1, page_size=10)
+            )
+            set_cached_table(key, domains, ttl=TARGETED_DOMAINS_TTL)
+
+        # Last-24-hours panel: the expanded view's 100 rows; the collapsed
+        # panel slices the first few from the same entry.
+        attention = _timed(
+            "get_attention_summary",
+            lambda: db.ip_stats.get_attention_summary(limit=100),
         )
 
         # Derive credential count from the bulk credentials result
@@ -349,9 +392,10 @@ def main():
             set_cached("top_ua", top_ua)
             set_cached("top_paths", top_paths)
         set_cached("map_ips", map_ips)
+        set_cached("attention", attention)
 
         # Attack trends cache (used by API endpoint)
-        set_cached_table("api:attack_daily:10:7:0", attack_trends)
+        set_cached_table("api:attack_daily:10:7:0", attack_trends, ttl=WARM_TTL)
 
         app_logger.info(f"[Background Task] {task_name} cache refreshed successfully.")
 

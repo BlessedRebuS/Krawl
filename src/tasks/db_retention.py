@@ -18,10 +18,6 @@ from logger import get_app_logger
 # TASK CONFIG
 # ----------------------
 
-# Rows per delete transaction; the first run after the is_(False) fix has a
-# large backlog to clear.
-DELETE_BATCH_SIZE = 10_000
-
 TASK_CONFIG = {
     "name": "db-retention",
     "cron": "0 9 * * *",  # Run daily at 9 AM
@@ -50,10 +46,14 @@ def main():
             IpStats,
             MetricsSummary,
             PayloadCluster,
+            RequestAsset,
         )
 
         config = get_config()
         retention_days = config.database_retention_days
+        # Rows per delete transaction; a first run with a large backlog to clear
+        # benefits from a bigger batch, at the cost of a longer lock.
+        delete_batch_size = config.tasks_retention_delete_batch
 
         db = get_database()
         session = db.session
@@ -79,7 +79,7 @@ def main():
                 row[0]
                 for row in session.query(AccessLog.id)
                 .filter(*purgeable)
-                .limit(DELETE_BATCH_SIZE)
+                .limit(delete_batch_size)
                 .all()
             ]
             if not batch_ids:
@@ -90,6 +90,9 @@ def main():
                 .filter(AttackDetection.access_log_id.in_(batch_ids))
                 .delete(synchronize_session=False)
             )
+            session.query(RequestAsset).filter(
+                RequestAsset.access_log_id.in_(batch_ids)
+            ).delete(synchronize_session=False)
             logs_deleted += (
                 session.query(AccessLog)
                 .filter(AccessLog.id.in_(batch_ids))
@@ -109,6 +112,12 @@ def main():
             )
             .delete(synchronize_session=False)
         )
+        session.commit()
+        session.query(RequestAsset).filter(
+            ~session.query(AccessLog.id)
+            .filter(AccessLog.id == RequestAsset.access_log_id)
+            .exists()
+        ).delete(synchronize_session=False)
         session.commit()
         orphan_clusters = (
             session.query(PayloadCluster)

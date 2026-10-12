@@ -14,6 +14,7 @@ from starlette.responses import Response
 import ban_cache
 from dependencies import get_client_ip
 from ip_utils import is_ignored_ip
+from logger import get_access_logger, get_app_logger
 
 
 class BanCheckMiddleware(BaseHTTPMiddleware):
@@ -21,7 +22,9 @@ class BanCheckMiddleware(BaseHTTPMiddleware):
         # Skip ban check for dashboard routes
         config = request.app.state.config
         dashboard_prefix = "/" + config.dashboard_secret_path.lstrip("/")
-        if request.url.path.startswith(dashboard_prefix):
+        if request.url.path == dashboard_prefix or request.url.path.startswith(
+            dashboard_prefix + "/"
+        ):
             return await call_next(request)
 
         client_ip = get_client_ip(request)
@@ -33,8 +36,6 @@ class BanCheckMiddleware(BaseHTTPMiddleware):
 
         tracker = request.app.state.tracker
 
-        from logger import get_app_logger
-
         get_app_logger().debug(
             f"[BanCheck] Checking ban for {client_ip} - {request.url.path}"
         )
@@ -44,14 +45,12 @@ class BanCheckMiddleware(BaseHTTPMiddleware):
         # conclusive -- but only once it is loaded. See ban_cache.
         # This skips the lookup, not the rest of the middleware: the global
         # banlist below is a separate source and still applies.
-        if not ban_cache.is_ready() or ban_cache.is_banned(client_ip):
+        if ban_cache.needs_lookup(client_ip):
             ban_info = await asyncio.to_thread(tracker.get_ban_info, client_ip)
         else:
             ban_info = None
 
         if ban_info is not None and ban_info["is_banned"]:
-            from logger import get_access_logger
-
             get_access_logger().info(
                 f"[BANNED] [{request.method}] {client_ip} - {request.url.path}"
             )

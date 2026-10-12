@@ -29,9 +29,6 @@ TASK_CONFIG = {
     "single_pod": True,
 }
 
-# Batch size for processing old logs to limit memory usage
-BATCH_SIZE = 1000
-
 app_logger = get_app_logger()
 
 
@@ -141,10 +138,12 @@ def main():
     """
     try:
         from config import get_config
-        from models import AccessLog
+        from models import AccessLog, AttackDetection, CapturedPayload, RequestAsset
 
         config = get_config()
         retention_days = config.database_retention_days
+        # Rows per pass, to limit memory usage.
+        batch_size = config.tasks_cleanup_batch
 
         db = get_database()
         session = db.session
@@ -158,24 +157,39 @@ def main():
 
         unflagged = 0
         kept = 0
+        last_id = 0
 
         # Process in batches to avoid loading everything into memory
         while True:
             old_logs = (
-                session.query(AccessLog)
+                session.query(AccessLog.id, AccessLog.path, AccessLog.user_agent)
                 .filter(
+                    AccessLog.id > last_id,
                     AccessLog.timestamp < cutoff,
                     AccessLog.is_suspicious,
                     # `not <column>` is Python truthiness: it collapsed to False
                     # and this query matched nothing.
                     AccessLog.is_honeypot_trigger.is_(False),
+                    # URL/UA checks cannot disprove body-only detections or
+                    # uploaded evidence. Never clear those logs for deletion.
+                    ~session.query(AttackDetection.id)
+                    .filter(AttackDetection.access_log_id == AccessLog.id)
+                    .exists(),
+                    ~session.query(CapturedPayload.id)
+                    .filter(CapturedPayload.access_log_id == AccessLog.id)
+                    .exists(),
+                    ~session.query(RequestAsset.id)
+                    .filter(RequestAsset.access_log_id == AccessLog.id)
+                    .exists(),
                 )
-                .limit(BATCH_SIZE)
+                .order_by(AccessLog.id)
+                .limit(batch_size)
                 .all()
             )
 
             if not old_logs:
                 break
+            last_id = old_logs[-1].id
 
             ids_to_unflag = []
             for log in old_logs:
@@ -199,14 +213,6 @@ def main():
                     )
                 )
                 unflagged += len(ids_to_unflag)
-
-            # Logs that are still suspicious won't be picked up again
-            # because we only unflag the non-suspicious ones, and the
-            # still-suspicious ones keep is_suspicious=True.
-            # If all logs in the batch were kept, we need to offset past them.
-            if not ids_to_unflag:
-                # All logs in this batch are still suspicious — no more to process
-                break
 
             session.commit()
 

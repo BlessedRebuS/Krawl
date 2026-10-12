@@ -198,14 +198,18 @@ _MAX_SEEN = 100_000
 
 _seen_lock = threading.Lock()
 _seen: dict[str, float] = {}  # ip -> expires_at
+_next_seen_prune = 0.0
 
 
 def _prune_seen(now: float) -> None:
-    """Drop expired entries, and the whole ledger if it blew past the cap."""
-    for ip in [ip for ip, expires in _seen.items() if expires <= now]:
-        del _seen[ip]
+    """Bound cardinality on every write, amortize expiry scans over a minute."""
+    global _next_seen_prune
     if len(_seen) >= _MAX_SEEN:
         _seen.clear()
+    if now >= _next_seen_prune:
+        for ip in [ip for ip, expires in _seen.items() if expires <= now]:
+            del _seen[ip]
+        _next_seen_prune = now + 60
 
 
 def get_seen_ledger_size() -> int:

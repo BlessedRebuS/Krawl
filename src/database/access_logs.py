@@ -12,7 +12,7 @@ from sqlalchemy.orm import joinedload
 
 from dashboard_cache import pagination
 from logger import get_app_logger
-from models import AccessLog, AttackDetection, IpStats
+from models import AccessLog, AttackDetection, CapturedPayload, IpStats, RequestAsset
 from sanitizer import sanitize_ip
 
 if TYPE_CHECKING:
@@ -21,11 +21,327 @@ if TYPE_CHECKING:
 applogger = get_app_logger()
 
 
+def _matches_headers(raw_request: str | None, headers: list[tuple[str, str]]) -> bool:
+    """Match header names exactly and values within the same header line."""
+    if not raw_request:
+        return False
+    header_block = raw_request.split("\r\n\r\n", 1)[0].split("\n\n", 1)[0]
+    lines = header_block.splitlines()[1:]
+    parsed = []
+    for line in lines:
+        if ":" in line:
+            name, value = line.split(":", 1)
+            parsed.append((name.strip().casefold(), value.strip().casefold()))
+    return all(
+        any(
+            actual == name.casefold() and value.casefold() in content
+            for actual, content in parsed
+        )
+        for name, value in headers
+    )
+
+
 class AccessLogRepo:
     """Reads over access_logs plus honeypot and dashboard aggregations."""
 
     def __init__(self, db: "DatabaseManager") -> None:
         self._db = db
+
+    def search_requests(
+        self,
+        *,
+        page: int = 1,
+        page_size: int = 25,
+        path: str = "",
+        host: str = "",
+        referer: str = "",
+        ip: str = "",
+        method: str = "",
+        user_agent: str = "",
+        raw_text: str = "",
+        headers: list[tuple[str, str]] | None = None,
+    ) -> dict[str, Any]:
+        """Search retained requests, including arbitrary captured HTTP headers."""
+        headers = headers or []
+        session = self._db.session
+        try:
+            query = session.query(AccessLog)
+            for column, value in (
+                (AccessLog.path, path),
+                (AccessLog.target_host, host),
+                (AccessLog.referer, referer),
+                (AccessLog.ip, ip),
+                (AccessLog.user_agent, user_agent),
+            ):
+                if value:
+                    query = query.filter(column.ilike(f"%{value}%"))
+            if method:
+                query = query.filter(func.upper(AccessLog.method) == method.upper())
+            if raw_text:
+                # Treat %, _ and backslash as text, not SQL LIKE wildcards.
+                escaped = (
+                    raw_text.replace("\\", "\\\\")
+                    .replace("%", "\\%")
+                    .replace("_", "\\_")
+                )
+                query = query.filter(
+                    AccessLog.raw_request.ilike(f"%{escaped}%", escape="\\")
+                )
+            if headers:
+                # Narrow in SQL, then check the header block so another header
+                # or the request body cannot satisfy the value filter.
+                for name, _ in headers:
+                    query = query.filter(AccessLog.raw_request.ilike(f"%\n{name}:%"))
+                selected_ids = []
+                total = 0
+                start = (page - 1) * page_size
+                candidates = (
+                    query.with_entities(AccessLog.id, AccessLog.raw_request)
+                    .order_by(AccessLog.timestamp.desc(), AccessLog.id.desc())
+                    .yield_per(500)
+                )
+                for row in candidates:
+                    if _matches_headers(row.raw_request, headers):
+                        if start <= total < start + page_size:
+                            selected_ids.append(row.id)
+                        total += 1
+                results = (
+                    session.query(AccessLog)
+                    .filter(AccessLog.id.in_(selected_ids))
+                    .order_by(AccessLog.timestamp.desc(), AccessLog.id.desc())
+                    .all()
+                    if selected_ids
+                    else []
+                )
+            else:
+                total = query.count()
+                results = (
+                    query.order_by(AccessLog.timestamp.desc(), AccessLog.id.desc())
+                    .offset((page - 1) * page_size)
+                    .limit(page_size)
+                    .all()
+                )
+            return {
+                "requests": [
+                    {
+                        "id": row.id,
+                        "ip": row.ip,
+                        "method": row.method,
+                        "path": row.path,
+                        "host": row.target_host,
+                        "referer": row.referer,
+                        "user_agent": row.user_agent,
+                        "timestamp": (
+                            row.timestamp.isoformat() if row.timestamp else None
+                        ),
+                        "is_suspicious": row.is_suspicious,
+                    }
+                    for row in results
+                ],
+                "pagination": pagination(page, page_size, total),
+            }
+        finally:
+            self._db.close_session()
+
+    def get_targeted_domains(
+        self,
+        page: int = 1,
+        page_size: int = 10,
+        search: str = "",
+        sort_by: str = "count",
+        sort_order: str = "desc",
+    ) -> dict[str, Any]:
+        """Host-header targets ranked by retained request count.
+
+        One pass groups by (host, ip): a hash of pairs instead of sorting the
+        whole log to count distinct IPs per host (75s -> 23s on 7M rows), and
+        the per-host rollup is the distinct-IP count. Hosts are few (dozens),
+        so the full list is sorted and paged here rather than aggregating the
+        log a second time just to count them.
+        """
+        session = self._db.session
+        try:
+            pairs = session.query(
+                AccessLog.target_host.label("domain"),
+                func.count(AccessLog.id).label("hits"),
+                func.min(AccessLog.timestamp).label("first_seen"),
+                func.max(AccessLog.timestamp).label("last_seen"),
+            ).filter(AccessLog.target_host.isnot(None), AccessLog.target_host != "")
+            if search:
+                pairs = pairs.filter(AccessLog.target_host.ilike(f"%{search}%"))
+            pairs = pairs.group_by(AccessLog.target_host, AccessLog.ip).subquery()
+            rows = (
+                session.query(
+                    pairs.c.domain,
+                    func.sum(pairs.c.hits).label("count"),
+                    func.count().label("distinct_ips"),
+                    func.min(pairs.c.first_seen).label("first_seen"),
+                    func.max(pairs.c.last_seen).label("last_seen"),
+                )
+                .group_by(pairs.c.domain)
+                .all()
+            )
+            domains = sorted(
+                (
+                    {
+                        "domain": row.domain,
+                        "count": int(row.count),
+                        "distinct_ips": row.distinct_ips,
+                        "first_seen": row.first_seen,
+                        "last_seen": row.last_seen,
+                    }
+                    for row in rows
+                ),
+                key=lambda d: d["domain"],
+            )
+            key = (
+                sort_by
+                if sort_by
+                in {"domain", "count", "distinct_ips", "first_seen", "last_seen"}
+                else "count"
+            )
+            # Stable sort on top of the domain order keeps name as the tiebreak.
+            domains.sort(key=lambda d: d[key], reverse=sort_order != "asc")
+            start = (page - 1) * page_size
+            return {
+                "domains": domains[start : start + page_size],
+                "pagination": pagination(page, page_size, len(domains)),
+            }
+        finally:
+            self._db.close_session()
+
+    def get_request_assets(
+        self,
+        page: int = 1,
+        page_size: int = 20,
+        search: str = "",
+        sort_by: str = "count",
+        sort_order: str = "desc",
+        min_ips: int = 0,
+    ) -> dict[str, Any]:
+        """Absolute URL assets ranked by total occurrences in retained requests.
+        ``min_ips`` keeps only URLs seen from at least that many IPs."""
+        session = self._db.session
+        try:
+            base = (
+                session.query(
+                    RequestAsset.url,
+                    func.count(RequestAsset.id).label("count"),
+                    func.count(distinct(AccessLog.ip)).label("distinct_ips"),
+                    func.min(AccessLog.timestamp).label("first_seen"),
+                    func.max(AccessLog.timestamp).label("last_seen"),
+                )
+                .join(AccessLog, AccessLog.id == RequestAsset.access_log_id)
+                .group_by(RequestAsset.url)
+            )
+            if search:
+                base = base.filter(RequestAsset.url.ilike(f"%{search}%"))
+            if min_ips > 1:
+                base = base.having(func.count(distinct(AccessLog.ip)) >= min_ips)
+            total = base.count()
+            sort_columns = {
+                "url": RequestAsset.url,
+                "count": func.count(RequestAsset.id),
+                "distinct_ips": func.count(distinct(AccessLog.ip)),
+                "first_seen": func.min(AccessLog.timestamp),
+                "last_seen": func.max(AccessLog.timestamp),
+            }
+            column = sort_columns.get(sort_by, sort_columns["count"])
+            order = column.asc() if sort_order == "asc" else column.desc()
+            rows = (
+                base.order_by(order, RequestAsset.url.asc())
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+                .all()
+            )
+            return {
+                "assets": [
+                    {
+                        "url": row.url,
+                        "count": row.count,
+                        "distinct_ips": row.distinct_ips,
+                        "first_seen": row.first_seen,
+                        "last_seen": row.last_seen,
+                    }
+                    for row in rows
+                ],
+                "pagination": pagination(page, page_size, total),
+            }
+        finally:
+            self._db.close_session()
+
+    def get_domain_map_hosts(self, limit: int = 2000) -> list[dict[str, Any]]:
+        """Most-targeted distinct Host values for the bounded link map."""
+        session = self._db.session
+        try:
+            rows = (
+                session.query(
+                    AccessLog.target_host.label("domain"),
+                    func.count(AccessLog.id).label("count"),
+                )
+                .filter(AccessLog.target_host.isnot(None), AccessLog.target_host != "")
+                .group_by(AccessLog.target_host)
+                .order_by(func.count(AccessLog.id).desc(), AccessLog.target_host.asc())
+                .limit(limit)
+                .all()
+            )
+            return [{"domain": row.domain, "count": row.count} for row in rows]
+        finally:
+            self._db.close_session()
+
+    def get_artifact_requests(
+        self,
+        kind: str,
+        value: str,
+        ip_filter: str = "",
+        page: int = 1,
+        page_size: int = 20,
+    ) -> dict[str, Any]:
+        """Retained requests associated with one exact domain, file, or URL."""
+        if kind not in {"domain", "file", "asset"}:
+            raise ValueError("Invalid artifact kind")
+        session = self._db.session
+        try:
+            query = session.query(AccessLog)
+            if kind == "domain":
+                query = query.filter(AccessLog.target_host == value)
+            elif kind == "file":
+                matched = session.query(CapturedPayload.access_log_id).filter(
+                    CapturedPayload.filename == value,
+                    CapturedPayload.access_log_id.isnot(None),
+                )
+                query = query.filter(AccessLog.id.in_(matched))
+            else:
+                matched = session.query(RequestAsset.access_log_id).filter(
+                    RequestAsset.url == value
+                )
+                query = query.filter(AccessLog.id.in_(matched))
+            if ip_filter:
+                query = query.filter(
+                    AccessLog.ip.contains(sanitize_ip(ip_filter), autoescape=True)
+                )
+            total = query.count()
+            rows = (
+                query.order_by(AccessLog.timestamp.desc(), AccessLog.id.desc())
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+                .all()
+            )
+            return {
+                "requests": [
+                    {
+                        "id": row.id,
+                        "ip": row.ip,
+                        "method": row.method,
+                        "path": row.path,
+                        "timestamp": row.timestamp,
+                    }
+                    for row in rows
+                ],
+                "pagination": pagination(page, page_size, total),
+            }
+        finally:
+            self._db.close_session()
 
     def get_paginated(
         self,
@@ -229,10 +545,12 @@ class AccessLogRepo:
             return [
                 {
                     "ip": log.ip,
+                    "method": log.method,
                     "path": log.path,
                     "user_agent": log.user_agent,
                     "timestamp": log.timestamp.isoformat(),
                     "log_id": log.id,
+                    "honeypot": bool(log.is_honeypot_trigger),
                 }
                 for log in logs
             ]
@@ -245,6 +563,7 @@ class AccessLogRepo:
         page_size: int = 25,
         search: str | None = None,
         sort_order: str = "desc",
+        total: int | None = None,
     ) -> dict[str, Any]:
         """
         Paginated recent suspicious access attempts (excludes local/private IPs and server IP).
@@ -292,7 +611,9 @@ class AccessLogRepo:
                     )
                 )
 
-            total = query.count()
+            # A caller-supplied total skips counting every suspicious row.
+            if total is None:
+                total = query.count()
             offset = (page - 1) * page_size
             logs = query.offset(offset).limit(page_size).all()
             total_pages = (total + page_size - 1) // page_size
@@ -306,6 +627,7 @@ class AccessLogRepo:
                     "timestamp": log.timestamp.isoformat() if log.timestamp else None,
                     "log_id": log.id,
                     "attack_types": [d.attack_type for d in log.attack_detections],
+                    "honeypot": bool(log.is_honeypot_trigger),
                 }
                 for log in logs
             ]
@@ -483,6 +805,7 @@ class AccessLogRepo:
         performs.
         """
         import metrics_counters as mc
+        from config import get_config
 
         return {
             "total_accesses": mc.get("total_accesses"),
@@ -494,6 +817,12 @@ class AccessLogRepo:
             # clients_total is current-state (recomputed live), not a cumulative
             # counter — read it straight from the indexed category count.
             "unique_attackers": self._db.ip_stats.count_category("attacker"),
+            "active_attackers_24h": self._db.ip_stats.count_category_seen_since(
+                "attacker", datetime.now() - timedelta(hours=24)
+            ),
+            "timed_out_ips": self._db.ip_stats.count_timed_out(
+                get_config().ban_duration_seconds
+            ),
         }
 
     def _compute_dashboard_counts_sql(self) -> dict[str, int]:

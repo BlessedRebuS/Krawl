@@ -62,12 +62,16 @@ dashboard:
   # Hides top paths / user agents below this many accesses. 1 disables filtering.
   top_n_min_count: 5
 
+  # Maximum observed hostnames drawn for the selected root in the domain link map.
+  # Values are bounded to 1-2000; hosts beyond the limit are summarized as hidden.
+  domain_map_host_limit: 200
+
   # Top-left wordmark on the dashboard. Defaults are Krawl's own.
   branding:
     name: "Krawl"
     # Where the wordmark links. null renders it as plain text instead.
     url: "https://github.com/BlessedRebuS/Krawl"
-    # Image URL shown instead of the GitHub mark (http(s) or a dashboard path).
+    # Image URL shown instead of the Krawl mark (http(s) or a dashboard path).
     logo: null
     show_version: true
     # An address, a link, or neither — plain text is left unlinked.
@@ -118,6 +122,19 @@ analyzer:
   tlsh_campaign_min_events: 10
   # Capture the inbound HTTP Referer header on access logs for bait-chain tracking.
   referer_enabled: true
+
+# Rows each scheduled task handles per run; the remainder is picked up next run.
+# Raise these when a backlog never drains. The defaults are sized for a 256Mi
+# pod — raw HTTP bodies are multi-KB, so bigger batches cost memory.
+tasks:
+  analyze_ips_batch: 2000          # IPs scored per analyze-ips run
+  extract_metadata_batch: 500      # Logs parsed per extract-request-metadata run
+  extract_files_batch: 500         # Logs scanned per extract-captured-files run
+  hash_payloads_batch: 500         # Logs hashed per hash-payloads run
+  hash_payloads_chunk: 50          # Raw requests held in memory at once
+  hash_files_batch: 50             # Captured files back-filled per run
+  cleanup_batch: 1000              # Rows per pre-retention-cleanup pass
+  retention_delete_batch: 10000    # Rows per db-retention delete transaction
 
 crawl:
   infinite_pages_for_malicious: true

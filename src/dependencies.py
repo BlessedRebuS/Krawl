@@ -32,9 +32,51 @@ def get_templates() -> Jinja2Templates:
             default=True,
         )
         _templates.env.filters["format_ts"] = _format_ts
+        _templates.env.filters["format_ago"] = _format_ago
         _templates.env.filters["format_size"] = _format_size
         _templates.env.filters["safe_url"] = _safe_url
+        _templates.env.filters["num"] = _format_num
+        _templates.env.filters["attack_label"] = _attack_label
     return _templates
+
+
+def _format_num(value):
+    """Group thousands with dots (12.166.543), as the summary tiles do, so a
+    count reads the same in a tile and in a table."""
+    try:
+        return f"{int(value):,}".replace(",", ".")
+    except (TypeError, ValueError):
+        return value
+
+
+# Detector ids as people say them. Anything unlisted is de-snaked.
+_ATTACK_LABELS = {
+    "sql_injection": "SQL injection",
+    "command_injection": "Command injection",
+    "ldap_injection": "LDAP injection",
+    "xxe_injection": "XXE injection",
+    "xss_attempt": "XSS attempt",
+    "lfi_rfi": "LFI / RFI",
+    "path_traversal": "Path traversal",
+    "login_attempt": "Login attempt",
+    "common_probes": "Common probes",
+}
+
+
+def _attack_label(value):
+    """Readable name for a detected attack type ("sql_injection" -> "SQL
+    injection"). A comma-separated list is labelled item by item."""
+    if not value:
+        return ""
+    parts = [p.strip().lower() for p in str(value).split(",") if p.strip()]
+    labels = []
+    for key in parts:
+        if key in _ATTACK_LABELS:
+            labels.append(_ATTACK_LABELS[key])
+        else:
+            words = key.replace("_", " ").replace("-", " ")
+            labels.append(words[:1].upper() + words[1:])
+    return ", ".join(labels)
 
 
 def _format_ts(value, time_only=False):
@@ -50,7 +92,31 @@ def _format_ts(value, time_only=False):
         return value.strftime("%H:%M:%S")
     if value.date() == datetime.now().date():
         return value.strftime("%H:%M:%S")
-    return value.strftime("%d/%m/%Y %H:%M:%S")
+    # Year first: sorts as text and reads the same in every locale.
+    return value.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _format_ago(value):
+    """Compact age for dense tables ("42s", "5m", "3h", "12d", "4mo"). The
+    absolute timestamp belongs in the cell's title via format_ts."""
+    if not value:
+        return "—"
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value)
+        except (ValueError, TypeError):
+            return value
+    seconds = max(0, int((datetime.now() - value).total_seconds()))
+    for size, unit in (
+        (86400 * 365, "y"),
+        (86400 * 30, "mo"),
+        (86400, "d"),
+        (3600, "h"),
+        (60, "m"),
+    ):
+        if seconds >= size:
+            return f"{seconds // size}{unit} ago"
+    return f"{seconds}s ago"
 
 
 def _format_size(value):

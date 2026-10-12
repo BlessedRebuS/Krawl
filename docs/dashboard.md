@@ -2,28 +2,40 @@
 
 Access the dashboard at `http://<server-ip>:<port>/<dashboard-path>`
 
-The Krawl dashboard is a single-page application with four open tabs — Overview,
-Attacks, Threats and IP Insight — and five more that appear once you authenticate
-with the dashboard password: Tracked IPs, IP Banlist, Timed Out IPs, Deception
-and Webhooks.
+The Krawl dashboard is a single-page application with five open tabs — Overview,
+Attacks, Threats, Advanced search and IP Insight — and five more that appear once
+you authenticate with the dashboard password: Tracked IPs, Banlist, Timed out,
+Deception and Webhooks.
+
+Every IP address in a table is a link to its IP Insight page, so it can be
+reached with Tab and opened with Enter. The page address carries the IP
+(`#ip-insight/<ip>`): the browser's back button walks between the IPs you
+inspected, and a reload or a shared link reopens the same one.
 
 ---
 
 ## Overview
 
-The default landing page provides a high-level summary of all traffic and suspicious activity detected by Krawl.
+The default landing page answers "what changed?" first, then "how much, in total?".
 
-### Stats Cards
+### Last 24 hours
 
-Seven metric cards are displayed at the top:
+The lead panel counts attackers active, new IPs seen and credentials captured
+in the last 24 hours, and lists the attackers active in that window, most
+recent first. Each one opens in IP Insight, where it can be tracked or banned.
 
-- **Total Accesses** — total number of requests received
-- **Unique IPs** — distinct IP addresses observed
-- **Unique Paths** — distinct request paths
-- **Suspicious Accesses** — requests flagged as suspicious
-- **Honeypot Caught** — requests that hit honeypot endpoints
-- **Credentials Captured** — login attempts captured by the honeypot
-- **Unique Attackers** — distinct IPs classified as attackers
+### Summary tiles
+
+Seven all-time totals sit under it. Only the hostile, trap and defence figures
+are coloured:
+
+- **Requests** — total number of requests received
+- **Source IPs** — distinct IP addresses observed
+- **Paths** — distinct request paths
+- **Suspicious requests** — requests flagged as suspicious, with their share of all requests
+- **Attackers** — distinct IPs classified as attackers, with how many were active in the last 24 hours
+- **Timed out now** — IPs currently held on an automatic ban
+- **Credentials captured** — login attempts captured by the honeypot
 
 ### Search
 
@@ -88,6 +100,14 @@ A paginated table listing all detected attackers ranked by total requests. Colum
 
 A table of usernames and passwords captured from honeypot login forms, with timestamps. Useful for analyzing common credential stuffing patterns.
 
+### Targeted Domains
+
+Ranks normalized HTTP `Host` targets by retained request count, including the
+number of distinct source IPs and first/last seen times. Ports and trailing root
+dots are removed, so `Example.org:443` and `example.org` aggregate together.
+The standard `Forwarded` and `X-Forwarded-Host` fields are used only when the
+request has no `Host` field.
+
 ### Honeypot Triggers by IP
 
 Shows which IPs accessed honeypot endpoints and how many times, sorted by trigger count.
@@ -142,13 +162,23 @@ out of the table.
 ### Captured Files
 
 An index of every file Krawl captured, across all IPs — name, size, type and the
-campaign it belongs to.
+campaign it belongs to. New uploads are extracted inline; the scheduled
+`extract-captured-files` task scans retained historical raw requests in bounded
+batches after an upgrade.
+
+### Assets
+
+Absolute HTTP(S) URLs extracted from raw request lines, headers, and bodies,
+ranked by total occurrences. Repeated appearances in one request count
+separately; the table also shows distinct source IPs and first/last seen times.
+The scheduled `extract-request-metadata` task backfills retained requests in
+bounded batches after an upgrade.
 
 ---
 
 ## IP Insight
 
-The IP Insight tab provides a deep-dive view for a single IP address. It is activated by clicking "Inspect IP" from any table in the dashboard.
+The IP Insight tab provides a deep-dive view for a single IP address. It opens when you select an IP address in any table, map popup or search result.
 
 ### IP Information Card
 
@@ -160,14 +190,20 @@ Displays comprehensive details about the selected IP:
 
 ### Ban & Track Actions
 
-When authenticated, admin actions are available:
+The header states the IP's ban state in words: **On banlist** (an attacker, or
+banned by hand), **Exempt from banlist**, or **Not banned**. Next to it:
 
-- **Ban/Unban** — immediately add or remove the IP from the banlist
-- **Track/Untrack** — add the IP to your watchlist for ongoing monitoring
+- **Add to banlist / Remove from banlist** — the confirmation says what changes:
+  banlist exports and firewall webhooks include or leave out the IP
+- **Track / Stop tracking** — add the IP to your watchlist for ongoing monitoring
+
+The buttons are always shown. When you are logged out they are marked
+"Log in to act", and pressing one asks for the dashboard password.
 
 ### Blocklist Memberships
 
-Shows which threat intelligence blocklists the IP appears on, providing external reputation context.
+Shows which threat intelligence feeds list the IP, one chip per feed, with the
+total count first. Past six feeds the rest fold behind a "more" toggle.
 
 ### Referer History
 
@@ -282,6 +318,7 @@ dashboard:
   warmup_pages: 10         # pages to pre-warm per table panel
   warmup_aggregation: false  # pre-compute full top_paths/top_ua aggregations
   top_n_min_count: 5       # minimum access count to appear in top paths/user-agents panels
+  domain_map_host_limit: 200 # maximum hosts drawn for the selected root (1-2000)
 ```
 
 | Env var | Description | Default |
@@ -290,6 +327,7 @@ dashboard:
 | `KRAWL_DASHBOARD_WARMUP_PAGES` | Pages to pre-warm per table panel | `10` |
 | `KRAWL_DASHBOARD_WARMUP_AGGREGATION` | Pre-compute full top_paths/top_ua aggregations for zero-query serving | `false` |
 | `KRAWL_DASHBOARD_TOP_N_MIN_COUNT` | Minimum access count for top paths/user-agents (set to `1` to disable filtering) | `5` |
+| `KRAWL_DASHBOARD_DOMAIN_MAP_HOST_LIMIT` | Maximum hostnames drawn for the selected root in the domain link map (1–2000) | `200` |
 
 > **Scalable mode**: `warmup_aggregation` is enabled by default in Helm and Kubernetes deployments. In standalone mode it is disabled because SQLite handles the load without it.
 
@@ -311,7 +349,7 @@ dashboard:
   branding:
     name: "Krawl"
     url: "https://github.com/BlessedRebuS/Krawl"  # null renders the name as plain text
-    logo: null             # image URL shown instead of the GitHub mark
+    logo: null             # image URL shown instead of the Krawl mark
     show_version: true
     contact: null          # "soc@example.com", a URL, or plain text
 ```
@@ -326,7 +364,7 @@ dropped rather than placed in the page.
 |---|---|---|
 | `KRAWL_DASHBOARD_BRAND_NAME` | Wordmark and heading name | `Krawl` |
 | `KRAWL_DASHBOARD_BRAND_URL` | Where the wordmark links | Krawl's repository |
-| `KRAWL_DASHBOARD_BRAND_LOGO` | Image URL replacing the GitHub mark | Unset |
+| `KRAWL_DASHBOARD_BRAND_LOGO` | Image URL replacing the Krawl mark | Unset |
 | `KRAWL_DASHBOARD_BRAND_SHOW_VERSION` | Show the version next to the name | `true` |
 | `KRAWL_DASHBOARD_BRAND_CONTACT` | Contact shown under the wordmark | Unset |
 

@@ -420,7 +420,96 @@ document.addEventListener('alpine:init', () => {
         uploadModal: { show: false, path: '', fileName: '', fileContent: '', error: '', success: '', loading: false, dragging: false },
 
         // Expand overlay state
-        expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false, method: '', attackType: '', attackTypes: [], ipFilter: '' },
+        expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false, method: '', attackType: '', attackTypes: [], ipFilter: '', artifactKind: '', artifactValue: '' },
+
+        // ⌘K search palette, opened from the header button.
+        palette: { open: false },
+        isMac: /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent),
+
+        // One entry point for every nav control, so protected tabs stay
+        // behind auth whichever way they were reached.
+        go(tab) {
+            const routes = {
+                'overview': () => this.switchToOverview(),
+                'attacks': () => this.switchToAttacks(),
+                'threats': () => this.switchToThreats(),
+                'advanced-search': () => this.switchToAdvancedSearch(),
+                'ip-insight': () => this.switchToIpInsight(),
+                'tracked-ips': () => this.switchToTrackedIps(),
+                'banlist': () => this.switchToBanlist(),
+                'timedout': () => this.switchToTimedOut(),
+                'deception': () => this.switchToDeception(),
+                'webhooks': () => this.switchToWebhooks(),
+            };
+            (routes[tab] || routes.overview)();
+            window.scrollTo({ top: 0 });
+            this._revealActiveTab();
+        },
+
+        // On a phone the tab strip scrolls sideways. Keep the active tab in
+        // view, and fade whichever edge still hides tabs so the strip reads
+        // as scrollable rather than cut off.
+        _revealActiveTab() {
+            this.$nextTick(() => {
+                const active = document.querySelector('.tabbar .nav-item.active');
+                if (active) active.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+            });
+        },
+        _bindTabbarEdges() {
+            const bar = document.querySelector('.tabbar');
+            if (!bar) return;
+            const edges = () => {
+                bar.classList.toggle('more-left', bar.scrollLeft > 4);
+                bar.classList.toggle('more-right', bar.scrollLeft + bar.clientWidth < bar.scrollWidth - 4);
+            };
+            bar.addEventListener('scroll', edges, { passive: true });
+            window.addEventListener('resize', edges);
+            this.$watch('authenticated', () => this.$nextTick(edges));
+            edges();
+        },
+
+        // ⌘K / Ctrl K or / opens search; "g" then a letter jumps to a tab.
+        // Ignored while typing, and while a modal other than the palette is up.
+        _bindShortcuts() {
+            let pendingG = 0;
+            const jumps = { o: 'overview', a: 'attacks', t: 'threats', s: 'advanced-search', i: 'ip-insight' };
+            document.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                    e.preventDefault();
+                    this.palette.open ? this.closePalette() : this.openPalette();
+                    return;
+                }
+                const el = e.target;
+                const typing = el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+                if (typing || e.metaKey || e.ctrlKey || e.altKey || this._popupStack.length) return;
+                if (e.key === '/') {
+                    e.preventDefault();
+                    this.openPalette();
+                } else if (e.key === 'g') {
+                    pendingG = Date.now();
+                } else if (pendingG && Date.now() - pendingG < 1200 && jumps[e.key]) {
+                    pendingG = 0;
+                    this.go(jumps[e.key]);
+                } else {
+                    pendingG = 0;
+                }
+            });
+        },
+
+        openPalette() {
+            this.palette.open = true;
+            // Results collapsed when a result was opened; show them again.
+            const results = document.querySelector('#search-results-container .search-results');
+            if (results) results.classList.remove('search-collapsed');
+            this.$nextTick(() => {
+                const input = document.getElementById('search-input');
+                if (input) { input.focus(); input.select(); }
+            });
+        },
+
+        closePalette() {
+            this.palette.open = false;
+        },
 
         // LIFO of active popups (raw/file modal can open over the expand
         // overlay); ESC closes only the most recently opened one.
@@ -439,7 +528,8 @@ document.addEventListener('alpine:init', () => {
             // Check if already authenticated (cookie-based)
             try {
                 const resp = await fetch(`${this.dashboardPath}/api/auth/check`, { credentials: 'same-origin' });
-                if (resp.ok) this.authenticated = true;
+                const data = await resp.json();
+                this.authenticated = resp.ok && data.authenticated === true;
             } catch {}
 
             // Sync ban action button visibility with auth state
@@ -455,11 +545,19 @@ document.addEventListener('alpine:init', () => {
             this.$watch('fileModal.show', (show) => this._trackPopup(show, 'file'));
             this.$watch('authModal.show', (show) => this._trackPopup(show, 'auth'));
             this.$watch('exportModal.show', (show) => this._trackPopup(show, 'export'));
+            this.$watch('palette.open', (open) => this._trackPopup(open, 'palette'));
+            // Anything opened from a search result (attack overlay, insight)
+            // replaces the palette rather than stacking under it.
+            this.$watch('expandOverlay.show', (show) => { if (show) this.palette.open = false; });
+            this.$watch('tab', () => { this.palette.open = false; });
+            this._bindShortcuts();
+            this._bindTabbarEdges();
             document.addEventListener('keydown', (e) => {
                 if (e.key !== 'Escape') return;
                 if (!this._popupStack.length) return;
                 const top = this._popupStack[this._popupStack.length - 1];
-                if (top === 'overlay') this.expandOverlay.show = false;
+                if (top === 'palette') this.closePalette();
+                else if (top === 'overlay') this.expandOverlay.show = false;
                 else if (top === 'raw') this.closeRawModal();
                 else if (top === 'file') this.closeFileModal();
                 else if (top === 'auth') this.authModal.show = false;
@@ -498,7 +596,10 @@ document.addEventListener('alpine:init', () => {
                 this.switchToWebhooks();
             } else if (hash === 'threats') {
                 this.switchToThreats();
-
+            } else if (hash === 'advanced-search') {
+                this.switchToAdvancedSearch();
+            } else if (hash.startsWith('ip-insight/') && hash.length > 11) {
+                this.openIpInsight(decodeURIComponent(hash.slice(11)));
             } else if (hash === 'overview' || !hash) {
                 this.switchToOverview();
             } else {
@@ -527,10 +628,16 @@ document.addEventListener('alpine:init', () => {
                         if (this.authenticated) this.switchToWebhooks();
                     } else if (h === 'threats') {
                         if (this.tab !== 'threats') this.switchToThreats();
+                    } else if (h === 'advanced-search') {
+                        if (this.tab !== 'advanced-search') this.switchToAdvancedSearch();
+                    } else if (h.startsWith('ip-insight/')) {
+                        const ip = decodeURIComponent(h.slice(11));
+                        if (ip && (ip !== this.insightIp || this.tab !== 'ip-insight')) this.openIpInsight(ip);
                     } else if (h !== 'ip-insight') {
-                        if (this.tab !== 'ip-insight') {
-                            this.switchToOverview();
-                        }
+                        // Overview, an empty hash (Back to the first page) or
+                        // anything unknown. IP Insight now owns its own hash,
+                        // so leaving it this way must switch tabs too.
+                        this.switchToOverview();
                     }
                 });
             });
@@ -556,9 +663,21 @@ document.addEventListener('alpine:init', () => {
         },
 
         switchToOverview() {
-            if (this.tab === 'overview') return;  // Prevent duplicate loading
-            this.tab = 'overview';
-            window.location.hash = '#overview';
+            if (this.tab !== 'overview') {
+                this.tab = 'overview';
+                window.location.hash = '#overview';
+            }
+
+            // The map may have been initialized while this x-show panel was
+            // hidden. Re-measure it after Alpine has restored the panel so
+            // Leaflet requests the full tile grid and frames the IP markers.
+            this.$nextTick(() => {
+                if (typeof initializeAttackerMap === 'function') {
+                    initializeAttackerMap().then(initialized => {
+                        this.mapInitialized = Boolean(initialized);
+                    });
+                }
+            });
         },
 
         switchToBanlist() {
@@ -639,6 +758,12 @@ document.addEventListener('alpine:init', () => {
                     });
                 }
             });
+        },
+
+        switchToAdvancedSearch() {
+            if (this.tab === 'advanced-search') return;
+            this.tab = 'advanced-search';
+            window.location.hash = '#advanced-search';
         },
 
         switchToThreats() {
@@ -810,7 +935,7 @@ document.addEventListener('alpine:init', () => {
             // Only allow switching if an IP is selected
             if (!this.insightIp) return;
             this.tab = 'ip-insight';
-            window.location.hash = '#ip-insight';
+            window.location.hash = '#ip-insight/' + this.insightIp;
         },
 
         collapseSearch() {
@@ -829,15 +954,20 @@ document.addEventListener('alpine:init', () => {
         openIpInsight(ip) {
             // Collapse any open search results before switching to the insight tab
             this.collapseSearch();
+            this.palette.open = false;
 
             // Close any popup overlaying the dashboard (campaign / similar
             // panel) when navigating to the IP insight tab.
             this.expandOverlay.show = false;
 
-            // Set the IP and load the insight content
+            // Set the IP and load the insight content. The IP rides in the
+            // hash, so back/forward walk between inspected IPs and a reload
+            // or a pasted link reopens the same one.
             this.insightIp = ip;
             this.tab = 'ip-insight';
-            window.location.hash = '#ip-insight';
+            if (window.location.hash !== '#ip-insight/' + ip) {
+                window.location.hash = '#ip-insight/' + ip;
+            }
 
             // Load IP insight content via HTMX
             this.$nextTick(() => {
@@ -1574,6 +1704,187 @@ window.submitUploadPage = async function() {
     modal.loading = false;
 };
 
+// D3 force graph for Targeted Domains. The popup is HTMX-swapped, so each
+// simulation is stopped before its SVG is replaced.
+(function setupDomainMaps() {
+    const activeMaps = new WeakMap();
+
+    function init(map) {
+        if (activeMaps.has(map) || typeof d3 === 'undefined') return;
+        const svgElement = map.querySelector('.domain-map-svg');
+        const dataElement = map.querySelector('.domain-map-data');
+        if (!svgElement || !dataElement) return;
+        const data = JSON.parse(dataElement.textContent);
+        const width = svgElement.clientWidth || map.clientWidth || 700;
+        const height = svgElement.clientHeight || 420;
+        const nodes = data.nodes.map(node => ({
+            id: node.domain,
+            label: node.label,
+            depth: node.depth,
+            observed: node.observed,
+            ownCount: node.own_count,
+            total: node.total,
+            isCurrent: node.domain === data.root,
+            x: width / 2 + (node.x - 500) * 0.65,
+            y: height / 2 + (node.y - 450) * 0.65,
+        }));
+        const edges = data.edges.map(edge => ({ source: edge.source, target: edge.target }));
+        const svg = d3.select(svgElement).attr('viewBox', `0 0 ${width} ${height}`);
+        svg.selectAll('*').remove();
+        const canvas = svg.append('g').attr('class', 'domain-map-canvas');
+        const zoom = d3.zoom().scaleExtent([0.25, 3]).on('zoom', event => {
+            canvas.attr('transform', event.transform);
+        });
+        svg.call(zoom);
+
+        const marker = svg.append('defs').append('marker')
+            .attr('id', 'domain-map-arrow')
+            .attr('viewBox', '0 0 10 10')
+            .attr('refX', 18).attr('refY', 5)
+            .attr('markerWidth', 6).attr('markerHeight', 6)
+            .attr('orient', 'auto-start-reverse');
+        marker.append('path').attr('d', 'M2 1L8 5L2 9');
+
+        const linkForce = d3.forceLink(edges).id(node => node.id).distance(120).strength(0.6);
+        const simulation = d3.forceSimulation(nodes)
+            .force('link', linkForce)
+            .force('charge', d3.forceManyBody().strength(-280))
+            .force('center', d3.forceCenter(width / 2, height / 2))
+            .force('collide', d3.forceCollide(30));
+
+        const edge = canvas.append('g').selectAll('path')
+            .data(edges).join('path')
+            .attr('class', 'domain-map-edge')
+            .attr('marker-end', 'url(#domain-map-arrow)');
+        const node = canvas.append('g').selectAll('g')
+            .data(nodes).join('g')
+            .attr('class', d => `domain-map-node ${d.isCurrent ? 'is-current' : d.observed ? 'is-internal' : 'is-external'} depth-${Math.min(d.depth, 3)}`)
+            .attr('data-domain', d => d.id)
+            .attr('tabindex', d => d.observed ? 0 : null)
+            .attr('role', d => d.observed ? 'link' : null)
+            .attr('aria-label', d => d.observed ? `Inspect ${d.id}, ${d.ownCount} requests` : null)
+            .on('click', (event, d) => {
+                if (d.observed && !event.defaultPrevented) {
+                    openArtifactInvestigation('domain', d.id);
+                }
+            })
+            .on('keydown', (event, d) => {
+                if (d.observed && (event.key === 'Enter' || event.key === ' ')) {
+                    event.preventDefault();
+                    openArtifactInvestigation('domain', d.id);
+                }
+            })
+            .call(d3.drag()
+                .on('start', function(event, d) {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
+                    d3.select(this).classed('is-dragging', true);
+                })
+                .on('drag', (event, d) => {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                })
+                .on('end', function(event, d) {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                    d3.select(this).classed('is-dragging', false);
+                }));
+        node.append('circle').attr('r', d => d.isCurrent ? 14 : 10);
+        node.append('text')
+            .attr('x', d => d.isCurrent ? 18 : 14)
+            .text(d => d.label.length > 22 ? `${d.label.slice(0, 21)}…` : d.label);
+        node.append('title').text(d => `${d.id}\n${d.ownCount} direct requests` +
+            (d.total !== d.ownCount ? `\n${d.total} including branches` : ''));
+
+        simulation.on('tick', () => {
+            edge.attr('d', d => {
+                const sx = d.source.x, sy = d.source.y;
+                const tx = d.target.x, ty = d.target.y;
+                return `M${sx},${sy} Q${(sx + tx) / 2},${(sy + ty) / 2 - 30} ${tx},${ty}`;
+            });
+            node.attr('transform', d => `translate(${d.x},${d.y})`);
+        });
+        const observer = new ResizeObserver(() => {
+            const nextWidth = svgElement.clientWidth;
+            const nextHeight = svgElement.clientHeight;
+            if (!nextWidth || !nextHeight ||
+                (nextWidth === Number(svg.attr('data-width')) && nextHeight === Number(svg.attr('data-height')))) return;
+            svg.attr('viewBox', `0 0 ${nextWidth} ${nextHeight}`)
+                .attr('data-width', nextWidth).attr('data-height', nextHeight);
+            simulation.force('center', d3.forceCenter(nextWidth / 2, nextHeight / 2));
+            simulation.alpha(0.3).restart();
+        });
+        svg.attr('data-width', width).attr('data-height', height);
+        observer.observe(svgElement);
+        activeMaps.set(map, { simulation, observer });
+        map._domainMap = { simulation, nodes, edges, svg: svgElement };
+    }
+
+    function initAll() {
+        document.querySelectorAll('.domain-map').forEach(init);
+    }
+    document.addEventListener('htmx:beforeSwap', event => {
+        const target = event.detail?.target;
+        if (!target) return;
+        const maps = target.matches?.('.domain-map') ? [target] : target.querySelectorAll('.domain-map');
+        maps.forEach(map => {
+            const entry = activeMaps.get(map);
+            if (!entry) return;
+            entry.simulation.stop();
+            entry.observer.disconnect();
+            activeMaps.delete(map);
+            delete map._domainMap;
+        });
+    });
+    document.addEventListener('htmx:afterSwap', initAll);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAll);
+    } else {
+        initAll();
+    }
+})();
+
+// === Threats tab panels: inline filters ===
+// The search box and the 2+ IPs toggle live outside the swapped fragment so
+// typing never loses focus. The fragment carries the rest of the state (sort,
+// attack type, page size) on its .threat-table root, and every reload reads
+// it back.
+function _threatPanelReload(panel) {
+    const container = panel.querySelector('.htmx-container');
+    if (!container || typeof htmx === 'undefined') return;
+    const state = container.querySelector('.threat-table');
+    const params = new URLSearchParams({ page: '1' });
+    const search = panel.querySelector('.panel-search');
+    if (search && search.value.trim()) params.set('search', search.value.trim());
+    if (state) {
+        if (state.dataset.sortBy) params.set('sort_by', state.dataset.sortBy);
+        if (state.dataset.sortOrder) params.set('sort_order', state.dataset.sortOrder);
+        if (state.dataset.attackType) params.set('attack_type', state.dataset.attackType);
+        if (state.dataset.pageSize) params.set('page_size', state.dataset.pageSize);
+    }
+    const shared = panel.querySelector('[data-min-ips]');
+    if (shared && shared.getAttribute('aria-pressed') === 'true') params.set('min_ips', '2');
+    const dashboardPath = window.__DASHBOARD_PATH__ || '';
+    htmx.ajax('GET', `${dashboardPath}/htmx/${panel.dataset.endpoint}?${params}`, {
+        target: container,
+        swap: 'innerHTML',
+    });
+}
+
+window.threatPanelSearch = function(input) {
+    clearTimeout(input._threatTimer);
+    input._threatTimer = setTimeout(() => _threatPanelReload(input.closest('.threat-panel')), 300);
+};
+
+window.threatPanelToggleShared = function(btn) {
+    const on = btn.getAttribute('aria-pressed') !== 'true';
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.classList.toggle('active', on);
+    _threatPanelReload(btn.closest('.threat-panel'));
+};
+
 // === Expand overlay for Top X tables ===
 window.openExpandOverlay = function(title, endpoint, pageSize, cluster, searchVal) {
     const app = _getAlpineData();
@@ -1583,7 +1894,7 @@ window.openExpandOverlay = function(title, endpoint, pageSize, cluster, searchVa
         pageSize: pageSize || 25, search: searchVal || '',
         categories: [], honeypotOnly: false,
         method: '', attackType: '', attackTypes: [],
-        ipFilter: '', cluster: cluster || '',
+        ipFilter: '', cluster: cluster || '', artifactKind: '', artifactValue: '',
     });
     _reloadExpandOverlay();
     // For attacks, lazily load the list of distinct attack types for the
@@ -1591,6 +1902,19 @@ window.openExpandOverlay = function(title, endpoint, pageSize, cluster, searchVa
     if (endpoint === 'attacks') {
         _loadExpandAttackTypes();
     }
+};
+
+window.openArtifactInvestigation = function(kind, value) {
+    if (!['domain', 'file', 'asset'].includes(kind) || !value) return;
+    const app = _getAlpineData();
+    if (!app) return;
+    const titles = { domain: 'Targeted Domain', file: 'Captured File', asset: 'Asset' };
+    Object.assign(app.expandOverlay, {
+        show: true, title: titles[kind], endpoint: 'artifact',
+        artifactKind: kind, artifactValue: value,
+        search: '', ipFilter: '', cluster: '',
+    });
+    _reloadExpandOverlay();
 };
 
 window.jumpToPath = function(event) {
@@ -1686,15 +2010,20 @@ function _reloadExpandOverlay() {
     const url = `${dashboardPath}/htmx/${ov.endpoint}?${params}`;
 
     let targetUrl = url;
-    if (ov.endpoint === 'campaign') {
+    if (ov.endpoint === 'attention') {
+        targetUrl = `${dashboardPath}/htmx/attention?full=1`;
+    } else if (ov.endpoint === 'campaign') {
         const cv = ov.cluster ? `?cluster=${encodeURIComponent(ov.cluster)}` : '';
         targetUrl = `${dashboardPath}/htmx/cluster-events${cv}`;
     } else if (ov.endpoint === 'similar') {
         const sv = ov.cluster ? `?tlsh=${encodeURIComponent(ov.cluster)}` : '';
         targetUrl = `${dashboardPath}/htmx/similar-events${sv}`;
+    } else if (ov.endpoint === 'artifact') {
+        const artifactParams = new URLSearchParams({ kind: ov.artifactKind, value: ov.artifactValue });
+        targetUrl = `${dashboardPath}/htmx/artifact-requests?${artifactParams}`;
     }
 
-    container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-dim);">Loading...</div>';
+    container.innerHTML = '<div class="htmx-indicator">Loading...</div>';
     htmx.ajax('GET', targetUrl, { target: container, swap: 'innerHTML' });
 }
 
@@ -1719,33 +2048,68 @@ window.krawlModal = {
         return new Promise(resolve => {
             const overlay = document.createElement('div');
             overlay.className = 'krawl-modal-overlay';
+            const opener = document.activeElement;
             overlay.innerHTML = `
-                <div class="krawl-modal-box">
+                <div class="krawl-modal-box" role="alertdialog" aria-modal="true" aria-describedby="krawl-modal-message">
                     <div class="krawl-modal-icon ${iconClass}">
                         ${KRAWL_ICONS[icon]}
                     </div>
-                    <div class="krawl-modal-message">${message}</div>
+                    <div class="krawl-modal-message" id="krawl-modal-message">${message}</div>
                     <div class="krawl-modal-actions" id="krawl-modal-actions"></div>
                 </div>`;
             const actions = overlay.querySelector('#krawl-modal-actions');
+            // Escape and a click outside both mean "no"; focus goes back to
+            // the control that opened the dialog.
+            const close = (value) => {
+                document.removeEventListener('keydown', onKey, true);
+                overlay.remove();
+                if (opener && typeof opener.focus === 'function') opener.focus();
+                resolve(value);
+            };
+            const onKey = (e) => {
+                if (e.key === 'Escape') { e.stopPropagation(); close(false); }
+            };
             buttons.forEach(btn => {
                 const el = document.createElement('button');
+                el.type = 'button';
                 el.className = `auth-modal-btn ${btn.cls}`;
                 el.textContent = btn.label;
-                el.onclick = () => { overlay.remove(); resolve(btn.value); };
+                el.onclick = () => close(btn.value);
                 actions.appendChild(el);
             });
             overlay.addEventListener('click', e => {
-                if (e.target === overlay) { overlay.remove(); resolve(false); }
+                if (e.target === overlay) close(false);
             });
+            document.addEventListener('keydown', onKey, true);
             document.body.appendChild(overlay);
+            // Focus the safe choice: Enter on a confirm cancels unless the
+            // user moves to the action on purpose.
+            actions.firstElementChild?.focus();
         });
     },
-    confirm(message) {
+    // `confirmLabel` names the action ("Add to banlist"), never a bare "Confirm".
+    confirm(message, confirmLabel = 'Confirm') {
         return this._create('alert', 'krawl-modal-icon-warn', message, [
             { label: 'Cancel', cls: 'auth-modal-btn-cancel', value: false },
-            { label: 'Confirm', cls: 'auth-modal-btn-submit', value: true },
+            { label: confirmLabel, cls: 'auth-modal-btn-submit', value: true },
         ]);
+    },
+    // Routine success: a short note that leaves the page usable, not a dialog.
+    toast(message) {
+        let region = document.getElementById('krawl-toasts');
+        if (!region) {
+            region = document.createElement('div');
+            region.id = 'krawl-toasts';
+            region.className = 'krawl-toasts';
+            region.setAttribute('role', 'status');
+            region.setAttribute('aria-live', 'polite');
+            document.body.appendChild(region);
+        }
+        const note = document.createElement('div');
+        note.className = 'krawl-toast';
+        note.innerHTML = `${KRAWL_ICONS.check}<span>${message}</span>`;
+        region.appendChild(note);
+        setTimeout(() => note.remove(), 4000);
     },
     success(message) {
         return this._create('check', 'krawl-modal-icon-success', message, [
@@ -1759,17 +2123,47 @@ window.krawlModal = {
     },
 };
 
-// Global ban action for IP insight page (auth-gated)
+// Ban copy says what changes, not just "are you sure". The banlist is what
+// exports and firewall webhooks read, so that is the consequence to name.
+const BAN_ACTIONS = {
+    ban: {
+        ask: ip => `Add <strong>${ip}</strong> to the banlist?<br><span class="krawl-modal-note">Banlist exports and firewall webhooks will include it until you remove it.</span>`,
+        button: 'Add to banlist',
+        done: ip => `${ip} added to the banlist`,
+    },
+    unban: {
+        ask: ip => `Remove <strong>${ip}</strong> from the banlist?<br><span class="krawl-modal-note">It keeps its category, but exports and firewall webhooks will leave it out.</span>`,
+        button: 'Remove from banlist',
+        done: ip => `${ip} removed from the banlist`,
+    },
+    reset: {
+        ask: ip => `Return <strong>${ip}</strong> to automatic banning?<br><span class="krawl-modal-note">Its category will decide again whether it is on the banlist.</span>`,
+        button: 'Return to automatic',
+        done: ip => `${ip} is back to automatic banning`,
+    },
+};
+
+// Reload the open IP Insight page so its ban/track state matches the server.
+function refreshIpInsight(ip) {
+    const data = getAlpineData('[x-data="dashboardApp()"]');
+    if (!data || data.tab !== 'ip-insight' || data.insightIp !== ip) return;
+    htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/ip-insight/${encodeURIComponent(ip)}`, {
+        target: '#ip-insight-htmx-container',
+        swap: 'innerHTML'
+    });
+}
+
+// Global ban action for IP insight page and banlist tables (auth-gated)
 window.ipBanAction = async function(ip, action) {
-    // Check if authenticated
     const data = getAlpineData('[x-data="dashboardApp()"]');
     if (!data || !data.authenticated) {
         if (data && typeof data.promptAuth === 'function') data.promptAuth();
         return;
     }
+    const copy = BAN_ACTIONS[action];
+    if (!copy) return;
     const safeIp = escapeHtml(ip);
-    const safeAction = escapeHtml(action);
-    const confirmed = await krawlModal.confirm(`Are you sure you want to ${safeAction} IP <strong>${safeIp}</strong>?`);
+    const confirmed = await krawlModal.confirm(copy.ask(safeIp), copy.button);
     if (!confirmed) return;
     try {
         const resp = await fetch(`${window.__DASHBOARD_PATH__}/api/ban-override`, {
@@ -1780,7 +2174,8 @@ window.ipBanAction = async function(ip, action) {
         });
         const result = await resp.json().catch(() => ({}));
         if (resp.ok) {
-            krawlModal.success(escapeHtml(result.message || `${action} successful for ${ip}`));
+            krawlModal.toast(copy.done(safeIp));
+            refreshIpInsight(ip);
             const overrides = document.getElementById('overrides-container');
             if (overrides) {
                 htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/ban/overrides?page=1`, {
@@ -1789,10 +2184,10 @@ window.ipBanAction = async function(ip, action) {
                 });
             }
         } else {
-            krawlModal.error(escapeHtml(result.error || `Failed to ${action} IP ${ip}`));
+            krawlModal.error(escapeHtml(result.error || `Could not update the banlist for ${ip}. Try again.`));
         }
     } catch {
-        krawlModal.error('Request failed');
+        krawlModal.error('Krawl did not respond, so the banlist was not changed. Check the connection and try again.');
     }
 };
 
@@ -1883,9 +2278,14 @@ window.ipTrackAction = async function(ip, action) {
         return;
     }
     const safeIp = escapeHtml(ip);
-    const label = action === 'track' ? 'track' : 'untrack';
-    const confirmed = await krawlModal.confirm(`Are you sure you want to ${label} IP <strong>${safeIp}</strong>?`);
-    if (!confirmed) return;
+    const tracking = action === 'track';
+    // Tracking is harmless and reversible, so it skips the confirm step.
+    if (!tracking) {
+        const confirmed = await krawlModal.confirm(
+            `Stop tracking <strong>${safeIp}</strong>?<br><span class="krawl-modal-note">It leaves the Tracked IPs list. Its history stays.</span>`,
+            'Stop tracking');
+        if (!confirmed) return;
+    }
     try {
         const resp = await fetch(`${window.__DASHBOARD_PATH__}/api/track-ip`, {
             method: 'POST',
@@ -1895,7 +2295,8 @@ window.ipTrackAction = async function(ip, action) {
         });
         const result = await resp.json().catch(() => ({}));
         if (resp.ok) {
-            krawlModal.success(escapeHtml(result.message || `${label} successful for ${ip}`));
+            krawlModal.toast(tracking ? `Tracking ${safeIp}` : `Stopped tracking ${safeIp}`);
+            refreshIpInsight(ip);
             // Refresh tracked IPs list if visible
             const container = document.getElementById('tracked-ips-container');
             if (container && typeof htmx !== 'undefined') {
@@ -1905,17 +2306,19 @@ window.ipTrackAction = async function(ip, action) {
                 });
             }
         } else {
-            krawlModal.error(escapeHtml(result.error || `Failed to ${label} IP ${ip}`));
+            krawlModal.error(escapeHtml(result.error || `Could not ${tracking ? 'track' : 'untrack'} ${ip}. Try again.`));
         }
     } catch {
-        krawlModal.error('Request failed');
+        krawlModal.error('Krawl did not respond, so nothing changed. Check the connection and try again.');
     }
 };
 
 // Show/hide ban action buttons based on auth state
+// Logged out, the actions stay visible but locked: pressing one asks for the
+// password instead of hiding that banning and tracking exist at all.
 function updateBanActionVisibility(authenticated) {
     document.querySelectorAll('.ip-ban-actions').forEach(el => {
-        el.style.display = authenticated ? 'inline-flex' : 'none';
+        el.classList.toggle('is-locked', !authenticated);
     });
 }
 // Update visibility after HTMX swaps in new content
@@ -1943,11 +2346,56 @@ function formatTimestamp(isoTimestamp) {
     if (!isoTimestamp) return 'N/A';
     try {
         const date = new Date(isoTimestamp);
-        return date.toLocaleString('en-GB', {
-            year: 'numeric', month: '2-digit', day: '2-digit',
-            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
-        });
+        // Same shape as the format_ts Jinja filter: year first, 24h.
+        const pad = n => String(n).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} `
+            + `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
     } catch {
         return isoTimestamp;
     }
 }
+
+function addAdvancedHeader() {
+    const container = document.getElementById('advanced-search-headers');
+    if (!container || container.children.length >= 8) return;
+    const row = container.firstElementChild.cloneNode(true);
+    row.querySelectorAll('input').forEach(input => { input.value = ''; });
+    container.appendChild(row);
+    row.querySelector('input').focus();
+}
+
+function removeAdvancedHeader(button) {
+    const container = document.getElementById('advanced-search-headers');
+    if (!container) return;
+    const row = button.closest('.advanced-search-header-row');
+    if (container.children.length > 1) row.remove();
+    else row.querySelectorAll('input').forEach(input => { input.value = ''; });
+}
+
+function resetAdvancedSearch() {
+    const container = document.getElementById('advanced-search-headers');
+    if (container) while (container.children.length > 1) container.lastElementChild.remove();
+    const results = document.getElementById('advanced-search-results');
+    if (results) results.innerHTML = `<div class="advanced-search-empty" role="status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 1 0 4.64 13.39l4.24 4.23 1.41-1.41-4.24-4.24A7.5 7.5 0 0 0 10.5 3Zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z"/></svg><p>Start with a path, host, IP, header, or raw text to find requests.</p></div>`;
+}
+
+// Summary tiles count up to their value once, when the dashboard opens.
+// The server already rendered the real figures, so a failed script or
+// reduced motion simply shows them as they are.
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const tiles = [...document.querySelectorAll('.tile-value')];
+    const targets = tiles.map(el => ({ el, text: el.textContent.trim(), n: parseInt(el.textContent.replace(/\D/g, ''), 10) }))
+        .filter(t => Number.isFinite(t.n) && t.n > 0);
+    if (!targets.length) return;
+    const group = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const DURATION = 600;
+    const start = performance.now();
+    const ease = t => 1 - Math.pow(2, -10 * t); // fast start, soft landing
+    const frame = (now) => {
+        const p = Math.min(1, (now - start) / DURATION);
+        targets.forEach(t => { t.el.textContent = p < 1 ? group(Math.round(t.n * ease(p))) : t.text; });
+        if (p < 1) requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+});

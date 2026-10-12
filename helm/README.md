@@ -62,7 +62,10 @@ This deploys PostgreSQL and Redis StatefulSets with Services in the same namespa
 
 Minimal `values-minimal.yaml` for scalable mode:
 
-> **Tip**: For production deployments, pin the image tag to a specific version (e.g., `tag: "2.4.0"`) instead of `latest` to ensure reproducible deployments.
+> **Tip**: By default the image tag follows the chart's `appVersion`. Override
+> `image.tag` only when you intentionally want another image. Every Helm upgrade
+> rolls the application pods by default, so a reused tag is pulled again; immutable
+> version or digest-based deployments remain preferable for reproducibility.
 
 ```yaml
 mode: scalable
@@ -179,8 +182,9 @@ The following table lists the main configuration parameters of the Krawl chart a
 | `mode` | Deployment mode (`standalone` or `scalable`) | `scalable` |
 | `replicaCount` | Number of pod replicas (>1 only in scalable mode) | `1` |
 | `image.repository` | Image repository | `ghcr.io/blessedrebus/krawl` |
-| `image.tag` | Image tag | `2.4.0` |
+| `image.tag` | Image tag (empty uses the chart `appVersion`) | `""` |
 | `image.pullPolicy` | Image pull policy | `Always` |
+| `rolloutOnUpgrade` | Restart application pods on every Helm upgrade, including when an image tag is reused | `true` |
 
 ### Service Configuration
 
@@ -418,6 +422,22 @@ A one-shot Kubernetes Job that copies data from an existing SQLite PVC into Post
 | `config.analyzer.tlsh_campaign_min_events` | A campaign shows only when its payload was seen more than this many times (`KRAWL_TLSH_CAMPAIGN_MIN_EVENTS`) | `10` |
 | `config.analyzer.referer_enabled` | Capture the inbound HTTP Referer header for bait-chain tracking (`KRAWL_REFERER_ENABLED`) | `true` |
 
+### Task Batch Sizes
+
+Rows each scheduled task handles per run; the remainder is picked up next run.
+Raise them when a backlog never drains — bigger batches cost pod memory.
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `config.tasks.analyze_ips_batch` | IPs scored per `analyze-ips` run (`KRAWL_TASKS_ANALYZE_IPS_BATCH`) | `2000` |
+| `config.tasks.extract_metadata_batch` | Logs parsed per `extract-request-metadata` run (`KRAWL_TASKS_EXTRACT_METADATA_BATCH`) | `500` |
+| `config.tasks.extract_files_batch` | Logs scanned per `extract-captured-files` run (`KRAWL_TASKS_EXTRACT_FILES_BATCH`) | `500` |
+| `config.tasks.hash_payloads_batch` | Logs hashed per `hash-payloads` run (`KRAWL_TASKS_HASH_PAYLOADS_BATCH`) | `500` |
+| `config.tasks.hash_payloads_chunk` | Raw requests held in memory at once inside a `hash-payloads` batch (`KRAWL_TASKS_HASH_PAYLOADS_CHUNK`) | `50` |
+| `config.tasks.hash_files_batch` | Captured files back-filled per `hash-payloads` run (`KRAWL_TASKS_HASH_FILES_BATCH`) | `50` |
+| `config.tasks.cleanup_batch` | Rows per `pre-retention-cleanup` pass (`KRAWL_TASKS_CLEANUP_BATCH`) | `1000` |
+| `config.tasks.retention_delete_batch` | Rows per `db-retention` delete transaction (`KRAWL_TASKS_RETENTION_DELETE_BATCH`) | `10000` |
+
 ### Crawl Configuration
 
 | Parameter | Description | Default |
@@ -488,9 +508,18 @@ Deploy Ollama and/or llama.cpp alongside Krawl for AI deception pages without an
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `resources.limits.cpu` | CPU limit | `500m` |
-| `resources.limits.memory` | Memory limit | `256Mi` |
+| `resources.limits.memory` | Memory limit | `512Mi` |
 | `resources.requests.cpu` | CPU request | `100m` |
-| `resources.requests.memory` | Memory request | `64Mi` |
+| `resources.requests.memory` | Memory request | `128Mi` |
+| `runtime.limitConcurrency` | Maximum in-flight Uvicorn requests per pod before shedding with 503 | `512` |
+| `runtime.backlog` | TCP accept backlog per pod | `256` |
+| `runtime.keepAliveSeconds` | Idle HTTP keep-alive timeout | `5` |
+| `runtime.gracefulShutdownSeconds` | Uvicorn graceful shutdown deadline | `30` |
+| `runtime.limitMaxRequests` | Recycle a pod process after this many requests (`0` disables) | `0` |
+| `runtime.terminationGracePeriodSeconds` | Kubernetes termination grace period | `45` |
+| `runtime.preStopDelaySeconds` | Delay before SIGTERM so endpoints propagate | `5` |
+| `service.sessionAffinity` | Service affinity (`None` recommended because scalable state is shared) | `None` |
+| `probes.*` | Startup, readiness and liveness probe timing | see `values.yaml` |
 
 ### Network Policy
 
