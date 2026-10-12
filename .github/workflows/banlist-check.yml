@@ -1,0 +1,24 @@
+name: Banlist Check
+
+# No path or branch filter on the trigger: the job must always run so its check
+# always reports, or requiring it would make every other pull request hang on a
+# status that never arrives. The steps are what gets gated.
+on:
+  pull_request:
+
+concurrency:
+  group: banlist-check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate-banlist:
+    name: Validate banlist
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v5
+        if: github.head_ref == 'community-banlist-update'
+      - if: github.head_ref == 'community-banlist-update'
+        run: ./scripts/check_banlist.sh banlist.txt

@@ -1,10 +1,18 @@
 name: Security Scan
 
+# No path filter: GitHub reports a skipped workflow's checks as *missing*
+# rather than passing, which would make pull requests that touch no Python
+# unmergeable against the required checks on main. The `changes` job gates the
+# steps instead.
 on:
   pull_request:
     branches:
       - main
       - dev
+
+concurrency:
+  group: security-scan-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -12,22 +20,50 @@ permissions:
   pull-requests: write
 
 jobs:
+  # security-checks always runs so its required status check always reports; it
+  # just skips its steps when nothing relevant changed.
+  changes:
+    name: Detect relevant changes
+    runs-on: self-hosted
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: filter
+        run: |
+          set -euo pipefail
+          git fetch -q origin "${{ github.base_ref }}"
+          BASE="$(git merge-base HEAD "origin/${{ github.base_ref }}")"
+          CHANGED="$(git diff --name-only "$BASE" HEAD)"
+          echo "$CHANGED"
+          if printf '%s\n' "$CHANGED" | grep -Eq '^src/.*\.py$|^requirements\.txt$|^pyproject\.toml$|^\.github/workflows/security-scan\.yml$'; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "code=false" >> "$GITHUB_OUTPUT"
+          fi
+
   security-checks:
     name: Security & Dependencies
+    needs: changes
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v5
+        if: ${{ needs.changes.outputs.code == 'true' }}
 
       # Self-hosted Debian runner: actions/setup-python can't fetch a prebuilt
       # Python for this distro, so use the interpreter already installed and
       # isolate installs in a venv (avoids PEP 668 / polluting the runner).
       # Prereq on the runner: python3 + python3-venv (matching 3.13).
       - name: Set up Python venv
+        if: ${{ needs.changes.outputs.code == 'true' }}
         run: |
           python3 -m venv "$RUNNER_TEMP/venv"
           echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
 
       - name: Install dependencies
+        if: ${{ needs.changes.outputs.code == 'true' }}
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
@@ -35,6 +71,7 @@ jobs:
 
       - name: Bandit security check
         id: bandit
+        if: ${{ needs.changes.outputs.code == 'true' }}
         continue-on-error: true
         run: |
           bandit -r src/ -f txt | tee "$RUNNER_TEMP/bandit-report.txt"
@@ -57,7 +94,7 @@ jobs:
           fi
 
       - name: Comment Bandit findings on PR
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        if: ${{ needs.changes.outputs.code == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         uses: actions/github-script@v8
         env:
           BANDIT_REPORT_PATH: ${{ runner.temp }}/bandit-report.txt
@@ -119,9 +156,10 @@ jobs:
             }
 
       - name: Fail on HIGH severity issues
-        if: steps.bandit.outputs.exit_code != '0'
+        if: ${{ needs.changes.outputs.code == 'true' && steps.bandit.outputs.exit_code != '0' }}
         run: exit 1
 
       - name: Dependency vulnerability audit
+        if: ${{ needs.changes.outputs.code == 'true' }}
         run: |
           pip-audit -r requirements.txt || true
