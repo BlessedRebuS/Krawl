@@ -202,7 +202,7 @@ button, input, select, textarea { font-family: inherit; }
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     gap: var(--s4);
-    margin-bottom: var(--s6);
+    margin-bottom: var(--s4);
 }
 /* The Krawl voice: heavy, blue, centred. */
 .dashboard-title {
@@ -232,26 +232,28 @@ button, input, select, textarea { font-family: inherit; }
     min-width: 0;
 }
 .topbar-actions { display: flex; align-items: center; gap: var(--s1); }
+/* Search: its own row between the title and the tabs, wide enough to read
+   as the page's search box rather than one more header icon. */
+.search-row { display: flex; justify-content: center; margin-bottom: var(--s4); }
 .search-trigger {
     display: flex;
     align-items: center;
-    gap: var(--s2);
-    width: 240px;
-    height: 34px;
-    padding: 0 var(--s2) 0 var(--s3);
+    gap: var(--s3);
+    width: min(560px, 100%);
+    height: 44px;
+    padding: 0 var(--s3) 0 var(--s4);
     background: var(--surface);
-    border: 1px solid var(--line-soft);
+    border: 1px solid var(--line);
     border-radius: var(--r-md);
-    color: var(--text-faint);
+    color: var(--text-dim);
     font: inherit;
-    font-size: var(--fs-xs);
+    font-size: var(--fs-md);
     cursor: pointer;
     transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
 }
-.search-trigger:hover { border-color: var(--line); color: var(--text-dim); }
-.search-trigger-icon { width: 16px; height: 16px; flex: none; }
+.search-trigger:hover { border-color: var(--accent); color: var(--text); }
+.search-trigger-icon { width: 18px; height: 18px; flex: none; }
 .search-trigger-label { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.search-trigger { margin-right: var(--s2); }
 /* ── ⌘K palette ───────────────────────────────────────────────── */
 .palette {
     position: fixed;
@@ -668,8 +670,6 @@ h1 {
    the rest pair up. */
 @media (max-width: 1200px) {
     .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s4); }
-    .search-trigger { width: auto; }
-    .search-trigger-label { display: none; }
 }
 @media (max-width: 640px) {
     .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(92px, auto); gap: var(--s3); }
@@ -686,8 +686,7 @@ h1 {
     .topbar { grid-template-columns: minmax(0, 1fr) auto; }
     .dashboard-title, .brand-contact { display: none; }
     .content { padding: var(--s4); }
-    .search-trigger { width: auto; margin-right: 0; }
-    .search-trigger-label, .search-trigger .kbd { display: none; }
+    .search-trigger .kbd { display: none; }
 }
 .table-container {
     background: var(--surface);
@@ -725,6 +724,13 @@ th {
     border-bottom-color: var(--line);
 }
 tbody tr { transition: background var(--dur) var(--ease); }
+/* Table data reads the way IP Insight's values do: log data (IPs, paths,
+   user agents, times, counts) in mono; badges, labels, buttons and empty
+   states keep the UI face. */
+tbody td { font-family: var(--font-mono); font-size: var(--fs-sm); }
+tbody td :is(.method-badge, .category-badge, .category-tag, .badge-more,
+    .trap-mark, .attention-new, button),
+tbody td.empty-state { font-family: var(--font-ui); }
 tbody tr:hover {
     background: var(--tint-neutral);
 }

@@ -1,4 +1,5 @@
-{# Dashboard head, top to bottom: brand / title / actions, then the tab strip.
+{# Dashboard head, top to bottom: brand / title / actions, the search bar,
+   then the tab strip.
    Summary tiles live on Overview, not here. Search opens in the ⌘K palette. Tab groups (monitor / investigate /
    respond) are split by a hairline; on narrow screens the strip scrolls. #}
 {% from "dashboard/partials/_icons.html" import icon %}
@@ -19,11 +20,6 @@
     <h1 class="dashboard-title">{{ brand.name }} Dashboard</h1>
     <div class="topbar-end">
         <div class="topbar-actions">
-            <button type="button" class="search-trigger" @click="openPalette()" aria-keyshortcuts="Control+K Meta+K /">
-                {{ icon('search', 'search-trigger-icon') }}
-                <span class="search-trigger-label">Search attacks, IPs, paths…</span>
-                <kbd class="kbd" x-text="isMac ? '⌘K' : 'Ctrl K'">⌘K</kbd>
-            </button>
             <a href="{{ dashboard_path }}/docs" target="_blank" rel="noopener"
                class="rail-btn" title="API documentation" aria-label="API documentation">{{ icon('docs') }}</a>
             <button type="button" class="rail-btn" title="Export IPs banlist" aria-label="Export IPs banlist"
@@ -41,6 +37,16 @@
         {% include "dashboard/partials/_contact.html" %}
     </div>
 </header>
+
+{# Search sits on its own row under the title so it is easy to find; it
+   opens the ⌘K palette. #}
+<div class="search-row">
+    <button type="button" class="search-trigger" @click="openPalette()" aria-keyshortcuts="Control+K Meta+K /">
+        {{ icon('search', 'search-trigger-icon') }}
+        <span class="search-trigger-label">Search attacks, IPs, paths, locations…</span>
+        <kbd class="kbd" x-text="isMac ? '⌘K' : 'Ctrl K'">⌘K</kbd>
+    </button>
+</div>
 
 <nav class="tabbar" aria-label="Dashboard sections">
     <div class="nav-group" role="group" aria-label="Monitor">
