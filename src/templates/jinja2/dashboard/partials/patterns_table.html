@@ -34,7 +34,7 @@
                     {% endif %}
                 </div>
             </td>
-            <td>{{ pattern.count }}</td>
+            <td>{{ pattern.count | num }}</td>
         </tr>
         {% else %}
         <tr><td colspan="3" class="empty-state">No patterns found</td></tr>

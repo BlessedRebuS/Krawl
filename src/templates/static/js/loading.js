@@ -104,3 +104,46 @@
      *  krawlBusy(el) marks the region and returns its release function. */
     window.krawlBusy = (el) => hold(el, 'krawl-loading');
 })();
+
+/* Failed panels. htmx drops error responses and network failures silently,
+   which left a panel dimmed or empty with no explanation. Say what went
+   wrong in the panel itself and offer to fetch it again. */
+(function () {
+    // htmx is a deferred script and this one is not.
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.htmx) htmx.config.timeout = 30000;
+    });
+
+    function describe(e) {
+        const status = e.detail.xhr && e.detail.xhr.status;
+        if (e.type === 'htmx:timeout') return 'This panel took too long to load.';
+        if (!status) return 'Krawl did not respond. Check the connection.';
+        if (status === 401 || status === 403) return 'Log in to see this panel.';
+        return `This panel could not be loaded (server error ${status}).`;
+    }
+
+    function showError(e) {
+        const target = e.detail.target;
+        const path = e.detail.requestConfig && e.detail.requestConfig.path;
+        const verb = (e.detail.requestConfig && e.detail.requestConfig.verb || 'get').toUpperCase();
+        // Only panels that load a fragment by GET; form posts report their own errors.
+        if (!target || !path || verb !== 'GET' || target.tagName === 'INPUT') return;
+        const box = document.createElement('div');
+        box.className = 'load-error';
+        box.setAttribute('role', 'alert');
+        const text = document.createElement('span');
+        text.textContent = describe(e);
+        const retry = document.createElement('button');
+        retry.type = 'button';
+        retry.className = 'pagination-btn';
+        retry.textContent = 'Try again';
+        retry.addEventListener('click', () => {
+            htmx.ajax('GET', path, { target, swap: 'innerHTML' });
+        });
+        box.append(text, retry);
+        target.replaceChildren(box);
+    }
+
+    ['htmx:responseError', 'htmx:sendError', 'htmx:timeout']
+        .forEach(name => document.addEventListener(name, showError));
+})();

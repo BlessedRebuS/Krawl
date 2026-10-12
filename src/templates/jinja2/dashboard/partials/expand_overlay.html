@@ -24,7 +24,7 @@
                        x-model="expandOverlay.search"
                        @input.debounce.300ms="triggerExpandSearch()"
                        autocomplete="off"
-                       x-show="expandOverlay.endpoint !== 'campaign' && expandOverlay.endpoint !== 'similar' && expandOverlay.endpoint !== 'artifact' && expandOverlay.endpoint !== 'domain-map'"
+                       x-show="!['campaign', 'similar', 'artifact', 'domain-map', 'attention'].includes(expandOverlay.endpoint)"
                        x-cloak />
                 <span class="auth-modal-close overlay-close" @click="expandOverlay.show = false">&times;</span>
             </div>

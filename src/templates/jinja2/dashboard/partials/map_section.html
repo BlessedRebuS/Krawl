@@ -11,7 +11,7 @@
             </button>
             <div class="row">
                 <span class="muted fs-xs">Sort</span>
-                <div class="row gap-1" id="map-sort-selector">
+                <div class="row gap-1" id="map-sort-selector" role="group" aria-label="Sort map markers">
                     <button class="map-limit-btn active" data-sort="last_seen"
                             onclick="document.querySelectorAll('#map-sort-selector .map-limit-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); if(typeof reloadMapWithSort==='function') reloadMapWithSort()">
                         Recent
@@ -22,27 +22,15 @@
                     </button>
                 </div>
             </div>
-            <div class="row">
+            <label class="map-limit-label">
                 <span class="muted fs-xs">Show</span>
-                <div class="row gap-1" id="map-limit-selector">
-                    {% set limits = [
-                        ("1000", "1K"),
-                        ("5000", "5K"),
-                        ("10000", "10K"),
-                        ("25000", "25K"),
-                        ("50000", "50K"),
-                        ("all", "All"),
-                    ] %}
-                    {% for value, label in limits %}
-                    <button class="map-limit-btn{{ ' active' if value == '1000' else '' }}"
-                            data-value="{{ value }}"
-                            onclick="document.querySelectorAll('#map-limit-selector .map-limit-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); if(typeof reloadMapWithLimit==='function') reloadMapWithLimit('{{ value }}')">
-                        {{ label }}
-                    </button>
+                <select id="map-limit-select" class="map-limit-select"
+                        onchange="if(typeof reloadMapWithLimit==='function') reloadMapWithLimit(this.value)">
+                    {% for value, label in [("1000", "1K IPs"), ("5000", "5K IPs"), ("10000", "10K IPs"), ("25000", "25K IPs"), ("50000", "50K IPs"), ("all", "All IPs")] %}
+                    <option value="{{ value }}"{{ ' selected' if value == '1000' else '' }}>{{ label }}</option>
                     {% endfor %}
-                </div>
-                <span class="muted fs-xs">IPs</span>
-            </div>
+                </select>
+            </label>
             <button type="button" id="map-expand-toggle" class="expand-btn map-expand-btn"
                     onclick="toggleMapExpanded()" aria-pressed="false"
                     aria-label="Expand IP Origins Map" title="Expand map">
@@ -50,7 +38,7 @@
             </button>
         </div>
     </div>
-    <div class="row row-wrap mb-3">
+    <div class="row row-wrap mb-3" role="group" aria-label="Show categories on the map">
         {# Colors come from the .cat-* tokens, not from here. #}
         {% set categories = [
             ("attacker", "Attackers"),
@@ -60,11 +48,12 @@
             ("unknown", "Unknown"),
         ] %}
         {% for cat_id, cat_label in categories %}
-        <div class="map-legend-item active" data-category="{{ cat_id }}" onclick="this.classList.toggle('active'); this.querySelector('input').checked = this.classList.contains('active'); if(typeof updateMapFilters==='function') updateMapFilters()">
-            <input type="checkbox" checked class="map-filter" data-category="{{ cat_id }}" style="display: none;">
+        <button type="button" class="map-legend-item active" data-category="{{ cat_id }}" aria-pressed="true"
+                onclick="const on = this.classList.toggle('active'); this.setAttribute('aria-pressed', on); this.querySelector('input').checked = on; if(typeof updateMapFilters==='function') updateMapFilters()">
+            <input type="checkbox" checked class="map-filter" data-category="{{ cat_id }}" hidden tabindex="-1">
             <span class="map-legend-dot cat-{{ cat_id }}"></span>
             <span class="map-legend-label">{{ cat_label }}</span>
-        </div>
+        </button>
         {% endfor %}
     </div>
     <div class="map-live-stage">

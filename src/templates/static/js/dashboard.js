@@ -422,6 +422,95 @@ document.addEventListener('alpine:init', () => {
         // Expand overlay state
         expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false, method: '', attackType: '', attackTypes: [], ipFilter: '', artifactKind: '', artifactValue: '' },
 
+        // ⌘K search palette, opened from the header button.
+        palette: { open: false },
+        isMac: /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent),
+
+        // One entry point for every nav control, so protected tabs stay
+        // behind auth whichever way they were reached.
+        go(tab) {
+            const routes = {
+                'overview': () => this.switchToOverview(),
+                'attacks': () => this.switchToAttacks(),
+                'threats': () => this.switchToThreats(),
+                'advanced-search': () => this.switchToAdvancedSearch(),
+                'ip-insight': () => this.switchToIpInsight(),
+                'tracked-ips': () => this.switchToTrackedIps(),
+                'banlist': () => this.switchToBanlist(),
+                'timedout': () => this.switchToTimedOut(),
+                'deception': () => this.switchToDeception(),
+                'webhooks': () => this.switchToWebhooks(),
+            };
+            (routes[tab] || routes.overview)();
+            window.scrollTo({ top: 0 });
+            this._revealActiveTab();
+        },
+
+        // On a phone the tab strip scrolls sideways. Keep the active tab in
+        // view, and fade whichever edge still hides tabs so the strip reads
+        // as scrollable rather than cut off.
+        _revealActiveTab() {
+            this.$nextTick(() => {
+                const active = document.querySelector('.tabbar .nav-item.active');
+                if (active) active.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+            });
+        },
+        _bindTabbarEdges() {
+            const bar = document.querySelector('.tabbar');
+            if (!bar) return;
+            const edges = () => {
+                bar.classList.toggle('more-left', bar.scrollLeft > 4);
+                bar.classList.toggle('more-right', bar.scrollLeft + bar.clientWidth < bar.scrollWidth - 4);
+            };
+            bar.addEventListener('scroll', edges, { passive: true });
+            window.addEventListener('resize', edges);
+            this.$watch('authenticated', () => this.$nextTick(edges));
+            edges();
+        },
+
+        // ⌘K / Ctrl K or / opens search; "g" then a letter jumps to a tab.
+        // Ignored while typing, and while a modal other than the palette is up.
+        _bindShortcuts() {
+            let pendingG = 0;
+            const jumps = { o: 'overview', a: 'attacks', t: 'threats', s: 'advanced-search', i: 'ip-insight' };
+            document.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                    e.preventDefault();
+                    this.palette.open ? this.closePalette() : this.openPalette();
+                    return;
+                }
+                const el = e.target;
+                const typing = el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+                if (typing || e.metaKey || e.ctrlKey || e.altKey || this._popupStack.length) return;
+                if (e.key === '/') {
+                    e.preventDefault();
+                    this.openPalette();
+                } else if (e.key === 'g') {
+                    pendingG = Date.now();
+                } else if (pendingG && Date.now() - pendingG < 1200 && jumps[e.key]) {
+                    pendingG = 0;
+                    this.go(jumps[e.key]);
+                } else {
+                    pendingG = 0;
+                }
+            });
+        },
+
+        openPalette() {
+            this.palette.open = true;
+            // Results collapsed when a result was opened; show them again.
+            const results = document.querySelector('#search-results-container .search-results');
+            if (results) results.classList.remove('search-collapsed');
+            this.$nextTick(() => {
+                const input = document.getElementById('search-input');
+                if (input) { input.focus(); input.select(); }
+            });
+        },
+
+        closePalette() {
+            this.palette.open = false;
+        },
+
         // LIFO of active popups (raw/file modal can open over the expand
         // overlay); ESC closes only the most recently opened one.
         _popupStack: [],
@@ -456,11 +545,19 @@ document.addEventListener('alpine:init', () => {
             this.$watch('fileModal.show', (show) => this._trackPopup(show, 'file'));
             this.$watch('authModal.show', (show) => this._trackPopup(show, 'auth'));
             this.$watch('exportModal.show', (show) => this._trackPopup(show, 'export'));
+            this.$watch('palette.open', (open) => this._trackPopup(open, 'palette'));
+            // Anything opened from a search result (attack overlay, insight)
+            // replaces the palette rather than stacking under it.
+            this.$watch('expandOverlay.show', (show) => { if (show) this.palette.open = false; });
+            this.$watch('tab', () => { this.palette.open = false; });
+            this._bindShortcuts();
+            this._bindTabbarEdges();
             document.addEventListener('keydown', (e) => {
                 if (e.key !== 'Escape') return;
                 if (!this._popupStack.length) return;
                 const top = this._popupStack[this._popupStack.length - 1];
-                if (top === 'overlay') this.expandOverlay.show = false;
+                if (top === 'palette') this.closePalette();
+                else if (top === 'overlay') this.expandOverlay.show = false;
                 else if (top === 'raw') this.closeRawModal();
                 else if (top === 'file') this.closeFileModal();
                 else if (top === 'auth') this.authModal.show = false;
@@ -501,7 +598,8 @@ document.addEventListener('alpine:init', () => {
                 this.switchToThreats();
             } else if (hash === 'advanced-search') {
                 this.switchToAdvancedSearch();
-
+            } else if (hash.startsWith('ip-insight/') && hash.length > 11) {
+                this.openIpInsight(decodeURIComponent(hash.slice(11)));
             } else if (hash === 'overview' || !hash) {
                 this.switchToOverview();
             } else {
@@ -532,10 +630,14 @@ document.addEventListener('alpine:init', () => {
                         if (this.tab !== 'threats') this.switchToThreats();
                     } else if (h === 'advanced-search') {
                         if (this.tab !== 'advanced-search') this.switchToAdvancedSearch();
+                    } else if (h.startsWith('ip-insight/')) {
+                        const ip = decodeURIComponent(h.slice(11));
+                        if (ip && (ip !== this.insightIp || this.tab !== 'ip-insight')) this.openIpInsight(ip);
                     } else if (h !== 'ip-insight') {
-                        if (this.tab !== 'ip-insight') {
-                            this.switchToOverview();
-                        }
+                        // Overview, an empty hash (Back to the first page) or
+                        // anything unknown. IP Insight now owns its own hash,
+                        // so leaving it this way must switch tabs too.
+                        this.switchToOverview();
                     }
                 });
             });
@@ -833,7 +935,7 @@ document.addEventListener('alpine:init', () => {
             // Only allow switching if an IP is selected
             if (!this.insightIp) return;
             this.tab = 'ip-insight';
-            window.location.hash = '#ip-insight';
+            window.location.hash = '#ip-insight/' + this.insightIp;
         },
 
         collapseSearch() {
@@ -852,15 +954,20 @@ document.addEventListener('alpine:init', () => {
         openIpInsight(ip) {
             // Collapse any open search results before switching to the insight tab
             this.collapseSearch();
+            this.palette.open = false;
 
             // Close any popup overlaying the dashboard (campaign / similar
             // panel) when navigating to the IP insight tab.
             this.expandOverlay.show = false;
 
-            // Set the IP and load the insight content
+            // Set the IP and load the insight content. The IP rides in the
+            // hash, so back/forward walk between inspected IPs and a reload
+            // or a pasted link reopens the same one.
             this.insightIp = ip;
             this.tab = 'ip-insight';
-            window.location.hash = '#ip-insight';
+            if (window.location.hash !== '#ip-insight/' + ip) {
+                window.location.hash = '#ip-insight/' + ip;
+            }
 
             // Load IP insight content via HTMX
             this.$nextTick(() => {
@@ -1903,7 +2010,9 @@ function _reloadExpandOverlay() {
     const url = `${dashboardPath}/htmx/${ov.endpoint}?${params}`;
 
     let targetUrl = url;
-    if (ov.endpoint === 'campaign') {
+    if (ov.endpoint === 'attention') {
+        targetUrl = `${dashboardPath}/htmx/attention?full=1`;
+    } else if (ov.endpoint === 'campaign') {
         const cv = ov.cluster ? `?cluster=${encodeURIComponent(ov.cluster)}` : '';
         targetUrl = `${dashboardPath}/htmx/cluster-events${cv}`;
     } else if (ov.endpoint === 'similar') {
@@ -1939,33 +2048,68 @@ window.krawlModal = {
         return new Promise(resolve => {
             const overlay = document.createElement('div');
             overlay.className = 'krawl-modal-overlay';
+            const opener = document.activeElement;
             overlay.innerHTML = `
-                <div class="krawl-modal-box">
+                <div class="krawl-modal-box" role="alertdialog" aria-modal="true" aria-describedby="krawl-modal-message">
                     <div class="krawl-modal-icon ${iconClass}">
                         ${KRAWL_ICONS[icon]}
                     </div>
-                    <div class="krawl-modal-message">${message}</div>
+                    <div class="krawl-modal-message" id="krawl-modal-message">${message}</div>
                     <div class="krawl-modal-actions" id="krawl-modal-actions"></div>
                 </div>`;
             const actions = overlay.querySelector('#krawl-modal-actions');
+            // Escape and a click outside both mean "no"; focus goes back to
+            // the control that opened the dialog.
+            const close = (value) => {
+                document.removeEventListener('keydown', onKey, true);
+                overlay.remove();
+                if (opener && typeof opener.focus === 'function') opener.focus();
+                resolve(value);
+            };
+            const onKey = (e) => {
+                if (e.key === 'Escape') { e.stopPropagation(); close(false); }
+            };
             buttons.forEach(btn => {
                 const el = document.createElement('button');
+                el.type = 'button';
                 el.className = `auth-modal-btn ${btn.cls}`;
                 el.textContent = btn.label;
-                el.onclick = () => { overlay.remove(); resolve(btn.value); };
+                el.onclick = () => close(btn.value);
                 actions.appendChild(el);
             });
             overlay.addEventListener('click', e => {
-                if (e.target === overlay) { overlay.remove(); resolve(false); }
+                if (e.target === overlay) close(false);
             });
+            document.addEventListener('keydown', onKey, true);
             document.body.appendChild(overlay);
+            // Focus the safe choice: Enter on a confirm cancels unless the
+            // user moves to the action on purpose.
+            actions.firstElementChild?.focus();
         });
     },
-    confirm(message) {
+    // `confirmLabel` names the action ("Add to banlist"), never a bare "Confirm".
+    confirm(message, confirmLabel = 'Confirm') {
         return this._create('alert', 'krawl-modal-icon-warn', message, [
             { label: 'Cancel', cls: 'auth-modal-btn-cancel', value: false },
-            { label: 'Confirm', cls: 'auth-modal-btn-submit', value: true },
+            { label: confirmLabel, cls: 'auth-modal-btn-submit', value: true },
         ]);
+    },
+    // Routine success: a short note that leaves the page usable, not a dialog.
+    toast(message) {
+        let region = document.getElementById('krawl-toasts');
+        if (!region) {
+            region = document.createElement('div');
+            region.id = 'krawl-toasts';
+            region.className = 'krawl-toasts';
+            region.setAttribute('role', 'status');
+            region.setAttribute('aria-live', 'polite');
+            document.body.appendChild(region);
+        }
+        const note = document.createElement('div');
+        note.className = 'krawl-toast';
+        note.innerHTML = `${KRAWL_ICONS.check}<span>${message}</span>`;
+        region.appendChild(note);
+        setTimeout(() => note.remove(), 4000);
     },
     success(message) {
         return this._create('check', 'krawl-modal-icon-success', message, [
@@ -1979,17 +2123,47 @@ window.krawlModal = {
     },
 };
 
-// Global ban action for IP insight page (auth-gated)
+// Ban copy says what changes, not just "are you sure". The banlist is what
+// exports and firewall webhooks read, so that is the consequence to name.
+const BAN_ACTIONS = {
+    ban: {
+        ask: ip => `Add <strong>${ip}</strong> to the banlist?<br><span class="krawl-modal-note">Banlist exports and firewall webhooks will include it until you remove it.</span>`,
+        button: 'Add to banlist',
+        done: ip => `${ip} added to the banlist`,
+    },
+    unban: {
+        ask: ip => `Remove <strong>${ip}</strong> from the banlist?<br><span class="krawl-modal-note">It keeps its category, but exports and firewall webhooks will leave it out.</span>`,
+        button: 'Remove from banlist',
+        done: ip => `${ip} removed from the banlist`,
+    },
+    reset: {
+        ask: ip => `Return <strong>${ip}</strong> to automatic banning?<br><span class="krawl-modal-note">Its category will decide again whether it is on the banlist.</span>`,
+        button: 'Return to automatic',
+        done: ip => `${ip} is back to automatic banning`,
+    },
+};
+
+// Reload the open IP Insight page so its ban/track state matches the server.
+function refreshIpInsight(ip) {
+    const data = getAlpineData('[x-data="dashboardApp()"]');
+    if (!data || data.tab !== 'ip-insight' || data.insightIp !== ip) return;
+    htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/ip-insight/${encodeURIComponent(ip)}`, {
+        target: '#ip-insight-htmx-container',
+        swap: 'innerHTML'
+    });
+}
+
+// Global ban action for IP insight page and banlist tables (auth-gated)
 window.ipBanAction = async function(ip, action) {
-    // Check if authenticated
     const data = getAlpineData('[x-data="dashboardApp()"]');
     if (!data || !data.authenticated) {
         if (data && typeof data.promptAuth === 'function') data.promptAuth();
         return;
     }
+    const copy = BAN_ACTIONS[action];
+    if (!copy) return;
     const safeIp = escapeHtml(ip);
-    const safeAction = escapeHtml(action);
-    const confirmed = await krawlModal.confirm(`Are you sure you want to ${safeAction} IP <strong>${safeIp}</strong>?`);
+    const confirmed = await krawlModal.confirm(copy.ask(safeIp), copy.button);
     if (!confirmed) return;
     try {
         const resp = await fetch(`${window.__DASHBOARD_PATH__}/api/ban-override`, {
@@ -2000,7 +2174,8 @@ window.ipBanAction = async function(ip, action) {
         });
         const result = await resp.json().catch(() => ({}));
         if (resp.ok) {
-            krawlModal.success(escapeHtml(result.message || `${action} successful for ${ip}`));
+            krawlModal.toast(copy.done(safeIp));
+            refreshIpInsight(ip);
             const overrides = document.getElementById('overrides-container');
             if (overrides) {
                 htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/ban/overrides?page=1`, {
@@ -2009,10 +2184,10 @@ window.ipBanAction = async function(ip, action) {
                 });
             }
         } else {
-            krawlModal.error(escapeHtml(result.error || `Failed to ${action} IP ${ip}`));
+            krawlModal.error(escapeHtml(result.error || `Could not update the banlist for ${ip}. Try again.`));
         }
     } catch {
-        krawlModal.error('Request failed');
+        krawlModal.error('Krawl did not respond, so the banlist was not changed. Check the connection and try again.');
     }
 };
 
@@ -2103,9 +2278,14 @@ window.ipTrackAction = async function(ip, action) {
         return;
     }
     const safeIp = escapeHtml(ip);
-    const label = action === 'track' ? 'track' : 'untrack';
-    const confirmed = await krawlModal.confirm(`Are you sure you want to ${label} IP <strong>${safeIp}</strong>?`);
-    if (!confirmed) return;
+    const tracking = action === 'track';
+    // Tracking is harmless and reversible, so it skips the confirm step.
+    if (!tracking) {
+        const confirmed = await krawlModal.confirm(
+            `Stop tracking <strong>${safeIp}</strong>?<br><span class="krawl-modal-note">It leaves the Tracked IPs list. Its history stays.</span>`,
+            'Stop tracking');
+        if (!confirmed) return;
+    }
     try {
         const resp = await fetch(`${window.__DASHBOARD_PATH__}/api/track-ip`, {
             method: 'POST',
@@ -2115,7 +2295,8 @@ window.ipTrackAction = async function(ip, action) {
         });
         const result = await resp.json().catch(() => ({}));
         if (resp.ok) {
-            krawlModal.success(escapeHtml(result.message || `${label} successful for ${ip}`));
+            krawlModal.toast(tracking ? `Tracking ${safeIp}` : `Stopped tracking ${safeIp}`);
+            refreshIpInsight(ip);
             // Refresh tracked IPs list if visible
             const container = document.getElementById('tracked-ips-container');
             if (container && typeof htmx !== 'undefined') {
@@ -2125,17 +2306,19 @@ window.ipTrackAction = async function(ip, action) {
                 });
             }
         } else {
-            krawlModal.error(escapeHtml(result.error || `Failed to ${label} IP ${ip}`));
+            krawlModal.error(escapeHtml(result.error || `Could not ${tracking ? 'track' : 'untrack'} ${ip}. Try again.`));
         }
     } catch {
-        krawlModal.error('Request failed');
+        krawlModal.error('Krawl did not respond, so nothing changed. Check the connection and try again.');
     }
 };
 
 // Show/hide ban action buttons based on auth state
+// Logged out, the actions stay visible but locked: pressing one asks for the
+// password instead of hiding that banning and tracking exist at all.
 function updateBanActionVisibility(authenticated) {
     document.querySelectorAll('.ip-ban-actions').forEach(el => {
-        el.style.display = authenticated ? 'inline-flex' : 'none';
+        el.classList.toggle('is-locked', !authenticated);
     });
 }
 // Update visibility after HTMX swaps in new content
@@ -2163,10 +2346,10 @@ function formatTimestamp(isoTimestamp) {
     if (!isoTimestamp) return 'N/A';
     try {
         const date = new Date(isoTimestamp);
-        return date.toLocaleString('en-GB', {
-            year: 'numeric', month: '2-digit', day: '2-digit',
-            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
-        });
+        // Same shape as the format_ts Jinja filter: year first, 24h.
+        const pad = n => String(n).padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} `
+            + `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
     } catch {
         return isoTimestamp;
     }
@@ -2195,3 +2378,24 @@ function resetAdvancedSearch() {
     const results = document.getElementById('advanced-search-results');
     if (results) results.innerHTML = `<div class="advanced-search-empty" role="status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 1 0 4.64 13.39l4.24 4.23 1.41-1.41-4.24-4.24A7.5 7.5 0 0 0 10.5 3Zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z"/></svg><p>Start with a path, host, IP, header, or raw text to find requests.</p></div>`;
 }
+
+// Summary tiles count up to their value once, when the dashboard opens.
+// The server already rendered the real figures, so a failed script or
+// reduced motion simply shows them as they are.
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const tiles = [...document.querySelectorAll('.tile-value')];
+    const targets = tiles.map(el => ({ el, text: el.textContent.trim(), n: parseInt(el.textContent.replace(/\D/g, ''), 10) }))
+        .filter(t => Number.isFinite(t.n) && t.n > 0);
+    if (!targets.length) return;
+    const group = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const DURATION = 600;
+    const start = performance.now();
+    const ease = t => 1 - Math.pow(2, -10 * t); // fast start, soft landing
+    const frame = (now) => {
+        const p = Math.min(1, (now - start) / DURATION);
+        targets.forEach(t => { t.el.textContent = p < 1 ? group(Math.round(t.n * ease(p))) : t.text; });
+        if (p < 1) requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+});

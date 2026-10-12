@@ -357,6 +357,7 @@ class AnalyticsRepo:
         attack_type_filter: str | None = None,
         search: str | None = None,
         method_filter: str | None = None,
+        total: int | None = None,
     ) -> dict[str, Any]:
         """
         Retrieve paginated list of detected attack types with access logs.
@@ -424,9 +425,14 @@ class AnalyticsRepo:
                     )
                 )
 
-            # Count total matching access logs.
+            # Count total matching access logs, unless the caller knows it:
+            # this count walks every access log with a detection.
             total_attacks = (
-                session.query(func.count(AccessLog.id)).filter(*match_filters).scalar()
+                total
+                if total is not None
+                else session.query(func.count(AccessLog.id))
+                .filter(*match_filters)
+                .scalar()
                 or 0
             )
 
@@ -514,7 +520,6 @@ class AnalyticsRepo:
         """
         session = self._db.session
         try:
-
             # Aggregate attack types with count
             query = session.query(
                 AttackDetection.attack_type,

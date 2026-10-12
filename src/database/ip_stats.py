@@ -12,7 +12,7 @@ from sqlalchemy import and_, func, or_
 
 from dashboard_cache import pagination
 from logger import get_app_logger
-from models import CategoryHistory, IpStats, TrackedIp
+from models import CategoryHistory, CredentialAttempt, IpStats, TrackedIp
 from sanitizer import sanitize_ip
 
 if TYPE_CHECKING:
@@ -241,6 +241,11 @@ class IpStatsRepo:
         try:
             session.commit()
             _publish_ban_change(sanitized_ip, banned=override is True)
+            # IP Insight reads ban state through this cache; drop it so the
+            # page reloaded after the action shows the new state.
+            from dashboard_cache import delete_cached_short
+
+            delete_cached_short(f"ipstats:{sanitized_ip}")
             return True
         except Exception as e:
             session.rollback()
@@ -858,6 +863,7 @@ class IpStatsRepo:
                 "category": stat.category,
                 "category_scores": stat.category_scores or {},
                 "manual_category": stat.manual_category,
+                "ban_override": stat.ban_override,
                 "last_analysis": (
                     stat.last_analysis.isoformat() if stat.last_analysis else None
                 ),
@@ -877,6 +883,89 @@ class IpStatsRepo:
         except Exception as e:
             applogger.error(f"Error counting {category}: {e}")
             return 0
+        finally:
+            self._db.close_session()
+
+    def count_by_category(self) -> dict[str | None, int]:
+        """IPs per category in one pass, instead of one COUNT per category."""
+        session = self._db.session
+        try:
+            return dict(
+                session.query(IpStats.category, func.count())
+                .group_by(IpStats.category)
+                .all()
+            )
+        except Exception as e:
+            applogger.error(f"Error counting categories: {e}")
+            return {}
+        finally:
+            self._db.close_session()
+
+    def count_category_seen_since(self, category: str, since: datetime) -> int:
+        """Count IPs in a category whose last request is at or after ``since``."""
+        session = self._db.session
+        try:
+            return (
+                session.query(IpStats)
+                .filter(IpStats.category == category, IpStats.last_seen >= since)
+                .count()
+            )
+        except Exception as e:
+            applogger.error(f"Error counting recent {category}: {e}")
+            return 0
+        finally:
+            self._db.close_session()
+
+    def get_attention_summary(self, hours: int = 24, limit: int = 6) -> dict[str, Any]:
+        """What needs a look now: attackers active in the window, newest
+        activity first, plus three counts for the same window.
+
+        Every filter hits an indexed column (last_seen, first_seen, and the
+        credential timestamp), so this stays cheap on large databases.
+        """
+        since = datetime.now() - timedelta(hours=hours)
+        session = self._db.session
+        try:
+            active = session.query(IpStats).filter(
+                IpStats.category == "attacker", IpStats.last_seen >= since
+            )
+            rows = active.order_by(IpStats.last_seen.desc()).limit(limit).all()
+            return {
+                "hours": hours,
+                "active_attackers": active.count(),
+                "new_ips": session.query(IpStats)
+                .filter(IpStats.first_seen >= since)
+                .count(),
+                # Credentials are stamped in UTC (models default utcnow).
+                "credentials": session.query(CredentialAttempt)
+                .filter(
+                    CredentialAttempt.timestamp
+                    >= datetime.utcnow() - timedelta(hours=hours)
+                )
+                .count(),
+                "attackers": [
+                    {
+                        "ip": r.ip,
+                        "total_requests": r.total_requests,
+                        "city": r.city,
+                        "country": r.country,
+                        "country_code": r.country_code,
+                        "first_seen": r.first_seen,
+                        "last_seen": r.last_seen,
+                        "is_new": bool(r.first_seen and r.first_seen >= since),
+                    }
+                    for r in rows
+                ],
+            }
+        except Exception as e:
+            applogger.error(f"Error building attention summary: {e}")
+            return {
+                "hours": hours,
+                "active_attackers": 0,
+                "new_ips": 0,
+                "credentials": 0,
+                "attackers": [],
+            }
         finally:
             self._db.close_session()
 

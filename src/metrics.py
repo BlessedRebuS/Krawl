@@ -19,6 +19,7 @@ Two families of metrics:
 """
 
 import re
+import time
 
 from prometheus_client import REGISTRY, Gauge
 from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily
@@ -29,6 +30,12 @@ from logger import get_app_logger
 app_logger = get_app_logger()
 
 CATEGORIES = ("attacker", "good_crawler", "bad_crawler", "regular_user")
+
+# Big categories (millions of crawlers) make these counts read most of
+# ip_stats: seconds of disk per scrape, every 30s on every pod. A client
+# count does not need 30-second freshness; recompute every 5 minutes.
+_CLIENTS_TTL = 300
+_clients_cache: tuple[float, dict] = (float("-inf"), {})
 
 
 def _enabled() -> bool:
@@ -88,8 +95,8 @@ class KrawlMetricsCollector:
         yield attacks
 
         # clients_total is current-state ("how many IPs are classified X right
-        # now"), not cumulative — recompute live (4 indexed COUNTs). This avoids
-        # the unbounded delta drift that previously produced negative values.
+        # now"), not cumulative: recounted (cached 5 min, see _CLIENTS_TTL)
+        # rather than tracked as deltas, which drifted negative.
         clients = GaugeMetricFamily(
             "krawl_clients_total",
             "Number of IPs per classification category",
@@ -98,9 +105,13 @@ class KrawlMetricsCollector:
         try:
             from database import get_database
 
-            db = get_database()
+            global _clients_cache
+            computed_at, counts = _clients_cache
+            if time.monotonic() - computed_at > _CLIENTS_TTL:
+                counts = get_database().ip_stats.count_by_category()
+                _clients_cache = (time.monotonic(), counts)
             for category in CATEGORIES:
-                clients.add_metric([category], db.ip_stats.count_category(category))
+                clients.add_metric([category], counts.get(category, 0))
         except Exception as e:
             app_logger.error(f"collect clients_total failed: {e}")
         yield clients

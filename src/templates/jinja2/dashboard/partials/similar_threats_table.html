@@ -20,7 +20,7 @@
             <td>
                 <div class="badge-row">
                     {% for t in (item.attack_types or [item.attack_type]) %}
-                    <span class="method-badge method-{{ t | lower | replace('_', '-') | e }}">{{ t | e }}</span>
+                    <span class="method-badge method-{{ t | lower | replace('_', '-') | e }}">{{ t | attack_label }}</span>
                     {% endfor %}
                 </div>
             </td>

@@ -38,7 +38,7 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
         const attackTypes = data.attack_types || [];
 
         if (attackTypes.length === 0) {
-            canvas.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-dim);font-size:13px;">No attack data</div>';
+            canvas.parentElement.innerHTML = '<div class="chart-empty">No attacks detected for this IP yet.</div>';
             return;
         }
 
@@ -56,7 +56,7 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
         const chartInstance = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: labels,
+                labels: labels.map(krawlAttackLabel),
                 datasets: [{
                     data: counts,
                     backgroundColor: backgroundColors,
@@ -77,8 +77,7 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
                             color: krawlToken('--text'),
                             font: {
                                 size: 12,
-                                weight: '500',
-                                family: "'Segoe UI', Tahoma, Geneva, Verdana"
+                                weight: '500'
                             },
                             padding: 16,
                             usePointStyle: true,
@@ -97,7 +96,7 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
                     },
                     tooltip: {
                         enabled: true,
-                        backgroundColor: 'rgba(22, 27, 34, 0.95)',
+                        backgroundColor: krawlToken('--raised'),
                         titleColor: krawlToken('--accent'),
                         bodyColor: krawlToken('--text'),
                         borderColor: krawlToken('--accent'),
@@ -174,10 +173,19 @@ async function loadAttackTrendsChart(canvasId) {
         release = window.krawlBusy ? krawlBusy(canvas.parentElement) : release;
 
         const url = `${DASHBOARD_PATH}/api/attack-types-daily?limit=10&days=${_trendsDays}&offset_days=${_trendsOffsetDays}`;
-        const response = await fetch(url, {
-            cache: 'no-store',
-            headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-        });
+        // A stuck query must not leave the panel spinning forever.
+        const timeout = new AbortController();
+        const timer = setTimeout(() => timeout.abort(), 20000);
+        let response;
+        try {
+            response = await fetch(url, {
+                cache: 'no-store',
+                headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
+                signal: timeout.signal,
+            });
+        } finally {
+            clearTimeout(timer);
+        }
 
         if (!response.ok) throw new Error('Failed to fetch daily attack data');
 
@@ -197,23 +205,12 @@ async function loadAttackTrendsChart(canvasId) {
         }
 
         if (attackTypes.length === 0) {
-            canvas.style.display = 'none';
-            let emptyMsg = canvas.parentElement.querySelector('.trends-empty-msg');
-            if (!emptyMsg) {
-                emptyMsg = document.createElement('div');
-                emptyMsg.className = 'trends-empty-msg';
-                emptyMsg.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-dim);font-size:13px;';
-                canvas.parentElement.appendChild(emptyMsg);
-            }
-            emptyMsg.textContent = 'No attack data for this period';
-            emptyMsg.style.display = 'flex';
+            _showTrendsMessage(canvas, 'No attacks detected in this period. Try a longer span or step back a period.');
             return;
         }
 
         // Restore canvas if previously hidden
-        canvas.style.display = '';
-        const oldMsg = canvas.parentElement.querySelector('.trends-empty-msg');
-        if (oldMsg) oldMsg.style.display = 'none';
+        _showTrendsMessage(canvas, null);
 
         const isHourly = dates.length > 0 && dates[0].includes(':');
         const shortLabels = dates.map(d => {
@@ -229,7 +226,7 @@ async function loadAttackTrendsChart(canvasId) {
         });
 
         const datasets = attackTypes.map(at => ({
-            label: `${at.type} (${at.total})`,
+            label: `${krawlAttackLabel(at.type)} (${at.total})`,
             data: at.daily,
             borderColor: krawlAttackColor(at.type),
             backgroundColor: krawlAttackColor(at.type, 0.05),
@@ -255,7 +252,7 @@ async function loadAttackTrendsChart(canvasId) {
                     legend: { display: false },
                     tooltip: {
                         enabled: true,
-                        backgroundColor: 'rgba(22, 27, 34, 0.95)',
+                        backgroundColor: krawlToken('--raised'),
                         titleColor: krawlToken('--accent'),
                         bodyColor: krawlToken('--text'),
                         borderColor: krawlToken('--line'),
@@ -265,20 +262,21 @@ async function loadAttackTrendsChart(canvasId) {
                         bodyFont: { size: 11 },
                         callbacks: {
                             label: function(context) {
-                                return `${context.dataset._attackType}: ${context.parsed.y}`;
+                                return `${krawlAttackLabel(context.dataset._attackType)}: ${context.parsed.y}`;
                             }
                         }
                     }
                 },
                 scales: {
                     x: {
-                        ticks: { color: krawlToken('--text-dim'), font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 15 },
-                        grid: { color: 'rgba(48, 54, 61, 0.3)' },
+                        // Fewer ticks on a phone, so hourly labels never collide.
+                        ticks: { color: krawlToken('--text-dim'), font: { size: 11 }, maxRotation: 0, autoSkip: true, autoSkipPadding: 24, maxTicksLimit: canvas.clientWidth < 480 ? 3 : 8 },
+                        grid: { color: krawlToken('--line-soft') },
                     },
                     y: {
                         beginAtZero: true,
-                        ticks: { color: krawlToken('--text-dim'), font: { size: 10 }, precision: 0 },
-                        grid: { color: 'rgba(48, 54, 61, 0.3)' },
+                        ticks: { color: krawlToken('--text-dim'), font: { size: 11 }, precision: 0 },
+                        grid: { color: krawlToken('--line-soft') },
                     }
                 },
                 animation: { enabled: false },
@@ -287,8 +285,44 @@ async function loadAttackTrendsChart(canvasId) {
 
     } catch (err) {
         console.error('Error loading attack trends chart:', err);
+        const canvas = document.getElementById(canvasId);
+        if (canvas) {
+            if (attackTrendsChart) { attackTrendsChart.destroy(); attackTrendsChart = null; }
+            _showTrendsMessage(canvas, err.name === 'AbortError'
+                ? 'Attack trends took too long to load.'
+                : 'Attack trends could not be loaded.', true);
+        }
     } finally {
         release();
+    }
+}
+
+// One place for the chart's empty and error text. `retry` adds a button that
+// reloads the same period.
+function _showTrendsMessage(canvas, text, retry = false) {
+    const wrapper = canvas.parentElement;
+    let msg = wrapper.querySelector('.trends-empty-msg');
+    if (!text) {
+        canvas.style.display = '';
+        if (msg) msg.hidden = true;
+        return;
+    }
+    canvas.style.display = 'none';
+    if (!msg) {
+        msg = document.createElement('div');
+        msg.className = 'trends-empty-msg chart-empty';
+        msg.setAttribute('role', 'status');
+        wrapper.appendChild(msg);
+    }
+    msg.hidden = false;
+    msg.textContent = text;
+    if (retry) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pagination-btn';
+        btn.textContent = 'Try again';
+        btn.onclick = () => loadAttackTrendsChart();
+        msg.append(' ', btn);
     }
 }
 
@@ -334,19 +368,23 @@ function _updateTrendsTotals(attackTypes) {
         return;
     }
 
-    let html = '<span style="color: var(--text-dim); font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Totals (period)</span>';
+    // Each total is a button: pressing it filters the Detected Attack Types
+    // table to that type, by mouse or keyboard.
+    container.innerHTML = '<span class="trends-totals-title">Totals in period</span>';
     attackTypes.forEach(at => {
-        const color = krawlAttackColor(at.type);
-        html += `<div style="display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; border-radius: 4px; transition: background 0.15s;"
-                      onmouseover="this.style.background='rgba(255,255,255,0.03)'"
-                      onmouseout="this.style.background='transparent'"
-                      onclick="filterAttackTableByType('${at.type.replace(/'/g, "\\'")}')">
-            <span style="width: 8px; height: 8px; border-radius: 50%; background: ${color}; flex-shrink: 0;"></span>
-            <span style="color: var(--text); font-size: 0.8em; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${at.type}">${at.type}</span>
-            <span style="color: ${color}; font-size: 0.85em; font-weight: 600; font-variant-numeric: tabular-nums;">${at.total.toLocaleString()}</span>
-        </div>`;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'trends-total';
+        btn.dataset.type = at.type;
+        btn.style.setProperty('--type-c', krawlAttackColor(at.type));
+        btn.setAttribute('aria-pressed', String(_activeAttackTypeFilter === at.type));
+        btn.title = `Show only ${krawlAttackLabel(at.type)} in the table below`;
+        btn.innerHTML = '<span class="trends-total-dot"></span><span class="trends-total-name"></span><span class="trends-total-count"></span>';
+        btn.querySelector('.trends-total-name').textContent = krawlAttackLabel(at.type);
+        btn.querySelector('.trends-total-count').textContent = at.total.toLocaleString('de-DE');
+        btn.onclick = () => filterAttackTableByType(at.type);
+        container.appendChild(btn);
     });
-    container.innerHTML = html;
 }
 
 /** Shift the trends chart period by N windows (negative = older, positive = newer) */
@@ -383,6 +421,9 @@ function filterAttackTableByType(attackType) {
         _activeAttackTypeFilter = attackType;
         htmx.ajax('GET', DASHBOARD_PATH + '/htmx/attacks?page=1&attack_type_filter=' + encodeURIComponent(attackType), { target: container, swap: 'innerHTML' });
     }
+    document.querySelectorAll('#trends-totals .trends-total').forEach(btn => {
+        btn.setAttribute('aria-pressed', String(btn.dataset.type === _activeAttackTypeFilter));
+    });
 }
 
 /**
@@ -536,7 +577,7 @@ function _renderCampaignActivity(data) {
         // by count); file-only campaigns stay in the neutral bucket.
         const hue = _atkStyle(types.length ? types[0] : 'other');
         const typeList = types.slice(0, 3).map(t =>
-            `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t)}"></span>${_escapeHtml(t.replace(/_/g, ' '))}</span>`
+            `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t)}"></span>${_escapeHtml(krawlAttackLabel(t))}</span>`
         ).join('') + (types.length > 3 ? `<span class="atk-tag">+${types.length - 3}</span>` : '');
         const cells = c.activity.map((n, i) =>
             `<span class="activity-cell shade-${_campaignShade(n, max)}${future[i] ? ' is-future' : ''}" data-row="${row}" data-slot="${i}"></span>`
@@ -562,7 +603,7 @@ function _renderCampaignActivity(data) {
         `<span class="activity-legend" aria-hidden="true"><span>Fewer hits</span>` +
         Array.from({ length: CAMPAIGN_SHADES }, (_, i) => `<span class="activity-cell shade-${i + 1}"></span>`).join('') +
         `<span>More</span><span class="activity-legend-key">Row colour is the main attack type:</span>` +
-        shown.map(t => `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t)}"></span>${_escapeHtml(t === 'other' ? 'probes, uploads, other' : t.replace(/_/g, ' '))}</span>`).join('') +
+        shown.map(t => `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t)}"></span>${_escapeHtml(t === 'other' ? 'Probes, uploads, other' : krawlAttackLabel(t))}</span>`).join('') +
         `</span>` +
         `<span class="activity-rows"><span class="activity-rows-label">${campaigns.length} of ${data.total_campaigns} shown</span>` +
         `<span class="row gap-1" role="group" aria-label="Campaigns shown">` +
@@ -620,7 +661,7 @@ function _bindCampaignActivity() {
         tip.innerHTML =
             `<div class="activity-tooltip-title">${_escapeHtml(_campaignSlotText(data.slots[i], data.slot_hours))}</div>` +
             `<div class="data-mono">${_escapeHtml(_middleEllipsis(_campaignName(c), 56))}</div>` +
-            ((c.attack_types || []).length ? `<div class="activity-tooltip-title">${_escapeHtml(c.attack_types.join(', ').replace(/_/g, ' '))}</div>` : '') +
+            ((c.attack_types || []).length ? `<div class="activity-tooltip-title">${_escapeHtml(c.attack_types.map(krawlAttackLabel).join(', '))}</div>` : '') +
             `<div><strong>${n.toLocaleString()}</strong> ${n === 1 ? 'hit' : 'hits'}</div>`;
         tip.hidden = false;
         const host = tip.offsetParent || grid;

@@ -8,12 +8,12 @@
                 hx-target="#expand-overlay-table" hx-swap="innerHTML"
                 aria-pressed="{{ 'true' if root.name == graph.selected_root else 'false' }}">
             <span class="domain-map-root-name">{{ root.name | e }}</span>
-            <span class="domain-map-root-count">{{ root.count }} requests</span>
+            <span class="domain-map-root-count">{{ root.count | num }} requests</span>
         </button>
         {% endfor %}
     </div>
     <div class="domain-map-summary" title="Built from up to 2,000 most-targeted captured hostnames">
-        <span><strong>{{ graph.selected_root | e }}</strong> · {{ graph.total_requests }} requests</span>
+        <span><strong>{{ graph.selected_root | e }}</strong> · {{ graph.total_requests | num }} requests</span>
         <span>{{ graph.nodes | length }} nodes shown{% if graph.hidden_hosts %} · {{ graph.hidden_hosts }} more hosts not drawn{% endif %}</span>
     </div>
     <div class="domain-map-viewport">
