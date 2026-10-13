@@ -2,10 +2,10 @@
 
 """
 Database retention task for Krawl honeypot.
-Periodically deletes old records based on configured retention_days.
+Periodically deletes old records based on the retention.non-suspicious window.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from sqlalchemy import delete as sa_delete
 from sqlalchemy import or_
@@ -37,12 +37,13 @@ def main():
     category history, and all credential attempts.
     """
     try:
-        from config import get_config
+        from config import format_duration, get_config
         from models import (
             AccessLog,
             AttackDetection,
             CapturedPayload,
             CategoryHistory,
+            CredentialAttempt,
             IpStats,
             MetricsSummary,
             PayloadCluster,
@@ -50,7 +51,7 @@ def main():
         )
 
         config = get_config()
-        retention_days = config.database_retention_days
+        retention = config.retention_non_suspicious
         # Rows per delete transaction; a first run with a large backlog to clear
         # benefits from a bigger batch, at the cost of a longer lock.
         delete_batch_size = config.tasks_retention_delete_batch
@@ -58,7 +59,7 @@ def main():
         db = get_database()
         session = db.session
 
-        cutoff = datetime.now() - timedelta(days=retention_days)
+        cutoff = datetime.now() - retention
 
         # `not <column>` is Python truthiness, not SQL NOT: it collapses to the
         # literal False and the whole predicate becomes "AND false", so these
@@ -96,6 +97,43 @@ def main():
             logs_deleted += (
                 session.query(AccessLog)
                 .filter(AccessLog.id.in_(batch_ids))
+                .delete(synchronize_session=False)
+            )
+            session.commit()
+
+        # Opt-in hard cap (retention.overall): everything older goes, attack
+        # evidence included. The orphan sweep below then clears its files.
+        overall = config.retention_overall
+        overall_cutoff = datetime.now() - overall if overall else None
+        credentials_deleted = 0
+        if overall_cutoff:
+            while True:
+                batch_ids = [
+                    row[0]
+                    for row in session.query(AccessLog.id)
+                    .filter(AccessLog.timestamp < overall_cutoff)
+                    .limit(delete_batch_size)
+                    .all()
+                ]
+                if not batch_ids:
+                    break
+                detections_deleted += (
+                    session.query(AttackDetection)
+                    .filter(AttackDetection.access_log_id.in_(batch_ids))
+                    .delete(synchronize_session=False)
+                )
+                session.query(RequestAsset).filter(
+                    RequestAsset.access_log_id.in_(batch_ids)
+                ).delete(synchronize_session=False)
+                logs_deleted += (
+                    session.query(AccessLog)
+                    .filter(AccessLog.id.in_(batch_ids))
+                    .delete(synchronize_session=False)
+                )
+                session.commit()
+            credentials_deleted = (
+                session.query(CredentialAttempt)
+                .filter(CredentialAttempt.timestamp < overall_cutoff)
                 .delete(synchronize_session=False)
             )
             session.commit()
@@ -178,12 +216,33 @@ def main():
             )
             .delete(synchronize_session=False)
         )
+        if overall_cutoff:
+            capped = session.execute(
+                sa_delete(IpStats)
+                .where(IpStats.last_seen < overall_cutoff)
+                .returning(IpStats.total_requests)
+            ).fetchall()
+            if capped:
+                ips_deleted += len(capped)
+                _bump_deleted_tally(session, MetricsSummary, "unique_ips", len(capped))
+                _bump_deleted_tally(
+                    session,
+                    MetricsSummary,
+                    "total_accesses",
+                    sum(int(r[0] or 0) for r in capped),
+                )
+            history_deleted += (
+                session.query(CategoryHistory)
+                .filter(CategoryHistory.timestamp < overall_cutoff)
+                .delete(synchronize_session=False)
+            )
 
         session.commit()
 
         total = (
             logs_deleted
             + detections_deleted
+            + credentials_deleted
             + ips_deleted
             + history_deleted
             + orphan_files
@@ -196,9 +255,10 @@ def main():
                 f"{detections_deleted} attack detections, "
                 f"{orphan_files} orphan file payloads, "
                 f"{orphan_clusters} orphan campaign clusters, "
+                f"{credentials_deleted} credential attempts, "
                 f"{ips_deleted} stale IPs, "
                 f"{history_deleted} category history records "
-                f"older than {retention_days} days"
+                f"older than {format_duration(retention)}"
             )
 
         # Recompute cumulative counters from (current rows + deleted tallies) now

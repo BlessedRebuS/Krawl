@@ -1953,6 +1953,7 @@ _CONFIG_SECTIONS = (
     "server",
     "dashboard",
     "database",
+    "retention",
     "postgres",
     "redis",
     "crawl",
@@ -2014,6 +2015,10 @@ def _is_unset(value) -> bool:
 
 def _json_safe(value):
     """Render a config value in a form JSON can carry and a table can show."""
+    if isinstance(value, timedelta):
+        from config import format_duration
+
+        return format_duration(value)
     if isinstance(value, tuple):
         return list(value)
     if isinstance(value, (str, int, float, bool, list, dict)) or value is None:

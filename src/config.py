@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 import os
+import re
 import sys
 from dataclasses import dataclass
 from dataclasses import field as dc_field
+from datetime import timedelta
 from pathlib import Path
 
 import requests
@@ -27,6 +29,45 @@ DEFAULT_IGNORED_IPS = [
     "fc00::/7",
     "fe80::/10",
 ]
+
+_DURATION_UNITS = {
+    "h": timedelta(hours=1),
+    "d": timedelta(days=1),
+    "w": timedelta(weeks=1),
+    "m": timedelta(days=30),
+    "y": timedelta(days=365),
+}
+_DURATION_RE = re.compile(r"(\d+)\s*([hdwmy])?")
+
+
+def parse_duration(value, default: timedelta | None) -> timedelta | None:
+    """Parse '12h' / '30d' / '2w' / '6m' / '1y' (bare int = days) to a timedelta.
+
+    Missing (None or "") returns ``default``; 0 returns None, meaning disabled;
+    anything unparseable logs an error and returns ``default``.
+    """
+    if value is None or value == "":
+        return default
+    if isinstance(value, bool):
+        match = None
+    else:
+        match = _DURATION_RE.fullmatch(str(value).strip().lower())
+    if not match:
+        get_app_logger().error(f"Invalid duration {value!r}, using {default}")
+        return default
+    amount = int(match[1])
+    if amount == 0:
+        return None
+    return amount * _DURATION_UNITS[match[2] or "d"]
+
+
+def format_duration(td: timedelta) -> str:
+    """Inverse of parse_duration for display: the largest unit that divides exactly."""
+    for unit in ("y", "w", "d", "h"):
+        size = _DURATION_UNITS[unit]
+        if td >= size and td % size == timedelta(0):
+            return f"{td // size}{unit}"
+    return str(td)
 
 
 # Esri's dark canvas: no API key, no watermark, and a companion labels layer.
@@ -112,6 +153,13 @@ class Config:
     database_path: str = "data/krawl.db"
     database_retention_days: int = 30
     database_persist_suspicious_only: bool = False
+    # Retention windows (config.yaml `retention:`), see docs/retention.md.
+    # database_retention_days stays for KRAWL_DATABASE_RETENTION_DAYS back-compat.
+    retention_non_suspicious: timedelta = timedelta(days=30)
+    retention_recheck_suspicious: timedelta = timedelta(days=30)
+    retention_reevaluate_interval: timedelta = timedelta(days=5)
+    retention_crunch_after: timedelta = timedelta(days=7)
+    retention_overall: timedelta | None = None
 
     # IPv6 settings — rotating IPv6 proxy pools burn a fresh address per
     # request, which floods ip_stats with rows that are never seen again.
@@ -297,6 +345,8 @@ class Config:
         deception = data.get("deception", {})
         banlist = data.get("banlist", {})
         tasks_cfg = data.get("tasks") or {}
+        retention = data.get("retention") or {}
+        legacy_retention = timedelta(days=database.get("retention_days", 30))
         # Support legacy nested `page_template` or top-level `custom_template_path`.
         page_template = data.get("page_template", {})
         custom_template_path = data.get("custom_template_path", None)
@@ -392,6 +442,23 @@ class Config:
             database_persist_suspicious_only=database.get(
                 "persist_suspicious_only", False
             ),
+            retention_non_suspicious=parse_duration(
+                retention.get("non-suspicious"), legacy_retention
+            )
+            or legacy_retention,
+            retention_recheck_suspicious=parse_duration(
+                retention.get("recheck-suspicious"), legacy_retention
+            )
+            or legacy_retention,
+            retention_reevaluate_interval=parse_duration(
+                retention.get("re-evaluate-interval"), timedelta(days=5)
+            )
+            or timedelta(days=5),
+            retention_crunch_after=parse_duration(
+                retention.get("crunch-after"), timedelta(days=7)
+            )
+            or timedelta(days=7),
+            retention_overall=parse_duration(retention.get("overall"), None),
             ipv6_ignore=ipv6_cfg.get("ignore", False),
             ipv6_purge_existing=ipv6_cfg.get("purge_existing", False),
             map_tile_url=map_cfg.get("tile_url") or _DEFAULT_TILE_URL,
@@ -500,6 +567,20 @@ def override_config_from_env(config: Config = None):
                         field,
                         [p.strip() for p in env_value.split(",") if p.strip()],
                     )
+                elif field_type is timedelta:
+                    current = getattr(config, field)
+                    setattr(
+                        config, field, parse_duration(env_value, current) or current
+                    )
+                elif field_type == (timedelta | None):
+                    if env_value.strip() in ("", "0"):
+                        setattr(config, field, None)
+                    else:
+                        setattr(
+                            config,
+                            field,
+                            parse_duration(env_value, getattr(config, field)),
+                        )
                 else:
                     # Treat empty strings as None for Optional fields (e.g. passwords)
                     setattr(config, field, env_value if env_value else None)
@@ -507,6 +588,13 @@ def override_config_from_env(config: Config = None):
                 get_app_logger().error(
                     f"Error overriding config '{field}' from environment variable '{env_var}': {e}"
                 )
+
+    # KRAWL_DATABASE_RETENTION_DAYS predates the retention: section; it still
+    # drives the two windows it always did, unless their own env var is set.
+    if __get_env_from_config("database_retention_days") in os.environ:
+        for name in ("retention_non_suspicious", "retention_recheck_suspicious"):
+            if __get_env_from_config(name) not in os.environ:
+                setattr(config, name, timedelta(days=config.database_retention_days))
 
 
 _config_instance = None
