@@ -84,6 +84,15 @@ class AccessLog(Base):
     file_extraction_version: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, index=True
     )
+    # Requests this row stands for: >1 once crunch-access-logs merged similar
+    # non-suspicious requests of an inactive IP into it. Count with SUM(hit_count).
+    hit_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=1, server_default="1"
+    )
+    # Up to 3 real paths of a crunched row, ", "-joined; `path` holds the template.
+    path_samples: Mapped[str | None] = mapped_column(
+        String(MAX_PATH_LENGTH), nullable=True
+    )
 
     # Relationship to attack detections
     attack_detections: Mapped[list["AttackDetection"]] = relationship(
@@ -245,6 +254,8 @@ class IpStats(Base):
     category_scores: Mapped[dict[str, int]] = mapped_column(JSON, nullable=True)
     manual_category: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
     last_analysis: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    # crunch-access-logs cursor: crunched again only after new activity.
+    crunched_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     need_reevaluation: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=True
     )

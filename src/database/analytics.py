@@ -70,7 +70,7 @@ class AnalyticsRepo:
         """
         session = self._db.session
         try:
-            count_col = func.count(AccessLog.id)
+            count_col = func.sum(AccessLog.hit_count)
             results = (
                 session.query(AccessLog.path, count_col.label("count"))
                 .group_by(AccessLog.path)
@@ -97,7 +97,7 @@ class AnalyticsRepo:
         """
         session = self._db.session
         try:
-            count_col = func.count(AccessLog.id)
+            count_col = func.sum(AccessLog.hit_count)
             results = (
                 session.query(AccessLog.user_agent, count_col.label("count"))
                 .filter(AccessLog.user_agent.isnot(None), AccessLog.user_agent != "")
@@ -225,7 +225,7 @@ class AnalyticsRepo:
         session = self._db.session
         try:
             offset = (page - 1) * page_size
-            count_col = func.count(AccessLog.id).label("count")
+            count_col = func.sum(AccessLog.hit_count).label("count")
 
             path_expr = AccessLog.path.label("path")
 
@@ -238,7 +238,7 @@ class AnalyticsRepo:
                 session.query(path_expr)
                 .filter(*search_filter)
                 .group_by(path_expr)
-                .having(func.count(AccessLog.id) >= min_count)
+                .having(func.sum(AccessLog.hit_count) >= min_count)
                 .subquery()
             )
             total_paths = (
@@ -250,7 +250,7 @@ class AnalyticsRepo:
                 session.query(path_expr, count_col)
                 .filter(*search_filter)
                 .group_by(path_expr)
-                .having(func.count(AccessLog.id) >= min_count)
+                .having(func.sum(AccessLog.hit_count) >= min_count)
             )
 
             if sort_by == "count":
@@ -300,7 +300,7 @@ class AnalyticsRepo:
         session = self._db.session
         try:
             offset = (page - 1) * page_size
-            count_col = func.count(AccessLog.id).label("count")
+            count_col = func.sum(AccessLog.hit_count).label("count")
 
             ua_expr = AccessLog.user_agent.label("user_agent")
 
@@ -313,7 +313,7 @@ class AnalyticsRepo:
                 session.query(ua_expr)
                 .filter(*base_filter)
                 .group_by(ua_expr)
-                .having(func.count(AccessLog.id) >= min_count)
+                .having(func.sum(AccessLog.hit_count) >= min_count)
                 .subquery()
             )
             total_uas = (
@@ -325,7 +325,7 @@ class AnalyticsRepo:
                 session.query(ua_expr, count_col)
                 .filter(*base_filter)
                 .group_by(ua_expr)
-                .having(func.count(AccessLog.id) >= min_count)
+                .having(func.sum(AccessLog.hit_count) >= min_count)
             )
 
             if sort_by == "count":
