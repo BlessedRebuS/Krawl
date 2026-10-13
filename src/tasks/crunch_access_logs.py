@@ -43,15 +43,16 @@ _HEX = re.compile(r"[0-9a-f]{8,}", re.IGNORECASE)
 _RAND = re.compile(r"[A-Za-z0-9_-]{8,}")
 
 
-def _is_trap_link(segment: str, char_space: str, min_len: int, max_len: int) -> bool:
-    """Krawl homepage link: char_space only, in length range, and visibly random
-    (a digit, or an uppercase letter after the first character). The last rule
+def _is_trap_link(path: str) -> bool:
+    """Krawl homepage link (generative_ai._is_random_link) that also looks random:
+    a digit, or an uppercase letter after the first character. The extra rule
     keeps /login, /admin, /Jenkinsfile literal; a few all-lowercase links slip
     through and simply stay uncrunched."""
-    return (
-        min_len <= len(segment) <= max_len
-        and all(c in char_space for c in segment)
-        and (any(c.isdigit() for c in segment) or any(c.isupper() for c in segment[1:]))
+    from generative_ai import _is_random_link
+
+    segment = path.lstrip("/")
+    return _is_random_link(path) and (
+        any(c.isdigit() for c in segment) or any(c.isupper() for c in segment[1:])
     )
 
 
@@ -78,15 +79,10 @@ def _segment_template(segment: str) -> str:
     return shape + dot + ext
 
 
-def path_template(path: str, char_space: str, length_range: tuple[int, int]) -> str:
+def path_template(path: str) -> str:
     """Generic shape of a request path; idempotent."""
     base, sep, query = path.partition("?")
-    single = base.lstrip("/")
-    if (
-        single
-        and "/" not in single
-        and _is_trap_link(single, char_space, *length_range)
-    ):
+    if _is_trap_link(base):
         base = "/{link}"
     else:
         base = "/".join(_segment_template(s) for s in base.split("/"))
@@ -110,7 +106,7 @@ def _samples(members) -> str | None:
     return ", ".join(seen)[:MAX_PATH_LENGTH] or None
 
 
-def _crunch_ip(session, ip: str, config) -> tuple[int, int]:
+def _crunch_ip(session, ip: str) -> tuple[int, int]:
     """Merge one IP's similar non-suspicious rows. Returns (groups merged, rows deleted)."""
     from models import AccessLog, AttackDetection, CapturedPayload, RequestAsset
 
@@ -143,9 +139,7 @@ def _crunch_ip(session, ip: str, config) -> tuple[int, int]:
     for row in rows:
         template = row.path
         if not any(row.path.rstrip("/").startswith(d) for d in disallows):
-            template = path_template(
-                row.path, config.char_space, config.links_length_range
-            )
+            template = path_template(row.path)
             if len(template) > MAX_PATH_LENGTH:
                 template = row.path
         # user_agent in the key: analyze-ips counts distinct UAs per IP.
@@ -202,7 +196,7 @@ def main():
         ]
         for ip in ips:
             try:
-                merged, deleted = _crunch_ip(session, ip, config)
+                merged, deleted = _crunch_ip(session, ip)
                 session.query(IpStats).filter(IpStats.ip == ip).update(
                     {IpStats.crunched_at: now}, synchronize_session=False
                 )

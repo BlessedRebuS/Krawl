@@ -2,9 +2,6 @@ import pytest
 
 from tasks.crunch_access_logs import path_template
 
-CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-RANGE = (5, 15)
-
 
 @pytest.mark.parametrize(
     "path,expected",
@@ -37,15 +34,15 @@ RANGE = (5, 15)
     ],
 )
 def test_path_template(path, expected):
-    assert path_template(path, CHARS, RANGE) == expected
+    assert path_template(path) == expected
 
 
 @pytest.mark.parametrize(
     "path", ["/Gw2JM958", "/f/aB3xK9pQ.js", "/search?q=foo", "/post/12/c/9f86d081a2"]
 )
 def test_path_template_is_idempotent(path):
-    once = path_template(path, CHARS, RANGE)
-    assert path_template(once, CHARS, RANGE) == once
+    once = path_template(path)
+    assert path_template(once) == once
 
 
 from datetime import datetime, timedelta
