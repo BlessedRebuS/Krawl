@@ -242,6 +242,7 @@ class Config:
     tasks_hash_files_batch: int = 50
     tasks_cleanup_batch: int = 1000
     tasks_retention_delete_batch: int = 10_000
+    tasks_crunch_ips_batch: int = 500
 
     # Banlist export/import settings
     banlist_export_path: str = ""
@@ -522,6 +523,7 @@ class Config:
             tasks_retention_delete_batch=int(
                 tasks_cfg.get("retention_delete_batch", 10_000)
             ),
+            tasks_crunch_ips_batch=int(tasks_cfg.get("crunch_ips_batch", 500)),
         )
 
 

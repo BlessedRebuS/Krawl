@@ -279,6 +279,7 @@ config:
     hash_files_batch: 50  # Captured files back-filled per run
     cleanup_batch: 1000  # Rows per pre-retention-cleanup pass
     retention_delete_batch: 10000  # Rows per db-retention delete transaction
+    crunch_ips_batch: 500  # Inactive IPs crunched per crunch-access-logs run
   crawl:
     infinite_pages_for_malicious: true
     max_pages_limit: 250

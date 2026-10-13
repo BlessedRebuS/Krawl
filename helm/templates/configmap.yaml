@@ -75,6 +75,7 @@ data:
       hash_files_batch: {{ .Values.config.tasks.hash_files_batch }}
       cleanup_batch: {{ .Values.config.tasks.cleanup_batch }}
       retention_delete_batch: {{ .Values.config.tasks.retention_delete_batch }}
+      crunch_ips_batch: {{ .Values.config.tasks.crunch_ips_batch }}
     crawl:
       infinite_pages_for_malicious: {{ .Values.config.crawl.infinite_pages_for_malicious }}
       max_pages_limit: {{ .Values.config.crawl.max_pages_limit }}

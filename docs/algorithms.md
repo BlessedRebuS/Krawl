@@ -67,4 +67,56 @@ The IP becomes an `attacker`.
 
 ## Request crunching
 
-Documented together with the `crunch-access-logs` task.
+**Purpose.** Most stored requests are crawlers following Krawl's own random
+homepage links: on the demo instance about 3M IPs, each with a handful of
+unique paths like `/Gw2JM958`. The crunch job keeps that history but stores it
+compactly, by merging similar non-suspicious requests of an inactive IP into one
+row that remembers how many requests it stands for.
+
+**When.** `crunch-access-logs` runs hourly and takes up to `tasks.crunch_ips_batch`
+IPs (default 500) whose `last_seen` is older than `retention.crunch-after` (7d)
+and that have not been crunched since their last activity (`ip_stats.crunched_at`).
+An IP that comes back and goes idle again is crunched again.
+
+**Which rows.** Only non-suspicious, non-honeypot rows that have no uploaded file
+and no request asset. Attack evidence is never merged.
+
+**Templates.** Each path is reduced to a shape; the first matching rule wins:
+
+| Rule | Example | Template |
+|---|---|---|
+| Whole path is a Krawl trap link: one segment, `links.char_space` only, length within `links.min_length`..`max_length`, and a digit or an uppercase letter after the first character | `/Gw2JM958` | `/{link}` |
+| Segment is a UUID | `/u/550e8400-e29b-41d4-a716-446655440000` | `/u/{uuid}` |
+| Segment is all digits | `/post/1234` | `/post/{num}` |
+| Segment is ≥ 8 hex characters with a digit | `/c/9f86d081a2` | `/c/{hex}` |
+| Segment is ≥ 8 `[A-Za-z0-9_-]` with a digit and a letter (extension kept) | `/f/aB3xK9pQ.js` | `/f/{rand}.js` |
+| Anything else | `/wp-login.php`, `/login` | unchanged |
+| Query values | `?q=foo&page=2` | `?q={v}&page={v}` |
+
+The "visibly random" requirement on trap links exists because Krawl's minimum
+link length (5) also fits words like `/login` and `/admin`. On the demo data it
+caught 98.7% of trap links and matched none of the real top paths. The 1.3% it
+misses (all-lowercase, like `/kpjud`) simply stay uncrunched.
+
+**Merge.** Rows of one IP sharing `(method, template, target host)` become one
+row: the lowest id is kept, `path` becomes the template, `hit_count` is the sum,
+`timestamp` is the newest, and `path_samples` keeps up to 3 real example paths.
+The user agent is not part of the key, because crawlers rotate it.
+
+**Example.**
+
+    GET /dasidaniodna, GET /daefndisjd, GET /sdleijfwmi, GET /test
+      → GET /{link}  ×3  (e.g. /dasidaniodna, /daefndisjd, /sdleijfwmi)
+      → GET /test    ×1
+
+**Effects elsewhere.**
+- Top paths, top user agents and target-host counts sum `hit_count`, so totals are unchanged.
+- Unique-path counts drop, because templates collapse random paths.
+- IP evaluation weights rows by `hit_count`, so a crunched IP keeps its category.
+- Retention purges a crunched row once its newest request is older than `retention.non-suspicious`.
+
+**Known limits.**
+- Merging is per IP. Dormant crawlers usually have only 1–2 rows each, so the
+  saving is concentrated on heavy single-IP crawlers. Lowering
+  `retention.non-suspicious` is the bigger lever for table size.
+- In top user agents, a crunched row's requests count toward the user agent of the kept row.

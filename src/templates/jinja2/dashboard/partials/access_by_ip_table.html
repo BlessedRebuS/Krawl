@@ -35,9 +35,9 @@
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
             <td>
                 <div class="path-cell-container">
-                    <span class="path-truncated">{{ log.path | e }}</span>
-                    {% if log.path | length > 30 %}
-                    <div class="path-tooltip">{{ log.path | e }}</div>
+                    <span class="path-truncated">{{ log.path | e }}{% if (log.hit_count or 1) > 1 %} ×{{ log.hit_count }}{% endif %}</span>
+                    {% if log.path_samples or log.path | length > 30 %}
+                    <div class="path-tooltip">{{ log.path | e }}{% if log.path_samples %}<br>e.g. {{ log.path_samples | e }}{% endif %}</div>
                     {% endif %}
                 </div>
             </td>
