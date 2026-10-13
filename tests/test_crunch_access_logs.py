@@ -97,12 +97,18 @@ def test_merges_trap_links_and_keeps_literals(tmp_path):
     crunch_access_logs.main()
 
     rows = _rows(db)
-    assert [(r.path, r.hit_count) for r in rows] == [("/{link}", 4), ("/test", 1)]
+    # The other-ua row is its own group (user agent is part of the key).
+    assert [(r.path, r.hit_count, r.user_agent) for r in rows] == [
+        ("/{link}", 3, "ua"),
+        ("/{link}", 1, "other-ua"),
+        ("/test", 1, "ua"),
+    ]
     keeper = rows[0]
     assert keeper.id == first_id
     assert keeper.timestamp == when + timedelta(seconds=3)
-    assert keeper.path_samples == "/Gw2JM958, /A0ZUzQqbrhyDm, /WQPjRhEvmPVmm"
-    assert rows[1].path_samples is None
+    assert keeper.path_samples == "/Gw2JM958, /WQPjRhEvmPVmm, /X9aaaaaa"
+    assert rows[1].path_samples == "/A0ZUzQqbrhyDm"
+    assert rows[2].path_samples is None
     assert db.session.get(IpStats, IP).crunched_at is not None
 
 
@@ -202,3 +208,57 @@ def test_access_table_shows_count_and_samples():
     )
     assert "/{link} ×4" in html
     assert "/Gw2JM958, /A0ZUzQqbrhyDm" in html
+
+
+def test_crunched_at_migration_type_is_valid_on_postgres():
+    # PostgreSQL has no DATETIME type; the ALTER would fail and every ip_stats
+    # query would then hit a missing column on upgraded installs.
+    from migrations.runner import COLUMNS
+
+    types = {(t, c): ty for t, c, ty in COLUMNS}
+    assert types[("ip_stats", "crunched_at")] == "TIMESTAMP"
+
+
+def test_template_longer_than_path_column_stays_literal(tmp_path):
+    db, when = _setup(tmp_path)
+    a = "/" + "1/" * 700
+    b = "/" + "2/" * 700
+    _log(db, a, when)
+    _log(db, b, when)
+    db.session.commit()
+
+    crunch_access_logs.main()
+
+    assert sorted(r.path for r in _rows(db)) == sorted([a, b])
+    assert db.session.get(IpStats, IP).crunched_at is not None
+
+
+def test_user_agents_are_kept_apart(tmp_path):
+    # analyze-ips counts distinct user agents per IP; merging them away would
+    # drop the different_user_agents signal on re-evaluation.
+    db, when = _setup(tmp_path)
+    _log(db, "/Gw2JM958", when, ua="ua-a")
+    _log(db, "/A0ZUzQqbrh", when, ua="ua-a")
+    _log(db, "/B1ZUzQqbrh", when, ua="ua-b")
+    _log(db, "/C2ZUzQqbrh", when, ua="ua-b")
+    db.session.commit()
+
+    crunch_access_logs.main()
+
+    assert sorted((r.user_agent, r.hit_count) for r in _rows(db)) == [
+        ("ua-a", 2),
+        ("ua-b", 2),
+    ]
+
+
+def test_robots_violating_paths_stay_literal(tmp_path):
+    # /info is a Disallow prefix: templating /infoX9a2bc to /{link} would hide
+    # the violation from analyze-ips.
+    db, when = _setup(tmp_path)
+    _log(db, "/infoX9a2bc", when)
+    _log(db, "/infoY8b3cd", when)
+    db.session.commit()
+
+    crunch_access_logs.main()
+
+    assert sorted(r.path for r in _rows(db)) == ["/infoX9a2bc", "/infoY8b3cd"]

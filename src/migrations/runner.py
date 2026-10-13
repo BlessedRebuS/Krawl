@@ -52,7 +52,8 @@ COLUMNS = [
     # crunch-access-logs: merged non-suspicious requests of inactive IPs.
     ("access_logs", "hit_count", "INTEGER NOT NULL DEFAULT 1"),
     ("access_logs", "path_samples", "VARCHAR(2048)"),
-    ("ip_stats", "crunched_at", "DATETIME"),
+    # TIMESTAMP, not DATETIME: PostgreSQL has no DATETIME type.
+    ("ip_stats", "crunched_at", "TIMESTAMP"),
 ]
 
 # (index name, table, column) — created if the index is missing.

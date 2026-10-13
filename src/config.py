@@ -242,7 +242,7 @@ class Config:
     tasks_hash_files_batch: int = 50
     tasks_cleanup_batch: int = 1000
     tasks_retention_delete_batch: int = 10_000
-    tasks_crunch_ips_batch: int = 500
+    tasks_crunch_ips_batch: int = 5000
 
     # Banlist export/import settings
     banlist_export_path: str = ""
@@ -347,7 +347,7 @@ class Config:
         banlist = data.get("banlist", {})
         tasks_cfg = data.get("tasks") or {}
         retention = data.get("retention") or {}
-        legacy_retention = timedelta(days=database.get("retention_days", 30))
+        legacy_retention = timedelta(days=int(database.get("retention_days") or 30))
         # Support legacy nested `page_template` or top-level `custom_template_path`.
         page_template = data.get("page_template", {})
         custom_template_path = data.get("custom_template_path", None)
@@ -523,7 +523,7 @@ class Config:
             tasks_retention_delete_batch=int(
                 tasks_cfg.get("retention_delete_batch", 10_000)
             ),
-            tasks_crunch_ips_batch=int(tasks_cfg.get("crunch_ips_batch", 500)),
+            tasks_crunch_ips_batch=int(tasks_cfg.get("crunch_ips_batch", 5000)),
         )
 
 
@@ -592,8 +592,10 @@ def override_config_from_env(config: Config = None):
                 )
 
     # KRAWL_DATABASE_RETENTION_DAYS predates the retention: section; it still
-    # drives the two windows it always did, unless their own env var is set.
-    if __get_env_from_config("database_retention_days") in os.environ:
+    # drives the two windows it always did, unless their own env var is set
+    # (an empty or invalid value failed its override above and is ignored).
+    legacy_env = os.environ.get(__get_env_from_config("database_retention_days"), "")
+    if legacy_env.strip().isdigit():
         for name in ("retention_non_suspicious", "retention_recheck_suspicious"):
             if __get_env_from_config(name) not in os.environ:
                 setattr(config, name, timedelta(days=config.database_retention_days))

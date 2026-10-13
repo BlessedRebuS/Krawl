@@ -22,7 +22,9 @@ from sanitizer import MAX_PATH_LENGTH
 
 TASK_CONFIG = {
     "name": "crunch-access-logs",
-    "cron": "15 * * * *",  # Hourly; each run takes a bounded slice of IPs
+    # ~285 IPs/s on PostgreSQL: 5000 per run is ~20s, and a 1.5M-IP idle
+    # backlog drains in about a day.
+    "cron": "*/5 * * * *",
     "enabled": True,
     "run_when_loaded": False,
     # A shared-database rewrite; two pods would merge the same rows.
@@ -132,13 +134,25 @@ def _crunch_ip(session, ip: str, config) -> tuple[int, int]:
         .all()
     )
 
+    from generative_ai import load_robots_disallowed
+
+    # analyze-ips scores robots violations by path prefix, so those paths stay
+    # literal; templates can also outgrow the path column ({num} > 1).
+    disallows = [d.rstrip("/") for d in load_robots_disallowed() if d.rstrip("/")]
     groups = defaultdict(list)
     for row in rows:
-        template = path_template(row.path, config.char_space, config.links_length_range)
-        groups[(row.method, template, row.target_host)].append(row)
+        template = row.path
+        if not any(row.path.rstrip("/").startswith(d) for d in disallows):
+            template = path_template(
+                row.path, config.char_space, config.links_length_range
+            )
+            if len(template) > MAX_PATH_LENGTH:
+                template = row.path
+        # user_agent in the key: analyze-ips counts distinct UAs per IP.
+        groups[(row.method, template, row.target_host, row.user_agent)].append(row)
 
     merged = deleted = 0
-    for (_, template, _), members in groups.items():
+    for (_, template, _, _), members in groups.items():
         if len(members) == 1 and members[0].path == template:
             continue
         keeper, rest = members[0], members[1:]

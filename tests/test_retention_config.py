@@ -116,3 +116,14 @@ def test_settings_panel_renders_durations_as_defaults():
     assert row["section"] == "retention"
     assert row["source"] == "default"
     assert rows["retention_overall"]["value"] is None
+
+
+def test_invalid_legacy_env_does_not_override_yaml(monkeypatch):
+    monkeypatch.setenv("KRAWL_DATABASE_RETENTION_DAYS", "")
+    cfg = _load("retention:\n  non-suspicious: 90d\n")
+    assert cfg.retention_non_suspicious == timedelta(days=90)
+
+
+def test_blank_legacy_yaml_key_uses_default():
+    cfg = _load("database:\n  retention_days:\n")
+    assert cfg.retention_non_suspicious == timedelta(days=30)

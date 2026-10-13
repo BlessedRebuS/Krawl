@@ -73,8 +73,8 @@ unique paths like `/Gw2JM958`. The crunch job keeps that history but stores it
 compactly, by merging similar non-suspicious requests of an inactive IP into one
 row that remembers how many requests it stands for.
 
-**When.** `crunch-access-logs` runs hourly and takes up to `tasks.crunch_ips_batch`
-IPs (default 500) whose `last_seen` is older than `retention.crunch-after` (7d)
+**When.** `crunch-access-logs` runs every 5 minutes and takes up to
+`tasks.crunch_ips_batch` IPs (default 5000) whose `last_seen` is older than `retention.crunch-after` (7d)
 and that have not been crunched since their last activity (`ip_stats.crunched_at`).
 An IP that comes back and goes idle again is crunched again.
 
@@ -98,14 +98,17 @@ link length (5) also fits words like `/login` and `/admin`. On the demo data it
 caught 98.7% of trap links and matched none of the real top paths. The 1.3% it
 misses (all-lowercase, like `/kpjud`) simply stay uncrunched.
 
-**Merge.** Rows of one IP sharing `(method, template, target host)` become one
-row: the lowest id is kept, `path` becomes the template, `hit_count` is the sum,
-`timestamp` is the newest, and `path_samples` keeps up to 3 real example paths.
-The user agent is not part of the key, because crawlers rotate it.
+**Merge.** Rows of one IP sharing `(method, template, target host, user agent)`
+become one row: the lowest id is kept, `path` becomes the template, `hit_count`
+is the sum, `timestamp` is the newest, and `path_samples` keeps up to 3 real
+example paths. The user agent is part of the key because IP evaluation counts
+distinct user agents. Paths under a robots.txt `Disallow` prefix are never
+templated (IP evaluation scores them by prefix), and neither is a path whose
+template would not fit the path column.
 
 **Example.**
 
-    GET /dasidaniodna, GET /daefndisjd, GET /sdleijfwmi, GET /test
+    GET /dasidaniodna, GET /daefndisjd, GET /sdleijfwmi, GET /test   (one user agent)
       → GET /{link}  ×3  (e.g. /dasidaniodna, /daefndisjd, /sdleijfwmi)
       → GET /test    ×1
 
@@ -119,4 +122,6 @@ The user agent is not part of the key, because crawlers rotate it.
 - Merging is per IP. Dormant crawlers usually have only 1–2 rows each, so the
   saving is concentrated on heavy single-IP crawlers. Lowering
   `retention.non-suspicious` is the bigger lever for table size.
-- In top user agents, a crunched row's requests count toward the user agent of the kept row.
+- Ratios can still shift slightly for long-lived groups: IP evaluation reads 30
+  days / 10,000 rows of history, and a crunched row carries its newest timestamp
+  and its full hit count.
