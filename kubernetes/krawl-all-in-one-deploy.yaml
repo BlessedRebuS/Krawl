@@ -221,8 +221,13 @@ data:
       level: "INFO"
     database:
       path: "data/krawl.db"
-      retention_days: 30
       persist_suspicious_only: false
+    retention:
+      non-suspicious: 30d
+      recheck-suspicious: 30d
+      re-evaluate-interval: 5d
+      crunch-after: 7d
+      overall: null
     behavior:
       probability_error_codes: 0
     analyzer:

@@ -92,9 +92,17 @@ logging:
 
 database:
   path: "data/krawl.db"
-  retention_days: 30
   # Log only suspicious requests. IP stats counters still count every request.
   persist_suspicious_only: false
+
+# How long data lives. Durations: 12h, 30d, 2w, 6m (30 days each), 1y.
+# What each window removes: docs/retention.md
+retention:
+  non-suspicious: 30d        # Non-suspicious logs, clean IPs and their category history
+  recheck-suspicious: 30d    # Age at which suspicious logs are re-checked against current rules
+  re-evaluate-interval: 5d   # Re-score IPs whose last analysis is older than this
+  crunch-after: 7d           # Merge similar non-suspicious requests of IPs inactive this long
+  overall: null              # Hard cap on ALL data, attack evidence included. null = keep forever
 
 # Rotating IPv6 proxy pools burn a fresh address per request, so per-address
 # tracking is worthless and grows rows and memory without bound.

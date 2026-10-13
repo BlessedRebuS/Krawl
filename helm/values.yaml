@@ -244,8 +244,16 @@ config:
     level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
   database:
     path: "data/krawl.db"
-    retention_days: 30
+    retention_days: 30  # Deprecated: use config.retention
     persist_suspicious_only: false  # Only persist suspicious requests to access log
+  # How long data lives (see docs/retention.md). Unset keys use built-in defaults;
+  # database.retention_days still drives non-suspicious / recheck-suspicious when unset.
+  retention: {}
+    # non-suspicious: 30d
+    # recheck-suspicious: 30d
+    # re-evaluate-interval: 5d
+    # crunch-after: 7d
+    # overall: null
   behavior:
     probability_error_codes: 0
   analyzer:
