@@ -596,7 +596,7 @@ function _renderCampaignActivity(data) {
     // Probes and uploads share the grey bucket, so they share one entry.
     const shown = [...new Set(campaigns.map(c => {
         const t = (c.attack_types || [])[0];
-        return !t || t === 'common_probes' ? 'other' : t;
+        return !t || t === 'common_probes' || t === 'scanner_probe' ? 'other' : t;
     }))];
     const legend =
         `<div class="activity-foot">` +
