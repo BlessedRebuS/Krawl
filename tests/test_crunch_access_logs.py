@@ -214,6 +214,8 @@ def test_access_table_shows_count_and_samples():
     assert 'class="path-truncated path-crunched"' in html  # lighter blue path
     assert '<td class="examples-cell">/Gw2JM958, /A0ZUzQqbrhyDm</td>' in html
     assert "<th>Examples</th>" in html
+    assert "<th>Method</th>" in html
+    assert '<span class="method-badge method-get">GET</span>' in html
 
 
 def test_crunched_at_migration_type_is_valid_on_postgres():

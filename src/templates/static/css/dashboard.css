@@ -1211,10 +1211,11 @@ tbody {
     row-gap: var(--s1);
 }
 .badge-row .method-badge {
-    font-size: var(--fs-xs);
+    font-size: var(--fs-2xs);
     font-weight: 600;
     letter-spacing: 0;
-    padding: 1px 8px;
+    line-height: 1.4;
+    padding: 0 6px;
 }
 /* A diff of 0 is a byte-identical replay — the strongest campaign signal, so it
    reads as a warning, not an "all clear". */

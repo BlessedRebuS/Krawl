@@ -18,6 +18,7 @@
     <thead>
         <tr>
             <th>#</th>
+            <th>Method</th>
             <th>Path</th>
             <th>Examples</th>
             <th>User-Agent</th>
@@ -35,6 +36,10 @@
         {% set crunched = (log.hit_count or 1) > 1 %}
         <tr class="ip-row{% if log.is_suspicious %} access-row-suspicious{% else %} access-row-normal{% endif %}" data-ip="{{ log.ip | e }}">
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
+            <td>
+                {% set method = log.method | default('GET') | upper %}
+                <span class="method-badge method-{{ method | lower | e }}">{{ method | e }}</span>
+            </td>
             <td>
                 <div class="path-cell-container">
                     <span class="path-truncated{% if crunched %} path-crunched{% endif %}">{{ log.path | e }}{% if crunched %} ×{{ log.hit_count }}{% endif %}</span>
@@ -56,7 +61,7 @@
             </div></td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="cell-empty text-center">No logs detected</td></tr>
+        <tr><td colspan="7" class="cell-empty text-center">No logs detected</td></tr>
         {% endfor %}
     </tbody>
 </table>
