@@ -9,7 +9,7 @@ logs that no longer match any rule, so the retention job can purge them.
 """
 
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from database import get_database
 from logger import get_app_logger
@@ -137,18 +137,18 @@ def main():
     Unflag only those that no longer match any suspicious rule.
     """
     try:
-        from config import get_config
+        from config import format_duration, get_config
         from models import AccessLog, AttackDetection, CapturedPayload, RequestAsset
 
         config = get_config()
-        retention_days = config.database_retention_days
+        retention = config.retention_recheck_suspicious
         # Rows per pass, to limit memory usage.
         batch_size = config.tasks_cleanup_batch
 
         db = get_database()
         session = db.session
 
-        cutoff = datetime.now() - timedelta(days=retention_days)
+        cutoff = datetime.now() - retention
 
         # Load detection rules (same sources as the tracker)
         wl = get_wordlists()
@@ -222,7 +222,7 @@ def main():
             app_logger.info(
                 f"[Background Task] pre-retention-cleanup: "
                 f"Unflagged {unflagged}, kept {kept} suspicious logs "
-                f"(older than {retention_days} days)"
+                f"(older than {format_duration(retention)})"
             )
         else:
             app_logger.debug(

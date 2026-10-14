@@ -163,7 +163,7 @@ class AccessLogRepo:
         try:
             pairs = session.query(
                 AccessLog.target_host.label("domain"),
-                func.count(AccessLog.id).label("hits"),
+                func.sum(AccessLog.hit_count).label("hits"),
                 func.min(AccessLog.timestamp).label("first_seen"),
                 func.max(AccessLog.timestamp).label("last_seen"),
             ).filter(AccessLog.target_host.isnot(None), AccessLog.target_host != "")
@@ -277,11 +277,13 @@ class AccessLogRepo:
             rows = (
                 session.query(
                     AccessLog.target_host.label("domain"),
-                    func.count(AccessLog.id).label("count"),
+                    func.sum(AccessLog.hit_count).label("count"),
                 )
                 .filter(AccessLog.target_host.isnot(None), AccessLog.target_host != "")
                 .group_by(AccessLog.target_host)
-                .order_by(func.count(AccessLog.id).desc(), AccessLog.target_host.asc())
+                .order_by(
+                    func.sum(AccessLog.hit_count).desc(), AccessLog.target_host.asc()
+                )
                 .limit(limit)
                 .all()
             )
@@ -413,6 +415,8 @@ class AccessLogRepo:
                         "is_honeypot_trigger": log.is_honeypot_trigger,
                         "timestamp": log.timestamp.isoformat(),
                         "attack_types": [d.attack_type for d in log.attack_detections],
+                        "hit_count": log.hit_count,
+                        "path_samples": log.path_samples,
                     }
                     for log in logs
                 ],
@@ -476,6 +480,8 @@ class AccessLogRepo:
                     "is_honeypot_trigger": log.is_honeypot_trigger,
                     "timestamp": log.timestamp.isoformat(),
                     "attack_types": [d.attack_type for d in log.attack_detections],
+                    "hit_count": log.hit_count,
+                    "path_samples": log.path_samples,
                 }
                 for log in logs
             ]
@@ -511,6 +517,8 @@ class AccessLogRepo:
                     "user_agent": log.user_agent,
                     "timestamp": log.timestamp.isoformat(),
                     "attack_types": [d.attack_type for d in log.attack_detections],
+                    "hit_count": log.hit_count,
+                    "path_samples": log.path_samples,
                 }
                 for log in logs
             ]

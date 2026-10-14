@@ -694,8 +694,8 @@ class IpStatsRepo:
     def flag_stale_ips_for_reevaluation(self) -> int:
         """
         Flag IPs for reevaluation where:
-        - last_seen is newer than the configured retention period
-        - last_analysis is more than 5 days ago
+        - last_seen is within retention.non-suspicious
+        - last_analysis is older than retention.re-evaluate-interval
 
         Returns:
             Number of IPs flagged for reevaluation
@@ -705,9 +705,9 @@ class IpStatsRepo:
         session = self._db.session
         try:
             now = datetime.now()
-            retention_days = get_config().database_retention_days
-            last_seen_cutoff = now - timedelta(days=retention_days)
-            last_analysis_cutoff = now - timedelta(days=5)
+            config = get_config()
+            last_seen_cutoff = now - config.retention_non_suspicious
+            last_analysis_cutoff = now - config.retention_reevaluate_interval
 
             count = (
                 session.query(IpStats)

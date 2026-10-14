@@ -62,7 +62,7 @@ Krawl/
 │   │   └── ban_check.py          # Banned IP enforcement
 │   │
 │   ├── tasks/                    # APScheduler background jobs (auto-discovered)
-│   │   ├── analyze_ips.py        # IP categorization scoring
+│   │   ├── analyze_ips.py        # IP categorization scoring (docs/algorithms.md)
 │   │   ├── fetch_ip_rep.py       # Geolocation + blocklist enrichment
 │   │   ├── flag_stale_ips.py     # Flag stale IPs for reevaluation
 │   │   ├── flush_access_logs.py  # Drain the access-log write buffer
@@ -340,7 +340,13 @@ dashboard:
 
 database:
   path: "data/krawl.db"
-  retention_days: 30
+
+retention:
+  non-suspicious: 30d
+  recheck-suspicious: 30d
+  re-evaluate-interval: 5d
+  crunch-after: 7d
+  overall: null
 
 # Scalable mode only
 postgres:

@@ -49,6 +49,11 @@ COLUMNS = [
     # Campaign clustering: payload_clusters.id, assigned incrementally at ingest.
     ("captured_payloads", "cluster_id", "VARCHAR(36)"),
     ("attack_detections", "cluster_id", "VARCHAR(36)"),
+    # crunch-access-logs: merged non-suspicious requests of inactive IPs.
+    ("access_logs", "hit_count", "INTEGER NOT NULL DEFAULT 1"),
+    ("access_logs", "path_samples", "VARCHAR(2048)"),
+    # TIMESTAMP, not DATETIME: PostgreSQL has no DATETIME type.
+    ("ip_stats", "crunched_at", "TIMESTAMP"),
 ]
 
 # (index name, table, column) — created if the index is missing.
