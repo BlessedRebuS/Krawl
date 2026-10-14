@@ -76,6 +76,8 @@ row that remembers how many requests it stands for.
 **When.** `crunch-access-logs` runs every 5 minutes and takes up to
 `tasks.crunch_ips_batch` IPs (default 5000) whose `last_seen` is older than `retention.crunch-after` (7d)
 and that have not been crunched since their last activity (`ip_stats.crunched_at`).
+IPs with a single request are skipped (nothing to merge), and the most recently
+idle IPs go first: the oldest rows are purged by retention soon anyway.
 An IP that comes back and goes idle again is crunched again.
 
 **Which rows.** Only non-suspicious, non-honeypot rows that have no uploaded file

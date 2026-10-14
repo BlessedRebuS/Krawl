@@ -189,12 +189,16 @@ def main():
             for row in session.query(IpStats.ip)
             .filter(
                 IpStats.last_seen < cutoff,
+                # One request is one row: nothing to merge (~3/4 of idle IPs).
+                IpStats.total_requests > 1,
                 or_(
                     IpStats.crunched_at.is_(None),
                     IpStats.crunched_at < IpStats.last_seen,
                 ),
             )
-            .order_by(IpStats.last_seen.asc())
+            # Most recently idle first: the oldest rows are about to be purged
+            # by retention anyway, so crunching them saves little.
+            .order_by(IpStats.last_seen.desc())
             .limit(config.tasks_crunch_ips_batch)
             .all()
         ]

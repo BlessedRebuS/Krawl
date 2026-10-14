@@ -60,11 +60,13 @@ from tasks import crunch_access_logs
 IP = "192.0.2.50"
 
 
-def _setup(tmp_path, last_seen_days=10):
+def _setup(tmp_path, last_seen_days=10, total_requests=100):
     initialize_database(str(tmp_path / "crunch.db"))
     db = get_database()
     when = datetime.now() - timedelta(days=last_seen_days)
-    db.session.add(IpStats(ip=IP, total_requests=0, first_seen=when, last_seen=when))
+    db.session.add(
+        IpStats(ip=IP, total_requests=total_requests, first_seen=when, last_seen=when)
+    )
     db.session.commit()
     return db, when
 
@@ -315,3 +317,35 @@ def test_single_rows_are_not_rewritten(tmp_path):
         ("/wp-login.php", 1, None),
     ]
     assert db.session.get(IpStats, IP).crunched_at is not None
+
+
+def test_ip_with_a_single_request_is_never_selected(tmp_path):
+    # One request means one row: nothing can merge, so it is not worth a slot.
+    db, when = _setup(tmp_path, total_requests=1)
+    _log(db, "/Gw2JM958", when)
+    db.session.commit()
+
+    crunch_access_logs.main()
+
+    _rows(db)
+    assert db.session.get(IpStats, IP).crunched_at is None
+
+
+def test_most_recently_idle_ips_go_first(tmp_path, monkeypatch):
+    # Retention purges the oldest idle rows soon anyway; crunching the most
+    # recently idle IPs first keeps the savings longer.
+    from config import get_config
+
+    db, when = _setup(tmp_path, last_seen_days=25)
+    recent = datetime.now() - timedelta(days=9)
+    db.session.add(
+        IpStats(ip="192.0.2.51", total_requests=5, first_seen=recent, last_seen=recent)
+    )
+    db.session.commit()
+    monkeypatch.setattr(get_config(), "tasks_crunch_ips_batch", 1)
+
+    crunch_access_logs.main()
+
+    db.close_session()
+    assert db.session.get(IpStats, "192.0.2.51").crunched_at is not None
+    assert db.session.get(IpStats, IP).crunched_at is None
