@@ -2803,6 +2803,20 @@ tbody {
 .access-row-suspicious .path-truncated {
     color: var(--danger);
 }
+/* Crunched rows (several similar requests merged): a lighter blue than normal
+   rows. !important and the id selector beat the forced path colors above. */
+.path-truncated.path-crunched,
+#access-history-section .access-row-normal .path-truncated.path-crunched {
+    color: var(--accent-hi) !important;
+}
+.examples-cell {
+    color: var(--text-dim);
+    font-size: 0.85em;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 .inspect-btn {
     display: inline-flex;
     align-items: center;

@@ -204,7 +204,10 @@ def test_access_table_shows_count_and_samples():
         ip_filter=IP,
     )
     assert "/{link} ×4" in html
-    assert "/Gw2JM958, /A0ZUzQqbrhyDm" in html
+    assert "access-row-normal" in html  # crunched rows look like normal rows
+    assert 'class="path-truncated path-crunched"' in html  # lighter blue path
+    assert '<td class="examples-cell">/Gw2JM958, /A0ZUzQqbrhyDm</td>' in html
+    assert "<th>Examples</th>" in html
 
 
 def test_crunched_at_migration_type_is_valid_on_postgres():
@@ -259,3 +262,29 @@ def test_robots_violating_paths_stay_literal(tmp_path):
     crunch_access_logs.main()
 
     assert sorted(r.path for r in _rows(db)) == ["/infoX9a2bc", "/infoY8b3cd"]
+
+
+def test_access_table_hides_examples_that_repeat_the_path():
+    from dependencies import get_templates
+
+    html = (
+        get_templates()
+        .env.get_template("dashboard/partials/access_by_ip_table.html")
+        .render(
+            dashboard_path="/d",
+            items=[
+                {"id": 1, "ip": IP, "path": "/sitemap.xml", "user_agent": "ua",
+                 "method": "GET", "is_suspicious": False,
+                 "is_honeypot_trigger": False, "timestamp": "2026-10-01T00:00:00",
+                 "attack_types": [], "hit_count": 10, "path_samples": "/sitemap.xml"},
+                {"id": 2, "ip": IP, "path": "/test", "user_agent": "ua",
+                 "method": "GET", "is_suspicious": False,
+                 "is_honeypot_trigger": False, "timestamp": "2026-10-01T00:00:00",
+                 "attack_types": [], "hit_count": 1, "path_samples": None},
+            ],
+            pagination={"page": 1, "page_size": 25, "total": 2, "total_pages": 1},
+            sort_by="timestamp", sort_order="desc", ip_filter=IP,
+        )
+    )
+    assert "/sitemap.xml ×10" in html
+    assert html.count('<td class="examples-cell"></td>') == 2
