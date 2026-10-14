@@ -60,6 +60,7 @@ _ATTACK_LABELS = {
     "path_traversal": "Path traversal",
     "login_attempt": "Login attempt",
     "common_probes": "Common probes",
+    "scanner_probe": "Scanner probe",
 }
 
 

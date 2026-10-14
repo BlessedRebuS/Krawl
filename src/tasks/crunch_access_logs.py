@@ -151,7 +151,7 @@ def _crunch_ip(session, ip: str) -> tuple[int, int]:
 
     merged = deleted = 0
     for (_, template, _, _), members in groups.items():
-        if len(members) == 1 and members[0].path == template:
+        if len(members) == 1:  # nothing to merge; keep the real path
             continue
         keeper, rest = members[0], members[1:]
         keeper.path_samples = _samples(members)

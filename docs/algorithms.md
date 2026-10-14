@@ -101,7 +101,8 @@ misses (all-lowercase, like `/kpjud`) simply stay uncrunched.
 **Merge.** Rows of one IP sharing `(method, template, target host, user agent)`
 become one row: the lowest id is kept, `path` becomes the template, `hit_count`
 is the sum, `timestamp` is the newest, and `path_samples` keeps up to 3 real
-example paths. The user agent is part of the key because IP evaluation counts
+example paths. A group of a single row is left untouched: merging it would
+save nothing and only hide the real path. The user agent is part of the key because IP evaluation counts
 distinct user agents. Paths under a robots.txt `Disallow` prefix are never
 templated (IP evaluation scores them by prefix), and neither is a path whose
 template would not fit the path column.

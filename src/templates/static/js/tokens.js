@@ -32,6 +32,7 @@ const KRAWL_ATTACK_LABELS = {
     ldap_injection: 'LDAP injection', xxe_injection: 'XXE injection',
     xss_attempt: 'XSS attempt', lfi_rfi: 'LFI / RFI', path_traversal: 'Path traversal',
     login_attempt: 'Login attempt', common_probes: 'Common probes',
+    scanner_probe: 'Scanner probe',
 };
 function krawlAttackLabel(type) {
     const key = String(type || '').trim().toLowerCase();
