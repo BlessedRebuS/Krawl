@@ -100,17 +100,18 @@ def test_merges_trap_links_and_keeps_literals(tmp_path):
     crunch_access_logs.main()
 
     rows = _rows(db)
-    # The other-ua row is its own group (user agent is part of the key).
+    # The other-ua row is its own group of one (user agent is part of the
+    # key), so it keeps its real path.
     assert [(r.path, r.hit_count, r.user_agent) for r in rows] == [
         ("/{link}", 3, "ua"),
-        ("/{link}", 1, "other-ua"),
+        ("/A0ZUzQqbrhyDm", 1, "other-ua"),
         ("/test", 1, "ua"),
     ]
     keeper = rows[0]
     assert keeper.id == first_id
     assert keeper.timestamp == when + timedelta(seconds=3)
     assert keeper.path_samples == "/Gw2JM958, /WQPjRhEvmPVmm, /X9aaaaaa"
-    assert rows[1].path_samples == "/A0ZUzQqbrhyDm"
+    assert rows[1].path_samples is None
     assert rows[2].path_samples is None
     assert db.session.get(IpStats, IP).crunched_at is not None
 
@@ -296,3 +297,21 @@ def test_access_table_hides_examples_that_repeat_the_path():
     )
     assert "/sitemap.xml ×10" in html
     assert html.count('<td class="examples-cell"></td>') == 2
+
+
+def test_single_rows_are_not_rewritten(tmp_path):
+    # A group of one saves no row; rewriting it would only cost an UPDATE
+    # and hide the real path.
+    db, when = _setup(tmp_path)
+    _log(db, "/Gw2JM958", when)
+    _log(db, "/wp-login.php", when)
+    db.session.commit()
+
+    crunch_access_logs.main()
+
+    rows = _rows(db)
+    assert sorted((r.path, r.hit_count, r.path_samples) for r in rows) == [
+        ("/Gw2JM958", 1, None),
+        ("/wp-login.php", 1, None),
+    ]
+    assert db.session.get(IpStats, IP).crunched_at is not None
