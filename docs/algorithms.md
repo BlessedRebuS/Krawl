@@ -89,8 +89,8 @@ and no request asset. Attack evidence is never merged.
 | Segment is a UUID | `/u/550e8400-e29b-41d4-a716-446655440000` | `/u/{uuid}` |
 | Segment is all digits | `/post/1234` | `/post/{num}` |
 | Segment is ≥ 8 hex characters with a digit | `/c/9f86d081a2` | `/c/{hex}` |
-| Segment is ≥ 8 `[A-Za-z0-9_-]` with a digit and a letter (extension kept) | `/f/aB3xK9pQ.js` | `/f/{rand}.js` |
-| Anything else | `/wp-login.php`, `/login` | unchanged |
+| Segment is ≥ 8 `[A-Za-z0-9]` with a digit and a letter, no `_`/`-` and no run of 5+ lowercase letters (extension kept) | `/f/aB3xK9pQ.js` | `/f/{rand}.js` |
+| Anything else, including readable names with digits | `/wp-login.php`, `/login`, `/.ssh/id_ed25519`, `/wp2shell_opt_woocommerce_stripe_settings` | unchanged |
 | Query values | `?q=foo&page=2` | `?q={v}&page={v}` |
 
 The "visibly random" requirement on trap links exists because Krawl's minimum

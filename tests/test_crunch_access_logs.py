@@ -24,6 +24,12 @@ from tasks.crunch_access_logs import path_template
         ("/u/550e8400-e29b-41d4-a716-446655440000", "/u/{uuid}"),
         ("/c/9f86d081a2", "/c/{hex}"),
         ("/f/aB3xK9pQ.js", "/f/{rand}.js"),
+        ("/x/Zk3Qp9Lm2Vb", "/x/{rand}"),
+        # Readable names with a digit stay literal (snake_case, long lowercase runs)
+        ("/wp2shell_opt_woocommerce_stripe_settings", "/wp2shell_opt_woocommerce_stripe_settings"),
+        ("/plugin2woocommerce", "/plugin2woocommerce"),
+        ("/blog/hello-world-2", "/blog/hello-world-2"),
+        ("/@fs/home/ec2-user/.aws/credentials", "/@fs/home/ec2-user/.aws/credentials"),
         ("/css/style.css", "/css/style.css"),
         # Query strings: keys kept, values dropped
         ("/search?q=foo&page=2", "/search?q={v}&page={v}"),
