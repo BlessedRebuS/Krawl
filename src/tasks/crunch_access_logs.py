@@ -41,6 +41,9 @@ _UUID = re.compile(
 )
 _HEX = re.compile(r"[0-9a-f]{8,}", re.IGNORECASE)
 _RAND = re.compile(r"[A-Za-z0-9_-]{8,}")
+# Readable names (snake_case, kebab-case, or a word-length lowercase run like
+# "woocommerce") are probe names, not generated tokens: they stay literal.
+_WORDY = re.compile(r"[_-]|[a-z]{5,}")
 
 
 def _is_trap_link(path: str) -> bool:
@@ -72,6 +75,7 @@ def _segment_template(segment: str) -> str:
         _RAND.fullmatch(stem)
         and any(c.isdigit() for c in stem)
         and any(c.isalpha() for c in stem)
+        and not _WORDY.search(stem)
     ):
         shape = "{rand}"
     else:
