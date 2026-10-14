@@ -186,8 +186,7 @@ def main():
     try:
         ips = [
             row[0]
-            for row in session.query(IpStats.ip)
-            .filter(
+            for row in session.query(IpStats.ip).filter(
                 IpStats.last_seen < cutoff,
                 # One request is one row: nothing to merge (~3/4 of idle IPs).
                 IpStats.total_requests > 1,
