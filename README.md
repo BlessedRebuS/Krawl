@@ -46,6 +46,7 @@
   - [Docker Compose](#docker-compose)
   - [Kubernetes](#kubernetes)
   - [Uvicorn (Python)](#uvicorn-python)
+- [One-Click Deploy](#one-click-deploy)
 - [Configuration](#configuration)
   - [config.yaml](#configuration-via-configyaml)
   - [Environment Variables](#configuration-via-environmental-variables)
@@ -317,6 +318,10 @@ uvicorn app:app --host 0.0.0.0 --port 5000 --app-dir src --no-server-header
 ```
 
 Access the server at `http://localhost:5000`
+
+## One-Click Deploy
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/Krawl/)
 
 
 ## Configuration
