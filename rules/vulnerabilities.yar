@@ -23,8 +23,8 @@ rule krawl_vuln_74cms_weixin_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/74cms/74cms-weixin-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/plus/weixin.php" ascii nocase
-        $param0 = "signature=da39a3ee5e6b4b0d3255bfef95601890afd80709" ascii nocase
+        $path0 = /\/plus\/weixin\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])signature=da39a3ee5e6b4b0d3255bfef95601890afd80709(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -44,7 +44,7 @@ rule krawl_vuln_afterlogic_path_disclosure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/afterlogic-path-disclosure.yaml"
     strings:
-        $path0 = "/dav/server.php/files/personal/GIVE_ME_ERROR_TO_GET_DOC_ROOT_2021" ascii nocase
+        $path0 = /\/dav\/server\.php\/files\/personal\/GIVE_ME_ERROR_TO_GET_DOC_ROOT_2021(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -65,7 +65,7 @@ rule krawl_vuln_amazon_ec2_ssrf {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/amazon/amazon-ec2-ssrf.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/latest/meta-data/identity-credentials/ec2/security-credentials/ec2-instance" ascii nocase
+        $path0 = /\/latest\/meta-data\/identity-credentials\/ec2\/security-credentials\/ec2-instance(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -86,7 +86,7 @@ rule krawl_vuln_apache_nifi_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/apache/apache-nifi-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/nifi-api/process-groups/root" ascii nocase
+        $path0 = /\/nifi-api\/process-groups\/root(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -107,7 +107,7 @@ rule krawl_vuln_apache_ofbiz_log4j_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/apache/apache-ofbiz-log4j-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/webtools/control/main" ascii nocase
+        $path0 = /\/webtools\/control\/main(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -128,10 +128,10 @@ rule krawl_vuln_apache_solr_file_read {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/apache/apache-solr-file-read.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/debug/dump" ascii nocase
-        $param0 = "stream.url=file:///../../../../../Windows/win.ini" ascii nocase
-        $param1 = "param=ContentStream" ascii nocase
-        $param2 = "stream.url=file:///etc/passwd" ascii nocase
+        $path0 = /\/debug\/dump(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])stream\.url=file:\/\/\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/Windows\/win\.ini(&|$)/ nocase
+        $param1 = /(^|[?&;])param=ContentStream(&|$)/ nocase
+        $param2 = /(^|[?&;])stream\.url=file:\/\/\/etc\/passwd(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -152,8 +152,8 @@ rule krawl_vuln_apache_solr_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/apache/apache-solr-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/solr/gettingstarted_shard1_replica_n1/config" ascii nocase
-        $path1 = "/solr/gettingstarted_shard2_replica_n1/debug/dump" ascii nocase
+        $path0 = /\/solr\/gettingstarted_shard1_replica_n1\/config(\/|;|$)/ nocase
+        $path1 = /\/solr\/gettingstarted_shard2_replica_n1\/debug\/dump(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -173,9 +173,9 @@ rule krawl_vuln_appsmith_info_disclosure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/appsmith/appsmith-info-disclosure.yaml"
     strings:
-        $path0 = "/api/v1/consolidated-api/view" ascii nocase
-        $path1 = "/api/v1/users/features" ascii nocase
-        $path2 = "/api/v1/tenants/current" ascii nocase
+        $path0 = /\/api\/v1\/consolidated-api\/view(\/|;|$)/ nocase
+        $path1 = /\/api\/v1\/users\/features(\/|;|$)/ nocase
+        $path2 = /\/api\/v1\/tenants\/current(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -196,7 +196,7 @@ rule krawl_vuln_arangodb_auth_bypass {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/arangodb/arangodb-auth-bypass.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/_db/_system/_api/simple/first-example" ascii nocase
+        $path0 = /\/_db\/_system\/_api\/simple\/first-example(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -216,7 +216,7 @@ rule krawl_vuln_avtech_auth_bypass {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/avtech/avtech-auth-bypass.yaml"
     strings:
-        $param0 = "category=Account.*" ascii nocase
+        $param0 = /(^|[?&;])category=Account\.\*(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -237,7 +237,7 @@ rule krawl_vuln_avtech_dvr_ssrf {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/avtech/avtech-dvr-ssrf.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/cgi-bin/nobody/Search.cgi" ascii nocase
+        $path0 = /\/cgi-bin\/nobody\/Search\.cgi(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -257,7 +257,7 @@ rule krawl_vuln_avtech_unauth_file_download {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/avtech/avtech-unauth-file-download.yaml"
     strings:
-        $path0 = "/cgi-bin/cgibox" ascii nocase
+        $path0 = /\/cgi-bin\/cgibox(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -277,7 +277,7 @@ rule krawl_vuln_antsword_backdoor {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/backdoor/antsword-backdoor.yaml"
     strings:
-        $path0 = "/.antproxy.php" ascii nocase
+        $path0 = /\/\.antproxy\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -297,7 +297,7 @@ rule krawl_vuln_cisco_implant_detect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/backdoor/cisco-implant-detect.yaml"
     strings:
-        $path0 = "/webui/logoutconfirm.html" ascii nocase
+        $path0 = /\/webui\/logoutconfirm\.html(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -317,7 +317,7 @@ rule krawl_vuln_freepbx_cleanup_backdoor {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/backdoor/freepbx-cleanup-backdoor.yaml"
     strings:
-        $path0 = "/.clean.sh" ascii nocase
+        $path0 = /\/\.clean\.sh(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -338,10 +338,10 @@ rule krawl_vuln_jexboss_backdoor {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/backdoor/jexboss-backdoor.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/jexws/jexws.jsp" ascii nocase
-        $path1 = "/jexws4/jexws4.jsp" ascii nocase
-        $path2 = "/jexinv4/jexinv4.jsp" ascii nocase
-        $path3 = "/jbossass/jbossass.jsp" ascii nocase
+        $path0 = /\/jexws\/jexws\.jsp(\/|;|$)/ nocase
+        $path1 = /\/jexws4\/jexws4\.jsp(\/|;|$)/ nocase
+        $path2 = /\/jexinv4\/jexinv4\.jsp(\/|;|$)/ nocase
+        $path3 = /\/jbossass\/jbossass\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -361,8 +361,8 @@ rule krawl_vuln_kevinlab_hems_backdoor {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/backdoor/kevinlab-hems-backdoor.yaml"
     strings:
-        $param0 = "userid=kevinlab" ascii nocase
-        $param1 = "userpass=kevin003" ascii nocase
+        $param0 = /(^|[?&;])userid=kevinlab(&|$)/ nocase
+        $param1 = /(^|[?&;])userpass=kevin003(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -383,7 +383,7 @@ rule krawl_vuln_maccmsv10_backdoor {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/backdoor/maccmsv10-backdoor.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "getpwd=WorldFilledWithLove" ascii nocase
+        $param0 = /(^|[?&;])getpwd=WorldFilledWithLove(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -403,8 +403,8 @@ rule krawl_vuln_sap_netweaver_backdoor {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/backdoor/sap-netweaver-backdoor.yaml"
     strings:
-        $path0 = "/irj/helper.jsp" ascii nocase
-        $path1 = "/irj/cache.jsp" ascii nocase
+        $path0 = /\/irj\/helper\.jsp(\/|;|$)/ nocase
+        $path1 = /\/irj\/cache\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -424,7 +424,7 @@ rule krawl_vuln_sharepoint_toolshell_backdoor {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/backdoor/sharepoint-toolshell-backdoor.yaml"
     strings:
-        $path0 = "/_layouts/15/spinstall0.aspx" ascii nocase
+        $path0 = /\/_layouts\/15\/spinstall0\.aspx(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -445,7 +445,7 @@ rule krawl_vuln_bentoml_ssrf {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/bentoml-ssrf.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/encode_image" ascii nocase
+        $path0 = /\/encode_image(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -466,7 +466,7 @@ rule krawl_vuln_chanjet_crm_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/chanjet-tplus/chanjet-crm-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/webservice/get_usedspace.php" ascii nocase
+        $path0 = /\/webservice\/get_usedspace\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -486,8 +486,8 @@ rule krawl_vuln_chanjet_tplus_unauth_passreset {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/chanjet-tplus/chanjet-tplus-unauth-passreset.yaml"
     strings:
-        $path0 = "/tplus/ajaxpro/RecoverPassword,App_Web_recoverpassword.aspx.cdcab7d2.ashx" ascii nocase
-        $param0 = "method=SetNewPwd" ascii nocase
+        $path0 = /\/tplus\/ajaxpro\/RecoverPassword,App_Web_recoverpassword\.aspx\.cdcab7d2\.ashx(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])method=SetNewPwd(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -508,7 +508,7 @@ rule krawl_vuln_cisco_broadworks_log4j_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/cisco/cisco-broadworks-log4j-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/commpilot/servlet/Login" ascii nocase
+        $path0 = /\/commpilot\/servlet\/Login(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -528,7 +528,7 @@ rule krawl_vuln_cisco_ucm_cluster_enum {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/cisco/cisco-ucm-cluster-enum.yaml"
     strings:
-        $path0 = "/cucm-uds/servers" ascii nocase
+        $path0 = /\/cucm-uds\/servers(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -549,31 +549,9 @@ rule krawl_vuln_cisco_unified_communications_log4j_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/cisco/cisco-unified-communications-log4j-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/ccmadmin/j_security_check" ascii nocase
-        $param0 = "appNav=ccmadmin" ascii nocase
+        $path0 = /\/ccmadmin\/j_security_check(\/|;|$)/ nocase
     condition:
-        (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
-}
-
-rule krawl_vuln_cisco_vmanage_log4j_rce {
-    meta:
-        attack_type = "vuln_cisco_vmanage_log4j_rce"
-        classification = "attack"
-        severity = 9
-        confidence = "medium"
-        description = "Cisco vManage (Log4j) - Remote Code Execution: Cisco vManage is susceptible to remote code execution via the Apache Log4j framework. An attacker can execute malware, obtain sensitive information, modify data, and/or gain full control over a compromised system without entering."
-        mitre_attack = "T1190, T1059"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/cisco/cisco-vmanage-log4j-rce.yaml"
-        response_type = "command_injection"
-    strings:
-        $param0 = "submit=Log In" ascii nocase
-    condition:
-        ((scan_target == "query" or scan_target == "body") and any of ($param*))
+        (scan_target == "path" and any of ($path*))
 }
 
 rule krawl_vuln_cisco_webex_log4j_rce {
@@ -592,9 +570,9 @@ rule krawl_vuln_cisco_webex_log4j_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/cisco/cisco-webex-log4j-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/orion/login" ascii nocase
-        $param0 = "siteurl=meet" ascii nocase
-        $param1 = "type=getFailureTimes" ascii nocase
+        $path0 = /\/orion\/login(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])siteurl=meet(&|$)/ nocase
+        $param1 = /(^|[?&;])type=getFailureTimes(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -615,8 +593,8 @@ rule krawl_vuln_code42_log4j_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/code42/code42-log4j-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/c42api/v3/LoginConfiguration" ascii nocase
-        $param0 = "url=https://localhost" ascii nocase
+        $path0 = /\/c42api\/v3\/LoginConfiguration(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])url=https:\/\/localhost(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -637,7 +615,7 @@ rule krawl_vuln_concrete_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/concrete/concrete-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/ccm/system/panels/page/preview_as_user/preview" ascii nocase
+        $path0 = /\/ccm\/system\/panels\/page\/preview_as_user\/preview(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -658,7 +636,7 @@ rule krawl_vuln_confluence_xslt_macro_ssrf {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/confluence-xslt-macro-ssrf.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/rest/api/content/macro/preview" ascii nocase
+        $path0 = /\/rest\/api\/content\/macro\/preview(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -679,7 +657,7 @@ rule krawl_vuln_cpanel_mailman_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/cpanel/cpanel-mailman-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/mailman/listinfo" ascii nocase
+        $path0 = /\/mailman\/listinfo(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -700,7 +678,7 @@ rule krawl_vuln_dahua_bitmap_fileupload {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/dahua/dahua-bitmap-fileupload.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/emap/webservice/gis/soap/bitmap" ascii nocase
+        $path0 = /\/emap\/webservice\/gis\/soap\/bitmap(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -720,12 +698,9 @@ rule krawl_vuln_dahua_icc_backdoor_user {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/dahua/dahua-icc-backdoor-user.yaml"
     strings:
-        $path0 = "/evo-apigw/evo-oauth/oauth/token" ascii nocase
-        $param0 = "username=justForTest" ascii nocase
-        $param1 = "client_id=web_client" ascii nocase
-        $param2 = "client_secret=web_client" ascii nocase
+        $path0 = /\/evo-apigw\/evo-oauth\/oauth\/token(\/|;|$)/ nocase
     condition:
-        (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
+        (scan_target == "path" and any of ($path*))
 }
 
 rule krawl_vuln_dahua_icc_getclassvalue_rce {
@@ -744,7 +719,7 @@ rule krawl_vuln_dahua_icc_getclassvalue_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/dahua/dahua-icc-getclassvalue-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/evo-apigw/admin/API/Developer/GetClassValue.jsp" ascii nocase
+        $path0 = /\/evo-apigw\/admin\/API\/Developer\/GetClassValue\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -765,7 +740,7 @@ rule krawl_vuln_dahua_wpms_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/dahua/dahua-wpms-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/portal/itc/attachment_downloadByUrlAtt.action" ascii nocase
+        $path0 = /\/portal\/itc\/attachment_downloadByUrlAtt\.action(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -786,7 +761,7 @@ rule krawl_vuln_dahua_wpms_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/dahua/dahua-wpms-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/CardSolution/card/accessControl/swingCardRecord/deleteFtp" ascii nocase
+        $path0 = /\/CardSolution\/card\/accessControl\/swingCardRecord\/deleteFtp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -806,8 +781,8 @@ rule krawl_vuln_dedecms_carbuyaction_fileinclude {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/dedecms/dedecms-carbuyaction-fileinclude.yaml"
     strings:
-        $path0 = "/plus/carbuyaction.php" ascii nocase
-        $param0 = "dopost=return" ascii nocase
+        $path0 = /\/plus\/carbuyaction\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])dopost=return(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -828,7 +803,7 @@ rule krawl_vuln_dedecms_config_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/dedecms/dedecms-config-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/include/dialog/config.php" ascii nocase
+        $path0 = /\/include\/dialog\/config\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -849,7 +824,7 @@ rule krawl_vuln_dedecms_membergroup_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/dedecms/dedecms-membergroup-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/member/ajax_membergroup.php" ascii nocase
+        $path0 = /\/member\/ajax_membergroup\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -870,7 +845,7 @@ rule krawl_vuln_dedecms_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/dedecms/dedecms-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/plus/flink.php" ascii nocase
+        $path0 = /\/plus\/flink\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -890,7 +865,7 @@ rule krawl_vuln_deos_open500ems_panel {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/deos-open500-admin.yaml"
     strings:
-        $path0 = "/cgi-bin/cosmobdf.cgi" ascii nocase
+        $path0 = /\/cgi-bin\/cosmobdf\.cgi(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -911,7 +886,7 @@ rule krawl_vuln_dify_ssrf_remote_upload {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/dify/dify-ssrf-remote-upload.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/console/api/remote-files/upload" ascii nocase
+        $path0 = /\/console\/api\/remote-files\/upload(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -932,7 +907,7 @@ rule krawl_vuln_dlink_netgear_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/dlink/dlink-netgear-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "page=portalLogin.htm" ascii nocase
+        $param0 = /(^|[?&;])page=portalLogin\.htm(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -953,7 +928,7 @@ rule krawl_vuln_drupal_avatar_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/drupal/drupal-avatar-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/avatar_uploader.pages.inc" ascii nocase
+        $path0 = /\/avatar_uploader\.pages\.inc(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -973,7 +948,7 @@ rule krawl_vuln_drupal7_elfinder_rce {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/drupal/drupal7-elfinder-rce.yaml"
     strings:
-        $path0 = "/sites/all/libraries/elfinder/connectors/php/connector.php" ascii nocase
+        $path0 = /\/sites\/all\/libraries\/elfinder\/connectors\/php\/connector\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -994,7 +969,7 @@ rule krawl_vuln_esafenet_mysql_fileread {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/esafenet/esafenet-mysql-fileread.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/CDGServer3/SQL/MYSQL/create_SmartSec_mysql.sql" ascii nocase
+        $path0 = /\/CDGServer3\/SQL\/MYSQL\/create_SmartSec_mysql\.sql(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1015,8 +990,8 @@ rule krawl_vuln_esafenet_netsecconfigajax_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/esafenet/esafenet-netsecconfigajax-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/CDGServer3/NetSecConfigAjax;Service" ascii nocase
-        $param0 = "command=updateNetSec" ascii nocase
+        $path0 = /\/CDGServer3\/NetSecConfigAjax;Service(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])command=updateNetSec(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1037,7 +1012,7 @@ rule krawl_vuln_esafenet_noticeajax_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/esafenet/esafenet-noticeajax-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "command=delNotice" ascii nocase
+        $param0 = /(^|[?&;])command=delNotice(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1057,7 +1032,7 @@ rule krawl_vuln_feiyuxing_ent_router_infoleak {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/feiyuxing/feiyuxing-ent-router-infoleak.yaml"
     strings:
-        $path0 = "/js/../.htpasswd" ascii nocase
+        $path0 = /\/js\/\.\.\/\.htpasswd(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1098,8 +1073,8 @@ rule krawl_vuln_finereport_path_traversal {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/finereport/finereport-path-traversal.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/report/ReportServer" ascii nocase
-        $param0 = "resourcepath=privilege.xml" ascii nocase
+        $path0 = /\/report\/ReportServer(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])resourcepath=privilege\.xml(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1120,7 +1095,7 @@ rule krawl_vuln_finereport_sqli_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/finereport/finereport-sqli-rce.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/webroot/decision/view/ReportServer" ascii nocase
+        $path0 = /\/webroot\/decision\/view\/ReportServer(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1141,7 +1116,7 @@ rule krawl_vuln_fronsetiav_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/fronsetiav-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/show_operations.jsp" ascii nocase
+        $path0 = /\/show_operations\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1162,7 +1137,7 @@ rule krawl_vuln_froxlor_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/froxlor-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/index.php/javascript&colon;alert(document.domain);dd&sol;&sol;" ascii nocase
+        $path0 = /\/index\.php\/javascript&colon;alert\(document\.domain\);dd&sol;&sol;(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1183,7 +1158,7 @@ rule krawl_vuln_xmlrpc_pingback_ssrf {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/generic/xmlrpc-pingback-ssrf.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/xmlrpc/pingback" ascii nocase
+        $path0 = /\/xmlrpc\/pingback(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1203,7 +1178,7 @@ rule krawl_vuln_gestsup_account_takeover {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/gestsup-account-takeover.yaml"
     strings:
-        $path0 = "/ajax/ticket_user_db.php" ascii nocase
+        $path0 = /\/ajax\/ticket_user_db\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1224,8 +1199,8 @@ rule krawl_vuln_gestsup_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/gestsup-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/ajax/calendar.php" ascii nocase
-        $param0 = "page=calendar" ascii nocase
+        $path0 = /\/ajax\/calendar\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])page=calendar(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1266,8 +1241,8 @@ rule krawl_vuln_glpi_planning_user_enum {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/glpi/glpi-planning-user-enum.yaml"
     strings:
-        $path0 = "/front/planning.php" ascii nocase
-        $param0 = "begin=2000-01-01" ascii nocase
+        $path0 = /\/front\/planning\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])begin=2000-01-01(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1288,7 +1263,7 @@ rule krawl_vuln_gnuboard_sms_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/gnuboard/gnuboard-sms-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/plugin/sms5/ajax.sms_emoticon.php" ascii nocase
+        $path0 = /\/plugin\/sms5\/ajax\.sms_emoticon\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1309,7 +1284,7 @@ rule krawl_vuln_gradio_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/gradio-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/run/predict" ascii nocase
+        $path0 = /\/run\/predict(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1351,7 +1326,7 @@ rule krawl_vuln_hcm_cloud_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/hcm/hcm-cloud-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/api/model_report/file/download" ascii nocase
+        $path0 = /\/api\/model_report\/file\/download(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1371,7 +1346,7 @@ rule krawl_vuln_hikvision_isecure_info_leak {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/hikvision/hikvision-isecure-info-leak.yaml"
     strings:
-        $path0 = "/portal/conf/config.properties" ascii nocase
+        $path0 = /\/portal\/conf\/config\.properties(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1391,7 +1366,7 @@ rule krawl_vuln_hikvision_ivms_file_upload_bypass {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/hikvision/hikvision-ivms-file-upload-bypass.yaml"
     strings:
-        $path0 = "/eps/api/resourceOperations/upload" ascii nocase
+        $path0 = /\/eps\/api\/resourceOperations\/upload(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1412,7 +1387,7 @@ rule krawl_vuln_hikvision_ivms_file_upload_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/hikvision/hikvision-ivms-file-upload-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/eps/resourceOperations/upload.action" ascii nocase
+        $path0 = /\/eps\/resourceOperations\/upload\.action(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1453,7 +1428,7 @@ rule krawl_vuln_hjsoft_hcm_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/hjsoft/hjsoft-hcm-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/w_selfservice/oauthservlet/../../DownLoadCourseware" ascii nocase
+        $path0 = /\/w_selfservice\/oauthservlet\/\.\.\/\.\.\/DownLoadCourseware(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1474,27 +1449,7 @@ rule krawl_vuln_hjsoft_hcm_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/hjsoft/hjsoft-hcm-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/w_selfservice/oauthservlet/../../servlet/sduty/getSdutyTree" ascii nocase
-    condition:
-        (scan_target == "path" and any of ($path*))
-}
-
-rule krawl_vuln_httpbin_open_redirect {
-    meta:
-        attack_type = "vuln_httpbin_open_redirect"
-        classification = "attack"
-        severity = 5
-        confidence = "medium"
-        description = "HTTPBin - Open Redirect: HTTPBin contains an open redirect vulnerability. An attacker can redirect a user to a malicious site and possibly obtain sensitive information, modify data, and/or execute unauthorized operations."
-        mitre_attack = "T1190"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/httpbin/httpbin-open-redirect.yaml"
-    strings:
-        $path0 = "/redirect-to" ascii nocase
+        $path0 = /\/w_selfservice\/oauthservlet\/\.\.\/\.\.\/servlet\/sduty\/getSdutyTree(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1515,7 +1470,7 @@ rule krawl_vuln_httpbin_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/httpbin/httpbin-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/base64/PHNjcmlwdD5hbGVydChkb2N1bWVudC5kb21haW4pPC9zY3JpcHQ+" ascii nocase
+        $path0 = /\/base64\/PHNjcmlwdD5hbGVydChkb2N1bWVudC5kb21haW4pPC9zY3JpcHQ\+(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1536,7 +1491,7 @@ rule krawl_vuln_huawei_authhttp_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/huawei/huawei-authhttp-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/umweb/passwd" ascii nocase
+        $path0 = /\/umweb\/passwd(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1557,30 +1512,9 @@ rule krawl_vuln_idocview_2word_fileupload {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/idoc/idocview-2word-fileupload.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/html/2word" ascii nocase
+        $path0 = /\/html\/2word(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
-}
-
-rule krawl_vuln_idocview_lfi {
-    meta:
-        attack_type = "vuln_idocview_lfi"
-        classification = "attack"
-        severity = 7
-        confidence = "medium"
-        description = "IDoc View - Arbitrary File Read"
-        mitre_attack = "T1190, T1083"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/idoc/idocview-lfi.yaml"
-        response_type = "path_traversal"
-    strings:
-        $param0 = "token=testtoken" ascii nocase
-    condition:
-        ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
 
 rule krawl_vuln_imo_file_download {
@@ -1598,8 +1532,8 @@ rule krawl_vuln_imo_file_download {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/imo/imo-file-download.yaml"
     strings:
-        $path0 = "/file/Placard/upload/Imo_DownLoadUI.php" ascii nocase
-        $param0 = "filename=/OpenPlatform/config/kdBind.php" ascii nocase
+        $path0 = /\/file\/Placard\/upload\/Imo_DownLoadUI\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])filename=\/OpenPlatform\/config\/kdBind\.php(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1620,7 +1554,7 @@ rule krawl_vuln_imo_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/imo/imo-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/file/NDisk/get_file.php" ascii nocase
+        $path0 = /\/file\/NDisk\/get_file\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1641,7 +1575,7 @@ rule krawl_vuln_infinitt_pacs_file_upload {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/infinitt/infinitt-pacs-file-upload.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/webservices/WebJobUpload.asmx" ascii nocase
+        $path0 = /\/webservices\/WebJobUpload\.asmx(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1661,7 +1595,7 @@ rule krawl_vuln_infinitt_pacs_info_disclosure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/infinitt/infinitt-pacs-info-leak.yaml"
     strings:
-        $path0 = "/webservices/WebUserLogin.asmx/GetUserInfoByUserID" ascii nocase
+        $path0 = /\/webservices\/WebUserLogin\.asmx\/GetUserInfoByUserID(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1682,7 +1616,7 @@ rule krawl_vuln_infoblox_netmri_rails_cookie_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/infoblox/infoblox-netmri-rails-cookie-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/webui/gui_states/index.json" ascii nocase
+        $path0 = /\/webui\/gui_states\/index\.json(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1723,7 +1657,7 @@ rule krawl_vuln_jenkins_script {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/jenkins/jenkins-script.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/jenkins/script" ascii nocase
+        $path0 = /\/jenkins\/script(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1764,11 +1698,11 @@ rule krawl_vuln_jinhe_jc6_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/jinhe/jinhe-jc6-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/jc6/servlet/clobfield" ascii nocase
-        $param0 = "key=readClob" ascii nocase
-        $param1 = "sImgname=filename" ascii nocase
-        $param2 = "sTablename=FC_ATTACH" ascii nocase
-        $param3 = "sKeyname=djbh" ascii nocase
+        $path0 = /\/jc6\/servlet\/clobfield(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])key=readClob(&|$)/ nocase
+        $param1 = /(^|[?&;])sImgname=filename(&|$)/ nocase
+        $param2 = /(^|[?&;])sTablename=FC_ATTACH(&|$)/ nocase
+        $param3 = /(^|[?&;])sKeyname=djbh(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1789,7 +1723,7 @@ rule krawl_vuln_jinhe_oa_c6_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/jinhe/jinhe-oa-c6-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/C6/Jhsoft.Web.module/testbill/dj/download.asp" ascii nocase
+        $path0 = /\/C6\/Jhsoft\.Web\.module\/testbill\/dj\/download\.asp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1810,7 +1744,7 @@ rule krawl_vuln_jinhe_oa_c6_upload_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/jinhe/jinhe-oa-c6-upload-lfi.yaml"
     strings:
         $path0 = "/c6/JHSoft.Web.CustomQuery/UploadFileDownLoadnew.aspx/" ascii nocase
-        $param0 = "FilePath=../Resource/JHFileConfig.ini" ascii nocase
+        $param0 = /(^|[?&;])FilePath=\.\.\/Resource\/JHFileConfig\.ini(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1830,7 +1764,7 @@ rule krawl_vuln_jira_https_mode_open_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/jira/jira-https-mode-open-redirect.yaml"
     strings:
-        $path0 = "/ThisCanBeAnything" ascii nocase
+        $path0 = /\/ThisCanBeAnything(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1850,9 +1784,9 @@ rule krawl_vuln_jira_servicedesk_signup {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/jira/jira-servicedesk-signup.yaml"
     strings:
-        $path0 = "/servicedesk/customer/user/signup" ascii nocase
-        $path1 = "/secure/Signup!default.jspa" ascii nocase
-        $path2 = "/secure/Signup.jspa" ascii nocase
+        $path0 = /\/servicedesk\/customer\/user\/signup(\/|;|$)/ nocase
+        $path1 = /\/secure\/Signup!default\.jspa(\/|;|$)/ nocase
+        $path2 = /\/secure\/Signup\.jspa(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1872,7 +1806,7 @@ rule krawl_vuln_jira_unauthenticated_installed_gadgets {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/jira/jira-unauthenticated-installed-gadgets.yaml"
     strings:
-        $path0 = "/rest/config/1.0/directory" ascii nocase
+        $path0 = /\/rest\/config\/1\.0\/directory(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1892,7 +1826,7 @@ rule krawl_vuln_jira_unauthenticated_projectcategories {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/jira/jira-unauthenticated-projectcategories.yaml"
     strings:
-        $path0 = "/rest/api/2/projectCategory" ascii nocase
+        $path0 = /\/rest\/api\/2\/projectCategory(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1912,7 +1846,7 @@ rule krawl_vuln_jira_unauthenticated_projects {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/jira/jira-unauthenticated-projects.yaml"
     strings:
-        $path0 = "/rest/api/2/project" ascii nocase
+        $path0 = /\/rest\/api\/2\/project(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1932,7 +1866,7 @@ rule krawl_vuln_jira_unauthenticated_resolutions {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/jira/jira-unauthenticated-resolutions.yaml"
     strings:
-        $path0 = "/rest/api/2/resolution" ascii nocase
+        $path0 = /\/rest\/api\/2\/resolution(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1952,7 +1886,7 @@ rule krawl_vuln_jira_unauthenticated_screens {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/jira/jira-unauthenticated-screens.yaml"
     strings:
-        $path0 = "/rest/api/2/screens" ascii nocase
+        $path0 = /\/rest\/api\/2\/screens(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1972,7 +1906,7 @@ rule krawl_vuln_jira_unauthenticated_user_picker {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/jira/jira-unauthenticated-user-picker.yaml"
     strings:
-        $path0 = "/secure/popups/UserPickerBrowser.jspa" ascii nocase
+        $path0 = /\/secure\/popups\/UserPickerBrowser\.jspa(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1993,8 +1927,8 @@ rule krawl_vuln_jolokia_file_read_compilerdirectivesadd {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/jolokia/jolokia-file-read-compilerdirectivesadd.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/jolokia/exec/com.sun.management:type=DiagnosticCommand/compilerDirectivesAdd/!/etc!/passwd" ascii nocase
-        $path1 = "/actuator/jolokia/exec/com.sun.management:type=DiagnosticCommand/compilerDirectivesAdd/!/etc!/passwd" ascii nocase
+        $path0 = /\/jolokia\/exec\/com\.sun\.management:type=DiagnosticCommand\/compilerDirectivesAdd\/!\/etc!\/passwd(\/|;|$)/ nocase
+        $path1 = /\/actuator\/jolokia\/exec\/com\.sun\.management:type=DiagnosticCommand\/compilerDirectivesAdd\/!\/etc!\/passwd(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2014,8 +1948,8 @@ rule krawl_vuln_jolokia_tomcat_creds_leak {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/jolokia/jolokia-tomcat-creds-leak.yaml"
     strings:
-        $path0 = "/jolokia/read/Users:database=UserDatabase,type=UserDatabase" ascii nocase
-        $path1 = "/actuator/jolokia/read/Users:database=UserDatabase,type=UserDatabase" ascii nocase
+        $path0 = /\/jolokia\/read\/Users:database=UserDatabase,type=UserDatabase(\/|;|$)/ nocase
+        $path1 = /\/actuator\/jolokia\/read\/Users:database=UserDatabase,type=UserDatabase(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2035,9 +1969,9 @@ rule krawl_vuln_joomla_com_booking_component {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/joomla/joomla-com-booking-component.yaml"
     strings:
-        $param0 = "option=com_booking" ascii nocase
-        $param1 = "controller=customer" ascii nocase
-        $param2 = "task=getUserData" ascii nocase
+        $param0 = /(^|[?&;])option=com_booking(&|$)/ nocase
+        $param1 = /(^|[?&;])controller=customer(&|$)/ nocase
+        $param2 = /(^|[?&;])task=getUserData(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2058,7 +1992,7 @@ rule krawl_vuln_joomla_com_fabrik_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/joomla/joomla-com-fabrik-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "task=plugin.pluginAjax" ascii nocase
+        $param0 = /(^|[?&;])task=plugin\.pluginAjax(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2079,7 +2013,7 @@ rule krawl_vuln_joomla_department_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/joomla/joomla-department-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "option=com_departments" ascii nocase
+        $param0 = /(^|[?&;])option=com_departments(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2099,9 +2033,9 @@ rule krawl_vuln_joomla_easyshop_lfi {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/joomla/joomla-easyshop-lfi.yaml"
     strings:
-        $param0 = "option=com_easyshop" ascii nocase
-        $param1 = "task=ajax.loadImage" ascii nocase
-        $param2 = "file=Li4vLi4vY29uZmlndXJhdGlvbi5waHA=" ascii nocase
+        $param0 = /(^|[?&;])option=com_easyshop(&|$)/ nocase
+        $param1 = /(^|[?&;])task=ajax\.loadImage(&|$)/ nocase
+        $param2 = /(^|[?&;])file=Li4vLi4vY29uZmlndXJhdGlvbi5waHA=(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2122,9 +2056,9 @@ rule krawl_vuln_joomla_iproperty_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/joomla/joomla-iproperty-real-estate-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/iproperty/property-views/all-properties-with-map" ascii nocase
-        $param0 = "option=com_iproperty" ascii nocase
-        $param1 = "view=allproperties" ascii nocase
+        $path0 = /\/iproperty\/property-views\/all-properties-with-map(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])option=com_iproperty(&|$)/ nocase
+        $param1 = /(^|[?&;])view=allproperties(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2145,7 +2079,7 @@ rule krawl_vuln_joomla_joombri_careers_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/joomla/joomla-joombri-careers-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/for-jobseekers/search-jobs" ascii nocase
+        $path0 = /\/for-jobseekers\/search-jobs(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2166,7 +2100,7 @@ rule krawl_vuln_joomla_jvehicles_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/joomla/joomla-jvehicles-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "option=com_jvehicles" ascii nocase
+        $param0 = /(^|[?&;])option=com_jvehicles(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2187,7 +2121,7 @@ rule krawl_vuln_joomla_jvtwitter_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/joomla/joomla-jvtwitter-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/modules/mod_jvtwitter/jvtwitter.php" ascii nocase
+        $path0 = /\/modules\/mod_jvtwitter\/jvtwitter\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2208,9 +2142,9 @@ rule krawl_vuln_joomla_solidres_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/joomla/joomla-solidres-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/joomla/greenery_hub/index.php/en/hotels/reservations" ascii nocase
-        $param0 = "location=d2tff" ascii nocase
-        $param1 = "ordering=score" ascii nocase
+        $path0 = /\/joomla\/greenery_hub\/index\.php\/en\/hotels\/reservations(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])location=d2tff(&|$)/ nocase
+        $param1 = /(^|[?&;])ordering=score(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2231,7 +2165,7 @@ rule krawl_vuln_jupyter_notebook_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/jupyter-notebook-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/terminals" ascii nocase
+        $path0 = /\/api\/terminals(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2252,7 +2186,7 @@ rule krawl_vuln_landray_eis_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/landray/landray-eis-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/SM/rpt_listreport_definefield.aspx" ascii nocase
+        $path0 = /\/SM\/rpt_listreport_definefield\.aspx(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2272,7 +2206,7 @@ rule krawl_vuln_landray_eis_ws_infoleak {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/landray/landray-eis-ws-infoleak.yaml"
     strings:
-        $path0 = "/WS/Basic/Basic.asmx" ascii nocase
+        $path0 = /\/WS\/Basic\/Basic\.asmx(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2293,7 +2227,7 @@ rule krawl_vuln_landray_oa_replaceextend_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/landray/landray-oa-replaceextend-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/resource/help/sys/portal/dataxml.jsp" ascii nocase
+        $path0 = /\/resource\/help\/sys\/portal\/dataxml\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2314,7 +2248,7 @@ rule krawl_vuln_landray_oa_treexml_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/landray/landray-oa-treexml-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/data/sys-common/treexml.tmpl" ascii nocase
+        $path0 = /\/data\/sys-common\/treexml\.tmpl(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2335,7 +2269,7 @@ rule krawl_vuln_leantime_stored_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/leantime/leantime-stored-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/api/newApiKey" ascii nocase
+        $path0 = /\/api\/newApiKey(\/|;|$)/ nocase
         $path1 = "/setting/editCompanySettings/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -2357,7 +2291,7 @@ rule krawl_vuln_lg_nas_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/lg-nas-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/system/sharedir.php" ascii nocase
+        $path0 = /\/system\/sharedir\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2377,7 +2311,7 @@ rule krawl_vuln_limesurvey_open_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/limesurvey/limesurvey-open-redirect.yaml"
     strings:
-        $param0 = "r=editorLink" ascii nocase
+        $param0 = /(^|[?&;])r=editorLink(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2397,9 +2331,9 @@ rule krawl_vuln_magento_2_exposed_api {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/magento/magento-2-exposed-api.yaml"
     strings:
-        $path0 = "/rest/V1/products" ascii nocase
-        $path1 = "/rest/V1/store/storeConfigs" ascii nocase
-        $path2 = "/rest/V1/store/storeViews" ascii nocase
+        $path0 = /\/rest\/V1\/products(\/|;|$)/ nocase
+        $path1 = /\/rest\/V1\/store\/storeConfigs(\/|;|$)/ nocase
+        $path2 = /\/rest\/V1\/store\/storeViews(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2419,10 +2353,10 @@ rule krawl_vuln_magento_downloader_fpd {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/magento/magento-downloader-fpd.yaml"
     strings:
-        $path0 = "/downloader/lib/Mage/Backup/Nomedia.php" ascii nocase
-        $path1 = "/downloader/lib/Mage/Archive/Tar.php" ascii nocase
-        $path2 = "/downloader/lib/Mage/Archive/Gz.php" ascii nocase
-        $path3 = "/downloader/lib/Mage/Archive/Bz.php" ascii nocase
+        $path0 = /\/downloader\/lib\/Mage\/Backup\/Nomedia\.php(\/|;|$)/ nocase
+        $path1 = /\/downloader\/lib\/Mage\/Archive\/Tar\.php(\/|;|$)/ nocase
+        $path2 = /\/downloader\/lib\/Mage\/Archive\/Gz\.php(\/|;|$)/ nocase
+        $path3 = /\/downloader\/lib\/Mage\/Archive\/Bz\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2443,7 +2377,7 @@ rule krawl_vuln_magento_polyshell_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/magento/magento-polyshell-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/rest/default/V1/guest-carts" ascii nocase
+        $path0 = /\/rest\/default\/V1\/guest-carts(\/|;|$)/ nocase
         $path1 = "/pub/media/custom_options/quote/" ascii nocase
         $path2 = "/media/custom_options/quote/" ascii nocase
     condition:
@@ -2465,8 +2399,8 @@ rule krawl_vuln_magento_unprotected_dev_files {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/magento/magento-unprotected-dev-files.yaml"
     strings:
-        $path0 = "/dev/tests/functional/credentials.xml.dist" ascii nocase
-        $path1 = "/dev/tests/functional/etc/config.xml.dist" ascii nocase
+        $path0 = /\/dev\/tests\/functional\/credentials\.xml\.dist(\/|;|$)/ nocase
+        $path1 = /\/dev\/tests\/functional\/etc\/config\.xml\.dist(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2487,7 +2421,7 @@ rule krawl_vuln_metersphere_plugin_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/metersphere/metersphere-plugin-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/plugin/customMethod" ascii nocase
+        $path0 = /\/plugin\/customMethod(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2507,7 +2441,7 @@ rule krawl_vuln_office_webapps_ssrf {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/microsoft/office-webapps-ssrf.yaml"
     strings:
-        $path0 = "/oh/wopi/files/@/wFileId/contents" ascii nocase
+        $path0 = /\/oh\/wopi\/files\/@\/wFileId\/contents(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2528,10 +2462,9 @@ rule krawl_vuln_mobileiron_log4j_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/mobileiron/mobileiron-log4j-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/mifs/j_spring_security_check" ascii nocase
-        $param0 = "logincontext=employee" ascii nocase
+        $path0 = /\/mifs\/j_spring_security_check(\/|;|$)/ nocase
     condition:
-        (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
+        (scan_target == "path" and any of ($path*))
 }
 
 rule krawl_vuln_nagios_xi_xss {
@@ -2550,7 +2483,7 @@ rule krawl_vuln_nagios_xi_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/nagios/nagios-xi-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/nagioslogserver/login" ascii nocase
+        $path0 = /\/nagioslogserver\/login(\/|;|$)/ nocase
         $path1 = "/nagioslogserver/includes/components/ccm/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -2572,7 +2505,7 @@ rule krawl_vuln_netgear_dgn_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/netgear/netgear-dgn-rce.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "next_file=netgear.cfg" ascii nocase
+        $param0 = /(^|[?&;])next_file=netgear\.cfg(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2593,7 +2526,7 @@ rule krawl_vuln_netmizer_cmd_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/netmizer/netmizer-cmd-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/data/manage/cmd.php" ascii nocase
+        $path0 = /\/data\/manage\/cmd\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2613,7 +2546,7 @@ rule krawl_vuln_netsweeper_open_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/netsweeper/netsweeper-open-redirect.yaml"
     strings:
-        $path0 = "/webadmin/authportal/bounce.php" ascii nocase
+        $path0 = /\/webadmin\/authportal\/bounce\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2634,7 +2567,7 @@ rule krawl_vuln_netsweeper_rxss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/netsweeper/netsweeper-rxss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "server=localhost" ascii nocase
+        $param0 = /(^|[?&;])server=localhost(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2655,7 +2588,7 @@ rule krawl_vuln_nodogsplash_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/nodogsplash-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/../../../../etc/config/nodogsplash" ascii nocase
+        $path0 = /\/\.\.\/\.\.\/\.\.\/\.\.\/etc\/config\/nodogsplash(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2675,7 +2608,7 @@ rule krawl_vuln_nps_auth_bypass {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/nps/nps-auth-bypass.yaml"
     strings:
-        $path0 = "/index/gettunnel" ascii nocase
+        $path0 = /\/index\/gettunnel(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2696,7 +2629,7 @@ rule krawl_vuln_odoo_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/odoo-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/web/set_profiling" ascii nocase
+        $path0 = /\/web\/set_profiling(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2717,7 +2650,7 @@ rule krawl_vuln_opencpu_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/opencpu/opencpu-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/ocpu/library/base/R/do.call/json" ascii nocase
+        $path0 = /\/ocpu\/library\/base\/R\/do\.call\/json(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2738,7 +2671,7 @@ rule krawl_vuln_oracle_ebs_bispgrapgh_file_read {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/oracle/oracle-ebs-bispgraph-file-access.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/OA_HTML/jsp/bsc/bscpgraph.jsp" ascii nocase
+        $path0 = /\/OA_HTML\/jsp\/bsc\/bscpgraph\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2759,9 +2692,9 @@ rule krawl_vuln_74cms_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/74cms-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "c=AjaxPersonal" ascii nocase
-        $param1 = "a=company_focus" ascii nocase
-        $param2 = "company_id[0]=match" ascii nocase
+        $param0 = /(^|[?&;])c=AjaxPersonal(&|$)/ nocase
+        $param1 = /(^|[?&;])a=company_focus(&|$)/ nocase
+        $param2 = /(^|[?&;])company_id\[0\]=match(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2782,7 +2715,7 @@ rule krawl_vuln_wso2_2019_0598 {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/WSO2-2019-0598.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/shindig/gadgets/proxy" ascii nocase
+        $path0 = /\/shindig\/gadgets\/proxy(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2802,7 +2735,7 @@ rule krawl_vuln_aic_intelligent_password_exposure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/aic-intelligent-password-exposure.yaml"
     strings:
-        $path0 = "/datacenter/dataOrigin.ashx" ascii nocase
+        $path0 = /\/datacenter\/dataOrigin\.ashx(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2822,7 +2755,7 @@ rule krawl_vuln_aishu_anyshare_info_exposure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/aishu-anyshare-info-exposure.yaml"
     strings:
-        $path0 = "/api/ShareMgnt/Usrm_GetAllUsers" ascii nocase
+        $path0 = /\/api\/ShareMgnt\/Usrm_GetAllUsers(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2843,7 +2776,7 @@ rule krawl_vuln_alibaba_anyproxy_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/alibaba-anyproxy-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/fetchBody" ascii nocase
+        $path0 = /\/fetchBody(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2864,7 +2797,7 @@ rule krawl_vuln_aspcms_commentlist_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/aspcms-commentlist-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/plug/comment/commentList.asp" ascii nocase
+        $path0 = /\/plug\/comment\/commentList\.asp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2884,7 +2817,7 @@ rule krawl_vuln_aspnuke_openredirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/aspnuke-openredirect.yaml"
     strings:
-        $path0 = "/gotoURL.asp" ascii nocase
+        $path0 = /\/gotoURL\.asp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2905,7 +2838,7 @@ rule krawl_vuln_avcon6_execl_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/avcon6-execl-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/org_execl_download.action" ascii nocase
+        $path0 = /\/org_execl_download\.action(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2926,7 +2859,7 @@ rule krawl_vuln_azon_dominator_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/azon-dominator-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "cid=1*if(now()=sysdate(),sleep(6),0)" ascii nocase
+        $param0 = /(^|[?&;])cid=1\*if\(now\(\)=sysdate\(\),sleep\(6\),0\)(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2947,7 +2880,7 @@ rule krawl_vuln_bagisto_csti {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/bagisto-csti.yaml"
         response_type = "template_eval"
     strings:
-        $path0 = "/bagisto-common/search" ascii nocase
+        $path0 = /\/bagisto-common\/search(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2967,14 +2900,14 @@ rule krawl_vuln_cacti_weathermap_file_write {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/cacti-weathermap-file-write.yaml"
     strings:
-        $path0 = "/plugins/weathermap/editor.php" ascii nocase
-        $path1 = "/plugins/weathermap/configs/poc.conf" ascii nocase
-        $param0 = "mapname=poc.conf" ascii nocase
-        $param1 = "action=set_map_properties" ascii nocase
-        $param2 = "debug=existing" ascii nocase
-        $param3 = "node_iconfilename=--NONE--" ascii nocase
-        $param4 = "map_title=46ea1712d4b13b55b3f680cc5b8b54e8" ascii nocase
-        $param5 = "map_legend=Traffic Load" ascii nocase
+        $path0 = /\/plugins\/weathermap\/editor\.php(\/|;|$)/ nocase
+        $path1 = /\/plugins\/weathermap\/configs\/poc\.conf(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])mapname=poc\.conf(&|$)/ nocase
+        $param1 = /(^|[?&;])action=set_map_properties(&|$)/ nocase
+        $param2 = /(^|[?&;])debug=existing(&|$)/ nocase
+        $param3 = /(^|[?&;])node_iconfilename=--NONE--(&|$)/ nocase
+        $param4 = /(^|[?&;])map_title=46ea1712d4b13b55b3f680cc5b8b54e8(&|$)/ nocase
+        $param5 = /(^|[?&;])map_legend=Traffic Load(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2995,8 +2928,7 @@ rule krawl_vuln_caimore_gateway_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/caimore-gateway-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/goform/formping" ascii nocase
-        $path1 = "/pingmessages" ascii nocase
+        $path0 = /\/goform\/formping(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3017,8 +2949,8 @@ rule krawl_vuln_carrental_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/carrental-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "action=save_category" ascii nocase
-        $param1 = "page=categories" ascii nocase
+        $param0 = /(^|[?&;])action=save_category(&|$)/ nocase
+        $param1 = /(^|[?&;])page=categories(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3040,11 +2972,8 @@ rule krawl_vuln_castel_digital_sqli {
         response_type = "sql_error"
     strings:
         $path0 = "/restrito/login/sub/" ascii nocase
-        $path1 = "/restrito/" ascii nocase
-        $param0 = "username=x'='x'or'x" ascii nocase
-        $param1 = "password=x'='x'or'x" ascii nocase
     condition:
-        (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
+        (scan_target == "path" and any of ($path*))
 }
 
 rule krawl_vuln_chamilo_lms_sqli {
@@ -3063,9 +2992,9 @@ rule krawl_vuln_chamilo_lms_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/chamilo-lms-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/main/inc/ajax/extra_field.ajax.php" ascii nocase
-        $param0 = "a=search_options_from_tags" ascii nocase
-        $param1 = "field_id=image" ascii nocase
+        $path0 = /\/main\/inc\/ajax\/extra_field\.ajax\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])a=search_options_from_tags(&|$)/ nocase
+        $param1 = /(^|[?&;])field_id=image(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3086,7 +3015,7 @@ rule krawl_vuln_chamilo_lms_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/chamilo-lms-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/main/calendar/agenda_list.php" ascii nocase
+        $path0 = /\/main\/calendar\/agenda_list\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3107,10 +3036,9 @@ rule krawl_vuln_citrix_xenapp_log4j_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/citrix-xenapp-log4j-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/Citrix/XenApp/auth/login.aspx" ascii nocase
-        $param0 = "LoginType=Explicit" ascii nocase
+        $path0 = /\/Citrix\/XenApp\/auth\/login\.aspx(\/|;|$)/ nocase
     condition:
-        (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
+        (scan_target == "path" and any of ($path*))
 }
 
 rule krawl_vuln_cmseasy_crossall_sqli {
@@ -3129,8 +3057,8 @@ rule krawl_vuln_cmseasy_crossall_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/cmseasy-crossall-act-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "case=crossall" ascii nocase
-        $param1 = "sql=WY8gzSfZwW9R5YvyK" ascii nocase
+        $param0 = /(^|[?&;])case=crossall(&|$)/ nocase
+        $param1 = /(^|[?&;])sql=WY8gzSfZwW9R5YvyK(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3151,9 +3079,9 @@ rule krawl_vuln_coldfusion_debug_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/coldfusion-debug-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/CFIDE/debug/cf_debugFr.cfm" ascii nocase
-        $path1 = "/cfusion/debug/cf_debugFr.cfm" ascii nocase
-        $param0 = "userPage=javascript:alert(1)" ascii nocase
+        $path0 = /\/CFIDE\/debug\/cf_debugFr\.cfm(\/|;|$)/ nocase
+        $path1 = /\/cfusion\/debug\/cf_debugFr\.cfm(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])userPage=javascript:alert\(1\)(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3173,8 +3101,8 @@ rule krawl_vuln_comai_ras_cookie_bypass {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/comai-ras-cookie-bypass.yaml"
     strings:
-        $path0 = "/Server/CmxUser.php" ascii nocase
-        $param0 = "pgid=UserList" ascii nocase
+        $path0 = /\/Server\/CmxUser\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])pgid=UserList(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3194,7 +3122,7 @@ rule krawl_vuln_commax_credentials_disclosure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/commax-credentials-disclosure.yaml"
     strings:
-        $path0 = "/overview.asp" ascii nocase
+        $path0 = /\/overview\.asp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3215,7 +3143,7 @@ rule krawl_vuln_comtrend_password_exposure {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/comtrend-password-exposure.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/password.cgi" ascii nocase
+        $path0 = /\/password\.cgi(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3236,8 +3164,8 @@ rule krawl_vuln_cpas_managment_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/cpas-managment-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/cpasm4/plugInManController/downPlugs" ascii nocase
-        $param0 = "fileId=../../../../etc/passwd" ascii nocase
+        $path0 = /\/cpasm4\/plugInManController\/downPlugs(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])fileId=\.\.\/\.\.\/\.\.\/\.\.\/etc\/passwd(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3258,7 +3186,7 @@ rule krawl_vuln_cpas_managment_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/cpas-managment-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/cpasm4/login" ascii nocase
+        $path0 = /\/cpasm4\/login(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3279,7 +3207,7 @@ rule krawl_vuln_cs_cart_unauthenticated_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/cs-cart-unauthenticated-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/classes/phpmailer/class.cs_phpmailer.php" ascii nocase
+        $path0 = /\/classes\/phpmailer\/class\.cs_phpmailer\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3300,7 +3228,7 @@ rule krawl_vuln_dicoogle_pacs_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/dicoogle-pacs-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/exportFile" ascii nocase
+        $path0 = /\/exportFile(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3321,7 +3249,7 @@ rule krawl_vuln_discourse_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/discourse-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/email/unsubscribed" ascii nocase
+        $path0 = /\/email\/unsubscribed(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3341,7 +3269,7 @@ rule krawl_vuln_dlink_850l_info_leak {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/dlink-850L-info-leak.yaml"
     strings:
-        $path0 = "/hedwig.cgi" ascii nocase
+        $path0 = /\/hedwig\.cgi(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3362,7 +3290,7 @@ rule krawl_vuln_dss_download_fileread {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/dss-download-fileread.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/portal/attachment_downloadByUrlAtt.action" ascii nocase
+        $path0 = /\/portal\/attachment_downloadByUrlAtt\.action(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3383,7 +3311,7 @@ rule krawl_vuln_duomicms_sql_injection {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/duomicms-sql-injection.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/duomiphp/ajax.php" ascii nocase
+        $path0 = /\/duomiphp\/ajax\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3404,7 +3332,7 @@ rule krawl_vuln_ecsimagingpacs_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/ecsimagingpacs-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/showfile.php" ascii nocase
+        $path0 = /\/showfile\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3425,8 +3353,8 @@ rule krawl_vuln_eibiz_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/eibiz-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/dlibrary/null" ascii nocase
-        $param0 = "oldfile=../../../../../../windows/win.ini" ascii nocase
+        $path0 = /\/dlibrary\/null(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])oldfile=\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/windows\/win\.ini(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3446,7 +3374,7 @@ rule krawl_vuln_ektron_blog_xmlrpc_xxe {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/ektron-blog-xmlrpc-xxe.yaml"
     strings:
-        $path0 = "/WorkArea/Blogs/xmlrpc.aspx" ascii nocase
+        $path0 = /\/WorkArea\/Blogs\/xmlrpc\.aspx(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3467,7 +3395,7 @@ rule krawl_vuln_elfinder_path_traversal {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/elFinder-path-traversal.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "target=l1_Li8vLi4vLy4uLy8uLi8vLi4vLy4uLy8uLi9ldGMvcGFzc3dk" ascii nocase
+        $param0 = /(^|[?&;])target=l1_Li8vLi4vLy4uLy8uLi8vLi4vLy4uLy8uLi9ldGMvcGFzc3dk(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3488,7 +3416,7 @@ rule krawl_vuln_ems_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/ems-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/process/aprocess.php" ascii nocase
+        $path0 = /\/process\/aprocess\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3509,7 +3437,7 @@ rule krawl_vuln_enjoyrmis_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/enjoyrmis-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/EnjoyRMIS_WS/WS/POS/cwsoa.asmx" ascii nocase
+        $path0 = /\/EnjoyRMIS_WS\/WS\/POS\/cwsoa\.asmx(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3529,7 +3457,7 @@ rule krawl_vuln_epp_server_lfi {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/epp-server-lfi.yaml"
     strings:
-        $param0 = "country=/../../../../../../../../etc/passwd" ascii nocase
+        $param0 = /(^|[?&;])country=\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/etc\/passwd(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3550,7 +3478,7 @@ rule krawl_vuln_etouch_v2_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/etouch-v2-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/upload/mobile/index.php" ascii nocase
+        $path0 = /\/upload\/mobile\/index\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3571,8 +3499,8 @@ rule krawl_vuln_ewebs_arbitrary_file_reading {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/ewebs-arbitrary-file-reading.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/casmain.xgi" ascii nocase
-        $param0 = "Language_S=../../Data/CONFIG/CasDbCnn.dat" ascii nocase
+        $path0 = /\/casmain\.xgi(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])Language_S=\.\.\/\.\.\/Data\/CONFIG\/CasDbCnn\.dat(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3593,8 +3521,8 @@ rule krawl_vuln_eyelock_nano_lfd {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/eyelock-nano-lfd.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/scripts/logdownload.php" ascii nocase
-        $param0 = "dlfilename=juicyinfo.txt" ascii nocase
+        $path0 = /\/scripts\/logdownload\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])dlfilename=juicyinfo\.txt(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3615,7 +3543,7 @@ rule krawl_vuln_f_secure_policymanager_log4j_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/f-secure-policymanager-log4j-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/fsms/fsmsh.dll" ascii nocase
+        $path0 = /\/fsms\/fsmsh\.dll(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3635,8 +3563,8 @@ rule krawl_vuln_fanruanoa2012_disclosure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/fanruanoa2012-disclosure.yaml"
     strings:
-        $path0 = "/ReportServer" ascii nocase
-        $param0 = "cmd=sc_getconnectioninfo" ascii nocase
+        $path0 = /\/ReportServer(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])cmd=sc_getconnectioninfo(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3657,7 +3585,7 @@ rule krawl_vuln_finecms_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/finecms-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "auth=582f27d140497a9d8f048ca085b111df" ascii nocase
+        $param0 = /(^|[?&;])auth=582f27d140497a9d8f048ca085b111df(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3678,10 +3606,9 @@ rule krawl_vuln_flexnet_log4j_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/flexnet-log4j-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/flexnet/logon.do" ascii nocase
-        $param0 = "domain=FLEXnet" ascii nocase
+        $path0 = /\/flexnet\/logon\.do(\/|;|$)/ nocase
     condition:
-        (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
+        (scan_target == "path" and any of ($path*))
 }
 
 rule krawl_vuln_fumasoft_sqli {
@@ -3700,8 +3627,8 @@ rule krawl_vuln_fumasoft_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/fumasoft-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/Ajax/AjaxMethod.ashx" ascii nocase
-        $param0 = "action=getEmpByname" ascii nocase
+        $path0 = /\/Ajax\/AjaxMethod\.ashx(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])action=getEmpByname(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3722,7 +3649,7 @@ rule krawl_vuln_global_domains_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/global-domains-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/kvmlm2/index.dhtml" ascii nocase
+        $path0 = /\/kvmlm2\/index\.dhtml(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3743,7 +3670,7 @@ rule krawl_vuln_global_domains_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/global-domains-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/index.dhtml" ascii nocase
+        $path0 = /\/index\.dhtml(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3764,8 +3691,8 @@ rule krawl_vuln_glodon_linkworks_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/glodon-linkworks-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/Org/service/Service.asmx/GetUserByEmployeeCode" ascii nocase
-        $param0 = "employeeCode=1'-1/user--'" ascii nocase
+        $path0 = /\/Org\/service\/Service\.asmx\/GetUserByEmployeeCode(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])employeeCode=1'-1\/user--'(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3785,7 +3712,7 @@ rule krawl_vuln_gloo_unauth {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/gloo-unauth.yaml"
     strings:
-        $path0 = "/fed.rpc.solo.io.GlooInstanceApi/ListClusterDetails" ascii nocase
+        $path0 = /\/fed\.rpc\.solo\.io\.GlooInstanceApi\/ListClusterDetails(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3806,8 +3733,8 @@ rule krawl_vuln_goanywhere_mft_log4j_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/goanywhere-mft-log4j-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/goanywhere/auth/Login.xhtml" ascii nocase
-        $param0 = "formPanel:loginGrid:value_hinput=pass" ascii nocase
+        $path0 = /\/goanywhere\/auth\/Login\.xhtml(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])formPanel:loginGrid:value_hinput=pass(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3828,9 +3755,9 @@ rule krawl_vuln_goip_1_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/goip-1-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/default/en_US/frame.html" ascii nocase
-        $path1 = "/default/en_US/frame.A100.html" ascii nocase
-        $param0 = "sidebar=../../../../../../../etc/passwd" ascii nocase
+        $path0 = /\/default\/en_US\/frame\.html(\/|;|$)/ nocase
+        $path1 = /\/default\/en_US\/frame\.A100\.html(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])sidebar=\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/etc\/passwd(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3872,7 +3799,7 @@ rule krawl_vuln_groupoffice_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/groupoffice-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/compress.php" ascii nocase
+        $path0 = /\/compress\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3893,7 +3820,7 @@ rule krawl_vuln_h3c_cnsss_arbitrary_file_upload {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/h3c-cnsss-arbitrary-file-upload.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/imc/primepush/../flexFileUpload" ascii nocase
+        $path0 = /\/imc\/primepush\/\.\.\/flexFileUpload(\/|;|$)/ nocase
         $path1 = "/imc/primepush/../flex/topobg/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -3915,7 +3842,7 @@ rule krawl_vuln_h3c_cvm_arbitrary_file_upload {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/h3c-cvm-arbitrary-file-upload.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/cas/fileUpload/upload" ascii nocase
+        $path0 = /\/cas\/fileUpload\/upload(\/|;|$)/ nocase
         $path1 = "/cas/js/lib/buttons/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -3937,7 +3864,7 @@ rule krawl_vuln_h3c_imc_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/h3c-imc-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/imc/javax.faces.resource/dynamiccontent.properties.xhtml" ascii nocase
+        $path0 = /\/imc\/javax\.faces\.resource\/dynamiccontent\.properties\.xhtml(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3958,7 +3885,7 @@ rule krawl_vuln_hanming_lfr {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/hanming-lfr.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/register/toDownload.do" ascii nocase
+        $path0 = /\/register\/toDownload\.do(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3979,7 +3906,7 @@ rule krawl_vuln_hanta_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/hanta-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/dgn/dgn_tools/ping.php" ascii nocase
+        $path0 = /\/dgn\/dgn_tools\/ping\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4000,7 +3927,7 @@ rule krawl_vuln_hashicorp_consul_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/hashicorp-consul-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/v1/agent/service/register" ascii nocase
+        $path0 = /\/v1\/agent\/service\/register(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4021,7 +3948,7 @@ rule krawl_vuln_hiboss_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/hiboss-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/manager/radius/server_ping.php" ascii nocase
+        $path0 = /\/manager\/radius\/server_ping\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4042,9 +3969,9 @@ rule krawl_vuln_hongfan_ioffice_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/hongfan-ioffice-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/ioffice/prg/set/iocom/ioFileExport.aspx" ascii nocase
-        $param0 = "url=/ioffice/web.config" ascii nocase
-        $param1 = "ContentType=application/octet-stream" ascii nocase
+        $path0 = /\/ioffice\/prg\/set\/iocom\/ioFileExport\.aspx(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])url=\/ioffice\/web\.config(&|$)/ nocase
+        $param1 = /(^|[?&;])ContentType=application\/octet-stream(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4065,7 +3992,7 @@ rule krawl_vuln_hongfan_ioffice_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/hongfan-ioffice-rce.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/ioffice/prg/set/wss/ioAssistance.asmx" ascii nocase
+        $path0 = /\/ioffice\/prg\/set\/wss\/ioAssistance\.asmx(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4086,7 +4013,7 @@ rule krawl_vuln_hongfan_ioffice_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/hongfan-ioffice-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/iOffice/prg/set/wss/udfmr.asmx" ascii nocase
+        $path0 = /\/iOffice\/prg\/set\/wss\/udfmr\.asmx(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4107,10 +4034,9 @@ rule krawl_vuln_httpbin_contenttype_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/httpbin-contenttype-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/response-headers" ascii nocase
-        $param0 = "Content-Type=text/html" ascii nocase
+        $param0 = /(^|[?&;])Content-Type=text\/html(&|$)/ nocase
     condition:
-        (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
+        ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
 
 rule krawl_vuln_huawei_router_auth_bypass {
@@ -4128,7 +4054,7 @@ rule krawl_vuln_huawei_router_auth_bypass {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/huawei-router-auth-bypass.yaml"
     strings:
-        $path0 = "/api/system/deviceinfo" ascii nocase
+        $path0 = /\/api\/system\/deviceinfo(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4148,7 +4074,7 @@ rule krawl_vuln_huiwen_bibliographic_info_leak {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/huiwen-bibliographic-info-leak.yaml"
     strings:
-        $path0 = "/include/config.properties" ascii nocase
+        $path0 = /\/include\/config\.properties(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4169,31 +4095,10 @@ rule krawl_vuln_interlib_fileread {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/interlib-fileread.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/interlib/report/ShowImage" ascii nocase
-        $param0 = "localPath=etc/passwd" ascii nocase
+        $path0 = /\/interlib\/report\/ShowImage(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])localPath=etc\/passwd(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
-}
-
-rule krawl_vuln_java_melody_xss {
-    meta:
-        attack_type = "vuln_java_melody_xss"
-        classification = "attack"
-        severity = 7
-        confidence = "medium"
-        description = "JavaMelody - Cross-Site Scripting: JavaMelody contains a cross-site scripting vulnerability via the monitoring parameter. An attacker can execute arbitrary script in the context of the affected site. This can allow the attacker to steal cookie-based authentication credentials."
-        mitre_attack = "T1190"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/java-melody-xss.yaml"
-        response_type = "xss"
-    strings:
-        $path0 = "/monitoring" ascii nocase
-    condition:
-        (scan_target == "path" and any of ($path*))
 }
 
 rule krawl_vuln_jeeplus_cms_resetpassword_sqli {
@@ -4212,7 +4117,7 @@ rule krawl_vuln_jeeplus_cms_resetpassword_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/jeeplus-cms-resetpassword-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/a/sys/user/resetPassword" ascii nocase
+        $path0 = /\/a\/sys\/user\/resetPassword(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4233,8 +4138,8 @@ rule krawl_vuln_jeewms_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/jeewms-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/systemController/showOrDownByurl.do" ascii nocase
-        $param0 = "dbPath=../Windows/win.ini" ascii nocase
+        $path0 = /\/systemController\/showOrDownByurl\.do(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])dbPath=\.\.\/Windows\/win\.ini(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4254,7 +4159,7 @@ rule krawl_vuln_jfrog_unauth_build_exposed {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/jfrog-unauth-build-exposed.yaml"
     strings:
-        $path0 = "/ui/api/v1/global-search/builds" ascii nocase
+        $path0 = /\/ui\/api\/v1\/global-search\/builds(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4275,7 +4180,7 @@ rule krawl_vuln_jinfornet_jreport_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/jinfornet-jreport-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/jreport/sendfile/help/../../../../../../../../../../../../../../etc/passwd" ascii nocase
+        $path0 = /\/jreport\/sendfile\/help\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/etc\/passwd(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4296,9 +4201,9 @@ rule krawl_vuln_joomla_jmarket_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/joomla-jmarket-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "option=com_jvouchers" ascii nocase
-        $param1 = "controller=catalog-results" ascii nocase
-        $param2 = "trucs[x][search]=gx3vt onfocus=alert(document.domain) autofocus= itkrzsug7w5" ascii nocase
+        $param0 = /(^|[?&;])option=com_jvouchers(&|$)/ nocase
+        $param1 = /(^|[?&;])controller=catalog-results(&|$)/ nocase
+        $param2 = /(^|[?&;])trucs\[x\]\[search\]=gx3vt onfocus=alert\(document\.domain\) autofocus= itkrzsug7w5(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4318,7 +4223,7 @@ rule krawl_vuln_justboil_me_image_upload {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/justboil-me-image-upload.yaml"
     strings:
-        $path0 = "/plugins/generic/tinymce/plugins/justboil.me/dialog-v4.htm" ascii nocase
+        $path0 = /\/plugins\/generic\/tinymce\/plugins\/justboil\.me\/dialog-v4\.htm(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4339,7 +4244,7 @@ rule krawl_vuln_kavita_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/kavita-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "filename=../appsettings.json" ascii nocase
+        $param0 = /(^|[?&;])filename=\.\.\/appsettings\.json(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4360,7 +4265,7 @@ rule krawl_vuln_khodrochi_cms_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/khodrochi-cms-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/specification/report.php" ascii nocase
+        $path0 = /\/specification\/report\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4381,7 +4286,7 @@ rule krawl_vuln_kingdee_eas_directory_traversal {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/kingdee-eas-directory-traversal.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/appmonitor/protected/selector/server_file/files" ascii nocase
+        $path0 = /\/appmonitor\/protected\/selector\/server_file\/files(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4402,7 +4307,7 @@ rule krawl_vuln_kingdee_erp_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/kingdee-erp-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/Kingdee.BOS.ServiceFacade.ServicesStub.DevReportService.GetBusinessObjectData.common.kdsvc" ascii nocase
+        $path0 = /\/Kingdee\.BOS\.ServiceFacade\.ServicesStub\.DevReportService\.GetBusinessObjectData\.common\.kdsvc(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4423,7 +4328,7 @@ rule krawl_vuln_kingsoft_v8_file_read {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/kingsoft-v8-file-read.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/htmltopdf/downfile.php" ascii nocase
+        $path0 = /\/htmltopdf\/downfile\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4444,7 +4349,7 @@ rule krawl_vuln_kingsoft_vgm_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/kingsoft-vgm-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/downFile.php" ascii nocase
+        $path0 = /\/downFile\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4465,7 +4370,7 @@ rule krawl_vuln_landray_oa_datajson_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/landray-oa-datajson-rce.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "s_bean=sysFormulaSimulateByJS" ascii nocase
+        $param0 = /(^|[?&;])s_bean=sysFormulaSimulateByJS(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4486,29 +4391,9 @@ rule krawl_vuln_landray_oa_erp_data_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/landray-oa-erp-data-rce.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "erpServcieName=sysFormulaValidate" ascii nocase
+        $param0 = /(^|[?&;])erpServcieName=sysFormulaValidate(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
-}
-
-rule krawl_vuln_lean_value_listing {
-    meta:
-        attack_type = "vuln_lean_value_listing"
-        classification = "attack"
-        severity = 3
-        confidence = "medium"
-        description = "LVS Lean Value Management System Business - Directory Listing: Multiple systems of Hangzhou Jila Technology Co., Ltd. have been found to have directory traversal vulnerabilities. These vulnerabilities arise from the inadequate access controls implemented in the /Business/."
-        mitre_attack = "T1190"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/lean-value-listing.yaml"
-    strings:
-        $path0 = "/Business/" ascii nocase
-    condition:
-        (scan_target == "path" and any of ($path*))
 }
 
 rule krawl_vuln_livebos_file_read {
@@ -4527,8 +4412,8 @@ rule krawl_vuln_livebos_file_read {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/livebos-file-read.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/feed/ShowImage.do;.js.jsp" ascii nocase
-        $param0 = "imgName=../../../../../../../../../../../../../../../etc/passwd" ascii nocase
+        $path0 = /\/feed\/ShowImage\.do;\.js\.jsp(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])imgName=\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/etc\/passwd(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4548,8 +4433,8 @@ rule krawl_vuln_lucee_unset_credentials {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/lucee-unset-credentials.yaml"
     strings:
-        $path0 = "/lucee/admin/web.cfm" ascii nocase
-        $path1 = "/lucee/admin/server.cfm" ascii nocase
+        $path0 = /\/lucee\/admin\/web\.cfm(\/|;|$)/ nocase
+        $path1 = /\/lucee\/admin\/server\.cfm(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4569,7 +4454,7 @@ rule krawl_vuln_luftguitar_arbitrary_file_upload {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/luftguitar-arbitrary-file-upload.yaml"
     strings:
-        $path0 = "/ftb.imagegallery.aspx" ascii nocase
+        $path0 = /\/ftb\.imagegallery\.aspx(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4590,31 +4475,10 @@ rule krawl_vuln_lvs_download_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/lvs-download-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/Business/DownLoad.aspx" ascii nocase
-        $param0 = "p=UploadFile/../Web.Config" ascii nocase
+        $path0 = /\/Business\/DownLoad\.aspx(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])p=UploadFile\/\.\.\/Web\.Config(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
-}
-
-rule krawl_vuln_manage_engine_dc_log4j_rce {
-    meta:
-        attack_type = "vuln_manage_engine_dc_log4j_rce"
-        classification = "attack"
-        severity = 9
-        confidence = "medium"
-        description = "Manage Engine Desktop Central - Remote Code Execution (Apache Log4j): Manage Engine Endpoint Central (formerly Desktop Central) is susceptible to Log4j JNDI remote code execution. Endpoint Central is a Unified Endpoint Management (UEM) & Endpoint protection suite that helps."
-        mitre_attack = "T1190, T1059"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/manage-engine-dc-log4j-rce.yaml"
-        response_type = "command_injection"
-    strings:
-        $param0 = "browserLocale=en_us" ascii nocase
-    condition:
-        ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
 
 rule krawl_vuln_metinfo_lfi {
@@ -4633,7 +4497,7 @@ rule krawl_vuln_metinfo_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/metinfo-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/include/thumb.php" ascii nocase
+        $path0 = /\/include\/thumb\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4654,10 +4518,10 @@ rule krawl_vuln_microstrategy_ssrf {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/microstrategy-ssrf.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/servlet/taskProc" ascii nocase
-        $path1 = "/MicroStrategy/servlet/taskProc" ascii nocase
-        $param0 = "taskId=shortURL" ascii nocase
-        $param1 = "srcURL=https://google.com" ascii nocase
+        $path0 = /\/servlet\/taskProc(\/|;|$)/ nocase
+        $path1 = /\/MicroStrategy\/servlet\/taskProc(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])taskId=shortURL(&|$)/ nocase
+        $param1 = /(^|[?&;])srcURL=https:\/\/google\.com(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4679,7 +4543,7 @@ rule krawl_vuln_motic_dsm_arbitrary_file_read {
         response_type = "path_traversal"
     strings:
         $path0 = "/UploadService/Page/" ascii nocase
-        $path1 = "/UploadService/Page/style" ascii nocase
+        $path1 = /\/UploadService\/Page\/style(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4700,8 +4564,8 @@ rule krawl_vuln_mpsec_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/mpsec-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "file_name=../../../../../../../../../../../../etc/passwd" ascii nocase
-        $param1 = "file_name=../../../../../../../../../../../../c:/windows/win.ini" ascii nocase
+        $param0 = /(^|[?&;])file_name=\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/etc\/passwd(&|$)/ nocase
+        $param1 = /(^|[?&;])file_name=\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/c:\/windows\/win\.ini(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4721,7 +4585,7 @@ rule krawl_vuln_nacos_auth_bypass {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/nacos-auth-bypass.yaml"
     strings:
-        $path0 = "/nacos/v1/auth/users" ascii nocase
+        $path0 = /\/nacos\/v1\/auth\/users(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4741,7 +4605,7 @@ rule krawl_vuln_nacos_info_leak {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/nacos-info-leak.yaml"
     strings:
-        $path0 = "/v1/cs/configs" ascii nocase
+        $path0 = /\/v1\/cs\/configs(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4762,7 +4626,7 @@ rule krawl_vuln_natshell_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/natshell-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/debug.php" ascii nocase
+        $path0 = /\/debug\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4783,7 +4647,7 @@ rule krawl_vuln_ncast_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/ncast-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/developLog/downloadLog.php" ascii nocase
+        $path0 = /\/developLog\/downloadLog\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4803,7 +4667,7 @@ rule krawl_vuln_netgear_router_exposure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/netgear-router-exposure.yaml"
     strings:
-        $path0 = "/rootDesc.xml" ascii nocase
+        $path0 = /\/rootDesc\.xml(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4823,7 +4687,7 @@ rule krawl_vuln_netgear_wac124_router_auth_bypass {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/netgear-wac124-router-auth-bypass.yaml"
     strings:
-        $param0 = "next_file=debug.htm" ascii nocase
+        $param0 = /(^|[?&;])next_file=debug\.htm(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4843,7 +4707,7 @@ rule krawl_vuln_netis_info_leak {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/netis-info-leak.yaml"
     strings:
-        $path0 = "/netcore_get.cgi" ascii nocase
+        $path0 = /\/netcore_get\.cgi(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4864,7 +4728,7 @@ rule krawl_vuln_netpower_npfw_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/netpower-npfw-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/direct/polling/CommandsPolling.php" ascii nocase
+        $path0 = /\/direct\/polling\/CommandsPolling\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4885,8 +4749,8 @@ rule krawl_vuln_nginx_webui_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/nginx-webui-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/adminPage/remote/cmdOver" ascii nocase
-        $param0 = "remoteId=local" ascii nocase
+        $path0 = /\/adminPage\/remote\/cmdOver(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])remoteId=local(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4907,7 +4771,7 @@ rule krawl_vuln_nginxwebui_runcmd_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/nginxwebui-runcmd-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/AdminPage/conf/runCmd" ascii nocase
+        $path0 = /\/AdminPage\/conf\/runCmd(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4928,9 +4792,9 @@ rule krawl_vuln_nsasg_arbitrary_file_read {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/ns-asg-file-read.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "file=pqpqpqpq.txt" ascii nocase
-        $param1 = "certfile=../../../../../../../../etc/passwd" ascii nocase
-        $param2 = "certfile=cert_download.php" ascii nocase
+        $param0 = /(^|[?&;])file=pqpqpqpq\.txt(&|$)/ nocase
+        $param1 = /(^|[?&;])certfile=\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/etc\/passwd(&|$)/ nocase
+        $param2 = /(^|[?&;])certfile=cert_download\.php(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4950,7 +4814,7 @@ rule krawl_vuln_nsfocus_auth_bypass {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/nsfocus-auth-bypass.yaml"
     strings:
-        $path0 = "/api/virtual/home/status" ascii nocase
+        $path0 = /\/api\/virtual\/home\/status(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4971,8 +4835,8 @@ rule krawl_vuln_nsfocus_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/nsfocus-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/user/requireLogin" ascii nocase
-        $path1 = "/webconf/GetFile/index" ascii nocase
+        $path0 = /\/user\/requireLogin(\/|;|$)/ nocase
+        $path1 = /\/webconf\/GetFile\/index(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4993,7 +4857,7 @@ rule krawl_vuln_nuuo_file_inclusion {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/nuuo-file-inclusion.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/css_parser.php" ascii nocase
+        $path0 = /\/css_parser\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5013,7 +4877,7 @@ rule krawl_vuln_odoo_cms_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/odoo-cms-redirect.yaml"
     strings:
-        $path0 = "/website/lang/en_US" ascii nocase
+        $path0 = /\/website\/lang\/en_US(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5034,7 +4898,7 @@ rule krawl_vuln_onlinefarm_management_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/onlinefarm-management-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/reviewInput.php" ascii nocase
+        $path0 = /\/reviewInput\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5055,7 +4919,7 @@ rule krawl_vuln_opennms_log4j_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/opennms-log4j-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/opennms/j_spring_security_check" ascii nocase
+        $path0 = /\/opennms\/j_spring_security_check(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5076,9 +4940,9 @@ rule krawl_vuln_opensis_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/opensis-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/opensis/ajax.php" ascii nocase
-        $param0 = "modname=misc/../../../../../../../../../../../../../etc/passwd" ascii nocase
-        $param1 = "bypass=Transcripts.php" ascii nocase
+        $path0 = /\/opensis\/ajax\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])modname=misc\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/etc\/passwd(&|$)/ nocase
+        $param1 = /(^|[?&;])bypass=Transcripts\.php(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5099,7 +4963,7 @@ rule krawl_vuln_opensns_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/opensns-rce.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "s=weibo/Share/shareBox" ascii nocase
+        $param0 = /(^|[?&;])s=weibo\/Share\/shareBox(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5120,7 +4984,7 @@ rule krawl_vuln_optilink_ont1gew_gpon_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/optilink-ont1gew-gpon-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/boaform/admin/formTracert" ascii nocase
+        $path0 = /\/boaform\/admin\/formTracert(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5141,7 +5005,7 @@ rule krawl_vuln_oracle_fatwire_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/oracle-fatwire-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/cs/career/getSurvey.jsp" ascii nocase
+        $path0 = /\/cs\/career\/getSurvey\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5162,7 +5026,7 @@ rule krawl_vuln_orbiteam_bscw_server_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/orbiteam-bscw-server-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "style_name=../../../../../../../../etc/passwd" ascii nocase
+        $param0 = /(^|[?&;])style_name=\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/etc\/passwd(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5182,7 +5046,7 @@ rule krawl_vuln_otobo_open_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/otobo-open-redirect.yaml"
     strings:
-        $path0 = "/otobo/index.pl" ascii nocase
+        $path0 = /\/otobo\/index\.pl(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5203,7 +5067,7 @@ rule krawl_vuln_p7_office_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/p7-office-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/Products/Files/HttpHandlers/filehandler.ashx" ascii nocase
+        $path0 = /\/Products\/Files\/HttpHandlers\/filehandler\.ashx(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5224,7 +5088,7 @@ rule krawl_vuln_pacsone_server_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/pacsone-server-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/pacsone/nocache.php" ascii nocase
+        $path0 = /\/pacsone\/nocache\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5245,31 +5109,10 @@ rule krawl_vuln_panmicro_arbitrary_file_read {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/panmicro-arbitrary-file-read.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/client/cdnfile/1C/Windows/win.ini" ascii nocase
-        $path1 = "/client/cdnfile/C/etc/passwd" ascii nocase
+        $path0 = /\/client\/cdnfile\/1C\/Windows\/win\.ini(\/|;|$)/ nocase
+        $path1 = /\/client\/cdnfile\/C\/etc\/passwd(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
-}
-
-rule krawl_vuln_papercut_log4j_rce {
-    meta:
-        attack_type = "vuln_papercut_log4j_rce"
-        classification = "attack"
-        severity = 9
-        confidence = "medium"
-        description = "Papercut - Remote Code Execution (Apache Log4j): Papercut is susceptible to Log4j JNDI remote code execution. Papercut is a print management system."
-        mitre_attack = "T1190, T1059"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/papercut-log4j-rce.yaml"
-        response_type = "command_injection"
-    strings:
-        $param0 = "$Submit$0=Log in" ascii nocase
-    condition:
-        ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
 
 rule krawl_vuln_parentlink_xss {
@@ -5288,7 +5131,7 @@ rule krawl_vuln_parentlink_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/parentlink-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/main/blank" ascii nocase
+        $path0 = /\/main\/blank(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5309,7 +5152,7 @@ rule krawl_vuln_pbootcms_database_file_download {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/pbootcms-database-file-download.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/data/pbootcms.db" ascii nocase
+        $path0 = /\/data\/pbootcms\.db(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5330,7 +5173,7 @@ rule krawl_vuln_phpldapadmin_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/phpldapadmin-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "cmd=template_engine" ascii nocase
+        $param0 = /(^|[?&;])cmd=template_engine(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5351,7 +5194,7 @@ rule krawl_vuln_phpwiki_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/phpwiki-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/phpwiki/index.php/passwd" ascii nocase
+        $path0 = /\/phpwiki\/index\.php\/passwd(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5372,8 +5215,8 @@ rule krawl_vuln_pmb_directory_traversal {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/pmb-directory-traversal.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/opac_css/getgif.php" ascii nocase
-        $param0 = "nomgif=tarik" ascii nocase
+        $path0 = /\/opac_css\/getgif\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])nomgif=tarik(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5394,10 +5237,10 @@ rule krawl_vuln_pmb_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/pmb-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "search_type_asked=extended_search" ascii nocase
-        $param1 = "op_0_f_1=EXACT" ascii nocase
-        $param2 = "field_0_f_1[]=gang" ascii nocase
-        $param3 = "search_xml_file=search_fields" ascii nocase
+        $param0 = /(^|[?&;])search_type_asked=extended_search(&|$)/ nocase
+        $param1 = /(^|[?&;])op_0_f_1=EXACT(&|$)/ nocase
+        $param2 = /(^|[?&;])field_0_f_1\[\]=gang(&|$)/ nocase
+        $param3 = /(^|[?&;])search_xml_file=search_fields(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5418,8 +5261,8 @@ rule krawl_vuln_podcast_generator_ssrf {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/podcast-generator-ssrf.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/podcast/PodcastGenerator/admin/login.php" ascii nocase
-        $path1 = "/podcast/PodcastGenerator/admin/episodes_upload.php" ascii nocase
+        $path0 = /\/podcast\/PodcastGenerator\/admin\/login\.php(\/|;|$)/ nocase
+        $path1 = /\/podcast\/PodcastGenerator\/admin\/episodes_upload\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5440,7 +5283,7 @@ rule krawl_vuln_powercreator_cms_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/powercreator-cms-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/upload/UploadResourcePic.ashx" ascii nocase
+        $path0 = /\/upload\/UploadResourcePic\.ashx(\/|;|$)/ nocase
         $path1 = "/ResourcePic/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -5461,7 +5304,7 @@ rule krawl_vuln_pyspider_unauthorized_access {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/pyspider-unauthorized-access.yaml"
     strings:
-        $path0 = "/debug/pyspidervulntest/run" ascii nocase
+        $path0 = /\/debug\/pyspidervulntest\/run(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5482,8 +5325,8 @@ rule krawl_vuln_qcubed_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/qcubed-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/assets/php/_devtools/installer/step_2.php" ascii nocase
-        $path1 = "/qcubed/assets/php/_devtools/installer/step_2.php" ascii nocase
+        $path0 = /\/assets\/php\/_devtools\/installer\/step_2\.php(\/|;|$)/ nocase
+        $path1 = /\/qcubed\/assets\/php\/_devtools\/installer\/step_2\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5504,7 +5347,7 @@ rule krawl_vuln_qi_anxin_netkang_next_generation_firewall_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/qi-anxin-netkang-next-generation-firewall-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/directdata/direct/router" ascii nocase
+        $path0 = /\/directdata\/direct\/router(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5525,7 +5368,7 @@ rule krawl_vuln_qihang_media_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/qihang-media-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "responderId=ResourceNewResponder" ascii nocase
+        $param0 = /(^|[?&;])responderId=ResourceNewResponder(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5545,7 +5388,7 @@ rule krawl_vuln_qizhi_fortressaircraft_unauth {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/qizhi-fortressaircraft-unauth.yaml"
     strings:
-        $path0 = "/audit/gui_detail_view.php" ascii nocase
+        $path0 = /\/audit\/gui_detail_view\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5566,7 +5409,7 @@ rule krawl_vuln_quick_cms_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/quick-cms-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "sEmail=test@test.net" ascii nocase
+        $param0 = /(^|[?&;])sEmail=test@test\.net(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5587,7 +5430,7 @@ rule krawl_vuln_raisecom_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/raisecom-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/vpn/vpn_template_style.php" ascii nocase
+        $path0 = /\/vpn\/vpn_template_style\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5608,7 +5451,7 @@ rule krawl_vuln_readymade_unilevel_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/readymade-unilevel-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/product-details.php" ascii nocase
+        $path0 = /\/product-details\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5629,7 +5472,7 @@ rule krawl_vuln_reddittop_rss_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/reddittop-rss-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "subreddit=news" ascii nocase
+        $param0 = /(^|[?&;])subreddit=news(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5650,8 +5493,8 @@ rule krawl_vuln_rentequip_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/rentequip-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/shop/products" ascii nocase
-        $param0 = "category=cordless-tools" ascii nocase
+        $path0 = /\/shop\/products(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])category=cordless-tools(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5671,8 +5514,8 @@ rule krawl_vuln_resin_inputfile_fileread {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/resin-inputfile-fileread.yaml"
     strings:
-        $path0 = "/resin-doc/resource/tutorial/jndi-appconfig/test" ascii nocase
-        $param0 = "inputFile=../../../../../index.jsp" ascii nocase
+        $path0 = /\/resin-doc\/resource\/tutorial\/jndi-appconfig\/test(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])inputFile=\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/index\.jsp(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5693,7 +5536,7 @@ rule krawl_vuln_sangfor_cphp_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/sangfor-cphp-rce.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "strip_slashes=system" ascii nocase
+        $param0 = /(^|[?&;])strip_slashes=system(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5714,7 +5557,7 @@ rule krawl_vuln_sangfor_sysuser_conf {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/sangfor-sysuser-conf.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/tmp/updateme/sinfor/ad/sys/sys_user.conf" ascii nocase
+        $path0 = /\/tmp\/updateme\/sinfor\/ad\/sys\/sys_user\.conf(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5735,7 +5578,7 @@ rule krawl_vuln_seacms_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/seacms-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/comment/api/index.php" ascii nocase
+        $path0 = /\/comment\/api\/index\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5756,7 +5599,7 @@ rule krawl_vuln_seeyon_oa_log4j_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/seeyon-oa-log4j-rce.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "login.timezone=GMT 8:00" ascii nocase
+        $param0 = /(^|[?&;])login\.timezone=GMT 8:00(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5777,8 +5620,8 @@ rule krawl_vuln_seowon_router_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/seowon-router-rce.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "traceMode=trace" ascii nocase
-        $param1 = "queriesCnt=;cat /etc/passwd" ascii nocase
+        $param0 = /(^|[?&;])traceMode=trace(&|$)/ nocase
+        $param1 = /(^|[?&;])queriesCnt=;cat \/etc\/passwd(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5798,7 +5641,7 @@ rule krawl_vuln_servicenow_helpdesk_credential {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/servicenow-helpdesk-credential.yaml"
     strings:
-        $path0 = "/HelpTheHelpDesk.jsdbx" ascii nocase
+        $path0 = /\/HelpTheHelpDesk\.jsdbx(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5819,7 +5662,7 @@ rule krawl_vuln_sharp_printers_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/sharp-printers-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/installed_emanual_down.html" ascii nocase
+        $path0 = /\/installed_emanual_down\.html(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5840,7 +5683,7 @@ rule krawl_vuln_siam_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/siam-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/siam-convite/qrcode.jsp" ascii nocase
+        $path0 = /\/siam-convite\/qrcode\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5861,7 +5704,7 @@ rule krawl_vuln_sick_beard_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/sick-beard-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/config/postProcessing/testNaming" ascii nocase
+        $path0 = /\/config\/postProcessing\/testNaming(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5882,8 +5725,8 @@ rule krawl_vuln_siteminder_dom_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/siteminder-dom-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/siteminderagent/forms/smpwservices.fcc" ascii nocase
-        $path1 = "/siteminderagent/forms/smaceauth.fcc" ascii nocase
+        $path0 = /\/siteminderagent\/forms\/smpwservices\.fcc(\/|;|$)/ nocase
+        $path1 = /\/siteminderagent\/forms\/smaceauth\.fcc(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5904,12 +5747,12 @@ rule krawl_vuln_slims_8_akasia_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/slims-8-akasia-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/perpustakaan/index.php" ascii nocase
-        $path1 = "/slims/index.php" ascii nocase
-        $path2 = "/perpustakaan/slims/index.php" ascii nocase
-        $path3 = "/e-library/index.php" ascii nocase
-        $path4 = "/perpus/index.php" ascii nocase
-        $path5 = "/digilib/index.php" ascii nocase
+        $path0 = /\/perpustakaan\/index\.php(\/|;|$)/ nocase
+        $path1 = /\/slims\/index\.php(\/|;|$)/ nocase
+        $path2 = /\/perpustakaan\/slims\/index\.php(\/|;|$)/ nocase
+        $path3 = /\/e-library\/index\.php(\/|;|$)/ nocase
+        $path4 = /\/perpus\/index\.php(\/|;|$)/ nocase
+        $path5 = /\/digilib\/index\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5930,7 +5773,7 @@ rule krawl_vuln_slims_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/slims-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "memberPassWord=password" ascii nocase
+        $param0 = /(^|[?&;])memberPassWord=password(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5951,7 +5794,7 @@ rule krawl_vuln_sofneta_mecdream_pacs_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/sofneta-mecdream-pacs-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/pacs/nocache.php" ascii nocase
+        $path0 = /\/pacs\/nocache\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5972,7 +5815,7 @@ rule krawl_vuln_solarview_compact_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/solarview-compact-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/Solar_Image.php" ascii nocase
+        $path0 = /\/Solar_Image\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5993,7 +5836,7 @@ rule krawl_vuln_sonicwall_nsm_log4j_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/sonicwall-nsm-log4j-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/sonicos/auth" ascii nocase
+        $path0 = /\/api\/sonicos\/auth(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6014,7 +5857,7 @@ rule krawl_vuln_sonicwall_sslvpn_shellshock {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/sonicwall-sslvpn-shellshock.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/cgi-bin/jarrewrite.sh" ascii nocase
+        $path0 = /\/cgi-bin\/jarrewrite\.sh(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6035,30 +5878,9 @@ rule krawl_vuln_sound4_file_disclosure {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/sound4-file-disclosure.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/cgi-bin/loghandler.php" ascii nocase
+        $path0 = /\/cgi-bin\/loghandler\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
-}
-
-rule krawl_vuln_splunk_enterprise_log4j_rce {
-    meta:
-        attack_type = "vuln_splunk_enterprise_log4j_rce"
-        classification = "attack"
-        severity = 9
-        confidence = "medium"
-        description = "Splunk Enterprise - Remote Code Execution (Apache Log4j): Splunk Enterprise is susceptible to Log4j JNDI remote code execution. Splunk Enterprise enables you to search, analyze and visualize your data to quickly act on insights from across your technology landscape."
-        mitre_attack = "T1190, T1059"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/splunk-enterprise-log4j-rce.yaml"
-        response_type = "command_injection"
-    strings:
-        $param0 = "return_to=/en-US/" ascii nocase
-    condition:
-        ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
 
 rule krawl_vuln_sslvpn_client_rce {
@@ -6077,8 +5899,8 @@ rule krawl_vuln_sslvpn_client_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/sslvpn-client-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/sslvpn/sslvpn_client.php" ascii nocase
-        $param0 = "client=logoImg" ascii nocase
+        $path0 = /\/sslvpn\/sslvpn_client\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])client=logoImg(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -6099,7 +5921,7 @@ rule krawl_vuln_symantec_messaging_gateway {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/symantec-messaging-gateway.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/brightmail/servlet/com.ve.kavachart.servlet.ChartStream" ascii nocase
+        $path0 = /\/brightmail\/servlet\/com\.ve\.kavachart\.servlet\.ChartStream(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6119,7 +5941,7 @@ rule krawl_vuln_tamronos_user_creation {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/tamronos-user-creation.yaml"
     strings:
-        $path0 = "/api/manager/submit" ascii nocase
+        $path0 = /\/api\/manager\/submit(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6139,7 +5961,7 @@ rule krawl_vuln_tianqing_info_leak {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/tianqing-info-leak.yaml"
     strings:
-        $path0 = "/api/dbstat/gettablessize" ascii nocase
+        $path0 = /\/api\/dbstat\/gettablessize(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6160,8 +5982,8 @@ rule krawl_vuln_tikiwiki_reflected_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/tikiwiki-reflected-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/tiki-5.2/tiki-edit_wiki_section.php" ascii nocase
-        $path1 = "/tiki-edit_wiki_section.php" ascii nocase
+        $path0 = /\/tiki-5\.2\/tiki-edit_wiki_section\.php(\/|;|$)/ nocase
+        $path1 = /\/tiki-edit_wiki_section\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6182,27 +6004,7 @@ rule krawl_vuln_tikiwiki_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/tikiwiki-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "controller=comment" ascii nocase
-    condition:
-        ((scan_target == "query" or scan_target == "body") and any of ($param*))
-}
-
-rule krawl_vuln_tinytiny_rss_redirect {
-    meta:
-        attack_type = "vuln_tinytiny_rss_redirect"
-        classification = "attack"
-        severity = 3
-        confidence = "medium"
-        description = "TinyTiny RSS Open Redirect: Detected an open redirect vulnerability in Tiny Tiny RSS where the return parameter in public.php was abused to redirect users to an attacker-controlled external URL after the authentication flow."
-        mitre_attack = "T1190"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/tinytiny-rss-redirect.yaml"
-    strings:
-        $param0 = "login=password=" ascii nocase
+        $param0 = /(^|[?&;])controller=comment(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -6223,7 +6025,7 @@ rule krawl_vuln_tpshop_directory_traversal {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/tpshop-directory-traversal.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/index.php/Home/uploadify/fileList" ascii nocase
+        $path0 = /\/index\.php\/Home\/uploadify\/fileList(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6244,7 +6046,7 @@ rule krawl_vuln_turbocrm_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/turbocrm-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/login/forgetpswd.php" ascii nocase
+        $path0 = /\/login\/forgetpswd\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6264,8 +6066,8 @@ rule krawl_vuln_ueditor_file_upload {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/ueditor-file-upload.yaml"
     strings:
-        $path0 = "/ueditor/net/controller.ashx" ascii nocase
-        $param0 = "encode=utf-8" ascii nocase
+        $path0 = /\/ueditor\/net\/controller\.ashx(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])encode=utf-8(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -6286,13 +6088,13 @@ rule krawl_vuln_umbraco_base_ssrf {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/umbraco-base-ssrf.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/umbraco/BackOffice/Api/Help/GetContextHelpForPage" ascii nocase
-        $path1 = "/umbraco/backoffice/UmbracoApi/Dashboard/GetRemoteDashboardContent" ascii nocase
-        $path2 = "/umbraco/backoffice/UmbracoApi/Dashboard/GetRemoteDashboardCss" ascii nocase
-        $param0 = "section=content" ascii nocase
-        $param1 = "tree=undefined" ascii nocase
-        $param2 = "section=TryToAvoidGetCacheItem111" ascii nocase
-        $param3 = "section=AvoidGetCacheItem" ascii nocase
+        $path0 = /\/umbraco\/BackOffice\/Api\/Help\/GetContextHelpForPage(\/|;|$)/ nocase
+        $path1 = /\/umbraco\/backoffice\/UmbracoApi\/Dashboard\/GetRemoteDashboardContent(\/|;|$)/ nocase
+        $path2 = /\/umbraco\/backoffice\/UmbracoApi\/Dashboard\/GetRemoteDashboardCss(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])section=content(&|$)/ nocase
+        $param1 = /(^|[?&;])tree=undefined(&|$)/ nocase
+        $param2 = /(^|[?&;])section=TryToAvoidGetCacheItem111(&|$)/ nocase
+        $param3 = /(^|[?&;])section=AvoidGetCacheItem(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -6312,30 +6114,9 @@ rule krawl_vuln_unauth_spark_api {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/unauth-spark-api.yaml"
     strings:
-        $path0 = "/v1/submissions" ascii nocase
+        $path0 = /\/v1\/submissions(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
-}
-
-rule krawl_vuln_user_management_system_sqli {
-    meta:
-        attack_type = "vuln_user_management_system_sqli"
-        classification = "attack"
-        severity = 7
-        confidence = "medium"
-        description = "User Management/Registration & Login v3.0 - SQL Injection: User Registration & Login and User Management System v3.0 admin panel has SQL vulnerability. Even though the person who discovered the vulnerability tested it in version 3.0, version 3.2 also contains the same."
-        mitre_attack = "T1190"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/user-management-system-sqli.yaml"
-        response_type = "sql_error"
-    strings:
-        $param0 = "password=whatever" ascii nocase
-    condition:
-        ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
 
 rule krawl_vuln_vlife_fastjson_rce {
@@ -6354,7 +6135,7 @@ rule krawl_vuln_vlife_fastjson_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/vlife-fastjson-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/vlife/login" ascii nocase
+        $path0 = /\/vlife\/login(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6375,7 +6156,7 @@ rule krawl_vuln_vmware_siterecovery_log4j_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/vmware-siterecovery-log4j-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/dr/authentication/oauth2/oauth2login" ascii nocase
+        $path0 = /\/dr\/authentication\/oauth2\/oauth2login(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6396,30 +6177,9 @@ rule krawl_vuln_voyager_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/voyager-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/admin/voyager-assets" ascii nocase
+        $path0 = /\/admin\/voyager-assets(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
-}
-
-rule krawl_vuln_vpms_auth_bypass {
-    meta:
-        attack_type = "vuln_vpms_auth_bypass"
-        classification = "attack"
-        severity = 9
-        confidence = "medium"
-        description = "Vehicle Parking Management System 1.0 - SQL Injection: Vehicle Parking Management System 1.0 contains a SQL injection vulnerability via the password parameter. An attacker can possibly obtain sensitive information from a database, modify data, and execute unauthorized."
-        mitre_attack = "T1190"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/vpms-auth-bypass.yaml"
-        response_type = "sql_error"
-    strings:
-        $param0 = "email='=''or'@email.com" ascii nocase
-    condition:
-        ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
 
 rule krawl_vuln_wapples_firewall_lfi {
@@ -6438,7 +6198,7 @@ rule krawl_vuln_wapples_firewall_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/wapples-firewall-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/webapi/file/transfer" ascii nocase
+        $path0 = /\/webapi\/file\/transfer(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6459,7 +6219,7 @@ rule krawl_vuln_webpagetest_ssrf {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/webpagetest-ssrf.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/jpeginfo/jpeginfo.php" ascii nocase
+        $path0 = /\/jpeginfo\/jpeginfo\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6480,10 +6240,9 @@ rule krawl_vuln_webui_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/webui-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/mainfile.php" ascii nocase
-        $param0 = "password=testpoc" ascii nocase
+        $path0 = /\/mainfile\.php(\/|;|$)/ nocase
     condition:
-        (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
+        (scan_target == "path" and any of ($path*))
 }
 
 rule krawl_vuln_wems_manager_xss {
@@ -6502,7 +6261,7 @@ rule krawl_vuln_wems_manager_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/wems-manager-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/guest/users/forgotten" ascii nocase
+        $path0 = /\/guest\/users\/forgotten(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6523,7 +6282,7 @@ rule krawl_vuln_wifisky7_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/wifisky7-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/notice/confirm.php" ascii nocase
+        $path0 = /\/notice\/confirm\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6544,7 +6303,7 @@ rule krawl_vuln_wp_publishpress_capabilities_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/wp-publishpress-capabilities-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "page=pp-capabilities-roles" ascii nocase
+        $param0 = /(^|[?&;])page=pp-capabilities-roles(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -6564,8 +6323,8 @@ rule krawl_vuln_wyse_devicegroup_register {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/wyse-devicegroup-register.yaml"
     strings:
-        $path0 = "/ccm-web/open/deviceGroupLogin2" ascii nocase
-        $path1 = "/ccm-web/open/deviceRegister" ascii nocase
+        $path0 = /\/ccm-web\/open\/deviceGroupLogin2(\/|;|$)/ nocase
+        $path1 = /\/ccm-web\/open\/deviceRegister(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6586,28 +6345,7 @@ rule krawl_vuln_xerox_efi_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/xerox-efi-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wt3/forceSave.php" ascii nocase
-    condition:
-        (scan_target == "path" and any of ($path*))
-}
-
-rule krawl_vuln_xhibiter_nft_sqli {
-    meta:
-        attack_type = "vuln_xhibiter_nft_sqli"
-        classification = "attack"
-        severity = 7
-        confidence = "medium"
-        description = "Xhibiter NFT Marketplace 1.10.2 - SQL Injection: The Xhibiter NFT Marketplace version 1.10.2 is vulnerable to a SQL Injection vulnerability. This allows an attacker to manipulate SQL queries by injecting malicious SQL code through vulnerable input fields."
-        mitre_attack = "T1190"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/xhibiter-nft-sqli.yaml"
-        response_type = "sql_error"
-    strings:
-        $path0 = "/collections" ascii nocase
+        $path0 = /\/wt3\/forceSave\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6628,11 +6366,11 @@ rule krawl_vuln_yapi_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/yapi-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/group/list" ascii nocase
-        $path1 = "/api/project/add" ascii nocase
-        $path2 = "/api/project/get" ascii nocase
-        $path3 = "/api/interface/add" ascii nocase
-        $path4 = "/api/plugin/advmock/save" ascii nocase
+        $path0 = /\/api\/group\/list(\/|;|$)/ nocase
+        $path1 = /\/api\/project\/add(\/|;|$)/ nocase
+        $path2 = /\/api\/project\/get(\/|;|$)/ nocase
+        $path3 = /\/api\/interface\/add(\/|;|$)/ nocase
+        $path4 = /\/api\/plugin\/advmock\/save(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6653,7 +6391,7 @@ rule krawl_vuln_yarn_resourcemanager_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/yarn-resourcemanager-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/ws/v1/cluster/apps/new-application" ascii nocase
+        $path0 = /\/ws\/v1\/cluster\/apps\/new-application(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6674,7 +6412,7 @@ rule krawl_vuln_yeswiki_stored_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/yeswiki-stored-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "vue=consulter" ascii nocase
+        $param0 = /(^|[?&;])vue=consulter(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -6695,7 +6433,7 @@ rule krawl_vuln_yibao_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/yibao-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/api/system/ExecuteSqlForSingle" ascii nocase
+        $path0 = /\/api\/system\/ExecuteSqlForSingle(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6716,7 +6454,7 @@ rule krawl_vuln_yishaadmin_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/yishaadmin-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/admin/File/DownloadFile" ascii nocase
+        $path0 = /\/admin\/File\/DownloadFile(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6737,7 +6475,7 @@ rule krawl_vuln_yunanbao_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/yunanbao-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/3.0/authService/config" ascii nocase
+        $path0 = /\/3\.0\/authService\/config(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6758,7 +6496,7 @@ rule krawl_vuln_zcms_v3_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/zcms-v3-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/admin/cms_channel.php" ascii nocase
+        $path0 = /\/admin\/cms_channel\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6779,7 +6517,7 @@ rule krawl_vuln_zhixiang_oa_msglog_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/zhixiang-oa-msglog-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/mainpage/msglog.aspx" ascii nocase
+        $path0 = /\/mainpage\/msglog\.aspx(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6800,7 +6538,7 @@ rule krawl_vuln_zimbra_preauth_ssrf {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/zimbra-preauth-ssrf.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/service/error/sfdc_preauth.jsp" ascii nocase
+        $path0 = /\/service\/error\/sfdc_preauth\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6820,7 +6558,7 @@ rule krawl_vuln_zqnb_educationcloud_exposure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/zqnb-educationcloud-exposure.yaml"
     strings:
-        $path0 = "/api/TeacherQuery/SearchTeacherInSiteWithPagerRecords" ascii nocase
+        $path0 = /\/api\/TeacherQuery\/SearchTeacherInSiteWithPagerRecords(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6841,8 +6579,8 @@ rule krawl_vuln_zzcms_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/zzcms-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/admin/logincheck.php" ascii nocase
-        $path1 = "/admin/usermodify.php" ascii nocase
+        $path0 = /\/admin\/logincheck\.php(\/|;|$)/ nocase
+        $path1 = /\/admin\/usermodify\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6862,7 +6600,7 @@ rule krawl_vuln_phoenix_contact_charx_multiple_vulnerabilities {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/phoenix-contact/phoenix-contact-charx-multiple-vulnerabilities.yaml"
     strings:
-        $path0 = "/api/v1.0/web/retained-data" ascii nocase
+        $path0 = /\/api\/v1\.0\/web\/retained-data(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6883,7 +6621,7 @@ rule krawl_vuln_phpjabbers_event_booking_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/phpjabbers/phpjabbers-event-booking-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/scripts/event-booking-calendar/preview.php" ascii nocase
+        $path0 = /\/scripts\/event-booking-calendar\/preview\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6903,7 +6641,7 @@ rule krawl_vuln_pkp_lib_open_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/pkp-lib-open-redirect.yaml"
     strings:
-        $path0 = "/index.php/index/user/setLocale/NEW_LOCALE" ascii nocase
+        $path0 = /\/index\.php\/index\/user\/setLocale\/NEW_LOCALE(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6923,7 +6661,7 @@ rule krawl_vuln_portainer_init_deploy {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/portainer-init-deploy.yaml"
     strings:
-        $path0 = "/api/users/admin/check" ascii nocase
+        $path0 = /\/api\/users\/admin\/check(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6943,7 +6681,7 @@ rule krawl_vuln_prestashop_blocktestimonial_file_upload {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/prestashop/prestashop-blocktestimonial-file-upload.yaml"
     strings:
-        $path0 = "/modules/blocktestimonial/addtestimonial.php" ascii nocase
+        $path0 = /\/modules\/blocktestimonial\/addtestimonial\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6963,7 +6701,7 @@ rule krawl_vuln_secsslvpn_auth_bypass {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/qax/secsslvpn-auth-bypass.yaml"
     strings:
-        $path0 = "/admin/group/x_group.php" ascii nocase
+        $path0 = /\/admin\/group\/x_group\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -6983,7 +6721,7 @@ rule krawl_vuln_qibocms_file_download {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/qibocms-file-download.yaml"
     strings:
-        $param0 = "url=ZGF0YS9jb25maWcucGg8" ascii nocase
+        $param0 = /(^|[?&;])url=ZGF0YS9jb25maWcucGg8(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -7004,9 +6742,9 @@ rule krawl_vuln_rails6_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/rails/rails6-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/rails/actions" ascii nocase
-        $param0 = "error=ActiveRecord::PendingMigrationError" ascii nocase
-        $param1 = "action=Run pending migrations" ascii nocase
+        $path0 = /\/rails\/actions(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])error=ActiveRecord::PendingMigrationError(&|$)/ nocase
+        $param1 = /(^|[?&;])action=Run pending migrations(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -7027,9 +6765,9 @@ rule krawl_vuln_realor_gwt_system_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/realor/realor-gwt-system-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/AgentBoard.XGI" ascii nocase
-        $path1 = "/Board.XGI" ascii nocase
-        $param0 = "cmd=UserLogin" ascii nocase
+        $path0 = /\/AgentBoard\.XGI(\/|;|$)/ nocase
+        $path1 = /\/Board\.XGI(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])cmd=UserLogin(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -7050,7 +6788,7 @@ rule krawl_vuln_retool_postmessage_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/retool/retool-postmessage-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/custom-component-collections.html" ascii nocase
+        $path0 = /\/custom-component-collections\.html(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7071,7 +6809,7 @@ rule krawl_vuln_retool_svg_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/retool/retool-svg-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/api/imageProxy" ascii nocase
+        $path0 = /\/api\/imageProxy(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7091,7 +6829,7 @@ rule krawl_vuln_rocketchat_unauth_access {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/rocketchat/unauth-message-read.yaml"
     strings:
-        $path0 = "/api/v1/method.callAnon/cve_exploit" ascii nocase
+        $path0 = /\/api\/v1\/method\.callAnon\/cve_exploit(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7112,8 +6850,8 @@ rule krawl_vuln_royalevent_stored_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/royalevent/royalevent-stored-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/royal_event/companyprofile.php" ascii nocase
-        $param0 = "country=India" ascii nocase
+        $path0 = /\/royal_event\/companyprofile\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])country=India(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -7133,7 +6871,7 @@ rule krawl_vuln_ruijie_excu_shell {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/ruijie/ruijie-excu-shell.yaml"
     strings:
-        $path0 = "/EXCU_SHELL" ascii nocase
+        $path0 = /\/EXCU_SHELL(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7153,8 +6891,8 @@ rule krawl_vuln_ruijie_nbr_fileupload {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/ruijie/ruijie-nbr-fileupload.yaml"
     strings:
-        $path0 = "/ddi/server/fileupload.php" ascii nocase
-        $param0 = "uploadDir=upload" ascii nocase
+        $path0 = /\/ddi\/server\/fileupload\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])uploadDir=upload(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -7174,9 +6912,9 @@ rule krawl_vuln_ruijie_nmc_sync_rce {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/ruijie/ruijie-nmc-sync-rce.yaml"
     strings:
-        $path0 = "/view/systemConfig/management/nmc_sync.php" ascii nocase
+        $path0 = /\/view\/systemConfig\/management\/nmc_sync\.php(\/|;|$)/ nocase
         $path1 = "/view/systemConfig/management/" ascii nocase
-        $param0 = "center_ip=127.0.0.1" ascii nocase
+        $param0 = /(^|[?&;])center_ip=127\.0\.0\.1(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -7197,10 +6935,9 @@ rule krawl_vuln_sangfor_edr_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/sangfor/sangfor-edr-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/edr/sangforinter/v2/cssp/slog_client" ascii nocase
-        $param0 = "token=eyJtZDUiOnRydWV9" ascii nocase
+        $path0 = /\/api\/edr\/sangforinter\/v2\/cssp\/slog_client(\/|;|$)/ nocase
     condition:
-        (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
+        (scan_target == "path" and any of ($path*))
 }
 
 rule krawl_vuln_sangfor_login_rce {
@@ -7219,8 +6956,8 @@ rule krawl_vuln_sangfor_login_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/sangfor/sangfor-login-rce.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "log_type=report" ascii nocase
-        $param1 = "loginType=account" ascii nocase
+        $param0 = /(^|[?&;])log_type=report(&|$)/ nocase
+        $param1 = /(^|[?&;])loginType=account(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -7241,27 +6978,7 @@ rule krawl_vuln_sangfor_nextgen_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/sangfor/sangfor-ngaf-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/svpn_html/loadfile.php" ascii nocase
-    condition:
-        (scan_target == "path" and any of ($path*))
-}
-
-rule krawl_vuln_secgate_3600_file_upload {
-    meta:
-        attack_type = "vuln_secgate_3600_file_upload"
-        classification = "attack"
-        severity = 9
-        confidence = "medium"
-        description = "SecGate 3600 Firewall obj_app_upfile - Arbitrary File Upload: There is an arbitrary file upload vulnerability in the obj_app_upfile interface of Internet SecGate 3600 firewall. An attacker can obtain server permissions by constructing a special request package."
-        mitre_attack = "T1190"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/secworld/secgate-3600-file-upload.yaml"
-    strings:
-        $path0 = "/attachements/" ascii nocase
+        $path0 = /\/svpn_html\/loadfile\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7281,7 +6998,7 @@ rule krawl_vuln_seeyon_config_exposure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/seeyon/seeyon-config-exposure.yaml"
     strings:
-        $path0 = "/yyoa/ext/trafaxserver/SystemManage/config.jsp" ascii nocase
+        $path0 = /\/yyoa\/ext\/trafaxserver\/SystemManage\/config\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7301,8 +7018,8 @@ rule krawl_vuln_seeyon_createmysql_exposure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/seeyon/seeyon-createmysql-exposure.yaml"
     strings:
-        $path0 = "/yyoa/createMysql.jsp" ascii nocase
-        $path1 = "/yyoa/ext/createMysql.jsp" ascii nocase
+        $path0 = /\/yyoa\/createMysql\.jsp(\/|;|$)/ nocase
+        $path1 = /\/yyoa\/ext\/createMysql\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7322,7 +7039,7 @@ rule krawl_vuln_seeyon_initdata_exposure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/seeyon/seeyon-initdata-exposure.yaml"
     strings:
-        $path0 = "/yyoa/assess/js/initDataAssess.jsp" ascii nocase
+        $path0 = /\/yyoa\/assess\/js\/initDataAssess\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7343,7 +7060,7 @@ rule krawl_vuln_seeyon_oa_fastjson_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/seeyon/seeyon-oa-fastjson-rce.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "method=changeLocale" ascii nocase
+        $param0 = /(^|[?&;])method=changeLocale(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -7364,7 +7081,7 @@ rule krawl_vuln_seeyon_oa_setextno_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/seeyon/seeyon-oa-setextno-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/yyoa/ext/trafaxserver/ExtnoManage/setextno.jsp" ascii nocase
+        $path0 = /\/yyoa\/ext\/trafaxserver\/ExtnoManage\/setextno\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7385,7 +7102,7 @@ rule krawl_vuln_zhiyuan_file_upload {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/seeyon/zhiyuan-file-upload.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/seeyon/thirdpartyController.do.css/..;/ajax.do" ascii nocase
+        $path0 = /\/seeyon\/thirdpartyController\.do\.css\/\.\.;\/ajax\.do(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7405,8 +7122,8 @@ rule krawl_vuln_zhiyuan_oa_info_leak {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/seeyon/zhiyuan-oa-info-leak.yaml"
     strings:
-        $path0 = "/yyoa/DownExcelBeanServlet" ascii nocase
-        $param0 = "contenttype=username" ascii nocase
+        $path0 = /\/yyoa\/DownExcelBeanServlet(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])contenttype=username(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -7426,7 +7143,7 @@ rule krawl_vuln_zhiyuan_oa_session_leak {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/seeyon/zhiyuan-oa-session-leak.yaml"
     strings:
-        $path0 = "/yyoa/ext/https/getSessionList.jsp" ascii nocase
+        $path0 = /\/yyoa\/ext\/https\/getSessionList\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7446,8 +7163,8 @@ rule krawl_vuln_smartbi_deserialization {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/smartbi/smartbi-deserialization.yaml"
     strings:
-        $param0 = "className=UserService" ascii nocase
-        $param1 = "methodName=isLogged" ascii nocase
+        $param0 = /(^|[?&;])className=UserService(&|$)/ nocase
+        $param1 = /(^|[?&;])methodName=isLogged(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -7468,8 +7185,8 @@ rule krawl_vuln_solarview_compact_pow_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/solarview-compact-pow-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/Solar_SlideSub.php" ascii nocase
-        $param0 = "bgcolor=green" ascii nocase
+        $path0 = /\/Solar_SlideSub\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])bgcolor=green(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -7490,7 +7207,7 @@ rule krawl_vuln_solarview_compact_time_begin_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/solarview-compact-time-begin-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/Solar_History.php" ascii nocase
+        $path0 = /\/Solar_History\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7511,7 +7228,7 @@ rule krawl_vuln_splash_render_ssrf {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/splash/splash-render-ssrf.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/render.html" ascii nocase
+        $path0 = /\/render\.html(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7531,7 +7248,7 @@ rule krawl_vuln_springblade_info_leak {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/springblade-info-leak.yaml"
     strings:
-        $path0 = "/api/blade-user/user-list" ascii nocase
+        $path0 = /\/api\/blade-user\/user-list(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7551,8 +7268,8 @@ rule krawl_vuln_springboot_actuators_jolokia_xxe {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/springboot/springboot-actuators-jolokia-xxe.yaml"
     strings:
-        $path0 = "/jolokia/exec/ch.qos.logback.classic:Name=default,Type=ch.qos.logback.classic.jmx.JMXConfigurator/reloadByURL/http:!/!/nonexistent:31337!/logback.xml" ascii nocase
-        $path1 = "/actuator/jolokia/exec/ch.qos.logback.classic:Name=default,Type=ch.qos.logback.classic.jmx.JMXConfigurator/reloadByURL/http:!/!/random:915!/logback.xml" ascii nocase
+        $path0 = /\/jolokia\/exec\/ch\.qos\.logback\.classic:Name=default,Type=ch\.qos\.logback\.classic\.jmx\.JMXConfigurator\/reloadByURL\/http:!\/!\/nonexistent:31337!\/logback\.xml(\/|;|$)/ nocase
+        $path1 = /\/actuator\/jolokia\/exec\/ch\.qos\.logback\.classic:Name=default,Type=ch\.qos\.logback\.classic\.jmx\.JMXConfigurator\/reloadByURL\/http:!\/!\/random:915!\/logback\.xml(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7573,7 +7290,7 @@ rule krawl_vuln_springboot_h2_db_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/springboot/springboot-h2-db-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/actuator/env" ascii nocase
+        $path0 = /\/actuator\/env(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7594,7 +7311,7 @@ rule krawl_vuln_squirrelmail_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/squirrelmail/squirrelmail-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "mailbox=/etc/passwd" ascii nocase
+        $param0 = /(^|[?&;])mailbox=\/etc\/passwd(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -7615,7 +7332,7 @@ rule krawl_vuln_squirrelmail_vkeyboard_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/squirrelmail/squirrelmail-vkeyboard-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/plugins/vkeyboard/vkeyboard.php" ascii nocase
+        $path0 = /\/plugins\/vkeyboard\/vkeyboard\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7636,7 +7353,7 @@ rule krawl_vuln_sanhuismg_radius_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/synway/synwaysmg-radius-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/en/9-2radius.php" ascii nocase
+        $path0 = /\/en\/9-2radius\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7657,7 +7374,7 @@ rule krawl_vuln_temenos_t24_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/temenos-t24-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/jsps/genrequest.jsp" ascii nocase
+        $path0 = /\/jsps\/genrequest\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7678,7 +7395,7 @@ rule krawl_vuln_temenos_transact_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/temenos-transact-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/jsps/helprequest.jsp" ascii nocase
+        $path0 = /\/jsps\/helprequest\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7699,7 +7416,7 @@ rule krawl_vuln_thinkcmf_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/thinkcmf/thinkcmf-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "templateFile=README.md" ascii nocase
+        $param0 = /(^|[?&;])templateFile=README\.md(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -7720,7 +7437,7 @@ rule krawl_vuln_thinkphp_501_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/thinkphp/thinkphp-501-rce.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "filter[]=system" ascii nocase
+        $param0 = /(^|[?&;])filter\[\]=system(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -7741,7 +7458,7 @@ rule krawl_vuln_thinkphp_5023_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/thinkphp/thinkphp-5023-rce.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "filter[]=phpinfo" ascii nocase
+        $param0 = /(^|[?&;])filter\[\]=phpinfo(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -7761,7 +7478,7 @@ rule krawl_vuln_tongda_action_uploadfile {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/tongda/tongda-action-uploadfile.yaml"
     strings:
-        $path0 = "/module/ueditor/php/action_upload.php" ascii nocase
+        $path0 = /\/module\/ueditor\/php\/action_upload\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7781,8 +7498,8 @@ rule krawl_vuln_tongda_api_file_upload {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/tongda/tongda-api-file-upload.yaml"
     strings:
-        $path0 = "/mobile/api/api.ali.php" ascii nocase
-        $path1 = "/inc/package/work.php" ascii nocase
+        $path0 = /\/mobile\/api\/api\.ali\.php(\/|;|$)/ nocase
+        $path1 = /\/inc\/package\/work\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7802,7 +7519,7 @@ rule krawl_vuln_tongda_auth_bypass {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/tongda/tongda-auth-bypass.yaml"
     strings:
-        $path0 = "/mobile/auth_mobi.php" ascii nocase
+        $path0 = /\/mobile\/auth_mobi\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7822,7 +7539,7 @@ rule krawl_vuln_tongda_contact_list_exposure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/tongda/tongda-contact-list-exposure.yaml"
     strings:
-        $path0 = "/mobile/inc/get_contactlist.php" ascii nocase
+        $path0 = /\/mobile\/inc\/get_contactlist\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7843,8 +7560,8 @@ rule krawl_vuln_tongda_getdata_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/tongda/tongda-getdata-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/general/appbuilder/web/portal/gateway/getdata" ascii nocase
-        $param0 = "module=Carouselimage" ascii nocase
+        $path0 = /\/general\/appbuilder\/web\/portal\/gateway\/getdata(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])module=Carouselimage(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -7864,7 +7581,7 @@ rule krawl_vuln_tongda_getway_rfi {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/tongda/tongda-getway-rfi.yaml"
     strings:
-        $path0 = "/mac/gateway.php" ascii nocase
+        $path0 = /\/mac\/gateway\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7885,7 +7602,7 @@ rule krawl_vuln_tongda_insert_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/tongda/tongda-insert-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/general/document/index.php/recv/register/insert" ascii nocase
+        $path0 = /\/general\/document\/index\.php\/recv\/register\/insert(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7905,8 +7622,8 @@ rule krawl_vuln_tongda_login_code_authbypass {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/tongda/tongda-login-code-authbypass.yaml"
     strings:
-        $path0 = "/general/login_code.php" ascii nocase
-        $path1 = "/logincheck_code.php" ascii nocase
+        $path0 = /\/general\/login_code\.php(\/|;|$)/ nocase
+        $path1 = /\/logincheck_code\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7926,8 +7643,8 @@ rule krawl_vuln_tongda_meeting_unauth {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/tongda/tongda-meeting-unauth.yaml"
     strings:
-        $path0 = "/general/calendar/arrange/get_cal_list.php" ascii nocase
-        $param0 = "view=agendaDay" ascii nocase
+        $path0 = /\/general\/calendar\/arrange\/get_cal_list\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])view=agendaDay(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -7948,7 +7665,7 @@ rule krawl_vuln_tongda_oa_swfupload_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/tongda/tongda-oa-swfupload-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/general/file_folder/swfupload_new.php" ascii nocase
+        $path0 = /\/general\/file_folder\/swfupload_new\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7969,7 +7686,7 @@ rule krawl_vuln_tongda_report_func_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/tongda/tongda-report-func-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/general/bi_design/appcenter/report_bi.func.php" ascii nocase
+        $path0 = /\/general\/bi_design\/appcenter\/report_bi\.func\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -7989,7 +7706,7 @@ rule krawl_vuln_tongda_session_disclosure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/tongda/tongda-session-disclosure.yaml"
     strings:
-        $path0 = "/general/userinfo.php" ascii nocase
+        $path0 = /\/general\/userinfo\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8010,9 +7727,9 @@ rule krawl_vuln_tongda_video_file_read {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/tongda/tongda-video-file-read.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/general/mytable/intel_view/video_file.php" ascii nocase
-        $param0 = "MEDIA_DIR=../../../inc/" ascii nocase
-        $param1 = "MEDIA_NAME=oa_config.php" ascii nocase
+        $path0 = /\/general\/mytable\/intel_view\/video_file\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])MEDIA_DIR=\.\.\/\.\.\/\.\.\/inc\/(&|$)/ nocase
+        $param1 = /(^|[?&;])MEDIA_NAME=oa_config\.php(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -8032,7 +7749,7 @@ rule krawl_vuln_tongdaoa_auth_bypass {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/tongda/tongdaoa-auth-bypass.yaml"
     strings:
-        $path0 = "/module/retrieve_pwd/header.inc.php" ascii nocase
+        $path0 = /\/module\/retrieve_pwd\/header\.inc\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8053,7 +7770,7 @@ rule krawl_vuln_topsec_topacm_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/topsec/topsec-topacm-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/view/IPV6/naborTable/static_convert.php" ascii nocase
+        $path0 = /\/view\/IPV6\/naborTable\/static_convert\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8073,7 +7790,7 @@ rule krawl_vuln_topsec_topapplb_auth_bypass {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/topsec/topsec-topapplb-auth-bypass.yaml"
     strings:
-        $path0 = "/login_check.php" ascii nocase
+        $path0 = /\/login_check\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8094,8 +7811,8 @@ rule krawl_vuln_totolink_boaform_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/totolink-boaform-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/boaform/formWsc" ascii nocase
-        $param0 = "targetAPMac=001A2B3C4D5E" ascii nocase
+        $path0 = /\/boaform\/formWsc(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])targetAPMac=001A2B3C4D5E(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -8115,7 +7832,7 @@ rule krawl_vuln_tp_link_wr840n_auth_bypass {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/tp-link-wr840n-auth-bypass.yaml"
     strings:
-        $path0 = "/cgi/getParm" ascii nocase
+        $path0 = /\/cgi\/getParm(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8136,7 +7853,7 @@ rule krawl_vuln_ueditor_ssrf {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/ueditor/ueditor-ssrf.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/ueditor/jsp/controller.jsp" ascii nocase
+        $path0 = /\/ueditor\/jsp\/controller\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8157,8 +7874,8 @@ rule krawl_vuln_ueditor_arbitrary_file_upload {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/ueditor-arbitrary-file-upload.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "action=uploadimage" ascii nocase
-        $param1 = "CONFIG[imageAllowFiles][]=.php" ascii nocase
+        $param0 = /(^|[?&;])action=uploadimage(&|$)/ nocase
+        $param1 = /(^|[?&;])CONFIG\[imageAllowFiles\]\[\]=\.php(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -8179,9 +7896,9 @@ rule krawl_vuln_una_cms_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/una-cms-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/cache_public/sh.phtml" ascii nocase
-        $path1 = "/cache_public/sh.php" ascii nocase
-        $param0 = "a=SetAclLevel" ascii nocase
+        $path0 = /\/cache_public\/sh\.phtml(\/|;|$)/ nocase
+        $path1 = /\/cache_public\/sh\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])a=SetAclLevel(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -8202,7 +7919,7 @@ rule krawl_vuln_arcade_php_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/vbulletin/arcade-php-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/arcade.php" ascii nocase
+        $path0 = /\/arcade\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8223,7 +7940,7 @@ rule krawl_vuln_vbulletin_backdoor {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/vbulletin/vbulletin-backdoor.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/forum.php" ascii nocase
+        $path0 = /\/forum\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8244,7 +7961,7 @@ rule krawl_vuln_vicidial_info_disclosure {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/vicidial-info-disclosure.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/agc/vicidial_mysqli_errors.txt" ascii nocase
+        $path0 = /\/agc\/vicidial_mysqli_errors\.txt(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8265,7 +7982,7 @@ rule krawl_vuln_vmware_cloud_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/vmware/vmware-cloud-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "redirectTo=/tenant/e" ascii nocase
+        $param0 = /(^|[?&;])redirectTo=\/tenant\/e(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -8291,29 +8008,6 @@ rule krawl_vuln_vmware_nsx_stream_rce {
         (scan_target == "path" and any of ($path*))
 }
 
-rule krawl_vuln_vmware_operation_manager_log4j_rce {
-    meta:
-        attack_type = "vuln_vmware_operation_manager_log4j_rce"
-        classification = "attack"
-        severity = 9
-        confidence = "medium"
-        description = "VMware Operations Manager - Remote Code Execution (Apache Log4j): VMware Operations Manager is susceptible to remote code execution via the Apache Log4j framework. An attacker can execute malware, obtain sensitive information, modify data, and/or gain full control over a."
-        mitre_attack = "T1190, T1059"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/vmware/vmware-operation-manager-log4j-rce.yaml"
-        response_type = "command_injection"
-    strings:
-        $param0 = "authSourceId=localItem" ascii nocase
-        $param1 = "authSourceName=Local Users" ascii nocase
-        $param2 = "authSourceType=LOCAL" ascii nocase
-    condition:
-        ((scan_target == "query" or scan_target == "body") and any of ($param*))
-}
-
 rule krawl_vuln_vmware_vcenter_log4j_rce {
     meta:
         attack_type = "vuln_vmware_vcenter_log4j_rce"
@@ -8330,7 +8024,7 @@ rule krawl_vuln_vmware_vcenter_log4j_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/vmware/vmware-vcenter-log4j-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/websso/SAML2/SSO/vsphere.local" ascii nocase
+        $path0 = /\/websso\/SAML2\/SSO\/vsphere\.local(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8351,7 +8045,7 @@ rule krawl_vuln_vmware_vcenter_ssrf {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/vmware/vmware-vcenter-ssrf.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/ui/vcav-bootstrap/rest/vcav-providers/provider-logo" ascii nocase
+        $path0 = /\/ui\/vcav-bootstrap\/rest\/vcav-providers\/provider-logo(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8372,7 +8066,7 @@ rule krawl_vuln_vrealize_operations_log4j_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/vmware/vrealize-operations-log4j-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/suite-api/api/auth/token/acquire" ascii nocase
+        $path0 = /\/suite-api\/api\/auth\/token\/acquire(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8393,7 +8087,7 @@ rule krawl_vuln_wanhu_download_ftp_file_read {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wanhu/wanhu-download-ftp-file-read.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/defaultroot/download_ftp.jsp" ascii nocase
+        $path0 = /\/defaultroot\/download_ftp\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8414,7 +8108,7 @@ rule krawl_vuln_wanhu_download_old_file_read {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wanhu/wanhu-download-old-file-read.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/defaultroot/download_old.jsp" ascii nocase
+        $path0 = /\/defaultroot\/download_old\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8434,7 +8128,7 @@ rule krawl_vuln_wanhu_oa_fileupload_controller {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wanhu/wanhu-oa-fileupload-controller-arbitrary-file-upload.yaml"
     strings:
-        $path0 = "/defaultroot/upload/fileUpload.controller" ascii nocase
+        $path0 = /\/defaultroot\/upload\/fileUpload\.controller(\/|;|$)/ nocase
         $path1 = "/defaultroot/upload/html/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -8455,7 +8149,7 @@ rule krawl_vuln_wanhu_teleconferenceservice_xxe {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wanhu/wanhu-teleconferenceservice-xxe.yaml"
     strings:
-        $path0 = "/defaultroot/iWebOfficeSign/OfficeServer.jsp/../../TeleConferenceService" ascii nocase
+        $path0 = /\/defaultroot\/iWebOfficeSign\/OfficeServer\.jsp\/\.\.\/\.\.\/TeleConferenceService(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8476,8 +8170,8 @@ rule krawl_vuln_wanhuoa_downloadservlet_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wanhu/wanhuoa-downloadservlet-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/defaultroot/DownloadServlet" ascii nocase
-        $param0 = "FileName=WEB-INF/classes/fc.properties" ascii nocase
+        $path0 = /\/defaultroot\/DownloadServlet(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])FileName=WEB-INF\/classes\/fc\.properties(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -8497,7 +8191,7 @@ rule krawl_vuln_wanhuoa_officeserverservlet_file_upload {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wanhu/wanhuoa-officeserverservlet-file-upload.yaml"
     strings:
-        $path0 = "/defaultroot/officeserverservlet" ascii nocase
+        $path0 = /\/defaultroot\/officeserverservlet(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8517,12 +8211,12 @@ rule krawl_vuln_wanhuoa_smartupload_file_upload {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wanhu/wanhuoa-smartupload-file-upload.yaml"
     strings:
-        $path0 = "/defaultroot/extension/smartUpload.jsp" ascii nocase
-        $param0 = "path=information" ascii nocase
-        $param1 = "fileName=infoPicName" ascii nocase
-        $param2 = "saveName=infoPicSaveName" ascii nocase
-        $param3 = "tableName=infoPicTable" ascii nocase
-        $param4 = "fileType=gif,jpg,bmp,jsp,png" ascii nocase
+        $path0 = /\/defaultroot\/extension\/smartUpload\.jsp(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])path=information(&|$)/ nocase
+        $param1 = /(^|[?&;])fileName=infoPicName(&|$)/ nocase
+        $param2 = /(^|[?&;])saveName=infoPicSaveName(&|$)/ nocase
+        $param3 = /(^|[?&;])tableName=infoPicTable(&|$)/ nocase
+        $param4 = /(^|[?&;])fileType=gif,jpg,bmp,jsp,png(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -8563,9 +8257,9 @@ rule krawl_vuln_ecology_execforstr_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/ecology/ecology-execforstr-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/papi/esearch/data/devops/dubboApi/debug/method" ascii nocase
-        $param0 = "interfaceName=cn.hutool.core.util.RuntimeUtil" ascii nocase
-        $param1 = "methodName=execForStr" ascii nocase
+        $path0 = /\/papi\/esearch\/data\/devops\/dubboApi\/debug\/method(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])interfaceName=cn\.hutool\.core\.util\.RuntimeUtil(&|$)/ nocase
+        $param1 = /(^|[?&;])methodName=execForStr(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -8586,8 +8280,8 @@ rule krawl_vuln_ecology_filedownload_directory_traversal {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/ecology/ecology-filedownload-directory-traversal.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/weaver/ln.FileDownload" ascii nocase
-        $param0 = "fpath=../ecology/WEB-INF/web.xml" ascii nocase
+        $path0 = /\/weaver\/ln\.FileDownload(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])fpath=\.\.\/ecology\/WEB-INF\/web\.xml(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -8607,7 +8301,7 @@ rule krawl_vuln_ecology_oa_byxml_xxe {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/ecology/ecology-oa-byxml-xxe.yaml"
     strings:
-        $path0 = "/rest/ofs/deleteUserRequestInfoByXml" ascii nocase
+        $path0 = /\/rest\/ofs\/deleteUserRequestInfoByXml(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8628,7 +8322,7 @@ rule krawl_vuln_ecology_springframework_directory_traversal {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/ecology/ecology-springframework-directory-traversal.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/weaver/org.springframework.web.servlet.ResourceServlet" ascii nocase
+        $path0 = /\/weaver\/org\.springframework\.web\.servlet\.ResourceServlet(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8649,7 +8343,7 @@ rule krawl_vuln_ecology_syncuserinfo_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/ecology/ecology-syncuserinfo-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/mobile/plugin/SyncUserInfo.jsp" ascii nocase
+        $path0 = /\/mobile\/plugin\/SyncUserInfo\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8670,8 +8364,8 @@ rule krawl_vuln_ecology_jqueryfiletree_traversal {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/ecology-jqueryfiletree-traversal.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/hrm/hrm_e9/orgChart/js/jquery/plugins/jqueryFileTree/connectors/jqueryFileTree.jsp" ascii nocase
-        $param0 = "dir=/page/resource/userfile/../../" ascii nocase
+        $path0 = /\/hrm\/hrm_e9\/orgChart\/js\/jquery\/plugins\/jqueryFileTree\/connectors\/jqueryFileTree\.jsp(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])dir=\/page\/resource\/userfile\/\.\.\/\.\.\/(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -8691,8 +8385,8 @@ rule krawl_vuln_ecology_verifyquicklogin_auth_bypass {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/ecology-verifyquicklogin-auth-bypass.yaml"
     strings:
-        $path0 = "/mobile/plugin/VerifyQuickLogin.jsp" ascii nocase
-        $param0 = "ipaddress=x.x.x.x" ascii nocase
+        $path0 = /\/mobile\/plugin\/VerifyQuickLogin\.jsp(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])ipaddress=x\.x\.x\.x(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -8712,7 +8406,7 @@ rule krawl_vuln_weaver_eoffice_file_upload {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/eoffice/weaver-eoffice-file-upload.yaml"
     strings:
-        $path0 = "/E-mobile/App/Ajax/ajax.php" ascii nocase
+        $path0 = /\/E-mobile\/App\/Ajax\/ajax\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8733,7 +8427,7 @@ rule krawl_vuln_oa_v9_uploads_file {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/oa-v9-uploads-file.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/page/exportImport/fileTransfer/poc.jsp" ascii nocase
+        $path0 = /\/page\/exportImport\/fileTransfer\/poc\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8754,8 +8448,8 @@ rule krawl_vuln_weaver_checkserver_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-checkserver-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/mobile/plugin/CheckServer.jsp" ascii nocase
-        $param0 = "type=mobileSetting" ascii nocase
+        $path0 = /\/mobile\/plugin\/CheckServer\.jsp(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])type=mobileSetting(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -8776,8 +8470,8 @@ rule krawl_vuln_weaver_e_cology_validate_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-e-cology-validate-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/cpt/manage/validate.jsp" ascii nocase
-        $param0 = "sourcestring=validateNum" ascii nocase
+        $path0 = /\/cpt\/manage\/validate\.jsp(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])sourcestring=validateNum(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -8798,7 +8492,7 @@ rule krawl_vuln_weaver_e_mobile_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-e-mobile-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/client.do" ascii nocase
+        $path0 = /\/client\.do(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8819,7 +8513,7 @@ rule krawl_vuln_weaver_ebridge_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-ebridge-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wxjsapi/saveYZJFile" ascii nocase
+        $path0 = /\/wxjsapi\/saveYZJFile(\/|;|$)/ nocase
         $path1 = "/file/fileNoLogin/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -8841,7 +8535,7 @@ rule krawl_vuln_weaver_ecology_bshservlet_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-ecology-bshservlet-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/weaver/bsh.servlet.BshServlet" ascii nocase
+        $path0 = /\/weaver\/bsh\.servlet\.BshServlet(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8862,7 +8556,7 @@ rule krawl_vuln_weaver_ecology_getsqldata_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-ecology-getsqldata-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/Api/portal/elementEcodeAddon/getSqlData" ascii nocase
+        $path0 = /\/Api\/portal\/elementEcodeAddon\/getSqlData(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8883,7 +8577,7 @@ rule krawl_vuln_weaver_ecology_hrmcareer_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-ecology-hrmcareer-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/pweb/careerapply/HrmCareerApplyPerView.jsp" ascii nocase
+        $path0 = /\/pweb\/careerapply\/HrmCareerApplyPerView\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8904,12 +8598,12 @@ rule krawl_vuln_weaver_ecology9_doc_list_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-ecology9-doc-list-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/api/ec/dev/table/counts" ascii nocase
-        $param0 = "docarchivedatefrom=a'OR-1/*a" ascii nocase
-        $param1 = "doccreatedatefrom=*/=(/*a" ascii nocase
-        $param2 = "doclastmoddatefrom=*/SELECT-3+locate/*" ascii nocase
-        $param3 = "docarchivedateto=*/(hex(SUBSTRING(/*" ascii nocase
-        $param4 = "doclastmoddateto=*/from HrmResourceManager limit 0,1) OR-1/*" ascii nocase
+        $path0 = /\/api\/ec\/dev\/table\/counts(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])docarchivedatefrom=a'OR-1\/\*a(&|$)/ nocase
+        $param1 = /(^|[?&;])doccreatedatefrom=\*\/=\(\/\*a(&|$)/ nocase
+        $param2 = /(^|[?&;])doclastmoddatefrom=\*\/SELECT-3\+locate\/\*(&|$)/ nocase
+        $param3 = /(^|[?&;])docarchivedateto=\*\/\(hex\(SUBSTRING\(\/\*(&|$)/ nocase
+        $param4 = /(^|[?&;])doclastmoddateto=\*\/from HrmResourceManager limit 0,1\) OR-1\/\*(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -8929,7 +8623,7 @@ rule krawl_vuln_weaver_getemdslist_disclosure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-getemdslist-disclosure.yaml"
     strings:
-        $path0 = "/papi/em/transform/getEmDsList" ascii nocase
+        $path0 = /\/papi\/em\/transform\/getEmDsList(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8950,7 +8644,7 @@ rule krawl_vuln_weaver_group_xml_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-group-xml-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/inc/group_user_list/group_xml.php" ascii nocase
+        $path0 = /\/inc\/group_user_list\/group_xml\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8971,7 +8665,7 @@ rule krawl_vuln_weaver_lazyuploadify_file_upload {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-lazyuploadify-file-upload.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/general/weibo/javascript/LazyUploadify/uploadify.php" ascii nocase
+        $path0 = /\/general\/weibo\/javascript\/LazyUploadify\/uploadify\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -8991,8 +8685,8 @@ rule krawl_vuln_weaver_login_sessionkey {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-login-sessionkey.yaml"
     strings:
-        $path0 = "/E-mobile/App/System/Login/login_quick.php" ascii nocase
-        $path1 = "/E-mobile/App/Init.php" ascii nocase
+        $path0 = /\/E-mobile\/App\/System\/Login\/login_quick\.php(\/|;|$)/ nocase
+        $path1 = /\/E-mobile\/App\/Init\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9013,7 +8707,7 @@ rule krawl_vuln_weaver_office_server_file_upload {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-office-server-file-upload.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/eoffice10/server/public/iWebOffice2015/OfficeServer.php" ascii nocase
+        $path0 = /\/eoffice10\/server\/public\/iWebOffice2015\/OfficeServer\.php(\/|;|$)/ nocase
         $path1 = "/eoffice10/server/public/iWebOffice2015/Document/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -9035,8 +8729,8 @@ rule krawl_vuln_weaver_officeserver_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-officeserver-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/iweboffice/officeserver.php" ascii nocase
-        $param0 = "OPTION=LOADFILE" ascii nocase
+        $path0 = /\/iweboffice\/officeserver\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])OPTION=LOADFILE(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9057,7 +8751,7 @@ rule krawl_vuln_weaver_signaturedownload_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-signaturedownload-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/weaver/weaver.file.SignatureDownLoad" ascii nocase
+        $path0 = /\/weaver\/weaver\.file\.SignatureDownLoad(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9078,8 +8772,8 @@ rule krawl_vuln_weaver_sptmforportalthumbnail_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-sptmforportalthumbnail-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/portal/SptmForPortalThumbnail.jsp" ascii nocase
-        $param0 = "preview=portal/SptmForPortalThumbnail.jsp" ascii nocase
+        $path0 = /\/portal\/SptmForPortalThumbnail\.jsp(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])preview=portal\/SptmForPortalThumbnail\.jsp(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9100,8 +8794,8 @@ rule krawl_vuln_weaver_uploadify_file_upload {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-uploadify-file-upload.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/general/weibo/javascript/uploadify/uploadify.php" ascii nocase
-        $path1 = "/attachment/personal/_temp.php" ascii nocase
+        $path0 = /\/general\/weibo\/javascript\/uploadify\/uploadify\.php(\/|;|$)/ nocase
+        $path1 = /\/attachment\/personal\/_temp\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9121,8 +8815,8 @@ rule krawl_vuln_weaver_uploadoperation_file_upload {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/weaver/weaver-uploadoperation-file-upload.yaml"
     strings:
-        $path0 = "/workrelate/plan/util/uploaderOperate.jsp" ascii nocase
-        $path1 = "/OfficeServer" ascii nocase
+        $path0 = /\/workrelate\/plan\/util\/uploaderOperate\.jsp(\/|;|$)/ nocase
+        $path1 = /\/OfficeServer(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9162,7 +8856,7 @@ rule krawl_vuln_wechat_info_leak {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wechat/wechat-info-leak.yaml"
     strings:
-        $path0 = "/cgi-bin/gateway/agentinfo" ascii nocase
+        $path0 = /\/cgi-bin\/gateway\/agentinfo(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9183,7 +8877,7 @@ rule krawl_vuln_3d_print_lite_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/3d-print-lite-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "page=p3dlite_materials" ascii nocase
+        $param0 = /(^|[?&;])page=p3dlite_materials(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9225,7 +8919,7 @@ rule krawl_vuln_advanced_access_manager_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/advanced-access-manager-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "aam-media=wp-config.php" ascii nocase
+        $param0 = /(^|[?&;])aam-media=wp-config\.php(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9246,8 +8940,8 @@ rule krawl_vuln_advanced_booking_calendar_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/advanced-booking-calendar-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "calendarId=1) AND (SELECT 2065 FROM (SELECT(SLEEP(6)))jtGw) AND (5440=5440" ascii nocase
-        $param1 = "action=abc_booking_getBookingResult" ascii nocase
+        $param0 = /(^|[?&;])calendarId=1\) AND \(SELECT 2065 FROM \(SELECT\(SLEEP\(6\)\)\)jtGw\) AND \(5440=5440(&|$)/ nocase
+        $param1 = /(^|[?&;])action=abc_booking_getBookingResult(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9267,8 +8961,8 @@ rule krawl_vuln_age_gate_open_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/age-gate-open-redirect.yaml"
     strings:
-        $param0 = "age_gate[age]=TVRnPQ==" ascii nocase
-        $param1 = "age_gate[nonce]=48f2b89fed" ascii nocase
+        $param0 = /(^|[?&;])age_gate\[age\]=TVRnPQ==(&|$)/ nocase
+        $param1 = /(^|[?&;])age_gate\[nonce\]=48f2b89fed(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9289,7 +8983,7 @@ rule krawl_vuln_ait_csv_import_export_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/ait-csv-import-export-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/wp-content/plugins/ait-csv-import-export/admin/upload-handler.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/ait-csv-import-export\/admin\/upload-handler\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9332,7 +9026,7 @@ rule krawl_vuln_amministrazione_aperta_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/amministrazione-aperta-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/plugins/amministrazione-aperta/wpgov/dispatcher.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/amministrazione-aperta\/wpgov\/dispatcher\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9353,9 +9047,9 @@ rule krawl_vuln_application_pass_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/application-pass-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-admin/authorize-application.php" ascii nocase
-        $param0 = "success_url=javascript:alert(document.domain)" ascii nocase
-        $param1 = "reject_url=javascript:alert(document.domain)" ascii nocase
+        $path0 = /\/wp-admin\/authorize-application\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])success_url=javascript:alert\(document\.domain\)(&|$)/ nocase
+        $param1 = /(^|[?&;])reject_url=javascript:alert\(document\.domain\)(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9376,7 +9070,7 @@ rule krawl_vuln_aspose_file_download {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/aspose-file-download.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/plugins/aspose-cloud-ebook-generator/aspose_posts_exporter_download.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/aspose-cloud-ebook-generator\/aspose_posts_exporter_download\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9397,7 +9091,7 @@ rule krawl_vuln_aspose_ie_file_download {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/aspose-ie-file-download.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/plugins/aspose-importer-exporter/aspose_import_export_download" ascii nocase
+        $path0 = /\/wp-content\/plugins\/aspose-importer-exporter\/aspose_import_export_download(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9418,7 +9112,7 @@ rule krawl_vuln_aspose_pdf_file_download {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/aspose-pdf-file-download.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/plugins/Wordpress/Aaspose-pdf-exporter/aspose_pdf_exporter_download.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/Wordpress\/Aaspose-pdf-exporter\/aspose_pdf_exporter_download\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9439,7 +9133,7 @@ rule krawl_vuln_aspose_words_file_download {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/aspose-words-file-download.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/plugins/aspose-doc-exporter/aspose_doc_exporter_download.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/aspose-doc-exporter\/aspose_doc_exporter_download\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9459,7 +9153,7 @@ rule krawl_vuln_attitude_theme_open_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/attitude-theme-open-redirect.yaml"
     strings:
-        $path0 = "/wp-content/themes/Attitude/go.php" ascii nocase
+        $path0 = /\/wp-content\/themes\/Attitude\/go\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9480,7 +9174,7 @@ rule krawl_vuln_avchat_video_chat_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/avchat-video-chat-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/avchat-3/index_popup.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/avchat-3\/index_popup\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9501,7 +9195,7 @@ rule krawl_vuln_blog_designer_pack_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/blog-designer-pack-rce.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "shrt_param[design]=../../../../../../../../usr/local/lib/php/pearcmd" ascii nocase
+        $param0 = /(^|[?&;])shrt_param\[design\]=\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/usr\/local\/lib\/php\/pearcmd(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9522,7 +9216,7 @@ rule krawl_vuln_calameo_publications_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/calameo-publications-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/athlon-manage-calameo-publications/thickbox_content.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/athlon-manage-calameo-publications\/thickbox_content\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9543,7 +9237,7 @@ rule krawl_vuln_checkout_fields_manager_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/checkout-fields-manager-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "section=advanced" ascii nocase
+        $param0 = /(^|[?&;])section=advanced(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9564,7 +9258,7 @@ rule krawl_vuln_church_admin_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/church-admin-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/plugins/church-admin/display/download.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/church-admin\/display\/download\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9585,7 +9279,7 @@ rule krawl_vuln_churchope_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/churchope-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/themes/churchope/lib/downloadlink.php" ascii nocase
+        $path0 = /\/wp-content\/themes\/churchope\/lib\/downloadlink\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9606,7 +9300,7 @@ rule krawl_vuln_clearfy_cache_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/clearfy-cache-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "page=gonzales-wbcr_clearfy" ascii nocase
+        $param0 = /(^|[?&;])page=gonzales-wbcr_clearfy(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9627,8 +9321,8 @@ rule krawl_vuln_diarise_theme_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/diarise-theme-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/themes/diarise/download.php" ascii nocase
-        $param0 = "calendar=file:///etc/passwd" ascii nocase
+        $path0 = /\/wp-content\/themes\/diarise\/download\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])calendar=file:\/\/\/etc\/passwd(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9668,7 +9362,7 @@ rule krawl_vuln_eatery_restaurant_open_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/eatery-restaurant-open-redirect.yaml"
     strings:
-        $path0 = "/wp-content/themes/eatery/nav.php" ascii nocase
+        $path0 = /\/wp-content\/themes\/eatery\/nav\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9689,7 +9383,7 @@ rule krawl_vuln_elex_woocommerce_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/elex-woocommerce-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "page=elex-product-feed-manage" ascii nocase
+        $param0 = /(^|[?&;])page=elex-product-feed-manage(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9710,8 +9404,8 @@ rule krawl_vuln_hb_audio_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/hb-audio-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/plugins/hb-audio-gallery-lite/gallery/audio-download.php" ascii nocase
-        $param0 = "file_path=../../../../wp-config.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/hb-audio-gallery-lite\/gallery\/audio-download\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])file_path=\.\.\/\.\.\/\.\.\/\.\.\/wp-config\.php(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9732,8 +9426,8 @@ rule krawl_vuln_hide_security_enhancer_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/hide-security-enhancer-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/plugins/wp-hide-security-enhancer/router/file-process.php" ascii nocase
-        $param0 = "file_path=/wp-config.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/wp-hide-security-enhancer\/router\/file-process\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])file_path=\/wp-config\.php(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9754,8 +9448,8 @@ rule krawl_vuln_issuu_panel_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/issuu-panel-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/plugins/issuu-panel/menu/documento/requests/ajax-docs.php" ascii nocase
-        $param0 = "abspath=/etc/passwd" ascii nocase
+        $path0 = /\/wp-content\/plugins\/issuu-panel\/menu\/documento\/requests\/ajax-docs\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])abspath=\/etc\/passwd(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9776,8 +9470,8 @@ rule krawl_vuln_jetpack_stored_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/jetpack-gist-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "post_title=XSS Test" ascii nocase
-        $param1 = "hidden_post_visibility=public" ascii nocase
+        $param0 = /(^|[?&;])post_title=XSS Test(&|$)/ nocase
+        $param1 = /(^|[?&;])hidden_post_visibility=public(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9798,7 +9492,7 @@ rule krawl_vuln_knr_widget_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/knr-widget-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/knr-author-list-widget/knrAuthorListCustomSortSave.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/knr-author-list-widget\/knrAuthorListCustomSortSave\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9819,7 +9513,7 @@ rule krawl_vuln_ldap_wp_login_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/ldap-wp-login-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "page=LDAP authentication intergrating with AD" ascii nocase
+        $param0 = /(^|[?&;])page=LDAP authentication intergrating with AD(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9840,7 +9534,7 @@ rule krawl_vuln_members_list_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/members-list-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/members-list/admin/view/user.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/members-list\/admin\/view\/user\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9861,7 +9555,7 @@ rule krawl_vuln_modula_image_gallery_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/modula-image-gallery-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "post_type=modula-gallery" ascii nocase
+        $param0 = /(^|[?&;])post_type=modula-gallery(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9881,7 +9575,7 @@ rule krawl_vuln_music_store_open_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/music-store-open-redirect.yaml"
     strings:
-        $path0 = "/wp-content/plugins/music-store/ms-core/ms-submit.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/music-store\/ms-core\/ms-submit\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9902,7 +9596,7 @@ rule krawl_vuln_my_chatbot_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/my-chatbot-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "page=my-chatbot" ascii nocase
+        $param0 = /(^|[?&;])page=my-chatbot(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9923,7 +9617,7 @@ rule krawl_vuln_nativechurch_wp_theme_lfd {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/nativechurch-wp-theme-lfd.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/themes/NativeChurch/download/download.php" ascii nocase
+        $path0 = /\/wp-content\/themes\/NativeChurch\/download\/download\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9943,8 +9637,8 @@ rule krawl_vuln_newsletter_open_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/newsletter-open-redirect.yaml"
     strings:
-        $param0 = "wp_nlm=confirmation" ascii nocase
-        $param1 = "appurl=aHR0cDovL2ludGVyYWN0LnNo" ascii nocase
+        $param0 = /(^|[?&;])wp_nlm=confirmation(&|$)/ nocase
+        $param1 = /(^|[?&;])appurl=aHR0cDovL2ludGVyYWN0LnNo(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -9965,7 +9659,7 @@ rule krawl_vuln_photoblocks_grid_gallery_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/photoblocks-grid-gallery-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/photoblocks-grid-gallery/admin/partials/photoblocks-edit.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/photoblocks-grid-gallery\/admin\/partials\/photoblocks-edit\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -9985,9 +9679,8 @@ rule krawl_vuln_seatreg_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/seatreg-redirect.yaml"
     strings:
-        $param0 = "page=seatreg-welcome" ascii nocase
-        $param1 = "action=seatreg_create_submit" ascii nocase
-        $param2 = "submit=Create new registration" ascii nocase
+        $param0 = /(^|[?&;])page=seatreg-welcome(&|$)/ nocase
+        $param1 = /(^|[?&;])action=seatreg_create_submit(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -10008,7 +9701,7 @@ rule krawl_vuln_seo_redirection_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/seo-redirection-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "page=seo-redirection.php" ascii nocase
+        $param0 = /(^|[?&;])page=seo-redirection\.php(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -10029,7 +9722,7 @@ rule krawl_vuln_shortcode_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/shortcode-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/force-download.php" ascii nocase
+        $path0 = /\/wp-content\/force-download\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10050,7 +9743,7 @@ rule krawl_vuln_shortpixel_image_optimizer_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/shortpixel-image-optimizer-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "page=wp-shortpixel-settings" ascii nocase
+        $param0 = /(^|[?&;])page=wp-shortpixel-settings(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -10071,8 +9764,8 @@ rule krawl_vuln_simple_file_list_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/simple-file-list-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/wp-content/plugins/simple-file-list/ee-upload-engine.php" ascii nocase
-        $path1 = "/wp-content/plugins/simple-file-list/ee-file-engine.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/simple-file-list\/ee-upload-engine\.php(\/|;|$)/ nocase
+        $path1 = /\/wp-content\/plugins\/simple-file-list\/ee-file-engine\.php(\/|;|$)/ nocase
         $path2 = "/wp-content/uploads/simple-file-list/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -10115,8 +9808,8 @@ rule krawl_vuln_w3c_total_cache_ssrf {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/w3c-total-cache-ssrf.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/wp-content/plugins/w3-total-cache/pub/minify.php" ascii nocase
-        $param0 = "file=yygpKbDS1y9Ky9TLSy0uLi3Wyy9KB3NLKkqUM4CyxUDpxKzECr30_Pz0nNTEgsxiveT8XAA.css" ascii nocase
+        $path0 = /\/wp-content\/plugins\/w3-total-cache\/pub\/minify\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])file=yygpKbDS1y9Ky9TLSy0uLi3Wyy9KB3NLKkqUM4CyxUDpxKzECr30_Pz0nNTEgsxiveT8XAA\.css(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -10137,7 +9830,7 @@ rule krawl_vuln_watu_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/watu-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "page=watu_question" ascii nocase
+        $param0 = /(^|[?&;])page=watu_question(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -10157,8 +9850,8 @@ rule krawl_vuln_weekender_newspaper_open_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/weekender-newspaper-open-redirect.yaml"
     strings:
-        $path0 = "/wp-content/themes/weekender/friend.php" ascii nocase
-        $param0 = "id=aHR0cHM6Ly9pbnRlcmFjdC5zaA==" ascii nocase
+        $path0 = /\/wp-content\/themes\/weekender\/friend\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])id=aHR0cHM6Ly9pbnRlcmFjdC5zaA==(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -10179,8 +9872,8 @@ rule krawl_vuln_woocommerce_pdf_invoices_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/woocommerce-pdf-invoices-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "tab=documents" ascii nocase
-        $param1 = "section=invoice" ascii nocase
+        $param0 = /(^|[?&;])tab=documents(&|$)/ nocase
+        $param1 = /(^|[?&;])section=invoice(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -10200,7 +9893,7 @@ rule krawl_vuln_wordpress_affiliatewp_log {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wordpress-affiliatewp-log.yaml"
     strings:
-        $path0 = "/wp-content/uploads/affwp-debug.log" ascii nocase
+        $path0 = /\/wp-content\/uploads\/affwp-debug\.log(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10240,7 +9933,7 @@ rule krawl_vuln_wordpress_db_repair {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wordpress-db-repair.yaml"
     strings:
-        $path0 = "/wp-admin/maint/repair.php" ascii nocase
+        $path0 = /\/wp-admin\/maint\/repair\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10260,7 +9953,7 @@ rule krawl_vuln_wordpress_debug_log {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wordpress-debug-log.yaml"
     strings:
-        $path0 = "/debug.log" ascii nocase
+        $path0 = /\/debug\.log(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10300,7 +9993,7 @@ rule krawl_vuln_wordpress_emergency_script {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wordpress-emergency-script.yaml"
     strings:
-        $path0 = "/emergency.php" ascii nocase
+        $path0 = /\/emergency\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10340,7 +10033,7 @@ rule krawl_vuln_wordpress_installer_log {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wordpress-installer-log.yaml"
     strings:
-        $path0 = "/installer-log.txt" ascii nocase
+        $path0 = /\/installer-log\.txt(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10380,7 +10073,7 @@ rule krawl_vuln_wordpress_social_metrics_tracker {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wordpress-social-metrics-tracker.yaml"
     strings:
-        $param0 = "page=social-metrics-tracker-export" ascii nocase
+        $param0 = /(^|[?&;])page=social-metrics-tracker-export(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -10401,7 +10094,7 @@ rule krawl_vuln_wordpress_ssrf_oembed {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wordpress-ssrf-oembed.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/wp-json/oembed/1.0/proxy" ascii nocase
+        $path0 = /\/wp-json\/oembed\/1\.0\/proxy(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10421,7 +10114,7 @@ rule krawl_vuln_wordpress_tmm_db_migrate {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wordpress-tmm-db-migrate.yaml"
     strings:
-        $path0 = "/wp-content/uploads/tmm_db_migrate/tmm_db_migrate.zip" ascii nocase
+        $path0 = /\/wp-content\/uploads\/tmm_db_migrate\/tmm_db_migrate\.zip(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10441,7 +10134,7 @@ rule krawl_vuln_wordpress_total_upkeep_backup_download {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wordpress-total-upkeep-backup-download.yaml"
     strings:
-        $path0 = "/wp-content/plugins/boldgrid-backup/cron/restore-info.json" ascii nocase
+        $path0 = /\/wp-content\/plugins\/boldgrid-backup\/cron\/restore-info\.json(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10502,7 +10195,7 @@ rule krawl_vuln_wordpress_wordfence_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wordpress-wordfence-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/plugins/wordfence/lib/wordfenceClass.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/wordfence\/lib\/wordfenceClass\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10523,7 +10216,7 @@ rule krawl_vuln_wordpress_wordfence_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wordpress-wordfence-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/wordfence/lib/diffResult.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/wordfence\/lib\/diffResult\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10544,8 +10237,8 @@ rule krawl_vuln_wordpress_zebra_form_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wordpress-zebra-form-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/wp-ticket/assets/ext/zebraform/process.php" ascii nocase
-        $param0 = "control=upload" ascii nocase
+        $path0 = /\/wp-content\/plugins\/wp-ticket\/assets\/ext\/zebraform\/process\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])control=upload(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -10587,7 +10280,7 @@ rule krawl_vuln_wp_adivaha_xss {
         response_type = "xss"
     strings:
         $path0 = "/mobile-app/v3/" ascii nocase
-        $param0 = "pid=77A89299" ascii nocase
+        $param0 = /(^|[?&;])pid=77A89299(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -10631,7 +10324,7 @@ rule krawl_vuln_wp_ambience_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-ambience-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/themes/ambience/thumb.php" ascii nocase
+        $path0 = /\/wp-content\/themes\/ambience\/thumb\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10672,7 +10365,7 @@ rule krawl_vuln_wp_blogroll_fun_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-blogroll-fun-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/blogroll-fun/blogroll.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/blogroll-fun\/blogroll\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10692,7 +10385,7 @@ rule krawl_vuln_wp_buddypress_open_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-buddypress-open-redirect.yaml"
     strings:
-        $param0 = "page=bp-profile-edit" ascii nocase
+        $param0 = /(^|[?&;])page=bp-profile-edit(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -10713,7 +10406,7 @@ rule krawl_vuln_wp_caldera_forms_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-caldera-forms-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "page=caldera-forms" ascii nocase
+        $param0 = /(^|[?&;])page=caldera-forms(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -10734,7 +10427,7 @@ rule krawl_vuln_wp_custom_tables_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-custom-tables-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/custom-tables/iframe.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/custom-tables\/iframe\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10755,7 +10448,7 @@ rule krawl_vuln_wp_ellipsis_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-ellipsis-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/ellipsis-human-presence-technology/inc/protected-forms-table.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/ellipsis-human-presence-technology\/inc\/protected-forms-table\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10775,7 +10468,7 @@ rule krawl_vuln_wp_email_subscribers_listing {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-email-subscribers-listing.yaml"
     strings:
-        $path0 = "/wp-content/plugins/email-subscribers" ascii nocase
+        $path0 = /\/wp-content\/plugins\/email-subscribers(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10796,7 +10489,7 @@ rule krawl_vuln_wp_finder_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-finder-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/finder/index.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/finder\/index\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10817,7 +10510,7 @@ rule krawl_vuln_wp_flagem_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-flagem-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/FlagEm/flagit.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/FlagEm\/flagit\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10837,7 +10530,7 @@ rule krawl_vuln_wp_full_path_disclosure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-full-path-disclosure.yaml"
     strings:
-        $path0 = "/wp-includes/rss-functions.php" ascii nocase
+        $path0 = /\/wp-includes\/rss-functions\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10857,7 +10550,7 @@ rule krawl_vuln_wp_gallery_file_upload {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-gallery-file-upload.yaml"
     strings:
-        $path0 = "/wp-content/plugins/gallery-plugin/upload/php.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/gallery-plugin\/upload\/php\.php(\/|;|$)/ nocase
         $path1 = "/wp-content/plugins/gallery-plugin/upload/files/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -10879,7 +10572,7 @@ rule krawl_vuln_wp_googlemp3_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-googlemp3-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/plugins/google-mp3-audio-player/direct_download.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/google-mp3-audio-player\/direct_download\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10899,7 +10592,7 @@ rule krawl_vuln_wp_grimag_open_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-grimag-open-redirect.yaml"
     strings:
-        $path0 = "/wp-content/themes/Grimag/go.php" ascii nocase
+        $path0 = /\/wp-content\/themes\/Grimag\/go\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10919,7 +10612,7 @@ rule krawl_vuln_wp_gtranslate_open_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-gtranslate-open-redirect.yaml"
     strings:
-        $path0 = "/wp-content/plugins/gtranslate/url_addon/gtranslate.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/gtranslate\/url_addon\/gtranslate\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10939,8 +10632,8 @@ rule krawl_vuln_wp_haberadam_idor {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-haberadam-idor.yaml"
     strings:
-        $path0 = "/wp-content/themes/haberadam/api/mobile-info.php" ascii nocase
-        $path1 = "/blog/wp-content/themes/haberadam/api/mobile-info.php" ascii nocase
+        $path0 = /\/wp-content\/themes\/haberadam\/api\/mobile-info\.php(\/|;|$)/ nocase
+        $path1 = /\/blog\/wp-content\/themes\/haberadam\/api\/mobile-info\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -10981,7 +10674,7 @@ rule krawl_vuln_wp_insert_php_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-insert-php-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "post_type=wbcr-snippets" ascii nocase
+        $param0 = /(^|[?&;])post_type=wbcr-snippets(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -11022,7 +10715,7 @@ rule krawl_vuln_wp_jetpack_ssrf {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-jetpack-ssrf.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/wp-json/wpcom/v2/tweetstorm/generate-cards" ascii nocase
+        $path0 = /\/wp-json\/wpcom\/v2\/tweetstorm\/generate-cards(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -11063,11 +10756,11 @@ rule krawl_vuln_wp_mailchimp_log_exposure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-mailchimp-log-exposure.yaml"
     strings:
-        $path0 = "/wp-content/uploads/mc4wp-debug.log" ascii nocase
-        $path1 = "/wp-content/uploads/mc4wp-debug-log.php" ascii nocase
-        $path2 = "/wp-content/uploads/mailchimp-for-wp/debug-log.php" ascii nocase
-        $path3 = "/wp-content/uploads/sites/1/mc4wp-debug-log.php" ascii nocase
-        $path4 = "/wp-content/uploads/sites/1/mailchimp-for-wp/debug-log.php" ascii nocase
+        $path0 = /\/wp-content\/uploads\/mc4wp-debug\.log(\/|;|$)/ nocase
+        $path1 = /\/wp-content\/uploads\/mc4wp-debug-log\.php(\/|;|$)/ nocase
+        $path2 = /\/wp-content\/uploads\/mailchimp-for-wp\/debug-log\.php(\/|;|$)/ nocase
+        $path3 = /\/wp-content\/uploads\/sites\/1\/mc4wp-debug-log\.php(\/|;|$)/ nocase
+        $path4 = /\/wp-content\/uploads\/sites\/1\/mailchimp-for-wp\/debug-log\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -11088,10 +10781,9 @@ rule krawl_vuln_wp_memphis_documents_library_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-memphis-documents-library-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/mdocs-posts/" ascii nocase
-        $param0 = "mdocs-img-preview=../../../wp-config.php" ascii nocase
+        $param0 = /(^|[?&;])mdocs-img-preview=\.\.\/\.\.\/\.\.\/wp-config\.php(&|$)/ nocase
     condition:
-        (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
+        ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
 
 rule krawl_vuln_wp_mstore_plugin_listing {
@@ -11130,7 +10822,7 @@ rule krawl_vuln_wp_nextgen_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-nextgen-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/nextgen-gallery/nggallery.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/nextgen-gallery\/nggallery\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -11151,7 +10843,7 @@ rule krawl_vuln_wp_ninja_tables_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-ninja-tables-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "url=/etc/os-release" ascii nocase
+        $param0 = /(^|[?&;])url=\/etc\/os-release(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -11172,7 +10864,7 @@ rule krawl_vuln_wp_oxygen_theme_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-oxygen-theme-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/themes/oxygen-theme/download.php" ascii nocase
+        $path0 = /\/wp-content\/themes\/oxygen-theme\/download\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -11193,7 +10885,7 @@ rule krawl_vuln_wp_phpfreechat_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-phpfreechat-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/phpfreechat/lib/csstidy-1.2/css_optimiser.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/phpfreechat\/lib\/csstidy-1\.2\/css_optimiser\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -11295,7 +10987,7 @@ rule krawl_vuln_wp_portrait_archiv_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-portrait-archiv-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/portrait-archiv-shop/js/imageDetails.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/portrait-archiv-shop\/js\/imageDetails\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -11315,7 +11007,7 @@ rule krawl_vuln_wp_prostore_open_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-prostore-open-redirect.yaml"
     strings:
-        $path0 = "/wp-content/themes/prostore/go.php" ascii nocase
+        $path0 = /\/wp-content\/themes\/prostore\/go\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -11356,28 +11048,7 @@ rule krawl_vuln_wp_qwiz_online_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-qwiz-online-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/qwiz-online-quizzes-and-flashcards/registration_complete.php" ascii nocase
-    condition:
-        (scan_target == "path" and any of ($path*))
-}
-
-rule krawl_vuln_wp_reality_estate_theme {
-    meta:
-        attack_type = "vuln_wp_reality_estate_theme"
-        classification = "attack"
-        severity = 5
-        confidence = "medium"
-        description = "Reality Estate Multipurpose WP-Theme < 2.5.3 - Cross-Site Scripting: Reflected XSS was discovered in the 'Reality | Estate Multipurpose WordPress Theme'."
-        mitre_attack = "T1190"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-reality-estate-theme.yaml"
-        response_type = "xss"
-    strings:
-        $path0 = "/properties-with-map/" ascii nocase
+        $path0 = /\/wp-content\/plugins\/qwiz-online-quizzes-and-flashcards\/registration_complete\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -11398,7 +11069,7 @@ rule krawl_vuln_wp_related_post_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-related-post-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "page=rp4wp_link_related" ascii nocase
+        $param0 = /(^|[?&;])page=rp4wp_link_related(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -11419,7 +11090,7 @@ rule krawl_vuln_wp_simple_fields_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-simple-fields-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/plugins/simple-fields/simple_fields.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/simple-fields\/simple_fields\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -11440,7 +11111,7 @@ rule krawl_vuln_wp_slideshow_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-slideshow-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/slideshow-jquery-image-gallery/views/SlideshowPlugin/slideshow.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/slideshow-jquery-image-gallery\/views\/SlideshowPlugin\/slideshow\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -11461,7 +11132,7 @@ rule krawl_vuln_wp_smart_manager_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-smart-manager-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "cmd=saveData" ascii nocase
+        $param0 = /(^|[?&;])cmd=saveData(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -11482,7 +11153,7 @@ rule krawl_vuln_wp_social_warfare_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-social-warfare-rce.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "swp_debug=load_options" ascii nocase
+        $param0 = /(^|[?&;])swp_debug=load_options(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -11503,8 +11174,8 @@ rule krawl_vuln_wp_socialfit_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-socialfit-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/wp-content/plugins/socialfit/popup.php" ascii nocase
-        $param0 = "service=googleplus" ascii nocase
+        $path0 = /\/wp-content\/plugins\/socialfit\/popup\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])service=googleplus(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -11544,7 +11215,7 @@ rule krawl_vuln_wp_superstorefinder_misconfig {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-superstorefinder-misconfig.yaml"
     strings:
-        $path0 = "/wp-content/plugins/superstorefinder-wp/ssf-wp-admin/pages/exportAjax.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/superstorefinder-wp\/ssf-wp-admin\/pages\/exportAjax\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -11564,7 +11235,7 @@ rule krawl_vuln_wp_sym404 {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-sym404.yaml"
     strings:
-        $path0 = "/wp-includes/sym404/root/etc/passwd" ascii nocase
+        $path0 = /\/wp-includes\/sym404\/root\/etc\/passwd(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -11585,7 +11256,7 @@ rule krawl_vuln_wp_tinymce_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-tinymce-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/plugins/tinymce-thumbnail-gallery/php/download-image.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/tinymce-thumbnail-gallery\/php\/download-image\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -11606,8 +11277,8 @@ rule krawl_vuln_wp_tutor_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-tutor-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/plugins/tutor/views/pages/instructors.php" ascii nocase
-        $param0 = "sub_page=/etc/passwd" ascii nocase
+        $path0 = /\/wp-content\/plugins\/tutor\/views\/pages\/instructors\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])sub_page=\/etc\/passwd(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -11627,7 +11298,7 @@ rule krawl_vuln_wp_upward_theme_redirect {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-upward-theme-redirect.yaml"
     strings:
-        $path0 = "/wp-content/themes/Upward/go.php" ascii nocase
+        $path0 = /\/wp-content\/themes\/Upward\/go\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -11647,7 +11318,7 @@ rule krawl_vuln_wp_user_enum {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-user-enum.yaml"
     strings:
-        $param0 = "rest_route=/wp/v2/users/" ascii nocase
+        $param0 = /(^|[?&;])rest_route=\/wp\/v2\/users\/(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -11668,7 +11339,7 @@ rule krawl_vuln_wp_vault_local_file_inclusion {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-vault-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "wpv-image=../../../../../../../../../../etc/passwd" ascii nocase
+        $param0 = /(^|[?&;])wpv-image=\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/etc\/passwd(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -11688,7 +11359,7 @@ rule krawl_vuln_wp_woocommerce_email_verification {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-woocommerce-email-verification.yaml"
     strings:
-        $param0 = "alg_wc_ev_verify_email=eyJpZCI6MSwiY29kZSI6MH0=" ascii nocase
+        $param0 = /(^|[?&;])alg_wc_ev_verify_email=eyJpZCI6MSwiY29kZSI6MH0=(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -11709,7 +11380,7 @@ rule krawl_vuln_wp_woocommerce_file_download {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wp-woocommerce-file-download.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "alg_wc_pif_download_file=../../../../../wp-config.php" ascii nocase
+        $param0 = /(^|[?&;])alg_wc_pif_download_file=\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/wp-config\.php(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -11770,7 +11441,7 @@ rule krawl_vuln_wpml_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wpml-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "wp_lang=en_US'" ascii nocase
+        $param0 = /(^|[?&;])wp_lang=en_US'(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -11811,7 +11482,7 @@ rule krawl_vuln_wptouch_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wordpress/wptouch-xss.yaml"
         response_type = "xss"
     strings:
-        $param0 = "page=wptouch-admin-license" ascii nocase
+        $param0 = /(^|[?&;])page=wptouch-admin-license(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -11831,12 +11502,12 @@ rule krawl_vuln_functions_php_disclosure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/wp-functions-php-disclosure.yaml"
     strings:
-        $path0 = "/wp-content/themes/twentytwentyfour/functions.php" ascii nocase
-        $path1 = "/wp-content/themes/twentytwentythree/functions.php" ascii nocase
-        $path2 = "/wp-content/themes/twentytwentytwo/functions.php" ascii nocase
-        $path3 = "/wp-content/themes/twentytwentyone/functions.php" ascii nocase
-        $path4 = "/wp-content/themes/twentytwenty/functions.php" ascii nocase
-        $path5 = "/wp-content/themes/twentynineteen/functions.php" ascii nocase
+        $path0 = /\/wp-content\/themes\/twentytwentyfour\/functions\.php(\/|;|$)/ nocase
+        $path1 = /\/wp-content\/themes\/twentytwentythree\/functions\.php(\/|;|$)/ nocase
+        $path2 = /\/wp-content\/themes\/twentytwentytwo\/functions\.php(\/|;|$)/ nocase
+        $path3 = /\/wp-content\/themes\/twentytwentyone\/functions\.php(\/|;|$)/ nocase
+        $path4 = /\/wp-content\/themes\/twentytwenty\/functions\.php(\/|;|$)/ nocase
+        $path5 = /\/wp-content\/themes\/twentynineteen\/functions\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -11857,11 +11528,9 @@ rule krawl_vuln_chanjet_gnremote_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/chanjet-gnremote-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/GNRemote.dll" ascii nocase
-        $param0 = "GNFunction=LoginServer" ascii nocase
-        $param1 = "decorator=text_wrap" ascii nocase
+        $path0 = /\/GNRemote\.dll(\/|;|$)/ nocase
     condition:
-        (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
+        (scan_target == "path" and any of ($path*))
 }
 
 rule krawl_vuln_chanjet_tplus_checkmutex_sqli {
@@ -11880,8 +11549,8 @@ rule krawl_vuln_chanjet_tplus_checkmutex_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/chanjet-tplus-checkmutex-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/tplus/ajaxpro/Ufida.T.SM.UIP.MultiCompanyController,Ufida.T.SM.UIP.ashx" ascii nocase
-        $param0 = "method=CheckMutex" ascii nocase
+        $path0 = /\/tplus\/ajaxpro\/Ufida\.T\.SM\.UIP\.MultiCompanyController,Ufida\.T\.SM\.UIP\.ashx(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])method=CheckMutex(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -11902,7 +11571,7 @@ rule krawl_vuln_chanjet_tplus_file_read {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/chanjet-tplus-file-read.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/tplus/SM/DTS/DownloadProxy.aspx" ascii nocase
+        $path0 = /\/tplus\/SM\/DTS\/DownloadProxy\.aspx(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -11922,7 +11591,7 @@ rule krawl_vuln_chanjet_tplus_fileupload {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/chanjet-tplus-fileupload.yaml"
     strings:
-        $path0 = "/tplus/SM/SetupAccount/Upload.aspx" ascii nocase
+        $path0 = /\/tplus\/SM\/SetupAccount\/Upload\.aspx(\/|;|$)/ nocase
         $path1 = "/tplus/img/login/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -11944,8 +11613,8 @@ rule krawl_vuln_chanjet_tplus_ufida_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/chanjet-tplus-ufida-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/tplus/ajaxpro/Ufida.T.SM.Login.UIP.LoginManager,Ufida.T.SM.Login.UIP.ashx" ascii nocase
-        $param0 = "method=CheckPassword" ascii nocase
+        $path0 = /\/tplus\/ajaxpro\/Ufida\.T\.SM\.Login\.UIP\.LoginManager,Ufida\.T\.SM\.Login\.UIP\.ashx(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])method=CheckPassword(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -11965,7 +11634,7 @@ rule krawl_vuln_grp_u8_uploadfiledata {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/grp-u8-uploadfiledata-fileupload.yaml"
     strings:
-        $path0 = "/UploadFileData" ascii nocase
+        $path0 = /\/UploadFileData(\/|;|$)/ nocase
         $path1 = "/R9iPortal/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -11987,7 +11656,7 @@ rule krawl_vuln_yonyou_fe_directory_traversal {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/yonyou-fe-directory-traversal.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/system/mediafile/templateOfTaohong_manager.jsp" ascii nocase
+        $path0 = /\/system\/mediafile\/templateOfTaohong_manager\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -12007,7 +11676,7 @@ rule krawl_vuln_yonyou_filereceiveservlet_fileupload {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/yonyou-filereceiveservlet-fileupload.yaml"
     strings:
-        $path0 = "/servlet/FileReceiveServlet" ascii nocase
+        $path0 = /\/servlet\/FileReceiveServlet(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -12027,7 +11696,7 @@ rule krawl_vuln_yonyou_nc_accept_fileupload {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/yonyou-nc-accept-fileupload.yaml"
     strings:
-        $path0 = "/aim/equipmap/accept.jsp" ascii nocase
+        $path0 = /\/aim\/equipmap\/accept\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -12047,7 +11716,7 @@ rule krawl_vuln_yonyou_nc_baseapp_deserialization {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/yonyou-nc-baseapp-deserialization.yaml"
     strings:
-        $path0 = "/service/~baseapp/UploadServlet" ascii nocase
+        $path0 = /\/service\/~baseapp\/UploadServlet(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -12067,8 +11736,8 @@ rule krawl_vuln_yonyou_nc_dispatcher_fileupload {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/yonyou-nc-dispatcher-fileupload.yaml"
     strings:
-        $path0 = "/ServiceDispatcherServlet" ascii nocase
-        $path1 = "/ncupload/n2d19a.jsp" ascii nocase
+        $path0 = /\/ServiceDispatcherServlet(\/|;|$)/ nocase
+        $path1 = /\/ncupload\/n2d19a\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -12088,7 +11757,7 @@ rule krawl_vuln_yonyou_nc_grouptemplet_fileupload {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/yonyou-nc-grouptemplet-fileupload.yaml"
     strings:
-        $path0 = "/uapim/upload/grouptemplet" ascii nocase
+        $path0 = /\/uapim\/upload\/grouptemplet(\/|;|$)/ nocase
         $path1 = "/uapim/static/pages/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -12109,9 +11778,9 @@ rule krawl_vuln_yonyou_nc_info_leak {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/yonyou-nc-info-leak.yaml"
     strings:
-        $path0 = "/service/~iufo/com.ufida.web.action.ActionServlet" ascii nocase
-        $param0 = "action=nc.ui.iufo.release.InfoReleaseAction" ascii nocase
-        $param1 = "method=createBBSRelease" ascii nocase
+        $path0 = /\/service\/~iufo\/com\.ufida\.web\.action\.ActionServlet(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])action=nc\.ui\.iufo\.release\.InfoReleaseAction(&|$)/ nocase
+        $param1 = /(^|[?&;])method=createBBSRelease(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -12132,7 +11801,7 @@ rule krawl_vuln_yonyou_nc_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/yonyou-nc-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/service/~webrt/nc.uap.lfw.file.action.DocServlet" ascii nocase
+        $path0 = /\/service\/~webrt\/nc\.uap\.lfw\.file\.action\.DocServlet(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -12153,7 +11822,7 @@ rule krawl_vuln_yonyou_nc_ncmessageservlet_rce {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/yonyou-nc-ncmessageservlet-rce.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/servlet/~baseapp/nc.message.bs.NCMessageServlet" ascii nocase
+        $path0 = /\/servlet\/~baseapp\/nc\.message\.bs\.NCMessageServlet(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -12174,7 +11843,7 @@ rule krawl_vuln_yonyou_u8_crm_sqli {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/yonyou-u8-crm-sqli.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/config/fillbacksettingedit.php" ascii nocase
+        $path0 = /\/config\/fillbacksettingedit\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -12195,7 +11864,7 @@ rule krawl_vuln_yonyou_u9_patchfile_upload {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/yonyou-u9-patchfile-upload.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/CS/Office/AutoUpdates/PatchFile.asmx" ascii nocase
+        $path0 = /\/CS\/Office\/AutoUpdates\/PatchFile\.asmx(\/|;|$)/ nocase
         $path1 = "/CS/Office/AutoUpdates/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -12217,8 +11886,8 @@ rule krawl_vuln_yonyou_ufida_nc_lfi {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/yonyou/yonyou-ufida-nc-lfi.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "cmd=getFileLocal" ascii nocase
-        $param1 = "fileid=../../../../webapps/nc_web/WEB-INF/web.xml" ascii nocase
+        $param0 = /(^|[?&;])cmd=getFileLocal(&|$)/ nocase
+        $param1 = /(^|[?&;])fileid=\.\.\/\.\.\/\.\.\/\.\.\/webapps\/nc_web\/WEB-INF\/web\.xml(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -12239,8 +11908,8 @@ rule krawl_vuln_zend_v1_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/zend/zend-v1-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/vendor/diablomedia/zendframework1-http/tests/Zend/Http/Client/_files/testRedirections.php" ascii nocase
-        $path1 = "/tests/Zend/Http/Client/_files/testRedirections.php" ascii nocase
+        $path0 = /\/vendor\/diablomedia\/zendframework1-http\/tests\/Zend\/Http\/Client\/_files\/testRedirections\.php(\/|;|$)/ nocase
+        $path1 = /\/tests\/Zend\/Http\/Client\/_files\/testRedirections\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -12261,7 +11930,7 @@ rule krawl_vuln_unauth_ztp_ping {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/zyxel/unauth-ztp-ping.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/ztp/cgi-bin/handler" ascii nocase
+        $path0 = /\/ztp\/cgi-bin\/handler(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -12281,7 +11950,7 @@ rule krawl_vuln_zzzcms_info_disclosure {
         false_positives = "Requests to a real installation of the product; a honeypot does not run it."
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/zzzcms/zzzcms-info-disclosure.yaml"
     strings:
-        $path0 = "/plugins/webuploader/js/webconfig.php" ascii nocase
+        $path0 = /\/plugins\/webuploader\/js\/webconfig\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -12302,8 +11971,8 @@ rule krawl_vuln_zzzcms_xss {
         reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/zzzcms/zzzcms-xss.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/plugins/template/login.php" ascii nocase
-        $param0 = "backurl=1 onmouseover=alert(/document.domain/) y=" ascii nocase
+        $path0 = /\/plugins\/template\/login\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])backurl=1 onmouseover=alert\(\/document\.domain\/\) y=(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }

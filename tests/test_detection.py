@@ -437,6 +437,25 @@ def test_leftover_engine_key_is_ignored(tmp_path, monkeypatch, engine):
     assert Config.from_yaml().yara_rules_path == "rules"
 
 
+@pytest.mark.parametrize(
+    "body",
+    [
+        # Field orders seen on the demo; baseline rules once matched wp-submit.
+        "log=r.duffy&password=r.duffy1&pwd=r.duffy1&redirect_to=%2Fwp-admin%2F"
+        "&testcookie=1&wp-submit=Log+In",
+        "log=jdoe&pwd=jdoe1&wp-submit=Log+In"
+        "&redirect_to=https%3A%2F%2Fexample.com%2Fwp-admin%2F&testcookie=1",
+        # Once matched CVE-2023-33338 on password=password.
+        "log=jdoe&password=password&pwd=password&redirect_to=%2Fwp-admin%2F"
+        "&testcookie=1&wp-submit=Log+In",
+    ],
+)
+def test_wordpress_login_form_is_only_a_login_attempt(body):
+    findings = _yara().iter_findings(method="POST", path="/wp-login.php", body=body)
+
+    assert {f.rule_name for f in findings} == {"krawl_login_attempt"}
+
+
 def test_detection_has_no_legacy_engine():
     import detection
 

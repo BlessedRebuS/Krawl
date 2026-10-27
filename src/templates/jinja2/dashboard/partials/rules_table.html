@@ -95,6 +95,12 @@
                     </div>
                     {% endif %}
                 </dl>
+                <div class="rules-card-matches"
+                     hx-get="{{ dashboard_path }}/htmx/rules/matches?rule={{ row.rule | urlencode }}"
+                     hx-trigger="intersect once"
+                     hx-swap="innerHTML">
+                    <p class="muted fs-sm">Loading matching requests&hellip;</p>
+                </div>
             </td>
         </tr>
     </tbody>

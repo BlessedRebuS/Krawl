@@ -7,7 +7,7 @@ as hot paths.
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import distinct, func, or_
+from sqlalchemy import and_, distinct, func, or_
 from sqlalchemy.orm import joinedload
 
 from dashboard_cache import pagination
@@ -834,6 +834,67 @@ class AccessLogRepo:
                 "unnamed_by_type": {
                     attack_type: (count, last) for attack_type, count, last in unnamed
                 },
+            }
+        finally:
+            self._db.close_session()
+
+    def get_rule_matches(
+        self,
+        rule_name: str,
+        unnamed_attack_type: str | None = None,
+        limit: int = 20,
+    ) -> dict:
+        """The newest requests a rule matched, and how many it matched in all.
+
+        With unnamed_attack_type, detections stored before rule names were
+        recorded count too when they have that attack type; they are marked
+        legacy. Returns {"matches": [...], "total": int}.
+        """
+        session = self._db.session
+        try:
+            matched = AttackDetection.rule_name == rule_name
+            if unnamed_attack_type:
+                matched = or_(
+                    matched,
+                    and_(
+                        AttackDetection.rule_name.is_(None),
+                        AttackDetection.attack_type == unnamed_attack_type,
+                    ),
+                )
+            total = (
+                session.query(func.count(AttackDetection.id)).filter(matched).scalar()
+                or 0
+            )
+            rows = (
+                session.query(
+                    AccessLog.id,
+                    AccessLog.ip,
+                    AccessLog.method,
+                    AccessLog.path,
+                    AccessLog.timestamp,
+                    AttackDetection.matched_pattern,
+                    AttackDetection.rule_name,
+                )
+                .join(AccessLog, AccessLog.id == AttackDetection.access_log_id)
+                .filter(matched)
+                .order_by(AccessLog.timestamp.desc(), AccessLog.id.desc())
+                .limit(limit)
+                .all()
+            )
+            return {
+                "matches": [
+                    {
+                        "log_id": log_id,
+                        "ip": ip,
+                        "method": (method or "GET").upper(),
+                        "path": path,
+                        "timestamp": timestamp,
+                        "matched_pattern": matched_pattern or "",
+                        "legacy": stored_rule is None,
+                    }
+                    for log_id, ip, method, path, timestamp, matched_pattern, stored_rule in rows
+                ],
+                "total": total,
             }
         finally:
             self._db.close_session()

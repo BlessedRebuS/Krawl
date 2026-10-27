@@ -257,21 +257,21 @@ so start from a copy of it.
 
 ### At a glance
 
-Krawl ships **3,259 rules** covering **2,638 CVEs**, 340 of them on the CISA
+Krawl ships **3,175 rules** covering **2,569 CVEs**, 336 of them on the CISA
 Known Exploited Vulnerabilities list.
 
 | Set | Rules | What it covers |
 |-----|------:|----------------|
-| Hand-written | 159 | Generic attack syntax (SQL injection, XSS, traversal, command injection, SSRF, SSTI, XXE, deserialization, webshells, open redirect, JWT `alg: none`), exposure probes, scanner user agents, and about 110 widely exploited CVEs with tuned indicators and replies |
-| Baseline CVEs | 2,513 | One rule per CVE from 1999 to 2026, from the exploit request of a public check; 753 are WordPress plugins and themes |
-| Baseline vulnerabilities | 583 | Product bugs without a CVE id, mostly OA, ERP, router and camera software |
-| Baseline exposures | 4 | 559 paths of config, log, backup and sensitive files that scanners request |
+| Hand-written | 160 | Generic attack syntax (SQL injection, XSS, traversal, command injection, SSRF, SSTI, XXE, deserialization, webshells, open redirect, JWT `alg: none`), exposure probes, scanner user agents, and about 110 widely exploited CVEs with tuned indicators and replies |
+| Baseline CVEs | 2,443 | One rule per CVE from 1999 to 2026, from the exploit request of a public check; 736 are WordPress plugins and themes |
+| Baseline vulnerabilities | 568 | Product bugs without a CVE id, mostly OA, ERP, router and camera software |
+| Baseline exposures | 4 | 558 paths of config, log, backup and sensitive files that scanners request |
 
-Of the 3,100 baseline rules, 2,200 answer with a fake reply chosen by the kind
-of bug (677 `xss`, 575 `path_traversal`, 511 `command_injection`, 305
-`sql_error`, 118 `cloud_metadata`, 12 `template_eval`, 2 `sensitive_file`);
-the other 900 record the attack and let the normal page answer. Their severity
-is 9-10 for 994 rules, 7-8 for 970, and 5 or lower for the rest.
+Of the 3,015 baseline rules, 2,145 answer with a fake reply chosen by the kind
+of bug (662 `xss`, 569 `path_traversal`, 492 `command_injection`, 295
+`sql_error`, 113 `cloud_metadata`, 12 `template_eval`, 2 `sensitive_file`);
+the other 870 record the attack and let the normal page answer. Their severity
+is 9-10 for 952 rules, 7-8 for 952, and 6 or lower for the rest.
 
 Analysts can add their own rules from the dashboard without a restart; see
 [Uploading rules from the dashboard](#uploading-rules-from-the-dashboard).
@@ -291,28 +291,40 @@ Analysts can add their own rules from the dashboard without a restart; see
 | `user_agents.yar` | `scanner_user_agent` (suspicious, not an attack) |
 | `cve_2017_and_older.yar`, `cve_2018.yar` ... `cve_2026.yar` | Baseline: one rule per CVE, from public exploit checks (see below) |
 | `vulnerabilities.yar` | Baseline: product vulnerabilities without a CVE id (many CNVD-tracked OA, ERP and router products) |
-| `exposures.yar` | Baseline: four rules listing about 560 paths of config, log, backup and sensitive files that scanners request |
+| `exposures.yar` | Baseline: four rules listing 558 paths of config, log, backup and sensitive files that scanners request |
 
 CVE indicators in the hand-written files come from the vendor advisories and
 NVD entries cited in each rule's `reference`.
 
 ### Baseline rules
 
-The `cve_<year>.yar`, `vulnerabilities.yar` and `exposures.yar` files (about
-3,100 rules) were mined from the HTTP checks in
+The `cve_<year>.yar`, `vulnerabilities.yar` and `exposures.yar` files (3,015
+rules) were mined from the HTTP checks in
 [ProjectDiscovery nuclei-templates](https://github.com/projectdiscovery/nuclei-templates)
 (MIT License). Each rule keys on the most specific part of one check's request:
 
-- a path no other check uses (`/dataBases/upgrademysqlstatus`), or
+- a path no other check uses (`/dataBases/upgrademysqlstatus`), ending at a
+  path segment when the check's path ended there, so `/api/system/fileView`
+  does not match `/api/system/fileViewer`; or
 - a static parameter that names the product or plugin
-  (`action=wcsales_purchased_products`, `option=com_baforms`).
+  (`action=wcsales_purchased_products`, `option=com_baforms`), matched as a
+  whole parameter: `submit=Log In` does not match inside `wp-submit=Log In`.
 
 Indicators were left out when they would mislabel traffic: paths or parameters
 shared by several checks (they name a product, not a bug), generic payloads
 (`../../etc/passwd`, `;id`, `alert(document.domain)`, which the generic rules
 already catch), values a scanner invents (nonces, `nuclei`, `dummy`), header
 values, checks that only compare version numbers, and anything that matches a
-`BENIGN` request or a link on Krawl's own pages. CVEs that already have a
+`BENIGN` request or a link on Krawl's own pages. Also left out:
+
+- every parameter of a request that carries a password field: many checks log
+  in before the exploit, and that login step (`log=...&pwd=...&wp-submit=Log+In`)
+  is ordinary WordPress or admin traffic;
+- form plumbing and button labels (`submit`, `redirect_to`, `testcookie`,
+  `nonce`, `Log In`, `Save`);
+- paths of one plain word (`/monitoring`, `/workspace/`), and trailing
+  placeholder segments such as the `x` in `/userfiles/x`. One-word paths with
+  an extension, `_`, a digit or CamelCase stay (`/log_proxy`, `/NateMail.php`). CVEs that already have a
 hand-written rule were skipped.
 
 Baseline rules are `confidence = "medium"`: a request for the vulnerable

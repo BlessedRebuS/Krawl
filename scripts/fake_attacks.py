@@ -784,6 +784,35 @@ ATTACKS = [
         },
     ),
     FakeRequest(
+        "react2shell resolved_model chunk",
+        "cve_2025_55182",
+        rule="krawl_cve_2025_55182_react2shell",
+        method="POST",
+        path="/",
+        headers={"next-action": "x"},
+        body='{"then":"$1:__proto__:then","status":"resolved_model","reason":-1,'
+        '"value":"{\\"then\\":\\"$B1337\\"}","_response":{"_prefix":'
+        "\"process.mainModule.require('child_process').execSync('id');\","
+        '"_formData":{"get":"$1:constructor:constructor"}}}',
+    ),
+    FakeRequest(
+        "react2shell lazy prototype chain",
+        "cve_2025_55182",
+        rule="krawl_cve_2025_55182_react2shell",
+        method="POST",
+        path="/app",
+        body='0:{"__proto__":{"__proto__":{"type":"require","id":"child_process"}}}\n'
+        '1:{"$$typeof":"$Lazy","_payload":{"_status":0,"_result":"child_process"}}',
+    ),
+    FakeRequest(
+        "react2shell server reference",
+        "cve_2025_55182",
+        rule="krawl_cve_2025_55182_react2shell",
+        method="POST",
+        path="/app",
+        body='0:["$SR","child_process","execSync",["id"]]',
+    ),
+    FakeRequest(
         "jboss jmxinvoker",
         "cve_2015_7501",
         rule="krawl_cve_2015_7501_jboss_invoker",
@@ -1579,6 +1608,13 @@ BENIGN = [
         },
     ),
     FakeRequest("search", path="/search", query="q=hello+world&page=2"),
+    FakeRequest(
+        "next.js server action call",
+        method="POST",
+        path="/checkout",
+        headers={"next-action": "7f3a9c", "Content-Type": "text/plain;charset=UTF-8"},
+        body='[{"cartId":"$K1","items":"$@2"},"$undefined"]',
+    ),
     FakeRequest("host parameter", path="/status", query="host=example.com"),
     FakeRequest("external link", path="/out", query="url=https://example.com/post"),
     FakeRequest(
@@ -1741,6 +1777,10 @@ BENIGN = [
     FakeRequest("download of a session file", path="/docs/user.session"),
     FakeRequest("splunk messaging inbox", path="/en-US/modules/messaging/inbox"),
     FakeRequest("brightness setting", path="/settings", query="brightness=70"),
+    # Seen on the demo, matched by baseline rules before they were tightened.
+    FakeRequest("javamelody-like monitoring page", path="/monitoring"),
+    FakeRequest("upload in a userfiles folder", path="/userfiles/xmas.jpg"),
+    FakeRequest("workspace page", path="/workspace/"),
 ]
 
 # Baseline rules mined from nuclei-templates (rules/cve_<year>.yar,

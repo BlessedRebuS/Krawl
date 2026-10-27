@@ -573,6 +573,37 @@ async def htmx_rules(request: Request, q: str = Query("")):
     )
 
 
+RULE_MATCHES_SHOWN = 20
+
+
+@router.get("/htmx/rules/matches")
+async def htmx_rule_matches(request: Request, rule: str = Query("")):
+    """The newest requests one rule matched, for its card in the Rules table."""
+    if not verify_auth(request):
+        return HTMLResponse(_PANEL_401, status_code=401)
+    from detection import get_detection
+
+    rules = get_detection().list_rules()
+    found = next((row for row in rules if row["rule"] == rule), None)
+    if found is None:
+        return HTMLResponse("Unknown rule", status_code=404)
+    # Same attribution as the Matches column: unnamed detections belong to
+    # the only loaded rule of their attack type.
+    sharing = sum(1 for row in rules if row["attack_type"] == found["attack_type"])
+    result = await asyncio.to_thread(
+        get_db().access_logs.get_rule_matches,
+        rule,
+        found["attack_type"] if sharing == 1 else None,
+        RULE_MATCHES_SHOWN,
+    )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/rules_matches.html",
+        {"dashboard_path": _dashboard_path(request), **result},
+    )
+
+
 @router.get("/htmx/rules/table")
 async def htmx_rules_table(
     request: Request,
@@ -886,6 +917,14 @@ async def htmx_credentials(
 
 # ── Attack Types ─────────────────────────────────────────────────────
 
+MAX_EXCLUDE_TERMS = 10
+
+
+def parse_exclude_terms(raw: str | None) -> list[str]:
+    """Comma-separated exclude terms, blanks dropped, at most MAX_EXCLUDE_TERMS."""
+    terms = [term.strip()[:200] for term in (raw or "").split(",")]
+    return [term for term in terms if term][:MAX_EXCLUDE_TERMS]
+
 
 @router.get("/htmx/attacks")
 async def htmx_attacks(
@@ -898,18 +937,21 @@ async def htmx_attacks(
     attack_type_filter: str = Query(None),
     search: str = Query(""),
     method_filter: str = Query(None),
+    exclude: str = Query(""),
 ):
     page = max(1, page)
     page_size = max(1, min(int(page_size), 200))
     search = search.strip() or None
     method_filter = (method_filter or "").strip().upper() or None
+    exclude_terms = parse_exclude_terms(exclude)
+    exclude = ",".join(exclude_terms)
     # Validate page_size for the inline dashboard (must match the cached size to
     # use cached results). When the expand overlay requests a different page
     # size (e.g. 25), skip the cache so cached pages don't bleed across sizes.
     use_cache = page_size == 15
     cache_key = (
         f"attacks:{page}:{sort_by}:{sort_order}:{ip_filter or ''}:"
-        f"{attack_type_filter or ''}:{search or ''}:{method_filter or ''}"
+        f"{attack_type_filter or ''}:{search or ''}:{method_filter or ''}:{exclude}"
     )
     cached = get_cached_table(cache_key) if use_cache else None
     if cached:
@@ -919,8 +961,8 @@ async def htmx_attacks(
         # Unfiltered, reuse the total the warmup counted for page 1.
         warm = (
             None
-            if ip_filter or attack_type_filter or search or method_filter
-            else get_cached_table("attacks:1:timestamp:desc::::")
+            if ip_filter or attack_type_filter or search or method_filter or exclude
+            else get_cached_table("attacks:1:timestamp:desc:::::")
         )
         result = await asyncio.to_thread(
             db.analytics.get_attack_types_paginated,
@@ -933,6 +975,7 @@ async def htmx_attacks(
             search=search,
             method_filter=method_filter,
             total=warm["pagination"]["total"] if warm else None,
+            exclude=exclude_terms,
         )
         if use_cache:
             set_cached_table(cache_key, result)
@@ -970,6 +1013,8 @@ async def htmx_attacks(
             "attack_type_filter": attack_type_filter or "",
             "search": search or "",
             "method_filter": method_filter or "",
+            "exclude": exclude,
+            "exclude_terms": exclude_terms,
         },
     )
 

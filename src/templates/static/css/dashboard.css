@@ -5343,3 +5343,6 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
 .rules-uploads td code { overflow-wrap: anywhere; }
 .rules-upload-actions { white-space: nowrap; text-align: right; }
 .rules-upload-actions .deception-action-btn { text-decoration: none; }
+.rules-card-matches { margin-top: 12px; }
+.rules-matches td code { overflow-wrap: anywhere; }
+.rules-matches .view-btn { padding: 2px 6px; }

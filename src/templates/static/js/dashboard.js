@@ -420,7 +420,7 @@ document.addEventListener('alpine:init', () => {
         uploadModal: { show: false, path: '', fileName: '', fileContent: '', error: '', success: '', loading: false, dragging: false },
 
         // Expand overlay state
-        expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false, method: '', attackType: '', attackTypes: [], ipFilter: '', artifactKind: '', artifactValue: '' },
+        expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false, method: '', attackType: '', excludes: [], invert: false, attackTypes: [], ipFilter: '', artifactKind: '', artifactValue: '' },
 
         // ⌘K search palette, opened from the header button.
         palette: { open: false },
@@ -2006,7 +2006,7 @@ window.openExpandOverlay = function(title, endpoint, pageSize, cluster, searchVa
         show: true, title: title, endpoint: endpoint,
         pageSize: pageSize || 25, search: searchVal || '',
         categories: [], honeypotOnly: false,
-        method: '', attackType: '', attackTypes: [],
+        method: '', attackType: '', excludes: [], invert: false, attackTypes: [],
         ipFilter: '', cluster: cluster || '', artifactKind: '', artifactValue: '',
     });
     _reloadExpandOverlay();
@@ -2037,6 +2037,38 @@ window.jumpToPath = function(event) {
 };
 
 window.triggerExpandSearch = function() {
+    _reloadExpandOverlay();
+};
+
+// Attacks overlay invert match: with Not on, Enter turns the filter text into
+// a "not <text>" term; terms add up (not a, not b, ...).
+window.toggleExpandInvert = function() {
+    const app = _getAlpineData();
+    if (!app) return;
+    const ov = app.expandOverlay;
+    ov.invert = !ov.invert;
+    // Typed text was a live search; it is not one in invert mode.
+    if (ov.search) { ov.search = ''; _reloadExpandOverlay(); }
+};
+
+window.addExpandExcludeTerm = function() {
+    const app = _getAlpineData();
+    if (!app) return;
+    const ov = app.expandOverlay;
+    if (!ov.invert || ov.endpoint !== 'attacks') return;
+    const terms = (ov.search || '').split(',').map(s => s.trim()).filter(Boolean);
+    for (const term of terms) {
+        if (!ov.excludes.includes(term)) ov.excludes.push(term);
+    }
+    ov.search = '';
+    _reloadExpandOverlay();
+};
+
+window.removeExcludeTerm = function(term) {
+    const app = _getAlpineData();
+    if (!app) return;
+    const ov = app.expandOverlay;
+    ov.excludes = ov.excludes.filter(t => t !== term);
     _reloadExpandOverlay();
 };
 
@@ -2114,6 +2146,7 @@ function _reloadExpandOverlay() {
     if (ov.endpoint === 'attacks') {
         if (ov.method) params.set('method_filter', ov.method);
         if (ov.attackType) params.set('attack_type_filter', ov.attackType);
+        if (ov.excludes.length) params.set('exclude', ov.excludes.join(','));
         // Pull sort defaults from the currently displayed partial if present,
         // otherwise default to timestamp desc.
         if (!params.has('sort_by')) params.set('sort_by', 'timestamp');

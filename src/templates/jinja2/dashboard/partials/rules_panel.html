@@ -44,7 +44,7 @@
           hx-get="{{ dashboard_path }}/htmx/rules/table"
           hx-target="#rules-table-container"
           hx-swap="innerHTML"
-          hx-trigger="change, input delay:300ms from:find input[name='q']"
+          hx-trigger="change[target.tagName === 'SELECT'], input delay:300ms from:find input[name='q']"
           @submit.prevent>
         <input class="panel-search" type="search" name="q" value="{{ query.q }}"
                placeholder="Search name, type, file, CVE, description"

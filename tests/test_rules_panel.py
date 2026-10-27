@@ -64,7 +64,7 @@ def test_list_rules_returns_every_loaded_rule(coordinator):
     rules = coordinator.list_rules()
     names = [rule["rule"] for rule in rules]
 
-    assert len(names) == len(set(names)) == 3259
+    assert len(names) == len(set(names)) == 3175
     by_name = {rule["rule"]: rule for rule in rules}
     assert by_name["krawl_sql_injection"]["response_type"] == "sql_error"
     assert by_name["krawl_common_probes"]["response_type"] == ""
@@ -313,3 +313,131 @@ def test_rules_tab_is_wired_in_js():
     assert "hash === 'rules'" in js
     assert "nav('rules'" in header
     assert "rules-htmx-container" in index
+
+
+# --- requests that matched a rule --------------------------------------------------
+
+
+def _store_requests(rows):
+    """rows: (path, attack_type, rule_name, age_minutes); returns the log ids."""
+    db = get_database()
+    s = db.session
+    ids = []
+    for path, attack_type, rule_name, age in rows:
+        log = AccessLog(
+            ip="198.51.100.71",
+            path=path,
+            method="POST",
+            is_suspicious=True,
+            timestamp=NOW - timedelta(minutes=age),
+        )
+        s.add(log)
+        s.flush()
+        s.add(
+            AttackDetection(
+                access_log_id=log.id,
+                attack_type=attack_type,
+                rule_name=rule_name,
+                matched_pattern="' OR 1=1",
+            )
+        )
+        ids.append(log.id)
+    s.commit()
+    db.close_session()
+    return ids
+
+
+def test_rule_matches_newest_first(tmp_path):
+    initialize_database(str(tmp_path / "m.db"))
+    old, new, _ = _store_requests(
+        [
+            ("/old", "sql_injection", "krawl_sql_injection", 30),
+            ("/new", "sql_injection", "krawl_sql_injection", 1),
+            ("/other", "xss_attempt", "krawl_xss_attempt", 2),
+        ]
+    )
+
+    result = get_database().access_logs.get_rule_matches("krawl_sql_injection")
+
+    assert [m["log_id"] for m in result["matches"]] == [new, old]
+    assert result["total"] == 2
+    first = result["matches"][0]
+    assert first["path"] == "/new"
+    assert first["method"] == "POST"
+    assert first["ip"] == "198.51.100.71"
+    assert first["matched_pattern"] == "' OR 1=1"
+    assert first["legacy"] is False
+
+
+def test_rule_matches_include_unnamed_rows_of_its_type_on_request(tmp_path):
+    initialize_database(str(tmp_path / "u.db"))
+    _store_requests(
+        [
+            ("/named", "sql_injection", "krawl_sql_injection", 5),
+            ("/legacy", "sql_injection", None, 1),
+        ]
+    )
+    access_logs = get_database().access_logs
+
+    plain = access_logs.get_rule_matches("krawl_sql_injection")
+    with_legacy = access_logs.get_rule_matches(
+        "krawl_sql_injection", unnamed_attack_type="sql_injection"
+    )
+
+    assert [m["path"] for m in plain["matches"]] == ["/named"]
+    assert [m["path"] for m in with_legacy["matches"]] == ["/legacy", "/named"]
+    assert with_legacy["matches"][0]["legacy"] is True
+    assert with_legacy["total"] == 2
+
+
+def test_rule_matches_are_limited(tmp_path):
+    initialize_database(str(tmp_path / "l.db"))
+    _store_requests(
+        [(f"/p{i}", "sql_injection", "krawl_sql_injection", i) for i in range(5)]
+    )
+
+    result = get_database().access_logs.get_rule_matches("krawl_sql_injection", limit=3)
+
+    assert [m["path"] for m in result["matches"]] == ["/p0", "/p1", "/p2"]
+    assert result["total"] == 5
+
+
+def test_rule_matches_route(client, monkeypatch):
+    from routes import htmx
+
+    url = "/dash/htmx/rules/matches"
+    assert client.get(url, params={"rule": "krawl_sql_injection"}).status_code == 401
+
+    monkeypatch.setattr(htmx, "verify_auth", lambda request: True)
+    [log_id] = _store_requests(
+        [("/search.php", "sql_injection", "krawl_sql_injection", 1)]
+    )
+    html = client.get(url, params={"rule": "krawl_sql_injection"}).text
+
+    assert "/search.php" in html
+    assert f"viewRawRequest({log_id})" in html
+    assert "198.51.100.71" in html
+    assert "&#39; OR 1=1" in html
+
+    assert client.get(url, params={"rule": "krawl_no_such_rule"}).status_code == 404
+    empty = client.get(url, params={"rule": "krawl_xss_attempt"}).text
+    assert "No request has matched this rule yet" in empty
+
+
+def test_rule_card_loads_its_matches():
+    table = (
+        ROOT / "src/templates/jinja2/dashboard/partials/rules_table.html"
+    ).read_text()
+
+    assert "/htmx/rules/matches?rule=" in table
+    assert 'hx-trigger="intersect once"' in table
+
+
+def test_leaving_the_search_box_does_not_reload_the_table():
+    # A text input fires change on blur: clicking a row right after typing
+    # would reload the table and close the card that click opened.
+    panel = (
+        ROOT / "src/templates/jinja2/dashboard/partials/rules_panel.html"
+    ).read_text()
+
+    assert "hx-trigger=\"change[target.tagName === 'SELECT']," in panel

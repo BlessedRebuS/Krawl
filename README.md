@@ -82,7 +82,7 @@ It features:
 - **[Canary Token](docs/canary-token.md) Integration**: External alert triggering
 - **Random server headers**: Confuse attacks based on server header and version
 - **Real-time Dashboard**: Monitor suspicious activity
-- **[YARA Attack Detection](docs/detection.md)**: over 3,200 bundled rules for web attacks, exploit payloads, over 2,600 CVEs, IoT botnets and exposure probes, answered with matching fake replies
+- **[YARA Attack Detection](docs/detection.md)**: over 3,100 bundled rules for web attacks, exploit payloads, over 2,500 CVEs, IoT botnets and exposure probes, answered with matching fake replies
 - **Customizable fake content**: every fake page and attack reply is a file listed in `responses/manifest.yaml`
 - **Random Error Injection**: Mimic real server behavior
 
@@ -571,7 +571,7 @@ Krawl can also push banned IPs directly to a Cloudflare Account IP List for use 
 
 ## Attack Detection
 
-Every request is scanned by the [YARA](https://virustotal.github.io/yara/) rules in [`rules/`](rules/): SQL injection, XSS, path traversal, command injection, SSRF, SSTI, deserialization, webshells, exposure probes and the exploit requests of over 2,600 CVEs. A rule records the attack type, severity and MITRE ATT&CK mapping, and can name a fake reply from [`responses/manifest.yaml`](responses/manifest.yaml), so `/etc/passwd` returns a fake passwd file, a SQL injection gets a database error, and an SSRF to the cloud metadata address gets fake credentials.
+Every request is scanned by the [YARA](https://virustotal.github.io/yara/) rules in [`rules/`](rules/): SQL injection, XSS, path traversal, command injection, SSRF, SSTI, deserialization, webshells, exposure probes and the exploit requests of over 2,500 CVEs. A rule records the attack type, severity and MITRE ATT&CK mapping, and can name a fake reply from [`responses/manifest.yaml`](responses/manifest.yaml), so `/etc/passwd` returns a fake passwd file, a SQL injection gets a database error, and an SSRF to the cloud metadata address gets fake credentials.
 
 Rules and replies are plain files: add a `.yar` rule, drop the fake files under `responses/`, list them in the manifest and restart. The [detection documentation](docs/detection.md) walks through the whole flow, from writing a rule to testing and shipping its fake reply.
 
