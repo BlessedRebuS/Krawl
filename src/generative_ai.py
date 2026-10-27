@@ -606,8 +606,13 @@ async def generate_html_for_path(
         raise RuntimeError("ai.prompt is not configured")
 
     query_part = f"?{query}" if query else ""
+    template = config.ai_prompt
+    # A prompt without {path} (e.g. an old Helm override) would ask the model
+    # for a page without saying which, so every path got the same generic one.
+    if "{path}" not in template:
+        template += "\n\nPath: {path}{query_part}"
     try:
-        prompt = config.ai_prompt.format(path=path, query_part=query_part)
+        prompt = template.format(path=path, query_part=query_part)
     except (KeyError, IndexError) as err:
         # Only {path} and {query_part} exist; any other brace in the configured
         # prompt lands here instead of taking the request down.
