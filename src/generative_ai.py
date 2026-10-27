@@ -9,6 +9,7 @@ Caches generated pages in the database to avoid redundant API calls.
 import base64
 import logging
 import os
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -552,7 +553,11 @@ async def generate_html_for_path(
     """
     path = normalize_path(path)
     # ALWAYS check database cache first - serve cached pages even if AI is disabled
-    cached_html = get_generated_page_from_db(path)
+    # Case variants (/.ENV vs /.env) reuse the existing page instead of
+    # generating a second, contradictory one.
+    cached_html = get_generated_page_from_db(path) or (
+        path != path.lower() and get_generated_page_from_db(path.lower())
+    )
     if cached_html:
         logger.debug(
             f"[DB CACHE HIT] Retrieved cached AI-generated page for path: {path}"
@@ -693,7 +698,7 @@ def should_use_ai_for_path(path: str) -> bool:
     """
     path = normalize_path(path)
     # Check if there's a cached page even if AI is disabled (lightweight check, no content load)
-    if has_generated_page_in_db(path):
+    if has_generated_page_in_db(path) or has_generated_page_in_db(path.lower()):
         logger.debug(f"Found cached AI page for {path}, will serve it")
         return True
 
@@ -720,6 +725,11 @@ def should_use_ai_for_path(path: str) -> bool:
     if _is_random_link(path):
         return False
 
+    # Scanners request nonsense paths to detect catch-all servers; generating
+    # a page for them wastes a request and confirms the catch-all.
+    if _is_scanner_probe(path):
+        return False
+
     # Load robots.txt disallowed paths
     robots_disallowed_paths = load_robots_disallowed()
 
@@ -732,6 +742,31 @@ def should_use_ai_for_path(path: str) -> bool:
             return False
 
     return True
+
+
+_PROBE_KEYWORDS = re.compile(
+    r"canary|non_?existent|should-?404|404-probe|nmaplowercheck|rw-probe"
+    r"|debug-trigger|nexkit-missing|^/zz-",
+    re.IGNORECASE,
+)
+# Single segment, 16+ lowercase alphanumerics mixing letters and digits,
+# e.g. /96om2ovp4yvcykxos7y0. Real slugs have separators or dictionary words.
+_RANDOM_SLUG = re.compile(r"^/(?=[a-z0-9]*[0-9])(?=[a-z0-9]*[a-z])[a-z0-9]{16,}$")
+# Mixed-case token as a fake repo dir or admin child, e.g. /0blQnPgX/.git/config
+# or /admin/OsFDKjoK. Real names here are lowercase words.
+_RANDOM_TOKEN = re.compile(
+    r"^/((?=[A-Za-z0-9]*[A-Z])(?=[A-Za-z0-9]*[a-z])[A-Za-z0-9]{4,16}/\.git/config"
+    r"|(admin|administrator|cgi-bin)/(?=[A-Za-z0-9]*[A-Z])[A-Za-z0-9]{6,16})$"
+)
+
+
+def _is_scanner_probe(path: str) -> bool:
+    """Check if path is a scanner's catch-all probe (random slug or canary)."""
+    return bool(
+        _RANDOM_SLUG.match(path)
+        or _RANDOM_TOKEN.match(path)
+        or _PROBE_KEYWORDS.search(path)
+    )
 
 
 def _is_random_link(path: str) -> bool:
