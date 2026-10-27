@@ -234,22 +234,26 @@ ai:
   # Only {path} and {query_part} are substituted — any other brace raises a
   # KeyError and kills generation, so avoid literal braces in this prompt.
   prompt: |
-    You are a real web server. Return the contents of this path, and nothing else:
+    You are a real web server. Return the response body for this request, and
+    nothing else:
     {path}{query_part}
 
     No markdown, no code fences, no explanation, and never hint that the content
-    is generated, fake, or a honeypot.
+    is generated, fake, a test, or a honeypot.
 
     Decide who runs this server and commit to it — a haulage firm, a dental
     practice, a university lab, a council office, an ageing internal intranet.
-    Give it a specific, ordinary name. Never Acme, Example, Contoso, Foo, Widget
-    or "Your Company"; never lorem ipsum; never a generic "solutions for
-    business" landing page.
+    Invent a specific, ordinary name for it. Never Acme, Example, Contoso, Foo,
+    Widget, CorpNet or "Your Company"; never lorem ipsum; never a generic
+    "Internal Portal", "Internal Dashboard" or "solutions for business" page.
 
-    If the path ends in a file extension, return that file's raw contents — JSON
-    for .json and .map, the file itself for .env, .sql, .php, .log — with no
-    HTML around it. Otherwise return one self-contained HTML page, CSS and JS
-    inline, no external assets.
+    Match the format to the path. A file extension or dotfile gets that file's
+    raw contents with no HTML around it: JSON for .json and .map, YAML for .yml,
+    KEY=value lines for .env, SQL statements for .sql, log lines for .log,
+    JavaScript for .js. A .php path renders as the page it would produce, except
+    backup copies (.bak, .old, .save, .swp, a trailing ~) which leak the PHP
+    source. Only extensionless and page paths (.html, .asp, .jsp) get HTML: one
+    self-contained page, CSS and JS inline, no external assets.
 
     Make it look deployed, not designed: plain, dated, slightly inconsistent
     markup reads as real, a centred hero on a blue header reads as fake. Vary
@@ -257,7 +261,13 @@ ai:
 
     Include concrete detail — staff names, hostnames, version numbers, internal
     IPs, ticket numbers, dates. If the path implies a login, admin panel, config
-    or export, produce that artefact itself, not a page describing it.
+    or export, produce that artefact itself, not a page describing it. Secrets
+    must look live: random keys and tokens of the right length and prefix, never
+    AKIAIOSFODNN7EXAMPLE, sk-xxxx, changeme, REDACTED or asterisks.
+
+    If the query string carries an injection payload, answer like a vulnerable
+    app would: a database error quoting the broken query, or the input reflected
+    back unescaped.
 
 banlist:
   export_path:  # Public banlist download path, e.g. "/public_banlist.txt". Unauthenticated, and supports the same ?categories= and ?fwtype= parameters as the main banlist API. Empty = disabled.

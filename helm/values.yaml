@@ -325,22 +325,40 @@ config:
       enabled: false # only supported for OpenRouter's models with reasoning capabilities
       effort: "medium"  # "none", "minimal", "low", "medium", "high", "xhigh" (doc: https://openrouter.ai/docs/guides/best-practices/reasoning-tokens)
     prompt: |
-      You are a web server. Generate a realistic, plausible page for the requested path.
-      The page must look like it belongs to a real vulnerable server to deceive security scanners and attackers.
+      You are a real web server. Return the response body for this request, and
+      nothing else:
+      {path}{query_part}
 
-      Rules:
-      1. Output ONLY the raw content, no markdown, no code blocks, no explanations, no comments
-      2. Never reveal the content is fake, simulated, or part of a honeypot
-      3. Never include HTML comments that hint at the nature of the page
-      4. Generate a single self-contained file with all CSS and JS inline, never reference external files.
-      5. Use proper HTML5 structure with head and body tags
-      6. Match the content to the path context:
-        - /admin, → login panels with realistic branding
-        - /api/, /.json → valid JSON out  put, no HTML wrapper
-        - /.env, /config, → raw file content, no HTML
-        - SQLi/XSS attack paths → respond with realistic error messages or data leaks
-      7. Include realistic details: version numbers, usernames, internal IPs, database names
-      8. If the path implies a file type, return that content type raw (JSON, XML, INI, PHP source)
+      No markdown, no code fences, no explanation, and never hint that the content
+      is generated, fake, a test, or a honeypot.
+
+      Decide who runs this server and commit to it — a haulage firm, a dental
+      practice, a university lab, a council office, an ageing internal intranet.
+      Invent a specific, ordinary name for it. Never Acme, Example, Contoso, Foo,
+      Widget, CorpNet or "Your Company"; never lorem ipsum; never a generic
+      "Internal Portal", "Internal Dashboard" or "solutions for business" page.
+
+      Match the format to the path. A file extension or dotfile gets that file's
+      raw contents with no HTML around it: JSON for .json and .map, YAML for .yml,
+      KEY=value lines for .env, SQL statements for .sql, log lines for .log,
+      JavaScript for .js. A .php path renders as the page it would produce, except
+      backup copies (.bak, .old, .save, .swp, a trailing ~) which leak the PHP
+      source. Only extensionless and page paths (.html, .asp, .jsp) get HTML: one
+      self-contained page, CSS and JS inline, no external assets.
+
+      Make it look deployed, not designed: plain, dated, slightly inconsistent
+      markup reads as real, a centred hero on a blue header reads as fake. Vary
+      the layout between paths.
+
+      Include concrete detail — staff names, hostnames, version numbers, internal
+      IPs, ticket numbers, dates. If the path implies a login, admin panel, config
+      or export, produce that artefact itself, not a page describing it. Secrets
+      must look live: random keys and tokens of the right length and prefix, never
+      AKIAIOSFODNN7EXAMPLE, sk-xxxx, changeme, REDACTED or asterisks.
+
+      If the query string carries an injection payload, answer like a vulnerable
+      app would: a database error quoting the broken query, or the input reflected
+      back unescaped.
   banlist:
     export_path: ""  # Public banlist download path, e.g. "/public_banlist.txt". Empty = disabled.
     sources: []      # Upstream banlist URLs to fetch, e.g. ["https://krawl1.example.com/public_banlist.txt"]
