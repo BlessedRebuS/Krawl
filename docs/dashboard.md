@@ -116,6 +116,8 @@ Shows which IPs accessed honeypot endpoints and how many times, sorted by trigge
 
 A detailed table of individual attack detections showing IP, path, attack type classifications, user-agent, request method, size, and timestamp. The size column is sortable, so the heaviest payloads surface first. Each entry can be expanded to view the raw HTTP request.
 
+In the expanded view, filter by method, attack type or the **Filter** box. Turn on **Not** next to it to invert the match: each time you press Enter, the typed text is added as a *not "…"* pill and every request whose IP, path or user agent contains it (ignoring case) is hidden. Terms add up, so `wp-login` ⏎ `app` ⏎ `test` ⏎ shows requests matching none of the three, up to 10 terms. Click a pill's × to bring those requests back; turn **Not** off to go back to a normal live search.
+
 **Attachments.** When the request carried an upload — a webshell, a malware sample, an exfiltration payload — a paperclip button appears in the raw request modal listing the uploaded files, and downloads the one you click. Both `multipart/form-data` parts and raw-body uploads are recognised. Treat every download as hostile and open it in a sandbox. Requests with bodies above 64 KB are not buffered, so they have no retrievable attachment. The same data is available through the [Dashboard API](dashboard-api.md#attachments).
 
 ### Most Recurring Attack Types
@@ -288,7 +290,11 @@ the rule name and file, attack type, classification, severity, confidence, the
 fake reply it triggers (`response_type`, or *route* when the normal page
 answers), how many stored detections it produced and when it last matched.
 Click a row for the rule card: description, MITRE ATT&CK techniques and CVEs
-(linked), known false positives and references.
+(linked), known false positives and references, and the 20 newest requests the
+rule matched, with time, IP, method, path and the matched text. Click the
+`<>` button to open the raw request, or the IP to open IP Insight. Requests
+stored before rule names were recorded are marked *legacy*; they are listed
+under a rule only when it is the only loaded rule of their attack type.
 
 Filter by rule file, classification or minimum severity, sort by clicking the
 Rule, Attack type, Severity, Matches or Last match header, and type in the

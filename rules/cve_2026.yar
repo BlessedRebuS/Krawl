@@ -23,7 +23,7 @@ rule krawl_cve_2026_0558_lollms {
         cve = "CVE-2026-0558"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-0558, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-0558.yaml"
     strings:
-        $path0 = "/api/files/extract-text" ascii nocase
+        $path0 = /\/api\/files\/extract-text(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -45,8 +45,8 @@ rule krawl_cve_2026_0561_shield_security {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-0561, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-0561.yaml"
         response_type = "xss"
     strings:
-        $param0 = "ex=display_full_page_dynamic" ascii nocase
-        $param1 = "render_slug=render_shield_wploginreplica_header" ascii nocase
+        $param0 = /(^|[?&;])ex=display_full_page_dynamic(&|$)/ nocase
+        $param1 = /(^|[?&;])render_slug=render_shield_wploginreplica_header(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -68,7 +68,7 @@ rule krawl_cve_2026_0650_flagr {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-0650, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-0650.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/api/v1/health/../flags" ascii nocase
+        $path0 = /\/api\/v1\/health\/\.\.\/flags(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -89,10 +89,10 @@ rule krawl_cve_2026_0692_bluesnap_payment_gateway_for_w {
         cve = "CVE-2026-0692"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-0692, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-0692.yaml"
     strings:
-        $param0 = "wc-api=bluesnap" ascii nocase
-        $param1 = "transactionType=CHARGEBACK" ascii nocase
-        $param2 = "referenceNumber=CVE0692CODEX" ascii nocase
-        $param3 = "reason=CVE0692" ascii nocase
+        $param0 = /(^|[?&;])wc-api=bluesnap(&|$)/ nocase
+        $param1 = /(^|[?&;])transactionType=CHARGEBACK(&|$)/ nocase
+        $param2 = /(^|[?&;])referenceNumber=CVE0692CODEX(&|$)/ nocase
+        $param3 = /(^|[?&;])reason=CVE0692(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -114,8 +114,8 @@ rule krawl_cve_2026_0702_vidshop_for_woocommerce_1_1_4 {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-0702, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-0702.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/wp-json/vsfw/v1/videos" ascii nocase
-        $param0 = "fields=(SELECT 424242*2) as id" ascii nocase
+        $path0 = /\/wp-json\/vsfw\/v1\/videos(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])fields=\(SELECT 424242\*2\) as id(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -137,8 +137,8 @@ rule krawl_cve_2026_0926_prodigy_commerce_3_3_0 {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-0926, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-0926.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "action=prodigy-render-my-account-widget" ascii nocase
-        $param1 = "parameters[template_name]=etc/passwd" ascii nocase
+        $param0 = /(^|[?&;])action=prodigy-render-my-account-widget(&|$)/ nocase
+        $param1 = /(^|[?&;])parameters\[template_name\]=etc\/passwd(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -160,8 +160,8 @@ rule krawl_cve_2026_102782_simple_membership {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-102782, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-102782.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "option=com_simplemembership" ascii nocase
-        $param1 = "task=checkLoginPass" ascii nocase
+        $param0 = /(^|[?&;])option=com_simplemembership(&|$)/ nocase
+        $param1 = /(^|[?&;])task=checkLoginPass(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -182,7 +182,7 @@ rule krawl_cve_2026_103956_loom_for_aws {
         cve = "CVE-2026-103956"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-103956, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-103956.yaml"
     strings:
-        $path0 = "/api/mcp/servers" ascii nocase
+        $path0 = /\/api\/mcp\/servers(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -204,9 +204,9 @@ rule krawl_cve_2026_105134_ahsaycbs {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-105134, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-105134.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/rps/api/json/ListReceiver.do" ascii nocase
-        $path1 = "/rps/api/json/UpdateReceivers.do" ascii nocase
-        $path2 = "/rps/obs7/rpsfile/upload" ascii nocase
+        $path0 = /\/rps\/api\/json\/ListReceiver\.do(\/|;|$)/ nocase
+        $path1 = /\/rps\/api\/json\/UpdateReceivers\.do(\/|;|$)/ nocase
+        $path2 = /\/rps\/obs7\/rpsfile\/upload(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -228,7 +228,7 @@ rule krawl_cve_2026_10520_ivanti_sentry {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-10520, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-10520.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/mics/api/v2/sentry/mics-config/handleMessage" ascii nocase
+        $path0 = /\/mics\/api\/v2\/sentry\/mics-config\/handleMessage(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -249,7 +249,7 @@ rule krawl_cve_2026_10768_localgov_workflows {
         cve = "CVE-2026-10768"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-10768, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-10768.yaml"
     strings:
-        $path0 = "/admin/content/localgov-service-contact/content-by-owner" ascii nocase
+        $path0 = /\/admin\/content\/localgov-service-contact\/content-by-owner(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -271,7 +271,7 @@ rule krawl_cve_2026_10818_wpforms {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-10818, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-10818.yaml"
     strings:
         $path0 = "/wp-content/uploads/wpforms/tmp/" ascii nocase
-        $param0 = "action=wpforms_upload_chunk_init" ascii nocase
+        $param0 = /(^|[?&;])action=wpforms_upload_chunk_init(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -292,7 +292,7 @@ rule krawl_cve_2026_10823_ymc_filter {
         cve = "CVE-2026-10823"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-10823, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-10823.yaml"
     strings:
-        $path0 = "/wp-json/ymc/v1/posts/filter" ascii nocase
+        $path0 = /\/wp-json\/ymc\/v1\/posts\/filter(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -314,7 +314,7 @@ rule krawl_cve_2026_109618_php {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-109618, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-109618.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "Content-Disposition:name=a;filename=" ascii nocase
+        $param0 = /(^|[?&;])Content-Disposition:name=a;filename=(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -336,8 +336,8 @@ rule krawl_cve_2026_1115_lollms {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-1115, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-1115.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/api/social/posts" ascii nocase
-        $path1 = "/api/social/feed" ascii nocase
+        $path0 = /\/api\/social\/posts(\/|;|$)/ nocase
+        $path1 = /\/api\/social\/feed(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -358,7 +358,7 @@ rule krawl_cve_2026_11387_sms_alert {
         cve = "CVE-2026-11387"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-11387, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-11387.yaml"
     strings:
-        $param0 = "option=smsalert-change-password-form" ascii nocase
+        $param0 = /(^|[?&;])option=smsalert-change-password-form(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -379,7 +379,7 @@ rule krawl_cve_2026_11565_file_manager_advanced {
         cve = "CVE-2026-11565"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-11565, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-11565.yaml"
     strings:
-        $param0 = "page=file_manager_advanced_ui" ascii nocase
+        $param0 = /(^|[?&;])page=file_manager_advanced_ui(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -401,8 +401,8 @@ rule krawl_cve_2026_116067_paisa {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-116067, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-116067.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/api/editor/file" ascii nocase
-        $path1 = "/api/sheets/file" ascii nocase
+        $path0 = /\/api\/editor\/file(\/|;|$)/ nocase
+        $path1 = /\/api\/sheets\/file(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -423,7 +423,7 @@ rule krawl_cve_2026_116485_danmu_api {
         cve = "CVE-2026-116485"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-116485, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-116485.yaml"
     strings:
-        $path0 = "/api/cache/animes" ascii nocase
+        $path0 = /\/api\/cache\/animes(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -444,8 +444,8 @@ rule krawl_cve_2026_11801_wpadverts {
         cve = "CVE-2026-11801"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-11801, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-11801.yaml"
     strings:
-        $path0 = "/wp-json/wpadverts/v1/classifieds-types" ascii nocase
-        $param0 = "rest_route=/wpadverts/v1/classifieds-types" ascii nocase
+        $path0 = /\/wp-json\/wpadverts\/v1\/classifieds-types(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])rest_route=\/wpadverts\/v1\/classifieds-types(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -489,29 +489,7 @@ rule krawl_cve_2026_12227_visualcomposer {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-12227, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-12227.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "vcv-template=../../../../../../../etc/passwd" ascii nocase
-    condition:
-        ((scan_target == "query" or scan_target == "body") and any of ($param*))
-}
-
-rule krawl_cve_2026_12394_memberglut {
-    meta:
-        attack_type = "cve_2026_12394"
-        classification = "attack"
-        severity = 9
-        confidence = "medium"
-        description = "WordPress MemberGlut < 1.1.5 - Unauthenticated Privilege Escalation: MemberGlut WordPress plugin < 1.1.5 contains a broken access control vulnerability caused by lack of validation of roles during front-end registration, letting unauthenticated users register with arbitrary."
-        mitre_attack = "T1190"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        cve = "CVE-2026-12394"
-        reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-12394, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-12394.yaml"
-    strings:
-        $param0 = "action=memberglut_register" ascii nocase
-        $param1 = "password=Cve12394Test1!" ascii nocase
+        $param0 = /(^|[?&;])vcv-template=\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/etc\/passwd(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -533,7 +511,7 @@ rule krawl_cve_2026_12609_theia {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-12609, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-12609.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/hostedPlugin/vscode_bat/../../../../../etc/passwd" ascii nocase
+        $path0 = /\/hostedPlugin\/vscode_bat\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/etc\/passwd(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -555,7 +533,7 @@ rule krawl_cve_2026_12741_wp_fast_total_search {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-12741, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-12741.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "action=wpfts_autocomplete" ascii nocase
+        $param0 = /(^|[?&;])action=wpfts_autocomplete(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -576,8 +554,8 @@ rule krawl_cve_2026_1277_url_shortify_1_12_1 {
         cve = "CVE-2026-1277"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-1277, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-1277.yaml"
     strings:
-        $param0 = "option_name=bfcm_2025_offer" ascii nocase
-        $param1 = "option_name=welcome_offer" ascii nocase
+        $param0 = /(^|[?&;])option_name=bfcm_2025_offer(&|$)/ nocase
+        $param1 = /(^|[?&;])option_name=welcome_offer(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -642,7 +620,7 @@ rule krawl_cve_2026_13147_kirki {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-13147, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-13147.yaml"
         response_type = "cloud_metadata"
     strings:
-        $param0 = "endpoint=get-pre-built-html" ascii nocase
+        $param0 = /(^|[?&;])endpoint=get-pre-built-html(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -663,7 +641,7 @@ rule krawl_cve_2026_13153_essential_blocks_6_4_0 {
         cve = "CVE-2026-13153"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-13153, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-13153.yaml"
     strings:
-        $path0 = "/wp-json/essential-blocks/v1/products" ascii nocase
+        $path0 = /\/wp-json\/essential-blocks\/v1\/products(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -685,7 +663,7 @@ rule krawl_cve_2026_1357_wpvivid_backuprestore {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-1357, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-1357.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "wpvivid_action=send_to_site" ascii nocase
+        $param0 = /(^|[?&;])wpvivid_action=send_to_site(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -729,7 +707,7 @@ rule krawl_cve_2026_14870_contact_form_entries {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-14870, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-14870.yaml"
         response_type = "xss"
     strings:
-        $param0 = "form_id=x';alert(document.domain)//" ascii nocase
+        $param0 = /(^|[?&;])form_id=x';alert\(document\.domain\)\/\/(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -750,10 +728,9 @@ rule krawl_cve_2026_1492_wordpress_user_registration_me {
         cve = "CVE-2026-1492"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-1492, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-1492.yaml"
     strings:
-        $path0 = "/registration/" ascii nocase
-        $param0 = "security=invalid" ascii nocase
+        $param0 = /(^|[?&;])security=invalid(&|$)/ nocase
     condition:
-        (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
+        ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
 
 rule krawl_cve_2026_1557_wp_responsive_images_1_0 {
@@ -773,7 +750,7 @@ rule krawl_cve_2026_1557_wp_responsive_images_1_0 {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-1557, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-1557.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/plugins/wp-responsive-images/image_handler.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/wp-responsive-images\/image_handler\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -795,8 +772,8 @@ rule krawl_cve_2026_15733_wgdashboard {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-15733, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-15733.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/authenticate" ascii nocase
-        $path1 = "/api/getWireguardConfigurations" ascii nocase
+        $path0 = /\/api\/authenticate(\/|;|$)/ nocase
+        $path1 = /\/api\/getWireguardConfigurations(\/|;|$)/ nocase
         $path2 = "/api/addPeers/" ascii nocase
         $path3 = "/api/updatePeerSettings/" ascii nocase
     condition:
@@ -819,7 +796,7 @@ rule krawl_cve_2026_1603_endpoint_manager {
         cve = "CVE-2026-1603"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-1603, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-1603.yaml"
     strings:
-        $path0 = "/RemoteControlAuth/api/Auth" ascii nocase
+        $path0 = /\/RemoteControlAuth\/api\/Auth(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -841,7 +818,7 @@ rule krawl_cve_2026_16268_newsletters_lite {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-16268, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-16268.yaml"
         response_type = "cloud_metadata"
     strings:
-        $param0 = "wpmlmethod=bounce" ascii nocase
+        $param0 = /(^|[?&;])wpmlmethod=bounce(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -863,11 +840,11 @@ rule krawl_cve_2026_16959_media_library_assistant {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-16959, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-16959.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "action=mla-query-attachments" ascii nocase
-        $param1 = "query[s]=zzqnomatchaaa zzqnomatchbbb" ascii nocase
-        $param2 = "query[mla_search_fields][]=title" ascii nocase
-        $param3 = "query[mla_search_fields][]=content" ascii nocase
-        $param4 = "query[mla_search_connector]=OR SLEEP(8) OR" ascii nocase
+        $param0 = /(^|[?&;])action=mla-query-attachments(&|$)/ nocase
+        $param1 = /(^|[?&;])query\[s\]=zzqnomatchaaa zzqnomatchbbb(&|$)/ nocase
+        $param2 = /(^|[?&;])query\[mla_search_fields\]\[\]=title(&|$)/ nocase
+        $param3 = /(^|[?&;])query\[mla_search_fields\]\[\]=content(&|$)/ nocase
+        $param4 = /(^|[?&;])query\[mla_search_connector\]=OR SLEEP\(8\) OR(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -888,7 +865,7 @@ rule krawl_cve_2026_17540_file_manager {
         cve = "CVE-2026-17540"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-17540, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-17540.yaml"
     strings:
-        $param0 = "action=bitapps_fm_connector" ascii nocase
+        $param0 = /(^|[?&;])action=bitapps_fm_connector(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -909,7 +886,7 @@ rule krawl_cve_2026_18072_advanced_responsive_video_embe {
         cve = "CVE-2026-18072"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-18072, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-18072.yaml"
     strings:
-        $param0 = "_wplogin=35fe7057ffed92ff7bc5a0b90f302a77fb5843ad6c972294d68da0b0553b3900" ascii nocase
+        $param0 = /(^|[?&;])_wplogin=35fe7057ffed92ff7bc5a0b90f302a77fb5843ad6c972294d68da0b0553b3900(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -930,8 +907,8 @@ rule krawl_cve_2026_18110_concretecms {
         cve = "CVE-2026-18110"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-18110, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-18110.yaml"
     strings:
-        $path0 = "/ccm/system/panels/page/preview_as_user" ascii nocase
-        $path1 = "/ccm/system/user/autocomplete" ascii nocase
+        $path0 = /\/ccm\/system\/panels\/page\/preview_as_user(\/|;|$)/ nocase
+        $path1 = /\/ccm\/system\/user\/autocomplete(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -953,8 +930,8 @@ rule krawl_cve_2026_18937_broken_link_checker {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-18937, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-18937.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "wp_registered_widgets[x][callback]=array_filter" ascii nocase
-        $param1 = "wp_registered_widgets[x][params][0]=system" ascii nocase
+        $param0 = /(^|[?&;])wp_registered_widgets\[x\]\[callback\]=array_filter(&|$)/ nocase
+        $param1 = /(^|[?&;])wp_registered_widgets\[x\]\[params\]\[0\]=system(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -975,7 +952,7 @@ rule krawl_cve_2026_18963_keycloak {
         cve = "CVE-2026-18963"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-18963, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-18963.yaml"
     strings:
-        $param0 = "client_id=account" ascii nocase
+        $param0 = /(^|[?&;])client_id=account(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -997,8 +974,8 @@ rule krawl_cve_2026_19089_product_input_fields_for_wooco {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-19089, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-19089.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/wp-json/wc/store/v1/cart" ascii nocase
-        $path1 = "/wp-json/wc/store/v1/checkout" ascii nocase
+        $path0 = /\/wp-json\/wc\/store\/v1\/cart(\/|;|$)/ nocase
+        $path1 = /\/wp-json\/wc\/store\/v1\/checkout(\/|;|$)/ nocase
         $path2 = "/wp-json/wc/store/v1/order/" ascii nocase
         $path3 = "/wp-content/uploads/woocommerce_uploads/alg_uploads/product_input_fields/" ascii nocase
     condition:
@@ -1021,7 +998,7 @@ rule krawl_cve_2026_19478_gitlab {
         cve = "CVE-2026-19478"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-19478, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-19478.yaml"
     strings:
-        $path0 = "/api/v4/projects" ascii nocase
+        $path0 = /\/api\/v4\/projects(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1042,7 +1019,7 @@ rule krawl_cve_2026_19632_translatepress_multilingual {
         cve = "CVE-2026-19632"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-19632, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-19632.yaml"
     strings:
-        $param0 = "action=trp_get_translations_regular" ascii nocase
+        $param0 = /(^|[?&;])action=trp_get_translations_regular(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1064,7 +1041,7 @@ rule krawl_cve_2026_19900_bl_wr9000_firmware {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-19900, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-19900.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/goform/set_cmd" ascii nocase
+        $path0 = /\/goform\/set_cmd(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1085,7 +1062,7 @@ rule krawl_cve_2026_2025_mail_mint {
         cve = "CVE-2026-2025"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-2025, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-2025.yaml"
     strings:
-        $path0 = "/wp-json/mrm/v1/wp/admins" ascii nocase
+        $path0 = /\/wp-json\/mrm\/v1\/wp\/admins(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1106,7 +1083,7 @@ rule krawl_cve_2026_20253_splunk_enterprise_cloud_platfo {
         cve = "CVE-2026-20253"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-20253, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-20253.yaml"
     strings:
-        $path0 = "/splunkd/__raw/v1/postgres/recovery/backup" ascii nocase
+        $path0 = /\/splunkd\/__raw\/v1\/postgres\/recovery\/backup(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1128,8 +1105,8 @@ rule krawl_cve_2026_2113_tpadmin {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-2113, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-2113.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/public/static/admin/lib/webuploader/0.1.5/server/preview.php" ascii nocase
-        $path1 = "/static/admin/lib/webuploader/0.1.5/server/preview.php" ascii nocase
+        $path0 = /\/public\/static\/admin\/lib\/webuploader\/0\.1\.5\/server\/preview\.php(\/|;|$)/ nocase
+        $path1 = /\/static\/admin\/lib\/webuploader\/0\.1\.5\/server\/preview\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1150,7 +1127,7 @@ rule krawl_cve_2026_21445_langflow {
         cve = "CVE-2026-21445"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-21445, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-21445.yaml"
     strings:
-        $path0 = "/api/v1/monitor/messages" ascii nocase
+        $path0 = /\/api\/v1\/monitor\/messages(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1171,7 +1148,7 @@ rule krawl_cve_2026_21484_anything_llm {
         cve = "CVE-2026-21484"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-21484, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-21484.yaml"
     strings:
-        $path0 = "/api/system/recover-account" ascii nocase
+        $path0 = /\/api\/system\/recover-account(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1193,9 +1170,9 @@ rule krawl_cve_2026_21589_jira_confluence_bitbucket {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-21589, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-21589.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/download/resources/jira.webresources:color-picker-popup/images/..::..::..::..::..::WEB-INF::web.xml" ascii nocase
-        $path1 = "/s/1/_/download/resources/com.atlassian.confluence.plugins.dashboard-actions/images/..::..::..::..::..::..::..::..::WEB-INF::web.xml" ascii nocase
-        $path2 = "/s/1.0/_/download/resources/com.atlassian.bitbucket.server.bitbucket-webpack-INTERNAL:avatar/avatar/..::..::..::..::..::WEB-INF::urlrewrite.xml" ascii nocase
+        $path0 = /\/download\/resources\/jira\.webresources:color-picker-popup\/images\/\.\.::\.\.::\.\.::\.\.::\.\.::WEB-INF::web\.xml(\/|;|$)/ nocase
+        $path1 = /\/s\/1\/_\/download\/resources\/com\.atlassian\.confluence\.plugins\.dashboard-actions\/images\/\.\.::\.\.::\.\.::\.\.::\.\.::\.\.::\.\.::\.\.::WEB-INF::web\.xml(\/|;|$)/ nocase
+        $path2 = /\/s\/1\.0\/_\/download\/resources\/com\.atlassian\.bitbucket\.server\.bitbucket-webpack-INTERNAL:avatar\/avatar\/\.\.::\.\.::\.\.::\.\.::\.\.::WEB-INF::urlrewrite\.xml(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1217,7 +1194,7 @@ rule krawl_cve_2026_21643_forticlientems {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-21643, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-21643.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/api/v1/init_consts" ascii nocase
+        $path0 = /\/api\/v1\/init_consts(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1239,10 +1216,10 @@ rule krawl_cve_2026_21875_clipbucket {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-21875, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-21875.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "mode=add_comment" ascii nocase
-        $param1 = "type=channel" ascii nocase
-        $param2 = "email=test@gmail.com" ascii nocase
-        $param3 = "comment=testing" ascii nocase
+        $param0 = /(^|[?&;])mode=add_comment(&|$)/ nocase
+        $param1 = /(^|[?&;])type=channel(&|$)/ nocase
+        $param2 = /(^|[?&;])email=test@gmail\.com(&|$)/ nocase
+        $param3 = /(^|[?&;])comment=testing(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1264,7 +1241,7 @@ rule krawl_cve_2026_22200_osticket {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-22200, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-22200.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "subject=Test Ticket Submission" ascii nocase
+        $param0 = /(^|[?&;])subject=Test Ticket Submission(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1286,8 +1263,8 @@ rule krawl_cve_2026_22557_unifi_network_application {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-22557, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-22557.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/guest/s/default/login" ascii nocase
-        $param0 = "page_error=../../web.xml" ascii nocase
+        $path0 = /\/guest\/s\/default\/login(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])page_error=\.\.\/\.\.\/web\.xml(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1330,29 +1307,7 @@ rule krawl_cve_2026_22739_spring_cloud_config {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-22739, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-22739.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/application/..%2F..%2F..%2F..%2F..%2Fetc" ascii nocase
-    condition:
-        (scan_target == "path" and any of ($path*))
-}
-
-rule krawl_cve_2026_23482_blinko {
-    meta:
-        attack_type = "cve_2026_23482"
-        classification = "attack"
-        severity = 7
-        confidence = "medium"
-        description = "Blinko < 1.8.4 - Path Traversal: Blinko < 1.8.4 contains a path traversal vulnerability caused by lack of permission checks and filtering on the temp/ path in the file server endpoint, letting unauthorized attackers read arbitrary files including backup files with user notes."
-        mitre_attack = "T1190, T1083"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        cve = "CVE-2026-23482"
-        reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-23482, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-23482.yaml"
-        response_type = "path_traversal"
-    strings:
-        $path0 = "/manifest.webmanifest" ascii nocase
+        $path0 = /\/application\/\.\.%2F\.\.%2F\.\.%2F\.\.%2F\.\.%2Fetc(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1374,7 +1329,7 @@ rule krawl_cve_2026_23491_invoiceplane {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-23491, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-23491.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/index.php/guest/get/get_file/../../ipconfig.php" ascii nocase
+        $path0 = /\/index\.php\/guest\/get\/get_file\/\.\.\/\.\.\/ipconfig\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1440,7 +1395,7 @@ rule krawl_cve_2026_23744_mcpjam {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-23744, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-23744.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/mcp/connect" ascii nocase
+        $path0 = /\/api\/mcp\/connect(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1461,7 +1416,7 @@ rule krawl_cve_2026_23760_smartertools_smartermail {
         cve = "CVE-2026-23760"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-23760, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-23760.yaml"
     strings:
-        $path0 = "/api/v1/auth/force-reset-password" ascii nocase
+        $path0 = /\/api\/v1\/auth\/force-reset-password(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1483,10 +1438,10 @@ rule krawl_cve_2026_24128_xwiki_platform_distribution_fl {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-24128, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-24128.yaml"
         response_type = "xss"
     strings:
-        $param0 = "extensionSection=progress" ascii nocase
-        $param1 = "extensionVersion=17.6.0" ascii nocase
-        $param2 = "extensionNamespace=wiki:xwiki" ascii nocase
-        $param3 = "extensionAction=install" ascii nocase
+        $param0 = /(^|[?&;])extensionSection=progress(&|$)/ nocase
+        $param1 = /(^|[?&;])extensionVersion=17\.6\.0(&|$)/ nocase
+        $param2 = /(^|[?&;])extensionNamespace=wiki:xwiki(&|$)/ nocase
+        $param3 = /(^|[?&;])extensionAction=install(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1508,7 +1463,7 @@ rule krawl_cve_2026_24423_smartermail {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-24423, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-24423.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/v1/settings/sysadmin/connect-to-hub" ascii nocase
+        $path0 = /\/api\/v1\/settings\/sysadmin\/connect-to-hub(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1529,7 +1484,7 @@ rule krawl_cve_2026_25231_filerise {
         cve = "CVE-2026-25231"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-25231, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-25231.yaml"
     strings:
-        $path0 = "/uploads/README.md" ascii nocase
+        $path0 = /\/uploads\/README\.md(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1551,7 +1506,7 @@ rule krawl_cve_2026_25512_group_office {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-25512, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-25512.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "r=email/message/tnefAttachmentFromTempFile" ascii nocase
+        $param0 = /(^|[?&;])r=email\/message\/tnefAttachmentFromTempFile(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1573,7 +1528,7 @@ rule krawl_cve_2026_25527_changedetection_io {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-25527, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-25527.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/static/../flask_app.py" ascii nocase
+        $path0 = /\/static\/\.\.\/flask_app\.py(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1596,7 +1551,7 @@ rule krawl_cve_2026_25616_blesta_5_13_1 {
         response_type = "xss"
     strings:
         $path0 = "/client_dialog/confirm/" ascii nocase
-        $param0 = "confirm_url=javascript:alert(document.domain)" ascii nocase
+        $param0 = /(^|[?&;])confirm_url=javascript:alert\(document\.domain\)(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1617,7 +1572,7 @@ rule krawl_cve_2026_25703_neuvector_manager {
         cve = "CVE-2026-25703"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-25703, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-25703.yaml"
     strings:
-        $path0 = "/network/graph/layout" ascii nocase
+        $path0 = /\/network\/graph\/layout(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1638,7 +1593,7 @@ rule krawl_cve_2026_26077_discourse {
         cve = "CVE-2026-26077"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-26077, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-26077.yaml"
     strings:
-        $path0 = "/webhooks/mailpace" ascii nocase
+        $path0 = /\/webhooks\/mailpace(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1660,7 +1615,7 @@ rule krawl_cve_2026_26217_crawl4ai_0_8_0 {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-26217, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-26217.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/execute_js" ascii nocase
+        $path0 = /\/execute_js(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1681,7 +1636,7 @@ rule krawl_cve_2026_26341_tattile_camera_1_181_5 {
         cve = "CVE-2026-26341"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-26341, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-26341.yaml"
     strings:
-        $path0 = "/api/v1/security/login" ascii nocase
+        $path0 = /\/api\/v1\/security\/login(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1702,7 +1657,7 @@ rule krawl_cve_2026_2652_mlflow {
         cve = "CVE-2026-2652"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-2652, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-2652.yaml"
     strings:
-        $path0 = "/api/2.0/mlflow/experiments/list" ascii nocase
+        $path0 = /\/api\/2\.0\/mlflow\/experiments\/list(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1725,7 +1680,7 @@ rule krawl_cve_2026_26980_ghost {
         response_type = "sql_error"
     strings:
         $path0 = "/ghost/api/content/tags/" ascii nocase
-        $param0 = "filter=slug:-null" ascii nocase
+        $param0 = /(^|[?&;])filter=slug:-null(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1746,7 +1701,7 @@ rule krawl_cve_2026_2699_sharefile_storage_zones_contro {
         cve = "CVE-2026-2699"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-2699, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-2699.yaml"
     strings:
-        $path0 = "/ConfigService/Admin.aspx" ascii nocase
+        $path0 = /\/ConfigService\/Admin\.aspx(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1768,7 +1723,7 @@ rule krawl_cve_2026_27176_majordomo {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-27176, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-27176.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/command.php" ascii nocase
+        $path0 = /\/command\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1789,7 +1744,7 @@ rule krawl_cve_2026_27454_discourse {
         cve = "CVE-2026-27454"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-27454, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-27454.yaml"
     strings:
-        $path0 = "/posts.json" ascii nocase
+        $path0 = /\/posts\.json(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1810,7 +1765,7 @@ rule krawl_cve_2026_27604_fossbilling {
         cve = "CVE-2026-27604"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-27604, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-27604.yaml"
     strings:
-        $path0 = "/api/system/system/error_reporting_enabled" ascii nocase
+        $path0 = /\/api\/system\/system\/error_reporting_enabled(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1832,7 +1787,7 @@ rule krawl_cve_2026_27760_opencats {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-27760, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-27760.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "a=databaseConnectivity" ascii nocase
+        $param0 = /(^|[?&;])a=databaseConnectivity(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1853,8 +1808,8 @@ rule krawl_cve_2026_27771_gitea {
         cve = "CVE-2026-27771"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-27771, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-27771.yaml"
     strings:
-        $path0 = "/v2/_catalog" ascii nocase
-        $param0 = "service=container_registry" ascii nocase
+        $path0 = /\/v2\/_catalog(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])service=container_registry(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1875,7 +1830,7 @@ rule krawl_cve_2026_27796_homarr {
         cve = "CVE-2026-27796"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-27796, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-27796.yaml"
     strings:
-        $path0 = "/api/trpc/integration.all" ascii nocase
+        $path0 = /\/api\/trpc\/integration\.all(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1896,7 +1851,7 @@ rule krawl_cve_2026_27833_piwigo {
         cve = "CVE-2026-27833"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-27833, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-27833.yaml"
     strings:
-        $param0 = "method=pwg.history.search" ascii nocase
+        $param0 = /(^|[?&;])method=pwg\.history\.search(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1917,7 +1872,7 @@ rule krawl_cve_2026_28358_nocodb {
         cve = "CVE-2026-28358"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-28358, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-28358.yaml"
     strings:
-        $path0 = "/api/v1/auth/password/forgot" ascii nocase
+        $path0 = /\/api\/v1\/auth\/password\/forgot(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1939,9 +1894,9 @@ rule krawl_cve_2026_28409_wegia {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-28409, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-28409.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/WeGIA/html/configuracao/importar_dump.php" ascii nocase
-        $path1 = "/WeGIA/html/configuracao/gerenciar_backup.php" ascii nocase
-        $param0 = "action=restore" ascii nocase
+        $path0 = /\/WeGIA\/html\/configuracao\/importar_dump\.php(\/|;|$)/ nocase
+        $path1 = /\/WeGIA\/html\/configuracao\/gerenciar_backup\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])action=restore(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -1962,7 +1917,7 @@ rule krawl_cve_2026_28411_wegia {
         cve = "CVE-2026-28411"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-28411, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-28411.yaml"
     strings:
-        $path0 = "/WeGIA/html/home.php" ascii nocase
+        $path0 = /\/WeGIA\/html\/home\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -1984,7 +1939,7 @@ rule krawl_cve_2026_28496_fossbilling {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-28496, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-28496.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/api/system/system/string_render" ascii nocase
+        $path0 = /\/api\/system\/system\/string_render(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2006,7 +1961,7 @@ rule krawl_cve_2026_29014_metinfo_cms_8_1 {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-29014, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-29014.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/app/system/entrance.php" ascii nocase
+        $path0 = /\/app\/system\/entrance\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2028,7 +1983,7 @@ rule krawl_cve_2026_29058_avideo {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-29058, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-29058.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/Encoder/objects/getImage.php" ascii nocase
+        $path0 = /\/Encoder\/objects\/getImage\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2050,8 +2005,8 @@ rule krawl_cve_2026_29059_windmill {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-29059, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-29059.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/index.php/apps/app_api/proxy/flow/api/w/_/jobs_u/get_log_file/..%252F..%252F..%252F..%252F..%252F..%252Fetc%252Fpasswd" ascii nocase
-        $path1 = "/index.php/apps/app_api/proxy/flow/api/w/_/jobs_u/get_log_file/..%252F..%252F..%252F..%252Fetc%252Fpasswd" ascii nocase
+        $path0 = /\/index\.php\/apps\/app_api\/proxy\/flow\/api\/w\/_\/jobs_u\/get_log_file\/\.\.%252F\.\.%252F\.\.%252F\.\.%252F\.\.%252F\.\.%252Fetc%252Fpasswd(\/|;|$)/ nocase
+        $path1 = /\/index\.php\/apps\/app_api\/proxy\/flow\/api\/w\/_\/jobs_u\/get_log_file\/\.\.%252F\.\.%252F\.\.%252F\.\.%252Fetc%252Fpasswd(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2073,9 +2028,8 @@ rule krawl_cve_2026_29962_mailinspector {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-29962, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-29962.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/mailinspector" ascii nocase
-        $path1 = "/mailinspector/vendor/phpunit/phpunit.php" ascii nocase
-        $param0 = "--bootstrap=/etc/passwd" ascii nocase
+        $path0 = /\/mailinspector\/vendor\/phpunit\/phpunit\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])--bootstrap=\/etc\/passwd(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2097,8 +2051,8 @@ rule krawl_cve_2026_29963_mailinspector {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-29963, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-29963.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/mailinspector/tap/dw.php" ascii nocase
-        $param0 = "ext=Li4vLi4vLi4vLi4vLi4vLi4vLi4vLi4vZXRjL3Bhc3N3ZA==" ascii nocase
+        $path0 = /\/mailinspector\/tap\/dw\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])ext=Li4vLi4vLi4vLi4vLi4vLi4vLi4vLi4vZXRjL3Bhc3N3ZA==(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2119,7 +2073,7 @@ rule krawl_cve_2026_3055_citrix_netscaler_saml_idp {
         cve = "CVE-2026-3055"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-3055, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-3055.yaml"
     strings:
-        $path0 = "/wsfed/passive" ascii nocase
+        $path0 = /\/wsfed\/passive(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2140,7 +2094,7 @@ rule krawl_cve_2026_30824_flowise {
         cve = "CVE-2026-30824"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-30824, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-30824.yaml"
     strings:
-        $path0 = "/api/v1/nvidia-nim/get-token" ascii nocase
+        $path0 = /\/api\/v1\/nvidia-nim\/get-token(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2161,7 +2115,7 @@ rule krawl_cve_2026_30849_mantisbt {
         cve = "CVE-2026-30849"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-30849, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-30849.yaml"
     strings:
-        $path0 = "/api/soap/mantisconnect.php" ascii nocase
+        $path0 = /\/api\/soap\/mantisconnect\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2183,7 +2137,7 @@ rule krawl_cve_2026_30958_oneuptime_10_0_21 {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-30958, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-30958.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/workflow/docs/../../../../../../../../../../../etc/passwd" ascii nocase
+        $path0 = /\/workflow\/docs\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/etc\/passwd(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2204,9 +2158,9 @@ rule krawl_cve_2026_30965_parse_server {
         cve = "CVE-2026-30965"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-30965, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-30965.yaml"
     strings:
-        $path0 = "/parse/health" ascii nocase
+        $path0 = /\/parse\/health(\/|;|$)/ nocase
         $path1 = "/parse/classes/" ascii nocase
-        $param0 = "redirectClassNameForKey=pivot" ascii nocase
+        $param0 = /(^|[?&;])redirectClassNameForKey=pivot(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2228,7 +2182,7 @@ rule krawl_cve_2026_31831_tautulli {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-31831, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-31831.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/newsletter/image/images/../../../../../../config/config.ini" ascii nocase
+        $path0 = /\/newsletter\/image\/images\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/config\/config\.ini(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2249,7 +2203,7 @@ rule krawl_cve_2026_32230_uptime_kuma {
         cve = "CVE-2026-32230"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-32230, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-32230.yaml"
     strings:
-        $path0 = "/api/badge/1/ping/24" ascii nocase
+        $path0 = "/api/badge/1/ping/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2271,7 +2225,7 @@ rule krawl_cve_2026_32255_kan {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-32255, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-32255.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/api/download/attatchment" ascii nocase
+        $path0 = /\/api\/download\/attatchment(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2292,7 +2246,7 @@ rule krawl_cve_2026_32583_modern_events_calendar {
         cve = "CVE-2026-32583"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-32583, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-32583.yaml"
     strings:
-        $param0 = "action=mec_speaker_adding" ascii nocase
+        $param0 = /(^|[?&;])action=mec_speaker_adding(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2313,7 +2267,7 @@ rule krawl_cve_2026_32596_glances {
         cve = "CVE-2026-32596"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-32596, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-32596.yaml"
     strings:
-        $path0 = "/api/4/processlist" ascii nocase
+        $path0 = /\/api\/4\/processlist(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2334,7 +2288,7 @@ rule krawl_cve_2026_33032_nginx_ui {
         cve = "CVE-2026-33032"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-33032, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-33032.yaml"
     strings:
-        $path0 = "/mcp_message" ascii nocase
+        $path0 = /\/mcp_message(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2355,7 +2309,7 @@ rule krawl_cve_2026_33425_discourse {
         cve = "CVE-2026-33425"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-33425, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-33425.yaml"
     strings:
-        $param0 = "order=likes_received" ascii nocase
+        $param0 = /(^|[?&;])order=likes_received(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2377,7 +2331,7 @@ rule krawl_cve_2026_33476_siyuan {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-33476, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-33476.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/appearance/langs/../../conf.json" ascii nocase
+        $path0 = /\/appearance\/langs\/\.\.\/\.\.\/conf\.json(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2398,7 +2352,7 @@ rule krawl_cve_2026_33478_avideo_26_0 {
         cve = "CVE-2026-33478"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-33478, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-33478.yaml"
     strings:
-        $path0 = "/plugin/CloneSite/clones.json.php" ascii nocase
+        $path0 = /\/plugin\/CloneSite\/clones\.json\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2420,7 +2374,7 @@ rule krawl_cve_2026_33497_langflow_1_7_0 {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-33497, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-33497.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/api/v1/files/profile_pictures/../secret_key" ascii nocase
+        $path0 = /\/api\/v1\/files\/profile_pictures\/\.\.\/secret_key(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2442,7 +2396,7 @@ rule krawl_cve_2026_33534_espocrm {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-33534, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-33534.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/api/v1/Attachment/fromImageUrl" ascii nocase
+        $path0 = /\/api\/v1\/Attachment\/fromImageUrl(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2464,7 +2418,7 @@ rule krawl_cve_2026_3395_maxsite_cms {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-3395, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-3395.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/ajax/YWRtaW4vcGx1Z2lucy9lZGl0b3JfbWFya2l0dXAvcHJldmlldy1hamF4LnBocA==" ascii nocase
+        $path0 = /\/ajax\/YWRtaW4vcGx1Z2lucy9lZGl0b3JfbWFya2l0dXAvcHJldmlldy1hamF4LnBocA==(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2486,8 +2440,8 @@ rule krawl_cve_2026_34036_dolibarr {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-34036, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-34036.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/core/ajax/selectobject.php" ascii nocase
-        $param0 = "objectdesc=A:includes/.htaccess:0" ascii nocase
+        $path0 = /\/core\/ajax\/selectobject\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])objectdesc=A:includes\/\.htaccess:0(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2509,7 +2463,7 @@ rule krawl_cve_2026_34156_nocobase {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-34156, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-34156.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/flow_nodes:test" ascii nocase
+        $path0 = /\/api\/flow_nodes:test(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2531,7 +2485,7 @@ rule krawl_cve_2026_34234_ctrlpanel {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-34234, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-34234.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "clientkey=asdasdasd" ascii nocase
+        $param0 = /(^|[?&;])clientkey=asdasdasd(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2553,7 +2507,7 @@ rule krawl_cve_2026_34413_xerte_online_toolkits {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-34413, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-34413.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/editor/elfinder/php/connector.php" ascii nocase
+        $path0 = /\/editor\/elfinder\/php\/connector\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2575,7 +2529,7 @@ rule krawl_cve_2026_34908_unifi_os {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-34908, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-34908.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/proxy/users/api/v2/ucs/update/latest_package" ascii nocase
+        $path0 = /\/proxy\/users\/api\/v2\/ucs\/update\/latest_package(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2596,7 +2550,7 @@ rule krawl_cve_2026_35029_litellm {
         cve = "CVE-2026-35029"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-35029, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-35029.yaml"
     strings:
-        $path0 = "/health/liveliness" ascii nocase
+        $path0 = /\/health\/liveliness(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2618,7 +2572,7 @@ rule krawl_cve_2026_35037_ech0 {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-35037, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-35037.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/api/website/title" ascii nocase
+        $path0 = /\/api\/website\/title(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2640,7 +2594,7 @@ rule krawl_cve_2026_35273_peoplesoft_enterprise_peopleto {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-35273, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-35273.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/PSEMHUB/hub" ascii nocase
+        $path0 = /\/PSEMHUB\/hub(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2661,7 +2615,7 @@ rule krawl_cve_2026_35616_forticlient_ems {
         cve = "CVE-2026-35616"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-35616, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-35616.yaml"
     strings:
-        $path0 = "/api/v1/fabric_device_auth/fortigate/init" ascii nocase
+        $path0 = /\/api\/v1\/fabric_device_auth\/fortigate\/init(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2683,8 +2637,8 @@ rule krawl_cve_2026_3576_planyo_online_reservation_syst {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-3576, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-3576.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-content/plugins/planyo-online-reservation-system/ulap.php" ascii nocase
-        $param0 = "ulap_url=file://localhost/etc/passwd" ascii nocase
+        $path0 = /\/wp-content\/plugins\/planyo-online-reservation-system\/ulap\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])ulap_url=file:\/\/localhost\/etc\/passwd(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2706,9 +2660,9 @@ rule krawl_cve_2026_3584_kali_forms {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-3584, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-3584.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "action=kaliforms_form_process" ascii nocase
-        $param1 = "data[email]=test@example.com" ascii nocase
-        $param2 = "data[thisPermalink]=phpinfo" ascii nocase
+        $param0 = /(^|[?&;])action=kaliforms_form_process(&|$)/ nocase
+        $param1 = /(^|[?&;])data\[email\]=test@example\.com(&|$)/ nocase
+        $param2 = /(^|[?&;])data\[thisPermalink\]=phpinfo(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2729,8 +2683,8 @@ rule krawl_cve_2026_38360_dash_uploader {
         cve = "CVE-2026-38360"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-38360, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-38360.yaml"
     strings:
-        $path0 = "/API/dash-uploader" ascii nocase
-        $path1 = "/API/resumable" ascii nocase
+        $path0 = /\/API\/dash-uploader(\/|;|$)/ nocase
+        $path1 = /\/API\/resumable(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2775,8 +2729,8 @@ rule krawl_cve_2026_3891_payment_gateway_pix_for_woocom {
         response_type = "command_injection"
     strings:
         $path0 = "/wp-content/plugins/payment-gateway-pix-for-woocommerce/Includes/files/certs_c6/" ascii nocase
-        $param0 = "action=lkn_pix_for_woocommerce_generate_nonce" ascii nocase
-        $param1 = "action_name=lkn_pix_for_woocommerce_c6_settings_nonce" ascii nocase
+        $param0 = /(^|[?&;])action=lkn_pix_for_woocommerce_generate_nonce(&|$)/ nocase
+        $param1 = /(^|[?&;])action_name=lkn_pix_for_woocommerce_c6_settings_nonce(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2797,8 +2751,8 @@ rule krawl_cve_2026_39339_churchcrm {
         cve = "CVE-2026-39339"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-39339, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-39339.yaml"
     strings:
-        $path0 = "/api/persons/latest" ascii nocase
-        $param0 = "bypass=/api/public" ascii nocase
+        $path0 = /\/api\/persons\/latest(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])bypass=\/api\/public(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2820,8 +2774,8 @@ rule krawl_cve_2026_39352_frappe {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-39352, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-39352.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/api/method/login" ascii nocase
-        $path1 = "/api/method/frappe.desk.query_report.get_script" ascii nocase
+        $path0 = /\/api\/method\/login(\/|;|$)/ nocase
+        $path1 = /\/api\/method\/frappe\.desk\.query_report\.get_script(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2843,7 +2797,7 @@ rule krawl_cve_2026_39365_vite_dev_server {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-39365, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-39365.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/node_modules/.vite/deps/../../../config.production.js.map" ascii nocase
+        $path0 = /\/node_modules\/\.vite\/deps\/\.\.\/\.\.\/\.\.\/config\.production\.js\.map(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2865,7 +2819,7 @@ rule krawl_cve_2026_39808_fortisandbox {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-39808, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-39808.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/fortisandbox/job-detail/tracer-behavior" ascii nocase
+        $path0 = /\/fortisandbox\/job-detail\/tracer-behavior(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2888,7 +2842,7 @@ rule krawl_cve_2026_40105_xwiki_platform {
         response_type = "xss"
     strings:
         $path0 = "/bin/view/Sandbox/" ascii nocase
-        $param0 = "viewer=changes" ascii nocase
+        $param0 = /(^|[?&;])viewer=changes(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2909,7 +2863,7 @@ rule krawl_cve_2026_40151_praisonai {
         cve = "CVE-2026-40151"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-40151, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-40151.yaml"
     strings:
-        $path0 = "/api/agents" ascii nocase
+        $path0 = /\/api\/agents(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2930,8 +2884,8 @@ rule krawl_cve_2026_4020_gravitysmtp {
         cve = "CVE-2026-4020"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-4020, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-4020.yaml"
     strings:
-        $path0 = "/wp-json/gravitysmtp/v1/tests/mock-data" ascii nocase
-        $param0 = "page=gravitysmtp-settings" ascii nocase
+        $path0 = /\/wp-json\/gravitysmtp\/v1\/tests\/mock-data(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])page=gravitysmtp-settings(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -2953,7 +2907,7 @@ rule krawl_cve_2026_40217_litellm_1_25_0 {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-40217, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-40217.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/guardrails/test_custom_code" ascii nocase
+        $path0 = /\/guardrails\/test_custom_code(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2975,7 +2929,7 @@ rule krawl_cve_2026_40242_arcane {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-40242, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-40242.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/api/templates/fetch" ascii nocase
+        $path0 = /\/api\/templates\/fetch(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -2997,7 +2951,7 @@ rule krawl_cve_2026_40280_gotenberg {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-40280, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-40280.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/forms/chromium/convert/html" ascii nocase
+        $path0 = /\/forms\/chromium\/convert\/html(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3019,7 +2973,7 @@ rule krawl_cve_2026_40281_gotenberg {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-40281, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-40281.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/forms/pdfengines/metadata/write" ascii nocase
+        $path0 = /\/forms\/pdfengines\/metadata\/write(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3041,8 +2995,8 @@ rule krawl_cve_2026_41042_gravitino {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-41042, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-41042.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/metalakes" ascii nocase
-        $path1 = "/catalogs/testConnection" ascii nocase
+        $path0 = /\/api\/metalakes(\/|;|$)/ nocase
+        $path1 = /\/catalogs\/testConnection(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3063,7 +3017,7 @@ rule krawl_cve_2026_4106_ht_mega_for_elementor {
         cve = "CVE-2026-4106"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-4106, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-4106.yaml"
     strings:
-        $param0 = "action=wcsales_purchased_products" ascii nocase
+        $param0 = /(^|[?&;])action=wcsales_purchased_products(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3085,8 +3039,8 @@ rule krawl_cve_2026_41176_rclone {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-41176, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-41176.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/config/listremotes" ascii nocase
-        $path1 = "/options/set" ascii nocase
+        $path0 = /\/config\/listremotes(\/|;|$)/ nocase
+        $path1 = /\/options\/set(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3108,7 +3062,7 @@ rule krawl_cve_2026_41179_rclone {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-41179, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-41179.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/operations/fsinfo" ascii nocase
+        $path0 = /\/operations\/fsinfo(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3129,7 +3083,7 @@ rule krawl_cve_2026_41432_new_api_v0_12_10 {
         cve = "CVE-2026-41432"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-41432, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-41432.yaml"
     strings:
-        $path0 = "/api/stripe/webhook" ascii nocase
+        $path0 = /\/api\/stripe\/webhook(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3150,7 +3104,7 @@ rule krawl_cve_2026_41492_dgraph {
         cve = "CVE-2026-41492"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-41492, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-41492.yaml"
     strings:
-        $path0 = "/debug/vars" ascii nocase
+        $path0 = /\/debug\/vars(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3172,10 +3126,10 @@ rule krawl_cve_2026_41679_paperclipai {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-41679, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-41679.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/auth/sign-up/email" ascii nocase
-        $path1 = "/api/cli-auth/challenges" ascii nocase
+        $path0 = /\/api\/auth\/sign-up\/email(\/|;|$)/ nocase
+        $path1 = /\/api\/cli-auth\/challenges(\/|;|$)/ nocase
         $path2 = "/api/cli-auth/challenges/" ascii nocase
-        $path3 = "/api/companies/import" ascii nocase
+        $path3 = /\/api\/companies\/import(\/|;|$)/ nocase
         $path4 = "/api/agents/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -3197,7 +3151,7 @@ rule krawl_cve_2026_41940_cpanel_whm {
         cve = "CVE-2026-41940"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-41940, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-41940.yaml"
     strings:
-        $path0 = "/scripts2/listaccts" ascii nocase
+        $path0 = /\/scripts2\/listaccts(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3219,7 +3173,7 @@ rule krawl_cve_2026_41948_dify {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-41948, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-41948.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/console/api/workspaces/current/plugin/icon" ascii nocase
+        $path0 = /\/console\/api\/workspaces\/current\/plugin\/icon(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3240,7 +3194,7 @@ rule krawl_cve_2026_42018_jfrog_artifactory {
         cve = "CVE-2026-42018"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-42018, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-42018.yaml"
     strings:
-        $path0 = "/access/api/v1/aws/token" ascii nocase
+        $path0 = /\/access\/api\/v1\/aws\/token(\/|;|$)/ nocase
         $path1 = "/access/api/v1/aws/token/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -3263,7 +3217,7 @@ rule krawl_cve_2026_42031_ckan_datastore_sql_search {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-42031, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-42031.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/api/action/datastore_search_sql" ascii nocase
+        $path0 = /\/api\/action\/datastore_search_sql(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3284,7 +3238,7 @@ rule krawl_cve_2026_42461_arcane {
         cve = "CVE-2026-42461"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-42461, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-42461.yaml"
     strings:
-        $path0 = "/api/templates/all" ascii nocase
+        $path0 = /\/api\/templates\/all(\/|;|$)/ nocase
         $path1 = "/api/templates/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -3307,7 +3261,7 @@ rule krawl_cve_2026_42564_jotty {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-42564, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-42564.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/api/app-icons/../../../../etc/passwd" ascii nocase
+        $path0 = /\/api\/app-icons\/\.\.\/\.\.\/\.\.\/\.\.\/etc\/passwd(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3329,9 +3283,9 @@ rule krawl_cve_2026_42647_joomsport_sports_league_result {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-42647, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-42647.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/wp-sitemap-posts-joomsport_season-1.xml" ascii nocase
-        $param0 = "action=playerlist" ascii nocase
-        $param1 = "sortf=post_title" ascii nocase
+        $path0 = /\/wp-sitemap-posts-joomsport_season-1\.xml(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])action=playerlist(&|$)/ nocase
+        $param1 = /(^|[?&;])sortf=post_title(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3353,7 +3307,7 @@ rule krawl_cve_2026_42796_arelle {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-42796, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-42796.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/rest/configure" ascii nocase
+        $path0 = /\/rest\/configure(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3375,7 +3329,7 @@ rule krawl_cve_2026_44177_kirby {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-44177, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-44177.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/panel/installation" ascii nocase
+        $path0 = /\/panel\/installation(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3396,7 +3350,7 @@ rule krawl_cve_2026_44551_open_webui_ldap_empty_password {
         cve = "CVE-2026-44551"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-44551, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-44551.yaml"
     strings:
-        $path0 = "/api/v1/auths/ldap" ascii nocase
+        $path0 = /\/api\/v1\/auths\/ldap(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3418,7 +3372,7 @@ rule krawl_cve_2026_45298_dozzle {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-45298, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-45298.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/api/notifications/test-webhook" ascii nocase
+        $path0 = /\/api\/notifications\/test-webhook(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3439,7 +3393,7 @@ rule krawl_cve_2026_45332_automad {
         cve = "CVE-2026-45332"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-45332, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-45332.yaml"
     strings:
-        $path0 = "/_api/user-collection/create-first-user" ascii nocase
+        $path0 = /\/_api\/user-collection\/create-first-user(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3482,7 +3436,7 @@ rule krawl_cve_2026_45695_kopia {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-45695, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-45695.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/v1/repo/exists" ascii nocase
+        $path0 = /\/api\/v1\/repo\/exists(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3526,7 +3480,7 @@ rule krawl_cve_2026_46339_9router {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-46339, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-46339.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/cli-tools/cowork-settings" ascii nocase
+        $path0 = /\/api\/cli-tools\/cowork-settings(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3548,7 +3502,7 @@ rule krawl_cve_2026_46372_sillytavern {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-46372, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-46372.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/api/search/searxng" ascii nocase
+        $path0 = /\/api\/search\/searxng(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3570,7 +3524,7 @@ rule krawl_cve_2026_46442_flowise {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-46442, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-46442.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/v1/node-custom-function" ascii nocase
+        $path0 = /\/api\/v1\/node-custom-function(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3592,8 +3546,8 @@ rule krawl_cve_2026_47670_dbgate {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-47670, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-47670.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/runners/load-reader" ascii nocase
-        $path1 = "/jsldata/get-rows" ascii nocase
+        $path0 = /\/runners\/load-reader(\/|;|$)/ nocase
+        $path1 = /\/jsldata\/get-rows(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3615,8 +3569,8 @@ rule krawl_cve_2026_48030_pheditor {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-48030, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-48030.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/pheditor.php" ascii nocase
-        $param0 = "action=terminal" ascii nocase
+        $path0 = /\/pheditor\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])action=terminal(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3638,7 +3592,7 @@ rule krawl_cve_2026_4810_adk_python {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-4810, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-4810.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/builder/save" ascii nocase
+        $path0 = /\/builder\/save(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3659,31 +3613,9 @@ rule krawl_cve_2026_48558_simplehelp {
         cve = "CVE-2026-48558"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-48558, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-48558.yaml"
     strings:
-        $path0 = "/allversions" ascii nocase
-        $path1 = "/auth/v1/account/login_options" ascii nocase
+        $path0 = /\/auth\/v1\/account\/login_options(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
-}
-
-rule krawl_cve_2026_48611_phpbb {
-    meta:
-        attack_type = "cve_2026_48611"
-        classification = "attack"
-        severity = 9
-        confidence = "medium"
-        description = "phpBB < 3.3.17 - Authentication Bypass: phpBB before 3.3.17 contains an authentication bypass vulnerability in the login-link feature. By setting the auth_provider query parameter to 'apache', an unauthenticated attacker can bypass password verification and log in as any user."
-        mitre_attack = "T1190, T1078"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        cve = "CVE-2026-48611"
-        reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-48611, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-48611.yaml"
-    strings:
-        $param0 = "auth_provider=apache" ascii nocase
-    condition:
-        ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
 
 rule krawl_cve_2026_48939_icagenda {
@@ -3704,8 +3636,8 @@ rule krawl_cve_2026_48939_icagenda {
         response_type = "command_injection"
     strings:
         $path0 = "/images/icagenda/frontend/attachments/" ascii nocase
-        $param0 = "option=com_icagenda" ascii nocase
-        $param1 = "task=registration.submit" ascii nocase
+        $param0 = /(^|[?&;])option=com_icagenda(&|$)/ nocase
+        $param1 = /(^|[?&;])task=registration\.submit(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3726,7 +3658,7 @@ rule krawl_cve_2026_49060_hippoo {
         cve = "CVE-2026-49060"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-49060, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-49060.yaml"
     strings:
-        $param0 = "rest_route=/wc-hippoo/v1/ext/wp/v2/users/1" ascii nocase
+        $param0 = /(^|[?&;])rest_route=\/wc-hippoo\/v1\/ext\/wp\/v2\/users\/1(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3747,9 +3679,9 @@ rule krawl_cve_2026_49952_discuz_x {
         cve = "CVE-2026-49952"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-49952, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-49952.yaml"
     strings:
-        $path0 = "/member.php" ascii nocase
-        $path1 = "/api/db/dbbak.php" ascii nocase
-        $param0 = "apptype=discuzx" ascii nocase
+        $path0 = /\/member\.php(\/|;|$)/ nocase
+        $path1 = /\/api\/db\/dbbak\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])apptype=discuzx(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3770,8 +3702,8 @@ rule krawl_cve_2026_50160_hoppscotch {
         cve = "CVE-2026-50160"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-50160, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-50160.yaml"
     strings:
-        $path0 = "/v1/onboarding/status" ascii nocase
-        $path1 = "/v1/onboarding/config" ascii nocase
+        $path0 = /\/v1\/onboarding\/status(\/|;|$)/ nocase
+        $path1 = /\/v1\/onboarding\/config(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3793,7 +3725,7 @@ rule krawl_cve_2026_50229_tomcat {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-50229, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-50229.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/examples/jsp/num/numguess.jsp" ascii nocase
+        $path0 = /\/examples\/jsp\/num\/numguess\.jsp(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3815,10 +3747,10 @@ rule krawl_cve_2026_5073_armember {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-5073, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-5073.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "action=arm_directory_paging_action" ascii nocase
-        $param1 = "pagination=infinite" ascii nocase
-        $param2 = "type=directory" ascii nocase
-        $param3 = "orderby=display_name,IF(1=1,SLEEP(6),0)" ascii nocase
+        $param0 = /(^|[?&;])action=arm_directory_paging_action(&|$)/ nocase
+        $param1 = /(^|[?&;])pagination=infinite(&|$)/ nocase
+        $param2 = /(^|[?&;])type=directory(&|$)/ nocase
+        $param3 = /(^|[?&;])orderby=display_name,IF\(1=1,SLEEP\(6\),0\)(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -3840,7 +3772,7 @@ rule krawl_cve_2026_52774_yeswiki {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-52774, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-52774.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/NoSuchPage/widget" ascii nocase
+        $path0 = /\/NoSuchPage\/widget(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3861,7 +3793,7 @@ rule krawl_cve_2026_52824_kimai {
         cve = "CVE-2026-52824"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-52824, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-52824.yaml"
     strings:
-        $path0 = "/en/auth/link/check" ascii nocase
+        $path0 = /\/en\/auth\/link\/check(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3883,8 +3815,8 @@ rule krawl_cve_2026_53576_kestra {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-53576, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-53576.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/v1/main/flows/configs" ascii nocase
-        $path1 = "/api/v1/main/executions/configs/configs" ascii nocase
+        $path0 = /\/api\/v1\/main\/flows\/configs(\/|;|$)/ nocase
+        $path1 = /\/api\/v1\/main\/executions\/configs\/configs(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3906,7 +3838,7 @@ rule krawl_cve_2026_53629_glpi {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-53629, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-53629.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/front/user.form.php" ascii nocase
+        $path0 = /\/front\/user\.form\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3928,9 +3860,9 @@ rule krawl_cve_2026_53787_order_attributes {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-53787, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-53787.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/rest/V1/amasty_orderattr/uploadFile" ascii nocase
-        $path1 = "/rest/all/V1/amasty_orderattr/uploadFile" ascii nocase
-        $path2 = "/rest/default/V1/amasty_orderattr/uploadFile" ascii nocase
+        $path0 = /\/rest\/V1\/amasty_orderattr\/uploadFile(\/|;|$)/ nocase
+        $path1 = /\/rest\/all\/V1\/amasty_orderattr\/uploadFile(\/|;|$)/ nocase
+        $path2 = /\/rest\/default\/V1\/amasty_orderattr\/uploadFile(\/|;|$)/ nocase
         $path3 = "/media/amasty_checkout/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -3952,7 +3884,7 @@ rule krawl_cve_2026_54066_siyuan {
         cve = "CVE-2026-54066"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-54066, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-54066.yaml"
     strings:
-        $path0 = "/assets/%2e%2e/%2e%2e/conf/conf.json" ascii nocase
+        $path0 = /\/assets\/%2e%2e\/%2e%2e\/conf\/conf\.json(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3973,7 +3905,7 @@ rule krawl_cve_2026_54069_siyuan {
         cve = "CVE-2026-54069"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-54069, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-54069.yaml"
     strings:
-        $path0 = "/api/system/getConf" ascii nocase
+        $path0 = /\/api\/system\/getConf(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -3995,7 +3927,7 @@ rule krawl_cve_2026_54157_lobe_chat {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-54157, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-54157.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/webapi/proxy" ascii nocase
+        $path0 = /\/webapi\/proxy(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4016,7 +3948,7 @@ rule krawl_cve_2026_54236_vllm {
         cve = "CVE-2026-54236"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-54236, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-54236.yaml"
     strings:
-        $path0 = "/v1/messages" ascii nocase
+        $path0 = /\/v1\/messages(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4037,7 +3969,7 @@ rule krawl_cve_2026_54617_launchserver {
         cve = "CVE-2026-54617"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-54617, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-54617.yaml"
     strings:
-        $path0 = "/../../.keys/ecdsa_id" ascii nocase
+        $path0 = /\/\.\.\/\.\.\/\.keys\/ecdsa_id(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4059,8 +3991,8 @@ rule krawl_cve_2026_55224_mineadmin {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-55224, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-55224.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/admin/passport/login" ascii nocase
-        $path1 = "/admin/plugin/store/download" ascii nocase
+        $path0 = /\/admin\/passport\/login(\/|;|$)/ nocase
+        $path1 = /\/admin\/plugin\/store\/download(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4082,9 +4014,9 @@ rule krawl_cve_2026_55549_yamcs {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-55549, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-55549.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/auth/authorize" ascii nocase
-        $param0 = "client_id=yamcs-web" ascii nocase
-        $param1 = "state=stable-state" ascii nocase
+        $path0 = /\/auth\/authorize(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])client_id=yamcs-web(&|$)/ nocase
+        $param1 = /(^|[?&;])state=stable-state(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4106,7 +4038,7 @@ rule krawl_cve_2026_5562_kafka_ui {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-5562, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-5562.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/smartfilters/testexecutions" ascii nocase
+        $path0 = /\/api\/smartfilters\/testexecutions(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4127,7 +4059,7 @@ rule krawl_cve_2026_56265_crawl4ai {
         cve = "CVE-2026-56265"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-56265, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-56265.yaml"
     strings:
-        $param0 = "context_type=code" ascii nocase
+        $param0 = /(^|[?&;])context_type=code(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4148,7 +4080,7 @@ rule krawl_cve_2026_56270_flowise {
         cve = "CVE-2026-56270"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-56270, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-56270.yaml"
     strings:
-        $path0 = "/api/v1/loginmethod" ascii nocase
+        $path0 = /\/api\/v1\/loginmethod(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4171,8 +4103,8 @@ rule krawl_cve_2026_56290_page_builder_ck {
         response_type = "command_injection"
     strings:
         $path0 = "/media/com_pagebuilderck/gfonts/" ascii nocase
-        $param0 = "option=com_pagebuilderck" ascii nocase
-        $param1 = "task=browse.ajaxAddPicture" ascii nocase
+        $param0 = /(^|[?&;])option=com_pagebuilderck(&|$)/ nocase
+        $param1 = /(^|[?&;])task=browse\.ajaxAddPicture(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4195,8 +4127,8 @@ rule krawl_cve_2026_56291_forms {
         response_type = "command_injection"
     strings:
         $path0 = "/images/baforms/uploads/form-0/" ascii nocase
-        $param0 = "option=com_baforms" ascii nocase
-        $param1 = "task=form.uploadAttachmentFile" ascii nocase
+        $param0 = /(^|[?&;])option=com_baforms(&|$)/ nocase
+        $param1 = /(^|[?&;])task=form\.uploadAttachmentFile(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4218,10 +4150,10 @@ rule krawl_cve_2026_56292_acymailing {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-56292, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-56292.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "ctrl=frontentityselect" ascii nocase
-        $param1 = "task=loadEntityFront" ascii nocase
-        $param2 = "columns=id,name" ascii nocase
-        $param3 = "join_table=1,CONCAT(0x41435953,VERSION(),0x454E4453) AS acym_sqli" ascii nocase
+        $param0 = /(^|[?&;])ctrl=frontentityselect(&|$)/ nocase
+        $param1 = /(^|[?&;])task=loadEntityFront(&|$)/ nocase
+        $param2 = /(^|[?&;])columns=id,name(&|$)/ nocase
+        $param3 = /(^|[?&;])join_table=1,CONCAT\(0x41435953,VERSION\(\),0x454E4453\) AS acym_sqli(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4242,7 +4174,7 @@ rule krawl_cve_2026_56681_9router_0_5_4 {
         cve = "CVE-2026-56681"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-56681, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-56681.yaml"
     strings:
-        $path0 = "/api/v1/models" ascii nocase
+        $path0 = /\/api\/v1\/models(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4286,7 +4218,7 @@ rule krawl_cve_2026_57582_core_geonetwork {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-57582, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-57582.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/srv/eng/catalog.search" ascii nocase
+        $path0 = /\/srv\/eng\/catalog\.search(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4308,8 +4240,8 @@ rule krawl_cve_2026_57827_rsfiles {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-57827, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-57827.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "task=rsfiles.checkupload" ascii nocase
-        $param1 = "task=rsfiles.upload" ascii nocase
+        $param0 = /(^|[?&;])task=rsfiles\.checkupload(&|$)/ nocase
+        $param1 = /(^|[?&;])task=rsfiles\.upload(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4331,8 +4263,8 @@ rule krawl_cve_2026_58123_hermes_webui {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-58123, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-58123.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/terminal/start" ascii nocase
-        $path1 = "/api/terminal/input" ascii nocase
+        $path0 = /\/api\/terminal\/start(\/|;|$)/ nocase
+        $path1 = /\/api\/terminal\/input(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4354,7 +4286,7 @@ rule krawl_cve_2026_58138_conductor {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-58138, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-58138.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/metadata/workflow" ascii nocase
+        $path0 = /\/api\/metadata\/workflow(\/|;|$)/ nocase
         $path1 = "/api/workflow/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -4377,8 +4309,8 @@ rule krawl_cve_2026_58191_appium {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-58191, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-58191.yaml"
         response_type = "xss"
     strings:
-        $path0 = "/test/guinea-pig" ascii nocase
-        $param0 = "throwError='+alert(document.domain)+'" ascii nocase
+        $path0 = /\/test\/guinea-pig(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])throwError='\+alert\(document\.domain\)\+'(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4400,8 +4332,8 @@ rule krawl_cve_2026_58455_dockwatch {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-58455, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-58455.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/ajax/compose.php" ascii nocase
-        $param0 = "m=composePull" ascii nocase
+        $path0 = /\/ajax\/compose\.php(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])m=composePull(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4423,7 +4355,7 @@ rule krawl_cve_2026_58467_cockpit {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-58467, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-58467.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/:x/storage/../../../../../../etc/passwd" ascii nocase
+        $path0 = /\/:x\/storage\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/etc\/passwd(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4445,8 +4377,8 @@ rule krawl_cve_2026_58644_sharepoint_server {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-58644, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-58644.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/_trust/default.aspx" ascii nocase
-        $param0 = "wa=wsignin1.0" ascii nocase
+        $path0 = /\/_trust\/default\.aspx(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])wa=wsignin1\.0(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4467,9 +4399,9 @@ rule krawl_cve_2026_59509_cve_search {
         cve = "CVE-2026-59509"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-59509, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-59509.yaml"
     strings:
-        $path0 = "/fetch_cve_data" ascii nocase
-        $param0 = "retrieve=cves" ascii nocase
-        $param1 = "columns[0][data]=password" ascii nocase
+        $path0 = /\/fetch_cve_data(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])retrieve=cves(&|$)/ nocase
+        $param1 = /(^|[?&;])columns\[0\]\[data\]=password(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4491,7 +4423,7 @@ rule krawl_cve_2026_59774_gitea {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-59774, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-59774.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "file_path=a.org" ascii nocase
+        $param0 = /(^|[?&;])file_path=a\.org(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4513,7 +4445,7 @@ rule krawl_cve_2026_60004_gitea {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-60004, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-60004.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/v1/user/repos" ascii nocase
+        $path0 = /\/api\/v1\/user\/repos(\/|;|$)/ nocase
         $path1 = "/api/v1/repos/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
@@ -4536,7 +4468,7 @@ rule krawl_cve_2026_6118_astrbot {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-6118, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-6118.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/tools/mcp/add" ascii nocase
+        $path0 = /\/api\/tools\/mcp\/add(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4558,31 +4490,9 @@ rule krawl_cve_2026_61511_vbulletin {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-61511, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-61511.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "routestring=ajax/render/pagenav" ascii nocase
+        $param0 = /(^|[?&;])routestring=ajax\/render\/pagenav(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
-}
-
-rule krawl_cve_2026_61808_lightrag {
-    meta:
-        attack_type = "cve_2026_61808"
-        classification = "attack"
-        severity = 7
-        confidence = "medium"
-        description = "LightRAG <= 1.5.4 - Missing Authentication: LightRAG through version 1.5.4 contains a broken access control vulnerability caused by the API server binding to all network interfaces with authentication disabled, letting unauthenticated network attackers fully control indexed."
-        mitre_attack = "T1190, T1083"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        cve = "CVE-2026-61808"
-        reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-61808, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-61808.yaml"
-        response_type = "path_traversal"
-    strings:
-        $path0 = "/documents" ascii nocase
-    condition:
-        (scan_target == "path" and any of ($path*))
 }
 
 rule krawl_cve_2026_63030_wordpress {
@@ -4601,7 +4511,7 @@ rule krawl_cve_2026_63030_wordpress {
         cve = "CVE-2026-63030"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-63030, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-63030.yaml"
     strings:
-        $param0 = "rest_route=/batch/v1" ascii nocase
+        $param0 = /(^|[?&;])rest_route=\/batch\/v1(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4623,8 +4533,8 @@ rule krawl_cve_2026_63077_teamcity {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-63077, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-63077.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/app/agents/v1/register" ascii nocase
-        $path1 = "/app/agents/v1/commands/error" ascii nocase
+        $path0 = /\/app\/agents\/v1\/register(\/|;|$)/ nocase
+        $path1 = /\/app\/agents\/v1\/commands\/error(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4646,7 +4556,7 @@ rule krawl_cve_2026_6377_csm {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-6377, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-6377.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/Handlers/DownloadFileHandler.ashx" ascii nocase
+        $path0 = /\/Handlers\/DownloadFileHandler\.ashx(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4668,7 +4578,7 @@ rule krawl_cve_2026_6433_custom_css_js_php {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-6433, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-6433.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "operation=wce_editor_inline_code" ascii nocase
+        $param0 = /(^|[?&;])operation=wce_editor_inline_code(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4690,30 +4600,8 @@ rule krawl_cve_2026_64849_mlflow_webhook_ssrf {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-64849, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-64849.yaml"
         response_type = "cloud_metadata"
     strings:
-        $path0 = "/api/2.0/mlflow/webhooks" ascii nocase
+        $path0 = /\/api\/2\.0\/mlflow\/webhooks(\/|;|$)/ nocase
         $path1 = "/api/2.0/mlflow/webhooks/" ascii nocase
-    condition:
-        (scan_target == "path" and any of ($path*))
-}
-
-rule krawl_cve_2026_65694_microweber {
-    meta:
-        attack_type = "cve_2026_65694"
-        classification = "attack"
-        severity = 7
-        confidence = "medium"
-        description = "Microweber CMS <= 2.0.20 - Unauthenticated Arbitrary File Read: Microweber CMS <= 2.0.20 contains a path traversal vulnerability caused by failure to normalize path query parameter in static file controller, letting unauthenticated remote attackers read arbitrary files."
-        mitre_attack = "T1190, T1083"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        cve = "CVE-2026-65694"
-        reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-65694, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-65694.yaml"
-        response_type = "path_traversal"
-    strings:
-        $path0 = "/userfiles/x" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4734,8 +4622,8 @@ rule krawl_cve_2026_65761_easy_store {
         cve = "CVE-2026-65761"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-65761, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-65761.yaml"
     strings:
-        $param0 = "option=com_easystore" ascii nocase
-        $param1 = "view=products" ascii nocase
+        $param0 = /(^|[?&;])option=com_easystore(&|$)/ nocase
+        $param1 = /(^|[?&;])view=products(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4757,8 +4645,8 @@ rule krawl_cve_2026_65919_meshery {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-65919, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-65919.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/api/system/fileView" ascii nocase
-        $path1 = "/api/system/fileDownload" ascii nocase
+        $path0 = /\/api\/system\/fileView(\/|;|$)/ nocase
+        $path1 = /\/api\/system\/fileDownload(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4779,8 +4667,8 @@ rule krawl_cve_2026_6639_ai_copilot_content_generator {
         cve = "CVE-2026-6639"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-6639, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-6639.yaml"
     strings:
-        $param0 = "action=getCurrentTaskResults" ascii nocase
-        $param1 = "mod=workspace" ascii nocase
+        $param0 = /(^|[?&;])action=getCurrentTaskResults(&|$)/ nocase
+        $param1 = /(^|[?&;])mod=workspace(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4801,7 +4689,7 @@ rule krawl_cve_2026_6826_concrete_cms_9_5_1 {
         cve = "CVE-2026-6826"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-6826, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-6826.yaml"
     strings:
-        $path0 = "/ccm/system/dialogs/file/usage/1" ascii nocase
+        $path0 = "/ccm/system/dialogs/file/usage/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4823,7 +4711,7 @@ rule krawl_cve_2026_6854_my_calendar_3_7_9 {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-6854, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-6854.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "mc_auth=1,2) OR SLEEP(7)-- x" ascii nocase
+        $param0 = /(^|[?&;])mc_auth=1,2\) OR SLEEP\(7\)-- x(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -4845,7 +4733,7 @@ rule krawl_cve_2026_6875_servicenow {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-6875, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-6875.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/assessment_thanks.do" ascii nocase
+        $path0 = /\/assessment_thanks\.do(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4867,8 +4755,8 @@ rule krawl_cve_2026_69084_siyuan {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-69084, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-69084.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/api/system/loginAuth" ascii nocase
-        $path1 = "/api/search/searchEmbedBlock" ascii nocase
+        $path0 = /\/api\/system\/loginAuth(\/|;|$)/ nocase
+        $path1 = /\/api\/search\/searchEmbedBlock(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4890,33 +4778,10 @@ rule krawl_cve_2026_69085_siyuan {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-69085, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-69085.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/api/notebook/lsNotebooks" ascii nocase
-        $path1 = "/api/filetree/searchDocs" ascii nocase
+        $path0 = /\/api\/notebook\/lsNotebooks(\/|;|$)/ nocase
+        $path1 = /\/api\/filetree\/searchDocs(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
-}
-
-rule krawl_cve_2026_69137_suitecrm {
-    meta:
-        attack_type = "cve_2026_69137"
-        classification = "attack"
-        severity = 7
-        confidence = "medium"
-        description = "SuiteCRM <= 7.15.1, <= 8.10.1 - Authenticated SSRF: SuiteCRM CalendarAccount testConnection accepts an attacker-controlled server_url and passes it to cURL without destination validation. An authenticated user can cause a server-side request to loopback or internal network."
-        mitre_attack = "T1190"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        cve = "CVE-2026-69137"
-        reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-69137, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-69137.yaml"
-        response_type = "cloud_metadata"
-    strings:
-        $param0 = "module=CalendarAccount" ascii nocase
-        $param1 = "action=testConnection" ascii nocase
-    condition:
-        ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
 
 rule krawl_cve_2026_69251_flowise {
@@ -4936,10 +4801,10 @@ rule krawl_cve_2026_69251_flowise {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-69251, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-69251.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/v1/document-store/store" ascii nocase
-        $path1 = "/api/v1/document-store/loader/save" ascii nocase
+        $path0 = /\/api\/v1\/document-store\/store(\/|;|$)/ nocase
+        $path1 = /\/api\/v1\/document-store\/loader\/save(\/|;|$)/ nocase
         $path2 = "/api/v1/document-store/loader/process/" ascii nocase
-        $path3 = "/api/v1/document-store/vectorstore/insert" ascii nocase
+        $path3 = /\/api\/v1\/document-store\/vectorstore\/insert(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4960,7 +4825,7 @@ rule krawl_cve_2026_71209_audiobookshelf {
         cve = "CVE-2026-71209"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-71209, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-71209.yaml"
     strings:
-        $path0 = "/api/collections" ascii nocase
+        $path0 = /\/api\/collections(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4981,15 +4846,12 @@ rule krawl_cve_2026_71362_magento {
         cve = "CVE-2026-71362"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-71362, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-71362.yaml"
     strings:
-        $path0 = "/customer/account/create" ascii nocase
-        $path1 = "/customer/account/createPost" ascii nocase
-        $path2 = "/customer/account/edit" ascii nocase
-        $path3 = "/customer/account/editPost" ascii nocase
-        $path4 = "/customer/section/load" ascii nocase
-        $param0 = "firstname=PoCTestCVE" ascii nocase
-        $param1 = "lastname=Detector" ascii nocase
-        $param2 = "current_password=wrong-password-forces-exception" ascii nocase
-        $param3 = "sections=customer" ascii nocase
+        $path0 = /\/customer\/account\/create(\/|;|$)/ nocase
+        $path1 = /\/customer\/account\/createPost(\/|;|$)/ nocase
+        $path2 = /\/customer\/account\/edit(\/|;|$)/ nocase
+        $path3 = /\/customer\/account\/editPost(\/|;|$)/ nocase
+        $path4 = /\/customer\/section\/load(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])sections=customer(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5011,10 +4873,10 @@ rule krawl_cve_2026_72867_dokploy {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-72867, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-72867.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/trpc/project.create" ascii nocase
-        $path1 = "/api/trpc/compose.create" ascii nocase
-        $path2 = "/api/trpc/compose.update" ascii nocase
-        $path3 = "/api/trpc/compose.deploy" ascii nocase
+        $path0 = /\/api\/trpc\/project\.create(\/|;|$)/ nocase
+        $path1 = /\/api\/trpc\/compose\.create(\/|;|$)/ nocase
+        $path2 = /\/api\/trpc\/compose\.update(\/|;|$)/ nocase
+        $path3 = /\/api\/trpc\/compose\.deploy(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5036,8 +4898,8 @@ rule krawl_cve_2026_72898_metabase {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-72898, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-72898.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/api/session/properties" ascii nocase
-        $path1 = "/api/session/reset_password" ascii nocase
+        $path0 = /\/api\/session\/properties(\/|;|$)/ nocase
+        $path1 = /\/api\/session\/reset_password(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5059,7 +4921,7 @@ rule krawl_cve_2026_73034_db_gpt {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-73034, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-73034.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/api/v1/python/file/upload" ascii nocase
+        $path0 = /\/api\/v1\/python\/file\/upload(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5081,7 +4943,7 @@ rule krawl_cve_2026_7467_expand_maker {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-7467, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-7467.yaml"
         response_type = "cloud_metadata"
     strings:
-        $param0 = "page=readMore" ascii nocase
+        $param0 = /(^|[?&;])page=readMore(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5102,7 +4964,7 @@ rule krawl_cve_2026_76460_identity_services_engine {
         cve = "CVE-2026-76460"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-76460, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-76460.yaml"
     strings:
-        $path0 = "/admin/API/mnt/Session/ActiveList" ascii nocase
+        $path0 = /\/admin\/API\/mnt\/Session\/ActiveList(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5124,7 +4986,7 @@ rule krawl_cve_2026_77806_spip_4_4_22 {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-77806, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-77806.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "page=sommaire" ascii nocase
+        $param0 = /(^|[?&;])page=sommaire(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5145,7 +5007,7 @@ rule krawl_cve_2026_80462_chef_automate {
         cve = "CVE-2026-80462"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-80462, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-80462.yaml"
     strings:
-        $path0 = "/api/v0/telemetry/config" ascii nocase
+        $path0 = /\/api\/v0\/telemetry\/config(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5167,7 +5029,7 @@ rule krawl_cve_2026_8054_dotcms {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-8054, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-8054.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = "/api/auditPublishing/getAll" ascii nocase
+        $path0 = /\/api\/auditPublishing\/getAll(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5189,7 +5051,7 @@ rule krawl_cve_2026_8089_wemail {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-8089, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-8089.yaml"
         response_type = "xss"
     strings:
-        $param0 = "action=wemail_preview" ascii nocase
+        $param0 = /(^|[?&;])action=wemail_preview(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5210,7 +5072,7 @@ rule krawl_cve_2026_81199_masterstudy_lms {
         cve = "CVE-2026-81199"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-81199, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-81199.yaml"
     strings:
-        $param0 = "rest_route=/masterstudy-lms/v2/student/stats/1" ascii nocase
+        $param0 = /(^|[?&;])rest_route=\/masterstudy-lms\/v2\/student\/stats\/1(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5232,8 +5094,8 @@ rule krawl_cve_2026_81578_papercut_ng_papercut_mf {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-81578, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-81578.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "Form0=$TextField,doQuickFind,clear" ascii nocase
-        $param1 = "$TextField=server.name" ascii nocase
+        $param0 = /(^|[?&;])Form0=\$TextField,doQuickFind,clear(&|$)/ nocase
+        $param1 = /(^|[?&;])\$TextField=server\.name(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5255,8 +5117,8 @@ rule krawl_cve_2026_82186_gdpr_cookie_consent {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-82186, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-82186.yaml"
         response_type = "sql_error"
     strings:
-        $param0 = "action=wpl_cookie_scanner" ascii nocase
-        $param1 = "wpl_scanner_action=get_pages" ascii nocase
+        $param0 = /(^|[?&;])action=wpl_cookie_scanner(&|$)/ nocase
+        $param1 = /(^|[?&;])wpl_scanner_action=get_pages(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5278,12 +5140,9 @@ rule krawl_cve_2026_82222_givewp {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-82222, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-82222.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/wp-json/wp/v2/give_forms" ascii nocase
-        $param0 = "give_action=user_register" ascii nocase
-        $param1 = "_wp_http_referer=/wp-admin/profile.php" ascii nocase
-        $param2 = "from=profile" ascii nocase
-        $param3 = "give-amount=25.00" ascii nocase
-        $param4 = "give_action=view_receipt" ascii nocase
+        $path0 = /\/wp-json\/wp\/v2\/give_forms(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])give-amount=25\.00(&|$)/ nocase
+        $param1 = /(^|[?&;])give_action=view_receipt(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5304,7 +5163,7 @@ rule krawl_cve_2026_82329_jfrog_artifactory_access_blank {
         cve = "CVE-2026-82329"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-82329, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-82329.yaml"
     strings:
-        $path0 = "/access/api/v1/registry/join" ascii nocase
+        $path0 = /\/access\/api\/v1\/registry\/join(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5325,7 +5184,7 @@ rule krawl_cve_2026_8236_concrete_cms {
         cve = "CVE-2026-8236"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-8236, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-8236.yaml"
     strings:
-        $path0 = "/index.php/ccm/system/dialogs/file/usage/1" ascii nocase
+        $path0 = "/index.php/ccm/system/dialogs/file/usage/" ascii nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5346,7 +5205,7 @@ rule krawl_cve_2026_8237_concrete_cms {
         cve = "CVE-2026-8237"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-8237, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-8237.yaml"
     strings:
-        $path0 = "/ccm/frontend/conversations/message_detail" ascii nocase
+        $path0 = /\/ccm\/frontend\/conversations\/message_detail(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5389,8 +5248,8 @@ rule krawl_cve_2026_8385_wp_google_maps {
         cve = "CVE-2026-8385"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-8385, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-8385.yaml"
     strings:
-        $param0 = "action=wpgmza_rest_api_request" ascii nocase
-        $param1 = "route=/datatables/" ascii nocase
+        $param0 = /(^|[?&;])action=wpgmza_rest_api_request(&|$)/ nocase
+        $param1 = /(^|[?&;])route=\/datatables\/(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5412,7 +5271,7 @@ rule krawl_cve_2026_84434_gravityforms {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-84434, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-84434.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/wp-content/plugins/gravityforms/gravityforms.php" ascii nocase
+        $path0 = /\/wp-content\/plugins\/gravityforms\/gravityforms\.php(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5434,9 +5293,9 @@ rule krawl_cve_2026_85097_bricksforge {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-85097, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-85097.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/wp-json/bricksforge/v1/form_file_upload" ascii nocase
-        $path1 = "/wp-json/bricksforge/v1/form_submit" ascii nocase
-        $param0 = "action=bricksforge_regenerate_nonce" ascii nocase
+        $path0 = /\/wp-json\/bricksforge\/v1\/form_file_upload(\/|;|$)/ nocase
+        $path1 = /\/wp-json\/bricksforge\/v1\/form_submit(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])action=bricksforge_regenerate_nonce(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5458,8 +5317,8 @@ rule krawl_cve_2026_85200_geo_my_wp {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-85200, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-85200.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "form[component]=posts_locator" ascii nocase
-        $param1 = "form[info_window_template][content_path]=/etc/passwd" ascii nocase
+        $param0 = /(^|[?&;])form\[component\]=posts_locator(&|$)/ nocase
+        $param1 = /(^|[?&;])form\[info_window_template\]\[content_path\]=\/etc\/passwd(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5481,7 +5340,7 @@ rule krawl_cve_2026_85688_ten_framework {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-85688, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-85688.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/api/designer/v1/file-content" ascii nocase
+        $path0 = /\/api\/designer\/v1\/file-content(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5504,7 +5363,7 @@ rule krawl_cve_2026_85706_gitlab {
         response_type = "path_traversal"
     strings:
         $path0 = "/api/v4/projects/1/repository/files/" ascii nocase
-        $param0 = "Content-Type=application/x-www-form-urlencoded" ascii nocase
+        $param0 = /(^|[?&;])Content-Type=application\/x-www-form-urlencoded(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5525,7 +5384,7 @@ rule krawl_cve_2026_86426_librenms {
         cve = "CVE-2026-86426"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-86426, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-86426.yaml"
     strings:
-        $path0 = "/api/v0/devices" ascii nocase
+        $path0 = /\/api\/v0\/devices(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5546,7 +5405,7 @@ rule krawl_cve_2026_87820_cyberpanel {
         cve = "CVE-2026-87820"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-87820, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-87820.yaml"
     strings:
-        $path0 = "/api/ai-scanner/list-api-keys" ascii nocase
+        $path0 = /\/api\/ai-scanner\/list-api-keys(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5568,7 +5427,7 @@ rule krawl_cve_2026_88062_omniroute {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-88062, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-88062.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/api/acp/agents" ascii nocase
+        $path0 = /\/api\/acp\/agents(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5590,8 +5449,8 @@ rule krawl_cve_2026_8857_easytimeline {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-8857, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-8857.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "meta=siteinfo" ascii nocase
-        $param1 = "contentmodel=wikitext" ascii nocase
+        $param0 = /(^|[?&;])meta=siteinfo(&|$)/ nocase
+        $param1 = /(^|[?&;])contentmodel=wikitext(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5612,8 +5471,8 @@ rule krawl_cve_2026_89013_dolibarr {
         cve = "CVE-2026-89013"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-89013, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-89013.yaml"
     strings:
-        $param0 = "hashp=shared" ascii nocase
-        $param1 = "modulepart=medias" ascii nocase
+        $param0 = /(^|[?&;])hashp=shared(&|$)/ nocase
+        $param1 = /(^|[?&;])modulepart=medias(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5634,8 +5493,8 @@ rule krawl_cve_2026_89026_framework {
         cve = "CVE-2026-89026"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-89026, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-89026.yaml"
     strings:
-        $path0 = "/pbxapi/manager/extensionstate" ascii nocase
-        $param0 = "context=from-internal" ascii nocase
+        $path0 = /\/pbxapi\/manager\/extensionstate(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])context=from-internal(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5656,7 +5515,7 @@ rule krawl_cve_2026_89063_bookly_responsive_appointment {
         cve = "CVE-2026-89063"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-89063, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-89063.yaml"
     strings:
-        $param0 = "action=bookly_ai_send_message" ascii nocase
+        $param0 = /(^|[?&;])action=bookly_ai_send_message(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5678,9 +5537,9 @@ rule krawl_cve_2026_9062_agile_store_locator {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-9062, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-9062.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "sl-action=reset_custom_template" ascii nocase
-        $param1 = "template=cards-templates" ascii nocase
-        $param2 = "section=../../../../../wp-config" ascii nocase
+        $param0 = /(^|[?&;])sl-action=reset_custom_template(&|$)/ nocase
+        $param1 = /(^|[?&;])template=cards-templates(&|$)/ nocase
+        $param2 = /(^|[?&;])section=\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/wp-config(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5702,7 +5561,7 @@ rule krawl_cve_2026_90817_redcap {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-90817, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-90817.yaml"
         response_type = "command_injection"
     strings:
-        $param0 = "route=ParcelController:show" ascii nocase
+        $param0 = /(^|[?&;])route=ParcelController:show(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5725,7 +5584,7 @@ rule krawl_cve_2026_9082_drupal {
         response_type = "sql_error"
     strings:
         $path0 = "/jsonapi/node/" ascii nocase
-        $param0 = "filter[t][condition][path]=title" ascii nocase
+        $param0 = /(^|[?&;])filter\[t\]\[condition\]\[path\]=title(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5747,8 +5606,8 @@ rule krawl_cve_2026_91136_divi_plus {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-91136, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-91136.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/wp-json/elicus/v1/dipl-modules/svg-animator" ascii nocase
-        $param0 = "svg_image=/etc/passwd" ascii nocase
+        $path0 = /\/wp-json\/elicus\/v1\/dipl-modules\/svg-animator(\/|;|$)/ nocase
+        $param0 = /(^|[?&;])svg_image=\/etc\/passwd(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5770,7 +5629,7 @@ rule krawl_cve_2026_9133_rabbitmq_aws {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-9133, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-9133.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/api/aws/arn/validate" ascii nocase
+        $path0 = /\/api\/aws\/arn\/validate(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5791,7 +5650,7 @@ rule krawl_cve_2026_9282_w3_total_cache {
         cve = "CVE-2026-9282"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-9282, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-9282.yaml"
     strings:
-        $param0 = "f_array[]=wp-config.php" ascii nocase
+        $param0 = /(^|[?&;])f_array\[\]=wp-config\.php(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5813,9 +5672,9 @@ rule krawl_cve_2026_93485_wordpress {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-93485, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-93485.yaml"
         response_type = "xss"
     strings:
-        $param0 = "_fields=id,comment_status" ascii nocase
-        $param1 = "orderby=date" ascii nocase
-        $param2 = "email=test@example.com" ascii nocase
+        $param0 = /(^|[?&;])_fields=id,comment_status(&|$)/ nocase
+        $param1 = /(^|[?&;])orderby=date(&|$)/ nocase
+        $param2 = /(^|[?&;])email=test@example\.com(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5837,7 +5696,7 @@ rule krawl_cve_2026_93616_quantum_security_management {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-93616, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-93616.yaml"
         response_type = "command_injection"
     strings:
-        $path0 = "/cpmws/UpgradeSvcRemote" ascii nocase
+        $path0 = /\/cpmws\/UpgradeSvcRemote(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -5859,10 +5718,10 @@ rule krawl_cve_2026_94169_the_grid {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-94169, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-94169.yaml"
         response_type = "path_traversal"
     strings:
-        $param0 = "grid_nonce=invalid" ascii nocase
-        $param1 = "grid_data[grid_skins][evil][php]=/etc/passwd" ascii nocase
-        $param2 = "grid_data[grid_skins][evil][type]=grid" ascii nocase
-        $param3 = "grid_data[grid_skins][evil][slug]=evil" ascii nocase
+        $param0 = /(^|[?&;])grid_nonce=invalid(&|$)/ nocase
+        $param1 = /(^|[?&;])grid_data\[grid_skins\]\[evil\]\[php\]=\/etc\/passwd(&|$)/ nocase
+        $param2 = /(^|[?&;])grid_data\[grid_skins\]\[evil\]\[type\]=grid(&|$)/ nocase
+        $param3 = /(^|[?&;])grid_data\[grid_skins\]\[evil\]\[slug\]=evil(&|$)/ nocase
     condition:
         ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
@@ -5884,7 +5743,7 @@ rule krawl_cve_2026_9506_bagisto {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-9506, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-9506.yaml"
         response_type = "path_traversal"
     strings:
-        $path0 = "/cache/original/../composer.json" ascii nocase
+        $path0 = /\/cache\/original\/\.\.\/composer\.json(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }

@@ -7,7 +7,7 @@ metrics-summary persistence. All read-only except upsert_metrics_summary.
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import func, or_
+from sqlalchemy import func, not_, or_
 from sqlalchemy.orm import joinedload
 
 from dashboard_cache import pagination
@@ -358,6 +358,7 @@ class AnalyticsRepo:
         search: str | None = None,
         method_filter: str | None = None,
         total: int | None = None,
+        exclude: list[str] | None = None,
     ) -> dict[str, Any]:
         """
         Retrieve paginated list of detected attack types with access logs.
@@ -371,6 +372,8 @@ class AnalyticsRepo:
             attack_type_filter: Optional attack type to filter results
             search: Optional case-insensitive substring filter across IP/path/user-agent
             method_filter: Optional HTTP method filter (e.g. GET, POST)
+            exclude: Case-insensitive substrings; requests whose IP, path or
+                user agent contains any of them are left out
 
         Returns:
             Dictionary with attacks list and pagination info
@@ -422,6 +425,18 @@ class AnalyticsRepo:
                         AccessLog.ip.ilike(like),
                         AccessLog.path.ilike(like),
                         AccessLog.user_agent.ilike(like),
+                    )
+                )
+            for term in exclude or ():
+                like = f"%{term}%"
+                # A NULL user agent must not turn the NOT into NULL.
+                match_filters.append(
+                    not_(
+                        or_(
+                            AccessLog.ip.ilike(like),
+                            AccessLog.path.ilike(like),
+                            func.coalesce(AccessLog.user_agent, "").ilike(like),
+                        )
                     )
                 )
 

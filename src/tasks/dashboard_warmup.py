@@ -350,7 +350,7 @@ def main():
         # under the exact keys their routes read (dashboard defaults).
         for key, fetch in (
             (
-                "attacks:1:timestamp:desc::::",
+                "attacks:1:timestamp:desc:::::",
                 lambda: db.analytics.get_attack_types_paginated(page=1, page_size=15),
             ),
             (

@@ -1380,6 +1380,35 @@ rule krawl_cve_2025_29927_nextjs_middleware_bypass {
         scan_target == "header" and header_name == "x-middleware-subrequest" and $a
 }
 
+rule krawl_cve_2025_55182_react2shell {
+    meta:
+        attack_type = "cve_2025_55182"
+        classification = "attack"
+        severity = 10
+        confidence = "high"
+        description = "React2Shell: a forged React Server Components Flight payload (prototype chain references or a resolved_model chunk) sent to a Next.js server action to run code."
+        mitre_attack = "T1190"
+        version = "1.0"
+        date = "2026-10-27"
+        modified = "2026-10-27"
+        author = "Krawl"
+        false_positives = "None expected: real server action bodies never reference __proto__ or constructor chains."
+        cve = "CVE-2025-55182"
+        reference = "https://nvd.nist.gov/vuln/detail/CVE-2025-55182"
+    strings:
+        $proto_then = ":__proto__:then\"" ascii
+        $ctor_chain = /"\$[0-9a-fA-F]{1,8}:constructor:constructor"/
+        $model = "\"resolved_model\"" ascii
+        $lazy = "\"$$typeof\":\"$Lazy\"" ascii
+        $proto = "\"__proto__\"" ascii
+        $server_ref = /\["\$S[RF]"\s*,\s*"child_process"/
+    condition:
+        scan_target == "body" and (
+            $proto_then or $ctor_chain or $server_ref
+            or ($proto and ($model or $lazy))
+        )
+}
+
 rule krawl_cve_2015_7501_jboss_invoker {
     meta:
         attack_type = "cve_2015_7501"

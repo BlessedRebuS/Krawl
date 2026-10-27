@@ -1,5 +1,5 @@
 {# HTMX fragment: Detected Attack Types table #}
-{% set filter_qs %}{% if ip_filter %}&ip_filter={{ ip_filter }}{% endif %}{% if attack_type_filter %}&attack_type_filter={{ attack_type_filter | e }}{% endif %}{% if search %}&search={{ search | e }}{% endif %}{% if method_filter %}&method_filter={{ method_filter | e }}{% endif %}{% endset %}
+{% set filter_qs %}{% if ip_filter %}&ip_filter={{ ip_filter }}{% endif %}{% if attack_type_filter %}&attack_type_filter={{ attack_type_filter | e }}{% endif %}{% if search %}&search={{ search | e }}{% endif %}{% if method_filter %}&method_filter={{ method_filter | e }}{% endif %}{% if exclude %}&exclude={{ exclude | e }}{% endif %}{% endset %}
 <div class="panel-header">
     <div class="row row-wrap">
         <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} total</span>
@@ -27,6 +27,15 @@
                   title="Clear search">&times;</span>
         </span>
         {% endif %}
+        {% for term in exclude_terms %}
+        <span class="filter-pill">
+            not &ldquo;{{ term | e }}&rdquo;
+            <span class="filter-pill-clear"
+                  data-term="{{ term | e }}"
+                  onclick="removeExcludeTerm(this.dataset.term)"
+                  title="Show these requests again">&times;</span>
+        </span>
+        {% endfor %}
     </div>
     <div class="row">
         <button class="pagination-btn"

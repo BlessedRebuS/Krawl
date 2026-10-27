@@ -9,7 +9,7 @@
   "name": "CVE-2001-0537 indicator",
   "expect": "cve_2001_0537",
   "rule": "krawl_cve_2001_0537_ios",
-  "path": "/level/16/exec/show/config/CR"
+  "path": "/level/16/exec/show/config/"
  },
  {
   "name": "CVE-2002-1131 indicator",
@@ -1162,13 +1162,6 @@
   "path": "/backupmgt/localJob.php"
  },
  {
-  "name": "CVE-2014-3704 indicator",
-  "expect": "cve_2014_3704",
-  "rule": "krawl_cve_2014_3704_drupal",
-  "path": "/",
-  "query": "form_id=user_login_block"
- },
- {
   "name": "CVE-2014-4210 indicator",
   "expect": "cve_2014_4210",
   "rule": "krawl_cve_2014_4210_fusion_middleware",
@@ -1397,13 +1390,6 @@
   "expect": "cve_2015_2068",
   "rule": "krawl_cve_2015_2068_magmi",
   "path": "/magmi/web/magmi.php"
- },
- {
-  "name": "CVE-2015-2755 indicator",
-  "expect": "cve_2015_2755",
-  "rule": "krawl_cve_2015_2755_ab_google_map_travel",
-  "path": "/",
-  "query": "submit=Update Settings"
  },
  {
   "name": "CVE-2015-2794 indicator",
@@ -1849,12 +1835,6 @@
   "query": "encoding=UTF-8"
  },
  {
-  "name": "CVE-2016-3088 indicator",
-  "expect": "cve_2016_3088",
-  "rule": "krawl_cve_2016_3088_activemq",
-  "path": "/fileserver/"
- },
- {
   "name": "CVE-2016-4977 indicator",
   "expect": "cve_2016_4977",
   "rule": "krawl_cve_2016_4977_spring_security_oauth",
@@ -1937,7 +1917,7 @@
   "name": "CVE-2017-11107 indicator",
   "expect": "cve_2017_11107",
   "rule": "krawl_cve_2017_11107_phpldapadmin",
-  "path": "/phpldapadmin/"
+  "path": "/phpldapadmin/entry_chooser.php"
  },
  {
   "name": "CVE-2017-11165 indicator",
@@ -2100,12 +2080,6 @@
   "path": "/util/xmlrpc/Handler.ashx"
  },
  {
-  "name": "CVE-2017-18349 indicator",
-  "expect": "cve_2017_18349",
-  "rule": "krawl_cve_2017_18349_fastjson",
-  "path": "/deserialize"
- },
- {
   "name": "CVE-2017-18362 indicator",
   "expect": "cve_2017_18362",
   "rule": "krawl_cve_2017_18362_manageditsync",
@@ -2243,7 +2217,7 @@
   "name": "CVE-2017-9805 indicator",
   "expect": "cve_2017_9805",
   "rule": "krawl_cve_2017_9805_struts",
-  "path": "/struts2-rest-showcase/orders/3"
+  "path": "/struts2-rest-showcase/orders/"
  },
  {
   "name": "CVE-2017-9833 indicator",
@@ -2366,12 +2340,6 @@
   "expect": "cve_2018_11709",
   "rule": "krawl_cve_2018_11709_wpforo_forum",
   "path": "/index.php/community/"
- },
- {
-  "name": "CVE-2018-11759 indicator",
-  "expect": "cve_2018_11759",
-  "rule": "krawl_cve_2018_11759_tomcat_jk_connector",
-  "path": "/jkstatus;"
  },
  {
   "name": "CVE-2018-12031 indicator",
@@ -2616,7 +2584,7 @@
   "name": "CVE-2018-17431 indicator",
   "expect": "cve_2018_17431",
   "rule": "krawl_cve_2018_17431_unified_threat_management_fire",
-  "path": "/manage/webshell/u"
+  "path": "/manage/webshell/"
  },
  {
   "name": "CVE-2018-18069 indicator",
@@ -2894,12 +2862,6 @@
   "path": "/scripts/ajaxPortal.lua"
  },
  {
-  "name": "CVE-2018-7192 indicator",
-  "expect": "cve_2018_7192",
-  "rule": "krawl_cve_2018_7192_osticket",
-  "path": "/ajax.php/form/help-topic/1"
- },
- {
   "name": "CVE-2018-7193 indicator",
   "expect": "cve_2018_7193",
   "rule": "krawl_cve_2018_7193_osticket",
@@ -2982,7 +2944,8 @@
   "name": "CVE-2019-0193 indicator",
   "expect": "cve_2019_0193",
   "rule": "krawl_cve_2019_0193_solr",
-  "path": "/dataimport"
+  "path": "/",
+  "query": "name=dataimport"
  },
  {
   "name": "CVE-2019-0221 indicator",
@@ -3050,13 +3013,6 @@
   "expect": "cve_2019_11253",
   "rule": "krawl_cve_2019_11253_kubernetes",
   "path": "/apis/authorization.k8s.io/v1/selfsubjectaccessreviews"
- },
- {
-  "name": "CVE-2019-11507 indicator",
-  "expect": "cve_2019_11507",
-  "rule": "krawl_cve_2019_11507_connect_secure",
-  "path": "/",
-  "query": "btnSubmit=Sign In"
  },
  {
   "name": "CVE-2019-11580 indicator",
@@ -3217,20 +3173,6 @@
   "rule": "krawl_cve_2019_14696_open_school",
   "path": "/",
   "query": "r=students/guardians/create"
- },
- {
-  "name": "CVE-2019-14750 indicator",
-  "expect": "cve_2019_14750",
-  "rule": "krawl_cve_2019_14750_osticket",
-  "path": "/",
-  "query": "lang_id=en_US"
- },
- {
-  "name": "CVE-2019-14950 indicator",
-  "expect": "cve_2019_14950",
-  "rule": "krawl_cve_2019_14950_live_chat",
-  "path": "/",
-  "query": "wplc_pro_na=Chat offline. Leave a message"
  },
  {
   "name": "CVE-2019-14974 indicator",
@@ -3922,13 +3864,6 @@
   "path": "/ajax/api/content_infraction/getIndexableContent"
  },
  {
-  "name": "CVE-2020-13117 indicator",
-  "expect": "cve_2020_13117",
-  "rule": "krawl_cve_2020_13117_wn575a4",
-  "path": "/",
-  "query": "ipaddr=192.168.1.66"
- },
- {
   "name": "CVE-2020-13121 indicator",
   "expect": "cve_2020_13121",
   "rule": "krawl_cve_2020_13121_submitty",
@@ -3962,7 +3897,7 @@
   "name": "CVE-2020-13700 indicator",
   "expect": "cve_2020_13700",
   "rule": "krawl_cve_2020_13700_acf_to_rest_api",
-  "path": "/wp-json/acf/v3/options/a"
+  "path": "/wp-json/acf/v3/options/"
  },
  {
   "name": "CVE-2020-13820 indicator",
@@ -4109,13 +4044,6 @@
   "path": "/jobmanager/logs/..%252f..%252f..%252f..%252f..%252f..%252f..%252f..%252f..%252f..%252f..%252f..%252fetc%252fpasswd"
  },
  {
-  "name": "CVE-2020-18268 indicator",
-  "expect": "cve_2020_18268",
-  "rule": "krawl_cve_2020_18268_z_blogphp",
-  "path": "/",
-  "query": "btnPost=Log In"
- },
- {
   "name": "CVE-2020-19283 indicator",
   "expect": "cve_2020_19283",
   "rule": "krawl_cve_2020_19283_jeesns",
@@ -4180,13 +4108,6 @@
   "expect": "cve_2020_21998",
   "rule": "krawl_cve_2020_21998_homeautomation",
   "path": "/homeautomation_v3_3_2/api.php"
- },
- {
-  "name": "CVE-2020-22165 indicator",
-  "expect": "cve_2020_22165",
-  "rule": "krawl_cve_2020_22165_hospital_management_system",
-  "path": "/",
-  "query": "password=asfsafafsafsaf"
  },
  {
   "name": "CVE-2020-22208 indicator",
@@ -4259,12 +4180,6 @@
   "path": "/ajax/apps/manifests"
  },
  {
-  "name": "CVE-2020-24881 indicator",
-  "expect": "cve_2020_24881",
-  "rule": "krawl_cve_2020_24881_osticket",
-  "path": "/ajax.php/form/help-topic/"
- },
- {
   "name": "CVE-2020-24903 indicator",
   "expect": "cve_2020_24903",
   "rule": "krawl_cve_2020_24903_cute_editor",
@@ -4322,7 +4237,7 @@
   "name": "CVE-2020-26876 indicator",
   "expect": "cve_2020_26876",
   "rule": "krawl_cve_2020_26876_wp_courses",
-  "path": "/wp-json/wp/v2/lesson/1"
+  "path": "/wp-json/wp/v2/lesson/"
  },
  {
   "name": "CVE-2020-26879 indicator",
@@ -4405,13 +4320,6 @@
   "path": "/_/./WEB-INF/classes/META-INF/maven/com.atlassian.jira/jira-core/pom.xml"
  },
  {
-  "name": "CVE-2020-29583 indicator",
-  "expect": "cve_2020_29583",
-  "rule": "krawl_cve_2020_29583_usg20_vpn_firmware",
-  "path": "/",
-  "query": "password=PrOw!aN_fXp"
- },
- {
   "name": "CVE-2020-29597 indicator",
   "expect": "cve_2020_29597",
   "rule": "krawl_cve_2020_29597_incomcms",
@@ -4492,13 +4400,6 @@
   "path": "/ebook/bookPerPub.php"
  },
  {
-  "name": "CVE-2020-36155 indicator",
-  "expect": "cve_2020_36155",
-  "rule": "krawl_cve_2020_36155_ultimate_member",
-  "path": "/",
-  "query": "_wp_http_referer=register"
- },
- {
   "name": "CVE-2020-36289 indicator",
   "expect": "cve_2020_36289",
   "rule": "krawl_cve_2020_36289_data_center",
@@ -4529,12 +4430,6 @@
   "expect": "cve_2020_36836",
   "rule": "krawl_cve_2020_36836_wp_fastest_cache",
   "path": "/wp-content/plugins/wp-fastest-cache/"
- },
- {
-  "name": "CVE-2020-36884 indicator",
-  "expect": "cve_2020_36884",
-  "rule": "krawl_cve_2020_36884_brightsign_digital_signage_8_2",
-  "path": "/speedtest"
  },
  {
   "name": "CVE-2020-4427 indicator",
@@ -4708,13 +4603,6 @@
   "path": "/pandora_console/attachment/pandora_chat.log.json.txt"
  },
  {
-  "name": "CVE-2020-8615 indicator",
-  "expect": "cve_2020_8615",
-  "rule": "krawl_cve_2020_8615_tutor_lms",
-  "path": "/",
-  "query": "action=add_new_instructor"
- },
- {
   "name": "CVE-2020-8656 indicator",
   "expect": "cve_2020_8656",
   "rule": "krawl_cve_2020_8656_eyesofnetwork",
@@ -4787,12 +4675,6 @@
   "path": "/auth/change"
  },
  {
-  "name": "CVE-2021-1498 indicator",
-  "expect": "cve_2021_1498",
-  "rule": "krawl_cve_2021_1498_hyperflex_hx_data_platform",
-  "path": "/storfs-asup"
- },
- {
   "name": "CVE-2021-20091 indicator",
   "expect": "cve_2021_20091",
   "rule": "krawl_cve_2021_20091_wsr_2533dhpl2_bk",
@@ -4830,13 +4712,6 @@
   "query": "html_response_page=ftpserver.asp"
  },
  {
-  "name": "CVE-2021-20158 indicator",
-  "expect": "cve_2021_20158",
-  "rule": "krawl_cve_2021_20158_tew_827dru_firmware",
-  "path": "/",
-  "query": "html_response_page=/login_pic.asp"
- },
- {
   "name": "CVE-2021-20167 indicator",
   "expect": "cve_2021_20167",
   "rule": "krawl_cve_2021_20167_rax43_firmware",
@@ -4847,13 +4722,6 @@
   "expect": "cve_2021_20323",
   "rule": "krawl_cve_2021_20323_keycloak",
   "path": "/auth/realms/master/clients-registrations/default"
- },
- {
-  "name": "CVE-2021-20617 indicator",
-  "expect": "cve_2021_20617",
-  "rule": "krawl_cve_2021_20617_acmailer_acmailer_db",
-  "path": "/",
-  "query": "login_id=loginid"
  },
  {
   "name": "CVE-2021-21234 indicator",
@@ -4922,12 +4790,6 @@
   "expect": "cve_2021_21975",
   "rule": "krawl_cve_2021_21975_cloud_foundation",
   "path": "/casa/nodes/thumbprints"
- },
- {
-  "name": "CVE-2021-21978 indicator",
-  "expect": "cve_2021_21978",
-  "rule": "krawl_cve_2021_21978_view_planner",
-  "path": "/logupload"
  },
  {
   "name": "CVE-2021-22017 indicator",
@@ -5049,24 +4911,11 @@
   "path": "/wp-content/plugins/imagements/images/"
  },
  {
-  "name": "CVE-2021-24237 indicator",
-  "expect": "cve_2021_24237",
-  "rule": "krawl_cve_2021_24237_findeo",
-  "path": "/properties/"
- },
- {
   "name": "CVE-2021-24239 indicator",
   "expect": "cve_2021_24239",
   "rule": "krawl_cve_2021_24239_pie_register",
   "path": "/",
   "query": "page=pr_new_registration_form"
- },
- {
-  "name": "CVE-2021-24245 indicator",
-  "expect": "cve_2021_24245",
-  "rule": "krawl_cve_2021_24245_stop_spammers",
-  "path": "/",
-  "query": "redirect_to=http://localhost/wp-admin"
  },
  {
   "name": "CVE-2021-24274 indicator",
@@ -5187,7 +5036,8 @@
   "name": "CVE-2021-24389 indicator",
   "expect": "cve_2021_24389",
   "rule": "krawl_cve_2021_24389_foodbakery",
-  "path": "/listings/"
+  "path": "/",
+  "query": "foodbakery_locations_position=filter"
  },
  {
   "name": "CVE-2021-24409 indicator",
@@ -5254,7 +5104,7 @@
   "expect": "cve_2021_24627",
   "rule": "krawl_cve_2021_24627_g_auto_hyperlink",
   "path": "/",
-  "query": "wp-submit=Log I"
+  "query": "page=g-auto-hyperlink-edit"
  },
  {
   "name": "CVE-2021-24666 indicator",
@@ -5560,13 +5410,8 @@
   "name": "CVE-2021-27905 indicator",
   "expect": "cve_2021_27905",
   "rule": "krawl_cve_2021_27905_solr",
-  "path": "/replication/"
- },
- {
-  "name": "CVE-2021-27909 indicator",
-  "expect": "cve_2021_27909",
-  "rule": "krawl_cve_2021_27909_mautic",
-  "path": "/passwordreset"
+  "path": "/",
+  "query": "command=fetchindex"
  },
  {
   "name": "CVE-2021-27931 indicator",
@@ -5596,7 +5441,7 @@
   "name": "CVE-2021-28377 indicator",
   "expect": "cve_2021_28377",
   "rule": "krawl_cve_2021_28377_chronoforums",
-  "path": "/index.php/component/chronoforums2/profiles/avatar/u1"
+  "path": "/index.php/component/chronoforums2/profiles/avatar/"
  },
  {
   "name": "CVE-2021-28480 indicator",
@@ -5702,20 +5547,6 @@
   "path": "/owa/auth/frowny.aspx"
  },
  {
-  "name": "CVE-2021-31249 indicator",
-  "expect": "cve_2021_31249",
-  "rule": "krawl_cve_2021_31249_bf_430_firmware",
-  "path": "/",
-  "query": "B_mac_apply=APPLY"
- },
- {
-  "name": "CVE-2021-31250 indicator",
-  "expect": "cve_2021_31250",
-  "rule": "krawl_cve_2021_31250_bf_430_firmware",
-  "path": "/",
-  "query": "redirect=setting.htm"
- },
- {
   "name": "CVE-2021-3152 indicator",
   "expect": "cve_2021_3152",
   "rule": "krawl_cve_2021_3152_integration",
@@ -5762,12 +5593,6 @@
   "expect": "cve_2021_32030",
   "rule": "krawl_cve_2021_32030_gt_ac2900_firmware",
   "path": "/appGet.cgi"
- },
- {
-  "name": "CVE-2021-32172 indicator",
-  "expect": "cve_2021_32172",
-  "rule": "krawl_cve_2021_32172_maian_cart",
-  "path": "/product-downloads/"
  },
  {
   "name": "CVE-2021-3239 indicator",
@@ -6166,12 +5991,6 @@
   "path": "/IND780/excalweb.dll"
  },
  {
-  "name": "CVE-2021-40822 indicator",
-  "expect": "cve_2021_40822",
-  "rule": "krawl_cve_2021_40822_geoserver",
-  "path": "/geoserver/"
- },
- {
   "name": "CVE-2021-40859 indicator",
   "expect": "cve_2021_40859",
   "rule": "krawl_cve_2021_40859_compact_5500r_firmware",
@@ -6230,7 +6049,8 @@
   "name": "CVE-2021-41291 indicator",
   "expect": "cve_2021_41291",
   "rule": "krawl_cve_2021_41291_ecs_router_controller_ecs_firm",
-  "path": "/fmangersub"
+  "path": "/",
+  "query": "cpath=../../../../../../../etc/passwd"
  },
  {
   "name": "CVE-2021-41293 indicator",
@@ -6333,13 +6153,6 @@
   "query": "action=admin-dismiss-unsubscribe"
  },
  {
-  "name": "CVE-2021-42392 indicator",
-  "expect": "cve_2021_42392",
-  "rule": "krawl_cve_2021_42392_h2",
-  "path": "/",
-  "query": "driver=javax.naming.InitialContext"
- },
- {
   "name": "CVE-2021-42551 indicator",
   "expect": "cve_2021_42551",
   "rule": "krawl_cve_2021_42551_netbiblio",
@@ -6362,12 +6175,6 @@
   "expect": "cve_2021_42887",
   "rule": "krawl_cve_2021_42887_ex1200t_firmware",
   "path": "/formLoginAuth.htm"
- },
- {
-  "name": "CVE-2021-43062 indicator",
-  "expect": "cve_2021_43062",
-  "rule": "krawl_cve_2021_43062_fortimail",
-  "path": "/fmlurlsvc/"
  },
  {
   "name": "CVE-2021-43287 indicator",
@@ -6436,13 +6243,6 @@
   "expect": "cve_2021_44152",
   "rule": "krawl_cve_2021_44152_reprise_license_manager",
   "path": "/goforms/menu"
- },
- {
-  "name": "CVE-2021-44427 indicator",
-  "expect": "cve_2021_44427",
-  "rule": "krawl_cve_2021_44427_rosariosis",
-  "path": "/",
-  "query": "sidefunc=update"
  },
  {
   "name": "CVE-2021-4448 indicator",
@@ -6777,7 +6577,7 @@
   "name": "CVE-2022-0592 indicator",
   "expect": "cve_2022_0592",
   "rule": "krawl_cve_2022_0592_mapsvg",
-  "path": "/wp-json/mapsvg/v1/maps/2"
+  "path": "/wp-json/mapsvg/v1/maps/"
  },
  {
   "name": "CVE-2022-0594 indicator",
@@ -6983,13 +6783,6 @@
   "path": "/userfiles/media/default/"
  },
  {
-  "name": "CVE-2022-0968 indicator",
-  "expect": "cve_2022_0968",
-  "rule": "krawl_cve_2022_0968_microweber",
-  "path": "/",
-  "query": "_method=PATCH"
- },
- {
   "name": "CVE-2022-1007 indicator",
   "expect": "cve_2022_1007",
   "rule": "krawl_cve_2022_1007_advanced_booking_calendar",
@@ -7002,13 +6795,6 @@
   "rule": "krawl_cve_2022_1013_personal_dictionary",
   "path": "/",
   "query": "groupsIds[]=1) AND (SELECT 3066 FROM (SELECT(SLEEP(7)))CEHy)-- -"
- },
- {
-  "name": "CVE-2022-1020 indicator",
-  "expect": "cve_2022_1020",
-  "rule": "krawl_cve_2022_1020_woo_product_table",
-  "path": "/",
-  "query": "perpose=update"
  },
  {
   "name": "CVE-2022-1026 indicator",
@@ -7077,7 +6863,7 @@
   "name": "CVE-2022-1442 indicator",
   "expect": "cve_2022_1442",
   "rule": "krawl_cve_2022_1442_metform_elementor_contact_form",
-  "path": "/wp-json/metform/v1/forms/templates/0"
+  "path": "/wp-json/metform/v1/forms/templates/"
  },
  {
   "name": "CVE-2022-1574 indicator",
@@ -7090,7 +6876,7 @@
   "expect": "cve_2022_1597",
   "rule": "krawl_cve_2022_1597_wpqa_builder",
   "path": "/",
-  "query": "form_type=wpqa-signup"
+  "query": "form_type=wpqa_forget"
  },
  {
   "name": "CVE-2022-1598 indicator",
@@ -7131,13 +6917,6 @@
   "rule": "krawl_cve_2022_1768_rsvpmaker",
   "path": "/",
   "query": "rsvp_id=(select(0)from(select(sleep(7)))a)"
- },
- {
-  "name": "CVE-2022-1903 indicator",
-  "expect": "cve_2022_1903",
-  "rule": "krawl_cve_2022_1903_armember",
-  "path": "/",
-  "query": "action=arm_shortcode_form_ajax_action"
  },
  {
   "name": "CVE-2022-1904 indicator",
@@ -7344,13 +7123,6 @@
   "path": "/iupjournals/index.php/esj"
  },
  {
-  "name": "CVE-2022-24260 indicator",
-  "expect": "cve_2022_24260",
-  "rule": "krawl_cve_2022_24260_voipmonitor",
-  "path": "/",
-  "query": "module=relogin"
- },
- {
   "name": "CVE-2022-24264 indicator",
   "expect": "cve_2022_24264",
   "rule": "krawl_cve_2022_24264_cuppacms",
@@ -7402,13 +7174,6 @@
   "expect": "cve_2022_24637",
   "rule": "krawl_cve_2022_24637_open_web_analytics",
   "path": "/owa-data/caches/1/owa_user/c30da9265ba0a4704db9229f864c9eb7.php"
- },
- {
-  "name": "CVE-2022-2467 indicator",
-  "expect": "cve_2022_2467",
-  "rule": "krawl_cve_2022_2467_garage_management_system",
-  "path": "/",
-  "query": "login=test2334"
  },
  {
   "name": "CVE-2022-24716 indicator",
@@ -7527,13 +7292,6 @@
   "expect": "cve_2022_2551",
   "rule": "krawl_cve_2022_2551_duplicator",
   "path": "/wp-content/dup-installer/main.installer.php"
- },
- {
-  "name": "CVE-2022-26138 indicator",
-  "expect": "cve_2022_26138",
-  "rule": "krawl_cve_2022_26138_questions_for_confluence",
-  "path": "/",
-  "query": "os_destination=/httpvoid.action"
  },
  {
   "name": "CVE-2022-26159 indicator",
@@ -7751,13 +7509,6 @@
   "query": "username_fieldname=username_axh5kevh"
  },
  {
-  "name": "CVE-2022-30489 indicator",
-  "expect": "cve_2022_30489",
-  "rule": "krawl_cve_2022_30489_wn535g3_firmware",
-  "path": "/",
-  "query": "ipaddr=x.x.x.x"
- },
- {
   "name": "CVE-2022-30512 indicator",
   "expect": "cve_2022_30512",
   "rule": "krawl_cve_2022_30512_school_dormitory_management_sy",
@@ -7930,13 +7681,6 @@
   "expect": "cve_2022_34047",
   "rule": "krawl_cve_2022_34047_wl_wn530hg4_firmware",
   "path": "/set_safety.shtml"
- },
- {
-  "name": "CVE-2022-34048 indicator",
-  "expect": "cve_2022_34048",
-  "rule": "krawl_cve_2022_34048_wn533a8_firmware",
-  "path": "/",
-  "query": "ipaddr=196.219.234.10"
  },
  {
   "name": "CVE-2022-34093 indicator",
@@ -8410,13 +8154,6 @@
   "query": "module=entities/forms"
  },
  {
-  "name": "CVE-2022-45038 indicator",
-  "expect": "cve_2022_45038",
-  "rule": "krawl_cve_2022_45038_wbce_cms",
-  "path": "/",
-  "query": "wbmailer_default_sendername=WBCE CMS Mailer"
- },
- {
   "name": "CVE-2022-45354 indicator",
   "expect": "cve_2022_45354",
   "rule": "krawl_cve_2022_45354_download_monitor",
@@ -8505,13 +8242,6 @@
   "rule": "krawl_cve_2022_47615_learnpress",
   "path": "/",
   "query": "template_path=../../../etc/passwd"
- },
- {
-  "name": "CVE-2022-47945 indicator",
-  "expect": "cve_2022_47945",
-  "rule": "krawl_cve_2022_47945_thinkphp",
-  "path": "/",
-  "query": "lang=../../thinkphp/base"
  },
  {
   "name": "CVE-2022-47966 indicator",
@@ -8695,7 +8425,7 @@
   "expect": "cve_2023_1671",
   "rule": "krawl_cve_2023_1671_web_appliance",
   "path": "/",
-  "query": "action=continue"
+  "query": "args_reason=filetypewarn"
  },
  {
   "name": "CVE-2023-1698 indicator",
@@ -8761,7 +8491,7 @@
   "expect": "cve_2023_2009",
   "rule": "krawl_cve_2023_2009_pretty_url",
   "path": "/",
-  "query": "log=((username))"
+  "query": "page=prettyurls"
  },
  {
   "name": "CVE-2023-2059 indicator",
@@ -8959,13 +8689,6 @@
   "expect": "cve_2023_24737",
   "rule": "krawl_cve_2023_24737_pmb",
   "path": "/pmb/admin/convert/export_z3950.php"
- },
- {
-  "name": "CVE-2023-25135 indicator",
-  "expect": "cve_2023_25135",
-  "rule": "krawl_cve_2023_25135_vbulletin",
-  "path": "/",
-  "query": "user[email]=pown@pown.net"
  },
  {
   "name": "CVE-2023-2518 indicator",
@@ -9200,13 +8923,6 @@
   "query": "page=newsletter_system_status"
  },
  {
-  "name": "CVE-2023-28121 indicator",
-  "expect": "cve_2023_28121",
-  "rule": "krawl_cve_2023_28121_woocommerce_payments",
-  "path": "/",
-  "query": "roles=administrator"
- },
- {
   "name": "CVE-2023-2825 indicator",
   "expect": "cve_2023_2825",
   "rule": "krawl_cve_2023_2825_gitlab",
@@ -9354,13 +9070,6 @@
   "query": "post_type=acf-post-type"
  },
  {
-  "name": "CVE-2023-30869 indicator",
-  "expect": "cve_2023_30869",
-  "rule": "krawl_cve_2023_30869_easy_digital_downloads",
-  "path": "/",
-  "query": "edd_action=user_reset_password"
- },
- {
   "name": "CVE-2023-30943 indicator",
   "expect": "cve_2023_30943",
   "rule": "krawl_cve_2023_30943_moodle",
@@ -9370,7 +9079,8 @@
   "name": "CVE-2023-31465 indicator",
   "expect": "cve_2023_31465",
   "rule": "krawl_cve_2023_31465_timekeeper",
-  "path": "/getsamplebacklog"
+  "path": "/",
+  "query": "arg1=2d0ows2x9anpzaorxi9h4csmai08jjor"
  },
  {
   "name": "CVE-2023-31478 indicator",
@@ -9419,13 +9129,6 @@
   "expect": "cve_2023_3277",
   "rule": "krawl_cve_2023_3277_mstore_api",
   "path": "/wp-json/api/flutter_user/apple_login"
- },
- {
-  "name": "CVE-2023-33338 indicator",
-  "expect": "cve_2023_33338",
-  "rule": "krawl_cve_2023_33338_old_age_home_management_system",
-  "path": "/",
-  "query": "password=password"
  },
  {
   "name": "CVE-2023-33439 indicator",
@@ -9690,7 +9393,8 @@
   "name": "CVE-2023-37462 indicator",
   "expect": "cve_2023_37462",
   "rule": "krawl_cve_2023_37462_xwiki",
-  "path": "/asyncrenderer/"
+  "path": "/",
+  "query": "sheet=SkinsCode.XWikiSkinsSheet"
  },
  {
   "name": "CVE-2023-37580 indicator",
@@ -9723,13 +9427,6 @@
   "rule": "krawl_cve_2023_37988_contact_form_generator",
   "path": "/",
   "query": "page=contact_form_generator"
- },
- {
-  "name": "CVE-2023-37999 indicator",
-  "expect": "cve_2023_37999",
-  "rule": "krawl_cve_2023_37999_ht_mega",
-  "path": "/",
-  "query": "reg_role=administrator"
  },
  {
   "name": "CVE-2023-38035 indicator",
@@ -9772,12 +9469,6 @@
   "expect": "cve_2023_3836",
   "rule": "krawl_cve_2023_3836_smart_parking_management",
   "path": "/emap/devicePoint_addImgIco"
- },
- {
-  "name": "CVE-2023-38875 indicator",
-  "expect": "cve_2023_38875",
-  "rule": "krawl_cve_2023_38875_php_login_system",
-  "path": "/reset-password/"
  },
  {
   "name": "CVE-2023-38879 indicator",
@@ -9907,6 +9598,13 @@
   "rule": "krawl_cve_2023_4111_bus_reservation_system",
   "path": "/",
   "query": "controller=pjFrontEnd"
+ },
+ {
+  "name": "CVE-2023-4112 indicator",
+  "expect": "cve_2023_4112",
+  "rule": "krawl_cve_2023_4112_shuttle_booking_software",
+  "path": "/",
+  "query": "action=pjActionLogin"
  },
  {
   "name": "CVE-2023-41266 indicator",
@@ -10121,12 +9819,6 @@
   "path": "/admin/language_edit.php"
  },
  {
-  "name": "CVE-2023-47105 indicator",
-  "expect": "cve_2023_47105",
-  "rule": "krawl_cve_2023_47105_chaosblade",
-  "path": "/chaosblade"
- },
- {
   "name": "CVE-2023-47115 indicator",
   "expect": "cve_2023_47115",
   "rule": "krawl_cve_2023_47115_label_studio",
@@ -10154,7 +9846,8 @@
   "name": "CVE-2023-47246 indicator",
   "expect": "cve_2023_47246",
   "rule": "krawl_cve_2023_47246_sysaid_on_premises",
-  "path": "/userentry"
+  "path": "/",
+  "query": "base64UserName=YWRtaW4="
  },
  {
   "name": "CVE-2023-47248 indicator",
@@ -10271,7 +9964,8 @@
   "name": "CVE-2023-50839 indicator",
   "expect": "cve_2023_50839",
   "rule": "krawl_cve_2023_50839_js_help_desk_2_8_1",
-  "path": "/js-support-ticket-controlpanel/"
+  "path": "/",
+  "query": "form_request=jssupportticket"
  },
  {
   "name": "CVE-2023-50917 indicator",
@@ -10327,7 +10021,7 @@
   "name": "CVE-2023-5375 indicator",
   "expect": "cve_2023_5375",
   "rule": "krawl_cve_2023_5375_mosparo",
-  "path": "/project/switch/1"
+  "path": "/project/switch/"
  },
  {
   "name": "CVE-2023-54391 indicator",
@@ -10430,13 +10124,6 @@
   "expect": "cve_2023_6389",
   "rule": "krawl_cve_2023_6389_wordpress_toolbar",
   "path": "/wp-content/plugins/wordpress-toolbar/toolbar.php"
- },
- {
-  "name": "CVE-2023-6421 indicator",
-  "expect": "cve_2023_6421",
-  "rule": "krawl_cve_2023_6421_wordpress_download_manager",
-  "path": "/",
-  "query": "rest_route=/wpdm/validate-password"
  },
  {
   "name": "CVE-2023-6505 indicator",
@@ -10728,7 +10415,7 @@
   "name": "CVE-2024-11868 indicator",
   "expect": "cve_2024_11868",
   "rule": "krawl_cve_2024_11868_learnpress",
-  "path": "/wp-json/lp/v1/material/item-materials/1"
+  "path": "/wp-json/lp/v1/material/item-materials/"
  },
  {
   "name": "CVE-2024-1208 indicator",
@@ -10990,13 +10677,6 @@
   "path": "/wp-content/plugins/seo-automatic-seo-tools/feedcommander/rssread.php"
  },
  {
-  "name": "CVE-2024-13888 indicator",
-  "expect": "cve_2024_13888",
-  "rule": "krawl_cve_2024_13888_wpappninja",
-  "path": "/",
-  "query": "redirect=aHR0cDovL29hc3QubWU="
- },
- {
   "name": "CVE-2024-13979 indicator",
   "expect": "cve_2024_13979",
   "rule": "krawl_cve_2024_13979_st_joe_erp_system",
@@ -11113,13 +10793,6 @@
   "path": "/task/submit/"
  },
  {
-  "name": "CVE-2024-22729 indicator",
-  "expect": "cve_2024_22729",
-  "rule": "krawl_cve_2024_22729_mw5360_firmware",
-  "path": "/",
-  "query": "app=wan_set_shortcutz"
- },
- {
   "name": "CVE-2024-22927 indicator",
   "expect": "cve_2024_22927",
   "rule": "krawl_cve_2024_22927_eyoucms",
@@ -11149,13 +10822,6 @@
   "expect": "cve_2024_23917",
   "rule": "krawl_cve_2024_23917_teamcity",
   "path": "/app/rest/users/id:1/tokens/"
- },
- {
-  "name": "CVE-2024-24329 indicator",
-  "expect": "cve_2024_24329",
-  "rule": "krawl_cve_2024_24329_a3300r_firmware",
-  "path": "/",
-  "query": "token=C6F41C563E86A379"
  },
  {
   "name": "CVE-2024-2473 indicator",
@@ -11218,12 +10884,6 @@
   "expect": "cve_2024_27199",
   "rule": "krawl_cve_2024_27199_teamcity",
   "path": "/res/../admin/diagnostic.jsp"
- },
- {
-  "name": "CVE-2024-27292 indicator",
-  "expect": "cve_2024_27292",
-  "rule": "krawl_cve_2024_27292_docassemble",
-  "path": "/interview"
  },
  {
   "name": "CVE-2024-27564 indicator",
@@ -11374,7 +11034,8 @@
   "name": "CVE-2024-30502 indicator",
   "expect": "cve_2024_30502",
   "rule": "krawl_cve_2024_30502_wp_travel_engine_5_7_9",
-  "path": "/wp-travel-engine-checkout/"
+  "path": "/",
+  "query": "action=wp_travel_engine_new_booking_process_action"
  },
  {
   "name": "CVE-2024-30568 indicator",
@@ -11405,7 +11066,7 @@
   "name": "CVE-2024-3097 indicator",
   "expect": "cve_2024_3097",
   "rule": "krawl_cve_2024_3097_nextgen_gallery",
-  "path": "/wp-json/ngg/v1/admin/block/image/1"
+  "path": "/wp-json/ngg/v1/admin/block/image/"
  },
  {
   "name": "CVE-2024-3136 indicator",
@@ -11583,13 +11244,6 @@
   "path": "/api/gen/clients/csharp"
  },
  {
-  "name": "CVE-2024-35286 indicator",
-  "expect": "cve_2024_35286",
-  "rule": "krawl_cve_2024_35286_micollab",
-  "path": "/",
-  "query": "subAction=basicLogin"
- },
- {
   "name": "CVE-2024-3552 indicator",
   "expect": "cve_2024_3552",
   "rule": "krawl_cve_2024_3552_web_directory_free",
@@ -11657,7 +11311,8 @@
   "name": "CVE-2024-37393 indicator",
   "expect": "cve_2024_37393",
   "rule": "krawl_cve_2024_37393_securenvoy_two_factor_authenti",
-  "path": "/secserver/"
+  "path": "/",
+  "query": "FLAG=DESKTOP"
  },
  {
   "name": "CVE-2024-3753 indicator",
@@ -11683,19 +11338,6 @@
   "expect": "cve_2024_3822",
   "rule": "krawl_cve_2024_3822_base64_encoder_decoder_0_9_2",
   "path": "/wp-content/plugins/base64-encoderdecoder/base64-decode.php"
- },
- {
-  "name": "CVE-2024-38288 indicator",
-  "expect": "cve_2024_38288",
-  "rule": "krawl_cve_2024_38288_turbomeeting",
-  "path": "/",
-  "query": "next_path=/as/wapi/profile_entry"
- },
- {
-  "name": "CVE-2024-38472 indicator",
-  "expect": "cve_2024_38472",
-  "rule": "krawl_cve_2024_38472_apache_httpd_windows_unc",
-  "path": "/apachehttpd"
  },
  {
   "name": "CVE-2024-38514 indicator",
@@ -11938,7 +11580,7 @@
   "name": "CVE-2024-45309 indicator",
   "expect": "cve_2024_45309",
   "rule": "krawl_cve_2024_45309_onedev",
-  "path": "/~projects"
+  "path": "/~site/../../../../../../"
  },
  {
   "name": "CVE-2024-45388 indicator",
@@ -11974,7 +11616,7 @@
   "name": "CVE-2024-45622 indicator",
   "expect": "cve_2024_45622",
   "rule": "krawl_cve_2024_45622_asis",
-  "path": "/asispanel/"
+  "path": "/asispanel/login/cek"
  },
  {
   "name": "CVE-2024-4620 indicator",
@@ -12066,12 +11708,6 @@
   "expect": "cve_2024_4898",
   "rule": "krawl_cve_2024_4898_instawp_connect",
   "path": "/wp-json/instawp-connect/v1/config"
- },
- {
-  "name": "CVE-2024-49380 indicator",
-  "expect": "cve_2024_49380",
-  "rule": "krawl_cve_2024_49380_plenti_v0_7_2",
-  "path": "/postlocal"
  },
  {
   "name": "CVE-2024-50340 indicator",
@@ -12239,7 +11875,7 @@
   "name": "CVE-2024-5522 indicator",
   "expect": "cve_2024_5522",
   "rule": "krawl_cve_2024_5522_html5_video_player",
-  "path": "/wp-json/h5vp/v1/video/0"
+  "path": "/wp-json/h5vp/v1/video/"
  },
  {
   "name": "CVE-2024-55416 indicator",
@@ -12353,13 +11989,6 @@
   "expect": "cve_2024_6188",
   "rule": "krawl_cve_2024_6188_tracksys",
   "path": "/TS/export/pagedefinition"
- },
- {
-  "name": "CVE-2024-6220 indicator",
-  "expect": "cve_2024_6220",
-  "rule": "krawl_cve_2024_6220_wordpress",
-  "path": "/",
-  "query": "kds_password=keydatas.com"
  },
  {
   "name": "CVE-2024-6235 indicator",
@@ -12747,13 +12376,6 @@
   "query": "s=/home/page/uploadImg"
  },
  {
-  "name": "CVE-2025-0674 indicator",
-  "expect": "cve_2025_0674",
-  "rule": "krawl_cve_2025_0674_elber_ese_dvb_s_s2",
-  "path": "/",
-  "query": "pass=admin1234"
- },
- {
   "name": "CVE-2025-0868 indicator",
   "expect": "cve_2025_0868",
   "rule": "krawl_cve_2025_0868_docsgpt",
@@ -12867,12 +12489,6 @@
   "path": "/management/admindatabase.aspx"
  },
  {
-  "name": "CVE-2025-1302 indicator",
-  "expect": "cve_2025_1302",
-  "rule": "krawl_cve_2025_1302_jsonpath_plus_10_3_0",
-  "path": "/expression"
- },
- {
   "name": "CVE-2025-1303 indicator",
   "expect": "cve_2025_1303",
   "rule": "krawl_cve_2025_1303_plugin_oficial_getnet_para_woo",
@@ -12910,13 +12526,6 @@
   "expect": "cve_2025_1338",
   "rule": "krawl_cve_2025_1338_nuuo_camera_20250203",
   "path": "/handle_config.php"
- },
- {
-  "name": "CVE-2025-13390 indicator",
-  "expect": "cve_2025_13390",
-  "rule": "krawl_cve_2025_13390_wp_directory_kit_1_4_4",
-  "path": "/",
-  "query": "token=c4ca4238a0"
  },
  {
   "name": "CVE-2025-13418 indicator",
@@ -13134,7 +12743,7 @@
   "name": "CVE-2025-25231 indicator",
   "expect": "cve_2025_25231",
   "rule": "krawl_cve_2025_25231_workspace_one_uem_console",
-  "path": "/DevicesGateway/apps/system-app-metadata/1"
+  "path": "/DevicesGateway/apps/system-app-metadata/"
  },
  {
   "name": "CVE-2025-2539 indicator",
@@ -13153,7 +12762,8 @@
   "name": "CVE-2025-2563 indicator",
   "expect": "cve_2025_2563",
   "rule": "krawl_cve_2025_2563_user_registration_membership_4",
-  "path": "/membership-registration/"
+  "path": "/",
+  "query": "registration_language=en-US"
  },
  {
   "name": "CVE-2025-2609 indicator",
@@ -13410,13 +13020,6 @@
   "path": "/public/index.php/material/Material/_download_imgage"
  },
  {
-  "name": "CVE-2025-34077 indicator",
-  "expect": "cve_2025_34077",
-  "rule": "krawl_cve_2025_34077_wordpress_pie_register_3_7_1_4",
-  "path": "/",
-  "query": "_wp_http_referer=/login/"
- },
- {
   "name": "CVE-2025-34141 indicator",
   "expect": "cve_2025_34141",
   "rule": "krawl_cve_2025_34141_reliance",
@@ -13550,7 +13153,7 @@
   "name": "CVE-2025-44137 indicator",
   "expect": "cve_2025_44137",
   "rule": "krawl_cve_2025_44137_maptiler_tileserver_php_v2_0",
-  "path": "/tileserver.php/x/1/1/1"
+  "path": "/tileserver.php/x/1/1/"
  },
  {
   "name": "CVE-2025-44148 indicator",
@@ -13624,13 +13227,6 @@
   "expect": "cve_2025_47539",
   "rule": "krawl_cve_2025_47539_eventin",
   "path": "/wp-json/eventin/v2/speakers/import"
- },
- {
-  "name": "CVE-2025-47813 indicator",
-  "expect": "cve_2025_47813",
-  "rule": "krawl_cve_2025_47813_wftpserver",
-  "path": "/",
-  "query": "username=anonymous"
  },
  {
   "name": "CVE-2025-47916 indicator",
@@ -13768,7 +13364,7 @@
   "name": "CVE-2025-53118 indicator",
   "expect": "cve_2025_53118",
   "rule": "krawl_cve_2025_53118_securden_unified_pam",
-  "path": "/thirdparty-access"
+  "path": "/get_date_picker_format"
  },
  {
   "name": "CVE-2025-5350 indicator",
@@ -13792,13 +13388,13 @@
   "name": "CVE-2025-54249 indicator",
   "expect": "cve_2025_54249",
   "rule": "krawl_cve_2025_54249_experience_manager",
-  "path": "/services/accesstoken/verify;x='.pdf/x'"
+  "path": "/services/accesstoken/verify;x='.pdf/"
  },
  {
   "name": "CVE-2025-54251 indicator",
   "expect": "cve_2025_54251",
   "rule": "krawl_cve_2025_54251_experience_manager",
-  "path": "/crx/packmgr/service/exec.json;x='x/graphql/execute/json/x'"
+  "path": "/crx/packmgr/service/exec.json;x='x/graphql/execute/json/"
  },
  {
   "name": "CVE-2025-55150 indicator",
@@ -13888,7 +13484,7 @@
   "name": "CVE-2025-57788 indicator",
   "expect": "cve_2025_57788",
   "rule": "krawl_cve_2025_57788_commvault_unauthenticated_pass",
-  "path": "/commandcenter/RestServlet/Database/GetUmUserById/1"
+  "path": "/commandcenter/RestServlet/Database/GetUmUserById/"
  },
  {
   "name": "CVE-2025-58360 indicator",
@@ -13922,12 +13518,6 @@
   "path": "/ReportingWebService/ReportingWebService.asmx"
  },
  {
-  "name": "CVE-2025-59342 indicator",
-  "expect": "cve_2025_59342",
-  "rule": "krawl_cve_2025_59342_esm_sh",
-  "path": "/transform"
- },
- {
   "name": "CVE-2025-59474 indicator",
   "expect": "cve_2025_59474",
   "rule": "krawl_cve_2025_59474_jenkins_sidepanel",
@@ -13956,7 +13546,7 @@
   "name": "CVE-2025-60188 indicator",
   "expect": "cve_2025_60188",
   "rule": "krawl_cve_2025_60188_atarim_4_2_2",
-  "path": "/wp-json/atarim/v1/db/vc"
+  "path": "/wp-json/atarim/v1/db/"
  },
  {
   "name": "CVE-2025-6174 indicator",
@@ -14090,13 +13680,6 @@
   "rule": "krawl_cve_2025_68645_zimbra_collaboration",
   "path": "/",
   "query": "javax.servlet.include.servlet_path=/WEB-INF/web.xml"
- },
- {
-  "name": "CVE-2025-6934 indicator",
-  "expect": "cve_2025_6934",
-  "rule": "krawl_cve_2025_6934_opal_estate_pro",
-  "path": "/",
-  "query": "action=opalestate_register_form"
  },
  {
   "name": "CVE-2025-6970 indicator",
@@ -14306,13 +13889,6 @@
   "query": "vcv-template=../../../../../../../etc/passwd"
  },
  {
-  "name": "CVE-2026-12394 indicator",
-  "expect": "cve_2026_12394",
-  "rule": "krawl_cve_2026_12394_memberglut",
-  "path": "/",
-  "query": "action=memberglut_register"
- },
- {
   "name": "CVE-2026-12609 indicator",
   "expect": "cve_2026_12609",
   "rule": "krawl_cve_2026_12609_theia",
@@ -14381,7 +13957,8 @@
   "name": "CVE-2026-1492 indicator",
   "expect": "cve_2026_1492",
   "rule": "krawl_cve_2026_1492_wordpress_user_registration_me",
-  "path": "/registration/"
+  "path": "/",
+  "query": "security=invalid"
  },
  {
   "name": "CVE-2026-1557 indicator",
@@ -14547,12 +14124,6 @@
   "expect": "cve_2026_22739",
   "rule": "krawl_cve_2026_22739_spring_cloud_config",
   "path": "/application/..%252F..%252F..%252F..%252F..%252Fetc"
- },
- {
-  "name": "CVE-2026-23482 indicator",
-  "expect": "cve_2026_23482",
-  "rule": "krawl_cve_2026_23482_blinko",
-  "path": "/manifest.webmanifest"
  },
  {
   "name": "CVE-2026-23491 indicator",
@@ -14754,7 +14325,7 @@
   "name": "CVE-2026-29962 indicator",
   "expect": "cve_2026_29962",
   "rule": "krawl_cve_2026_29962_mailinspector",
-  "path": "/mailinspector"
+  "path": "/mailinspector/vendor/phpunit/phpunit.php"
  },
  {
   "name": "CVE-2026-29963 indicator",
@@ -14802,7 +14373,7 @@
   "name": "CVE-2026-32230 indicator",
   "expect": "cve_2026_32230",
   "rule": "krawl_cve_2026_32230_uptime_kuma",
-  "path": "/api/badge/1/ping/24"
+  "path": "/api/badge/1/ping/"
  },
  {
   "name": "CVE-2026-32255 indicator",
@@ -15191,14 +14762,7 @@
   "name": "CVE-2026-48558 indicator",
   "expect": "cve_2026_48558",
   "rule": "krawl_cve_2026_48558_simplehelp",
-  "path": "/allversions"
- },
- {
-  "name": "CVE-2026-48611 indicator",
-  "expect": "cve_2026_48611",
-  "rule": "krawl_cve_2026_48611_phpbb",
-  "path": "/",
-  "query": "auth_provider=apache"
+  "path": "/auth/v1/account/login_options"
  },
  {
   "name": "CVE-2026-48939 indicator",
@@ -15442,12 +15006,6 @@
   "query": "routestring=ajax/render/pagenav"
  },
  {
-  "name": "CVE-2026-61808 indicator",
-  "expect": "cve_2026_61808",
-  "rule": "krawl_cve_2026_61808_lightrag",
-  "path": "/documents"
- },
- {
   "name": "CVE-2026-63030 indicator",
   "expect": "cve_2026_63030",
   "rule": "krawl_cve_2026_63030_wordpress",
@@ -15480,12 +15038,6 @@
   "path": "/api/2.0/mlflow/webhooks"
  },
  {
-  "name": "CVE-2026-65694 indicator",
-  "expect": "cve_2026_65694",
-  "rule": "krawl_cve_2026_65694_microweber",
-  "path": "/userfiles/x"
- },
- {
   "name": "CVE-2026-65761 indicator",
   "expect": "cve_2026_65761",
   "rule": "krawl_cve_2026_65761_easy_store",
@@ -15509,7 +15061,7 @@
   "name": "CVE-2026-6826 indicator",
   "expect": "cve_2026_6826",
   "rule": "krawl_cve_2026_6826_concrete_cms_9_5_1",
-  "path": "/ccm/system/dialogs/file/usage/1"
+  "path": "/ccm/system/dialogs/file/usage/"
  },
  {
   "name": "CVE-2026-6854 indicator",
@@ -15535,13 +15087,6 @@
   "expect": "cve_2026_69085",
   "rule": "krawl_cve_2026_69085_siyuan",
   "path": "/api/notebook/lsNotebooks"
- },
- {
-  "name": "CVE-2026-69137 indicator",
-  "expect": "cve_2026_69137",
-  "rule": "krawl_cve_2026_69137_suitecrm",
-  "path": "/",
-  "query": "module=CalendarAccount"
  },
  {
   "name": "CVE-2026-69251 indicator",
@@ -15655,7 +15200,7 @@
   "name": "CVE-2026-8236 indicator",
   "expect": "cve_2026_8236",
   "rule": "krawl_cve_2026_8236_concrete_cms",
-  "path": "/index.php/ccm/system/dialogs/file/usage/1"
+  "path": "/index.php/ccm/system/dialogs/file/usage/"
  },
  {
   "name": "CVE-2026-8237 indicator",
@@ -15977,13 +15522,6 @@
   "path": "/ccmadmin/j_security_check"
  },
  {
-  "name": "cisco-vmanage-log4j-rce indicator",
-  "expect": "vuln_cisco_vmanage_log4j_rce",
-  "rule": "krawl_vuln_cisco_vmanage_log4j_rce",
-  "path": "/",
-  "query": "submit=Log In"
- },
- {
   "name": "cisco-webex-log4j-rce indicator",
   "expect": "vuln_cisco_webex_log4j_rce",
   "rule": "krawl_vuln_cisco_webex_log4j_rce",
@@ -16244,12 +15782,6 @@
   "path": "/w_selfservice/oauthservlet/../../servlet/sduty/getSdutyTree"
  },
  {
-  "name": "httpbin-open-redirect indicator",
-  "expect": "vuln_httpbin_open_redirect",
-  "rule": "krawl_vuln_httpbin_open_redirect",
-  "path": "/redirect-to"
- },
- {
   "name": "httpbin-xss indicator",
   "expect": "vuln_httpbin_xss",
   "rule": "krawl_vuln_httpbin_xss",
@@ -16266,13 +15798,6 @@
   "expect": "vuln_idocview_2word_fileupload",
   "rule": "krawl_vuln_idocview_2word_fileupload",
   "path": "/html/2word"
- },
- {
-  "name": "idocview-lfi indicator",
-  "expect": "vuln_idocview_lfi",
-  "rule": "krawl_vuln_idocview_lfi",
-  "path": "/",
-  "query": "token=testtoken"
  },
  {
   "name": "imo-file-download indicator",
@@ -17001,7 +16526,8 @@
   "name": "httpbin-contenttype-xss indicator",
   "expect": "vuln_httpbin_contenttype_xss",
   "rule": "krawl_vuln_httpbin_contenttype_xss",
-  "path": "/response-headers"
+  "path": "/",
+  "query": "Content-Type=text/html"
  },
  {
   "name": "huawei-router-auth-bypass indicator",
@@ -17020,12 +16546,6 @@
   "expect": "vuln_interlib_fileread",
   "rule": "krawl_vuln_interlib_fileread",
   "path": "/interlib/report/ShowImage"
- },
- {
-  "name": "java-melody-xss indicator",
-  "expect": "vuln_java_melody_xss",
-  "rule": "krawl_vuln_java_melody_xss",
-  "path": "/monitoring"
  },
  {
   "name": "jeeplus-cms-resetpassword-sqli indicator",
@@ -17116,12 +16636,6 @@
   "query": "erpServcieName=sysFormulaValidate"
  },
  {
-  "name": "lean-value-listing indicator",
-  "expect": "vuln_lean_value_listing",
-  "rule": "krawl_vuln_lean_value_listing",
-  "path": "/Business/"
- },
- {
   "name": "livebos-file-read indicator",
   "expect": "vuln_livebos_file_read",
   "rule": "krawl_vuln_livebos_file_read",
@@ -17144,13 +16658,6 @@
   "expect": "vuln_lvs_download_lfi",
   "rule": "krawl_vuln_lvs_download_lfi",
   "path": "/Business/DownLoad.aspx"
- },
- {
-  "name": "manage-engine-dc-log4j-rce indicator",
-  "expect": "vuln_manage_engine_dc_log4j_rce",
-  "rule": "krawl_vuln_manage_engine_dc_log4j_rce",
-  "path": "/",
-  "query": "browserLocale=en_us"
  },
  {
   "name": "metinfo-lfi indicator",
@@ -17336,13 +16843,6 @@
   "expect": "vuln_panmicro_arbitrary_file_read",
   "rule": "krawl_vuln_panmicro_arbitrary_file_read",
   "path": "/client/cdnfile/1C/Windows/win.ini"
- },
- {
-  "name": "papercut-log4j-rce indicator",
-  "expect": "vuln_papercut_log4j_rce",
-  "rule": "krawl_vuln_papercut_log4j_rce",
-  "path": "/",
-  "query": "$Submit$0=Log in"
  },
  {
   "name": "parentlink-xss indicator",
@@ -17570,13 +17070,6 @@
   "path": "/cgi-bin/loghandler.php"
  },
  {
-  "name": "splunk-enterprise-log4j-rce indicator",
-  "expect": "vuln_splunk_enterprise_log4j_rce",
-  "rule": "krawl_vuln_splunk_enterprise_log4j_rce",
-  "path": "/",
-  "query": "return_to=/en-US/"
- },
- {
   "name": "sslvpn-client-rce indicator",
   "expect": "vuln_sslvpn_client_rce",
   "rule": "krawl_vuln_sslvpn_client_rce",
@@ -17614,13 +17107,6 @@
   "query": "controller=comment"
  },
  {
-  "name": "tinytiny-rss-redirect indicator",
-  "expect": "vuln_tinytiny_rss_redirect",
-  "rule": "krawl_vuln_tinytiny_rss_redirect",
-  "path": "/",
-  "query": "login=password="
- },
- {
   "name": "tpshop-directory-traversal indicator",
   "expect": "vuln_tpshop_directory_traversal",
   "rule": "krawl_vuln_tpshop_directory_traversal",
@@ -17651,13 +17137,6 @@
   "path": "/v1/submissions"
  },
  {
-  "name": "user-management-system-sqli indicator",
-  "expect": "vuln_user_management_system_sqli",
-  "rule": "krawl_vuln_user_management_system_sqli",
-  "path": "/",
-  "query": "password=whatever"
- },
- {
   "name": "vlife-fastjson-rce indicator",
   "expect": "vuln_vlife_fastjson_rce",
   "rule": "krawl_vuln_vlife_fastjson_rce",
@@ -17674,13 +17153,6 @@
   "expect": "vuln_voyager_lfi",
   "rule": "krawl_vuln_voyager_lfi",
   "path": "/admin/voyager-assets"
- },
- {
-  "name": "vpms-auth-bypass indicator",
-  "expect": "vuln_vpms_auth_bypass",
-  "rule": "krawl_vuln_vpms_auth_bypass",
-  "path": "/",
-  "query": "email='=''or'@email.com"
  },
  {
   "name": "wapples-firewall-lfi indicator",
@@ -17730,12 +17202,6 @@
   "expect": "vuln_xerox_efi_lfi",
   "rule": "krawl_vuln_xerox_efi_lfi",
   "path": "/wt3/forceSave.php"
- },
- {
-  "name": "xhibiter-nft-sqli indicator",
-  "expect": "vuln_xhibiter_nft_sqli",
-  "rule": "krawl_vuln_xhibiter_nft_sqli",
-  "path": "/collections"
  },
  {
   "name": "yapi-rce indicator",
@@ -17919,12 +17385,6 @@
   "expect": "vuln_sangfor_nextgen_lfi",
   "rule": "krawl_vuln_sangfor_nextgen_lfi",
   "path": "/svpn_html/loadfile.php"
- },
- {
-  "name": "secgate-3600-file-upload indicator",
-  "expect": "vuln_secgate_3600_file_upload",
-  "rule": "krawl_vuln_secgate_3600_file_upload",
-  "path": "/attachements/"
  },
  {
   "name": "seeyon-config-exposure indicator",
@@ -18227,13 +17687,6 @@
   "expect": "vuln_vmware_nsx_stream_rce",
   "rule": "krawl_vuln_vmware_nsx_stream_rce",
   "path": "/api/2.0/services/usermgmt/password/"
- },
- {
-  "name": "vmware-operation-manager-log4j-rce indicator",
-  "expect": "vuln_vmware_operation_manager_log4j_rce",
-  "rule": "krawl_vuln_vmware_operation_manager_log4j_rce",
-  "path": "/",
-  "query": "authSourceId=localItem"
  },
  {
   "name": "vmware-vcenter-log4j-rce indicator",
@@ -19047,7 +18500,8 @@
   "name": "wp-memphis-documents-library-lfi indicator",
   "expect": "vuln_wp_memphis_documents_library_lfi",
   "rule": "krawl_vuln_wp_memphis_documents_library_lfi",
-  "path": "/mdocs-posts/"
+  "path": "/",
+  "query": "mdocs-img-preview=../../../wp-config.php"
  },
  {
   "name": "wp-mstore-plugin-listing indicator",
@@ -19127,12 +18581,6 @@
   "expect": "vuln_wp_qwiz_online_xss",
   "rule": "krawl_vuln_wp_qwiz_online_xss",
   "path": "/wp-content/plugins/qwiz-online-quizzes-and-flashcards/registration_complete.php"
- },
- {
-  "name": "wp-reality-estate-theme indicator",
-  "expect": "vuln_wp_reality_estate_theme",
-  "rule": "krawl_vuln_wp_reality_estate_theme",
-  "path": "/properties-with-map/"
  },
  {
   "name": "wp-related-post-xss indicator",
