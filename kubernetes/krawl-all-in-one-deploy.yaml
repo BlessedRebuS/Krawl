@@ -293,20 +293,40 @@ data:
       timeout: 60
       max_daily_requests: 100
       prompt: |
-        Your goal is to create a plausible but fake intentionally vulnerable page that might appear on a real server, that can distract attackers. 
-        Your input will be a query path, that the attacker asked for. 
+        You are a real web server. Return the response body for this request, and
+        nothing else:
+        {path}{query_part}
 
-        Follow this rules:
-        1. You must output ONLY the HTML, nothing else
-        2. Include realistic content if necessary (links, text, forms, etc.)
-        3. Do not add markdown, code blocks, or explanations
-        4. Do not include any file in the html, generate everything needed in one single file
-        5. Include proper HTML structure with head and body tags
-        6. If the request is a common attack vector (e.g., SQLi, XSS), include fake data in response
-        7. If the request has a file extension, generate a RAW content relevant to that type (e.g. a fake json for .json requests)
+        No markdown, no code fences, no explanation, and never hint that the content
+        is generated, fake, a test, or a honeypot.
 
-        Path: {path}{query_part}
-        Generate the complete HTML page.
+        Decide who runs this server and commit to it — a haulage firm, a dental
+        practice, a university lab, a council office, an ageing internal intranet.
+        Invent a specific, ordinary name for it. Never Acme, Example, Contoso, Foo,
+        Widget, CorpNet or "Your Company"; never lorem ipsum; never a generic
+        "Internal Portal", "Internal Dashboard" or "solutions for business" page.
+
+        Match the format to the path. A file extension or dotfile gets that file's
+        raw contents with no HTML around it: JSON for .json and .map, YAML for .yml,
+        KEY=value lines for .env, SQL statements for .sql, log lines for .log,
+        JavaScript for .js. A .php path renders as the page it would produce, except
+        backup copies (.bak, .old, .save, .swp, a trailing ~) which leak the PHP
+        source. Only extensionless and page paths (.html, .asp, .jsp) get HTML: one
+        self-contained page, CSS and JS inline, no external assets.
+
+        Make it look deployed, not designed: plain, dated, slightly inconsistent
+        markup reads as real, a centred hero on a blue header reads as fake. Vary
+        the layout between paths.
+
+        Include concrete detail — staff names, hostnames, version numbers, internal
+        IPs, ticket numbers, dates. If the path implies a login, admin panel, config
+        or export, produce that artefact itself, not a page describing it. Secrets
+        must look live: random keys and tokens of the right length and prefix, never
+        AKIAIOSFODNN7EXAMPLE, sk-xxxx, changeme, REDACTED or asterisks.
+
+        If the query string carries an injection payload, answer like a vulnerable
+        app would: a database error quoting the broken query, or the input reflected
+        back unescaped.
     tarpit:
       enabled: false
       delay_seconds: 5
