@@ -1,0 +1,120 @@
+{# YARA rules that matched this request. Hover or focus a chip to preview the
+   rule, click to pin it so its links stay usable. Every value is rendered with
+   x-text: matched_pattern is attacker-controlled. #}
+<div class="raw-detections"
+     x-show="rawModal.detections.length"
+     @mouseleave="rawModal.hoverDetection = null"
+>
+    <div class="raw-detections-card-anchor" x-show="currentDetection()" x-cloak>
+        <template x-if="currentDetection()">
+            <div class="raw-detection-card" role="tooltip" id="raw-detection-card">
+                <div class="raw-detection-card-head">
+                    <span class="raw-detection-card-type" x-text="currentDetection().attack_type"></span>
+                    <span class="raw-detection-pill"
+                          :class="'sev-' + detectionSeverityBand(currentDetection().severity)"
+                          x-show="currentDetection().severity"
+                          x-text="'Severity ' + currentDetection().severity + '/10'"></span>
+                    <span class="raw-detection-pin-hint"
+                          x-text="rawModal.pinnedDetection === null ? 'Click to pin' : 'Pinned · click to unpin'"></span>
+                </div>
+
+                <div class="raw-detection-evidence" x-show="currentDetection().matched_pattern">
+                    <span class="raw-detection-label">Matched</span>
+                    <code x-text="currentDetection().matched_pattern"></code>
+                </div>
+
+                <p class="raw-detection-empty" x-show="!currentDetection().rules.length">
+                    No rule metadata: the request was scanned by the legacy engine, or the rule is no longer loaded.
+                </p>
+
+                <template x-for="rule in currentDetection().rules" :key="rule.rule">
+                    <div class="raw-detection-rule">
+                        <div class="raw-detection-rule-name">
+                            <code x-text="rule.rule"></code>
+                            <span class="raw-detection-file" x-text="rule.rule_file + '.yar'"></span>
+                        </div>
+                        <p class="raw-detection-description" x-text="rule.description"></p>
+
+                        <dl class="raw-detection-facts">
+                            <div>
+                                <dt>Classification</dt>
+                                <dd x-text="rule.classification"></dd>
+                            </div>
+                            <div>
+                                <dt>Confidence</dt>
+                                <dd x-text="rule.confidence || 'n/a'"></dd>
+                            </div>
+                            <div>
+                                <dt>Severity</dt>
+                                <dd x-text="rule.severity + '/10'"></dd>
+                            </div>
+                            <template x-if="rule.mitre_attack.length">
+                                <div>
+                                    <dt>MITRE ATT&amp;CK</dt>
+                                    <dd class="raw-detection-links">
+                                        <template x-for="technique in rule.mitre_attack" :key="technique">
+                                            <a :href="mitreUrl(technique)" target="_blank" rel="noopener noreferrer"
+                                               class="raw-detection-tag" x-text="technique"></a>
+                                        </template>
+                                    </dd>
+                                </div>
+                            </template>
+                            <template x-if="rule.cve.length">
+                                <div>
+                                    <dt>CVE</dt>
+                                    <dd class="raw-detection-links">
+                                        <template x-for="cve in rule.cve" :key="cve">
+                                            <a :href="cveUrl(cve)" target="_blank" rel="noopener noreferrer"
+                                               class="raw-detection-tag" x-text="cve"></a>
+                                        </template>
+                                    </dd>
+                                </div>
+                            </template>
+                            <template x-if="rule.false_positives">
+                                <div class="raw-detection-fact-wide">
+                                    <dt>False positives</dt>
+                                    <dd x-text="rule.false_positives"></dd>
+                                </div>
+                            </template>
+                            <template x-if="rule.references.length">
+                                <div class="raw-detection-fact-wide">
+                                    <dt>References</dt>
+                                    <dd class="raw-detection-refs">
+                                        <template x-for="ref in rule.references" :key="ref">
+                                            <a :href="ref" target="_blank" rel="noopener noreferrer" x-text="ref"></a>
+                                        </template>
+                                    </dd>
+                                </div>
+                            </template>
+                        </dl>
+                    </div>
+                </template>
+            </div>
+        </template>
+    </div>
+
+    <div class="raw-detections-title">
+        <span>Matched YARA rules</span>
+        <span class="raw-detections-count" x-text="rawModal.detections.length"></span>
+    </div>
+    <div class="raw-detections-legend">
+        <template x-for="(det, index) in rawModal.detections" :key="det.attack_type">
+            <button type="button"
+                    class="raw-detection-chip"
+                    :class="['sev-' + detectionSeverityBand(det.severity),
+                             det.classification === 'suspicious' ? 'is-suspicious' : '',
+                             rawModal.pinnedDetection === index ? 'is-pinned' : '']"
+                    :aria-pressed="rawModal.pinnedDetection === index"
+                    aria-describedby="raw-detection-card"
+                    @mouseenter="rawModal.hoverDetection = index"
+                    @focus="rawModal.hoverDetection = index"
+                    @blur="rawModal.hoverDetection = null"
+                    @click="toggleDetectionPin(index)"
+            >
+                <span class="raw-detection-dot" aria-hidden="true"></span>
+                <span class="raw-detection-type" x-text="det.attack_type"></span>
+                <span class="raw-detection-sev" x-show="det.severity" x-text="det.severity"></span>
+            </button>
+        </template>
+    </div>
+</div>

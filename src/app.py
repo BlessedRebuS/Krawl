@@ -8,8 +8,10 @@ Replaces the old http.server-based server.py.
 import asyncio
 import gc
 import os
+import random
 import time
 from contextlib import asynccontextmanager, contextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
@@ -18,11 +20,24 @@ from fastapi.staticfiles import StaticFiles
 from config import get_config
 from dashboard_cache import initialize_cache
 from database import get_database, initialize_database
-from generators import random_server_header
+from detection import initialize_detection
 from logger import get_access_logger, get_app_logger, initialize_logging
 from routes.dashboard import KRAWL_VERSION
 from tasks_master import get_tasksmaster
 from tracker import AccessTracker
+
+WORDLISTS_WARNING = (
+    "wordlists.json is no longer read; move proxy_headers, credential fields and "
+    "scoring weights to config.yaml (see docs/honeypot.md)."
+)
+
+
+def warn_if_wordlists_present(paths) -> bool:
+    """Log one warning when an old wordlists.json is still mounted or copied in."""
+    if any(Path(path).exists() for path in paths):
+        get_app_logger().warning(WORDLISTS_WARNING)
+        return True
+    return False
 
 
 @contextmanager
@@ -167,6 +182,19 @@ async def lifespan(app: FastAPI):
     # Import deception pages from templates directory
     with _phase(app_logger, "Deception page import"):
         app_logger.info(f"Imported {import_deception_pages_from_directory()} pages")
+
+    # Compile detection rules before accepting traffic.
+    with _phase(app_logger, "Detection engine init", fatal=True):
+        detector = initialize_detection(config)
+        rules = detector.list_rules()
+        uploaded = sum(rule["uploaded"] for rule in rules)
+        app_logger.info(
+            f"Detection engine: yara ({len(rules)} rules from "
+            f"{config.yara_rules_path}, {uploaded} uploaded from the dashboard)"
+        )
+    warn_if_wordlists_present(
+        [Path.cwd() / "wordlists.json", Path("/app/wordlists.json")]
+    )
 
     # Initialize tracker
     tracker = AccessTracker(config.max_pages_limit, config.ban_duration_seconds)
@@ -319,11 +347,14 @@ def create_app() -> FastAPI:
     async def unauthorized_handler(request: Request, exc: Unauthorized):
         return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
 
-    # Random server header middleware (innermost — runs last on request, first on response)
+    # Server header middleware (innermost — runs last on request, first on response):
+    # server.server_header if set, else one of server.server_headers at random.
     @application.middleware("http")
     async def server_header_middleware(request: Request, call_next):
         response: Response = await call_next(request)
-        response.headers["Server"] = random_server_header()
+        config = get_config()
+        fallback = random.choice(config.server_headers)  # noqa: S311
+        response.headers["Server"] = config.server_header or fallback
         return response
 
     # Deception detection middleware (path traversal, XXE, command injection)

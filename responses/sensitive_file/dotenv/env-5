@@ -1,0 +1,9 @@
+APP_ENV=production
+APP_KEY=base64:v1hsswuRzBWwQWFOy7I+PECLZlJUahehjZv4uIRxSf0=
+DB_HOST=db.internal
+DB_PORT=3306
+DB_DATABASE=app
+DB_USERNAME=app_user
+DB_PASSWORD=JuniperFalcon45@
+MAIL_HOST=smtp.example.com
+MAIL_PASSWORD=ePaFYqooILrXEBbCvk10pmVF

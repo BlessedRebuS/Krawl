@@ -140,6 +140,7 @@ Tasks that maintain **per-pod** state are deliberately not gated and run everywh
 | `flush-access-logs` | This pod's access-log write buffer |
 | `metrics-flush` | This pod's metric counters |
 | `refresh-ban-cache` | This pod's banned-IP set, read on every request |
+| `reload-custom-rules` | This pod's compiled YARA rules, after a rule file is uploaded or deleted on another pod |
 
 `refresh-banlist` is a hybrid. One pod fetches the external sources and publishes the merged result to `krawl:task:banlist`; the others adopt that payload into their own in-process set. A pod starting up adopts the published list too, so joining a running cluster costs no external requests.
 
@@ -186,7 +187,6 @@ services:
       # Set this to change timezone
       # - TZ=Europe/Rome
     volumes:
-      - ./wordlists.json:/app/wordlists.json:ro
       - ./config.yaml:/app/config.yaml:ro
       - ./logs:/app/logs
       - ./data:/app/data
@@ -255,7 +255,6 @@ services:
       # Set this to change timezone
       # - TZ=Europe/Rome
     volumes:
-      - ./wordlists.json:/app/wordlists.json:ro
       - ./config.yaml:/app/config.yaml:ro
       - ./logs:/app/logs
       - ./backups:/app/backups

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+    server: https://192.0.2.243:6443
+    insecure-skip-tls-verify: true
+  name: prod
+contexts:
+- context:
+    cluster: prod
+    user: ci-bot
+  name: prod
+current-context: prod
+users:
+- name: deploy
+  user:
+    token: 0WV8WLINdNg3grVjmF8-fblYP1GB1x0LgbEv-dEVuRyoeLQJvgl3yMkpe_qBkC-y

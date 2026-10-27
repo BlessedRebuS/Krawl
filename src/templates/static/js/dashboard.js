@@ -400,7 +400,7 @@ document.addEventListener('alpine:init', () => {
         showBanlistSources: false,
 
         // Raw request modal
-        rawModal: { show: false, content: '', highlightedContent: '', logId: null, attachments: [], attachmentsShow: false, hasAttachments: false },
+        rawModal: { show: false, content: '', highlightedContent: '', logId: null, attachments: [], attachmentsShow: false, hasAttachments: false, detections: [], hoverDetection: null, pinnedDetection: null },
 
         // Captured file viewer modal
         fileModal: { show: false, content: '', filename: '', contentType: '', size: '', logId: null, index: null, binary: false },
@@ -439,6 +439,7 @@ document.addEventListener('alpine:init', () => {
                 'banlist': () => this.switchToBanlist(),
                 'timedout': () => this.switchToTimedOut(),
                 'deception': () => this.switchToDeception(),
+                'rules': () => this.switchToRules(),
                 'webhooks': () => this.switchToWebhooks(),
             };
             (routes[tab] || routes.overview)();
@@ -592,6 +593,8 @@ document.addEventListener('alpine:init', () => {
                 this.switchToTrackedIps();
             } else if (hash === 'deception' && this.authenticated) {
                 this.switchToDeception();
+            } else if (hash === 'rules' && this.authenticated) {
+                this.switchToRules();
             } else if (hash === 'webhooks' && this.authenticated) {
                 this.switchToWebhooks();
             } else if (hash === 'threats') {
@@ -624,6 +627,8 @@ document.addEventListener('alpine:init', () => {
                         if (this.authenticated) this.switchToTrackedIps();
                     } else if (h === 'deception') {
                         if (this.authenticated) this.switchToDeception();
+                    } else if (h === 'rules') {
+                        if (this.authenticated) this.switchToRules();
                     } else if (h === 'webhooks') {
                         if (this.authenticated) this.switchToWebhooks();
                     } else if (h === 'threats') {
@@ -744,6 +749,22 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
+        switchToRules() {
+            if (!this.authenticated) return;
+            if (this.tab === 'rules') return;  // Prevent duplicate loading
+            this.tab = 'rules';
+            window.location.hash = '#rules';
+            this.$nextTick(() => {
+                const container = document.getElementById('rules-htmx-container');
+                if (container && typeof htmx !== 'undefined') {
+                    htmx.ajax('GET', `${this.dashboardPath}/htmx/rules`, {
+                        target: '#rules-htmx-container',
+                        swap: 'innerHTML'
+                    });
+                }
+            });
+        },
+
         switchToWebhooks() {
             if (!this.authenticated) return;
             if (this.tab === 'webhooks') return;
@@ -798,7 +819,7 @@ document.addEventListener('alpine:init', () => {
                 });
             } catch {}
             this.authenticated = false;
-            if (this.tab === 'banlist' || this.tab === 'tracked-ips' || this.tab === 'deception' || this.tab === 'timedout' || this.tab === 'webhooks') this.switchToOverview();
+            if (this.tab === 'banlist' || this.tab === 'tracked-ips' || this.tab === 'deception' || this.tab === 'rules' || this.tab === 'timedout' || this.tab === 'webhooks') this.switchToOverview();
         },
 
         promptAuth() {
@@ -995,6 +1016,9 @@ document.addEventListener('alpine:init', () => {
                 this.rawModal.content = data.raw_request || 'No content available';
                 this.rawModal.highlightedContent = this.highlightRawRequest(this.rawModal.content);
                 this.rawModal.logId = logId;
+                this.rawModal.detections = data.detections || [];
+                this.rawModal.hoverDetection = null;
+                this.rawModal.pinnedDetection = null;
                 const ctMatch = this.rawModal.content.match(/content-type:\s*([^\r\n]+)/i);
                 if (ctMatch) {
                     const ct = ctMatch[1].trim().toLowerCase();
@@ -1010,6 +1034,33 @@ document.addEventListener('alpine:init', () => {
             } catch (err) {
                 krawlModal.error('Failed to load raw request');
             }
+        },
+
+        // The rule card follows the hovered chip, falling back to the pinned one.
+        currentDetection() {
+            const index = this.rawModal.hoverDetection ?? this.rawModal.pinnedDetection;
+            return index === null ? null : this.rawModal.detections[index] || null;
+        },
+
+        toggleDetectionPin(index) {
+            this.rawModal.pinnedDetection = this.rawModal.pinnedDetection === index ? null : index;
+        },
+
+        detectionSeverityBand(severity) {
+            if (severity >= 9) return 'critical';
+            if (severity >= 7) return 'high';
+            if (severity >= 4) return 'medium';
+            if (severity >= 1) return 'low';
+            return 'unknown';
+        },
+
+        // T1059.004 -> https://attack.mitre.org/techniques/T1059/004/
+        mitreUrl(technique) {
+            return `https://attack.mitre.org/techniques/${technique.replace('.', '/')}/`;
+        },
+
+        cveUrl(cve) {
+            return `https://nvd.nist.gov/vuln/detail/${encodeURIComponent(cve)}`;
         },
 
         escapeHtml(value) {
@@ -1048,6 +1099,9 @@ document.addEventListener('alpine:init', () => {
         closeRawModal() {
             this.rawModal.show = false;
             this.rawModal.content = '';
+            this.rawModal.detections = [];
+            this.rawModal.hoverDetection = null;
+            this.rawModal.pinnedDetection = null;
             this.rawModal.highlightedContent = '';
             this.rawModal.logId = null;
             this.rawModal.attachments = [];
@@ -1202,6 +1256,65 @@ window.openIpInsight = function(ip) {
     if (data && typeof data.openIpInsight === 'function') {
         data.openIpInsight(ip);
     }
+};
+
+// Rules panel: upload and delete YARA rule files (see custom_rules.py).
+window.rulesUploader = function() {
+    const dashboardPath = document.querySelector('[x-data="dashboardApp()"]')?.__alpine_data?.dashboardPath || window.__DASHBOARD_PATH__ || '';
+    const reloadPanel = () => htmx.ajax('GET', dashboardPath + '/htmx/rules', {
+        target: '#rules-htmx-container',
+        swap: 'innerHTML'
+    });
+    return {
+        busy: false,
+        error: '',
+        message: '',
+        async upload(event) {
+            const file = event.target.files[0];
+            event.target.value = '';
+            if (!file) return;
+            this.busy = true;
+            this.error = '';
+            this.message = '';
+            try {
+                const resp = await fetch(dashboardPath + '/api/rules/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ filename: file.name, content: await file.text() }),
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    this.message = 'Loaded ' + data.rules.length + ' rule(s) from ' + data.filename + ': ' + data.rules.join(', ');
+                    setTimeout(reloadPanel, 1500);
+                } else {
+                    this.error = data.error || 'Upload failed';
+                }
+            } catch (err) {
+                this.error = 'Request failed: ' + err.message;
+            }
+            this.busy = false;
+        },
+        async deleteRuleFile(filename) {
+            if (!confirm('Delete ' + filename + ' and unload its rules?')) return;
+            this.busy = true;
+            this.error = '';
+            try {
+                const resp = await fetch(dashboardPath + '/api/rules/' + encodeURIComponent(filename), {
+                    method: 'DELETE',
+                    credentials: 'same-origin',
+                });
+                if (resp.ok) {
+                    reloadPanel();
+                } else {
+                    this.error = (await resp.json()).error || 'Delete failed';
+                }
+            } catch (err) {
+                this.error = 'Request failed: ' + err.message;
+            }
+            this.busy = false;
+        },
+    };
 };
 
 // Deception panel delete functions

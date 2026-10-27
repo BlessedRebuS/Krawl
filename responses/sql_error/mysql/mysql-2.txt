@@ -1,0 +1,1 @@
+SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded; try restarting transaction (MySQL server version 8.0.36)

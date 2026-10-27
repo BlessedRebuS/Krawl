@@ -1,0 +1,17 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "api",
+      "email": "api@example.com",
+      "role": "Support"
+    },
+    {
+      "id": 2,
+      "username": "service_service",
+      "email": "service_service@example.com",
+      "role": "User"
+    }
+  ],
+  "total": 333
+}

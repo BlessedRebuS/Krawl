@@ -14,7 +14,8 @@ services:
       # Set this to change timezone
       # - TZ=Europe/Rome
     volumes:
-      - ../wordlists.json:/app/wordlists.json:ro
+      - ../rules:/app/rules:ro
+      - ../responses:/app/responses:ro
       - ../config.yaml:/app/config.yaml:ro
       - ../logs:/app/logs
       - ../data:/app/data

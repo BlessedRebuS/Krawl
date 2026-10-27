@@ -238,6 +238,11 @@
         <div id="deception-htmx-container"></div>
     </div>
 
+    {# ==================== RULES TAB (protected, loaded YARA rules) ==================== #}
+    <div x-show="tab === 'rules'" x-cloak>
+        <div id="rules-htmx-container"></div>
+    </div>
+
     {# ==================== WEBHOOKS TAB (protected, webhook configs) ==================== #}
     <div x-show="tab === 'webhooks'" x-cloak>
         <div id="webhooks-htmx-container"></div>

@@ -5,7 +5,7 @@ Access the dashboard at `http://<server-ip>:<port>/<dashboard-path>`
 The Krawl dashboard is a single-page application with five open tabs — Overview,
 Attacks, Threats, Advanced search and IP Insight — and five more that appear once
 you authenticate with the dashboard password: Tracked IPs, Banlist, Timed out,
-Deception and Webhooks.
+Deception, Rules and Webhooks.
 
 Every IP address in a table is a link to its IP Insight page, so it can be
 reached with Tab and opened with Enter. The page address carries the IP
@@ -276,6 +276,38 @@ A dropdown menu to download the current banlist in two formats:
 
 - **Raw IPs List** — plain text, one IP per line
 - **IPTables Rules** — ready-to-use firewall rules
+
+---
+
+## Rules
+
+> Requires authentication with the dashboard password.
+
+The Rules tab lists every YARA rule loaded at startup, read-only. Each row shows
+the rule name and file, attack type, classification, severity, confidence, the
+fake reply it triggers (`response_type`, or *route* when the normal page
+answers), how many stored detections it produced and when it last matched.
+Click a row for the rule card: description, MITRE ATT&CK techniques and CVEs
+(linked), known false positives and references.
+
+Filter by rule file, classification or minimum severity, sort by clicking the
+Rule, Attack type, Severity, Matches or Last match header, and type in the
+search box to find rules by name, attack type, file, CVE or description. The
+table shows 50 rules per page; search, filters and sorting run on the server.
+
+**Upload rule file** adds a `.yar` file of your own; its rules are live at
+once, without a restart, and listed under **Uploaded rule files** with
+**Download** and **Delete** buttons. A file that does not compile or breaks a
+rule (duplicate name, missing metadata, unknown reply type, too slow) is
+rejected with the reason. See
+[Uploading rules from the dashboard](detection.md#uploading-rules-from-the-dashboard).
+Bundled rules are read-only here: to change them, edit the files under
+`rules/` and restart Krawl; see [Attack detection](detection.md).
+
+Counts come from `attack_detections.rule_name`. Detections stored before Krawl
+recorded the rule name count toward a rule only when its attack type belongs to
+that one rule, so rules that share a type (the two path-traversal rules) count
+from the upgrade on.
 
 ---
 

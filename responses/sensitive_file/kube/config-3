@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+    server: https://192.0.2.114:6443
+    insecure-skip-tls-verify: true
+  name: k8s-main
+contexts:
+- context:
+    cluster: prod
+    user: deploy
+  name: prod
+current-context: prod
+users:
+- name: deploy
+  user:
+    token: MqNkiTAhPSOmFZl1VfCTzV6tcJSp5upa5UY40aTH0tvmzbUXxuosHZ7ZHAcwgLDD

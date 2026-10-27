@@ -1,0 +1,90 @@
+{
+  "kind": "PodList",
+  "apiVersion": "v1",
+  "metadata": {
+    "resourceVersion": "673366"
+  },
+  "items": [
+    {
+      "metadata": {
+        "name": "db-7mitv4342p-f4jpd",
+        "namespace": "production",
+        "uid": "50c59717-4751-2272-3289-6cd8507e206c",
+        "labels": {
+          "app": "db"
+        }
+      },
+      "spec": {
+        "serviceAccountName": "default",
+        "containers": [
+          {
+            "name": "db",
+            "image": "postgres:15",
+            "env": []
+          }
+        ],
+        "nodeName": "node-3"
+      },
+      "status": {
+        "phase": "Running",
+        "hostIP": "198.51.100.119",
+        "podIP": "192.0.2.60",
+        "startTime": "2024-10-02T11:20:31Z"
+      }
+    },
+    {
+      "metadata": {
+        "name": "proxy-3rbl10u77o-79556",
+        "namespace": "production",
+        "uid": "83ffbfa5-478c-2918-36dc-30eb7d152998",
+        "labels": {
+          "app": "proxy"
+        }
+      },
+      "spec": {
+        "serviceAccountName": "default",
+        "containers": [
+          {
+            "name": "proxy",
+            "image": "nginx:1.25",
+            "env": []
+          }
+        ],
+        "nodeName": "node-4"
+      },
+      "status": {
+        "phase": "Running",
+        "hostIP": "198.51.100.144",
+        "podIP": "192.0.2.134",
+        "startTime": "2024-10-02T11:20:31Z"
+      }
+    },
+    {
+      "metadata": {
+        "name": "cache-ieazthzy6i-w7cbm",
+        "namespace": "production",
+        "uid": "e5440bce-e9ee-e125-9641-0afa39a62822",
+        "labels": {
+          "app": "cache"
+        }
+      },
+      "spec": {
+        "serviceAccountName": "default",
+        "containers": [
+          {
+            "name": "cache",
+            "image": "redis:7-alpine",
+            "env": []
+          }
+        ],
+        "nodeName": "node-3"
+      },
+      "status": {
+        "phase": "Running",
+        "hostIP": "198.51.100.206",
+        "podIP": "192.0.2.122",
+        "startTime": "2024-10-02T11:20:31Z"
+      }
+    }
+  ]
+}

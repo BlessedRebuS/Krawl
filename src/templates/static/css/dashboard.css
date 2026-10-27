@@ -1812,6 +1812,230 @@ tbody {
     display: block;
     height: 8px;
 }
+
+/* ── Matched YARA rules under the raw request ─────────────────── */
+.raw-detections {
+    position: relative;
+    margin-top: var(--s4);
+    --sev: var(--text-dim);
+}
+.raw-detections-title {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+    margin-bottom: var(--s2);
+    color: var(--text-dim);
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+}
+.raw-detections-count {
+    min-width: 18px;
+    padding: 0 var(--s1);
+    border-radius: 9px;
+    background: var(--tint-neutral);
+    color: var(--text);
+    text-align: center;
+    letter-spacing: 0;
+}
+.raw-detections-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2);
+}
+.raw-detection-chip,
+.raw-detection-pill {
+    --sev: var(--text-dim);
+}
+.raw-detections .sev-critical { --sev: var(--danger); }
+.raw-detections .sev-high { --sev: var(--warn); }
+.raw-detections .sev-medium { --sev: var(--honey); }
+.raw-detections .sev-low { --sev: var(--blue); }
+.raw-detection-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s2);
+    padding: var(--s1) var(--s2) var(--s1) var(--s2);
+    background: color-mix(in srgb, var(--sev) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--sev) 45%, transparent);
+    border-radius: var(--r-md);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+.raw-detection-chip.is-suspicious {
+    border-style: dashed;
+}
+.raw-detection-chip:hover,
+.raw-detection-chip:focus-visible,
+.raw-detection-chip.is-pinned {
+    background: color-mix(in srgb, var(--sev) 22%, transparent);
+    border-color: var(--sev);
+    outline: none;
+}
+.raw-detection-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--sev);
+    flex-shrink: 0;
+}
+.raw-detection-sev {
+    padding: 0 5px;
+    border-radius: var(--r-sm);
+    background: var(--sev);
+    color: var(--text-on-solid);
+    font-family: var(--font-ui);
+    font-size: var(--fs-2xs);
+    font-weight: 700;
+}
+/* The card floats above the legend; its transparent bottom padding bridges
+   the gap so the pointer can travel from a chip into the card's links. */
+.raw-detections-card-anchor {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    padding-bottom: var(--s2);
+    z-index: 5;
+}
+.raw-detection-card {
+    max-height: 45vh;
+    overflow-y: auto;
+    padding: var(--s3) var(--s4);
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    box-shadow: 0 8px 28px color-mix(in srgb, black 55%, transparent);
+    color: var(--text);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-normal);
+}
+.raw-detection-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s2);
+    margin-bottom: var(--s2);
+}
+.raw-detection-card-type {
+    color: var(--text-strong);
+    font-family: var(--font-mono);
+    font-size: var(--fs-md);
+    font-weight: 700;
+}
+.raw-detection-pill {
+    padding: 1px var(--s2);
+    border-radius: var(--r-sm);
+    background: color-mix(in srgb, var(--sev) 18%, transparent);
+    color: var(--sev);
+    font-size: var(--fs-2xs);
+    font-weight: 700;
+}
+.raw-detection-pin-hint {
+    margin-left: auto;
+    color: var(--text-faint);
+    font-size: var(--fs-2xs);
+}
+.raw-detection-label {
+    color: var(--text-dim);
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+}
+.raw-detection-evidence {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s2);
+    margin-bottom: var(--s2);
+}
+.raw-detection-evidence code {
+    padding: 1px var(--s1);
+    border-radius: var(--r-sm);
+    background: var(--tint-danger);
+    color: var(--text-strong);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    word-break: break-all;
+}
+.raw-detection-empty {
+    margin: 0;
+    color: var(--text-dim);
+}
+.raw-detection-rule + .raw-detection-rule {
+    margin-top: var(--s3);
+    padding-top: var(--s3);
+    border-top: 1px solid var(--line-soft);
+}
+.raw-detection-rule-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s2);
+}
+.raw-detection-rule-name code {
+    color: var(--accent-hi);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+}
+.raw-detection-file {
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+}
+.raw-detection-description {
+    margin: var(--s1) 0 var(--s2);
+}
+.raw-detection-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--s2) var(--s4);
+    margin: 0;
+}
+.raw-detection-facts dt {
+    color: var(--text-dim);
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+}
+.raw-detection-facts dd {
+    margin: 2px 0 0;
+}
+.raw-detection-fact-wide {
+    grid-column: 1 / -1;
+}
+.raw-detection-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s1);
+}
+.raw-detection-tag {
+    padding: 0 var(--s1);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-decoration: none;
+}
+.raw-detection-tag:hover {
+    border-color: var(--accent);
+}
+.raw-detection-refs {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.raw-detection-refs a {
+    color: var(--accent);
+    font-size: var(--fs-xs);
+    word-break: break-all;
+}
 .raw-request-modal-footer {
     padding: var(--s4) var(--s5);
     background-color: var(--raised);
@@ -5093,3 +5317,29 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
     .advanced-search-remove { grid-column: 2; grid-row: 1; }
     .advanced-search-actions button { flex: 1; }
 }
+
+/* Rules panel: loaded YARA rules (partials/rules_panel.html). */
+.rules-filters { gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.rules-filters .panel-search { flex: 1 1 180px; }
+.rules-row { cursor: pointer; }
+.rules-row:hover, .rules-row:focus-visible { background: var(--surface-2, rgba(255, 255, 255, 0.03)); }
+.rules-card td { padding: 12px 16px 16px; white-space: normal; }
+/* Long URLs and sentences wrap inside their own column instead of spilling over. */
+.rules-card .raw-detection-facts > div { min-width: 0; }
+.rules-card .raw-detection-facts dd,
+.rules-card .raw-detection-description { overflow-wrap: anywhere; }
+.rules-card .raw-detection-refs .raw-detection-tag { align-self: flex-start; max-width: 100%; }
+.rules-panel .sev-critical { --sev: var(--danger); }
+.rules-panel .sev-high { --sev: var(--warn); }
+.rules-panel .sev-medium { --sev: var(--honey); }
+.rules-panel .sev-low { --sev: var(--blue); }
+.rules-panel label.deception-action-btn { cursor: pointer; }
+.rules-panel label.is-busy { opacity: 0.6; pointer-events: none; }
+/* Compile errors can be long and carry line numbers: keep them readable. */
+.rules-upload-status { margin: 0 0 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.rules-uploads { width: 100%; border-collapse: collapse; }
+.rules-uploads caption { text-align: left; padding-bottom: 6px; }
+.rules-uploads th, .rules-uploads td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+.rules-uploads td code { overflow-wrap: anywhere; }
+.rules-upload-actions { white-space: nowrap; text-align: right; }
+.rules-upload-actions .deception-action-btn { text-decoration: none; }

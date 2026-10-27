@@ -1,0 +1,17 @@
+{
+  "name": "es-node-3",
+  "cluster_name": "es-cluster",
+  "cluster_uuid": "EqSHVZEBymYRDou7gpa0Zy",
+  "version": {
+    "number": "7.10.2",
+    "build_flavor": "default",
+    "build_type": "docker",
+    "build_hash": "14b2617ad1d233ee8ce65395a6ded1e8ff7d6428",
+    "build_date": "2023-04-12T09:35:20.314882762Z",
+    "build_snapshot": false,
+    "lucene_version": "8.7.0",
+    "minimum_wire_compatibility_version": "6.8.0",
+    "minimum_index_compatibility_version": "6.0.0-beta1"
+  },
+  "tagline": "You Know, for Search"
+}

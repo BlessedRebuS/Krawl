@@ -18,41 +18,35 @@ The first header present wins. This means **Cloudflare and similar CDNs work out
 
 The checked headers and their order are configurable. If your proxy uses a non-standard header, or you want to change the priority, update the `proxy_headers` list.
 
-### wordlists.json
+### config.yaml
 
-Edit the top-level `proxy_headers` array in `wordlists.json`:
+Edit `server.proxy_headers` in `config.yaml`:
 
-```json
-{
-  "proxy_headers": [
-    "CF-Connecting-IP",
-    "X-Forwarded-For",
-    "X-Real-IP"
-  ]
-}
+```yaml
+server:
+  proxy_headers: [CF-Connecting-IP, X-Forwarded-For, X-Real-IP]
 ```
 
-Headers are checked in array order — put the one your proxy sets first. For example, if you're behind AWS ALB (which sets `X-Forwarded-For`), move it to the top:
+Headers are checked in list order — put the one your proxy sets first. For example, if you're behind AWS ALB (which sets `X-Forwarded-For`), move it to the top:
 
-```json
-{
-  "proxy_headers": [
-    "X-Forwarded-For",
-    "X-Real-IP"
-  ]
-}
+```yaml
+server:
+  proxy_headers: [X-Forwarded-For, X-Real-IP]
 ```
+
+Or set `KRAWL_PROXY_HEADERS=X-Forwarded-For,X-Real-IP`.
 
 ### Helm Values
 
-Set `wordlists.proxy_headers` in your values file:
+Set `config.server.proxy_headers` in your values file:
 
 ```yaml
-wordlists:
-  proxy_headers:
-    - CF-Connecting-IP
-    - X-Forwarded-For
-    - X-Real-IP
+config:
+  server:
+    proxy_headers:
+      - CF-Connecting-IP
+      - X-Forwarded-For
+      - X-Real-IP
 ```
 
 ## NGINX Configuration

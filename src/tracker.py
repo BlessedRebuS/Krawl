@@ -6,8 +6,8 @@ import urllib.parse
 from datetime import datetime
 
 from database import DatabaseManager, get_database
+from detection import DetectionCoordinator, DetectionFinding, get_detection
 from ip_utils import is_ignored_ip
-from wordlists import get_wordlists
 
 logger = logging.getLogger("krawl")
 
@@ -25,6 +25,7 @@ class AccessTracker:
         max_pages_limit,
         ban_duration_seconds,
         db_manager: DatabaseManager | None = None,
+        detector: DetectionCoordinator | None = None,
     ):
         """
         Initialize the access tracker.
@@ -36,52 +37,16 @@ class AccessTracker:
         self.max_pages_limit = max_pages_limit
         self.ban_duration_seconds = ban_duration_seconds
 
-        # Load suspicious patterns from wordlists
-        wl = get_wordlists()
-        self.suspicious_patterns = wl.suspicious_patterns
-
-        # Fallback if wordlists not loaded
-        if not self.suspicious_patterns:
-            self.suspicious_patterns = [
-                "bot",
-                "crawler",
-                "spider",
-                "scraper",
-                "curl",
-                "wget",
-                "python-requests",
-                "scanner",
-                "nikto",
-                "sqlmap",
-                "nmap",
-                "masscan",
-                "nessus",
-                "acunetix",
-                "burp",
-                "zap",
-                "w3af",
-                "metasploit",
-                "nuclei",
-                "gobuster",
-                "dirbuster",
-            ]
-
-        # Load attack patterns from wordlists
-        self.attack_types = wl.attack_patterns
-
-        # Fallback if wordlists not loaded
-        if not self.attack_types:
-            self.attack_types = {
-                "path_traversal": r"\.\.",
-                "sql_injection": r"('|--|;|\bOR\b|\bUNION\b|\bSELECT\b|\bDROP\b)",
-                "xss_attempt": r"(<script|javascript:|onerror=|onload=)",
-                "common_probes": r"(/admin|/backup|/config|/database|/private|/uploads|/wp-admin|/login|/phpMyAdmin|/phpmyadmin|/users|/search|/contact|/info|/input|/feedback|/server|/api/v1/|/api/v2/|/api/search|/api/sql|/api/database|\.env|/credentials\.txt|/passwords\.txt|\.git|/backup\.sql|/db_backup\.sql)",
-                "login_attempt": r"(/wp-login\.php|/wp-login|/admin/login|/admin/signin|/user/login|/users/login|/account/login|/portal/login|/secure/login|/login\.php|/login\.asp|/login\.aspx|/signin|/sign-in|/sign_in|/auth/login|/api/auth|/api/login|/api/signin|/api/token|/oauth/login|/sso/login|/xmlrpc\.php|/session/new|action=login)",
-                "command_injection": r"(\||;|`|\$\(|&&)",
-            }
+        # None follows the live detector, which is replaced when an analyst
+        # uploads or deletes a rule file; tests inject a fixed one.
+        self._detector = detector
 
         # Database manager for persistence (lazily initialized)
         self._db_manager = db_manager
+
+    @property
+    def detector(self) -> DetectionCoordinator:
+        return self._detector or get_detection()
 
     @property
     def db(self) -> DatabaseManager | None:
@@ -107,7 +72,9 @@ class AccessTracker:
             return None, None
 
         parsed = urllib.parse.parse_qs(post_data)
-        wl = get_wordlists()
+        from config import get_config
+
+        config = get_config()
 
         def first(fields):
             for field in fields:
@@ -115,7 +82,9 @@ class AccessTracker:
                     return parsed[field][0]
             return None
 
-        return first(wl.username_fields), first(wl.password_fields)
+        return first(config.credential_username_fields), first(
+            config.credential_password_fields
+        )
 
     def record_credential_attempt(
         self, ip: str, path: str, username: str, password: str
@@ -149,12 +118,14 @@ class AccessTracker:
         path: str,
         user_agent: str = "",
         body: str = "",
+        query: str = "",
         method: str = "GET",
         raw_request: str = "",
         increment_page_visit: bool = False,
         referer: str = "",
         file_payloads: list[dict] | None = None,
         target_host: str | None = None,
+        detection_findings: list[DetectionFinding] | None = None,
     ) -> int:
         """
         Record an access attempt.
@@ -167,6 +138,7 @@ class AccessTracker:
             path: Requested path
             user_agent: Client user agent string
             body: Request body (for POST/PUT)
+            query: Raw URL query string
             method: HTTP method
             raw_request: Full raw HTTP request for forensic analysis
             increment_page_visit: Also bump page visit counter in the same DB tx
@@ -190,17 +162,12 @@ class AccessTracker:
         if server_ip and ip == server_ip:
             return 0
 
-        # login_attempt only makes sense for POST requests
-        path_exclude = {"login_attempt"} if method != "POST" else None
-        attack_findings = self.detect_attack_type(path, exclude=path_exclude)
-
-        # Bait-chain referer + file payloads are derived from the raw request so
-        # every recording path (honeypot dependency, catch-all POST, deception
-        # middleware) captures them even when the caller didn't thread them through.
+        # Derive bait-chain and upload evidence from the raw request for callers
+        # that did not pass the structured values explicitly.
         if not referer and raw_request and config.referer_enabled:
-            _m = re.search(r"\r\nReferer:\s*([^\r\n]+)", raw_request, re.IGNORECASE)
-            if _m:
-                referer = _m.group(1).strip()
+            match = re.search(r"\r\nReferer:\s*([^\r\n]+)", raw_request, re.IGNORECASE)
+            if match:
+                referer = match.group(1).strip()
         if file_payloads is None and raw_request:
             from tlsh_utils import extract_file_payloads
 
@@ -208,26 +175,44 @@ class AccessTracker:
                 raw_request, compute_tlsh=config.tlsh_enabled
             )
 
-        # common_probes and login_attempt are path-based — skip them on body to avoid
-        # false positives from form fields like redirect_to=/wp-admin/
-        if len(body) > 0:
-            decoded_body = urllib.parse.unquote(body)
-            attack_findings.extend(
-                self.detect_attack_type(
-                    decoded_body, exclude={"common_probes", "login_attempt"}
-                )
+        findings = detection_findings
+        if findings is None:
+            findings = self.detector.scan_request(
+                path=path,
+                query=query,
+                body=body,
+                user_agent=user_agent,
+                method=method,
             )
-            # If credentials were submitted (even on non-login paths like AI-generated pages),
-            # tag as login_attempt
-            if method == "POST" and not any(
-                t == "login_attempt" for t, _ in attack_findings
-            ):
-                username, password = self.parse_credentials(decoded_body)
-                if username or password:
-                    attack_findings.append(("login_attempt", "/login"))
 
-        attack_types = [t for t, _ in attack_findings]
-        matched_patterns = {t: m for t, m in attack_findings}
+        # Credentials submitted on a non-login path remain a login attempt.
+        if method == "POST" and not any(
+            item.attack_type == "login_attempt" for item in findings
+        ):
+            username, password = self.parse_credentials(urllib.parse.unquote(body))
+            if username or password:
+                findings = [
+                    *findings,
+                    DetectionFinding(
+                        attack_type="login_attempt",
+                        matched_pattern="/login",
+                        source="credential_fields",
+                        scan_target="body",
+                        severity=4,
+                        rule_name="credential_fields",
+                    ),
+                ]
+
+        attack_findings = [item for item in findings if item.classification == "attack"]
+        attack_types = [item.attack_type for item in attack_findings]
+        matched_patterns = {
+            item.attack_type: item.matched_pattern for item in attack_findings
+        }
+        rule_names = {
+            item.attack_type: item.rule_name
+            for item in attack_findings
+            if item.rule_name
+        }
 
         from request_metadata import extract_request_metadata, normalize_target_host
 
@@ -249,7 +234,8 @@ class AccessTracker:
                     )
 
         is_suspicious = (
-            self.is_suspicious_user_agent(user_agent)
+            not user_agent
+            or any(item.classification == "suspicious" for item in findings)
             or self.is_honeypot_path(path)
             or len(attack_types) > 0
         )
@@ -267,6 +253,7 @@ class AccessTracker:
                     is_honeypot_trigger=is_honeypot,
                     attack_types=attack_types if attack_types else None,
                     matched_patterns=matched_patterns if matched_patterns else None,
+                    rule_names=rule_names or None,
                     raw_request=raw_request if raw_request else None,
                     referer=referer if referer else None,
                     file_payloads=file_payloads,
@@ -285,14 +272,12 @@ class AccessTracker:
         """
         Returns a list of (attack_type, matched_substring) tuples found in data.
         """
-        findings = []
-        for name, pattern in self.attack_types.items():
-            if exclude and name in exclude:
-                continue
-            m = re.search(pattern, data, re.IGNORECASE)
-            if m:
-                findings.append((name, m.group(0)[:256]))
-        return findings
+        findings = self.detector.scan_value(data, target="path", exclude=exclude)
+        return [
+            (item.attack_type, item.matched_pattern)
+            for item in findings
+            if item.classification == "attack"
+        ]
 
     def is_honeypot_path(self, path: str) -> bool:
         """Check if path is one of the honeypot traps from robots.txt"""
@@ -333,8 +318,10 @@ class AccessTracker:
         """Check if user agent matches suspicious patterns"""
         if not user_agent:
             return True
-        ua_lower = user_agent.lower()
-        return any(pattern in ua_lower for pattern in self.suspicious_patterns)
+        return any(
+            item.classification == "suspicious"
+            for item in self.detector.scan_value(user_agent, target="user_agent")
+        )
 
     def get_category_by_ip(self, client_ip: str) -> str:
         """

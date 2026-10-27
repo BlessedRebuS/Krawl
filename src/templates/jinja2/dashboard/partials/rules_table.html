@@ -1,0 +1,104 @@
+{# HTMX fragment: one page of the Rules table. One <tbody> per rule holds its
+   row and its expandable card. Search and filters ride along from the panel
+   form via hx-include; sorting returns to page 1. #}
+{% macro band(severity) -%}
+{%- if severity >= 9 %}critical{% elif severity >= 7 %}high{% elif severity >= 4 %}medium{% elif severity >= 1 %}low{% else %}unknown{% endif -%}
+{%- endmacro %}
+{% macro sort_header(key, label) -%}
+<th class="sortable {% if query.sort_by == key %}{{ query.sort_order }}{% endif %}"
+    hx-get="{{ dashboard_path }}/htmx/rules/table?sort_by={{ key }}&sort_order={% if query.sort_by == key and query.sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+    hx-include=".rules-filters"
+    hx-target="#rules-table-container"
+    hx-swap="innerHTML">{{ label }}</th>
+{%- endmacro %}
+{% macro page_button(number, label, disabled) -%}
+<button class="pagination-btn"
+        hx-get="{{ dashboard_path }}/htmx/rules/table?page={{ number }}&sort_by={{ query.sort_by }}&sort_order={{ query.sort_order }}"
+        hx-include=".rules-filters"
+        hx-target="#rules-table-container"
+        hx-swap="innerHTML"
+        {% if disabled %}disabled{% endif %}>{{ label }}</button>
+{%- endmacro %}
+<div class="panel-header">
+    <span class="pagination-info">{% if matching %}{{ first }}&ndash;{{ first + rows | length - 1 }} of {{ matching }} rules &mdash; page {{ page }}/{{ pages }}{% else %}0 rules{% endif %}</span>
+    <div class="row">
+        {{ page_button(page - 1, 'Prev', page <= 1) }}
+        {{ page_button(page + 1, 'Next', page >= pages) }}
+    </div>
+</div>
+<table class="rules-table">
+    <thead>
+        <tr>
+            {{ sort_header('rule', 'Rule') }}
+            {{ sort_header('attack_type', 'Attack type') }}
+            <th>Class</th>
+            {{ sort_header('severity', 'Severity') }}
+            <th>Confidence</th>
+            <th>Reply</th>
+            {{ sort_header('matches', 'Matches') }}
+            {{ sort_header('last_match', 'Last match') }}
+        </tr>
+    </thead>
+    {% for row in rows %}
+    <tbody x-data="{ open: false }">
+        <tr class="rules-row" @click="open = !open" :aria-expanded="open" tabindex="0"
+            @keydown.enter="open = !open">
+            <td><code>{{ row.rule }}</code><div class="muted fs-sm">{{ row.rule_file }}.yar</div></td>
+            <td>{{ row.attack_type }}</td>
+            <td>{{ row.classification }}</td>
+            <td><span class="raw-detection-pill sev-{{ band(row.severity) }}">{{ row.severity }}/10</span></td>
+            <td>{{ row.confidence or 'n/a' }}</td>
+            <td>{% if row.response_type %}<code>{{ row.response_type }}</code>{% else %}<span class="muted">route</span>{% endif %}</td>
+            <td>{{ row.matches }}</td>
+            <td>{% if row.last_match %}{{ row.last_match.strftime('%Y-%m-%d %H:%M') }}{% else %}<span class="muted">never</span>{% endif %}</td>
+        </tr>
+        <tr class="rules-card" x-show="open" x-cloak>
+            <td colspan="8">
+                <p class="raw-detection-description">{{ row.description or 'No description.' }}</p>
+                <dl class="raw-detection-facts">
+                    {% if row.mitre_attack %}
+                    <div>
+                        <dt>MITRE ATT&amp;CK</dt>
+                        <dd class="raw-detection-links">
+                            {% for technique in row.mitre_attack %}
+                            <a class="raw-detection-tag" target="_blank" rel="noopener noreferrer"
+                               href="https://attack.mitre.org/techniques/{{ technique | replace('.', '/') }}/">{{ technique }}</a>
+                            {% endfor %}
+                        </dd>
+                    </div>
+                    {% endif %}
+                    {% if row.cve %}
+                    <div>
+                        <dt>CVE</dt>
+                        <dd class="raw-detection-links">
+                            {% for cve in row.cve %}
+                            <a class="raw-detection-tag" target="_blank" rel="noopener noreferrer"
+                               href="https://nvd.nist.gov/vuln/detail/{{ cve | urlencode }}">{{ cve }}</a>
+                            {% endfor %}
+                        </dd>
+                    </div>
+                    {% endif %}
+                    {% if row.false_positives %}
+                    <div class="raw-detection-fact-wide">
+                        <dt>False positives</dt>
+                        <dd>{{ row.false_positives }}</dd>
+                    </div>
+                    {% endif %}
+                    {% if row.references %}
+                    <div class="raw-detection-fact-wide">
+                        <dt>References</dt>
+                        <dd class="raw-detection-refs">
+                            {% for ref in row.references %}
+                            <a class="raw-detection-tag" target="_blank" rel="noopener noreferrer" href="{{ ref }}">{{ ref }}</a>
+                            {% endfor %}
+                        </dd>
+                    </div>
+                    {% endif %}
+                </dl>
+            </td>
+        </tr>
+    </tbody>
+    {% else %}
+    <tbody><tr><td colspan="8" class="muted">No rules match these filters.</td></tr></tbody>
+    {% endfor %}
+</table>

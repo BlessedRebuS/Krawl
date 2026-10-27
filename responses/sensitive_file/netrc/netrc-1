@@ -1,0 +1,2 @@
+machine api.example.com login deploy password SummerJuniper16@
+machine ftp.internal login backup password SummerGranite64%

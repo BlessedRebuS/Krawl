@@ -1,0 +1,14 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	url = https://ci-runner:glpat-XuAiqx49ufa1ZhQn68r6@gitlab.internal/northwind/billing-api.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+	remote = origin
+	merge = refs/heads/main
+[user]
+	name = John Doe
+	email = john.doe@example.com

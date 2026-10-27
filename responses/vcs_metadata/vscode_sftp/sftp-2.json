@@ -1,0 +1,15 @@
+{
+  "name": "prod",
+  "host": "198.51.100.17",
+  "protocol": "sftp",
+  "port": 22,
+  "username": "www-data",
+  "password": "OrchidFalcon92@",
+  "remotePath": "/srv/app",
+  "uploadOnSave": true,
+  "ignore": [
+    ".vscode",
+    ".git",
+    "node_modules"
+  ]
+}

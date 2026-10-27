@@ -8,12 +8,11 @@ initially flagged as suspicious. Re-runs the same detection checks
 logs that no longer match any rule, so the retention job can purge them.
 """
 
-import re
 from datetime import datetime
 
 from database import get_database
+from detection import DetectionCoordinator, get_detection
 from logger import get_app_logger
-from wordlists import get_wordlists
 
 # ----------------------
 # TASK CONFIG
@@ -67,39 +66,6 @@ HONEYPOT_PATHS = {
     "/phpMyAdmin/",
 }
 
-FALLBACK_SUSPICIOUS_PATTERNS = [
-    "bot",
-    "crawler",
-    "spider",
-    "scraper",
-    "curl",
-    "wget",
-    "python-requests",
-    "scanner",
-    "nikto",
-    "sqlmap",
-    "nmap",
-    "masscan",
-    "nessus",
-    "acunetix",
-    "burp",
-    "zap",
-    "w3af",
-    "metasploit",
-    "nuclei",
-    "gobuster",
-    "dirbuster",
-]
-
-FALLBACK_ATTACK_PATTERNS = {
-    "path_traversal": r"\.\.",
-    "sql_injection": r"('|--|;|\bOR\b|\bUNION\b|\bSELECT\b|\bDROP\b)",
-    "xss_attempt": r"(<script|javascript:|onerror=|onload=)",
-    "common_probes": r"(/admin|/backup|/config|/database|/private|/uploads|/wp-admin|/login|/phpMyAdmin|/phpmyadmin|/users|/search|/contact|/info|/input|/feedback|/server|/api/v1/|/api/v2/|/api/search|/api/sql|/api/database|\.env|/credentials\.txt|/passwords\.txt|\.git|/backup\.sql|/db_backup\.sql)",
-    "login_attempt": r"(/wp-login\.php|/wp-login|/admin/login|/admin/signin|/user/login|/users/login|/account/login|/portal/login|/secure/login|/login\.php|/login\.asp|/login\.aspx|/signin|/sign-in|/sign_in|/auth/login|/api/auth|/api/login|/api/signin|/api/token|/oauth/login|/sso/login|/xmlrpc\.php|/session/new|action=login)",
-    "command_injection": r"(\||;|`|\$\(|&&)",
-}
-
 
 def _is_honeypot_path(path: str) -> bool:
     if path in HONEYPOT_PATHS:
@@ -109,23 +75,16 @@ def _is_honeypot_path(path: str) -> bool:
 
 
 def _is_still_suspicious(
-    path: str, user_agent: str, attack_patterns: dict, suspicious_patterns: list
+    path: str, user_agent: str, detector: DetectionCoordinator
 ) -> bool:
     """Re-run the same checks the tracker uses at request time."""
     # Honeypot path check
     if _is_honeypot_path(path):
         return True
 
-    # Attack pattern check on path
-    for pattern in attack_patterns.values():
-        if re.search(pattern, path, re.IGNORECASE):
-            return True
-
-    # Suspicious user agent check
     if not user_agent:
         return True
-    ua_lower = user_agent.lower()
-    if any(p in ua_lower for p in suspicious_patterns):
+    if detector.scan_request(path=path, user_agent=user_agent):
         return True
 
     return False
@@ -150,10 +109,8 @@ def main():
 
         cutoff = datetime.now() - retention
 
-        # Load detection rules (same sources as the tracker)
-        wl = get_wordlists()
-        attack_patterns = wl.attack_patterns or FALLBACK_ATTACK_PATTERNS
-        suspicious_patterns = wl.suspicious_patterns or FALLBACK_SUSPICIOUS_PATTERNS
+        # Use the same detector as request-time tracking.
+        detector = get_detection()
 
         unflagged = 0
         kept = 0
@@ -196,8 +153,7 @@ def main():
                 if _is_still_suspicious(
                     log.path,
                     log.user_agent or "",
-                    attack_patterns,
-                    suspicious_patterns,
+                    detector,
                 ):
                     kept += 1
                 else:

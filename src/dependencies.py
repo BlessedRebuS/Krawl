@@ -185,10 +185,10 @@ def get_client_ip_from_scope(scope) -> str:
     Split out from get_client_ip so the drop-ignored middleware can decide
     whether to answer a request without ever building a Request object.
     """
-    from wordlists import get_wordlists
+    from config import get_config
 
     raw_headers = scope.get("headers") or []
-    for header in get_wordlists().proxy_headers:
+    for header in get_config().proxy_headers:
         key = header.lower().encode("latin-1")
         for name, value in raw_headers:
             if name == key and value:
@@ -203,7 +203,7 @@ def get_client_ip_from_scope(scope) -> str:
 
 
 def get_client_ip(request: Request) -> str:
-    """Extract client IP address from request, checking proxy headers in order from wordlists."""
+    """Extract client IP address from request, checking server.proxy_headers in order."""
     return get_client_ip_from_scope(request.scope)
 
 

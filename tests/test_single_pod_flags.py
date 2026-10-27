@@ -2,7 +2,7 @@
 
 """Exactly the right tasks are gated to one pod.
 
-The unflagged four maintain PER-POD state: a blanket gate would silently stop
+The unflagged tasks maintain PER-POD state: a blanket gate would silently stop
 each pod flushing its own buffers and filling its own in-process caches, which
 fails quietly and is very hard to spot in production.
 
@@ -40,6 +40,7 @@ EXPECTED_EVERY_POD = {
     "flush-access-logs",   # drains this pod's access-log write buffer
     "metrics-flush",       # flushes this pod's counters
     "refresh-ban-cache",   # fills this pod's banned-IP frozenset
+    "reload-custom-rules", # loads rule files uploaded on another pod
     "purge",               # disabled; only ever run from the maintenance panel
 }
 

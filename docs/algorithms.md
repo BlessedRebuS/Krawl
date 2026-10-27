@@ -28,11 +28,11 @@ oldest analysis first. `flag-stale-ips` (daily) flags IPs seen within
 | robots.txt violations | share of requests under a `Disallow:` path of Krawl's robots.txt | ≥ `analyzer.violated_robots_threshold` (0.1) |
 | Uneven timing | coefficient of variation (std/mean) of gaps between requests in the last `analyzer.uneven_request_timing_time_window_seconds` (300s) | ≥ `analyzer.uneven_request_timing_threshold` (0.5) |
 | Many user agents | distinct user agents | ≥ `analyzer.user_agents_used_threshold` (2) |
-| Attack URLs | distinct attack-pattern matches on the raw, URL-decoded and double-decoded path | ≥ `analyzer.attack_urls_threshold` (1) |
+| Attack URLs | distinct attack types stored for the IP's requests in the window (any field: path, query, body, headers), as detected when each request arrived | ≥ `analyzer.attack_urls_threshold` (1) |
 
 **Scoring.** Each category's score is the sum of the weights of the signals that
-fired *for that category*. Default weights (overridable with `scoring_weights` in
-the wordlists):
+fired *for that category*. Default weights (overridable with `analyzer.scoring_weights`
+in `config.yaml`):
 
 | Signal | attacker | good_crawler | bad_crawler | regular_user |
 |---|---|---|---|---|

@@ -1,0 +1,1 @@
+Warning: mysqli_query(): MySQL server has gone away in /var/www/html/includes/db.php on line 42

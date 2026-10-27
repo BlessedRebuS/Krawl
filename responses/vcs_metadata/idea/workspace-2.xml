@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="84ad5706-ab25-df04-3bc3-0a48575e5b18" name="Changes" comment="" />
+  </component>
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="orders@mysql.internal">
+      <driver-ref>mysql.8</driver-ref>
+      <jdbc-url>jdbc:mysql://mysql.internal:3306/orders</jdbc-url>
+      <user-name>orders_rw</user-name>
+    </data-source>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="RunManager" selected="Application.Main">
+    <configuration name="Main" type="Application" factoryName="Application">
+      <envs>
+        <env name="SPRING_PROFILES_ACTIVE" value="prod" />
+      </envs>
+    </configuration>
+  </component>
+</project>

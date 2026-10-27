@@ -34,6 +34,7 @@ from models import (
 )
 from request_metadata import CURRENT_METADATA_VERSION
 from sanitizer import (
+    MAX_RULE_NAME_LENGTH,
     sanitize_attack_pattern,
     sanitize_credential,
     sanitize_ip,
@@ -105,6 +106,12 @@ def _trim_write_buffer() -> None:
     ):
         _buffer_bytes -= _entry_bytes(_write_buffer.popleft())
         _dropped_rows += 1
+
+
+def _rule_name(rule_names: dict[str, str], attack_type: str) -> str | None:
+    """The stored YARA rule name for one detection, cut to the column size."""
+    name = rule_names.get(attack_type)
+    return name[:MAX_RULE_NAME_LENGTH] if name else None
 
 
 def _buffer_access_log_entry(**kwargs) -> None:
@@ -296,6 +303,7 @@ class DatabaseManager:
         is_honeypot_trigger: bool = False,
         attack_types: list[str] | None = None,
         matched_patterns: dict[str, str] | None = None,
+        rule_names: dict[str, str] | None = None,
         raw_request: str | None = None,
         referer: str | None = None,
         file_payloads: list[dict] | None = None,
@@ -316,6 +324,7 @@ class DatabaseManager:
             is_honeypot_trigger: Whether a honeypot path was accessed
             attack_types: List of detected attack types
             matched_patterns: Dict mapping attack_type to matched pattern
+            rule_names: Dict mapping attack_type to the YARA rule that matched
             raw_request: Full raw HTTP request for forensic analysis
             referer: Inbound HTTP Referer header (bait-chain tracking)
             file_payloads: Uploaded-file dicts {filename, content_type, size,
@@ -368,6 +377,7 @@ class DatabaseManager:
                         is_honeypot_trigger=is_honeypot_trigger,
                         attack_types=attack_types,
                         matched_patterns=matched_patterns,
+                        rule_names=rule_names,
                         raw_request=raw_request,
                         referer=referer,
                         file_payloads=file_payloads,
@@ -396,6 +406,7 @@ class DatabaseManager:
 
                     if attack_types:
                         matched_patterns = matched_patterns or {}
+                        rule_names = rule_names or {}
                         for attack_type in attack_types:
                             detection = AttackDetection(
                                 access_log_id=access_log.id,
@@ -403,6 +414,7 @@ class DatabaseManager:
                                 matched_pattern=sanitize_attack_pattern(
                                     matched_patterns.get(attack_type, "")
                                 ),
+                                rule_name=_rule_name(rule_names, attack_type),
                             )
                             session.add(detection)
 
@@ -539,6 +551,7 @@ class DatabaseManager:
                     (
                         entry.get("attack_types"),
                         entry.get("matched_patterns") or {},
+                        entry.get("rule_names") or {},
                     )
                 )
                 file_payloads = entry.get("file_payloads")
@@ -580,10 +593,11 @@ class DatabaseManager:
                     "matched_pattern": sanitize_attack_pattern(
                         patterns.get(attack_type, "")
                     ),
+                    "rule_name": _rule_name(rule_names, attack_type),
                     "tlsh_hash": None,
                     "cluster_id": None,
                 }
-                for log_id, (types, patterns) in zip(
+                for log_id, (types, patterns, rule_names) in zip(
                     log_ids, attacks_per_entry, strict=True
                 )
                 if types

@@ -1,0 +1,2 @@
+ERROR: canceling statement due to user request
+CONTEXT: SQL function "pg_sleep" statement 1

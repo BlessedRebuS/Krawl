@@ -39,6 +39,7 @@ from models import (
     Base,
     CategoryHistory,
     CredentialAttempt,
+    CustomYaraRule,
     IpStats,
     TrackedIp,
 )
@@ -51,6 +52,7 @@ TABLES_IN_ORDER = [
     ("credential_attempts", CredentialAttempt),
     ("category_history", CategoryHistory),
     ("tracked_ips", TrackedIp),
+    ("custom_yara_rules", CustomYaraRule),
 ]
 
 

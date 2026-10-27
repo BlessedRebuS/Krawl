@@ -44,7 +44,9 @@ RUN pip install --no-index --find-links=/wheels -r requirements.txt && rm -rf /w
 COPY --chown=krawl:krawl src/ /app/src/
 COPY --chown=krawl:krawl scripts/ /app/scripts/
 COPY --chown=krawl:krawl --chmod=755 entrypoint.sh /app/
-COPY --chown=krawl:krawl wordlists.json config.yaml /app/
+COPY --chown=krawl:krawl config.yaml /app/
+COPY --chown=krawl:krawl rules/ /app/rules/
+COPY --chown=krawl:krawl responses/ /app/responses/
 COPY --chown=krawl:krawl helm/Chart.yaml /app/Chart.yaml
 
 EXPOSE 5000

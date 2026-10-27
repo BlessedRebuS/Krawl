@@ -1,0 +1,9 @@
+APP_ENV=production
+APP_KEY=base64:3p9TUojHxyBTpyoMhwj3vst+A4jTlgNGfCCdmmLzceQ=
+DB_HOST=db.internal
+DB_PORT=3306
+DB_DATABASE=production_db
+DB_USERNAME=app_user
+DB_PASSWORD=HarborVelvet67@
+MAIL_HOST=smtp.example.com
+MAIL_PASSWORD=PjxlSPDcFpFne3MYMc9pbsfy

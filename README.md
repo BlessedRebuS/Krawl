@@ -82,7 +82,8 @@ It features:
 - **[Canary Token](docs/canary-token.md) Integration**: External alert triggering
 - **Random server headers**: Confuse attacks based on server header and version
 - **Real-time Dashboard**: Monitor suspicious activity
-- **Customizable Wordlists**: Easy JSON-based configuration
+- **[YARA Attack Detection](docs/detection.md)**: over 3,200 bundled rules for web attacks, exploit payloads, over 2,600 CVEs, IoT botnets and exposure probes, answered with matching fake replies
+- **Customizable fake content**: every fake page and attack reply is a file listed in `responses/manifest.yaml`
 - **Random Error Injection**: Mimic real server behavior
 
 You can easily expose Krawl alongside your other services to shield them from web crawlers and malicious users using a reverse proxy. For more details, see the [Reverse Proxy documentation](docs/reverse-proxy.md).
@@ -115,6 +116,7 @@ Additionally, after authenticating with the dashboard password, protected tabs b
 - **IP Banlist**: manage IP bans, view detected attackers, and export the banlist in raw or IPTables format.
 - **Timed Out IPs**: review the IPs currently held in the tarpit, and exempt any that should not be.
 - **Deception**: manage AI generated pages, export them or import new ones.
+- **Rules**: browse the loaded YARA rules with their metadata, fake reply and match counts, and upload or delete your own rule files without a restart.
 - **Webhooks**: forward bans to CloudFlare and other firewalls.
 
 The header icons open the API docs, the banlist export, and a settings panel showing the running configuration and a maintenance page for running scheduled tasks on demand.
@@ -567,6 +569,12 @@ For full API parameters, examples, and adding custom firewall formats, see the [
 
 Krawl can also push banned IPs directly to a Cloudflare Account IP List for use in WAF rules. The sync runs as a background task and updates the list by full replacement on a configurable interval. See the [Cloudflare Banlist Sync](docs/cloudflare_banlist.md) documentation.
 
+## Attack Detection
+
+Every request is scanned by the [YARA](https://virustotal.github.io/yara/) rules in [`rules/`](rules/): SQL injection, XSS, path traversal, command injection, SSRF, SSTI, deserialization, webshells, exposure probes and the exploit requests of over 2,600 CVEs. A rule records the attack type, severity and MITRE ATT&CK mapping, and can name a fake reply from [`responses/manifest.yaml`](responses/manifest.yaml), so `/etc/passwd` returns a fake passwd file, a SQL injection gets a database error, and an SSRF to the cloud metadata address gets fake credentials.
+
+Rules and replies are plain files: add a `.yar` rule, drop the fake files under `responses/`, list them in the manifest and restart. The [detection documentation](docs/detection.md) walks through the whole flow, from writing a rule to testing and shipping its fake reply.
+
 ## IP Reputation
 Krawl [uses tasks that analyze recent traffic to build and continuously update an IP reputation](src/tasks/analyze_ips.py) score. It runs periodically and evaluates each active IP address based on multiple behavioral indicators to classify it as an attacker, crawler, or regular user. Thresholds are fully customizable.
 
@@ -577,7 +585,7 @@ The analysis includes:
 - **Robots.txt violations**
 - **Request timing anomalies** (bursty or irregular patterns)
 - **User-Agent consistency**
-- **Attack URL detection** (e.g. SQL injection, XSS patterns)
+- **Attack detection** (attack types found by the [YARA rules](docs/detection.md))
 
 Each signal contributes to a weighted scoring model that assigns a reputation category:
 - `attacker`
@@ -634,7 +642,8 @@ See the [Monitoring documentation](docs/monitoring.md) for the full metric list,
 | [AI Generation](docs/ai_generation.md) | Configure AI-generated deception pages using OpenRouter or OpenAI |
 | [Deception Pages](docs/deception_pages.md) | Manage, import, and export deception pages; bulk operations and date-based filtering |
 | [Deployment Modes](docs/deployment-modes.md) | Standalone (SQLite) vs Scalable (PostgreSQL + Redis) mode, configuration, and data migration |
-| [Honeypot](docs/honeypot.md) | Full overview of honeypot pages: fake logins, directory listings, credential files, SQLi/XSS/XXE/command injection traps, and more |
+| [Attack Detection](docs/detection.md) | How YARA rules detect attacks and pick fake replies, and a step-by-step guide to adding a rule, its fake responses and tests |
+| [Honeypot](docs/honeypot.md) | How requests are answered, the `pages:` manifest section, moving from `wordlists.json`, and every bait page |
 | [Dashboard](docs/dashboard.md) | Access and explore the real-time monitoring dashboard |
 | [Dashboard API](docs/dashboard-api.md) | Krawl's own JSON API: endpoint reference, authentication, interactive OpenAPI docs, and attachment downloads |
 | [External APIs](docs/api.md) | Third-party APIs Krawl calls out to for IP data, reputation, and geolocation |
@@ -642,7 +651,6 @@ See the [Monitoring documentation](docs/monitoring.md) for the full metric list,
 | [Database Backups](docs/backups.md) | Enable and configure the automatic database dump job |
 | [Retention](docs/retention.md) | How long each kind of data is kept, and which job removes or crunches it |
 | [Canary Token](docs/canary-token.md) | Set up external alert triggers via canarytokens.org |
-| [Wordlist](docs/wordlist.md) | Customize fake usernames, passwords, and directory listings |
 | [Architecture](docs/architecture.md) | Technical overview of the codebase, request pipeline, database schema, and background tasks |
 | [Algorithms](docs/algorithms.md) | How IPs are evaluated and categorized, and how similar requests are crunched |
 | [Cloudflare Banlist Sync](docs/cloudflare_banlist.md) | Pushes banned IPs from Krawl to a Cloudflare Account IP List for use in WAF rules. The sync runs as a background task and updates the list by full replacement. |

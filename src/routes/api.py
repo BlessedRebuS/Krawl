@@ -41,6 +41,7 @@ from dashboard_cache import (
     set_cached_table,
 )
 from dependencies import get_client_ip, get_db
+from detection import get_detection
 from logger import get_app_logger
 
 # Sessions and bruteforce counters live in auth_store: Redis in scalable mode
@@ -813,6 +814,32 @@ async def attack_types(
         return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
 
 
+def _describe_detections(detections: list[dict]) -> list[dict]:
+    """Attach the YARA rule metadata behind each stored detection.
+
+    Rule details come from the rules loaded now. A detection that stored its
+    rule_name shows that rule; older rows, and names no longer loaded, show
+    every rule reporting the attack type. Highest severity first.
+    """
+    rules_by_type = get_detection().describe_attack_types(
+        {item["attack_type"] for item in detections}
+    )
+    described = []
+    for item in detections:
+        rules = rules_by_type.get(item["attack_type"], [])
+        exact = [rule for rule in rules if rule["rule"] == item.get("rule_name")]
+        rules = exact or rules
+        described.append(
+            {
+                **item,
+                "severity": max((rule["severity"] for rule in rules), default=0),
+                "classification": rules[0]["classification"] if rules else "",
+                "rules": rules,
+            }
+        )
+    return sorted(described, key=lambda item: (-item["severity"], item["attack_type"]))
+
+
 @router.get("/api/raw-request/{log_id:int}")
 async def raw_request(log_id: int, request: Request):
     db = get_db()
@@ -822,7 +849,16 @@ async def raw_request(log_id: int, request: Request):
             return JSONResponse(
                 content={"error": "Raw request not found"}, status_code=404
             )
-        return JSONResponse(content={"raw_request": raw}, headers=_no_cache_headers())
+        detections = await asyncio.to_thread(
+            db.access_logs.get_attack_detections_by_log_id, log_id
+        )
+        return JSONResponse(
+            content={
+                "raw_request": raw,
+                "detections": _describe_detections(detections),
+            },
+            headers=_no_cache_headers(),
+        )
     except Exception as e:
         get_app_logger().error(f"Error fetching raw request: {e}")
         return JSONResponse(content={"error": str(e)}, status_code=500)
@@ -1434,6 +1470,56 @@ async def upload_generated_page(request: Request, body: UploadPageRequest):
         return JSONResponse(content={"error": "Internal server error"}, status_code=500)
     finally:
         db.close_session()
+
+
+class UploadRuleRequest(BaseModel):
+    filename: str
+    content: str
+
+
+@router.post("/api/rules/upload", dependencies=[Depends(require_auth)])
+async def upload_rule_file(body: UploadRuleRequest):
+    """Validate and load a YARA rule file; the same name replaces the old one."""
+    import custom_rules
+
+    filename = body.filename.strip()
+    try:
+        names = await asyncio.to_thread(custom_rules.upload, filename, body.content)
+    except custom_rules.RuleUploadError as exc:
+        return JSONResponse(content={"error": str(exc)}, status_code=400)
+    except Exception as e:
+        get_app_logger().error(f"[Rules] Upload error: {e}")
+        return JSONResponse(content={"error": "Internal server error"}, status_code=500)
+    return JSONResponse(content={"ok": True, "filename": filename, "rules": names})
+
+
+@router.get("/api/rules/{filename}", dependencies=[Depends(require_auth)])
+async def download_rule_file(filename: str):
+    """An uploaded rule file's source, as a download."""
+    import custom_rules
+
+    source = None
+    if custom_rules.FILENAME.fullmatch(filename):
+        source = await asyncio.to_thread(custom_rules.get_source, filename)
+    if source is None:
+        return JSONResponse(content={"error": "Rule file not found"}, status_code=404)
+    return Response(
+        content=source,
+        media_type="text/plain; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.delete("/api/rules/{filename}", dependencies=[Depends(require_auth)])
+async def delete_rule_file(filename: str):
+    """Remove an uploaded rule file and unload its rules."""
+    import custom_rules
+
+    if not custom_rules.FILENAME.fullmatch(filename) or not await asyncio.to_thread(
+        custom_rules.delete, filename
+    ):
+        return JSONResponse(content={"error": "Rule file not found"}, status_code=404)
+    return JSONResponse(content={"ok": True, "filename": filename})
 
 
 @router.post("/api/upload-generated-pages-bulk", dependencies=[Depends(require_auth)])

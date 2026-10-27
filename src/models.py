@@ -29,6 +29,7 @@ from sanitizer import (
     MAX_IP_LENGTH,
     MAX_PATH_LENGTH,
     MAX_REPUTATION_SOURCE_LENGTH,
+    MAX_RULE_NAME_LENGTH,
     MAX_USER_AGENT_LENGTH,
 )
 
@@ -181,6 +182,11 @@ class AttackDetection(Base):
     attack_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     matched_pattern: Mapped[str | None] = mapped_column(
         String(MAX_ATTACK_PATTERN_LENGTH), nullable=True
+    )
+    # Name of the YARA rule that matched. NULL on rows stored before it was
+    # recorded; the dashboard then looks the rule up by attack_type.
+    rule_name: Mapped[str | None] = mapped_column(
+        String(MAX_RULE_NAME_LENGTH), nullable=True
     )
     # TLSH fuzzy hash of the payload that matched (near-duplicate variant clustering).
     tlsh_hash: Mapped[str | None] = mapped_column(String(72), nullable=True, index=True)
@@ -481,6 +487,24 @@ class PayloadHashWatermark(Base):
     access_log_id: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+
+class CustomYaraRule(Base):
+    """A YARA rule file uploaded from the dashboard, loaded next to rules/.
+
+    Stored in the database so every replica loads it and it survives restarts
+    and read-only rule mounts. See custom_rules.py.
+    """
+
+    __tablename__ = "custom_yara_rules"
+
+    filename: Mapped[str] = mapped_column(String(80), primary_key=True)
+    source: Mapped[str] = mapped_column(Text, nullable=False)
+    # Comma-separated rule names, for the dashboard list.
+    rule_names: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    uploaded_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.utcnow
     )
 
 

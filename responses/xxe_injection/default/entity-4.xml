@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<response>
+    <status>success</status>
+    <message>Entity processed successfully</message>
+    <entity_value>external_entity_processed</entity_value>
+</response>

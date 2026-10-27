@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Created-By: Maven JAR Plugin 3.3.0
+Build-Jdk-Spec: 17
+Implementation-Title: shop-backend
+Implementation-Version: 2.4.1
+Implementation-Vendor: Acme Inc.
+Main-Class: com.acme.Application
+Class-Path: lib/spring-core-5.3.27.jar lib/jackson-databind-2.13.4.jar lib/log4j-core-2.17.1.jar

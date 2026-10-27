@@ -1,0 +1,6 @@
+{
+  "app_name": "CMS",
+  "debug": true,
+  "secret_key": "token_1rnCdgy9Ynaif6sq3FKccotCLKval9rX",
+  "database_url": "postgresql://root02:9TdU4660ByoM@localhost/dev_database"
+}

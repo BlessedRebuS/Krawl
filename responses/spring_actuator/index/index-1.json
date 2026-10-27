@@ -1,0 +1,10 @@
+{
+  "_links": {
+    "self": {"href": "http://localhost:8080/actuator", "templated": false},
+    "health": {"href": "http://localhost:8080/actuator/health", "templated": false},
+    "info": {"href": "http://localhost:8080/actuator/info", "templated": false},
+    "env": {"href": "http://localhost:8080/actuator/env", "templated": false},
+    "beans": {"href": "http://localhost:8080/actuator/beans", "templated": false},
+    "mappings": {"href": "http://localhost:8080/actuator/mappings", "templated": false}
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "Platform": {
+    "Name": "Docker Engine - Community"
+  },
+  "Version": "24.0.7",
+  "ApiVersion": "1.43",
+  "MinAPIVersion": "1.12",
+  "GitCommit": "afdd53b",
+  "GoVersion": "go1.20.10",
+  "Os": "linux",
+  "Arch": "amd64",
+  "KernelVersion": "5.15.0-91-generic",
+  "BuildTime": "2023-10-26T09:08:02.000000000+00:00"
+}

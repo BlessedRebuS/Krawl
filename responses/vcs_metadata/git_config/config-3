@@ -1,0 +1,14 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	url = https://mrossi:ghp_tKPIOmrftjHWyuLxTL7gyKMTUPyOWuY6wBOs@git.example.com/globex/customer-portal.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+	remote = origin
+	merge = refs/heads/main
+[user]
+	name = Aiko Tanaka
+	email = aiko.tanaka@example.com

@@ -108,7 +108,7 @@ class LoggerManager:
         self._access_logger.propagate = False
         self._credential_logger.propagate = False
 
-        # tracker.py, generative_ai.py and deception_responses.py log to the
+        # tracker.py, generative_ai.py and detection.py log to the
         # bare `krawl` parent. It had no handlers, so those records fell
         # through to root as well. Give it the app handlers and stop it there
         # too, so every krawl log lands in exactly one place.

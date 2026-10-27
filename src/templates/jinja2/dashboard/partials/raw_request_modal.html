@@ -11,6 +11,7 @@
         </div>
         <div class="raw-request-modal-body">
             <pre class="raw-request-content" x-html="rawModal.highlightedContent"></pre>
+            {% include "dashboard/partials/raw_request_detections.html" %}
         </div>
         <div class="raw-request-modal-footer">
             <div class="raw-attachment-wrapper" x-show="rawModal.hasAttachments" @click.outside="rawModal.attachmentsShow = false">

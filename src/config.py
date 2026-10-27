@@ -30,6 +30,71 @@ DEFAULT_IGNORED_IPS = [
     "fe80::/10",
 ]
 
+# Headers that carry the real client IP behind a proxy, checked in order.
+DEFAULT_PROXY_HEADERS = ["CF-Connecting-IP", "X-Forwarded-For", "X-Real-IP"]
+# One is sent as the Server header when server.server_header is not set.
+DEFAULT_SERVER_HEADERS = [
+    "Apache/2.4.41 (Ubuntu)",
+    "nginx/1.18.0",
+    "Microsoft-IIS/10.0",
+    "cloudflare",
+    "AmazonS3",
+    "gunicorn/20.1.0",
+]
+# Form fields that make a POST/PUT a credential attempt.
+DEFAULT_USERNAME_FIELDS = [
+    "username",
+    "user",
+    "login",
+    "email",
+    "log",
+    "userid",
+    "account",
+]
+DEFAULT_PASSWORD_FIELDS = ["password", "pass", "passwd", "pwd", "passphrase"]
+# Status codes the trap maze picks from when behavior.probability_error_codes hits.
+DEFAULT_ERROR_CODES = [400, 401, 403, 404, 500, 502, 503]
+# Points per behaviour signal toward each IP category (1-3 low ... 10-20 extreme).
+SCORING_CATEGORIES = ("attacker", "good_crawler", "bad_crawler", "regular_user")
+DEFAULT_SCORING_WEIGHTS = {
+    "attacker": {
+        "risky_http_methods": 6,
+        "robots_violations": 4,
+        "uneven_request_timing": 3,
+        "different_user_agents": 2,
+        "attack_url": 15,
+    },
+    "good_crawler": {
+        "risky_http_methods": 1,
+        "robots_violations": 0,
+        "uneven_request_timing": 0,
+        "different_user_agents": 0,
+        "attack_url": 0,
+    },
+    "bad_crawler": {
+        "risky_http_methods": 2,
+        "robots_violations": 6,
+        "uneven_request_timing": 0,
+        "different_user_agents": 6,
+        "attack_url": 4,
+    },
+    "regular_user": {
+        "risky_http_methods": 0,
+        "robots_violations": 0,
+        "uneven_request_timing": 8,
+        "different_user_agents": 3,
+        "attack_url": 0,
+    },
+}
+
+
+def _copy_default(value):
+    """A dataclass default factory that hands out a fresh copy."""
+    import copy
+
+    return dc_field(default_factory=lambda: copy.deepcopy(value))
+
+
 _DURATION_UNITS = {
     "h": timedelta(hours=1),
     "d": timedelta(days=1),
@@ -107,6 +172,10 @@ class Config:
     port: int = 5000
     delay: int = 100  # milliseconds
     server_header: str = ""
+    server_headers: list[str] = _copy_default(DEFAULT_SERVER_HEADERS)
+    proxy_headers: list[str] = _copy_default(DEFAULT_PROXY_HEADERS)
+    credential_username_fields: list[str] = _copy_default(DEFAULT_USERNAME_FIELDS)
+    credential_password_fields: list[str] = _copy_default(DEFAULT_PASSWORD_FIELDS)
     links_length_range: tuple[int, int] = (5, 15)
     links_per_page_range: tuple[int, int] = (10, 15)
     char_space: str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -130,6 +199,7 @@ class Config:
     dashboard_brand_show_version: bool = True
     dashboard_brand_contact: str | None = None
     probability_error_codes: int = 0  # Percentage (0-100)
+    error_codes: list[int] = _copy_default(DEFAULT_ERROR_CODES)
 
     # Prometheus metrics
     metrics_enabled: bool = True
@@ -187,6 +257,11 @@ class Config:
     uneven_request_timing_time_window_seconds: float = 300
     user_agents_used_threshold: float = 2
     attack_urls_threshold: float = 1
+    scoring_weights: dict[str, dict[str, int]] = _copy_default(DEFAULT_SCORING_WEIGHTS)
+
+    # Attack detection: YARA rules and the response catalogue they point to.
+    yara_rules_path: str = "rules"
+    responses_path: str = "responses"
 
     # Tarpit settings - opt-in feature to slow down and confuse AI crawlers
     tarpit_enabled: bool = False
@@ -338,6 +413,7 @@ class Config:
         map_cfg = data.get("map", {})
         behavior = data.get("behavior", {})
         analyzer = data.get("analyzer") or {}
+        detection = data.get("detection") or {}
         crawl = data.get("crawl", {})
         tarpit = data.get("tarpit", {})
         logging_cfg = data.get("logging", {})
@@ -381,6 +457,22 @@ class Config:
             )
             sys.exit(1)
 
+        credentials = data.get("credentials") or {}
+        proxy_headers = server.get("proxy_headers", DEFAULT_PROXY_HEADERS)
+        server_headers = server.get("server_headers", DEFAULT_SERVER_HEADERS)
+        username_fields = credentials.get("username_fields", DEFAULT_USERNAME_FIELDS)
+        password_fields = credentials.get("password_fields", DEFAULT_PASSWORD_FIELDS)
+        error_codes = behavior.get("error_codes", DEFAULT_ERROR_CODES)
+        scoring_weights = analyzer.get("scoring_weights", DEFAULT_SCORING_WEIGHTS)
+        _validate_settings(
+            proxy_headers=proxy_headers,
+            server_headers=server_headers,
+            username_fields=username_fields,
+            password_fields=password_fields,
+            error_codes=error_codes,
+            scoring_weights=scoring_weights,
+        )
+
         return cls(
             mode=mode,
             postgres_host=postgres_cfg.get("host", "localhost"),
@@ -398,6 +490,10 @@ class Config:
             port=server.get("port", 5000),
             delay=server.get("delay", 100),
             server_header=server.get("server_header", ""),
+            server_headers=list(server_headers),
+            proxy_headers=list(proxy_headers),
+            credential_username_fields=list(username_fields),
+            credential_password_fields=list(password_fields),
             links_length_range=(
                 links.get("min_length", 5),
                 links.get("max_length", 15),
@@ -435,6 +531,7 @@ class Config:
             dashboard_brand_contact=branding.get("contact"),
             metrics_enabled=metrics.get("enabled", True),
             probability_error_codes=behavior.get("probability_error_codes", 0),
+            error_codes=list(error_codes),
             backups_path=backups.get("path", "backups"),
             backups_enabled=backups.get("enabled", False),
             backups_cron=backups.get("cron", "*/30 * * * *"),
@@ -481,6 +578,9 @@ class Config:
             ),
             user_agents_used_threshold=analyzer.get("user_agents_used_threshold", 2),
             attack_urls_threshold=analyzer.get("attack_urls_threshold", 1),
+            scoring_weights={k: dict(v) for k, v in scoring_weights.items()},
+            yara_rules_path=detection.get("yara_rules_path", "rules"),
+            responses_path=detection.get("responses_path", "responses"),
             tlsh_enabled=analyzer.get("tlsh_enabled", True),
             tlsh_cluster_threshold=analyzer.get("tlsh_cluster_threshold", 150),
             tlsh_campaign_min_events=analyzer.get("tlsh_campaign_min_events", 10),
@@ -525,6 +625,41 @@ class Config:
             ),
             tasks_crunch_ips_batch=int(tasks_cfg.get("crunch_ips_batch", 5000)),
         )
+
+
+def _validate_settings(**settings) -> None:
+    """Exit on settings that would silently disable capture, IP detection or scoring."""
+
+    def fail(problem: str):
+        print(f"Error: {problem}", file=sys.stderr)
+        sys.exit(1)
+
+    def string_list(value) -> bool:
+        return isinstance(value, list) and all(
+            isinstance(item, str) and item for item in value
+        )
+
+    for key, where in (
+        ("proxy_headers", "server.proxy_headers"),
+        ("server_headers", "server.server_headers"),
+        ("username_fields", "credentials.username_fields"),
+        ("password_fields", "credentials.password_fields"),
+    ):
+        if not string_list(settings[key]) or not settings[key]:
+            fail(f"{where} must be a non-empty list of strings")
+    codes = settings["error_codes"]
+    if not isinstance(codes, list) or not all(
+        type(code) is int and 100 <= code <= 599 for code in codes
+    ):
+        fail("behavior.error_codes must be a list of HTTP status codes (100-599)")
+    weights = settings["scoring_weights"]
+    if not isinstance(weights, dict) or set(SCORING_CATEGORIES) - set(weights):
+        fail("analyzer.scoring_weights must define " + ", ".join(SCORING_CATEGORIES))
+    for category in SCORING_CATEGORIES:
+        if not isinstance(weights[category], dict) or not all(
+            isinstance(v, (int, float)) for v in weights[category].values()
+        ):
+            fail(f"analyzer.scoring_weights.{category} must map signals to numbers")
 
 
 def __get_env_from_config(config: str) -> str:
@@ -590,6 +725,16 @@ def override_config_from_env(config: Config = None):
                 get_app_logger().error(
                     f"Error overriding config '{field}' from environment variable '{env_var}': {e}"
                 )
+
+    # Env overrides must not empty the settings from_yaml already validated.
+    _validate_settings(
+        proxy_headers=config.proxy_headers,
+        server_headers=config.server_headers,
+        username_fields=config.credential_username_fields,
+        password_fields=config.credential_password_fields,
+        error_codes=config.error_codes,
+        scoring_weights=config.scoring_weights,
+    )
 
     # KRAWL_DATABASE_RETENTION_DAYS predates the retention: section; it still
     # drives the two windows it always did, unless their own env var is set

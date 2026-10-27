@@ -1,0 +1,74 @@
+{# HTMX fragment: loaded YARA rules (AUTHENTICATED). Search, filters, sorting
+   and paging all re-request rules/table, one page at a time. #}
+{% set upload_icon %}<svg class="icon-sm" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 1.75a.75.75 0 0 1 1.5 0V8.06l1.97-1.97a.749.749 0 1 1 1.06 1.06L8.53 10.4a.749.749 0 0 1-1.06 0L4.22 7.15a.749.749 0 1 1 1.06-1.06l1.97 1.97Z" transform="rotate(180 8 8)"/></svg>{% endset %}
+<div class="rules-panel" x-data="rulesUploader()">
+    <div class="panel-header mb-5">
+        <h2 class="panel-title">YARA Rules</h2>
+        <div class="row">
+            <span class="muted fs-sm">{{ total }} rules loaded · bundled rules come from <code>rules/*.yar</code></span>
+            <label class="deception-action-btn deception-action-btn-ok" :class="busy && 'is-busy'">
+                {{ upload_icon }} Upload rule file
+                <input type="file" accept=".yar,.yara" class="visually-hidden-input"
+                       :disabled="busy" @change="upload($event)">
+            </label>
+        </div>
+    </div>
+    <p class="form-status form-status-error rules-upload-status" x-show="error" x-text="error" x-cloak></p>
+    <p class="form-status form-status-ok rules-upload-status" x-show="message" x-text="message" x-cloak></p>
+
+    {% if uploaded_files %}
+    <table class="rules-uploads mb-5">
+        <caption class="muted fs-sm">Uploaded rule files · loaded without a restart, stored in the database</caption>
+        <thead>
+            <tr><th>File</th><th>Rules</th><th>Uploaded</th><th></th></tr>
+        </thead>
+        <tbody>
+            {% for item in uploaded_files %}
+            <tr>
+                <td><code>{{ item.filename }}</code></td>
+                <td><code>{{ item.rules | join(', ') }}</code></td>
+                <td>{{ item.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td class="rules-upload-actions">
+                    <a class="deception-action-btn" download href="{{ dashboard_path }}/api/rules/{{ item.filename }}">Download</a>
+                    <button type="button" class="deception-action-btn deception-action-btn-danger"
+                            data-filename="{{ item.filename }}" :disabled="busy"
+                            @click="deleteRuleFile($el.dataset.filename)">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <form class="row rules-filters"
+          hx-get="{{ dashboard_path }}/htmx/rules/table"
+          hx-target="#rules-table-container"
+          hx-swap="innerHTML"
+          hx-trigger="change, input delay:300ms from:find input[name='q']"
+          @submit.prevent>
+        <input class="panel-search" type="search" name="q" value="{{ query.q }}"
+               placeholder="Search name, type, file, CVE, description"
+               autocomplete="off" aria-label="Search rules">
+        <select class="panel-search" name="rule_file" aria-label="Rule file">
+            <option value="">All files</option>
+            {% for name in rule_files %}
+            <option value="{{ name }}">{{ name }}.yar</option>
+            {% endfor %}
+        </select>
+        <select class="panel-search" name="classification" aria-label="Classification">
+            <option value="">Attack and suspicious</option>
+            <option value="attack">Attack</option>
+            <option value="suspicious">Suspicious</option>
+        </select>
+        <select class="panel-search" name="min_severity" aria-label="Minimum severity">
+            <option value="">Any severity</option>
+            <option value="4">Severity 4+</option>
+            <option value="7">Severity 7+</option>
+            <option value="9">Severity 9+</option>
+        </select>
+    </form>
+
+    <div class="table-container" id="rules-table-container">
+        {% include "dashboard/partials/rules_table.html" %}
+    </div>
+</div>
