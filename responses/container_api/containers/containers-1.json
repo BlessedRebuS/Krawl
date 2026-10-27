@@ -1,0 +1,89 @@
+[
+  {
+    "Id": "909e27027e0a3fddeb86432e8d421b49c7263283fade568b6cdd2e9aed50c41f",
+    "Names": [
+      "/shop-backend-proxy-1"
+    ],
+    "Image": "nginx:1.25",
+    "ImageID": "sha256:753307dd7db4806dc535d63e7d98454f21525c4bb9c3c3483045651ff0f1561f",
+    "Command": "/docker-entrypoint.sh nginx -g 'daemon off;'",
+    "Created": 1729455421,
+    "State": "running",
+    "Status": "Up 28 days",
+    "Ports": [
+      {
+        "PrivatePort": 8080,
+        "Type": "tcp"
+      }
+    ],
+    "Labels": {
+      "com.docker.compose.project": "shop-backend"
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "bridge": {
+          "IPAddress": "192.0.2.82",
+          "Gateway": "192.0.2.1"
+        }
+      }
+    }
+  },
+  {
+    "Id": "8934886651178c1d2afd23326b62ae5f26594dab42cd333ad820b97d5d232f00",
+    "Names": [
+      "/shop-backend-api-1"
+    ],
+    "Image": "registry.example.com/shop/api:2.4.1",
+    "ImageID": "sha256:9b5f4a0ca5563a63695e1d21d686b3628c3dac5d4e1400f0c0cc8d8321c107b6",
+    "Command": "/app/server",
+    "Created": 1729119338,
+    "State": "running",
+    "Status": "Up 27 days",
+    "Ports": [
+      {
+        "PrivatePort": 8080,
+        "Type": "tcp"
+      }
+    ],
+    "Labels": {
+      "com.docker.compose.project": "shop-backend"
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "bridge": {
+          "IPAddress": "192.0.2.2",
+          "Gateway": "192.0.2.1"
+        }
+      }
+    }
+  },
+  {
+    "Id": "b3388f39e65f04db0248739c334b5acc3e6876fc8e3283ad766599b856ee82b4",
+    "Names": [
+      "/shop-backend-cache-1"
+    ],
+    "Image": "redis:7-alpine",
+    "ImageID": "sha256:80492bc8509c13135a2361c7c457f4247a56320c591fc6b35721cd8ad4f081d8",
+    "Command": "docker-entrypoint.sh redis-server",
+    "Created": 1729074883,
+    "State": "running",
+    "Status": "Up 30 days",
+    "Ports": [
+      {
+        "PrivatePort": 8080,
+        "Type": "tcp"
+      }
+    ],
+    "Labels": {
+      "com.docker.compose.project": "shop-backend"
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "bridge": {
+          "IPAddress": "192.0.2.226",
+          "Gateway": "192.0.2.1"
+        }
+      }
+    }
+  }
+]

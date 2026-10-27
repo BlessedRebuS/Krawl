@@ -1,0 +1,5 @@
+# configuration
+api_key=mFjHa2A5MGBOz0EcSkjcAattNMc5rGNE
+secret=qAIRCPb22FkT36hLEVTwfWrR
+database_url=mysql://tchen:GraniteFalcon81!@db.internal/app
+debug=false

@@ -411,6 +411,193 @@ async def htmx_deception(request: Request):
     )
 
 
+# ── YARA Rules ──────────────────────────────────────────────────────
+
+RULE_SORT_KEYS = {"rule", "attack_type", "severity", "matches", "last_match"}
+RULES_PER_PAGE = 50
+
+
+def build_rule_rows(
+    rules: list[dict],
+    stats: dict,
+    rule_file: str = "",
+    classification: str = "",
+    min_severity: str | int = "",
+    sort_by: str = "matches",
+    sort_order: str = "desc",
+    q: str = "",
+) -> list[dict]:
+    """Join loaded rules with their match counts, then filter and sort.
+
+    `q` keeps rules whose name, attack type, file, description or CVEs contain
+    it, ignoring case.
+
+    Detections without a stored rule_name count for a rule only when no other
+    loaded rule reports the same attack type.
+    """
+    rules_per_type: dict[str, int] = {}
+    for rule in rules:
+        rules_per_type[rule["attack_type"]] = (
+            rules_per_type.get(rule["attack_type"], 0) + 1
+        )
+    try:
+        severity_floor = int(min_severity)
+    except (TypeError, ValueError):
+        severity_floor = 0
+
+    needle = q.strip().lower()
+    rows = []
+    for rule in rules:
+        if needle and needle not in _rule_search_text(rule):
+            continue
+        if rule_file and rule["rule_file"] != rule_file:
+            continue
+        if classification and rule["classification"] != classification:
+            continue
+        if rule["severity"] < severity_floor:
+            continue
+        counts = [stats["by_rule"].get(rule["rule"], (0, None))]
+        if rules_per_type[rule["attack_type"]] == 1:
+            counts.append(stats["unnamed_by_type"].get(rule["attack_type"], (0, None)))
+        times = [last for count, last in counts if count and last is not None]
+        rows.append(
+            {
+                **rule,
+                "matches": sum(count for count, _ in counts),
+                "last_match": max(times) if times else None,
+            }
+        )
+
+    if sort_by not in RULE_SORT_KEYS:
+        sort_by, sort_order = "matches", "desc"
+    reverse = sort_order != "asc"
+
+    def key(row):
+        value = row[sort_by]
+        if sort_by == "last_match":
+            # Never-matched rules sort as the oldest.
+            return value or datetime.min
+        return value
+
+    # Name order first, so ties keep a stable alphabetical order.
+    rows.sort(key=lambda row: row["rule"])
+    return sorted(rows, key=key, reverse=reverse)
+
+
+def _rule_search_text(rule: dict) -> str:
+    fields = (
+        rule["rule"],
+        rule["attack_type"],
+        rule["rule_file"],
+        rule.get("description") or "",
+        " ".join(rule.get("cve") or ()),
+    )
+    return " ".join(fields).lower()
+
+
+def paginate_rule_rows(
+    rows: list[dict], page: str | int, per_page: int = RULES_PER_PAGE
+) -> tuple[list[dict], int, int]:
+    """Return (rows on the page, page number, page count); bad pages are clamped."""
+    pages = max(1, -(-len(rows) // per_page))
+    try:
+        number = int(page)
+    except (TypeError, ValueError):
+        number = 1
+    number = min(max(number, 1), pages)
+    start = (number - 1) * per_page
+    return rows[start : start + per_page], number, pages
+
+
+async def _rule_rows(request: Request, **query) -> list[dict]:
+    from detection import get_detection
+
+    rules = get_detection().list_rules()
+    stats = await asyncio.to_thread(get_db().access_logs.get_rule_match_stats)
+    return build_rule_rows(rules, stats, **query)
+
+
+def _rules_query(
+    rule_file: str = "",
+    classification: str = "",
+    min_severity: str = "",
+    sort_by: str = "matches",
+    sort_order: str = "desc",
+    q: str = "",
+) -> dict:
+    """The table's filter and sort values, with unknown sorts reset to the default."""
+    return {
+        "rule_file": rule_file,
+        "classification": classification,
+        "min_severity": min_severity,
+        "sort_by": sort_by if sort_by in RULE_SORT_KEYS else "matches",
+        "sort_order": sort_order if sort_order in {"asc", "desc"} else "desc",
+        "q": q[:200],
+    }
+
+
+async def _rule_table_context(request: Request, query: dict, page: str) -> dict:
+    rows = await _rule_rows(request, **query)
+    page_rows, number, pages = paginate_rule_rows(rows, page)
+    return {
+        "dashboard_path": _dashboard_path(request),
+        "rows": page_rows,
+        "query": query,
+        "page": number,
+        "pages": pages,
+        "matching": len(rows),
+        "first": (number - 1) * RULES_PER_PAGE + 1 if rows else 0,
+    }
+
+
+@router.get("/htmx/rules")
+async def htmx_rules(request: Request, q: str = Query("")):
+    """The Rules panel: loaded YARA rules with their match counts, one page."""
+    if not verify_auth(request):
+        return HTMLResponse(_PANEL_401, status_code=401)
+    import custom_rules
+    from detection import get_detection
+
+    query = _rules_query(q=q)
+    rules = get_detection().list_rules()
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/rules_panel.html",
+        {
+            **await _rule_table_context(request, query, "1"),
+            "rule_files": sorted({rule["rule_file"] for rule in rules}),
+            "total": len(rules),
+            "uploaded_files": await asyncio.to_thread(custom_rules.list_files),
+        },
+    )
+
+
+@router.get("/htmx/rules/table")
+async def htmx_rules_table(
+    request: Request,
+    rule_file: str = Query(""),
+    classification: str = Query(""),
+    min_severity: str = Query(""),
+    sort_by: str = Query("matches"),
+    sort_order: str = Query("desc"),
+    q: str = Query(""),
+    page: str = Query("1"),
+):
+    """The Rules table, re-rendered for a search, filter, sort or page change."""
+    if not verify_auth(request):
+        return HTMLResponse(_PANEL_401, status_code=401)
+    query = _rules_query(
+        rule_file, classification, min_severity, sort_by, sort_order, q
+    )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/rules_table.html",
+        await _rule_table_context(request, query, page),
+    )
+
+
 @router.get("/htmx/generated-pages")
 async def htmx_generated_pages(
     request: Request,

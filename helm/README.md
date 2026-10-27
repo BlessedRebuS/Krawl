@@ -633,7 +633,6 @@ kubectl logs -l app.kubernetes.io/name=krawl
   - `deployment.yaml` - Krawl deployment (branches on `mode` for strategy, env vars, volumes)
   - `service.yaml` - Service configuration
   - `configmap.yaml` - Application configuration
-  - `wordlists-configmap.yaml` - Wordlists configuration
   - `secret.yaml` - Dashboard password secret
   - `secret-scalable.yaml` - PostgreSQL and Redis password secrets (scalable mode only)
   - `secret-ai.yaml` - AI/LLM API key secret (`aiExistingSecret` skips it)

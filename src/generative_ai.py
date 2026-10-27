@@ -200,47 +200,14 @@ def can_generate_today() -> bool:
 
 
 def load_robots_disallowed() -> list[str]:
-    """Load and parse robots.txt to get disallowed paths.
-
-    Returns:
-        List of disallowed paths from robots.txt
-    """
+    """Disallowed paths from the bundled robots.txt page (trailing slash removed)."""
     global _robots_disallowed_cache
 
-    if _robots_disallowed_cache is not None:
-        return _robots_disallowed_cache
+    if _robots_disallowed_cache is None:
+        from detection import get_response_catalog
 
-    disallowed_paths = []
-
-    # Try to find robots.txt in templates/html directory
-    robots_paths = [
-        Path(__file__).parent / "templates" / "html" / "robots.txt",
-        Path(__file__).parent / "templates" / "robots.txt",
-        Path(__file__).parent / "robots.txt",
-    ]
-
-    for robots_file in robots_paths:
-        if robots_file.exists():
-            try:
-                with open(robots_file) as f:
-                    for line in f:
-                        line = line.strip()
-                        if line.startswith("Disallow:"):
-                            path = line.replace("Disallow:", "").strip()
-                            if path:
-                                disallowed_paths.append(path)
-
-                logger.debug(
-                    f"Loaded {len(disallowed_paths)} disallowed paths from {robots_file}"
-                )
-                _robots_disallowed_cache = disallowed_paths
-                return disallowed_paths
-            except Exception as err:
-                logger.warning(f"Failed to load robots.txt from {robots_file}: {err}")
-
-    logger.warning("robots.txt not found, no paths will be blocked")
-    _robots_disallowed_cache = []
-    return []
+        _robots_disallowed_cache = list(get_response_catalog().robots_disallows)
+    return _robots_disallowed_cache
 
 
 def has_generated_page_in_db(path: str) -> bool:
@@ -759,8 +726,9 @@ def should_use_ai_for_path(path: str) -> bool:
     # Check if path exactly matches a robots.txt disallowed path
     # Only exclude exact matches, not sub-paths (e.g., /wp-admin is excluded,
     # but /wp-admin/test.php queries AI since the hit is not precise)
+    bare = path.rstrip("/") or "/"
     for disallowed in robots_disallowed_paths:
-        if path == disallowed:
+        if bare == disallowed:
             return False
 
     return True

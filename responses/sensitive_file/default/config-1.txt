@@ -1,0 +1,5 @@
+# configuration
+api_key=VI066d0lrh3vJTRpNKJWFRn57YiS0YsF
+secret=3HAl2lKsXdqqsNdafol31jUm
+database_url=mysql://pgarcia:OrchidCobalt69!@db.internal/app
+debug=false

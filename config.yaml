@@ -28,6 +28,10 @@ server:
 
   # manually set the server header, if null a random one will be used.
   server_header: null
+  # Server headers picked at random when server_header is null.
+  server_headers: ["Apache/2.4.41 (Ubuntu)", "nginx/1.18.0", "Microsoft-IIS/10.0", "cloudflare", "AmazonS3", "gunicorn/20.1.0"]
+  # Headers that carry the real client IP behind a proxy, checked in order.
+  proxy_headers: [CF-Connecting-IP, X-Forwarded-For, X-Real-IP]
 
 links:
   min_length: 5
@@ -114,6 +118,12 @@ ipv6:
 
 behavior:
   probability_error_codes: 0  # 0-100 percentage
+  error_codes: [400, 401, 403, 404, 500, 502, 503]  # trap pages pick one of these
+
+# A POST/PUT with any of these form fields is logged as a credential attempt.
+credentials:
+  username_fields: [username, user, login, email, log, userid, account]
+  password_fields: [password, pass, passwd, pwd, passphrase]
 
 analyzer:
   http_risky_methods_threshold: 0.1
@@ -122,6 +132,13 @@ analyzer:
   uneven_request_timing_time_window_seconds: 300
   user_agents_used_threshold: 2
   attack_urls_threshold: 1
+  # Points each behaviour signal adds toward an IP category (1-3 low, 4-6 mid,
+  # 7-9 high, 10-20 extreme); the highest total wins.
+  scoring_weights:
+    attacker:     {risky_http_methods: 6, robots_violations: 4, uneven_request_timing: 3, different_user_agents: 2, attack_url: 15}
+    good_crawler: {risky_http_methods: 1, robots_violations: 0, uneven_request_timing: 0, different_user_agents: 0, attack_url: 0}
+    bad_crawler:  {risky_http_methods: 2, robots_violations: 6, uneven_request_timing: 0, different_user_agents: 6, attack_url: 4}
+    regular_user: {risky_http_methods: 0, robots_violations: 0, uneven_request_timing: 8, different_user_agents: 3, attack_url: 0}
   # Compute TLSH fuzzy hashes for captured payloads/files (near-duplicate clustering).
   tlsh_enabled: true
   # TLSH distance below which a payload joins an existing campaign.
@@ -130,6 +147,12 @@ analyzer:
   tlsh_campaign_min_events: 10
   # Capture the inbound HTTP Referer header on access logs for bait-chain tracking.
   referer_enabled: true
+
+# Request detection: YARA rules in yara_rules_path, and the fake replies they
+# point to in responses_path.
+detection:
+  yara_rules_path: rules
+  responses_path: responses  # fake responses for detected attacks (manifest.yaml + files)
 
 # Rows each scheduled task handles per run; the remainder is picked up next run.
 # Raise these when a backlog never drains. The defaults are sized for a 256Mi

@@ -1,0 +1,13 @@
+ami-id
+ami-launch-index
+hostname
+iam/
+instance-action
+instance-id
+instance-type
+local-ipv4
+mac
+network/
+placement/
+public-ipv4
+security-groups

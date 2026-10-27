@@ -46,6 +46,8 @@ COLUMNS = [
     ("access_logs", "file_extraction_version", "INTEGER DEFAULT 0"),
     # Threat-intel: TLSH fuzzy hash on attack detections for near-duplicate clustering.
     ("attack_detections", "tlsh_hash", "VARCHAR(72)"),
+    # Name of the YARA rule behind each detection; NULL on older rows.
+    ("attack_detections", "rule_name", "VARCHAR(128)"),
     # Campaign clustering: payload_clusters.id, assigned incrementally at ingest.
     ("captured_payloads", "cluster_id", "VARCHAR(36)"),
     ("attack_detections", "cluster_id", "VARCHAR(36)"),
@@ -96,6 +98,8 @@ INDEXES = [
     ("ix_ip_stats_ban_timestamp", "ip_stats", "ban_timestamp"),
     ("ix_ip_stats_last_analysis", "ip_stats", "last_analysis"),
     ("ix_attack_detections_tlsh_hash", "attack_detections", "tlsh_hash"),
+    # Per-rule match counts on the dashboard Rules panel.
+    ("ix_attack_detections_rule_name", "attack_detections", "rule_name"),
     # Cluster membership lookups (cluster drill-downs, campaign filter).
     ("ix_captured_payloads_cluster_id", "captured_payloads", "cluster_id"),
     ("ix_attack_detections_cluster_id", "attack_detections", "cluster_id"),

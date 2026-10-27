@@ -1,0 +1,7 @@
+{
+  "auths": {
+    "registry.internal.example.com": {
+      "auth": "b3BzOkhhcmJvckhhcmJvcjc5IQ=="
+    }
+  }
+}

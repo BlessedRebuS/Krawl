@@ -20,7 +20,8 @@ services:
       # set this to change timezone, alternatively mount /etc/timezone or /etc/localtime based on the time system management of the host environment
       # - TZ=${TZ}
     volumes:
-      - ../../wordlists.json:/app/wordlists.json:ro
+      - ../../rules:/app/rules:ro
+      - ../../responses:/app/responses:ro
       - ../../config.yaml:/app/config.yaml:ro
       - ../../logs:/app/logs
       - ../../data:/app/data

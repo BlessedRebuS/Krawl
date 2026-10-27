@@ -1,0 +1,5 @@
+# configuration
+api_key=5rxuZ0olug1bU6FC3AzderNhhIsuwn3i
+secret=COkLZCcPbo4Lnl1Sk0O0yhF4
+database_url=mysql://admin:SummerJuniper97$@db.internal/app
+debug=false

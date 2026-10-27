@@ -10,6 +10,11 @@ data:
     server:
       port: {{ .Values.config.server.port }}
       delay: {{ .Values.config.server.delay }}
+      server_headers: {{ .Values.config.server.server_headers | toJson }}
+      proxy_headers: {{ .Values.config.server.proxy_headers | toJson }}
+    credentials:
+      username_fields: {{ .Values.config.credentials.username_fields | toJson }}
+      password_fields: {{ .Values.config.credentials.password_fields | toJson }}
     links:
       min_length: {{ .Values.config.links.min_length }}
       max_length: {{ .Values.config.links.max_length }}
@@ -55,6 +60,7 @@ data:
     {{- end }}
     behavior:
       probability_error_codes: {{ .Values.config.behavior.probability_error_codes }}
+      error_codes: {{ .Values.config.behavior.error_codes | toJson }}
     analyzer:
       http_risky_methods_threshold: {{ .Values.config.analyzer.http_risky_methods_threshold }}
       violated_robots_threshold: {{ .Values.config.analyzer.violated_robots_threshold }}
@@ -62,10 +68,14 @@ data:
       uneven_request_timing_time_window_seconds: {{ .Values.config.analyzer.uneven_request_timing_time_window_seconds }}
       user_agents_used_threshold: {{ .Values.config.analyzer.user_agents_used_threshold }}
       attack_urls_threshold: {{ .Values.config.analyzer.attack_urls_threshold }}
+      scoring_weights: {{ .Values.config.analyzer.scoring_weights | toJson }}
       tlsh_enabled: {{ .Values.config.analyzer.tlsh_enabled }}
       tlsh_cluster_threshold: {{ .Values.config.analyzer.tlsh_cluster_threshold }}
       tlsh_campaign_min_events: {{ .Values.config.analyzer.tlsh_campaign_min_events }}
       referer_enabled: {{ .Values.config.analyzer.referer_enabled }}
+    detection:
+      yara_rules_path: {{ .Values.config.detection.yara_rules_path | quote }}
+      responses_path: {{ .Values.config.detection.responses_path | quote }}
     tasks:
       analyze_ips_batch: {{ .Values.config.tasks.analyze_ips_batch }}
       extract_metadata_batch: {{ .Values.config.tasks.extract_metadata_batch }}

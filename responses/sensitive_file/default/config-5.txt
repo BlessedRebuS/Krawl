@@ -1,0 +1,5 @@
+# configuration
+api_key=ojaKJAOUqNWoYjpqKwDZjPdd3pV7NZ8T
+secret=ZT1uSSZfw4WSC1wkhLb7gjRb
+database_url=mysql://svc_app:CobaltVelvet14$@db.internal/app
+debug=false

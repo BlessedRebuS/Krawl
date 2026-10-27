@@ -1,0 +1,95 @@
+{
+  "kind": "PodList",
+  "apiVersion": "v1",
+  "metadata": {
+    "resourceVersion": "157151"
+  },
+  "items": [
+    {
+      "metadata": {
+        "name": "cache-4cslkzrpza-7tk2r",
+        "namespace": "payments",
+        "uid": "c1a04438-15ee-e4ee-9caf-40ac8114a18f",
+        "labels": {
+          "app": "cache"
+        }
+      },
+      "spec": {
+        "serviceAccountName": "default",
+        "containers": [
+          {
+            "name": "cache",
+            "image": "redis:7-alpine",
+            "env": []
+          }
+        ],
+        "nodeName": "node-2"
+      },
+      "status": {
+        "phase": "Running",
+        "hostIP": "198.51.100.237",
+        "podIP": "192.0.2.65",
+        "startTime": "2024-10-02T11:20:31Z"
+      }
+    },
+    {
+      "metadata": {
+        "name": "api-bt7sz3yj4f-tt4z2",
+        "namespace": "payments",
+        "uid": "729dd517-1b27-6f49-50a3-fd2202328f72",
+        "labels": {
+          "app": "api"
+        }
+      },
+      "spec": {
+        "serviceAccountName": "default",
+        "containers": [
+          {
+            "name": "api",
+            "image": "registry.example.com/shop/api:2.4.1",
+            "env": [
+              {
+                "name": "DATABASE_URL",
+                "value": "postgres://app:Tango-Lima-77@db.internal:5432/app"
+              }
+            ]
+          }
+        ],
+        "nodeName": "node-3"
+      },
+      "status": {
+        "phase": "Running",
+        "hostIP": "198.51.100.154",
+        "podIP": "192.0.2.147",
+        "startTime": "2024-10-02T11:20:31Z"
+      }
+    },
+    {
+      "metadata": {
+        "name": "proxy-duiuc5b5ow-9klzd",
+        "namespace": "payments",
+        "uid": "6c58bbd4-c81c-8317-4e43-b3b411e99364",
+        "labels": {
+          "app": "proxy"
+        }
+      },
+      "spec": {
+        "serviceAccountName": "default",
+        "containers": [
+          {
+            "name": "proxy",
+            "image": "nginx:1.25",
+            "env": []
+          }
+        ],
+        "nodeName": "node-2"
+      },
+      "status": {
+        "phase": "Running",
+        "hostIP": "198.51.100.12",
+        "podIP": "192.0.2.219",
+        "startTime": "2024-10-02T11:20:31Z"
+      }
+    }
+  ]
+}

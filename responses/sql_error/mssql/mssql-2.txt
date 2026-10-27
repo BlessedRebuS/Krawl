@@ -1,0 +1,1 @@
+[Microsoft][ODBC SQL Server Driver][SQL Server]Incorrect syntax near 'delay'.

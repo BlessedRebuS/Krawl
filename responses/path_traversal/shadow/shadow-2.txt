@@ -1,0 +1,12 @@
+root:$6$ZnZmSpn3DI4y0ISx$v90Voh0fJa6HUsop2CFxsy.gBDjKyqcN9T2UUXGBhIBSPyJuwvOkBF3NafdbIvmbgvEBdkd.YB3V4nIrZ7jezt:19623:0:99999:7:::
+daemon:*:19155:0:99999:7:::
+bin:*:19470:0:99999:7:::
+sys:*:19522:0:99999:7:::
+sync:*:19638:0:99999:7:::
+www-data:*:19171:0:99999:7:::
+backup:*:19764:0:99999:7:::
+postgres:*:19772:0:99999:7:::
+sshd:*:19846:0:99999:7:::
+ubuntu:$6$8Bxwfy1thep4A6SW$WLjpk07CDYAbKLhwAKyB/AoiwT0HiN6MRKQ6/miO5GXtSyV9baai/Pn609GPIc8KfWxvEJWWLrAS5saz7ha1or:19432:0:99999:7:::
+gitlab-runner:$6$h1p79bGsFdkVk16u$0KauLAfnm0AfA9hj33sxVV2VJ8Ag116xtxVUe6ZZba.0FdlZx7LRzQyzZ/XxEZYagw88xqhWbFr84CtcAQyHV0:19264:0:99999:7:::
+mrossi:$6$sf9uLdMcwPUJ09ON$8f0CLUs6K4MBKYX38QVk346QKtONHmtinJMU2TzLCq8P5WVlofblCVvQWeTwpPKsjAJ7WwuySa6TMSbowy0nPZ:19105:0:99999:7:::

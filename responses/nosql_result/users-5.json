@@ -1,0 +1,62 @@
+{
+  "ok": 1,
+  "count": 4,
+  "users": [
+    {
+      "_id": {
+        "$oid": "3b5c253a415d44cd2dd723aa"
+      },
+      "username": "lukas.weber",
+      "name": "Lukas Weber",
+      "email": "lukas.weber@example.com",
+      "password": "$2b$12$s6pJGOYVMUzYhYvRvjcvbhP6u7KJZQ7X5O0Hc9fr34E0pMNinrsvk",
+      "role": "editor",
+      "resetToken": null,
+      "createdAt": {
+        "$date": "2024-01-13T10:37:00Z"
+      }
+    },
+    {
+      "_id": {
+        "$oid": "bd0e659d6d8d6d4704512f1f"
+      },
+      "username": "carlos.mendez",
+      "name": "Carlos Mendez",
+      "email": "carlos.mendez@example.com",
+      "password": "$2b$12$BbMfUyKGI8e3pmQpBK3Ldle/FinTPIQJ9XaGDT2lj3fDOvcXT/I7A",
+      "role": "editor",
+      "resetToken": null,
+      "createdAt": {
+        "$date": "2024-05-19T10:24:00Z"
+      }
+    },
+    {
+      "_id": {
+        "$oid": "bf9b8b12eca3fcff496070c9"
+      },
+      "username": "aiko.tanaka",
+      "name": "Aiko Tanaka",
+      "email": "aiko.tanaka@example.com",
+      "password": "$2b$12$NNHzpgs.mEGhCQDYYlHsROPiHKrgONVC3QkvDz1AC8ox6fO8VsxV4",
+      "role": "admin",
+      "resetToken": "8a76f7ce1209b3bc8d79259308b7959e55c0616a",
+      "createdAt": {
+        "$date": "2024-09-19T10:53:00Z"
+      }
+    },
+    {
+      "_id": {
+        "$oid": "677cbf5c0813b645d548260b"
+      },
+      "username": "priya.nair",
+      "name": "Priya Nair",
+      "email": "priya.nair@example.com",
+      "password": "$2b$12$xjKA/yk3au9B06W2YZLIHt3hhuGBoQfhZlbgSICrDRLQEefjEaZQI",
+      "role": "editor",
+      "resetToken": "e12984c4d403af2ec2327c3d481a1d4248c5db91",
+      "createdAt": {
+        "$date": "2024-06-18T10:26:00Z"
+      }
+    }
+  ]
+}

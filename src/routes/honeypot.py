@@ -1,48 +1,32 @@
 #!/usr/bin/env python3
 
 """
-Honeypot trap routes for the Krawl deception server.
-Migrated from handler.py serve_special_path(), do_POST(), and do_GET() catch-all.
+Honeypot routes: bait pages from the response catalogue, credential capture for
+every POST/PUT, and the trap maze for every other GET.
 """
 
 import asyncio
 import random
 from datetime import datetime
-from urllib.parse import parse_qs
 
 from fastapi import APIRouter, Depends, Request, Response
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse
 
 from config import Config, get_config
-from deception_responses import (
-    detect_xss_pattern,
-    generate_server_error,
-    generate_sql_error_response,
-    generate_xss_response,
-    get_sql_response_with_data,
-)
 from dependencies import (
     build_raw_request,
     get_client_ip,
     read_body_capped,
 )
+from detection import get_response_catalog
 from generative_ai import (
     generate_html_for_path,
     get_model,
     get_provider,
     should_use_ai_for_path,
 )
-from generators import (
-    api_keys_json,
-    api_response,
-    credentials_txt,
-    directory_listing,
-    passwords_txt,
-    users_json,
-)
 from logger import get_access_logger, get_app_logger, get_credential_logger
-from templates import load_template, main_page
-from wordlists import get_wordlists
+from templates import main_page
 
 
 async def _safe_body(request: Request) -> str:
@@ -62,6 +46,7 @@ async def _track_honeypot_request(request: Request):
     referer = request.headers.get("Referer", "") if get_config().referer_enabled else ""
     target_host = request.headers.get("Host", "")
     path = request.url.path
+    query = request.url.query or ""
     get_app_logger().debug(f"[HoneypotDep] {request.method} {path} from {client_ip}")
 
     body_bytes = b""
@@ -70,14 +55,24 @@ async def _track_honeypot_request(request: Request):
         body_bytes = await read_body_capped(request)
         body = body_bytes.decode("utf-8", errors="replace")
 
-    # Check attack patterns in path and body
-    attack_findings = tracker.detect_attack_type(path)
-
-    if body:
-        import urllib.parse
-
-        decoded_body = urllib.parse.unquote(body)
-        attack_findings.extend(tracker.detect_attack_type(decoded_body))
+    # Reuse the DeceptionMiddleware scan when it ran; scan here otherwise. The
+    # last fallback keeps lightweight third-party tracker doubles compatible.
+    detection_findings = getattr(request.state, "detection_findings", None)
+    if detection_findings is None and hasattr(tracker, "detector"):
+        detection_findings = tracker.detector.scan_request(
+            path=path,
+            query=query,
+            body=body,
+            user_agent=user_agent,
+            method=request.method,
+            headers=request.headers.items(),
+        )
+    if detection_findings is not None:
+        attack_findings = [
+            item for item in detection_findings if item.classification == "attack"
+        ]
+    else:
+        attack_findings = tracker.detect_attack_type(path)
 
     # File capture is independent of attack matching and TLSH. Hashing is the
     # optional part; exact SHA-256 metadata is still retained when TLSH is off.
@@ -105,12 +100,16 @@ async def _track_honeypot_request(request: Request):
             path=path,
             user_agent=user_agent,
             body=body,
+            query=query,
             method=request.method,
             raw_request=raw_request,
             referer=referer,
             file_payloads=file_payloads,
             target_host=target_host,
+            detection_findings=detection_findings,
         )
+        # Route handlers read this instead of re-deriving the decision above.
+        request.state.access_recorded = True
 
 
 router = APIRouter(dependencies=[Depends(_track_honeypot_request)])
@@ -126,79 +125,25 @@ def _should_return_error(config: Config) -> bool:
 
 
 def _get_random_error_code() -> int:
-    wl = get_wordlists()
-    error_codes = wl.error_codes
-    if not error_codes:
-        error_codes = [400, 401, 403, 404, 500, 502, 503]
-    return random.choice(error_codes)
+    return random.choice(get_config().error_codes)
 
 
-# --- HEAD ---
-
-
-@router.head("/{path:path}")
-async def handle_head(path: str):
-    return Response(status_code=200, headers={"Content-Type": "text/html"})
-
-
-# --- POST routes ---
-
-
-@router.post("/api/search")
-@router.post("/api/sql")
-@router.post("/api/database")
-async def sql_endpoint_post(request: Request):
-    client_ip = get_client_ip(request)
-    access_logger = get_access_logger()
-
-    post_data = await _safe_body(request)
-
-    base_path = request.url.path
-    access_logger.info(
-        f"[SQL ENDPOINT POST] {client_ip} - {base_path} - Data: {post_data[:100] if post_data else 'empty'}"
+def _page_response(request: Request) -> Response | None:
+    """The pages: entry for this request from responses/manifest.yaml, if any."""
+    reply = get_response_catalog().page(
+        request.url.path, request.method, request.url.query or ""
+    )
+    if reply is None:
+        return None
+    return Response(
+        content=reply.body,
+        status_code=reply.status,
+        media_type=reply.content_type,
+        headers=dict(reply.headers),
     )
 
-    error_msg, content_type, status_code = generate_sql_error_response(post_data)
 
-    if error_msg:
-        access_logger.warning(
-            f"[SQL INJECTION DETECTED POST] {client_ip} - {base_path}"
-        )
-        return Response(
-            content=error_msg, status_code=status_code, media_type=content_type
-        )
-    else:
-        response_data = get_sql_response_with_data(base_path, post_data)
-        return Response(
-            content=response_data, status_code=200, media_type="application/json"
-        )
-
-
-@router.post("/api/contact")
-async def contact_post(request: Request):
-    client_ip = get_client_ip(request)
-    request.headers.get("User-Agent", "")
-    access_logger = get_access_logger()
-    get_app_logger()
-
-    post_data = await _safe_body(request)
-
-    parsed_data = {}
-    if post_data:
-        parsed_qs = parse_qs(post_data)
-        parsed_data = {k: v[0] if v else "" for k, v in parsed_qs.items()}
-
-    xss_detected = any(detect_xss_pattern(str(v)) for v in parsed_data.values())
-
-    if xss_detected:
-        access_logger.warning(
-            f"[XSS ATTEMPT DETECTED] {client_ip} - {request.url.path} - Data: {post_data[:200]}"
-        )
-    else:
-        access_logger.info(f"[XSS ENDPOINT POST] {client_ip} - {request.url.path}")
-
-    response_html = generate_xss_response(parsed_data)
-    return HTMLResponse(content=response_html, status_code=200)
+# --- POST/PUT: credential capture, then a page or the login_failed reply ---
 
 
 @router.post("/{path:path}")
@@ -241,180 +186,29 @@ async def credential_capture_post(request: Request, path: str):
             )
 
     await asyncio.sleep(1)
-    return HTMLResponse(content=load_template("login_error"), status_code=200)
-
-
-# --- GET special paths ---
-
-
-@router.get("/robots.txt")
-async def robots_txt():
-    return PlainTextResponse(load_template("robots.txt"))
-
-
-@router.get("/credentials.txt")
-async def fake_credentials():
-    return PlainTextResponse(credentials_txt())
-
-
-@router.get("/passwords.txt")
-@router.get("/admin_notes.txt")
-async def fake_passwords():
-    return PlainTextResponse(passwords_txt())
-
-
-@router.get("/users.json")
-async def fake_users_json():
-    return JSONResponse(content=None, status_code=200, media_type="application/json")
-
-
-@router.get("/api_keys.json")
-async def fake_api_keys():
+    page = _page_response(request)
+    if page is not None:
+        return page
+    reply = get_response_catalog().login_failed(full_path, request.url.query or "")
     return Response(
-        content=api_keys_json(), status_code=200, media_type="application/json"
+        content=reply.body,
+        status_code=reply.status,
+        media_type=reply.content_type,
+        headers=dict(reply.headers),
     )
 
 
-@router.get("/config.json")
-async def fake_config_json():
-    return Response(
-        content=api_response("/api/config"),
-        status_code=200,
-        media_type="application/json",
-    )
-
-
-# Override the generic /users.json to return actual content
-@router.get("/users.json", include_in_schema=False)
-async def fake_users_json_content():
-    return Response(
-        content=users_json(), status_code=200, media_type="application/json"
-    )
-
-
-@router.get("/admin")
-@router.get("/admin/")
-@router.get("/admin/login")
-@router.get("/login")
-async def fake_login():
-    return HTMLResponse(load_template("login_form"))
-
-
-@router.get("/users")
-@router.get("/user")
-@router.get("/database")
-@router.get("/db")
-@router.get("/search")
-async def fake_product_search():
-    return HTMLResponse(load_template("generic_search"))
-
-
-@router.get("/info")
-@router.get("/input")
-@router.get("/contact")
-@router.get("/feedback")
-@router.get("/comment")
-async def fake_input_form():
-    return HTMLResponse(load_template("input_form"))
-
-
-@router.get("/server")
-async def fake_server_error():
-    error_html, content_type = generate_server_error()
-    return Response(content=error_html, status_code=500, media_type=content_type)
-
-
-@router.get("/wp-login.php")
-@router.get("/wp-login")
-@router.get("/wp-admin")
-@router.get("/wp-admin/")
-async def fake_wp_login():
-    return HTMLResponse(load_template("wp_login"))
-
-
-@router.get("/wp-content/{path:path}")
-@router.get("/wp-includes/{path:path}")
-async def fake_wordpress(path: str = ""):
-    return HTMLResponse(load_template("wordpress"))
-
-
-@router.get("/phpmyadmin")
-@router.get("/phpmyadmin/{path:path}")
-@router.get("/phpMyAdmin")
-@router.get("/phpMyAdmin/{path:path}")
-@router.get("/pma")
-@router.get("/pma/")
-async def fake_phpmyadmin(path: str = ""):
-    return HTMLResponse(load_template("phpmyadmin"))
-
-
-@router.get("/.env")
-async def fake_env():
-    return Response(
-        content=api_response("/.env"), status_code=200, media_type="application/json"
-    )
-
-
-@router.get("/backup/")
-@router.get("/uploads/")
-@router.get("/private/")
-@router.get("/config/")
-@router.get("/database/")
-async def fake_directory_listing(request: Request):
-    return HTMLResponse(directory_listing(request.url.path))
-
-
-# --- SQL injection honeypot GET endpoints ---
-
-
-@router.get("/api/search")
-@router.get("/api/sql")
-@router.get("/api/database")
-async def sql_endpoint_get(request: Request):
-    client_ip = get_client_ip(request)
-    access_logger = get_access_logger()
-    get_app_logger()
-
-    base_path = request.url.path
-    request_query = request.url.query or ""
-
-    error_msg, content_type, status_code = generate_sql_error_response(request_query)
-
-    if error_msg:
-        access_logger.warning(
-            f"[SQL INJECTION DETECTED] {client_ip} - {base_path} - Query: {request_query[:100] if request_query else 'empty'}"
-        )
-        return Response(
-            content=error_msg, status_code=status_code, media_type=content_type
-        )
-    else:
-        access_logger.info(
-            f"[SQL ENDPOINT] {client_ip} - {base_path} - Query: {request_query[:100] if request_query else 'empty'}"
-        )
-        response_data = get_sql_response_with_data(base_path, request_query)
-        return Response(
-            content=response_data, status_code=200, media_type="application/json"
-        )
-
-
-# --- Generic /api/* fake endpoints ---
-
-
-@router.get("/api/{path:path}")
-async def fake_api_catchall(request: Request, path: str):
-    full_path = f"/api/{path}"
-    return Response(
-        content=api_response(full_path), status_code=200, media_type="application/json"
-    )
-
-
-# --- Catch-all GET (trap pages with random links) ---
+# --- Catch-all GET/HEAD: a bait page, else the trap maze ---
 # This MUST be registered last in the router
 
 
-@router.get("/{path:path}")
+@router.api_route("/{path:path}", methods=["GET", "HEAD"])
 async def trap_page(request: Request, path: str):
-    """Generate trap page with random links. This is the catch-all route."""
+    """Serve the pages: entry for this path, else a trap page with random links."""
+    page = _page_response(request)
+    if page is not None:
+        return page
+
     config = request.app.state.config
     tracker = request.app.state.tracker
     app_logger = get_app_logger()
@@ -426,18 +220,11 @@ async def trap_page(request: Request, path: str):
 
     app_logger.debug(f"[TrapPage] {client_ip} - {full_path}")
 
-    # Check wordpress-like paths
-    if "wordpress" in full_path.lower():
-        return HTMLResponse(load_template("wordpress"))
-
     is_suspicious = tracker.is_suspicious_user_agent(user_agent)
 
-    # Record access + increment page visit in a single DB transaction.
-    # Skip if the router dependency already recorded this request
-    # (attack pattern or honeypot path → already recorded by _track_honeypot_request).
-    if not tracker.detect_attack_type(full_path) and not tracker.is_honeypot_path(
-        full_path
-    ):
+    # Record access + increment page visit in a single DB transaction, unless
+    # _track_honeypot_request already recorded this request.
+    if not getattr(request.state, "access_recorded", False):
         current_visit_count = await asyncio.to_thread(
             tracker.record_access,
             ip=client_ip,

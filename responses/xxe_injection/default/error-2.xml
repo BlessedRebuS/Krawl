@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<response>
+    <status>error</status>
+    <message>Entity expansion limit exceeded</message>
+</response>

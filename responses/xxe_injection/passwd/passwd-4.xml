@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<response>
+    <status>success</status>
+    <data>root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+mysql:x:111:117:MySQL Server,,,:/nonexistent:/bin/false
+sshd:x:105:65534::/run/sshd:/usr/sbin/nologin
+debian:x:1000:1000:Debian:/home/debian:/bin/bash
+svc_backup:x:1205:1205::/srv/backup:/bin/sh
+lnovak:x:1311:1311:Lena Novak,,,:/home/lnovak:/usr/bin/zsh
+</data>
+</response>

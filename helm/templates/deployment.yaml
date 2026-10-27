@@ -251,10 +251,6 @@ spec:
           mountPath: /app/config.yaml
           subPath: config.yaml
           readOnly: true
-        - name: wordlists
-          mountPath: /app/wordlists.json
-          subPath: wordlists.json
-          readOnly: true
         {{- if .Values.customTemplate.enabled }}
         - name: custom-template
           mountPath: /etc/krawl/templates
@@ -311,9 +307,6 @@ spec:
       - name: config
         configMap:
           name: {{ include "krawl.fullname" . }}-config
-      - name: wordlists
-        configMap:
-          name: {{ include "krawl.fullname" . }}-wordlists
       {{- if .Values.customTemplate.enabled }}
       - name: custom-template
         configMap:

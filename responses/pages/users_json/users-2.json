@@ -1,0 +1,52 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "root_prod",
+      "email": "root_prod@example.com",
+      "password": "Secure131!",
+      "role": "Guest",
+      "api_token": "token_FILDq32R7IeRgUOmjek8o2iuDw7oDmgQ"
+    },
+    {
+      "id": 2,
+      "username": "db_admin",
+      "email": "db_admin@mail.example.com",
+      "password": "KVCn6bh7sTb5",
+      "role": "Editor",
+      "api_token": "sk_test_dmT86Nplr7Q4mgmOhIYZrFleTHoKq4am"
+    },
+    {
+      "id": 3,
+      "username": "test_backup",
+      "email": "test_backup@mail.example.com",
+      "password": "Root699!",
+      "role": "Manager",
+      "api_token": "secret_TEFYb3F6oAW57ATEo7aQga1EMclmoxH4"
+    },
+    {
+      "id": 4,
+      "username": "admin_prod",
+      "email": "admin_prod@mail.example.com",
+      "password": "sample1636",
+      "role": "Viewer",
+      "api_token": "secret_xAc7bDV95qPg4qlWi6xOl3Aw3rHZC0Fa"
+    },
+    {
+      "id": 5,
+      "username": "db_dev",
+      "email": "db_dev@example.com",
+      "password": "3ULU6moVz9ZG",
+      "role": "Manager",
+      "api_token": "key_gHjExb0UmPYzQSRlufGDkeUQd7QJsLZM"
+    },
+    {
+      "id": 6,
+      "username": "monitor_user",
+      "email": "monitor_user@corp.example.com",
+      "password": "change8668",
+      "role": "Viewer",
+      "api_token": "secret_tiOMfyvNr1rSEpGBbVbP8EZ2bMnXnHkB"
+    }
+  ]
+}

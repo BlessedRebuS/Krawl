@@ -1,0 +1,17 @@
+{
+  "name": "es-node-2",
+  "cluster_name": "logging",
+  "cluster_uuid": "fYq8MSN350x_7pzc6uevcC",
+  "version": {
+    "number": "8.6.2",
+    "build_flavor": "default",
+    "build_type": "docker",
+    "build_hash": "ec4604bb3be0e021902ca1809c5bec6cc9f71e89",
+    "build_date": "2023-03-11T09:35:20.314882762Z",
+    "build_snapshot": false,
+    "lucene_version": "9.4.2",
+    "minimum_wire_compatibility_version": "6.8.0",
+    "minimum_index_compatibility_version": "6.0.0-beta1"
+  },
+  "tagline": "You Know, for Search"
+}

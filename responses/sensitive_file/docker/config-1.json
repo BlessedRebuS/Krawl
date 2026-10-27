@@ -1,0 +1,7 @@
+{
+  "auths": {
+    "harbor.internal": {
+      "auth": "b3BzOlZlbHZldEdyYW5pdGUzMCQ="
+    }
+  }
+}

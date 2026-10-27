@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 
 """
-Middleware for deception response detection (path traversal, XXE, command injection).
-Short-circuits the request if a deception response is triggered.
+Middleware that answers detected attacks with a fake response from the catalogue
+(responses/manifest.yaml). Short-circuits the request when a response is chosen.
 """
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-from deception_responses import detect_and_respond_deception
 from dependencies import build_raw_request, get_client_ip, read_body_capped
+from detection import get_response_catalog
 from logger import get_access_logger, get_app_logger
 
 
@@ -35,56 +35,31 @@ class DeceptionMiddleware(BaseHTTPMiddleware):
             body_bytes = await read_body_capped(request)
             body = body_bytes.decode("utf-8", errors="replace")
 
-        result = detect_and_respond_deception(path, query, body, method)
+        tracker = request.app.state.tracker
+        detection_findings = tracker.detector.scan_request(
+            path=path,
+            query=query,
+            body=body,
+            user_agent=request.headers.get("User-Agent", ""),
+            method=method,
+            headers=request.headers.items(),
+        )
+        # The honeypot dependency reuses these instead of scanning again.
+        request.state.detection_findings = detection_findings
+        reply = get_response_catalog().select(detection_findings, method, path, query)
 
-        if result:
-            response_body, content_type, status_code = result
+        if reply:
             client_ip = get_client_ip(request)
             user_agent = request.headers.get("User-Agent", "")
             access_logger = get_access_logger()
 
-            # Determine attack type for logging
-            full_input = f"{path} {query} {body}".lower()
-            attack_type_log = "UNKNOWN"
-
-            if (
-                "passwd" in path.lower()
-                or "shadow" in path.lower()
-                or ".." in path
-                or ".." in query
-            ):
-                attack_type_log = "PATH_TRAVERSAL"
-            elif body and ("<!DOCTYPE" in body or "<!ENTITY" in body):
-                attack_type_log = "XXE_INJECTION"
-            elif any(
-                pattern in full_input
-                for pattern in [
-                    "cmd=",
-                    "exec=",
-                    "command=",
-                    "execute=",
-                    "system=",
-                    ";",
-                    "|",
-                    "&&",
-                    "whoami",
-                    "id",
-                    "uname",
-                    "cat",
-                    "ls",
-                    "pwd",
-                ]
-            ):
-                attack_type_log = "COMMAND_INJECTION"
-
             access_logger.warning(
-                f"[{attack_type_log} DETECTED] {client_ip} - {path[:100]} - Method: {method}"
+                f"[{reply.finding.attack_type.upper()} DETECTED] {client_ip} - {path[:100]} - Method: {method}"
             )
 
             # Record access (run in thread to avoid blocking event loop)
             import asyncio
 
-            tracker = request.app.state.tracker
             file_payloads = []
             if body_bytes:
                 from tlsh_utils import extract_file_payloads_from_body
@@ -101,16 +76,19 @@ class DeceptionMiddleware(BaseHTTPMiddleware):
                 path=path,
                 user_agent=user_agent,
                 body=body,
+                query=query,
                 method=method,
                 raw_request=build_raw_request(request, body),
                 file_payloads=file_payloads,
                 target_host=request.headers.get("Host", ""),
+                detection_findings=detection_findings,
             )
 
             return Response(
-                content=response_body,
-                status_code=status_code,
-                media_type=content_type,
+                content=reply.body,
+                status_code=reply.status,
+                media_type=reply.content_type,
+                headers=dict(reply.headers),
             )
 
         response = await call_next(request)

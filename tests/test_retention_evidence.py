@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from types import SimpleNamespace
 
 from config import get_config
 from database import get_database, initialize_database
@@ -13,14 +12,6 @@ def test_cleanup_progresses_past_suspicious_batch_and_preserves_evidence(
     initialize_database(str(tmp_path / "cleanup.db"))
     db = get_database()
     monkeypatch.setattr(get_config(), "tasks_cleanup_batch", 2)
-    monkeypatch.setattr(
-        pre_retention_cleanup,
-        "get_wordlists",
-        lambda: SimpleNamespace(
-            attack_patterns={"xss_attempt": "<script"},
-            suspicious_patterns=["scanner"],
-        ),
-    )
     session = db.session
     old = datetime.now() - timedelta(days=10000)
     rows = [

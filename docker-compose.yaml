@@ -1,7 +1,7 @@
 ---
 # Scalable mode: Krawl + PostgreSQL + Redis
 #
-# Run from the repository root, where it picks up ./config.yaml and ./wordlists.json:
+# Run from the repository root, where it picks up ./config.yaml:
 #   docker compose up -d
 #
 # The same stack with paths relative to docker/ lives in
@@ -135,7 +135,8 @@ services:
       # - KRAWL_METRICS_ENABLED=true
       # - KRAWL_LOG_LEVEL=INFO
     volumes:
-      - ./wordlists.json:/app/wordlists.json:ro
+      - ./rules:/app/rules:ro
+      - ./responses:/app/responses:ro
       - ./config.yaml:/app/config.yaml:ro
       # Optional: mount your custom template file to /templates/custom_page.html
       # - ./custom_page.html:/templates/custom_page.html:ro

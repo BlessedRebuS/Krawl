@@ -1,0 +1,7 @@
+index.php
+config.php
+uploads
+assets
+README.md
+.htaccess
+admin

@@ -1,0 +1,61 @@
+{
+  "took": 28,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 47831,
+      "relation": "eq"
+    },
+    "max_score": 1.0,
+    "hits": [
+      {
+        "_index": "users",
+        "_id": "06Lo6DoGiiYMuIaukcmw",
+        "_score": 1.0,
+        "_source": {
+          "username": "maria.rossi",
+          "full_name": "Maria Rossi",
+          "email": "maria.rossi@example.com",
+          "password_hash": "$2b$12$xHGkVcEKE3nbL8cHWX.1c5pqoVVWDzFFCAMI5/uEQriz1UMdWd0wf",
+          "role": "user",
+          "api_key": "c3baabf121123363d51a585c7cb9f282",
+          "last_login_ip": "198.51.100.33"
+        }
+      },
+      {
+        "_index": "users",
+        "_id": "ywQZHDUsBLEdq2QFAvuQ",
+        "_score": 1.0,
+        "_source": {
+          "username": "carlos.mendez",
+          "full_name": "Carlos Mendez",
+          "email": "carlos.mendez@example.com",
+          "password_hash": "$2b$12$B/GzlfsbD3uae6LrwNWHUDQ790T.tMdA/nVVaMBjyT309i5PUtX20",
+          "role": "user",
+          "api_key": "b91ef7e001c3494333fd113d15581e17",
+          "last_login_ip": "198.51.100.33"
+        }
+      },
+      {
+        "_index": "users",
+        "_id": "bYo8bHgwccGdy0fTdIjh",
+        "_score": 1.0,
+        "_source": {
+          "username": "aiko.tanaka",
+          "full_name": "Aiko Tanaka",
+          "email": "aiko.tanaka@example.com",
+          "password_hash": "$2b$12$hRL3f2dC./fjRvy5SWXKIk9MmnlbjcDW0KiWB1GY6CjYklT6II0nk",
+          "role": "support",
+          "api_key": "04b6b87ebaa7b93b4c79b79194a711df",
+          "last_login_ip": "203.0.113.24"
+        }
+      }
+    ]
+  }
+}

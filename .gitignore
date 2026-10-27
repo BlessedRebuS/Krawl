@@ -93,3 +93,8 @@ personal-values.yaml
 # graphify (local-only knowledge graph)
 graphify-out/
 .graphifyignore
+
+# Bait files and rules are always committed, even when their names match the
+# patterns above (responses/spring_actuator/env/ matches env/).
+!/responses/**
+!/rules/**

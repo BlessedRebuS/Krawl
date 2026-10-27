@@ -1,0 +1,2 @@
+Msg 15281, Level 16, State 1, Procedure xp_cmdshell, Line 1
+SQL Server blocked access to procedure 'sys.xp_cmdshell' of component 'xp_cmdshell'

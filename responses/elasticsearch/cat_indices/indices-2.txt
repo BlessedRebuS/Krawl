@@ -1,0 +1,6 @@
+health status index                         uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+green  open   customers                     2M8WFtpMjFXxDzWN_Wuc1S 1   1     100498          438    563.1mb        563.1mb
+green  open   invoices                      h104LZ_wicVGAlkrWM8gY1 1   1    1474892           81    378.9mb        378.9mb
+green  open   sessions                      svQLh8-hNwni2EzAaywqRE 1   1    1263188          194    539.9mb        539.9mb
+green  open   logs-app-2024.11.02           N0OBbMnCkvls-OB6eNyNDk 1   1    1505563          544    360.6mb        360.6mb
+yellow  open   .security-7                   O0L2mIgm-9cvUC846WkNqC 1   1    1696875          832    466.1mb        466.1mb

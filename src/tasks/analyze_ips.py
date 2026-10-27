@@ -1,14 +1,10 @@
-import re
-import urllib.parse
 from collections import Counter
 from datetime import datetime, timedelta
-from pathlib import Path
 
 import metrics
 from config import get_config
 from database import get_database
 from logger import get_app_logger
-from wordlists import get_wordlists
 
 # ----------------------
 # TASK CONFIG
@@ -28,6 +24,13 @@ TASK_CONFIG = {
 # remainder is picked up next minute. The default is sized from the real
 # workload: the vast majority of flagged IPs have under 100 rows to read, so
 # 2000 fits comfortably inside the one-minute window.
+
+
+def robots_disallows() -> list[str]:
+    """Disallowed paths from the bundled robots.txt page."""
+    from detection import get_response_catalog
+
+    return list(get_response_catalog().robots_disallows)
 
 
 def main():
@@ -78,50 +81,8 @@ def main():
         "attack_url": False,
     }
 
-    # 1-3 low, 4-6 mid, 7-9 high, 10-20 extreme
-    _default_weights = {
-        "attacker": {
-            "risky_http_methods": 6,
-            "robots_violations": 4,
-            "uneven_request_timing": 3,
-            "different_user_agents": 2,
-            "attack_url": 15,
-        },
-        "good_crawler": {
-            "risky_http_methods": 1,
-            "robots_violations": 0,
-            "uneven_request_timing": 0,
-            "different_user_agents": 0,
-            "attack_url": 0,
-        },
-        "bad_crawler": {
-            "risky_http_methods": 2,
-            "robots_violations": 6,
-            "uneven_request_timing": 0,
-            "different_user_agents": 6,
-            "attack_url": 4,
-        },
-        "regular_user": {
-            "risky_http_methods": 0,
-            "robots_violations": 0,
-            "uneven_request_timing": 8,
-            "different_user_agents": 3,
-            "attack_url": 0,
-        },
-    }
-    weights = get_wordlists().scoring_weights or _default_weights
-    # Parse robots.txt once before the loop (it never changes during a run)
-    robots_disallows = []
-    robots_path = Path(__file__).parent.parent / "templates" / "html" / "robots.txt"
-    with open(robots_path) as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            parts = line.split(":")
-            if parts[0] == "Disallow":
-                parts[1] = parts[1].rstrip("/")
-                robots_disallows.append(parts[1].strip())
+    weights = get_config().scoring_weights
+    disallowed_paths = robots_disallows()
 
     # IPs flagged for reevaluation, plus any never analysed at all — the
     # ordering and the cap are both applied in SQL, see the repo method.
@@ -183,7 +144,7 @@ def main():
             for item, n in zip(ip_accesses, hits, strict=True)
             if any(
                 item["path"].rstrip("/").startswith(disallow)
-                for disallow in robots_disallows
+                for disallow in disallowed_paths
             )
         )
         # print(f"Violated robots count: {violated_robots_count}")
@@ -256,43 +217,25 @@ def main():
             score["bad_crawler"]["different_user_agents"] = False
             score["regular_user"]["different_user_agents"] = False
         # --------------------- Attack URLs ---------------------
-        attack_urls_found_list = []
-        wl = get_wordlists()
-        if wl.attack_patterns:
-            queried_paths = [item["path"] for item in ip_accesses]
-            for queried_path in queried_paths:
-                # URL decode the path to catch encoded attacks
-                try:
-                    decoded_path = urllib.parse.unquote(queried_path)
-                    # Double decode to catch double-encoded attacks
-                    decoded_path_twice = urllib.parse.unquote(decoded_path)
-                except Exception:
-                    decoded_path = queried_path
-                    decoded_path_twice = queried_path
-
-                for name, pattern in wl.attack_patterns.items():
-                    # Check original, decoded, and double-decoded paths
-                    if (
-                        re.search(pattern, queried_path, re.IGNORECASE)
-                        or re.search(pattern, decoded_path, re.IGNORECASE)
-                        or re.search(pattern, decoded_path_twice, re.IGNORECASE)
-                    ):
-                        attack_urls_found_list.append(f"{name}: {pattern}")
-
-            # remove duplicates
-            attack_urls_found_list = set(attack_urls_found_list)
-            attack_urls_found_list = list(attack_urls_found_list)
-
-            if len(attack_urls_found_list) >= attack_urls_threshold:
-                score["attacker"]["attack_url"] = True
-                score["good_crawler"]["attack_url"] = False
-                score["bad_crawler"]["attack_url"] = False
-                score["regular_user"]["attack_url"] = False
-            else:
-                score["attacker"]["attack_url"] = False
-                score["good_crawler"]["attack_url"] = False
-                score["bad_crawler"]["attack_url"] = False
-                score["regular_user"]["attack_url"] = False
+        # Distinct attack types stored when the requests arrived, from any field
+        # (path, query, body, headers); only attack-class findings are stored.
+        attack_urls_found_list = sorted(
+            {
+                attack_type
+                for item in ip_accesses
+                for attack_type in item.get("attack_types") or ()
+            }
+        )
+        if len(attack_urls_found_list) >= attack_urls_threshold:
+            score["attacker"]["attack_url"] = True
+            score["good_crawler"]["attack_url"] = False
+            score["bad_crawler"]["attack_url"] = False
+            score["regular_user"]["attack_url"] = False
+        else:
+            score["attacker"]["attack_url"] = False
+            score["good_crawler"]["attack_url"] = False
+            score["bad_crawler"]["attack_url"] = False
+            score["regular_user"]["attack_url"] = False
         # --------------------- Calculate score ---------------------
         attacker_score = good_crawler_score = bad_crawler_score = regular_user_score = 0
         attacker_score = (

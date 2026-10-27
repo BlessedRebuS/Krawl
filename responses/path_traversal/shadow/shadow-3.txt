@@ -1,0 +1,12 @@
+root:$6$sWqRfY6.CJIIQCme$05jDSWW8AqUAxUIEN6kuegbE1yt1l2h1iLwkh37tQiUMg80cWvSQwPqEYFgJgmh5UAv8le69nX2jn/Ufd.EAk5:19482:0:99999:7:::
+daemon:*:19623:0:99999:7:::
+bin:*:20292:0:99999:7:::
+sys:*:19916:0:99999:7:::
+sync:*:19652:0:99999:7:::
+www-data:*:20181:0:99999:7:::
+backup:*:19657:0:99999:7:::
+sshd:*:19112:0:99999:7:::
+redis:*:19308:0:99999:7:::
+admin:$6$LnjaiwjqTDw8ivAW$wIboZPjLzzk2RF7hEQyadgRFj4H.MsfS0CDWAhRMJBdjYlXjpVJkz1LhNnDQN/j6OE8iwVLYm9Hue7ThXthbAl:19917:0:99999:7:::
+tchen:$6$OTyv/6OnmXuoscEj$hv8/JEM1bPE4Y4rFt5MlVQs8qUGKFcQVdrgGeguMWkJIbLqKCbazwOQdUZNrtmjsEwA4T8Ea7NLw3UR8KLKXXR:19983:0:99999:7:::
+jenkins:$6$Ug9jIrmpxRnhp89i$uAOWHvmaJUCIPjp4Kz84GocbVfI/vbq9Es1rIFSj5IGEeHVWQE.V2EailnQeSRSrjI0Be8ZzaT07OWq4BOhZZ5:20001:0:99999:7:::

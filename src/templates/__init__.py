@@ -1,57 +1,24 @@
 #!/usr/bin/env python3
 
 """
-HTML template loading for the deception server.
+The trap maze page shell.
 
-Templates live in the html/ subdirectory and are cached after first read.
-Placeholders are substituted with plain string replacement (not str.format)
-because template bodies contain literal braces in CSS and JS.
+The bundled shell is responses/trap/main_page.html, loaded with the response
+catalogue. Placeholders are substituted with plain string replacement (not
+str.format) because the shell contains literal braces in CSS and JS.
 """
 
 from pathlib import Path
 
 from logger import get_app_logger
 
-_TEMPLATE_DIR = Path(__file__).parent / "html"
-_cache: dict[str, str] = {}
 _logged_custom_template_path: str | None = None
-
-
-def load_template(name: str, **kwargs) -> str:
-    """Load html/<name>.html (or html/<name> if it has an extension) and
-    substitute {key} placeholders for each kwarg.
-
-    Raises:
-        FileNotFoundError: if the template file does not exist.
-    """
-    if name not in _cache:
-        path = _TEMPLATE_DIR / (name if "." in name else f"{name}.html")
-        _cache[name] = path.read_text(encoding="utf-8")
-    return _substitute(_cache[name], kwargs)
 
 
 def _substitute(text: str, values: dict) -> str:
     for k, v in values.items():
         text = text.replace(f"{{{k}}}", str(v))
     return text
-
-
-def directory_listing(path: str, dirs: list, files: list) -> str:
-    """Generate fake directory listing"""
-    row = load_template("directory_row")
-    rows = "".join(
-        _substitute(
-            row, {"href": d, "name": d, "date": "2024-12-01 10:30", "size": "-"}
-        )
-        for d in dirs
-    )
-    rows += "".join(
-        _substitute(
-            row, {"href": f, "name": f, "date": "2024-12-01 14:22", "size": size}
-        )
-        for f, size in files
-    )
-    return load_template("directory_listing", path=path, rows=rows)
 
 
 def main_page(counter: int, content: str) -> str:
@@ -84,4 +51,8 @@ def main_page(counter: int, content: str) -> str:
                 f"Custom template load failed, using bundled template: {err}"
             )
 
-    return load_template("main_page.html", counter=counter, content=content)
+    from detection import get_response_catalog
+
+    return _substitute(
+        get_response_catalog().trap_template, {"counter": counter, "content": content}
+    )

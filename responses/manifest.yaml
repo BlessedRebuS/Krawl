@@ -1,0 +1,539 @@
+# Deception responses: which file answers a YARA finding. See docs/detection.md.
+#
+# A rule's `response_type` meta names an entry below. The type with the lowest
+# `priority` among a request's findings answers, if it allows the method.
+# Within it, the first variant whose key is a YARA string id that matched
+# (`$passwd`) is used, else `default`. One file and one status are picked at
+# random. With `echo: true`, {{path}}, {{query}} and {{match}} are replaced by
+# the request path, decoded query and matched evidence (2048 characters each).
+#
+# Every body here is fake. Replace the bundled files: they are the same in every
+# Krawl deployment and can fingerprint it.
+version: 1
+responses:
+  xxe_injection:
+    priority: 10
+    methods: [GET, HEAD, POST, PUT]
+    variants:
+      $sel_passwd:
+        content_type: application/xml
+        status: [200]
+        files: [xxe_injection/passwd/*.xml]
+      $sel_hosts:
+        content_type: application/xml
+        status: [200]
+        files: [xxe_injection/hosts/*.xml]
+      default:
+        content_type: application/xml
+        status: [200]
+        files: [xxe_injection/default/*.xml]
+
+  cloud_metadata:
+    priority: 20
+    methods: [GET, HEAD]
+    variants:
+      $sel_aws_creds:
+        content_type: application/json
+        status: [200]
+        files: [cloud_metadata/aws_credentials/*.json]
+      $sel_aws_role:
+        content_type: text/plain
+        status: [200]
+        files: [cloud_metadata/aws_role/*.txt]
+      $sel_gcp:
+        content_type: application/json
+        status: [200]
+        files: [cloud_metadata/gcp_token/*.json]
+      $sel_azure:
+        content_type: application/json
+        status: [200]
+        files: [cloud_metadata/azure_instance/*.json]
+      default:
+        content_type: text/plain
+        status: [200]
+        files: [cloud_metadata/aws_index/*.txt]
+
+  webshell:
+    priority: 30
+    methods: [GET, HEAD, POST, PUT]
+    variants:
+      $sel_passwd:
+        content_type: text/plain
+        status: [200]
+        files: [command_injection/passwd/*.txt]
+      $sel_id:
+        content_type: text/plain
+        status: [200]
+        files: [command_injection/id/*.txt]
+      $sel_whoami:
+        content_type: text/plain
+        status: [200]
+        files: [command_injection/whoami/*.txt]
+      $sel_uname:
+        content_type: text/plain
+        status: [200]
+        files: [command_injection/uname/*.txt]
+      $sel_ls:
+        content_type: text/plain
+        status: [200]
+        files: [command_injection/ls/*.txt]
+      default:
+        content_type: text/html
+        status: [200]
+        files: [webshell/page/*.html]
+
+  spring_actuator:
+    priority: 40
+    methods: [GET, HEAD]
+    variants:
+      $sel_env:
+        content_type: application/vnd.spring-boot.actuator.v3+json
+        status: [200]
+        files: [spring_actuator/env/*.json]
+      default:
+        content_type: application/vnd.spring-boot.actuator.v3+json
+        status: [200]
+        files: [spring_actuator/index/*.json]
+
+  # Docker Engine, Kubernetes and registry APIs. $d2 is a container create.
+  container_api:
+    priority: 42
+    methods: [GET, HEAD, POST]
+    variants:
+      $d2:
+        content_type: application/json
+        status: [201]
+        files: [container_api/create/*.json]
+      $d1:
+        content_type: application/json
+        status: [200]
+        files: [container_api/containers/*.json]
+      $sel_pods:
+        content_type: application/json
+        status: [200]
+        files: [container_api/k8s_pods/*.json]
+      $k1:
+        content_type: application/json
+        status: [200]
+        files: [container_api/k8s_namespaces/*.json]
+      $reg:
+        content_type: application/json
+        status: [200]
+        files: [container_api/registry/*.json]
+      default:
+        content_type: application/json
+        status: [200]
+        files: [container_api/version/*.json]
+
+  elasticsearch:
+    priority: 44
+    methods: [GET, HEAD, POST]
+    variants:
+      $search:
+        content_type: application/json
+        status: [200]
+        files: [elasticsearch/search/*.json]
+      $cat:
+        content_type: text/plain
+        status: [200]
+        files: [elasticsearch/cat_indices/*.txt]
+      $cluster:
+        content_type: application/json
+        status: [200]
+        files: [elasticsearch/cluster_health/*.json]
+      default:
+        content_type: application/json
+        status: [200]
+        files: [elasticsearch/banner/*.json]
+
+  graphql_schema:
+    priority: 46
+    methods: [GET, HEAD, POST]
+    variants:
+      default:
+        content_type: application/json
+        status: [200]
+        files: [graphql_schema/*.json]
+
+  # CVE-2023-23752: the public application config, database password included.
+  joomla_config:
+    priority: 48
+    methods: [GET, HEAD]
+    variants:
+      default:
+        content_type: application/vnd.api+json
+        status: [200]
+        files: [joomla_config/*.json]
+
+  phpinfo:
+    priority: 50
+    methods: [GET, HEAD]
+    variants:
+      default:
+        content_type: text/html
+        status: [200]
+        files: [phpinfo/*.html]
+
+  server_status:
+    priority: 60
+    methods: [GET, HEAD]
+    variants:
+      default:
+        content_type: text/html
+        status: [200]
+        files: [server_status/*.html]
+
+  # $vscode answers every /.vscode/ file with an SFTP deploy config.
+  vcs_metadata:
+    priority: 62
+    methods: [GET, HEAD]
+    variants:
+      $git_config:
+        content_type: text/plain
+        status: [200]
+        files: [vcs_metadata/git_config/*]
+      $githead:
+        content_type: text/plain
+        status: [200]
+        files: [vcs_metadata/git_head/*]
+      $svn:
+        content_type: text/plain
+        status: [200]
+        files: [vcs_metadata/svn_entries/*]
+      $vscode:
+        content_type: application/json
+        status: [200]
+        files: [vcs_metadata/vscode_sftp/*.json]
+      $idea:
+        content_type: application/xml
+        status: [200]
+        files: [vcs_metadata/idea/*.xml]
+      default:
+        content_type: text/html
+        status: [404]
+        files: [vcs_metadata/not_found/*.html]
+
+  java_descriptor:
+    priority: 64
+    methods: [GET, HEAD]
+    variants:
+      $meta_inf:
+        content_type: text/plain
+        status: [200]
+        files: [java_descriptor/manifest/*.MF]
+      default:
+        content_type: application/xml
+        status: [200]
+        files: [java_descriptor/web_xml/*.xml]
+
+  api_docs:
+    priority: 66
+    methods: [GET, HEAD]
+    variants:
+      $swagger_ui:
+        content_type: text/html
+        status: [200]
+        files: [api_docs/swagger_ui/*.html]
+      default:
+        content_type: application/json
+        status: [200]
+        files: [api_docs/openapi/*.json]
+
+  sensitive_file:
+    priority: 70
+    methods: [GET, HEAD]
+    variants:
+      $sel_aws:
+        content_type: text/plain
+        status: [200]
+        files: [sensitive_file/aws/*]
+      $sel_ssh_pub:
+        content_type: text/plain
+        status: [200]
+        files: [sensitive_file/ssh_pub/*]
+      $sel_ssh:
+        content_type: text/plain
+        status: [200]
+        files: [sensitive_file/ssh/*]
+      $sel_kube:
+        content_type: text/plain
+        status: [200]
+        files: [sensitive_file/kube/*]
+      $sel_docker:
+        content_type: application/json
+        status: [200]
+        files: [sensitive_file/docker/*.json]
+      $sel_npmrc:
+        content_type: text/plain
+        status: [200]
+        files: [sensitive_file/npmrc/*]
+      $sel_pypirc:
+        content_type: text/plain
+        status: [200]
+        files: [sensitive_file/pypirc/*]
+      $sel_git_credentials:
+        content_type: text/plain
+        status: [200]
+        files: [sensitive_file/git_credentials/*]
+      $sel_netrc:
+        content_type: text/plain
+        status: [200]
+        files: [sensitive_file/netrc/*]
+      $sel_sql_dump:
+        content_type: text/plain
+        status: [200]
+        files: [sensitive_file/sql_dump/*.sql]
+      $sel_wp_config:
+        content_type: text/plain
+        status: [200]
+        files: [sensitive_file/wp_config/*.php]
+      $sel_dotenv:
+        content_type: text/plain
+        status: [200]
+        files: [sensitive_file/dotenv/*]
+      $sel_php_config:
+        content_type: text/plain
+        status: [200]
+        files: [sensitive_file/php_config/*.php]
+      default:
+        content_type: text/plain
+        status: [200]
+        files: [sensitive_file/default/*.txt]
+
+  path_traversal:
+    priority: 80
+    methods: [GET, HEAD, POST, PUT]
+    variants:
+      $passwd:
+        content_type: text/plain
+        status: [200]
+        files: [path_traversal/passwd/*.txt]
+      $shadow:
+        content_type: text/plain
+        status: [200]
+        files: [path_traversal/shadow/*.txt]
+      $ini:
+        content_type: text/plain
+        status: [200]
+        files: [path_traversal/win_ini/*.ini]
+      $proc:
+        content_type: text/plain
+        status: [200]
+        files: [path_traversal/proc_self/*.txt]
+      default:
+        content_type: text/html
+        status: [200]
+        files: [path_traversal/listing/*.html]
+
+  template_eval:
+    priority: 90
+    methods: [GET, HEAD]
+    variants:
+      $sel_49:
+        content_type: text/html
+        status: [200]
+        files: [template_eval/49/*.html]
+      $sel_1337:
+        content_type: text/html
+        status: [200]
+        files: [template_eval/1337/*.html]
+      $sel_169:
+        content_type: text/html
+        status: [200]
+        files: [template_eval/169/*.html]
+      default:
+        content_type: text/html
+        status: [200]
+        echo: true
+        files: [template_eval/default/*.html]
+
+  command_injection:
+    priority: 100
+    methods: [GET, HEAD, POST, PUT]
+    variants:
+      $sel_passwd:
+        content_type: text/plain
+        status: [200]
+        files: [command_injection/passwd/*.txt]
+      $sel_id:
+        content_type: text/plain
+        status: [200]
+        files: [command_injection/id/*.txt]
+      $sel_whoami:
+        content_type: text/plain
+        status: [200]
+        files: [command_injection/whoami/*.txt]
+      $sel_uname:
+        content_type: text/plain
+        status: [200]
+        files: [command_injection/uname/*.txt]
+      $sel_ls:
+        content_type: text/plain
+        status: [200]
+        files: [command_injection/ls/*.txt]
+      default:
+        content_type: text/plain
+        status: [200]
+        files: [command_injection/default/*.txt]
+
+  # GET only, like sql_error, so a login POST still reaches credential capture.
+  nosql_result:
+    priority: 105
+    methods: [GET, HEAD]
+    variants:
+      default:
+        content_type: application/json
+        status: [200]
+        files: [nosql_result/*.json]
+
+  sql_error:
+    priority: 110
+    methods: [GET, HEAD]
+    variants:
+      $sel_postgres:
+        content_type: text/plain
+        status: [500, 500, 200]
+        files: [sql_error/postgres/*.txt]
+      $sel_mssql:
+        content_type: text/plain
+        status: [500, 500, 200]
+        files: [sql_error/mssql/*.txt]
+      $sel_mysql:
+        content_type: text/plain
+        status: [500, 500, 200]
+        files: [sql_error/mysql/*.txt]
+      # Quotes the injected text the way MySQL does.
+      default:
+        content_type: text/plain
+        status: [500, 500, 200]
+        echo: true
+        files: [sql_error/default/*.txt]
+
+  xss:
+    priority: 120
+    methods: [GET, HEAD]
+    variants:
+      default:
+        content_type: text/html
+        status: [200]
+        echo: true
+        files: [xss/*.html]
+
+# Bait and user-defined pseudo-random pages, keyed by request path. A key or alias ending in / is a prefix
+pages:
+  /robots.txt:
+    content_type: text/plain
+    files: [pages/robots/robots.txt]
+
+  /login:
+    aliases: [/admin, /admin/, /admin/login]
+    content_type: text/html
+    files: [pages/login_form/*.html]
+
+  /wp-login.php:
+    aliases: [/wp-login, /wp-admin, /wp-admin/]
+    content_type: text/html
+    files: [pages/wp_login/*.html]
+
+  /wp-content/:
+    aliases: [/wp-includes/]
+    content_type: text/html
+    files: [pages/wordpress/*.html]
+
+  /phpmyadmin:
+    aliases: [/phpmyadmin/, /phpMyAdmin, /phpMyAdmin/, /pma, /pma/]
+    content_type: text/html
+    files: [pages/phpmyadmin/*.html]
+
+  /search:
+    aliases: [/users, /user, /database, /db]
+    content_type: text/html
+    files: [pages/search_form/*.html]
+
+  /contact:
+    aliases: [/info, /input, /feedback, /comment]
+    content_type: text/html
+    files: [pages/input_form/*.html]
+
+  /api/contact:
+    methods: [POST]
+    echo: true
+    content_type: text/html
+    files: [pages/contact_reply/*.html]
+
+  /server:
+    status: [500]
+    content_type: text/html
+    files: [pages/server_error/*.html]
+
+  /backup/:
+    content_type: text/html
+    files: [pages/directory_listing/backup/*.html]
+
+  /uploads/:
+    content_type: text/html
+    files: [pages/directory_listing/uploads/*.html]
+
+  /private/:
+    content_type: text/html
+    files: [pages/directory_listing/private/*.html]
+
+  /config/:
+    content_type: text/html
+    files: [pages/directory_listing/config/*.html]
+
+  /database/:
+    content_type: text/html
+    files: [pages/directory_listing/database/*.html]
+
+  /credentials.txt:
+    content_type: text/plain
+    files: [pages/credentials_txt/*.txt]
+
+  /passwords.txt:
+    aliases: [/admin_notes.txt]
+    content_type: text/plain
+    files: [pages/passwords_txt/*.txt]
+
+  /users.json:
+    content_type: application/json
+    files: [pages/users_json/*.json]
+
+  /api_keys.json:
+    content_type: application/json
+    files: [pages/api_keys_json/*.json]
+
+  /config.json:
+    aliases: [/api/config]
+    content_type: application/json
+    files: [pages/api_config/*.json]
+
+  /.env:
+    content_type: text/plain
+    files: [pages/dotenv/*]
+
+  /api/users:
+    content_type: application/json
+    files: [pages/api_users/*.json]
+
+  /api/v1/users:
+    content_type: application/json
+    files: [pages/api_v1_users/*.json]
+
+  /api/v2/secrets:
+    content_type: application/json
+    files: [pages/api_v2_secrets/*.json]
+
+  /api/search:
+    aliases: [/api/sql, /api/database]
+    methods: [GET, HEAD, POST]
+    content_type: application/json
+    files: [pages/api_sql/*.json]
+
+  /api/:
+    content_type: application/json
+    files: [pages/api_default/*.json]
+
+  login_failed:
+    content_type: text/html
+    files: [pages/login_failed/*.html]

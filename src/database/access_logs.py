@@ -803,6 +803,66 @@ class AccessLogRepo:
         finally:
             self._db.close_session()
 
+    def get_rule_match_stats(self) -> dict:
+        """Detections per stored rule_name, and per attack_type where it is NULL.
+
+        Returns {"by_rule": {rule: (count, last)}, "unnamed_by_type":
+        {attack_type: (count, last)}}, last being the newest request time.
+        """
+        session = self._db.session
+        try:
+            columns = (
+                func.count(AttackDetection.id),
+                func.max(AccessLog.timestamp),
+            )
+            named = (
+                session.query(AttackDetection.rule_name, *columns)
+                .join(AccessLog, AccessLog.id == AttackDetection.access_log_id)
+                .filter(AttackDetection.rule_name.isnot(None))
+                .group_by(AttackDetection.rule_name)
+                .all()
+            )
+            unnamed = (
+                session.query(AttackDetection.attack_type, *columns)
+                .join(AccessLog, AccessLog.id == AttackDetection.access_log_id)
+                .filter(AttackDetection.rule_name.is_(None))
+                .group_by(AttackDetection.attack_type)
+                .all()
+            )
+            return {
+                "by_rule": {name: (count, last) for name, count, last in named},
+                "unnamed_by_type": {
+                    attack_type: (count, last) for attack_type, count, last in unnamed
+                },
+            }
+        finally:
+            self._db.close_session()
+
+    def get_attack_detections_by_log_id(self, log_id: int) -> list[dict]:
+        """Return the stored attack type and matched evidence for one request."""
+        session = self._db.session
+        try:
+            rows = (
+                session.query(
+                    AttackDetection.attack_type,
+                    AttackDetection.matched_pattern,
+                    AttackDetection.rule_name,
+                )
+                .filter(AttackDetection.access_log_id == log_id)
+                .order_by(AttackDetection.id)
+                .all()
+            )
+            return [
+                {
+                    "attack_type": attack_type,
+                    "matched_pattern": matched_pattern or "",
+                    "rule_name": rule_name,
+                }
+                for attack_type, matched_pattern, rule_name in rows
+            ]
+        finally:
+            self._db.close_session()
+
     def get_dashboard_counts(self) -> dict[str, int]:
         """
         Return aggregate dashboard counts from the live cache counters.

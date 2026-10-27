@@ -1,0 +1,25 @@
+{
+  "compute": {
+    "location": "westeurope",
+    "name": "vm-cjcfal",
+    "vmId": "9c42cd4c-4f15-0130-8add-91ba3ba01bdf",
+    "vmSize": "Standard_B2ms",
+    "osType": "Linux",
+    "resourceGroupName": "prod-rg"
+  },
+  "network": {
+    "interface": [
+      {
+        "ipv4": {
+          "ipAddress": [
+            {
+              "privateIpAddress": "192.0.2.109",
+              "publicIpAddress": "203.0.113.110"
+            }
+          ]
+        },
+        "macAddress": "2FEB367607CB"
+      }
+    ]
+  }
+}
