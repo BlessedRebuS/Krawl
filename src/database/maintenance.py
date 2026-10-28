@@ -21,6 +21,7 @@ is a different (and far cheaper) mechanism, so standalone mode skips them.
 """
 
 import time
+from contextlib import contextmanager
 
 from sqlalchemy import text
 
@@ -35,6 +36,26 @@ ANALYZE_TABLES = ("ip_stats", "access_logs", "category_history", "attack_detecti
 
 def _is_postgres(engine) -> bool:
     return engine.dialect.name == "postgresql"
+
+
+@contextmanager
+def advisory_lock(engine, key: int):
+    """Yield True if this process holds PostgreSQL advisory lock `key`, False if
+    another session does. Always True on SQLite (one process)."""
+    if not _is_postgres(engine):
+        yield True
+        return
+    # Autocommit: the lock is session-level, and an idle open transaction
+    # would stall CREATE INDEX CONCURRENTLY and vacuum.
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+        held = conn.execute(
+            text("SELECT pg_try_advisory_lock(:k)"), {"k": key}
+        ).scalar()
+        try:
+            yield held
+        finally:
+            if held:
+                conn.execute(text("SELECT pg_advisory_unlock(:k)"), {"k": key})
 
 
 def analyze_tables(engine, tables=ANALYZE_TABLES) -> int:
