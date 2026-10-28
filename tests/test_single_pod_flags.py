@@ -21,6 +21,7 @@ from tasks_master import TasksMaster
 # Global effect: runs once per cluster.
 EXPECTED_SINGLE_POD = {
     "analyze-ips",
+    "build-online-indexes",
     "crunch-access-logs",
     "dashboard-warmup",
     "db-retention",

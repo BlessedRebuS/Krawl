@@ -12,6 +12,7 @@ from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
 
 from logger import get_app_logger
+from models import CRUNCH_QUEUE_WHERE
 
 logger = get_app_logger()
 
@@ -66,9 +67,6 @@ INDEXES = [
         "attack_detections",
         "attack_type, access_log_id",
     ),
-    ("ix_access_logs_path", "access_logs", "path"),
-    ("ix_access_logs_user_agent", "access_logs", "user_agent"),
-    ("ix_access_logs_target_host", "access_logs", "target_host"),
     (
         "ix_access_logs_request_metadata_extracted",
         "access_logs",
@@ -125,10 +123,51 @@ AUTOVACUUM = [
             "autovacuum_vacuum_threshold": "1000",
             "autovacuum_analyze_scale_factor": "0.01",
             "autovacuum_analyze_threshold": "1000",
+            # Keeps the visibility map fresh for index-only scans.
+            "autovacuum_vacuum_insert_scale_factor": "0.02",
         },
     )
     for table in ("ip_stats", "access_logs", "category_history", "attack_detections")
 ]
+
+# (name, table, columns, INCLUDE, WHERE, superseded index) — PostgreSQL only,
+# built CONCURRENTLY by a task since a startup build would block writes.
+ONLINE_INDEXES = [
+    (
+        "ix_access_logs_path_hits",
+        "access_logs",
+        "path",
+        "hit_count",
+        None,
+        "ix_access_logs_path",
+    ),
+    (
+        "ix_access_logs_ua_hits",
+        "access_logs",
+        "user_agent",
+        "hit_count",
+        None,
+        "ix_access_logs_user_agent",
+    ),
+    (
+        "ix_access_logs_host_ip",
+        "access_logs",
+        "target_host, ip",
+        "hit_count, timestamp",
+        None,
+        "ix_access_logs_target_host",
+    ),
+    (
+        "ix_ip_stats_crunch_queue",
+        "ip_stats",
+        "last_seen",
+        "ip",
+        CRUNCH_QUEUE_WHERE,
+        None,
+    ),
+]
+
+_ONLINE_INDEX_LOCK = 0x4B52_4157
 
 
 def _reloptions(engine: Engine, table: str) -> set[str]:
@@ -219,3 +258,50 @@ def run_migrations(engine: Engine) -> None:
         logger.info(f"All migrations complete ({len(applied)} applied)")
     else:
         logger.info("Database schema is up to date — no migrations needed")
+
+
+def build_online_indexes(engine: Engine) -> list[str]:
+    """Build ONLINE_INDEXES concurrently, rebuilding invalid leftovers, and drop
+    each superseded index once its replacement is valid."""
+    if engine.dialect.name != "postgresql":
+        return []
+
+    from database.maintenance import advisory_lock
+
+    applied: list[str] = []
+    with advisory_lock(engine, _ONLINE_INDEX_LOCK) as held:
+        if not held:
+            logger.info("Online index build already running on another pod")
+            return []
+        with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+            for name, table, columns, include, where, old in ONLINE_INDEXES:
+                valid = conn.execute(
+                    text(
+                        "SELECT i.indisvalid FROM pg_index i "
+                        "JOIN pg_class c ON c.oid = i.indexrelid "
+                        "WHERE c.relname = :n"
+                    ),
+                    {"n": name},
+                ).scalar()
+                try:
+                    if valid is False:
+                        conn.execute(text(f"DROP INDEX CONCURRENTLY IF EXISTS {name}"))
+                        applied.append(f"drop invalid index {name}")
+                    if not valid:
+                        logger.info(f"Building index {name} on {table} (online)")
+                        conn.execute(
+                            text(
+                                f"CREATE INDEX CONCURRENTLY {name} "
+                                f"ON {table} ({columns}) INCLUDE ({include})"
+                                + (f" WHERE {where}" if where else "")
+                            )
+                        )
+                        applied.append(f"add index {name}")
+                    if old:
+                        conn.execute(text(f"DROP INDEX CONCURRENTLY IF EXISTS {old}"))
+                except Exception as e:
+                    logger.error(f"Migration error (online index {name}): {e}")
+
+    for m in applied:
+        logger.info(f"Migration applied: {m}")
+    return applied

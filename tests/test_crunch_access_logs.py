@@ -147,6 +147,17 @@ def test_skips_active_ip(tmp_path):
     assert len(_rows(db)) == 2
 
 
+def test_skips_ip_older_than_retention(tmp_path):
+    db, when = _setup(tmp_path, last_seen_days=45)
+    _log(db, "/Gw2JM958", when)
+    _log(db, "/A0ZUzQqbrh", when)
+    db.session.commit()
+
+    crunch_access_logs.main()
+
+    assert len(_rows(db)) == 2
+
+
 def test_second_run_changes_nothing_and_new_activity_recrunches(tmp_path):
     db, when = _setup(tmp_path)
     for i in range(5):

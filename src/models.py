@@ -18,6 +18,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -72,9 +73,7 @@ class AccessLog(Base):
     # Inbound HTTP Referer header — which bait page/URL this request came from.
     referer: Mapped[str | None] = mapped_column(String(MAX_PATH_LENGTH), nullable=True)
     # Host header normalized to a hostname (port removed), for target reporting.
-    target_host: Mapped[str | None] = mapped_column(
-        String(255), nullable=True, index=True
-    )
+    target_host: Mapped[str | None] = mapped_column(String(255), nullable=True)
     # False only for retained rows awaiting request-metadata backfill.
     request_metadata_extracted: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, index=True
@@ -105,8 +104,15 @@ class AccessLog(Base):
         Index("ix_access_logs_ip_timestamp", "ip", "timestamp"),
         Index("ix_access_logs_is_suspicious", "is_suspicious"),
         Index("ix_access_logs_is_honeypot_trigger", "is_honeypot_trigger"),
-        Index("ix_access_logs_path", "path"),
-        Index("ix_access_logs_user_agent", "user_agent"),
+        # Covering indexes for dashboard rollups; keep in sync with ONLINE_INDEXES.
+        Index("ix_access_logs_path_hits", "path", postgresql_include=["hit_count"]),
+        Index("ix_access_logs_ua_hits", "user_agent", postgresql_include=["hit_count"]),
+        Index(
+            "ix_access_logs_host_ip",
+            "target_host",
+            "ip",
+            postgresql_include=["hit_count", "timestamp"],
+        ),
     )
 
     def __repr__(self) -> str:
@@ -209,6 +215,12 @@ class AttackDetection(Base):
         return f"<AttackDetection(id={self.id}, type='{self.attack_type}')>"
 
 
+# IPs crunch-access-logs still has to merge; crunch filters on exactly this.
+CRUNCH_QUEUE_WHERE = (
+    "total_requests > 1 AND (crunched_at IS NULL OR crunched_at < last_seen)"
+)
+
+
 class IpStats(Base):
     """
     Aggregated statistics per IP address.
@@ -301,6 +313,13 @@ class IpStats(Base):
         Index("ix_ip_stats_ban_timestamp", "ban_timestamp"),
         # analyze-ips orders the reevaluation queue by last_analysis.
         Index("ix_ip_stats_last_analysis", "last_analysis"),
+        Index(
+            "ix_ip_stats_crunch_queue",
+            "last_seen",
+            postgresql_include=["ip"],
+            postgresql_where=text(CRUNCH_QUEUE_WHERE),
+            sqlite_where=text(CRUNCH_QUEUE_WHERE),
+        ),
     )
 
     def __repr__(self) -> str:

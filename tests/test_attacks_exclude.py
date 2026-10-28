@@ -155,3 +155,19 @@ def test_filter_box_appends_not_terms_on_enter():
     assert "window.addExpandExcludeTerm" in js
     assert "window.removeExcludeTerm" in js
     assert "params.set('exclude', ov.excludes.join(','))" in js
+
+
+def test_unfiltered_total_counts_each_log_once(stored):
+    s = stored.session
+    log_id = s.query(AccessLog.id).filter(AccessLog.path == "/.env").scalar()
+    s.add(AttackDetection(access_log_id=log_id, attack_type="path_traversal"))
+    s.commit()
+    stored.close_session()
+
+    total = stored.analytics.get_attack_types_paginated(page_size=1)
+    by_type = stored.analytics.get_attack_types_paginated(
+        page_size=1, attack_type_filter="path_traversal"
+    )
+
+    assert total["pagination"]["total"] == 4
+    assert by_type["pagination"]["total"] == 2

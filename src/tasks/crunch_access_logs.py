@@ -17,6 +17,7 @@ from sqlalchemy import or_
 
 from dashboard_cache import invalidate_table_cache
 from database import get_database
+from database.maintenance import advisory_lock
 from logger import get_app_logger
 from sanitizer import MAX_PATH_LENGTH
 
@@ -27,11 +28,13 @@ TASK_CONFIG = {
     "cron": "*/5 * * * *",
     "enabled": True,
     "run_when_loaded": False,
-    # A shared-database rewrite; two pods would merge the same rows.
+    # A shared-database rewrite; two pods would merge the same rows. The lease
+    # expires before a slow run ends, so main() also takes an advisory lock.
     "single_pod": True,
 }
 
 MAX_SAMPLES = 3
+_CRUNCH_LOCK = 0x4B52_4352
 
 app_logger = get_app_logger()
 
@@ -174,6 +177,14 @@ def _crunch_ip(session, ip: str) -> tuple[int, int]:
 
 
 def main():
+    with advisory_lock(get_database().engine, _CRUNCH_LOCK) as held:
+        if held:
+            _crunch()
+        else:
+            app_logger.info("crunch-access-logs: previous run still going; skipping")
+
+
+def _crunch():
     from config import get_config
     from models import IpStats
 
@@ -182,21 +193,26 @@ def main():
     session = db.session
     now = datetime.now()
     cutoff = now - config.retention_crunch_after
+    # Retention deletes these IPs' non-suspicious rows anyway.
+    floor = now - min(
+        config.retention_non_suspicious,
+        config.retention_overall or config.retention_non_suspicious,
+    )
     ips_done = groups_merged = rows_deleted = 0
     try:
         ips = [
             row[0]
-            for row in session.query(IpStats.ip).filter(
+            for row in session.query(IpStats.ip)
+            .filter(
                 IpStats.last_seen < cutoff,
-                # One request is one row: nothing to merge (~3/4 of idle IPs).
+                IpStats.last_seen >= floor,
+                # Matches models.CRUNCH_QUEUE_WHERE, so the partial index applies.
                 IpStats.total_requests > 1,
                 or_(
                     IpStats.crunched_at.is_(None),
                     IpStats.crunched_at < IpStats.last_seen,
                 ),
             )
-            # Most recently idle first: the oldest rows are about to be purged
-            # by retention anyway, so crunching them saves little.
             .order_by(IpStats.last_seen.desc())
             .limit(config.tasks_crunch_ips_batch)
             .all()
