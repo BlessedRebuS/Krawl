@@ -1402,9 +1402,13 @@ rule krawl_cve_2025_55182_react2shell {
         $lazy = "\"$$typeof\":\"$Lazy\"" ascii
         $proto = "\"__proto__\"" ascii
         $server_ref = /\["\$S[RF]"\s*,\s*"child_process"/
+        // __proto__ written as JSON unicode escapes to slip past filters
+        $escaped_proto = "\\u005f\\u005f\\u0070\\u0072\\u006f\\u0074\\u006f\\u005f\\u005f" ascii nocase
+        // ["$1:aa:aa"] or {"aa":"$1:aa:aa"}: the public detection probes
+        $probe = /[\[:]\s*"\$[0-9]{1,4}:[a-z]{1,8}:[a-z]{1,8}"\s*[\]}]/
     condition:
         scan_target == "body" and (
-            $proto_then or $ctor_chain or $server_ref
+            $proto_then or $ctor_chain or $server_ref or $probe or $escaped_proto
             or ($proto and ($model or $lazy))
         )
 }

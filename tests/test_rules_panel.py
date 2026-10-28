@@ -64,7 +64,7 @@ def test_list_rules_returns_every_loaded_rule(coordinator):
     rules = coordinator.list_rules()
     names = [rule["rule"] for rule in rules]
 
-    assert len(names) == len(set(names)) == 3175
+    assert len(names) == len(set(names)) == 3173
     by_name = {rule["rule"]: rule for rule in rules}
     assert by_name["krawl_sql_injection"]["response_type"] == "sql_error"
     assert by_name["krawl_common_probes"]["response_type"] == ""

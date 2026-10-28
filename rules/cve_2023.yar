@@ -2929,10 +2929,9 @@ rule krawl_cve_2023_32243_essential_addons_for_elementor {
         cve = "CVE-2023-32243"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2023-32243, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2023/CVE-2023-32243.yaml"
     strings:
-        $path0 = /\/author-sitemap\.xml(\/|;|$)/ nocase
-        $param0 = /(^|[?&;])rest_route=\/wp\/v2\/users(&|$)/ nocase
+        $param0 = /(^|[?&;])action=login_or_register_user(&|$)/ nocase
     condition:
-        (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
+        ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
 
 rule krawl_cve_2023_32563_avalanche {

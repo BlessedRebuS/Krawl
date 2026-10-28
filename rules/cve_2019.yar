@@ -232,28 +232,6 @@ rule krawl_cve_2019_10717_blogengine_net {
         (scan_target == "path" and any of ($path*))
 }
 
-rule krawl_cve_2019_11248_kubernetes {
-    meta:
-        attack_type = "cve_2019_11248"
-        classification = "attack"
-        severity = 7
-        confidence = "medium"
-        description = "Debug Endpoint pprof - Exposure Detection: The debugging endpoint /debug/pprof is exposed over the unauthenticated Kubelet healthz port. This debugging endpoint can potentially leak sensitive information such as internal Kubelet memory addresses and configuration, or for."
-        mitre_attack = "T1190"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        cve = "CVE-2019-11248"
-        reference = "https://nvd.nist.gov/vuln/detail/CVE-2019-11248, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2019/CVE-2019-11248.yaml"
-    strings:
-        $path0 = "/debug/pprof/" ascii nocase
-        $path1 = /\/debug\/pprof\/goroutine(\/|;|$)/ nocase
-    condition:
-        (scan_target == "path" and any of ($path*))
-}
-
 rule krawl_cve_2019_11253_kubernetes {
     meta:
         attack_type = "cve_2019_11253"

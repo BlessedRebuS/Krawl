@@ -670,10 +670,8 @@ rule krawl_cve_2020_13640_wpdiscuz {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2020-13640, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2020/CVE-2020-13640.yaml"
         response_type = "sql_error"
     strings:
-        $path0 = /\/wp-json\/wp\/v2\/comments(\/|;|$)/ nocase
-        $path1 = /\/wp-content\/plugins\/wpdiscuz\/utils\/ajax\/wpdiscuz-ajax\.php(\/|;|$)/ nocase
+        $path0 = /\/wp-content\/plugins\/wpdiscuz\/utils\/ajax\/wpdiscuz-ajax\.php(\/|;|$)/ nocase
         $param0 = /(^|[?&;])action=wpdLoadMoreComments(&|$)/ nocase
-        $param1 = /(^|[?&;])orderBy=comment_date_gmt(&|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
