@@ -57,6 +57,10 @@ class AnalyticsRepo:
         finally:
             self._db.close_session()
 
+    # Crunch merges (hit_count > 1) under a template like /{link}: not a real
+    # path. Both columns are in ix_access_logs_path_hits, so scans stay index-only.
+    _NOT_CRUNCH_TEMPLATE = or_(AccessLog.hit_count == 1, ~AccessLog.path.contains("{"))
+
     def get_top_paths(self, limit: int = 10, min_count: int = 1) -> list[tuple]:
         """
         Get top paths by access count.
@@ -73,6 +77,7 @@ class AnalyticsRepo:
             count_col = func.sum(AccessLog.hit_count)
             results = (
                 session.query(AccessLog.path, count_col.label("count"))
+                .filter(self._NOT_CRUNCH_TEMPLATE)
                 .group_by(AccessLog.path)
                 .having(count_col >= min_count)
                 .order_by(count_col.desc())
@@ -229,7 +234,9 @@ class AnalyticsRepo:
 
             path_expr = AccessLog.path.label("path")
 
-            search_filter = [AccessLog.path.ilike(f"%{search}%")] if search else []
+            search_filter = [self._NOT_CRUNCH_TEMPLATE]
+            if search:
+                search_filter.append(AccessLog.path.ilike(f"%{search}%"))
             if honeypot_only:
                 search_filter.append(AccessLog.is_honeypot_trigger)
 

@@ -29,15 +29,13 @@ def test_top_paths_sum_hit_count(tmp_path):
     db = get_database()
     _seed(db)
 
-    assert db.analytics.get_top_paths(limit=10) == [("/{link}", 5), ("/a", 2)]
+    # Crunch templates are left out of top paths (test_top_paths_crunch.py).
+    assert db.analytics.get_top_paths(limit=10) == [("/a", 2)]
     page = db.analytics.get_top_paths_paginated(page=1, page_size=10)
-    assert [(p["path"], p["count"]) for p in page["paths"]] == [
-        ("/{link}", 5),
-        ("/a", 2),
-    ]
+    assert [(p["path"], p["count"]) for p in page["paths"]] == [("/a", 2)]
     assert db.analytics.get_top_user_agents(limit=10) == [("ua-a", 5), ("ua-b", 2)]
-    page = db.analytics.get_top_paths_paginated(page=1, page_size=10, min_count=3)
-    assert [p["path"] for p in page["paths"]] == ["/{link}"]
+    page = db.analytics.get_top_paths_paginated(page=1, page_size=10, min_count=2)
+    assert [p["path"] for p in page["paths"]] == ["/a"]
 
 
 def test_log_dicts_carry_hit_count_and_samples(tmp_path):
