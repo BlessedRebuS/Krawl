@@ -203,40 +203,14 @@ def main():
                 ),
             )
 
-        # --- Map data ---
-        # Also used to derive top_ips (first 8), avoiding a redundant DB query
-        if warmup_aggregation:
-            map_ips_all = _timed(
-                "get_all_ips_paginated_50k",
-                lambda: db.ip_stats.get_all_ips_paginated(
-                    page=1,
-                    page_size=50_000,
-                    sort_by="total_requests",
-                    sort_order="desc",
-                ),
-            )
-            set_cached_list("agg:map_ips", map_ips_all["ips"])
-            total_ips = map_ips_all["pagination"]["total"]
-            map_ips = {
-                "ips": map_ips_all["ips"][:1000],
-                "pagination": {
-                    "page": 1,
-                    "page_size": 1000,
-                    "total": total_ips,
-                    "total_pages": max(1, (total_ips + 999) // 1000),
-                },
-            }
-            del map_ips_all
-        else:
-            map_ips = _timed(
-                "get_all_ips_paginated",
-                lambda: db.ip_stats.get_all_ips_paginated(
-                    page=1, page_size=1000, sort_by="total_requests", sort_order="desc"
-                ),
-            )
-
-        # Derive top_ips from map_ips (both sorted by total_requests desc)
-        top_ips_from_map = map_ips.get("ips", [])[:8]
+        # --- Top IPs (the map's default Recent sort is fast live, not warmed) ---
+        top_by_requests = _timed(
+            "get_top_ips",
+            lambda: db.ip_stats.get_all_ips_paginated(
+                page=1, page_size=8, sort_by="total_requests", sort_order="desc"
+            ),
+        )
+        total_ips = top_by_requests["pagination"]["total"]
         top_ips = {
             "ips": [
                 {
@@ -244,16 +218,13 @@ def main():
                     "count": ip["total_requests"],
                     "category": ip.get("category") or "unknown",
                 }
-                for ip in top_ips_from_map
+                for ip in top_by_requests["ips"]
             ],
             "pagination": {
                 "page": 1,
                 "page_size": 8,
-                "total": map_ips.get("pagination", {}).get("total", 0),
-                "total_pages": max(
-                    1,
-                    (map_ips.get("pagination", {}).get("total", 0) + 7) // 8,
-                ),
+                "total": total_ips,
+                "total_pages": max(1, (total_ips + 7) // 8),
             },
         }
 
@@ -278,22 +249,24 @@ def main():
             rows_key="attacks",
             total_key="total",
             page_size=15,
-            key_fmt="attacks:{p}:timestamp:desc::",
+            key_fmt="attacks:{p}:timestamp:desc:::::",
         )
 
-        _warm_pages(
-            "attackers_all",
-            lambda: db.ip_stats.get_attackers_paginated(
-                page=1,
-                page_size=10 * warmup_pages,
-                sort_by="total_requests",
-                sort_order="desc",
-            ),
-            rows_key="attackers",
-            total_key="total_attackers",
-            page_size=10,
-            key_fmt="attackers:{p}:total_requests:desc",
-        )
+        # With aggregation on, the routes page the agg:* lists instead.
+        if not warmup_aggregation:
+            _warm_pages(
+                "attackers_all",
+                lambda: db.ip_stats.get_attackers_paginated(
+                    page=1,
+                    page_size=10 * warmup_pages,
+                    sort_by="total_requests",
+                    sort_order="desc",
+                ),
+                rows_key="attackers",
+                total_key="total_attackers",
+                page_size=10,
+                key_fmt="attackers:{p}:total_requests:desc",
+            )
 
         credentials_bulk = _warm_pages(
             "credentials_all",
@@ -306,20 +279,24 @@ def main():
             rows_key="credentials",
             total_key="total",
             page_size=5,
-            key_fmt="credentials:{p}:timestamp:desc",
+            key_fmt="credentials:{p}:timestamp:desc:",
         )
 
-        _warm_pages(
-            "honeypot_all",
-            lambda: db.access_logs.get_honeypot_paginated(
-                page=1, page_size=5 * warmup_pages, sort_by="count", sort_order="desc"
-            ),
-            rows_key="honeypots",
-            total_key="total",
-            page_size=5,
-            key_fmt="honeypot:{p}:count:desc",
-            clamp_pages=True,
-        )
+        if not warmup_aggregation:
+            _warm_pages(
+                "honeypot_all",
+                lambda: db.access_logs.get_honeypot_paginated(
+                    page=1,
+                    page_size=5 * warmup_pages,
+                    sort_by="count",
+                    sort_order="desc",
+                ),
+                rows_key="honeypots",
+                total_key="total",
+                page_size=5,
+                key_fmt="honeypot:{p}:count:desc",
+                clamp_pages=True,
+            )
 
         # --- Threats tab ---
         # The tab opens on an all-time cluster scan and the 1-day campaign
@@ -348,19 +325,17 @@ def main():
 
         # First pages of the panels whose totals scan the whole access log,
         # under the exact keys their routes read (dashboard defaults).
-        for key, fetch in (
-            (
-                "attacks:1:timestamp:desc:::::",
-                lambda: db.analytics.get_attack_types_paginated(page=1, page_size=15),
-            ),
-            (
-                "suspicious:1:25:desc:",
+        key = "suspicious:1:25:desc:"
+        set_cached_table(
+            key,
+            _timed(
+                key,
                 lambda: db.access_logs.get_recent_suspicious_paginated(
                     page=1, page_size=25
                 ),
             ),
-        ):
-            set_cached_table(key, _timed(key, fetch), ttl=WARM_TTL)
+            ttl=WARM_TTL,
+        )
 
         # Targeted Domains groups the whole access log by host with a distinct
         # IP count (75s on the demo's 7M rows) and its ranking barely moves:
@@ -391,7 +366,6 @@ def main():
         if not warmup_aggregation:
             set_cached("top_ua", top_ua)
             set_cached("top_paths", top_paths)
-        set_cached("map_ips", map_ips)
         set_cached("attention", attention)
 
         # Attack trends cache (used by API endpoint)

@@ -33,11 +33,8 @@ from auth_store import (
 )
 from config import get_config
 from dashboard_cache import (
-    get_cached,
-    get_cached_list_page,
     get_cached_table,
     invalidate_table_cache,
-    is_warm,
     set_cached_table,
 )
 from dependencies import get_client_ip, get_db
@@ -367,35 +364,6 @@ async def all_ips(
 ):
     page = max(1, page)
     page_size = min(max(1, page_size), 10000)
-    config = get_config()
-
-    # Serve from full aggregation cache (up to 50k IPs, default sort only)
-    if (
-        config.dashboard_cache_warmup
-        and config.dashboard_warmup_aggregation
-        and sort_by == "total_requests"
-        and sort_order == "desc"
-        and is_warm()
-    ):
-        sliced = get_cached_list_page("agg:map_ips", page=page, page_size=page_size)
-        if sliced is not None:
-            return JSONResponse(
-                content={"ips": sliced["items"], "pagination": sliced["pagination"]},
-                headers=_no_cache_headers(),
-            )
-
-    # Serve from warmup cache on default map request (top 1000 IPs)
-    if (
-        config.dashboard_cache_warmup
-        and page == 1
-        and page_size == 1000
-        and sort_by == "total_requests"
-        and sort_order == "desc"
-        and is_warm()
-    ):
-        cached = get_cached("map_ips")
-        if cached:
-            return JSONResponse(content=cached, headers=_no_cache_headers())
 
     # Check table cache for any paginated request
     cache_key = f"all_ips:{page}:{page_size}:{sort_by}:{sort_order}"
