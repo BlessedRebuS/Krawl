@@ -10,6 +10,7 @@ import time
 import metrics
 from config import get_config
 from dashboard_cache import (
+    get_cached,
     get_cached_table,
     set_cached,
     set_cached_list,
@@ -26,7 +27,9 @@ app_logger = get_app_logger()
 # 2-minute table TTL they went cold for 3 minutes of every 5, and the next
 # visitor paid the full query.
 WARM_TTL = 600
-TARGETED_DOMAINS_TTL = 2400
+# Whole-log rankings barely move: refreshed every 6th run (30 min) or when
+# missing, so they must outlive that gap.
+SLOW_TTL = 2400
 
 
 # ----------------------
@@ -118,6 +121,8 @@ def main():
                 )
             return bulk
 
+        slow_run = int(time.time() // 300) % 6 == 0
+
         # --- Server-rendered data (stats cards + suspicious table) ---
         stats = _timed("get_dashboard_counts", db.access_logs.get_dashboard_counts)
 
@@ -131,43 +136,47 @@ def main():
 
         # --- HTMX Overview tables (aggregation or first page, default sort) ---
         if warmup_aggregation:
-            top_ua_all = _timed(
-                "get_top_ua_all",
-                lambda: db.analytics.get_top_user_agents(
-                    limit=100_000, min_count=min_count
-                ),
-            )
-            agg_ua = [{"user_agent": ua, "count": c} for ua, c in top_ua_all]
-            set_cached_list("agg:top_ua", agg_ua)
-            top_ua = {
-                "user_agents": agg_ua[:5],
-                "pagination": {
-                    "page": 1,
-                    "page_size": 5,
-                    "total": len(agg_ua),
-                    "total_pages": max(1, (len(agg_ua) + 4) // 5),
-                },
-            }
-            set_cached("top_ua", top_ua)
-            del top_ua_all, agg_ua
+            if slow_run or get_cached("top_ua") is None:
+                top_ua_all = _timed(
+                    "get_top_ua_all",
+                    lambda: db.analytics.get_top_user_agents(
+                        limit=100_000, min_count=min_count
+                    ),
+                )
+                agg_ua = [{"user_agent": ua, "count": c} for ua, c in top_ua_all]
+                set_cached_list("agg:top_ua", agg_ua, ttl=SLOW_TTL)
+                top_ua = {
+                    "user_agents": agg_ua[:5],
+                    "pagination": {
+                        "page": 1,
+                        "page_size": 5,
+                        "total": len(agg_ua),
+                        "total_pages": max(1, (len(agg_ua) + 4) // 5),
+                    },
+                }
+                set_cached("top_ua", top_ua, ttl=SLOW_TTL)
+                del top_ua_all, agg_ua
 
-            top_paths_all = _timed(
-                "get_top_paths_all",
-                lambda: db.analytics.get_top_paths(limit=100_000, min_count=min_count),
-            )
-            agg_paths = [{"path": p, "count": c} for p, c in top_paths_all]
-            set_cached_list("agg:top_paths", agg_paths)
-            top_paths = {
-                "paths": agg_paths[:5],
-                "pagination": {
-                    "page": 1,
-                    "page_size": 5,
-                    "total": len(agg_paths),
-                    "total_pages": max(1, (len(agg_paths) + 4) // 5),
-                },
-            }
-            set_cached("top_paths", top_paths)
-            del top_paths_all, agg_paths
+            if slow_run or get_cached("top_paths") is None:
+                top_paths_all = _timed(
+                    "get_top_paths_all",
+                    lambda: db.analytics.get_top_paths(
+                        limit=100_000, min_count=min_count
+                    ),
+                )
+                agg_paths = [{"path": p, "count": c} for p, c in top_paths_all]
+                set_cached_list("agg:top_paths", agg_paths, ttl=SLOW_TTL)
+                top_paths = {
+                    "paths": agg_paths[:5],
+                    "pagination": {
+                        "page": 1,
+                        "page_size": 5,
+                        "total": len(agg_paths),
+                        "total_pages": max(1, (len(agg_paths) + 4) // 5),
+                    },
+                }
+                set_cached("top_paths", top_paths, ttl=SLOW_TTL)
+                del top_paths_all, agg_paths
 
             attackers_all = _timed(
                 "get_attackers_all",
@@ -190,18 +199,22 @@ def main():
             set_cached_list("agg:honeypot", honeypot_all["honeypots"])
             del honeypot_all
         else:
-            top_ua = _timed(
-                "get_top_user_agents_paginated",
-                lambda: db.analytics.get_top_user_agents_paginated(
-                    page=1, page_size=5, min_count=min_count
-                ),
-            )
-            top_paths = _timed(
-                "get_top_paths_paginated",
-                lambda: db.analytics.get_top_paths_paginated(
-                    page=1, page_size=5, min_count=min_count
-                ),
-            )
+            if slow_run or get_cached("top_ua") is None:
+                top_ua = _timed(
+                    "get_top_user_agents_paginated",
+                    lambda: db.analytics.get_top_user_agents_paginated(
+                        page=1, page_size=5, min_count=min_count
+                    ),
+                )
+                set_cached("top_ua", top_ua, ttl=SLOW_TTL)
+            if slow_run or get_cached("top_paths") is None:
+                top_paths = _timed(
+                    "get_top_paths_paginated",
+                    lambda: db.analytics.get_top_paths_paginated(
+                        page=1, page_size=5, min_count=min_count
+                    ),
+                )
+                set_cached("top_paths", top_paths, ttl=SLOW_TTL)
 
         # --- Top IPs (the map's default Recent sort is fast live, not warmed) ---
         top_by_requests = _timed(
@@ -337,15 +350,13 @@ def main():
             ttl=WARM_TTL,
         )
 
-        # Targeted Domains groups the whole access log by host with a distinct
-        # IP count (75s on the demo's 7M rows) and its ranking barely moves:
-        # refresh every 6th run (30 min), or at once when the entry is missing.
+        # Targeted Domains: whole-log GROUP BY host, on the slow schedule.
         key = "targeted-domains:1::count:desc"
-        if int(time.time() // 300) % 6 == 0 or get_cached_table(key) is None:
+        if slow_run or get_cached_table(key) is None:
             domains = _timed(
                 key, lambda: db.access_logs.get_targeted_domains(page=1, page_size=10)
             )
-            set_cached_table(key, domains, ttl=TARGETED_DOMAINS_TTL)
+            set_cached_table(key, domains, ttl=SLOW_TTL)
 
         # Last-24-hours panel: the expanded view's 100 rows; the collapsed
         # panel slices the first few from the same entry.
@@ -363,9 +374,6 @@ def main():
         set_cached("stats", stats)
         set_cached("suspicious", suspicious)
         set_cached("top_ips", top_ips)
-        if not warmup_aggregation:
-            set_cached("top_ua", top_ua)
-            set_cached("top_paths", top_paths)
         set_cached("attention", attention)
 
         # Attack trends cache (used by API endpoint)
