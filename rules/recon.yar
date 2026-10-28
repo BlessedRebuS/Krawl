@@ -24,6 +24,7 @@ rule krawl_probe_credential_files {
         $tokens = /\/\.(npmrc|pypirc|netrc|pgpass|git-credentials|s3cfg|boto|bash_history|mysql_history)$/ ascii nocase
         $gcp = /\/(credentials|service[-_]?account|client_secret)[-_a-z0-9]{0,20}\.json$/ ascii nocase
         $tf = "/terraform.tfstate" ascii nocase
+        $cloud_key = /\/((gcp|google|gcloud|firebase)[-_a-z0-9]{0,30}|application_default_credentials|gcp-sa|sa)\.json$/ ascii nocase
         $sel_aws = "/.aws/" ascii nocase
         $sel_ssh_pub = /id_(rsa|dsa|ecdsa|ed25519)\.pub$/ ascii nocase
         $sel_ssh = /id_(rsa|dsa|ecdsa|ed25519)$/ ascii nocase
@@ -34,7 +35,28 @@ rule krawl_probe_credential_files {
         $sel_netrc = "/.netrc" ascii nocase
         $sel_git_credentials = "/.git-credentials" ascii nocase
     condition:
-        scan_target == "path" and any of ($aws, $ssh, $docker, $kube, $tokens, $gcp, $tf) and (any of ($sel_*) or true)
+        scan_target == "path" and any of ($aws, $ssh, $docker, $kube, $tokens, $gcp, $tf, $cloud_key) and (any of ($sel_*) or true)
+}
+
+rule krawl_probe_password_lists {
+    meta:
+        attack_type = "credential_file_probe"
+        classification = "attack"
+        severity = 5
+        confidence = "high"
+        description = "Request for plain-text password and credential lists (passwords.txt, credentials.txt, secrets.csv)."
+        mitre_attack = "T1552.001, T1595.002"
+        version = "1.0"
+        date = "2026-10-28"
+        modified = "2026-10-28"
+        author = "Krawl"
+        false_positives = "None known; no site legitimately serves these files."
+        reference = "https://attack.mitre.org/techniques/T1552/001/"
+        // No response_type: Krawl's own fake passwords.txt and credentials.txt answer.
+    strings:
+        $plain = /\/(passwords?|passwd|credentials|secrets?)\.(txt|csv|bak|old)\/?$/ ascii nocase
+    condition:
+        scan_target == "path" and $plain
 }
 
 rule krawl_probe_config_files {
@@ -56,6 +78,10 @@ rule krawl_probe_config_files {
         $wp = /\/wp-config\.php(~|\.(bak|old|save|orig|txt|zip|swp|copy|backup))$/ ascii nocase
         $cfg = /\/(config|configuration|settings|database|db|local)\.(php|inc|py|rb)(~|\.(bak|old|save|orig|txt|swp|copy|backup))$/ ascii nocase
         $env = /\/\.env\.(local|production|prod|dev|development|staging|backup|bak|save|old|example)$/ ascii nocase
+        // .env~, .env1, .env_local, .env-dev, .envrc
+        $env_variant = /\/\.env([~0-9]|[_-][a-z0-9_.-]{1,30}|rc)$/ ascii nocase
+        // aws.env, secrets.env, config.env, application.env
+        $env_named = /\/\.?[a-z0-9][a-z0-9_.-]{0,40}\.env$/ ascii nocase
         $web = "/web.config" ascii nocase
         $app = /\/(appsettings(\.[a-z]{1,20})?\.json|application(-[a-z]{1,20})?\.(yml|yaml|properties)|parameters\.yml|database\.yml|secrets\.(json|ya?ml)|config\.json)$/ ascii nocase
         $compose = /\/(docker-compose|compose)\.ya?ml$/ ascii nocase
@@ -63,7 +89,7 @@ rule krawl_probe_config_files {
         $sel_dotenv = "/.env." ascii nocase
         $sel_php_config = /(config|configuration|settings|database|db|local)\.(php|inc)/ ascii nocase
     condition:
-        scan_target == "path" and any of ($wp, $cfg, $env, $web, $app, $compose) and (any of ($sel_*) or true)
+        scan_target == "path" and any of ($wp, $cfg, $env, $env_variant, $env_named, $web, $app, $compose) and (any of ($sel_*) or true)
 }
 
 rule krawl_probe_backup_archives {
@@ -113,6 +139,8 @@ rule krawl_probe_vcs_ide {
         $githead = "/.git/HEAD" ascii nocase
         $ci = /\/\.(gitlab-ci|travis)\.yml$/ ascii nocase
         $git_config = "/.git/config" ascii nocase
+        $gitconfig = /\/\.gitconfig$/ ascii nocase
+        $workflows = /\/\.github\/workflows\/[a-z0-9_.-]{1,60}\.ya?ml$/ ascii nocase
     condition:
         scan_target == "path" and any of them
 }
@@ -422,4 +450,28 @@ rule krawl_probe_debug_endpoints {
         $rails = "/rails/info/properties" ascii nocase
     condition:
         scan_target == "path" and any of them
+}
+
+rule krawl_probe_wordpress_users {
+    meta:
+        attack_type = "wp_user_enum"
+        classification = "attack"
+        severity = 4
+        confidence = "high"
+        description = "WordPress user enumeration through the REST API (/wp-json/wp/v2/users, rest_route=/wp/v2/users), WPGraphQL (users { nodes { slug } }) or author ID scanning (?author=1), the first step of password spraying against wp-login.php."
+        mitre_attack = "T1589.003, T1595.002"
+        version = "1.0"
+        date = "2026-10-28"
+        modified = "2026-10-28"
+        author = "Krawl"
+        false_positives = "Headless WordPress front ends that read the users endpoint; links to ?author=N on a real blog."
+        reference = "https://developer.wordpress.org/rest-api/reference/users/"
+    strings:
+        $rest = /\/wp-json\/wp\/v2\/users(\/|$)/ ascii nocase
+        $route = /(^|[?&;])rest_route=\/wp\/v2\/users(\/[^&]*)?(&|$)/ ascii nocase
+        $author = /(^|[?&;])author=[0-9]{1,6}(&|$)/ ascii nocase
+        $graphql = /users\s*\(\s*first\s*:\s*[0-9]{1,5}\s*\)\s*\{\s*nodes\s*\{\s*(slug|username|name|email)/ ascii nocase
+    condition:
+        (scan_target == "path" and $rest) or (scan_target == "query" and ($route or $author))
+        or (scan_target == "body" and $graphql)
 }

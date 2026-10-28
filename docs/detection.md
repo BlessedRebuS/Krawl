@@ -257,21 +257,21 @@ so start from a copy of it.
 
 ### At a glance
 
-Krawl ships **3,175 rules** covering **2,569 CVEs**, 336 of them on the CISA
+Krawl ships **3,173 rules** covering **2,566 CVEs**, 336 of them on the CISA
 Known Exploited Vulnerabilities list.
 
 | Set | Rules | What it covers |
 |-----|------:|----------------|
-| Hand-written | 160 | Generic attack syntax (SQL injection, XSS, traversal, command injection, SSRF, SSTI, XXE, deserialization, webshells, open redirect, JWT `alg: none`), exposure probes, scanner user agents, and about 110 widely exploited CVEs with tuned indicators and replies |
-| Baseline CVEs | 2,443 | One rule per CVE from 1999 to 2026, from the exploit request of a public check; 736 are WordPress plugins and themes |
-| Baseline vulnerabilities | 568 | Product bugs without a CVE id, mostly OA, ERP, router and camera software |
+| Hand-written | 162 | Generic attack syntax (SQL injection, XSS, traversal, command injection, SSRF, SSTI, XXE, deserialization, webshells, open redirect, JWT `alg: none`), exposure probes, scanner user agents, and about 110 widely exploited CVEs with tuned indicators and replies |
+| Baseline CVEs | 2,440 | One rule per CVE from 1999 to 2026, from the exploit request of a public check; 736 are WordPress plugins and themes |
+| Baseline vulnerabilities | 567 | Product bugs without a CVE id, mostly OA, ERP, router and camera software |
 | Baseline exposures | 4 | 558 paths of config, log, backup and sensitive files that scanners request |
 
-Of the 3,015 baseline rules, 2,145 answer with a fake reply chosen by the kind
-of bug (662 `xss`, 569 `path_traversal`, 492 `command_injection`, 295
+Of the 3,011 baseline rules, 2,144 answer with a fake reply chosen by the kind
+of bug (662 `xss`, 569 `path_traversal`, 491 `command_injection`, 295
 `sql_error`, 113 `cloud_metadata`, 12 `template_eval`, 2 `sensitive_file`);
-the other 870 record the attack and let the normal page answer. Their severity
-is 9-10 for 952 rules, 7-8 for 952, and 6 or lower for the rest.
+the other 867 record the attack and let the normal page answer. Their severity
+is 9-10 for 949 rules, 7-8 for 951, and 6 or lower for the rest.
 
 Analysts can add their own rules from the dashboard without a restart; see
 [Uploading rules from the dashboard](#uploading-rules-from-the-dashboard).
@@ -287,7 +287,7 @@ Analysts can add their own rules from the dashboard without a restart; see
 | `cve_enterprise.yar` | Frameworks, middleware and enterprise or edge products (Spring, Struts, Tomcat, WebLogic, Confluence, Exchange, vCenter, Citrix, F5, Ivanti, Fortinet, PAN-OS, Check Point, Cisco, MOVEit, ScreenConnect, CrushFTP, Serv-U, Splunk, CyberPanel, Langflow, TeamCity, Jenkins, GitLab and others) |
 | `cve_php_cms.yar` | PHPUnit, PHP-CGI, ThinkPHP, Laravel Ignition, Drupal, Joomla, WordPress plugins (including Bricks Builder and Kaswara), vBulletin, Craft CMS |
 | `cve_iot.yar` | Router, NAS and camera exploits sent by Mirai-family botnets (GPON, Huawei, Realtek, Hikvision, Zyxel, TP-Link, Netgear, DrayTek, Dahua, Tenda, Linksys, D-Link, AVTECH) |
-| `recon.yar` | Exposure probes (credential and config files, backups, VCS/IDE files, Spring actuator, phpinfo, server-status, admin consoles, debug and profiler endpoints, Swagger/OpenAPI documents, GraphQL introspection, WEB-INF, container APIs, Elasticsearch, Hadoop YARN) and scanner user agents |
+| `recon.yar` | Exposure probes (credential and config files, backups, VCS/IDE files, Spring actuator, phpinfo, server-status, admin consoles, debug and profiler endpoints, Swagger/OpenAPI documents, GraphQL introspection, WordPress user enumeration, WEB-INF, container APIs, Elasticsearch, Hadoop YARN) and scanner user agents |
 | `user_agents.yar` | `scanner_user_agent` (suspicious, not an attack) |
 | `cve_2017_and_older.yar`, `cve_2018.yar` ... `cve_2026.yar` | Baseline: one rule per CVE, from public exploit checks (see below) |
 | `vulnerabilities.yar` | Baseline: product vulnerabilities without a CVE id (many CNVD-tracked OA, ERP and router products) |
@@ -298,7 +298,7 @@ NVD entries cited in each rule's `reference`.
 
 ### Baseline rules
 
-The `cve_<year>.yar`, `vulnerabilities.yar` and `exposures.yar` files (3,015
+The `cve_<year>.yar`, `vulnerabilities.yar` and `exposures.yar` files (3,011
 rules) were mined from the HTTP checks in
 [ProjectDiscovery nuclei-templates](https://github.com/projectdiscovery/nuclei-templates)
 (MIT License). Each rule keys on the most specific part of one check's request:
@@ -324,8 +324,14 @@ values, checks that only compare version numbers, and anything that matches a
   `nonce`, `Log In`, `Save`);
 - paths of one plain word (`/monitoring`, `/workspace/`), and trailing
   placeholder segments such as the `x` in `/userfiles/x`. One-word paths with
-  an extension, `_`, a digit or CamelCase stay (`/log_proxy`, `/NateMail.php`). CVEs that already have a
-hand-written rule were skipped.
+  an extension, `_`, a digit or CamelCase stay (`/log_proxy`, `/NateMail.php`);
+- endpoints every install of a framework exposes (`/debug/vars`,
+  `/debug/pprof/`, `/actuator/env`, `/v2/_catalog`, `/wp-json/wp/v2/comments`,
+  `/api/v4/projects`): the hand-written probe rules name them, and a CVE label
+  there would be a guess. Rules left with no indicator were removed after a
+  replay of the demo traffic (October 2026).
+
+CVEs that already have a hand-written rule were skipped.
 
 Baseline rules are `confidence = "medium"`: a request for the vulnerable
 endpoint is a strong signal, but it cannot tell an exploit attempt from a

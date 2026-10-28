@@ -4610,27 +4610,6 @@ rule krawl_vuln_nacos_info_leak {
         (scan_target == "path" and any of ($path*))
 }
 
-rule krawl_vuln_natshell_rce {
-    meta:
-        attack_type = "vuln_natshell_rce"
-        classification = "attack"
-        severity = 9
-        confidence = "medium"
-        description = "NatShell Debug File - Remote Code Execution: The NatShell debug file is susceptible to a remote code execution vulnerability."
-        mitre_attack = "T1190, T1059"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        reference = "https://github.com/projectdiscovery/nuclei-templates/blob/main/http/vulnerabilities/other/natshell-rce.yaml"
-        response_type = "command_injection"
-    strings:
-        $path0 = /\/debug\.php(\/|;|$)/ nocase
-    condition:
-        (scan_target == "path" and any of ($path*))
-}
-
 rule krawl_vuln_ncast_lfi {
     meta:
         attack_type = "vuln_ncast_lfi"
@@ -7292,7 +7271,7 @@ rule krawl_vuln_springboot_h2_db_rce {
     strings:
         $path0 = /\/actuator\/env(\/|;|$)/ nocase
     condition:
-        (scan_target == "path" and any of ($path*))
+        (scan_target == "path" and http_method == "POST" and any of ($path*))
 }
 
 rule krawl_vuln_squirrelmail_lfi {

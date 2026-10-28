@@ -24,6 +24,8 @@ rule krawl_path_traversal {
         $windows = "c:\\windows" ascii nocase
         $ini = /(boot|win)\.ini/ ascii nocase
         $proc = "/proc/self" ascii nocase
+        // {"file_path":".env"} sent to agent and dev-tool file readers
+        $json_secret = /"(file_?path|path|file|filename|template_?file)"\s*:\s*"[^"]{0,64}(\.env|\.aws\/credentials|id_rsa)"/ ascii nocase
     condition:
         (scan_target == "path" or scan_target == "query" or scan_target == "body") and any of them
 }
@@ -174,13 +176,17 @@ rule krawl_command_injection {
         $chain = /(;|\||&&|`|\$\(|\$\{)\s*(id|whoami|uname|cat|ls|pwd|ps|wget|curl|nc|ncat|netcat|bash|sh|chmod|chown|rm|echo|ping|nslookup|sleep|ifconfig|ipconfig|dir|type)\b/ ascii nocase
         $shell = /\/bin\/(ba|z|da)?sh|cmd\.exe|powershell(\.exe)?\s+-/ ascii nocase
         $revshell = "/dev/tcp/" ascii
+        // {"command":"env"} sent to agent and dev-tool exec endpoints
+        $json_cmd = /"(command|cmd)"\s*:\s*"(env|printenv|id|whoami|uname|set)(\s[^"]{0,40})?"/ ascii nocase
+        // base64 Python: "import os", "import subprocess", "__import__"
+        $b64_py = /aW1wb3J0IG9z|aW1wb3J0IHN1YnByb2Nlc3|X19pbXBvcnRfX/ ascii
         $sel_passwd = "/etc/passwd" ascii nocase
         $sel_id = /(;|\||&&|`|\$\(|=)\s*id\b/ ascii nocase
         $sel_whoami = "whoami" ascii nocase
         $sel_uname = "uname" ascii nocase
         $sel_ls = /(;|\||&&|`|\$\(|=)\s*ls\b/ ascii nocase
     condition:
-        (scan_target == "path" or scan_target == "query" or scan_target == "body") and any of ($parameter, $chain, $shell, $revshell) and (any of ($sel_*) or true)
+        (scan_target == "path" or scan_target == "query" or scan_target == "body") and any of ($parameter, $chain, $shell, $revshell, $json_cmd, $b64_py) and (any of ($sel_*) or true)
 }
 
 rule krawl_common_probes {

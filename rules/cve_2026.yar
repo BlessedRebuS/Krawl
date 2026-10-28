@@ -982,27 +982,6 @@ rule krawl_cve_2026_19089_product_input_fields_for_wooco {
         (scan_target == "path" and any of ($path*))
 }
 
-rule krawl_cve_2026_19478_gitlab {
-    meta:
-        attack_type = "cve_2026_19478"
-        classification = "attack"
-        severity = 9
-        confidence = "medium"
-        description = "GitLab CE/EE - GraphQL @gl_introduced Arbitrary Method Invocation: GitLab has remediated an issue in GitLab CE/EE affecting all versions from 18.2 before 18.11.11, 19.0 before 19.0.8, 19.1 before 19.1.6, and 19.2 before 19.2.4 that under certain conditions could allow an."
-        mitre_attack = "T1190"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        cve = "CVE-2026-19478"
-        reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-19478, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-19478.yaml"
-    strings:
-        $path0 = /\/api\/v4\/projects(\/|;|$)/ nocase
-    condition:
-        (scan_target == "path" and any of ($path*))
-}
-
 rule krawl_cve_2026_19632_translatepress_multilingual {
     meta:
         attack_type = "cve_2026_19632"
@@ -1808,10 +1787,9 @@ rule krawl_cve_2026_27771_gitea {
         cve = "CVE-2026-27771"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-27771, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-27771.yaml"
     strings:
-        $path0 = /\/v2\/_catalog(\/|;|$)/ nocase
         $param0 = /(^|[?&;])service=container_registry(&|$)/ nocase
     condition:
-        (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
+        ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
 
 rule krawl_cve_2026_27796_homarr {
@@ -3084,27 +3062,6 @@ rule krawl_cve_2026_41432_new_api_v0_12_10 {
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-41432, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-41432.yaml"
     strings:
         $path0 = /\/api\/stripe\/webhook(\/|;|$)/ nocase
-    condition:
-        (scan_target == "path" and any of ($path*))
-}
-
-rule krawl_cve_2026_41492_dgraph {
-    meta:
-        attack_type = "cve_2026_41492"
-        classification = "attack"
-        severity = 9
-        confidence = "medium"
-        description = "Dgraph <= 25.3.2 - Admin Token Disclosure: Dgraph <= 25.3.2 contains an information disclosure caused by unauthenticated access to the /debug/vars endpoint , which publishes the cmdline variable including the --security token= flag, letting unauthenticated remote attackers."
-        mitre_attack = "T1190"
-        version = "1.0"
-        date = "2026-10-27"
-        modified = "2026-10-27"
-        author = "Krawl (indicators from nuclei-templates)"
-        false_positives = "Requests to a real installation of the product; a honeypot does not run it."
-        cve = "CVE-2026-41492"
-        reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-41492, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-41492.yaml"
-    strings:
-        $path0 = /\/debug\/vars(\/|;|$)/ nocase
     condition:
         (scan_target == "path" and any of ($path*))
 }
@@ -4511,9 +4468,10 @@ rule krawl_cve_2026_63030_wordpress {
         cve = "CVE-2026-63030"
         reference = "https://nvd.nist.gov/vuln/detail/CVE-2026-63030, https://github.com/projectdiscovery/nuclei-templates/blob/main/http/cves/2026/CVE-2026-63030.yaml"
     strings:
+        $path0 = /\/wp-json\/batch\/v1\/?$/ nocase
         $param0 = /(^|[?&;])rest_route=\/batch\/v1(&|$)/ nocase
     condition:
-        ((scan_target == "query" or scan_target == "body") and any of ($param*))
+        (scan_target == "path" and http_method == "POST" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }
 
 rule krawl_cve_2026_63077_teamcity {
@@ -5363,7 +5321,7 @@ rule krawl_cve_2026_85706_gitlab {
         response_type = "path_traversal"
     strings:
         $path0 = "/api/v4/projects/1/repository/files/" ascii nocase
-        $param0 = /(^|[?&;])Content-Type=application\/x-www-form-urlencoded(&|$)/ nocase
+        $param0 = /(^|[?&;])file\.path=/ nocase
     condition:
         (scan_target == "path" and any of ($path*)) or ((scan_target == "query" or scan_target == "body") and any of ($param*))
 }

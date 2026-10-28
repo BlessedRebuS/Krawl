@@ -461,3 +461,36 @@ def test_detection_has_no_legacy_engine():
 
     assert not hasattr(detection, "LegacyDetectionEngine")
     assert not hasattr(detection, "LEGACY_RULE_META")
+
+
+@pytest.mark.parametrize(
+    "path, probe",
+    [
+        # Generic endpoints once labelled as a product CVE (demo, 2026-10-27).
+        ("/debug/vars", "krawl_probe_debug_endpoints"),
+        ("/debug/pprof/", "krawl_probe_debug_endpoints"),
+        ("/actuator/env", "krawl_probe_spring_actuator"),
+        ("/v2/_catalog", "krawl_probe_container_api"),
+        ("/api/v4/projects", None),
+        ("/debug.php", None),
+        ("/wp-json/wp/v2/comments", None),
+        ("/author-sitemap.xml", None),
+    ],
+)
+def test_generic_endpoints_are_not_named_as_a_cve(path, probe):
+    names = {f.rule_name for f in _yara().iter_findings(method="GET", path=path)}
+
+    assert not {n for n in names if n.startswith(("krawl_cve_", "krawl_vuln_"))}
+    if probe:
+        assert probe in names
+
+
+def test_h2_console_rce_needs_a_post_to_actuator_env():
+    findings = _yara().iter_findings(
+        method="POST",
+        path="/actuator/env",
+        body='{"name":"spring.datasource.hikari.connection-test-query",'
+        '"value":"CREATE ALIAS EXEC AS ..."}',
+    )
+
+    assert "krawl_vuln_springboot_h2_db_rce" in {f.rule_name for f in findings}

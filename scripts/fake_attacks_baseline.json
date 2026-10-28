@@ -3003,12 +3003,6 @@
   "path": "/api/filemanager"
  },
  {
-  "name": "CVE-2019-11248 indicator",
-  "expect": "cve_2019_11248",
-  "rule": "krawl_cve_2019_11248_kubernetes",
-  "path": "/debug/pprof/"
- },
- {
   "name": "CVE-2019-11253 indicator",
   "expect": "cve_2019_11253",
   "rule": "krawl_cve_2019_11253_kubernetes",
@@ -3891,7 +3885,7 @@
   "name": "CVE-2020-13640 indicator",
   "expect": "cve_2020_13640",
   "rule": "krawl_cve_2020_13640_wpdiscuz",
-  "path": "/wp-json/wp/v2/comments"
+  "path": "/wp-content/plugins/wpdiscuz/utils/ajax/wpdiscuz-ajax.php"
  },
  {
   "name": "CVE-2020-13700 indicator",
@@ -9116,7 +9110,9 @@
   "name": "CVE-2023-32243 indicator",
   "expect": "cve_2023_32243",
   "rule": "krawl_cve_2023_32243_essential_addons_for_elementor",
-  "path": "/author-sitemap.xml"
+  "path": "/wp-admin/admin-ajax.php",
+  "method": "POST",
+  "body": "action=login_or_register_user&eael-resetpassword-submit=true"
  },
  {
   "name": "CVE-2023-32563 indicator",
@@ -14033,12 +14029,6 @@
   "path": "/wp-json/wc/store/v1/cart"
  },
  {
-  "name": "CVE-2026-19478 indicator",
-  "expect": "cve_2026_19478",
-  "rule": "krawl_cve_2026_19478_gitlab",
-  "path": "/api/v4/projects"
- },
- {
   "name": "CVE-2026-19632 indicator",
   "expect": "cve_2026_19632",
   "rule": "krawl_cve_2026_19632_translatepress_multilingual",
@@ -14264,7 +14254,8 @@
   "name": "CVE-2026-27771 indicator",
   "expect": "cve_2026_27771",
   "rule": "krawl_cve_2026_27771_gitea",
-  "path": "/v2/_catalog"
+  "path": "/v2/token",
+  "query": "service=container_registry"
  },
  {
   "name": "CVE-2026-27796 indicator",
@@ -14619,12 +14610,6 @@
   "expect": "cve_2026_41432",
   "rule": "krawl_cve_2026_41432_new_api_v0_12_10",
   "path": "/api/stripe/webhook"
- },
- {
-  "name": "CVE-2026-41492 indicator",
-  "expect": "cve_2026_41492",
-  "rule": "krawl_cve_2026_41492_dgraph",
-  "path": "/debug/vars"
  },
  {
   "name": "CVE-2026-41679 indicator",
@@ -16697,12 +16682,6 @@
   "path": "/v1/cs/configs"
  },
  {
-  "name": "natshell-rce indicator",
-  "expect": "vuln_natshell_rce",
-  "rule": "krawl_vuln_natshell_rce",
-  "path": "/debug.php"
- },
- {
   "name": "ncast-lfi indicator",
   "expect": "vuln_ncast_lfi",
   "rule": "krawl_vuln_ncast_lfi",
@@ -17476,7 +17455,9 @@
   "name": "springboot-h2-db-rce indicator",
   "expect": "vuln_springboot_h2_db_rce",
   "rule": "krawl_vuln_springboot_h2_db_rce",
-  "path": "/actuator/env"
+  "path": "/actuator/env",
+  "method": "POST",
+  "body": "{\"name\":\"spring.datasource.hikari.connection-test-query\",\"value\":\"CREATE ALIAS EXEC AS ...\"}"
  },
  {
   "name": "squirrelmail-lfi indicator",
