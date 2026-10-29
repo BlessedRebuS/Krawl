@@ -125,20 +125,15 @@ async def htmx_targeted_domains(
     )
     sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
     page = max(1, page)
-    cache_key = f"targeted-domains:{page}:{search}:{sort_by}:{sort_order}"
-    result = get_cached_table(cache_key) if not search else None
-    if not result:
-        db = get_db()
-        result = await asyncio.to_thread(
-            db.access_logs.get_targeted_domains,
-            page=page,
-            page_size=10,
-            search=search,
-            sort_by=sort_by,
-            sort_order=sort_order,
-        )
-        if not search:
-            set_cached_table(cache_key, result)
+    # Pages the cached host rollup, so every sort and search is cheap.
+    result = await asyncio.to_thread(
+        get_db().access_logs.get_targeted_domains,
+        page=page,
+        page_size=10,
+        search=search,
+        sort_by=sort_by,
+        sort_order=sort_order,
+    )
     return get_templates().TemplateResponse(
         request,
         "dashboard/partials/targeted_domains_table.html",
@@ -155,11 +150,7 @@ async def htmx_targeted_domains(
 
 @router.get("/htmx/domain-map")
 async def htmx_domain_map(request: Request, root: str = Query("")):
-    rows = get_cached_table("domain-map-hosts")
-    if rows is None:
-        db = get_db()
-        rows = await asyncio.to_thread(db.access_logs.get_domain_map_hosts)
-        set_cached_table("domain-map-hosts", rows)
+    rows = await asyncio.to_thread(get_db().access_logs.get_domain_map_hosts)
     graph = build_domain_map(
         rows,
         selected_root=root.strip()[:255],

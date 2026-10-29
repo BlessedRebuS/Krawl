@@ -10,7 +10,13 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import and_, distinct, func, or_
 from sqlalchemy.orm import joinedload
 
-from dashboard_cache import pagination, table_row_count
+from dashboard_cache import (
+    SLOW_TABLE_TTL,
+    get_cached_table,
+    pagination,
+    set_cached_table,
+    table_row_count,
+)
 from logger import get_app_logger
 from models import AccessLog, AttackDetection, CapturedPayload, IpStats, RequestAsset
 from sanitizer import sanitize_ip
@@ -19,6 +25,8 @@ if TYPE_CHECKING:
     from database.core import DatabaseManager
 
 applogger = get_app_logger()
+
+DOMAIN_ROLLUP_KEY = "domains:rollup"
 
 
 def _matches_headers(raw_request: str | None, headers: list[tuple[str, str]]) -> bool:
@@ -156,25 +164,60 @@ class AccessLogRepo:
     ) -> dict[str, Any]:
         """Host-header targets ranked by retained request count.
 
-        One pass groups by (host, ip): a hash of pairs instead of sorting the
-        whole log to count distinct IPs per host (75s -> 23s on 7M rows), and
-        the per-host rollup is the distinct-IP count. Hosts are few (dozens),
-        so the full list is sorted and paged here rather than aggregating the
-        log a second time just to count them.
+        Hosts are few (hundreds), so search, sort and paging run over the
+        cached rollup rather than re-aggregating the log for each view.
         """
+        needle = search.casefold()
+        domains = sorted(
+            (d for d in self.get_domain_rollup() if needle in d["domain"].casefold()),
+            key=lambda d: d["domain"],
+        )
+        key = (
+            sort_by
+            if sort_by in {"domain", "count", "distinct_ips", "first_seen", "last_seen"}
+            else "count"
+        )
+        # Stable sort on top of the domain order keeps name as the tiebreak.
+        domains.sort(key=lambda d: d[key], reverse=sort_order != "asc")
+        start = (page - 1) * page_size
+        return {
+            "domains": domains[start : start + page_size],
+            "pagination": pagination(page, page_size, len(domains)),
+        }
+
+    def get_domain_rollup(self, refresh: bool = False) -> list[dict[str, Any]]:
+        """Every Host target with hits, distinct IPs and first/last seen.
+
+        A whole-log GROUP BY (30-60s on 12M rows), so one cached result serves
+        Targeted Domains in every sort and search, and the domain map. One
+        pass groups by (host, ip): a hash of pairs instead of sorting the whole
+        log to count distinct IPs per host.
+        """
+        rows = None if refresh else get_cached_table(DOMAIN_ROLLUP_KEY)
+        if rows is not None:
+            return rows
         session = self._db.session
         try:
-            pairs = session.query(
-                AccessLog.target_host.label("domain"),
-                func.sum(AccessLog.hit_count).label("hits"),
-                func.min(AccessLog.timestamp).label("first_seen"),
-                func.max(AccessLog.timestamp).label("last_seen"),
-            ).filter(AccessLog.target_host.isnot(None), AccessLog.target_host != "")
-            if search:
-                pairs = pairs.filter(AccessLog.target_host.ilike(f"%{search}%"))
-            pairs = pairs.group_by(AccessLog.target_host, AccessLog.ip).subquery()
-            rows = (
+            pairs = (
                 session.query(
+                    AccessLog.target_host.label("domain"),
+                    func.sum(AccessLog.hit_count).label("hits"),
+                    func.min(AccessLog.timestamp).label("first_seen"),
+                    func.max(AccessLog.timestamp).label("last_seen"),
+                )
+                .filter(AccessLog.target_host.isnot(None), AccessLog.target_host != "")
+                .group_by(AccessLog.target_host, AccessLog.ip)
+                .subquery()
+            )
+            rows = [
+                {
+                    "domain": row.domain,
+                    "count": int(row.count),
+                    "distinct_ips": row.distinct_ips,
+                    "first_seen": row.first_seen,
+                    "last_seen": row.last_seen,
+                }
+                for row in session.query(
                     pairs.c.domain,
                     func.sum(pairs.c.hits).label("count"),
                     func.count().label("distinct_ips"),
@@ -183,35 +226,11 @@ class AccessLogRepo:
                 )
                 .group_by(pairs.c.domain)
                 .all()
-            )
-            domains = sorted(
-                (
-                    {
-                        "domain": row.domain,
-                        "count": int(row.count),
-                        "distinct_ips": row.distinct_ips,
-                        "first_seen": row.first_seen,
-                        "last_seen": row.last_seen,
-                    }
-                    for row in rows
-                ),
-                key=lambda d: d["domain"],
-            )
-            key = (
-                sort_by
-                if sort_by
-                in {"domain", "count", "distinct_ips", "first_seen", "last_seen"}
-                else "count"
-            )
-            # Stable sort on top of the domain order keeps name as the tiebreak.
-            domains.sort(key=lambda d: d[key], reverse=sort_order != "asc")
-            start = (page - 1) * page_size
-            return {
-                "domains": domains[start : start + page_size],
-                "pagination": pagination(page, page_size, len(domains)),
-            }
+            ]
         finally:
             self._db.close_session()
+        set_cached_table(DOMAIN_ROLLUP_KEY, rows, ttl=SLOW_TABLE_TTL)
+        return rows
 
     def get_request_assets(
         self,
@@ -275,24 +294,10 @@ class AccessLogRepo:
 
     def get_domain_map_hosts(self, limit: int = 2000) -> list[dict[str, Any]]:
         """Most-targeted distinct Host values for the bounded link map."""
-        session = self._db.session
-        try:
-            rows = (
-                session.query(
-                    AccessLog.target_host.label("domain"),
-                    func.sum(AccessLog.hit_count).label("count"),
-                )
-                .filter(AccessLog.target_host.isnot(None), AccessLog.target_host != "")
-                .group_by(AccessLog.target_host)
-                .order_by(
-                    func.sum(AccessLog.hit_count).desc(), AccessLog.target_host.asc()
-                )
-                .limit(limit)
-                .all()
-            )
-            return [{"domain": row.domain, "count": row.count} for row in rows]
-        finally:
-            self._db.close_session()
+        rows = sorted(
+            self.get_domain_rollup(), key=lambda d: (-d["count"], d["domain"])
+        )
+        return [{"domain": d["domain"], "count": d["count"]} for d in rows[:limit]]
 
     def get_artifact_requests(
         self,

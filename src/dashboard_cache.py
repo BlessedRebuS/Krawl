@@ -30,6 +30,8 @@ _REDIS_PREFIX = "krawl:cache:"
 _REDIS_TTL = 600  # default: 10 minutes for dashboard warmup data
 _REDIS_SHORT_TTL = 30  # default: 30 seconds for hot-path data (ban info, IP categories)
 _REDIS_TABLE_TTL = 120  # default: 2 minutes for paginated dashboard tables
+# Whole-log rollups refreshed every 30 minutes by the warmup; outlive that gap.
+SLOW_TABLE_TTL = 2400
 
 
 def _json_serializer(obj):
