@@ -441,3 +441,20 @@ def test_leaving_the_search_box_does_not_reload_the_table():
     ).read_text()
 
     assert "hx-trigger=\"change[target.tagName === 'SELECT']," in panel
+
+
+def test_cached_rule_stats_round_trip_to_tuples_and_datetimes(monkeypatch):
+    # Redis stores JSON; the table formats last_match with strftime.
+    import asyncio
+    import json
+
+    import routes.htmx as htmx
+
+    stats = {
+        "by_rule": {"sqli_union": (3, NOW)},
+        "unnamed_by_type": {"xss_attempt": (1, None)},
+    }
+    cached = json.loads(json.dumps(stats, default=datetime.isoformat))
+    monkeypatch.setattr(htmx, "get_cached_table", lambda key: cached)
+
+    assert asyncio.run(htmx._rule_match_stats()) == stats

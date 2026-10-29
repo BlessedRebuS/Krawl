@@ -500,12 +500,32 @@ def paginate_rule_rows(
     return rows[start : start + per_page], number, pages
 
 
+async def _rule_match_stats() -> dict:
+    """Match stats behind the Rules table, cached for the table TTL.
+
+    Every keystroke, sort and page used to re-run two GROUP BYs over all
+    detections joined to access_logs; filtering happens in Python anyway.
+    """
+    cached = get_cached_table("rules:match-stats")
+    if cached is None:
+        stats = await asyncio.to_thread(get_db().access_logs.get_rule_match_stats)
+        set_cached_table("rules:match-stats", stats)
+        return stats
+    # JSON round-trip: tuples come back as lists, datetimes as ISO strings.
+    return {
+        group: {
+            name: (count, datetime.fromisoformat(last) if last else None)
+            for name, (count, last) in entries.items()
+        }
+        for group, entries in cached.items()
+    }
+
+
 async def _rule_rows(request: Request, **query) -> list[dict]:
     from detection import get_detection
 
     rules = get_detection().list_rules()
-    stats = await asyncio.to_thread(get_db().access_logs.get_rule_match_stats)
-    return build_rule_rows(rules, stats, **query)
+    return build_rule_rows(rules, await _rule_match_stats(), **query)
 
 
 def _rules_query(
