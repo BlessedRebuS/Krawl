@@ -293,6 +293,25 @@ def pagination(page: int, page_size: int, total: int) -> dict:
     }
 
 
+def table_row_count(session, model) -> int:
+    """Row total of an unfiltered table, for pagination.
+
+    PostgreSQL reads the planner's estimate: an exact COUNT(*) walks the whole
+    heap (45s on a 12M-row access_logs), longer than the dashboard waits.
+    Counts exactly elsewhere, or while the table has never been analyzed.
+    """
+    from sqlalchemy import func, text
+
+    if session.bind.dialect.name == "postgresql":
+        estimate = session.execute(
+            text("SELECT reltuples::bigint FROM pg_class WHERE oid = to_regclass(:t)"),
+            {"t": model.__tablename__},
+        ).scalar()
+        if estimate and estimate > 0:
+            return int(estimate)
+    return session.query(func.count()).select_from(model).scalar() or 0
+
+
 def paginate_cached_list(items: list, page: int, page_size: int) -> dict:
     """Slice a pre-computed sorted list into a paginated response."""
     total = len(items)

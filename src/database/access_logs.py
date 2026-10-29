@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import and_, distinct, func, or_
 from sqlalchemy.orm import joinedload
 
-from dashboard_cache import pagination
+from dashboard_cache import pagination, table_row_count
 from logger import get_app_logger
 from models import AccessLog, AttackDetection, CapturedPayload, IpStats, RequestAsset
 from sanitizer import sanitize_ip
@@ -114,7 +114,10 @@ class AccessLogRepo:
                     else []
                 )
             else:
-                total = query.count()
+                filtered = any((path, host, referer, ip, user_agent, method, raw_text))
+                total = (
+                    query.count() if filtered else table_row_count(session, AccessLog)
+                )
                 results = (
                     query.order_by(AccessLog.timestamp.desc(), AccessLog.id.desc())
                     .offset((page - 1) * page_size)
@@ -400,7 +403,10 @@ class AccessLogRepo:
                 count_query = count_query.filter(AccessLog.is_suspicious)
             if since_minutes is not None:
                 count_query = count_query.filter(AccessLog.timestamp >= cutoff_time)
-            total_access_logs = count_query.scalar()
+            if ip_filter or suspicious_only or since_minutes is not None:
+                total_access_logs = count_query.scalar()
+            else:
+                total_access_logs = table_row_count(session, AccessLog)
             total_pages = (total_access_logs + page_size - 1) // page_size
 
             return {

@@ -1139,7 +1139,11 @@ class IpStatsRepo:
             # sort order. It shares the table-cache TTL and is dropped by
             # invalidate_table_cache() after a write, so it cannot go stale
             # past a purge. Standalone mode has no table cache and counts live.
-            from dashboard_cache import get_cached_table, set_cached_table
+            from dashboard_cache import (
+                get_cached_table,
+                set_cached_table,
+                table_row_count,
+            )
 
             count_key = (
                 f"ip_stats:count:{','.join(sorted(categories))}"
@@ -1148,7 +1152,11 @@ class IpStatsRepo:
             )
             total_ips = get_cached_table(count_key)
             if total_ips is None:  # 0 is a valid count, so test for None
-                total_ips = count_query.scalar() or 0
+                total_ips = (
+                    count_query.scalar() or 0
+                    if categories
+                    else table_row_count(session, IpStats)
+                )
                 set_cached_table(count_key, total_ips)
 
             # Apply sorting
