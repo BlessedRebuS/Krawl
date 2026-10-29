@@ -71,7 +71,7 @@
                 <td class="col-optional">
                     <div class="badge-row">
                         {% for t in types[:2] %}
-                        <span class="method-badge method-{{ t | lower | replace('_', '-') | e }}" title="{{ t | attack_label }}">{{ t | attack_label }}</span>
+                        <span class="method-badge method-{{ t | lower | replace('_', '-') | e }} atk-sev-{{ t | attack_severity_band }}" title="{{ t | attack_label }}">{{ t | attack_label }}</span>
                         {% else %}
                         <span class="faint">—</span>
                         {% endfor %}

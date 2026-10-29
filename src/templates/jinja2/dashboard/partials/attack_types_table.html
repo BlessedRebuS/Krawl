@@ -119,7 +119,7 @@
                 {% set types = (attack.attack_type or '').split(',') | map('trim') | select | list %}
                 <div class="badge-row" title="{{ attack.attack_type | attack_label }}">
                     {% for t in types[:2] %}
-                    <span class="method-badge method-{{ t | lower | replace('_', '-') | e }}" title="{{ t | attack_label }}">{{ t | attack_label }}</span>
+                    <span class="method-badge method-{{ t | lower | replace('_', '-') | e }} atk-sev-{{ t | attack_severity_band }}" title="{{ t | attack_label }}">{{ t | attack_label }}</span>
                     {% endfor %}
                     {% if types | length > 2 %}<span class="badge-more">+{{ types | length - 2 }}</span>{% endif %}
                 </div>

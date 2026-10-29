@@ -37,6 +37,7 @@ def get_templates() -> Jinja2Templates:
         _templates.env.filters["safe_url"] = _safe_url
         _templates.env.filters["num"] = _format_num
         _templates.env.filters["attack_label"] = _attack_label
+        _templates.env.filters["attack_severity_band"] = _attack_severity_band
     return _templates
 
 
@@ -130,6 +131,19 @@ def _format_size(value):
     if value < 1024 * 1024:
         return f"{value / 1024:.1f} KB"
     return f"{value / (1024 * 1024):.1f} MB"
+
+
+def _attack_severity_band(attack_type):
+    """Severity band of the rules behind an attack type, "unknown" without them.
+
+    Tints attack types that have no fixed --atk-* hue (per-CVE rule types).
+    """
+    from detection import loaded_detection, severity_band
+
+    detection = loaded_detection()
+    if detection is None or not attack_type:
+        return "unknown"
+    return severity_band(detection.attack_type_severity(str(attack_type).strip()))
 
 
 def _safe_url(value):

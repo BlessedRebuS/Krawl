@@ -1263,6 +1263,13 @@ tbody {
     text-decoration: none;
     border-bottom: 1px dotted color-mix(in srgb, var(--accent) 40%, transparent);
 }
+/* Attack types with no fixed hue (per-CVE rule types) are tinted by the
+   severity of the rules behind them. Declared before the fixed hues, which
+   win on the types that have one. */
+.atk-sev-critical { --atk: var(--sev-critical); }
+.atk-sev-high { --atk: var(--sev-high); }
+.atk-sev-medium { --atk: var(--sev-medium); }
+.atk-sev-low { --atk: var(--sev-low); }
 /* Attack-type badges: tinted in the type's hue, see --atk-* above. */
 .method-command-injection { --atk: var(--atk-command-injection); }
 .method-sql-injection { --atk: var(--atk-sql-injection); }
