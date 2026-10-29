@@ -116,7 +116,8 @@ def test_attacks_route_applies_and_keeps_the_exclude_filter(stored):
     assert "/wp-login.php" not in html
     assert "/xmlrpc.php" not in html
     # Paging and sorting links keep the filter.
-    assert "exclude=wp-login,xmlrpc" in html
+    # URL-encoded, so a term with & or # cannot split the query string.
+    assert "exclude=wp-login%2Cxmlrpc" in html
     # One removable pill per term; the term travels in a data attribute.
     assert 'data-term="wp-login"' in html
     assert 'data-term="xmlrpc"' in html
@@ -195,3 +196,23 @@ def test_text_filtered_count_is_exact_inside_the_window(stored):
 
     assert result["pagination"]["capped"] is False
     assert result["pagination"]["total"] == 3
+
+
+def test_filter_links_url_encode_terms_with_query_syntax():
+    from dependencies import get_templates
+
+    html = get_templates().env.get_template(
+        "dashboard/partials/attack_types_table.html"
+    ).render(
+        dashboard_path="/d",
+        items=[],
+        pagination={"page": 1, "page_size": 15, "total": 0, "total_pages": 1},
+        sort_by="timestamp",
+        sort_order="desc",
+        search="a&b",
+        exclude="x#y",
+        exclude_terms=["x#y"],
+    )
+
+    assert "search=a%26b" in html and "exclude=x%23y" in html
+    assert "search=a&b" not in html
