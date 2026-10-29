@@ -24,7 +24,7 @@
                 </div>
 
                 <p class="raw-detection-empty" x-show="!currentDetection().rules.length">
-                    No rule metadata: the request was scanned by the legacy engine, or the rule is no longer loaded.
+                    No rule details: this request was scanned before YARA rules recorded their names, or its rule has since been removed.
                 </p>
 
                 <template x-for="rule in currentDetection().rules" :key="rule.rule">
@@ -81,7 +81,8 @@
                                     <dt>References</dt>
                                     <dd class="raw-detection-refs">
                                         <template x-for="ref in rule.references" :key="ref">
-                                            <a :href="ref" target="_blank" rel="noopener noreferrer" x-text="ref"></a>
+                                            <a x-show="safeHref(ref)" :href="safeHref(ref)" target="_blank" rel="noopener noreferrer" x-text="ref"></a>
+                                            <span x-show="!safeHref(ref)" x-text="ref"></span>
                                         </template>
                                     </dd>
                                 </div>

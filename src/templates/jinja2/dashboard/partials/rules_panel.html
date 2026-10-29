@@ -27,7 +27,7 @@
             <tr>
                 <td><code>{{ item.filename }}</code></td>
                 <td><code>{{ item.rules | join(', ') }}</code></td>
-                <td>{{ item.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>{{ item.uploaded_at | format_ts }}</td>
                 <td class="rules-upload-actions">
                     <a class="deception-action-btn" download href="{{ dashboard_path }}/api/rules/{{ item.filename }}">Download</a>
                     <button type="button" class="deception-action-btn deception-action-btn-danger"
@@ -62,11 +62,12 @@
         </select>
         <select class="panel-search" name="min_severity" aria-label="Minimum severity">
             <option value="">Any severity</option>
-            <option value="4">Severity 4+</option>
-            <option value="7">Severity 7+</option>
-            <option value="9">Severity 9+</option>
+            <option value="4">Medium and above (4+)</option>
+            <option value="7">High and above (7+)</option>
+            <option value="9">Critical only (9+)</option>
         </select>
     </form>
+    <p class="muted fs-sm rules-legend">Severity: critical 9&ndash;10 &middot; high 7&ndash;8 &middot; medium 4&ndash;6 &middot; low 1&ndash;3. Fake reply: the response a matching request gets back; <em>path default</em> means the honeypot answers with the page for the requested path.</p>
 
     <div class="table-container" id="rules-table-container">
         {% include "dashboard/partials/rules_table.html" %}

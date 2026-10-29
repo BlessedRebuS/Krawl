@@ -1259,16 +1259,63 @@ window.openIpInsight = function(ip) {
 };
 
 // Rules panel: upload and delete YARA rule files (see custom_rules.py).
+// Rule references come from uploaded and third-party rule files: link only
+// http(s) URLs, mirroring the safe_url Jinja filter.
+window.safeHref = function(url) {
+    const value = String(url || '').trim();
+    return /^https?:\/\//i.test(value) ? value : '';
+};
+
+// A rule card's match list failed to load: say so and offer a retry, instead
+// of leaving "Loading matching requests…" up forever.
+window.ruleMatchesFailed = function(el, event) {
+    const status = event.detail && event.detail.xhr ? event.detail.xhr.status : 0;
+    const reason = status === 404
+        ? 'This rule is no longer loaded, so its matches are unavailable.'
+        : status === 401
+            ? 'Your session expired. Sign in again to see matches.'
+            : 'Could not load matching requests.';
+    el.innerHTML = '';
+    const line = document.createElement('p');
+    line.className = 'fs-sm rules-matches-error';
+    line.textContent = reason + ' ';
+    if (status !== 404 && status !== 401) {
+        const retry = document.createElement('button');
+        retry.type = 'button';
+        retry.className = 'btn btn-sm';
+        retry.textContent = 'Retry';
+        retry.addEventListener('click', () => htmx.trigger(el, 'krawl:retry'));
+        line.appendChild(retry);
+    }
+    el.appendChild(line);
+};
+
+// Turn a failed rules API response into a sentence the operator can act on;
+// 401 and 413 come back as HTML, so never assume JSON.
+async function rulesApiError(resp, action) {
+    if (resp.status === 401) return 'Your dashboard session expired. Sign in again, then retry the ' + action + '.';
+    if (resp.status === 413) return 'This file is larger than the server accepts. Split it into smaller rule files and upload them one by one.';
+    try {
+        const data = await resp.json();
+        if (data && data.error) return data.error;
+    } catch (_) { /* not JSON */ }
+    return 'The ' + action + ' failed (HTTP ' + resp.status + '). Check the server log for details.';
+}
+const RULES_OFFLINE = 'Could not reach the server. Check your connection, then try again.';
+
 window.rulesUploader = function() {
     const dashboardPath = document.querySelector('[x-data="dashboardApp()"]')?.__alpine_data?.dashboardPath || window.__DASHBOARD_PATH__ || '';
     const reloadPanel = () => htmx.ajax('GET', dashboardPath + '/htmx/rules', {
         target: '#rules-htmx-container',
         swap: 'innerHTML'
     });
+    // The success line outlives the panel reload that shows the new file.
+    const flash = window.__rulesFlash || '';
+    window.__rulesFlash = '';
     return {
         busy: false,
         error: '',
-        message: '',
+        message: flash,
         async upload(event) {
             const file = event.target.files[0];
             event.target.value = '';
@@ -1283,15 +1330,15 @@ window.rulesUploader = function() {
                     credentials: 'same-origin',
                     body: JSON.stringify({ filename: file.name, content: await file.text() }),
                 });
-                const data = await resp.json();
                 if (resp.ok) {
-                    this.message = 'Loaded ' + data.rules.length + ' rule(s) from ' + data.filename + ': ' + data.rules.join(', ');
-                    setTimeout(reloadPanel, 1500);
+                    const data = await resp.json();
+                    window.__rulesFlash = 'Loaded ' + data.rules.length + ' rule(s) from ' + data.filename + ': ' + data.rules.join(', ');
+                    reloadPanel();
                 } else {
-                    this.error = data.error || 'Upload failed';
+                    this.error = await rulesApiError(resp, 'upload');
                 }
             } catch (err) {
-                this.error = 'Request failed: ' + err.message;
+                this.error = RULES_OFFLINE;
             }
             this.busy = false;
         },
@@ -1305,12 +1352,13 @@ window.rulesUploader = function() {
                     credentials: 'same-origin',
                 });
                 if (resp.ok) {
+                    window.__rulesFlash = 'Deleted ' + filename + ' and unloaded its rules.';
                     reloadPanel();
                 } else {
-                    this.error = (await resp.json()).error || 'Delete failed';
+                    this.error = await rulesApiError(resp, 'delete');
                 }
             } catch (err) {
-                this.error = 'Request failed: ' + err.message;
+                this.error = RULES_OFFLINE;
             }
             this.busy = false;
         },

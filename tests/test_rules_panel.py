@@ -430,7 +430,8 @@ def test_rule_card_loads_its_matches():
     ).read_text()
 
     assert "/htmx/rules/matches?rule=" in table
-    assert 'hx-trigger="intersect once"' in table
+    assert 'hx-trigger="intersect once, krawl:retry"' in table
+    assert 'hx-on::response-error="ruleMatchesFailed(this, event)"' in table
 
 
 def test_leaving_the_search_box_does_not_reload_the_table():
