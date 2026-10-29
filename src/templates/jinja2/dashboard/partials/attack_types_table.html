@@ -2,7 +2,11 @@
 {% set filter_qs %}{% if ip_filter %}&ip_filter={{ ip_filter }}{% endif %}{% if attack_type_filter %}&attack_type_filter={{ attack_type_filter | e }}{% endif %}{% if search %}&search={{ search | e }}{% endif %}{% if method_filter %}&method_filter={{ method_filter | e }}{% endif %}{% if exclude %}&exclude={{ exclude | e }}{% endif %}{% endset %}
 <div class="panel-header">
     <div class="row row-wrap">
+        {% if pagination.capped %}
+        <span class="pagination-info" title="Counted within the newest detected requests; older matches page in as you go">Page {{ pagination.page }} &mdash; {{ pagination.total }}+ matching</span>
+        {% else %}
         <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} total</span>
+        {% endif %}
         {% if attack_type_filter %}
         <span class="filter-pill">
             {{ attack_type_filter | e }}
@@ -47,7 +51,7 @@
                 hx-get="{{ dashboard_path }}/htmx/attacks?page={{ pagination.page + 1 }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
-                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
+                {% if pagination.page >= pagination.total_pages and not (pagination.capped and items) %}disabled{% endif %}>Next</button>
     </div>
 </div>
 <table>

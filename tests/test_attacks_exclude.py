@@ -171,3 +171,27 @@ def test_unfiltered_total_counts_each_log_once(stored):
 
     assert total["pagination"]["total"] == 4
     assert by_type["pagination"]["total"] == 2
+
+
+def test_text_filtered_count_is_a_lower_bound_past_the_window(stored, monkeypatch):
+    # An exact count reads every attack row; past the window it is "N+".
+    import database.analytics as analytics
+
+    monkeypatch.setattr(analytics, "COUNT_WINDOW", 2)
+    result = stored.analytics.get_attack_types_paginated(
+        page_size=10, exclude=["sqlmap"]
+    )
+
+    assert result["pagination"]["capped"] is True
+    assert result["pagination"]["total"] <= 2
+    # Paging is not windowed: every non-excluded row is still listed.
+    assert _paths(result) == ["/wp-login.php", "/xmlrpc.php", "/.env"]
+
+
+def test_text_filtered_count_is_exact_inside_the_window(stored):
+    result = stored.analytics.get_attack_types_paginated(
+        page_size=10, exclude=["sqlmap"]
+    )
+
+    assert result["pagination"]["capped"] is False
+    assert result["pagination"]["total"] == 3
