@@ -141,3 +141,25 @@ def test_live_suspicious_arrivals_are_animated_in_both_tables():
     assert "--arrival-index" in styles
     assert 'class="ip-row recent-suspicious-row' in expanded
     assert "data-log-id=" in expanded
+
+
+def test_live_attackers_query_uses_the_partial_index():
+    # Unindexed, the live feed is a seq scan of ip_stats (16s on 4.4M rows).
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    session = sessionmaker(bind=engine)()
+    statements = []
+
+    from sqlalchemy import event
+
+    event.listen(
+        engine,
+        "before_cursor_execute",
+        lambda conn, cursor, stmt, params, *_: statements.append((stmt, params)),
+    )
+    IpStatsRepo(_FakeDb(session)).get_live_attackers(limit=5)
+    stmt, params = statements[-1]
+    plan = session.connection().exec_driver_sql(
+        f"EXPLAIN QUERY PLAN {stmt}", params
+    ).fetchall()
+    assert any("ix_ip_stats_live_attackers" in row[-1] for row in plan), plan

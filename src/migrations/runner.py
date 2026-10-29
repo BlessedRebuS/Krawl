@@ -12,7 +12,7 @@ from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
 
 from logger import get_app_logger
-from models import CRUNCH_QUEUE_WHERE
+from models import CRUNCH_QUEUE_WHERE, LIVE_ATTACKERS_WHERE
 
 logger = get_app_logger()
 
@@ -163,6 +163,14 @@ ONLINE_INDEXES = [
         "last_seen",
         "ip",
         CRUNCH_QUEUE_WHERE,
+        None,
+    ),
+    (
+        "ix_ip_stats_live_attackers",
+        "ip_stats",
+        "last_seen",
+        "ip",
+        LIVE_ATTACKERS_WHERE,
         None,
     ),
 ]

@@ -8,11 +8,17 @@ category_history, and tracked_ips tables.
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import and_, func, or_
+from sqlalchemy import and_, func, or_, text
 
 from dashboard_cache import pagination
 from logger import get_app_logger
-from models import CategoryHistory, CredentialAttempt, IpStats, TrackedIp
+from models import (
+    LIVE_ATTACKERS_WHERE,
+    CategoryHistory,
+    CredentialAttempt,
+    IpStats,
+    TrackedIp,
+)
 from sanitizer import sanitize_ip
 
 if TYPE_CHECKING:
@@ -1213,14 +1219,8 @@ class IpStatsRepo:
                     IpStats.longitude,
                     IpStats.category,
                 )
-                .filter(
-                    or_(
-                        IpStats.has_triggered_honeypot.is_(True),
-                        IpStats.category == "attacker",
-                    ),
-                    IpStats.latitude.is_not(None),
-                    IpStats.longitude.is_not(None),
-                )
+                # Same text as the partial index predicate, so it applies.
+                .filter(text(LIVE_ATTACKERS_WHERE))
                 .order_by(IpStats.last_seen.desc(), IpStats.ip.asc())
                 .limit(limit)
                 .all()
