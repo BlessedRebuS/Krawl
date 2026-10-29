@@ -1216,12 +1216,27 @@ tbody {
     gap: var(--s2);
     row-gap: var(--s1);
 }
+/* Attack-type tags: one fixed height, one line, squared like the other
+   verdict tags (pills belong to HTTP methods). A narrow column ellipsises a
+   long name instead of wrapping it into a two-line blob; types without a
+   hue of their own (per-CVE rules) take the grey low-signal bucket. */
 .badge-row .method-badge {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    max-width: 100%;
+    padding: 0 var(--s2);
+    border-radius: var(--r-sm);
+    border-color: color-mix(in srgb, var(--atk, var(--atk-other)) 40%, transparent);
+    background: color-mix(in srgb, var(--atk, var(--atk-other)) 14%, transparent);
+    color: color-mix(in srgb, var(--atk, var(--atk-other)) 85%, var(--text-strong));
     font-size: var(--fs-2xs);
     font-weight: 600;
     letter-spacing: 0;
-    line-height: 1.4;
-    padding: 0 6px;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 /* A diff of 0 is a byte-identical replay — the strongest campaign signal, so it
    reads as a warning, not an "all clear". */
@@ -1258,13 +1273,6 @@ tbody {
 .method-xss-attempt { --atk: var(--atk-xss-attempt); }
 .method-lfi-rfi { --atk: var(--atk-lfi-rfi); }
 .method-common-probes { --atk: var(--atk-other); }
-.method-command-injection, .method-sql-injection, .method-ldap-injection,
-.method-xxe-injection, .method-login-attempt, .method-path-traversal,
-.method-xss-attempt, .method-lfi-rfi, .method-common-probes {
-    border-color: color-mix(in srgb, var(--atk) 40%, transparent);
-    background: color-mix(in srgb, var(--atk) 14%, transparent);
-    color: color-mix(in srgb, var(--atk) 85%, var(--text-strong));
-}
 .method-get {
     border-color: color-mix(in srgb, var(--accent) 30%, transparent);
     background: color-mix(in srgb, var(--accent) 15%, transparent);
