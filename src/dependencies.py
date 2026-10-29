@@ -6,6 +6,7 @@ Replaces Handler class variables with proper DI.
 """
 
 import os
+import re
 from datetime import datetime
 from urllib.parse import quote
 
@@ -65,6 +66,10 @@ _ATTACK_LABELS = {
 }
 
 
+# Per-CVE rule types ("cve_2019_0193") read as the CVE ID.
+_CVE_TYPE = re.compile(r"cve[_-]\d{4}[_-]\d{4,}")
+
+
 def _attack_label(value):
     """Readable name for a detected attack type ("sql_injection" -> "SQL
     injection"). A comma-separated list is labelled item by item."""
@@ -75,6 +80,8 @@ def _attack_label(value):
     for key in parts:
         if key in _ATTACK_LABELS:
             labels.append(_ATTACK_LABELS[key])
+        elif _CVE_TYPE.fullmatch(key):
+            labels.append(key.upper().replace("_", "-"))
         else:
             words = key.replace("_", " ").replace("-", " ")
             labels.append(words[:1].upper() + words[1:])

@@ -37,6 +37,8 @@ const KRAWL_ATTACK_LABELS = {
 function krawlAttackLabel(type) {
     const key = String(type || '').trim().toLowerCase();
     if (KRAWL_ATTACK_LABELS[key]) return KRAWL_ATTACK_LABELS[key];
+    // Per-CVE rule types ("cve_2019_0193") read as the CVE ID.
+    if (/^cve[_-]\d{4}[_-]\d{4,}$/.test(key)) return key.toUpperCase().replace(/_/g, '-');
     const words = key.replace(/[_-]/g, ' ');
     return words.charAt(0).toUpperCase() + words.slice(1);
 }
