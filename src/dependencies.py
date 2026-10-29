@@ -6,6 +6,7 @@ Replaces Handler class variables with proper DI.
 """
 
 import os
+import re
 from datetime import datetime
 from urllib.parse import quote
 
@@ -37,6 +38,7 @@ def get_templates() -> Jinja2Templates:
         _templates.env.filters["safe_url"] = _safe_url
         _templates.env.filters["num"] = _format_num
         _templates.env.filters["attack_label"] = _attack_label
+        _templates.env.filters["attack_severity_band"] = _attack_severity_band
     return _templates
 
 
@@ -64,6 +66,10 @@ _ATTACK_LABELS = {
 }
 
 
+# Per-CVE rule types ("cve_2019_0193") read as the CVE ID.
+_CVE_TYPE = re.compile(r"cve[_-]\d{4}[_-]\d{4,}")
+
+
 def _attack_label(value):
     """Readable name for a detected attack type ("sql_injection" -> "SQL
     injection"). A comma-separated list is labelled item by item."""
@@ -74,6 +80,8 @@ def _attack_label(value):
     for key in parts:
         if key in _ATTACK_LABELS:
             labels.append(_ATTACK_LABELS[key])
+        elif _CVE_TYPE.fullmatch(key):
+            labels.append(key.upper().replace("_", "-"))
         else:
             words = key.replace("_", " ").replace("-", " ")
             labels.append(words[:1].upper() + words[1:])
@@ -130,6 +138,19 @@ def _format_size(value):
     if value < 1024 * 1024:
         return f"{value / 1024:.1f} KB"
     return f"{value / (1024 * 1024):.1f} MB"
+
+
+def _attack_severity_band(attack_type):
+    """Severity band of the rules behind an attack type, "unknown" without them.
+
+    Tints attack types that have no fixed --atk-* hue (per-CVE rule types).
+    """
+    from detection import loaded_detection, severity_band
+
+    detection = loaded_detection()
+    if detection is None or not attack_type:
+        return "unknown"
+    return severity_band(detection.attack_type_severity(str(attack_type).strip()))
 
 
 def _safe_url(value):

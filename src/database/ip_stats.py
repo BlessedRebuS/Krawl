@@ -8,11 +8,17 @@ category_history, and tracked_ips tables.
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import and_, func, or_
+from sqlalchemy import and_, func, or_, text
 
 from dashboard_cache import pagination
 from logger import get_app_logger
-from models import CategoryHistory, CredentialAttempt, IpStats, TrackedIp
+from models import (
+    LIVE_ATTACKERS_WHERE,
+    CategoryHistory,
+    CredentialAttempt,
+    IpStats,
+    TrackedIp,
+)
 from sanitizer import sanitize_ip
 
 if TYPE_CHECKING:
@@ -1133,7 +1139,11 @@ class IpStatsRepo:
             # sort order. It shares the table-cache TTL and is dropped by
             # invalidate_table_cache() after a write, so it cannot go stale
             # past a purge. Standalone mode has no table cache and counts live.
-            from dashboard_cache import get_cached_table, set_cached_table
+            from dashboard_cache import (
+                get_cached_table,
+                set_cached_table,
+                table_row_count,
+            )
 
             count_key = (
                 f"ip_stats:count:{','.join(sorted(categories))}"
@@ -1142,7 +1152,11 @@ class IpStatsRepo:
             )
             total_ips = get_cached_table(count_key)
             if total_ips is None:  # 0 is a valid count, so test for None
-                total_ips = count_query.scalar() or 0
+                total_ips = (
+                    count_query.scalar() or 0
+                    if categories
+                    else table_row_count(session, IpStats)
+                )
                 set_cached_table(count_key, total_ips)
 
             # Apply sorting
@@ -1213,14 +1227,8 @@ class IpStatsRepo:
                     IpStats.longitude,
                     IpStats.category,
                 )
-                .filter(
-                    or_(
-                        IpStats.has_triggered_honeypot.is_(True),
-                        IpStats.category == "attacker",
-                    ),
-                    IpStats.latitude.is_not(None),
-                    IpStats.longitude.is_not(None),
-                )
+                # Same text as the partial index predicate, so it applies.
+                .filter(text(LIVE_ATTACKERS_WHERE))
                 .order_by(IpStats.last_seen.desc(), IpStats.ip.asc())
                 .limit(limit)
                 .all()

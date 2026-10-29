@@ -1,39 +1,43 @@
 {# HTMX fragment: Detected Attack Types table #}
-{% set filter_qs %}{% if ip_filter %}&ip_filter={{ ip_filter }}{% endif %}{% if attack_type_filter %}&attack_type_filter={{ attack_type_filter | e }}{% endif %}{% if search %}&search={{ search | e }}{% endif %}{% if method_filter %}&method_filter={{ method_filter | e }}{% endif %}{% if exclude %}&exclude={{ exclude | e }}{% endif %}{% endset %}
+{% set filter_qs %}{% if ip_filter %}&ip_filter={{ ip_filter | urlencode }}{% endif %}{% if attack_type_filter %}&attack_type_filter={{ attack_type_filter | urlencode }}{% endif %}{% if search %}&search={{ search | urlencode }}{% endif %}{% if method_filter %}&method_filter={{ method_filter | urlencode }}{% endif %}{% if exclude %}&exclude={{ exclude | urlencode }}{% endif %}{% endset %}
 <div class="panel-header">
     <div class="row row-wrap">
+        {% if pagination.capped %}
+        <span class="pagination-info" title="Counted within the newest detected requests; older matches page in as you go">Page {{ pagination.page }} &mdash; {{ pagination.total }}+ matching</span>
+        {% else %}
         <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} total</span>
+        {% endif %}
         {% if attack_type_filter %}
         <span class="filter-pill">
             {{ attack_type_filter | e }}
-            <span class="filter-pill-clear"
-                  onclick="clearExpandFilter('attackType')"
-                  title="Clear filter">&times;</span>
+            <button type="button" class="filter-pill-clear"
+                    onclick="clearExpandFilter('attackType')"
+                    aria-label="Clear attack type filter" title="Clear filter">&times;</button>
         </span>
         {% endif %}
         {% if method_filter %}
         <span class="filter-pill filter-pill-ok">
             {{ method_filter | e }}
-            <span class="filter-pill-clear"
-                  onclick="clearExpandFilter('method')"
-                  title="Clear method">&times;</span>
+            <button type="button" class="filter-pill-clear"
+                    onclick="clearExpandFilter('method')"
+                    aria-label="Clear method filter" title="Clear method">&times;</button>
         </span>
         {% endif %}
         {% if search %}
         <span class="filter-pill filter-pill-danger">
             &ldquo;{{ search | e }}&rdquo;
-            <span class="filter-pill-clear"
-                  onclick="clearExpandFilter('search')"
-                  title="Clear search">&times;</span>
+            <button type="button" class="filter-pill-clear"
+                    onclick="clearExpandFilter('search')"
+                    aria-label="Clear search" title="Clear search">&times;</button>
         </span>
         {% endif %}
         {% for term in exclude_terms %}
         <span class="filter-pill">
             not &ldquo;{{ term | e }}&rdquo;
-            <span class="filter-pill-clear"
-                  data-term="{{ term | e }}"
-                  onclick="removeExcludeTerm(this.dataset.term)"
-                  title="Show these requests again">&times;</span>
+            <button type="button" class="filter-pill-clear"
+                    data-term="{{ term | e }}"
+                    onclick="removeExcludeTerm(this.dataset.term)"
+                    aria-label="Stop excluding {{ term | e }}" title="Show these requests again">&times;</button>
         </span>
         {% endfor %}
     </div>
@@ -47,7 +51,7 @@
                 hx-get="{{ dashboard_path }}/htmx/attacks?page={{ pagination.page + 1 }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
-                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
+                {% if pagination.page >= pagination.total_pages and not (pagination.capped and items) %}disabled{% endif %}>Next</button>
     </div>
 </div>
 <table>
@@ -115,7 +119,7 @@
                 {% set types = (attack.attack_type or '').split(',') | map('trim') | select | list %}
                 <div class="badge-row" title="{{ attack.attack_type | attack_label }}">
                     {% for t in types[:2] %}
-                    <span class="method-badge method-{{ t | lower | replace('_', '-') | e }}">{{ t | attack_label }}</span>
+                    <span class="method-badge method-{{ t | lower | replace('_', '-') | e }} atk-sev-{{ t | attack_severity_band }}" title="{{ t | attack_label }}">{{ t | attack_label }}</span>
                     {% endfor %}
                     {% if types | length > 2 %}<span class="badge-more">+{{ types | length - 2 }}</span>{% endif %}
                 </div>

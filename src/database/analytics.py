@@ -25,6 +25,9 @@ if TYPE_CHECKING:
 
 applogger = get_app_logger()
 
+# Newest detections a text-filtered attack count looks at.
+COUNT_WINDOW = 5000
+
 
 class AnalyticsRepo:
     """Aggregate/reporting queries across access logs, attacks, and IP stats."""
@@ -448,8 +451,32 @@ class AnalyticsRepo:
                 )
 
             # Unfiltered, count from attack_detections alone (10.9s -> 0.26s).
+            capped = False
             if total is not None:
                 total_attacks = total
+            elif (search or exclude or method_filter) and not ip_filter:
+                # Unindexed text filters: an exact count reads every attack
+                # row's heap tuple (28s on the demo). Count within the newest
+                # COUNT_WINDOW detections instead, a lower bound once full.
+                window = session.query(AttackDetection.access_log_id).order_by(
+                    AttackDetection.access_log_id.desc()
+                )
+                if attack_type_filter:
+                    window = window.filter(
+                        AttackDetection.attack_type == attack_type_filter
+                    )
+                window = window.limit(COUNT_WINDOW).subquery()
+                total_attacks = (
+                    session.query(func.count(func.distinct(AccessLog.id)))
+                    .filter(AccessLog.id.in_(session.query(window.c.access_log_id)))
+                    .filter(*match_filters[1:])
+                    .scalar()
+                    or 0
+                )
+                capped = (
+                    session.query(func.count()).select_from(window).scalar()
+                    >= COUNT_WINDOW
+                )
             elif len(match_filters) == 1:
                 count_q = session.query(
                     func.count(func.distinct(AttackDetection.access_log_id))
@@ -531,7 +558,10 @@ class AnalyticsRepo:
 
             return {
                 "attacks": paginated,
-                "pagination": pagination(page, page_size, total_attacks),
+                "pagination": {
+                    **pagination(page, page_size, total_attacks),
+                    "capped": capped,
+                },
             }
         finally:
             self._db.close_session()

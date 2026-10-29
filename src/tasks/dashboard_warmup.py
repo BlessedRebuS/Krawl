@@ -10,6 +10,7 @@ import time
 import metrics
 from config import get_config
 from dashboard_cache import (
+    SLOW_TABLE_TTL,
     get_cached,
     get_cached_table,
     set_cached,
@@ -17,6 +18,7 @@ from dashboard_cache import (
     set_cached_table,
 )
 from database import get_database
+from database.access_logs import DOMAIN_ROLLUP_KEY
 from logger import get_app_logger
 from routes.api import build_campaign_stats
 from routes.htmx import CAMPAIGN_TABLE_LIMIT
@@ -29,7 +31,7 @@ app_logger = get_app_logger()
 WARM_TTL = 600
 # Whole-log rankings barely move: refreshed every 6th run (30 min) or when
 # missing, so they must outlive that gap.
-SLOW_TTL = 2400
+SLOW_TTL = SLOW_TABLE_TTL
 
 
 # ----------------------
@@ -350,13 +352,13 @@ def main():
             ttl=WARM_TTL,
         )
 
-        # Targeted Domains: whole-log GROUP BY host, on the slow schedule.
-        key = "targeted-domains:1::count:desc"
-        if slow_run or get_cached_table(key) is None:
-            domains = _timed(
-                key, lambda: db.access_logs.get_targeted_domains(page=1, page_size=10)
+        # Host rollup behind Targeted Domains and the domain map: a whole-log
+        # GROUP BY, on the slow schedule. Both panels page it in Python.
+        if slow_run or get_cached_table(DOMAIN_ROLLUP_KEY) is None:
+            _timed(
+                "domain_rollup",
+                lambda: db.access_logs.get_domain_rollup(refresh=True),
             )
-            set_cached_table(key, domains, ttl=SLOW_TTL)
 
         # Last-24-hours panel: the expanded view's 100 rows; the collapsed
         # panel slices the first few from the same entry.

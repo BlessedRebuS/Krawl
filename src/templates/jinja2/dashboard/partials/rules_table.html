@@ -34,25 +34,31 @@
             <th>Class</th>
             {{ sort_header('severity', 'Severity') }}
             <th>Confidence</th>
-            <th>Reply</th>
+            <th>Fake reply</th>
             {{ sort_header('matches', 'Matches') }}
             {{ sort_header('last_match', 'Last match') }}
         </tr>
     </thead>
     {% for row in rows %}
     <tbody x-data="{ open: false }">
-        <tr class="rules-row" @click="open = !open" :aria-expanded="open" tabindex="0"
-            @keydown.enter="open = !open">
-            <td><code>{{ row.rule }}</code><div class="muted fs-sm">{{ row.rule_file }}.yar</div></td>
+        <tr class="rules-row" @click="open = !open">
+            <td>
+                <button type="button" class="rules-row-toggle" @click.stop="open = !open"
+                        :aria-expanded="open.toString()" aria-controls="rule-card-{{ loop.index }}">
+                    <svg class="icon-sm rules-row-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.22 3.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L9.94 8 6.22 4.28a.75.75 0 0 1 0-1.06Z"/></svg>
+                    <code>{{ row.rule }}</code>
+                </button>
+                <div class="muted fs-sm">{{ row.rule_file }}.yar</div>
+            </td>
             <td>{{ row.attack_type }}</td>
             <td>{{ row.classification }}</td>
             <td><span class="raw-detection-pill sev-{{ band(row.severity) }}">{{ row.severity }}/10</span></td>
             <td>{{ row.confidence or 'n/a' }}</td>
-            <td>{% if row.response_type %}<code>{{ row.response_type }}</code>{% else %}<span class="muted">route</span>{% endif %}</td>
+            <td>{% if row.response_type %}<code>{{ row.response_type }}</code>{% else %}<span class="muted">path default</span>{% endif %}</td>
             <td>{{ row.matches }}</td>
             <td>{% if row.last_match %}{{ row.last_match.strftime('%Y-%m-%d %H:%M') }}{% else %}<span class="muted">never</span>{% endif %}</td>
         </tr>
-        <tr class="rules-card" x-show="open" x-cloak>
+        <tr class="rules-card" id="rule-card-{{ loop.index }}" x-show="open" x-cloak>
             <td colspan="8">
                 <p class="raw-detection-description">{{ row.description or 'No description.' }}</p>
                 <dl class="raw-detection-facts">
@@ -89,7 +95,11 @@
                         <dt>References</dt>
                         <dd class="raw-detection-refs">
                             {% for ref in row.references %}
-                            <a class="raw-detection-tag" target="_blank" rel="noopener noreferrer" href="{{ ref }}">{{ ref }}</a>
+                            {% if ref | safe_url %}
+                            <a class="raw-detection-tag" target="_blank" rel="noopener noreferrer" href="{{ ref | safe_url }}">{{ ref }}</a>
+                            {% else %}
+                            <span class="raw-detection-tag">{{ ref }}</span>
+                            {% endif %}
                             {% endfor %}
                         </dd>
                     </div>
@@ -97,8 +107,11 @@
                 </dl>
                 <div class="rules-card-matches"
                      hx-get="{{ dashboard_path }}/htmx/rules/matches?rule={{ row.rule | urlencode }}"
-                     hx-trigger="intersect once"
-                     hx-swap="innerHTML">
+                     hx-trigger="intersect once, krawl:retry"
+                     hx-swap="innerHTML"
+                     hx-on::response-error="ruleMatchesFailed(this, event)"
+                     hx-on::send-error="ruleMatchesFailed(this, event)"
+                     hx-on::timeout="ruleMatchesFailed(this, event)">
                     <p class="muted fs-sm">Loading matching requests&hellip;</p>
                 </div>
             </td>

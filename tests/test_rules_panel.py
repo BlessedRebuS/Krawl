@@ -430,7 +430,8 @@ def test_rule_card_loads_its_matches():
     ).read_text()
 
     assert "/htmx/rules/matches?rule=" in table
-    assert 'hx-trigger="intersect once"' in table
+    assert 'hx-trigger="intersect once, krawl:retry"' in table
+    assert 'hx-on::response-error="ruleMatchesFailed(this, event)"' in table
 
 
 def test_leaving_the_search_box_does_not_reload_the_table():
@@ -441,3 +442,37 @@ def test_leaving_the_search_box_does_not_reload_the_table():
     ).read_text()
 
     assert "hx-trigger=\"change[target.tagName === 'SELECT']," in panel
+
+
+def test_cached_rule_stats_round_trip_to_tuples_and_datetimes(monkeypatch):
+    # Redis stores JSON; the table formats last_match with strftime.
+    import asyncio
+    import json
+
+    import routes.htmx as htmx
+
+    stats = {
+        "by_rule": {"sqli_union": (3, NOW)},
+        "unnamed_by_type": {"xss_attempt": (1, None)},
+    }
+    cached = json.loads(json.dumps(stats, default=datetime.isoformat))
+    monkeypatch.setattr(htmx, "get_cached_table", lambda key: cached)
+
+    assert asyncio.run(htmx._rule_match_stats()) == stats
+
+
+def test_attack_type_tags_are_banded_by_rule_severity(coordinator, monkeypatch):
+    # Per-CVE types have no fixed hue; their tag takes the rules' severity.
+    import detection
+    from dependencies import _attack_severity_band
+
+    monkeypatch.setattr(detection, "_coordinator", None)
+    assert _attack_severity_band("cve_2019_0193") == "unknown"
+
+    monkeypatch.setattr(detection, "_coordinator", coordinator)
+    expected = detection.severity_band(
+        coordinator.attack_type_severity("cve_2019_0193")
+    )
+    assert expected != "unknown"
+    assert _attack_severity_band("cve_2019_0193") == expected
+    assert _attack_severity_band("no_such_type") == "unknown"

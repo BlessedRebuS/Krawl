@@ -417,6 +417,11 @@ class DetectionCoordinator:
             key=lambda item: item["rule"],
         )
 
+    def attack_type_severity(self, attack_type: str) -> int:
+        """Highest severity among the loaded rules reporting attack_type (0: none)."""
+        rules = self.yara.rule_details.get(attack_type, ())
+        return max((rule["severity"] for rule in rules), default=0)
+
     def describe_attack_types(self, attack_types) -> dict[str, list[dict]]:
         """Map each attack type to the details of the YARA rules that report it."""
         details = self.yara.rule_details
@@ -492,6 +497,22 @@ def initialize_detection(config, uploaded=None) -> DetectionCoordinator:
     coordinator, catalog = build_detection(config, uploaded)
     set_detection(coordinator, catalog)
     return coordinator
+
+
+def severity_band(severity: int) -> str:
+    """Rule severity as the dashboard's band name (the --sev-* tokens)."""
+    if severity >= 9:
+        return "critical"
+    if severity >= 7:
+        return "high"
+    if severity >= 4:
+        return "medium"
+    return "low" if severity >= 1 else "unknown"
+
+
+def loaded_detection() -> DetectionCoordinator | None:
+    """The coordinator if rules are already loaded; never compiles them."""
+    return _coordinator
 
 
 def get_detection() -> DetectionCoordinator:

@@ -30,6 +30,8 @@ _REDIS_PREFIX = "krawl:cache:"
 _REDIS_TTL = 600  # default: 10 minutes for dashboard warmup data
 _REDIS_SHORT_TTL = 30  # default: 30 seconds for hot-path data (ban info, IP categories)
 _REDIS_TABLE_TTL = 120  # default: 2 minutes for paginated dashboard tables
+# Whole-log rollups refreshed every 30 minutes by the warmup; outlive that gap.
+SLOW_TABLE_TTL = 2400
 
 
 def _json_serializer(obj):
@@ -291,6 +293,25 @@ def pagination(page: int, page_size: int, total: int) -> dict:
         "total": total,
         "total_pages": max(1, (total + page_size - 1) // page_size),
     }
+
+
+def table_row_count(session, model) -> int:
+    """Row total of an unfiltered table, for pagination.
+
+    PostgreSQL reads the planner's estimate: an exact COUNT(*) walks the whole
+    heap (45s on a 12M-row access_logs), longer than the dashboard waits.
+    Counts exactly elsewhere, or while the table has never been analyzed.
+    """
+    from sqlalchemy import func, text
+
+    if session.bind.dialect.name == "postgresql":
+        estimate = session.execute(
+            text("SELECT reltuples::bigint FROM pg_class WHERE oid = to_regclass(:t)"),
+            {"t": model.__tablename__},
+        ).scalar()
+        if estimate and estimate > 0:
+            return int(estimate)
+    return session.query(func.count()).select_from(model).scalar() or 0
 
 
 def paginate_cached_list(items: list, page: int, page_size: int) -> dict:

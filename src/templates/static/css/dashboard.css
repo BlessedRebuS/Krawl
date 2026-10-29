@@ -46,6 +46,12 @@
     --pink: #f2649f;
     --cyan: #3ad6d1;
 
+    /* Rule severity bands. Never honey (trap hits) or blue (structure). */
+    --sev-critical: var(--danger);
+    --sev-high: var(--warn);
+    --sev-medium: var(--violet);
+    --sev-low: var(--text-dim);
+
     /* Reserved: honeypot triggers only. If it is honey, a trap was hit. */
     --honey: #ffc94d;
 
@@ -1210,12 +1216,27 @@ tbody {
     gap: var(--s2);
     row-gap: var(--s1);
 }
+/* Attack-type tags: one fixed height, one line, squared like the other
+   verdict tags (pills belong to HTTP methods). A narrow column ellipsises a
+   long name instead of wrapping it into a two-line blob; types without a
+   hue of their own (per-CVE rules) take the grey low-signal bucket. */
 .badge-row .method-badge {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    max-width: 100%;
+    padding: 0 var(--s2);
+    border-radius: var(--r-sm);
+    border-color: color-mix(in srgb, var(--atk, var(--atk-other)) 40%, transparent);
+    background: color-mix(in srgb, var(--atk, var(--atk-other)) 14%, transparent);
+    color: color-mix(in srgb, var(--atk, var(--atk-other)) 85%, var(--text-strong));
     font-size: var(--fs-2xs);
     font-weight: 600;
     letter-spacing: 0;
-    line-height: 1.4;
-    padding: 0 6px;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 /* A diff of 0 is a byte-identical replay — the strongest campaign signal, so it
    reads as a warning, not an "all clear". */
@@ -1242,6 +1263,13 @@ tbody {
     text-decoration: none;
     border-bottom: 1px dotted color-mix(in srgb, var(--accent) 40%, transparent);
 }
+/* Attack types with no fixed hue (per-CVE rule types) are tinted by the
+   severity of the rules behind them. Declared before the fixed hues, which
+   win on the types that have one. */
+.atk-sev-critical { --atk: var(--sev-critical); }
+.atk-sev-high { --atk: var(--sev-high); }
+.atk-sev-medium { --atk: var(--sev-medium); }
+.atk-sev-low { --atk: var(--sev-low); }
 /* Attack-type badges: tinted in the type's hue, see --atk-* above. */
 .method-command-injection { --atk: var(--atk-command-injection); }
 .method-sql-injection { --atk: var(--atk-sql-injection); }
@@ -1252,13 +1280,6 @@ tbody {
 .method-xss-attempt { --atk: var(--atk-xss-attempt); }
 .method-lfi-rfi { --atk: var(--atk-lfi-rfi); }
 .method-common-probes { --atk: var(--atk-other); }
-.method-command-injection, .method-sql-injection, .method-ldap-injection,
-.method-xxe-injection, .method-login-attempt, .method-path-traversal,
-.method-xss-attempt, .method-lfi-rfi, .method-common-probes {
-    border-color: color-mix(in srgb, var(--atk) 40%, transparent);
-    background: color-mix(in srgb, var(--atk) 14%, transparent);
-    color: color-mix(in srgb, var(--atk) 85%, var(--text-strong));
-}
 .method-get {
     border-color: color-mix(in srgb, var(--accent) 30%, transparent);
     background: color-mix(in srgb, var(--accent) 15%, transparent);
@@ -1848,10 +1869,10 @@ tbody {
 .raw-detection-pill {
     --sev: var(--text-dim);
 }
-.raw-detections .sev-critical { --sev: var(--danger); }
-.raw-detections .sev-high { --sev: var(--warn); }
-.raw-detections .sev-medium { --sev: var(--honey); }
-.raw-detections .sev-low { --sev: var(--blue); }
+:is(.raw-detection-chip, .raw-detection-pill).sev-critical { --sev: var(--sev-critical); }
+:is(.raw-detection-chip, .raw-detection-pill).sev-high { --sev: var(--sev-high); }
+:is(.raw-detection-chip, .raw-detection-pill).sev-medium { --sev: var(--sev-medium); }
+:is(.raw-detection-chip, .raw-detection-pill).sev-low { --sev: var(--sev-low); }
 .raw-detection-chip {
     display: inline-flex;
     align-items: center;
@@ -1874,7 +1895,6 @@ tbody {
 .raw-detection-chip.is-pinned {
     background: color-mix(in srgb, var(--sev) 22%, transparent);
     border-color: var(--sev);
-    outline: none;
 }
 .raw-detection-dot {
     width: 8px;
@@ -3998,10 +4018,13 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
     border: 0;
     background: none;
     color: inherit;
+    font: inherit;
+    line-height: 1;
     opacity: 0.7;
     cursor: pointer;
 }
-.filter-pill-clear:hover { opacity: 1; }
+.filter-pill-clear:hover,
+.filter-pill-clear:focus-visible { opacity: 1; }
 
 /* ── Tables ───────────────────────────────────────────────────── */
 .cell-empty {
@@ -4251,7 +4274,20 @@ th.sortable.num.krawl-pending::after { display: inline-block; margin-top: 0; ver
 }
 .dropzone-inner { text-align: center; }
 .dropzone-inner .icon-lg { margin-bottom: var(--s2); color: var(--text-dim); }
-.visually-hidden-input { display: none; }
+/* Hidden but focusable, so its label stays a keyboard control. */
+.visually-hidden-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+label:has(> .visually-hidden-input) { position: relative; }
+label:has(> .visually-hidden-input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
 .form-status-ok { color: var(--ok); }
 .form-status-error { color: var(--danger); }
 
@@ -5322,17 +5358,30 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
 .rules-filters { gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
 .rules-filters .panel-search { flex: 1 1 180px; }
 .rules-row { cursor: pointer; }
-.rules-row:hover, .rules-row:focus-visible { background: var(--surface-2, rgba(255, 255, 255, 0.03)); }
+.rules-legend { margin: calc(-1 * var(--s1)) 0 var(--s3); }
+/* The rule name is the row's disclosure button; the row stays clickable. */
+.rules-row-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s1);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.rules-row-chevron { color: var(--text-dim); transition: transform var(--dur) var(--ease); }
+.rules-row-toggle[aria-expanded="true"] .rules-row-chevron { transform: rotate(90deg); }
+.rules-matches-error { display: flex; align-items: center; gap: var(--s2); margin: 0; color: var(--danger); }
+.rules-row:hover, .rules-row:focus-within { background: var(--tint-neutral); }
 .rules-card td { padding: 12px 16px 16px; white-space: normal; }
 /* Long URLs and sentences wrap inside their own column instead of spilling over. */
 .rules-card .raw-detection-facts > div { min-width: 0; }
 .rules-card .raw-detection-facts dd,
 .rules-card .raw-detection-description { overflow-wrap: anywhere; }
 .rules-card .raw-detection-refs .raw-detection-tag { align-self: flex-start; max-width: 100%; }
-.rules-panel .sev-critical { --sev: var(--danger); }
-.rules-panel .sev-high { --sev: var(--warn); }
-.rules-panel .sev-medium { --sev: var(--honey); }
-.rules-panel .sev-low { --sev: var(--blue); }
 .rules-panel label.deception-action-btn { cursor: pointer; }
 .rules-panel label.is-busy { opacity: 0.6; pointer-events: none; }
 /* Compile errors can be long and carry line numbers: keep them readable. */

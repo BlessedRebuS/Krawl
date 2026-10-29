@@ -220,6 +220,13 @@ CRUNCH_QUEUE_WHERE = (
     "total_requests > 1 AND (crunched_at IS NULL OR crunched_at < last_seen)"
 )
 
+# Geolocated hostile IPs the map's live feed polls; get_live_attackers filters
+# on exactly this so the partial index applies (a seq scan of ip_stats otherwise).
+LIVE_ATTACKERS_WHERE = (
+    "(has_triggered_honeypot IS TRUE OR category = 'attacker') "
+    "AND latitude IS NOT NULL AND longitude IS NOT NULL"
+)
+
 
 class IpStats(Base):
     """
@@ -319,6 +326,13 @@ class IpStats(Base):
             postgresql_include=["ip"],
             postgresql_where=text(CRUNCH_QUEUE_WHERE),
             sqlite_where=text(CRUNCH_QUEUE_WHERE),
+        ),
+        Index(
+            "ix_ip_stats_live_attackers",
+            "last_seen",
+            postgresql_include=["ip"],
+            postgresql_where=text(LIVE_ATTACKERS_WHERE),
+            sqlite_where=text(LIVE_ATTACKERS_WHERE),
         ),
     )
 
