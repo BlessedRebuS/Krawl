@@ -90,6 +90,14 @@ personal-values.yaml
 # AI Coding Agents
 .claude/
 
+# impeccable (local design tooling + context)
+.impeccable/
+/PRODUCT.md
+/DESIGN.md
+.github/agents/impeccable-*
+.github/hooks/impeccable.json
+.github/skills/impeccable/
+
 # graphify (local-only knowledge graph)
 graphify-out/
 .graphifyignore
