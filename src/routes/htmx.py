@@ -24,7 +24,7 @@ from dashboard_cache import (
 )
 from dependencies import get_db, get_templates
 from domain_map import build_domain_map
-from period import period_query, resolve_period
+from period import period_query, range_label, resolve_period
 from routes.api import verify_auth
 
 router = APIRouter()
@@ -117,7 +117,11 @@ async def htmx_targeted_domains(
     search: str = Query(""),
     sort_by: str = Query("count"),
     sort_order: str = Query("desc"),
+    days: int | None = Query(None),
+    offset_days: int = Query(0),
+    slot: str | None = Query(None),
 ):
+    period = resolve_period(days, offset_days, slot)
     search = search.strip()[:255]
     sort_by = (
         sort_by
@@ -134,12 +138,17 @@ async def htmx_targeted_domains(
         search=search,
         sort_by=sort_by,
         sort_order=sort_order,
+        since=period and period.since,
+        until=period and period.until,
     )
     return get_templates().TemplateResponse(
         request,
         "dashboard/partials/targeted_domains_table.html",
         {
             "dashboard_path": _dashboard_path(request),
+            "period_qs": period_query(period),
+            "extra_qs": period_query(period),
+            "range_label": range_label(period),
             "items": result["domains"],
             "pagination": result["pagination"],
             "search": search,
@@ -173,13 +182,19 @@ async def htmx_honeypot(
     page: int = Query(1),
     sort_by: str = Query("count"),
     sort_order: str = Query("desc"),
+    days: int | None = Query(None),
+    offset_days: int = Query(0),
+    slot: str | None = Query(None),
 ):
     page = max(1, page)
+    period = resolve_period(days, offset_days, slot)
+    period_qs = period_query(period)
     config = get_config()
     result = None
 
     if (
-        config.dashboard_cache_warmup
+        not period
+        and config.dashboard_cache_warmup
         and config.dashboard_warmup_aggregation
         and sort_by == "count"
         and sort_order == "desc"
@@ -190,7 +205,7 @@ async def htmx_honeypot(
             result = {"honeypots": sliced["items"], "pagination": sliced["pagination"]}
 
     if result is None:
-        cache_key = f"honeypot:{page}:{sort_by}:{sort_order}"
+        cache_key = f"honeypot:{page}:{sort_by}:{sort_order}{period_qs}"
         cached = get_cached_table(cache_key)
         if cached:
             result = cached
@@ -202,6 +217,8 @@ async def htmx_honeypot(
                 page_size=5,
                 sort_by=sort_by,
                 sort_order=sort_order,
+                since=period and period.since,
+                until=period and period.until,
             )
             set_cached_table(cache_key, result)
 
@@ -211,6 +228,8 @@ async def htmx_honeypot(
         "dashboard/partials/honeypot_table.html",
         {
             "dashboard_path": _dashboard_path(request),
+            "period_qs": period_qs,
+            "range_label": range_label(period),
             "items": result["honeypots"],
             "pagination": result["pagination"],
             "sort_by": sort_by,
@@ -786,13 +805,24 @@ async def htmx_attackers(
     page: int = Query(1),
     sort_by: str = Query("total_requests"),
     sort_order: str = Query("desc"),
+    attack_type_filter: str | None = Query(None),
+    rule_filter: str | None = Query(None),
+    days: int | None = Query(None),
+    offset_days: int = Query(0),
+    slot: str | None = Query(None),
 ):
     page = max(1, page)
+    period = resolve_period(days, offset_days, slot)
+    period_qs = period_query(period)
+    attack_type_filter = (attack_type_filter or "").strip() or None
+    rule_filter = (rule_filter or "").strip() or None
+    in_period = bool(period or attack_type_filter or rule_filter)
     config = get_config()
     result = None
 
     if (
-        config.dashboard_cache_warmup
+        not in_period
+        and config.dashboard_cache_warmup
         and config.dashboard_warmup_aggregation
         and sort_by == "total_requests"
         and sort_order == "desc"
@@ -804,9 +834,22 @@ async def htmx_attackers(
 
     if result is None:
         cache_key = f"attackers:{page}:{sort_by}:{sort_order}"
+        if in_period:
+            cache_key += f":{period_qs}:{attack_type_filter or ''}:{rule_filter or ''}"
         cached = get_cached_table(cache_key)
         if cached:
             result = cached
+        elif in_period:
+            result = await asyncio.to_thread(
+                get_db().analytics.get_attackers_in_period,
+                period and period.since,
+                period and period.until,
+                attack_type=attack_type_filter,
+                rule=rule_filter,
+                page=page,
+                page_size=10,
+            )
+            set_cached_table(cache_key, result)
         else:
             db = get_db()
             result = await asyncio.to_thread(
@@ -829,6 +872,8 @@ async def htmx_attackers(
         "dashboard/partials/attackers_table.html",
         {
             "dashboard_path": _dashboard_path(request),
+            "period_qs": period_qs,
+            "range_label": range_label(period),
             "items": result["attackers"],
             "pagination": pagination,
             "sort_by": sort_by,
@@ -894,9 +939,14 @@ async def htmx_credentials(
     sort_by: str = Query("timestamp"),
     sort_order: str = Query("desc"),
     ip_filter: str = Query(""),
+    days: int | None = Query(None),
+    offset_days: int = Query(0),
+    slot: str | None = Query(None),
 ):
     page = max(1, page)
-    cache_key = f"credentials:{page}:{sort_by}:{sort_order}:{ip_filter}"
+    period = resolve_period(days, offset_days, slot)
+    period_qs = period_query(period)
+    cache_key = f"credentials:{page}:{sort_by}:{sort_order}:{ip_filter}{period_qs}"
     cached = get_cached_table(cache_key)
     if cached:
         result = cached
@@ -909,6 +959,8 @@ async def htmx_credentials(
             sort_by=sort_by,
             sort_order=sort_order,
             ip_filter=ip_filter or None,
+            since=period and period.since,
+            until=period and period.until,
         )
         set_cached_table(cache_key, result)
 
@@ -918,6 +970,8 @@ async def htmx_credentials(
         "dashboard/partials/credentials_table.html",
         {
             "dashboard_path": _dashboard_path(request),
+            "period_qs": period_qs,
+            "range_label": range_label(period),
             "items": result["credentials"],
             "pagination": result["pagination"],
             "sort_by": sort_by,
@@ -1343,7 +1397,11 @@ async def htmx_request_assets(
     min_ips: int = Query(0),
     sort_by: str = Query("count"),
     sort_order: str = Query("desc"),
+    days: int | None = Query(None),
+    offset_days: int = Query(0),
+    slot: str | None = Query(None),
 ):
+    period = resolve_period(days, offset_days, slot)
     search = search.strip()[:255]
     sort_by = (
         sort_by
@@ -1475,7 +1533,11 @@ async def htmx_pattern_clusters(
     attack_type: str = Query(""),
     sort_by: str = Query("events"),
     sort_order: str = Query("desc"),
+    days: int | None = Query(None),
+    offset_days: int = Query(0),
+    slot: str | None = Query(None),
 ):
+    period = resolve_period(days, offset_days, slot)
     search = search.strip()[:255]
     attack_type = attack_type.strip()[:64]
     sort_by = sort_by if sort_by in _CAMPAIGN_SORTS else "events"

@@ -3,12 +3,12 @@
     <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} attackers</span>
     <div class="row">
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/attackers?page={{ pagination.page - 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
+                hx-get="{{ dashboard_path }}/htmx/attackers?page={{ pagination.page - 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{{ period_qs }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
                 {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/attackers?page={{ pagination.page + 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}"
+                hx-get="{{ dashboard_path }}/htmx/attackers?page={{ pagination.page + 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{{ period_qs }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
                 {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
@@ -20,18 +20,18 @@
             <th>#</th>
             <th>IP Address</th>
             <th class="sortable {% if sort_by == 'total_requests' %}{{ sort_order }}{% endif %}"
-                hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=total_requests&sort_order={% if sort_by == 'total_requests' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=total_requests&sort_order={% if sort_by == 'total_requests' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ period_qs }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML">
                 Total Requests
             </th>
             <th class="sortable {% if sort_by == 'first_seen' %}{{ sort_order }}{% endif %}"
-                hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=first_seen&sort_order={% if sort_by == 'first_seen' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=first_seen&sort_order={% if sort_by == 'first_seen' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ period_qs }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML">
                 First Seen</th>
             <th class="sortable {% if sort_by == 'last_seen' %}{{ sort_order }}{% endif %}"
-                hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=last_seen&sort_order={% if sort_by == 'last_seen' and sort_order == 'desc' %}asc{% else %}desc{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=last_seen&sort_order={% if sort_by == 'last_seen' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ period_qs }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML">
                 Last Seen</th>
@@ -41,15 +41,15 @@
     </thead>
     <tbody>
 {# Bars are relative to the largest count on this page. #}
-{% set mx = (items | map(attribute='total_requests') | select | max) if items else 0 %}
+{% set mx = (items | map(attribute='hits' if items and items[0].hits is defined else 'total_requests') | select | max) if items else 0 %}
         {% for ip in items %}
         <tr class="ip-row" data-ip="{{ ip.ip | e }}">
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
             <td class="ip-clickable">
                 <a class="ip-link" href="#ip-insight/{{ ip.ip | e }}" title="Open in IP Insight" @click.prevent="openIpInsight('{{ ip.ip | e }}')">{{ ip.ip | e }}</a>
             </td>
-            <td><span class="num-bar is-fill is-hostile" style="--pct: {{ (((ip.total_requests) or 0) * 100 / mx) | round(1) if mx else 0 }}%">{{ ip.total_requests | num }}</span></td>
-            <td class="ts-cell">{{ ip.first_seen | format_ts }}</td>
+            <td><span class="num-bar is-fill is-hostile" style="--pct: {{ (((ip.hits if ip.hits is defined else ip.total_requests) or 0) * 100 / mx) | round(1) if mx else 0 }}%">{{ (ip.hits if ip.hits is defined else ip.total_requests) | num }}</span></td>
+            <td class="ts-cell">{{ ip.first_seen | format_ts if ip.first_seen is defined else '' }}</td>
             <td class="ts-cell">{{ ip.last_seen | format_ts }}</td>
             <td>{{ ip.city | default('', true) | e }}{% if ip.city and ip.country_code %}, {% endif %}{{ ip.country_code | default('N/A', true) | e }}</td>
             <td><div class="table-action-btns">

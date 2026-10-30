@@ -25,6 +25,23 @@ from models import (
 if TYPE_CHECKING:
     from database.core import DatabaseManager
 
+_BAND_RANK = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+
+
+def _rule_match(rule: str):
+    """Detections of this rule, crediting legacy unnamed rows to its sole type."""
+    match = AttackDetection.rule_name == rule
+    sole_type = detection.sole_rule_type(rule)
+    if sole_type:
+        match = or_(
+            match,
+            and_(
+                AttackDetection.rule_name.is_(None),
+                AttackDetection.attack_type == sole_type,
+            ),
+        )
+    return match
+
 applogger = get_app_logger()
 
 # Newest detections a text-filtered attack count looks at.
@@ -359,6 +376,92 @@ class AnalyticsRepo:
         finally:
             self._db.close_session()
 
+    def get_attackers_in_period(
+        self,
+        since: datetime | None,
+        until: datetime | None,
+        attack_type: str | None = None,
+        rule: str | None = None,
+        page: int = 1,
+        page_size: int = 10,
+    ) -> dict[str, Any]:
+        """IPs ranked by matching detections in the window, whatever their category."""
+        session = self._db.session
+        try:
+            conds = [AttackDetection.access_log_id == AccessLog.id]
+            if since:
+                conds.append(AccessLog.timestamp >= since)
+            if until:
+                conds.append(AccessLog.timestamp < until)
+            matching = list(conds)
+            if attack_type:
+                matching.append(AttackDetection.attack_type == attack_type)
+            if rule:
+                matching.append(_rule_match(rule))
+            grouped = (
+                session.query(
+                    AccessLog.ip.label("ip"),
+                    func.count(AttackDetection.id).label("hits"),
+                    func.max(AccessLog.timestamp).label("last_seen"),
+                )
+                .select_from(AttackDetection)
+                .join(AccessLog, AccessLog.id == AttackDetection.access_log_id)
+                .filter(*matching[1:])
+                .group_by(AccessLog.ip)
+            )
+            total = grouped.count()
+            rows = (
+                grouped.order_by(func.count(AttackDetection.id).desc(), AccessLog.ip)
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+                .all()
+            )
+            ips = [r.ip for r in rows]
+            types: dict[str, dict[str, int]] = {}
+            info = {}
+            if ips:
+                type_q = (
+                    session.query(
+                        AccessLog.ip, AttackDetection.attack_type, func.count()
+                    )
+                    .select_from(AttackDetection)
+                    .join(AccessLog, AccessLog.id == AttackDetection.access_log_id)
+                    .filter(*conds[1:], AccessLog.ip.in_(ips))
+                    .group_by(AccessLog.ip, AttackDetection.attack_type)
+                )
+                for ip, atype, n in type_q:
+                    types.setdefault(ip, {})[atype] = n
+                info = {
+                    i.ip: i
+                    for i in session.query(IpStats).filter(IpStats.ip.in_(ips))
+                }
+            attackers = []
+            for r in rows:
+                by_type = types.get(r.ip, {})
+                stats = info.get(r.ip)
+                attackers.append(
+                    {
+                        "ip": r.ip,
+                        "hits": r.hits,
+                        "top_type": max(by_type, key=by_type.get) if by_type else None,
+                        "worst_band": min(
+                            (attack_band(t) for t in by_type),
+                            key=_BAND_RANK.get,
+                            default="low",
+                        ),
+                        "category": stats.category if stats else None,
+                        "last_seen": r.last_seen,
+                        "city": stats.city if stats else None,
+                        "country_code": stats.country_code if stats else None,
+                    }
+                )
+            return {
+                "attackers": attackers,
+                "pagination": pagination(page, page_size, total),
+            }
+        finally:
+            self._db.close_session()
+
     def get_attack_types_paginated(
         self,
         page: int = 1,
@@ -428,17 +531,7 @@ class AnalyticsRepo:
                     AttackDetection.attack_type == attack_type_filter
                 )
             if rule_filter:
-                rule_match = AttackDetection.rule_name == rule_filter
-                sole_type = detection.sole_rule_type(rule_filter)
-                if sole_type:
-                    rule_match = or_(
-                        rule_match,
-                        and_(
-                            AttackDetection.rule_name.is_(None),
-                            AttackDetection.attack_type == sole_type,
-                        ),
-                    )
-                detection_exists = detection_exists.filter(rule_match)
+                detection_exists = detection_exists.filter(_rule_match(rule_filter))
             if severity_filter:
                 in_range = session.query(AttackDetection.attack_type).join(
                     AccessLog, AccessLog.id == AttackDetection.access_log_id

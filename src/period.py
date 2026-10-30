@@ -59,3 +59,10 @@ def period_query(period: Period | None) -> str:
         return ""
     q = f"&days={period.days}&offset_days={period.offset_days}"
     return q + f"&slot={period.slot}" if period.slot else q
+
+
+def range_label(period: Period | None) -> str:
+    if period is None:
+        return "All time"
+    f = "%b %d %H:%M"
+    return f"{period.since.strftime(f)} – {period.until.strftime(f)} UTC"

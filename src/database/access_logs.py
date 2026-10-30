@@ -161,15 +161,22 @@ class AccessLogRepo:
         search: str = "",
         sort_by: str = "count",
         sort_order: str = "desc",
+        since: datetime | None = None,
+        until: datetime | None = None,
     ) -> dict[str, Any]:
         """Host-header targets ranked by retained request count.
 
         Hosts are few (hundreds), so search, sort and paging run over the
-        cached rollup rather than re-aggregating the log for each view.
+        cached rollup; a range aggregates live from the log instead.
         """
         needle = search.casefold()
+        rollup = (
+            self._domain_rollup_between(since, until)
+            if since or until
+            else self.get_domain_rollup()
+        )
         domains = sorted(
-            (d for d in self.get_domain_rollup() if needle in d["domain"].casefold()),
+            (d for d in rollup if needle in d["domain"].casefold()),
             key=lambda d: d["domain"],
         )
         key = (
@@ -184,6 +191,36 @@ class AccessLogRepo:
             "domains": domains[start : start + page_size],
             "pagination": pagination(page, page_size, len(domains)),
         }
+
+    def _domain_rollup_between(
+        self, since: datetime | None, until: datetime | None
+    ) -> list[dict[str, Any]]:
+        """Host rollup restricted to [since, until), straight from the log."""
+        session = self._db.session
+        try:
+            q = session.query(
+                AccessLog.target_host,
+                func.sum(AccessLog.hit_count),
+                func.count(distinct(AccessLog.ip)),
+                func.min(AccessLog.timestamp),
+                func.max(AccessLog.timestamp),
+            ).filter(AccessLog.target_host.isnot(None), AccessLog.target_host != "")
+            if since:
+                q = q.filter(AccessLog.timestamp >= since)
+            if until:
+                q = q.filter(AccessLog.timestamp < until)
+            return [
+                {
+                    "domain": d,
+                    "count": int(c),
+                    "distinct_ips": ips,
+                    "first_seen": first,
+                    "last_seen": last,
+                }
+                for d, c, ips, first, last in q.group_by(AccessLog.target_host)
+            ]
+        finally:
+            self._db.close_session()
 
     def get_domain_rollup(self, refresh: bool = False) -> list[dict[str, Any]]:
         """Every Host target with hits, distinct IPs and first/last seen.
@@ -668,6 +705,8 @@ class AccessLogRepo:
         page_size: int = 5,
         sort_by: str = "count",
         sort_order: str = "desc",
+        since: datetime | None = None,
+        until: datetime | None = None,
     ) -> dict[str, Any]:
         """
         Retrieve paginated list of honeypot-triggered IPs with their paths.
@@ -695,6 +734,15 @@ class AccessLogRepo:
             base_query = session.query(AccessLog.ip, count_col).filter(
                 AccessLog.is_honeypot_trigger
             )
+            in_range = [
+                c
+                for c in (
+                    since and AccessLog.timestamp >= since,
+                    until and AccessLog.timestamp < until,
+                )
+                if c is not None
+            ]
+            base_query = base_query.filter(*in_range)
             base_query = self._db._public_ip_filter(base_query, AccessLog.ip, server_ip)
             base_query = base_query.group_by(AccessLog.ip)
 
@@ -702,6 +750,7 @@ class AccessLogRepo:
             count_hp = session.query(func.count(distinct(AccessLog.ip))).filter(
                 AccessLog.is_honeypot_trigger
             )
+            count_hp = count_hp.filter(*in_range)
             count_hp = self._db._public_ip_filter(count_hp, AccessLog.ip, server_ip)
             total_honeypots = count_hp.scalar() or 0
 
@@ -728,6 +777,7 @@ class AccessLogRepo:
                     .filter(
                         AccessLog.is_honeypot_trigger,
                         AccessLog.ip.in_(paginated_ips),
+                        *in_range,
                     )
                     .group_by(AccessLog.ip, AccessLog.path)
                     .all()
