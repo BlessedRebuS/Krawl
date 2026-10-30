@@ -155,16 +155,35 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
 
 
 /**
- * Attack Trends line chart with period navigation, totals sidebar,
- * and interactive legend that filters the Detected Attack Types table.
+ * Attack Trends line chart for the Attacks tab's period (attacks.js state).
+ * Clicking a bucket narrows the tab to that slot; the totals sidebar then
+ * totals the slot, and pressing a total narrows to that type.
  */
 let attackTrendsChart = null;
-let _trendsOffsetDays = 0;
-let _trendsDays = 7;
+let _trendsRequest = 0;
+
+// Shades the selected slot's bucket behind the lines.
+const _trendsSlotBand = {
+    id: 'trendsSlotBand',
+    beforeDatasetsDraw(chart) {
+        const i = chart.$slotIndex;
+        if (i === undefined || i < 0) return;
+        const x = chart.scales.x, area = chart.chartArea;
+        const step = chart.data.labels.length > 1 ? x.getPixelForValue(1) - x.getPixelForValue(0) : area.right - area.left;
+        const cx = x.getPixelForValue(i);
+        const left = Math.max(area.left, cx - step / 2), right = Math.min(area.right, cx + step / 2);
+        chart.ctx.save();
+        chart.ctx.fillStyle = krawlToken('--tint-accent');
+        chart.ctx.fillRect(left, area.top, right - left, area.bottom - area.top);
+        chart.ctx.restore();
+    },
+};
 
 async function loadAttackTrendsChart(canvasId) {
     canvasId = canvasId || 'attack-trends-chart';
     const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
+    const req = ++_trendsRequest;
+    const s = window.attacksState;
 
     let release = () => {};
     try {
@@ -172,7 +191,9 @@ async function loadAttackTrendsChart(canvasId) {
         if (!canvas) return;
         release = window.krawlBusy ? krawlBusy(canvas.parentElement) : release;
 
-        const url = `${DASHBOARD_PATH}/api/attack-types-daily?limit=10&days=${_trendsDays}&offset_days=${_trendsOffsetDays}`;
+        const q = new URLSearchParams({ limit: 10, days: s.days, offset_days: s.offset });
+        if (s.slot) q.set('slot', s.slot);
+        const url = `${DASHBOARD_PATH}/api/attack-types-daily?${q}`;
         // A stuck query must not leave the panel spinning forever.
         const timeout = new AbortController();
         const timer = setTimeout(() => timeout.abort(), 20000);
@@ -190,14 +211,11 @@ async function loadAttackTrendsChart(canvasId) {
         if (!response.ok) throw new Error('Failed to fetch daily attack data');
 
         const data = await response.json();
+        if (req !== _trendsRequest) return;  // a newer state already asked
         const attackTypes = data.attack_types || [];
         const dates = data.dates || [];
 
-        // Update period label
-        _updateTrendsPeriodLabel(dates, data.bucket_hours || 24);
-
-        // Update totals sidebar
-        _updateTrendsTotals(attackTypes, data.colours);
+        _updateTrendsTotals(s.slot ? (data.slot_totals || []) : attackTypes, data.colours);
 
         if (attackTrendsChart) {
             attackTrendsChart.destroy();
@@ -234,10 +252,19 @@ async function loadAttackTrendsChart(canvasId) {
         attackTrendsChart = new Chart(ctx, {
             type: 'line',
             data: { labels: shortLabels, datasets: datasets },
+            plugins: [_trendsSlotBand],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
+                // Click a bucket to narrow the tab to it; click it again to widen.
+                onClick(evt, _els, chart) {
+                    const hit = chart.getElementsAtEventForMode(evt, 'index', { intersect: false }, false);
+                    if (!hit.length) return;
+                    const slot = dates[hit[0].index];
+                    setAttacksState({ slot: window.attacksState.slot === slot ? null : slot, type: null });
+                },
+                onHover(evt, els) { evt.native.target.style.cursor = els.length ? 'pointer' : ''; },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
@@ -272,6 +299,8 @@ async function loadAttackTrendsChart(canvasId) {
                 animation: { enabled: false },
             }
         });
+        attackTrendsChart.$slotIndex = s.slot ? dates.indexOf(s.slot) : -1;
+        attackTrendsChart.draw();
 
     } catch (err) {
         console.error('Error loading attack trends chart:', err);
@@ -323,96 +352,37 @@ function _trendsSlotText(slot, bh) {
     return bh < 24 ? `${day} ${slot.slice(11, 13)}:00` : day;
 }
 
-function _updateTrendsPeriodLabel(dates, bh) {
-    const label = document.getElementById('trends-period-label');
-
-    // Always update button states regardless of data
-    const nextBtn = document.getElementById('trends-next');
-    if (nextBtn) nextBtn.disabled = (_trendsOffsetDays <= 0);
-
-    if (!label) return;
-
-    if (dates.length === 0) {
-        // Show computed date range even when no data exists
-        const end = new Date();
-        end.setDate(end.getDate() - _trendsOffsetDays);
-        const start = new Date(end);
-        start.setDate(start.getDate() - _trendsDays);
-        const fmt = { month: 'short', day: 'numeric' };
-        label.textContent = `${start.toLocaleDateString('en-US', fmt)} — ${end.toLocaleDateString('en-US', fmt)}`;
-        return;
-    }
-
-    label.textContent = `${_trendsSlotText(dates[0], bh)} — ${_trendsSlotText(dates[dates.length - 1], bh)}`;
-}
-
-function _updateTrendsTotals(attackTypes, colours) {
+function _updateTrendsTotals(totals, colours) {
     const container = document.getElementById('trends-totals');
     if (!container) return;
+    const s = window.attacksState;
 
-    if (attackTypes.length === 0) {
-        // The chart wrapper already renders the empty-state message. Keeping
-        // a second "No data" label in the totals gutter made the mobile chart
-        // look like two unrelated empty visualizations.
+    // The chart wrapper already shows the empty period message.
+    if (totals.length === 0 && !s.slot) {
         container.innerHTML = '';
         return;
     }
 
-    // Each total is a button: pressing it filters the Detected Attack Types
-    // table to that type, by mouse or keyboard.
-    container.innerHTML = '<span class="trends-totals-title">Totals in period</span>';
-    attackTypes.forEach(at => {
+    // Each total is a button: pressing it narrows the tab to that type.
+    container.innerHTML = '<span class="trends-totals-title"></span>';
+    container.firstChild.textContent = s.slot ? `Totals in ${attacksSlotLabel(s.slot, s.days)}` : 'Totals in period';
+    if (totals.length === 0) {
+        container.insertAdjacentHTML('beforeend', '<span class="trends-totals-empty">No attacks in this slot.</span>');
+        return;
+    }
+    totals.forEach(at => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'trends-total';
         btn.dataset.type = at.type;
         btn.style.setProperty('--type-c', krawlTypeColor(colours, at.type));
-        btn.setAttribute('aria-pressed', String(_activeAttackTypeFilter === at.type));
-        btn.title = `Show only ${krawlAttackLabel(at.type)} in the table below`;
+        btn.setAttribute('aria-pressed', String(s.type === at.type));
+        btn.title = `Show only ${krawlAttackLabel(at.type)}`;
         btn.innerHTML = '<span class="trends-total-dot"></span><span class="trends-total-name"></span><span class="trends-total-count"></span>';
         btn.querySelector('.trends-total-name').textContent = krawlAttackLabel(at.type);
         btn.querySelector('.trends-total-count').textContent = at.total.toLocaleString('de-DE');
-        btn.onclick = () => filterAttackTableByType(at.type);
+        btn.onclick = () => setAttacksState({ type: s.type === at.type ? null : at.type });
         container.appendChild(btn);
-    });
-}
-
-/** Shift the trends chart period by N windows (negative = older, positive = newer) */
-function shiftTrendsPeriod(direction) {
-    _trendsOffsetDays = Math.max(0, _trendsOffsetDays - (direction * _trendsDays));
-    loadAttackTrendsChart();
-}
-
-/** Switch the trends time span (7, 30, 90 days) and reset to current period */
-function setTrendsSpan(days, btn) {
-    _trendsDays = days;
-    _trendsOffsetDays = 0;
-    document.querySelectorAll('#trends-span-selector .map-limit-btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-    loadAttackTrendsChart();
-}
-
-/** Active attack type filter (null = show all) */
-let _activeAttackTypeFilter = null;
-
-/**
- * Filter the Detected Attack Types table by a specific attack type.
- * Clicking the same type again clears the filter.
- */
-function filterAttackTableByType(attackType) {
-    const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
-    const container = document.getElementById('attacks-htmx-container');
-    if (!container) return;
-
-    if (_activeAttackTypeFilter === attackType) {
-        _activeAttackTypeFilter = null;
-        htmx.ajax('GET', DASHBOARD_PATH + '/htmx/attacks?page=1', { target: container, swap: 'innerHTML' });
-    } else {
-        _activeAttackTypeFilter = attackType;
-        htmx.ajax('GET', DASHBOARD_PATH + '/htmx/attacks?page=1&attack_type_filter=' + encodeURIComponent(attackType), { target: container, swap: 'innerHTML' });
-    }
-    document.querySelectorAll('#trends-totals .trends-total').forEach(btn => {
-        btn.setAttribute('aria-pressed', String(btn.dataset.type === _activeAttackTypeFilter));
     });
 }
 

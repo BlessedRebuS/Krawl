@@ -59,3 +59,7 @@ def test_slot_labels_align_to_buckets():
 def test_period_query():
     assert period_query(None) == ""
     assert period_query(resolve_period(7, slot="2026-10-27T04", now=NOW)) == "&days=7&offset_days=0&slot=2026-10-27T04"
+
+
+def test_slot_is_normalised():
+    assert resolve_period(7, slot="2026-10-27T4", now=NOW).slot == "2026-10-27T04"

@@ -40,7 +40,7 @@ def resolve_period(days, offset_days=0, slot=None, now=None) -> Period | None:
         end = start + timedelta(hours=bh)
         if end > since and start < until:
             since, until = max(since, start), min(until, end)
-            return Period(since, until, days, offset_days, bh, slot)
+            return Period(since, until, days, offset_days, bh, start.strftime(SLOT_FMT))
     return Period(since, until, days, offset_days, bh, None)
 
 

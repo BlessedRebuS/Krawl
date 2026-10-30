@@ -583,7 +583,7 @@ document.addEventListener('alpine:init', () => {
 
             // Handle hash-based tab routing on page load
             const hash = window.location.hash.slice(1);
-            if (hash === 'ip-stats' || hash === 'attacks') {
+            if (hash === 'ip-stats' || /^attacks(\?|$)/.test(hash)) {
                 this.switchToAttacks();
             } else if (hash === 'banlist' && this.authenticated) {
                 this.switchToBanlist();
@@ -617,8 +617,10 @@ document.addEventListener('alpine:init', () => {
                 // Listen for hash changes (after initialization)
                 window.addEventListener('hashchange', () => {
                     const h = window.location.hash.slice(1);
-                    if (h === 'ip-stats' || h === 'attacks') {
-                        this.switchToAttacks();
+                    if (h === 'ip-stats' || /^attacks(\?|$)/.test(h)) {
+                        // On the tab already: a pasted link or Back replaces the drill-down.
+                        if (this.tab === 'attacks') applyAttacksHash(window.location.hash);
+                        else this.switchToAttacks();
                     } else if (h === 'banlist') {
                         if (this.authenticated) this.switchToBanlist();
                     } else if (h === 'timedout') {
@@ -650,12 +652,15 @@ document.addEventListener('alpine:init', () => {
 
         switchToAttacks() {
             if (this.tab === 'attacks') return;  // Prevent duplicate loading
+            // A link or reload carries the drill-down; otherwise keep the last one.
+            if (/^#attacks(\?|$)/.test(window.location.hash)) applyAttacksHash(window.location.hash, false);
             this.tab = 'attacks';
-            window.location.hash = '#attacks';
+            writeAttacksHash();
 
             // x-if inserts new DOM — HTMX must process it for hx-trigger to work
             this.$nextTick(() => {
                 setTimeout(() => {
+                    renderAttacksBar();
                     if (typeof loadAttackTrendsChart === 'function') {
                         loadAttackTrendsChart();
                     }
@@ -2057,13 +2062,21 @@ window.openExpandOverlay = function(title, endpoint, pageSize, cluster, searchVa
         method: '', attackType: '', excludes: [], invert: false, attackTypes: [],
         ipFilter: '', cluster: cluster || '', artifactKind: '', artifactValue: '',
     });
-    _reloadExpandOverlay();
-    // For attacks, lazily load the list of distinct attack types for the
-    // dropdown filter.
+    // The attacks overlay shows the shared Attacks-tab state.
     if (endpoint === 'attacks') {
+        if (searchVal) setAttacksState({ search: searchVal });
+        else _syncAttacksOverlay(app);
         _loadExpandAttackTypes();
+    } else {
+        _reloadExpandOverlay();
     }
 };
+
+// Attacks overlay edits go through the shared state, which reloads the overlay.
+function _attacksOverlay() {
+    const app = _getAlpineData();
+    return app && app.expandOverlay.endpoint === 'attacks' ? app.expandOverlay : null;
+}
 
 window.openArtifactInvestigation = function(kind, value) {
     if (!['domain', 'file', 'asset'].includes(kind) || !value) return;
@@ -2085,7 +2098,9 @@ window.jumpToPath = function(event) {
 };
 
 window.triggerExpandSearch = function() {
-    _reloadExpandOverlay();
+    const ov = _attacksOverlay();
+    if (ov) setAttacksState({ search: (ov.search || '').trim(), type: ov.attackType || null });
+    else _reloadExpandOverlay();
 };
 
 // Attacks overlay invert match: with Not on, Enter turns the filter text into
@@ -2096,7 +2111,7 @@ window.toggleExpandInvert = function() {
     const ov = app.expandOverlay;
     ov.invert = !ov.invert;
     // Typed text was a live search; it is not one in invert mode.
-    if (ov.search) { ov.search = ''; _reloadExpandOverlay(); }
+    if (ov.search) { ov.search = ''; triggerExpandSearch(); }
 };
 
 window.addExpandExcludeTerm = function() {
@@ -2105,19 +2120,13 @@ window.addExpandExcludeTerm = function() {
     const ov = app.expandOverlay;
     if (!ov.invert || ov.endpoint !== 'attacks') return;
     const terms = (ov.search || '').split(',').map(s => s.trim()).filter(Boolean);
-    for (const term of terms) {
-        if (!ov.excludes.includes(term)) ov.excludes.push(term);
-    }
+    const exclude = [...new Set([...attacksState.exclude, ...terms])];
     ov.search = '';
-    _reloadExpandOverlay();
+    setAttacksState({ exclude, search: '' });
 };
 
 window.removeExcludeTerm = function(term) {
-    const app = _getAlpineData();
-    if (!app) return;
-    const ov = app.expandOverlay;
-    ov.excludes = ov.excludes.filter(t => t !== term);
-    _reloadExpandOverlay();
+    setAttacksState({ exclude: attacksState.exclude.filter(t => t !== term) });
 };
 
 window.toggleExpandCategory = function(cat) {
@@ -2140,6 +2149,7 @@ window.toggleExpandHoneypot = function() {
 window.toggleExpandMethod = function(method) {
     const app = _getAlpineData();
     if (!app) return;
+    if (_attacksOverlay()) return setAttacksState({ method: attacksState.method === method ? '' : method });
     app.expandOverlay.method = (app.expandOverlay.method === method) ? '' : method;
     _reloadExpandOverlay();
 };
@@ -2148,6 +2158,13 @@ window.clearExpandFilter = function(name) {
     const app = _getAlpineData();
     if (!app) return;
     const ov = app.expandOverlay;
+    // Pills of the attacks table (inline or in the overlay) clear the shared state.
+    const patch = { attackType: { type: null }, method: { method: '' }, search: { search: '' }, ipFilter: { ip: null } }[name];
+    if (patch && (!ov.show || ov.endpoint === 'attacks')) {
+        const el = document.querySelector('.expand-overlay-search');
+        if (el && name === 'search') el.value = '';
+        return setAttacksState(patch);
+    }
     if (name === 'attackType') ov.attackType = '';
     else if (name === 'method') ov.method = '';
     else if (name === 'search') { ov.search = ''; const el = document.querySelector('.expand-overlay-search'); if (el) el.value = ''; }
@@ -2192,13 +2209,9 @@ function _reloadExpandOverlay() {
         params.set('honeypot_only', '1');
     }
     if (ov.endpoint === 'attacks') {
-        if (ov.method) params.set('method_filter', ov.method);
-        if (ov.attackType) params.set('attack_type_filter', ov.attackType);
-        if (ov.excludes.length) params.set('exclude', ov.excludes.join(','));
-        // Pull sort defaults from the currently displayed partial if present,
-        // otherwise default to timestamp desc.
-        if (!params.has('sort_by')) params.set('sort_by', 'timestamp');
-        if (!params.has('sort_order')) params.set('sort_order', 'desc');
+        for (const [k, v] of attacksParams()) params.set(k, v);
+        params.set('sort_by', 'timestamp');
+        params.set('sort_order', 'desc');
     }
 
     const url = `${dashboardPath}/htmx/${ov.endpoint}?${params}`;

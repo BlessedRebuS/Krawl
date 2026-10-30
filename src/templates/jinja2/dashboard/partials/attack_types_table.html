@@ -7,9 +7,10 @@
         {% else %}
         <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} total</span>
         {% endif %}
+        {% if range_label %}<span class="range-label" title="Range shown">{{ range_label }}</span>{% endif %}
         {% if attack_type_filter %}
         <span class="filter-pill">
-            {{ attack_type_filter | e }}
+            {{ attack_type_filter | attack_label }}
             <button type="button" class="filter-pill-clear"
                     onclick="clearExpandFilter('attackType')"
                     aria-label="Clear attack type filter" title="Clear filter">&times;</button>

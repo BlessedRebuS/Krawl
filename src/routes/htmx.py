@@ -1120,6 +1120,7 @@ async def htmx_attacks(
             "exclude": exclude,
             "exclude_terms": exclude_terms,
             "period_qs": period_qs,
+            "range_label": range_label(period) if period else "",
             "rule_filter": rule_filter or "",
             "severity_filter": severity_filter,
         },

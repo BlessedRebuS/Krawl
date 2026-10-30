@@ -112,7 +112,7 @@
                             class="select">
                         <option value="">All attack types</option>
                         <template x-for="t in expandOverlay.attackTypes" :key="t">
-                            <option :value="t" x-text="t"></option>
+                            <option :value="t" :selected="t === expandOverlay.attackType" x-text="krawlAttackLabel(t)"></option>
                         </template>
                     </select>
                 </div>
