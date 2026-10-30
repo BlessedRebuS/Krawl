@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import func
 
 from dashboard_cache import pagination
+from database.text_filters import credential_text_clauses
 from logger import get_app_logger
 from models import CredentialAttempt
 from period import range_conditions
@@ -74,6 +75,8 @@ class CredentialRepo:
         ip_filter: str | None = None,
         since: datetime | None = None,
         until: datetime | None = None,
+        search: str | None = None,
+        exclude: list[str] | None = None,
     ) -> dict[str, Any]:
         """
         Retrieve paginated list of credential attempts.
@@ -106,7 +109,9 @@ class CredentialRepo:
                 count_query = count_query.filter(CredentialAttempt.ip == sanitized)
                 query = query.filter(CredentialAttempt.ip == sanitized)
 
-            for cond in range_conditions(CredentialAttempt.timestamp, since, until):
+            for cond in range_conditions(
+                CredentialAttempt.timestamp, since, until
+            ) + credential_text_clauses(CredentialAttempt, search, exclude):
                 count_query = count_query.filter(cond)
                 query = query.filter(cond)
 

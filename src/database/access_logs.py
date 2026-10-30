@@ -17,6 +17,7 @@ from dashboard_cache import (
     set_cached_table,
     table_row_count,
 )
+from database.text_filters import access_log_text_clauses
 from logger import get_app_logger
 from models import AccessLog, AttackDetection, CapturedPayload, IpStats, RequestAsset
 from period import range_conditions
@@ -165,6 +166,10 @@ class AccessLogRepo:
         since: datetime | None = None,
         until: datetime | None = None,
         period_key: str = "",
+        log_search: str | None = None,
+        exclude: list[str] | None = None,
+        method_filter: str | None = None,
+        ip_filter: str | None = None,
     ) -> dict[str, Any]:
         """Host-header targets ranked by retained request count.
 
@@ -172,9 +177,15 @@ class AccessLogRepo:
         cached rollup; a range uses its own rollup, cached under period_key.
         """
         needle = search.casefold()
+        text = {
+            "search": log_search,
+            "exclude": exclude,
+            "method_filter": method_filter,
+            "ip_filter": ip_filter,
+        }
         rollup = (
-            self.get_domain_rollup_between(since, until, period_key)
-            if since or until
+            self.get_domain_rollup_between(since, until, period_key, **text)
+            if since or until or any(text.values())
             else self.get_domain_rollup()
         )
         domains = sorted(
@@ -201,19 +212,21 @@ class AccessLogRepo:
         period_key: str = "",
         refresh: bool = False,
         ttl: int | None = None,
+        **text,
     ) -> list[dict[str, Any]]:
-        """Host rollup restricted to [since, until), cached per period_key (the period query) when given."""
-        key = f"{DOMAIN_ROLLUP_KEY}:{period_key}" if period_key else None
+        """Host rollup restricted to [since, until) and text filters, cached per period_key plus filters."""
+        suffix = "".join(f":{k}={v}" for k, v in sorted(text.items()) if v)
+        key = f"{DOMAIN_ROLLUP_KEY}:{period_key}{suffix}" if period_key or suffix else None
         rows = get_cached_table(key) if key and not refresh else None
         if rows is not None:
             return rows
-        rows = self._domain_rollup_between(since, until)
+        rows = self._domain_rollup_between(since, until, **text)
         if key:
             set_cached_table(key, rows, ttl=ttl)
         return rows
 
     def _domain_rollup_between(
-        self, since: datetime | None, until: datetime | None
+        self, since: datetime | None, until: datetime | None, **text
     ) -> list[dict[str, Any]]:
         """Host rollup restricted to [since, until), straight from the log."""
         session = self._db.session
@@ -226,6 +239,7 @@ class AccessLogRepo:
                 func.max(AccessLog.timestamp),
             ).filter(AccessLog.target_host.isnot(None), AccessLog.target_host != "")
             q = q.filter(*range_conditions(AccessLog.timestamp, since, until))
+            q = q.filter(*access_log_text_clauses(**text))
             return [
                 {
                     "domain": d,
@@ -724,6 +738,10 @@ class AccessLogRepo:
         sort_order: str = "desc",
         since: datetime | None = None,
         until: datetime | None = None,
+        search: str | None = None,
+        exclude: list[str] | None = None,
+        method_filter: str | None = None,
+        ip_filter: str | None = None,
     ) -> dict[str, Any]:
         """
         Retrieve paginated list of honeypot-triggered IPs with their paths.
@@ -751,7 +769,9 @@ class AccessLogRepo:
             base_query = session.query(AccessLog.ip, count_col).filter(
                 AccessLog.is_honeypot_trigger
             )
-            in_range = range_conditions(AccessLog.timestamp, since, until)
+            in_range = range_conditions(
+                AccessLog.timestamp, since, until
+            ) + access_log_text_clauses(search, exclude, method_filter, ip_filter)
             base_query = base_query.filter(*in_range)
             base_query = self._db._public_ip_filter(base_query, AccessLog.ip, server_ip)
             base_query = base_query.group_by(AccessLog.ip)

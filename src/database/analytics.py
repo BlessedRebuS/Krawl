@@ -7,14 +7,14 @@ metrics-summary persistence. All read-only except upsert_metrics_summary.
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import and_, func, not_, or_
+from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import joinedload
 
 import detection
 from attack_colours import attack_band, colour_map
 from dashboard_cache import pagination
+from database.text_filters import access_log_text_clauses
 from logger import get_app_logger
-from period import SLOT_FMT, parse_slot, range_conditions, resolve_period, slot_labels
 from models import (
     AccessLog,
     AttackDetection,
@@ -22,6 +22,7 @@ from models import (
     IpStats,
     MetricsSummary,
 )
+from period import SLOT_FMT, parse_slot, range_conditions, resolve_period, slot_labels
 
 if TYPE_CHECKING:
     from database.core import DatabaseManager
@@ -398,6 +399,10 @@ class AnalyticsRepo:
         page: int = 1,
         page_size: int = 10,
         severities: list[str] | None = None,
+        search: str | None = None,
+        exclude: list[str] | None = None,
+        method_filter: str | None = None,
+        ip_filter: str | None = None,
     ) -> dict[str, Any]:
         """IPs ranked by matching detections in the window, whatever their category."""
         session = self._db.session
@@ -407,6 +412,7 @@ class AnalyticsRepo:
                 conds.append(AccessLog.timestamp >= since)
             if until:
                 conds.append(AccessLog.timestamp < until)
+            conds += access_log_text_clauses(search, exclude, method_filter, ip_filter)
             matching = list(conds)
             if attack_type:
                 matching.append(AttackDetection.attack_type == attack_type)
@@ -561,33 +567,9 @@ class AnalyticsRepo:
                 match_filters.append(AccessLog.timestamp < until)
             # Detection-side filters need the exact EXISTS count, not the shortcuts.
             narrowed = bool(since or until or rule_filter or severity_filter)
-            if ip_filter:
-                match_filters.append(AccessLog.ip == ip_filter)
-            if method_filter:
-                match_filters.append(
-                    func.upper(AccessLog.method) == method_filter.upper()
-                )
-            if search:
-                like = f"%{search}%"
-                match_filters.append(
-                    or_(
-                        AccessLog.ip.ilike(like),
-                        AccessLog.path.ilike(like),
-                        AccessLog.user_agent.ilike(like),
-                    )
-                )
-            for term in exclude or ():
-                like = f"%{term}%"
-                # A NULL user agent must not turn the NOT into NULL.
-                match_filters.append(
-                    not_(
-                        or_(
-                            AccessLog.ip.ilike(like),
-                            AccessLog.path.ilike(like),
-                            func.coalesce(AccessLog.user_agent, "").ilike(like),
-                        )
-                    )
-                )
+            match_filters += access_log_text_clauses(
+                search, exclude, method_filter, ip_filter
+            )
 
             # Unfiltered, count from attack_detections alone (10.9s -> 0.26s).
             capped = False
@@ -748,7 +730,13 @@ class AnalyticsRepo:
             self._db.close_session()
 
     def get_attack_facets(
-        self, since: datetime | None = None, until: datetime | None = None
+        self,
+        since: datetime | None = None,
+        until: datetime | None = None,
+        search: str | None = None,
+        exclude: list[str] | None = None,
+        method_filter: str | None = None,
+        ip_filter: str | None = None,
     ) -> dict[str, Any]:
         """Detections per severity band and per rule within [since, until)."""
         session = self._db.session
@@ -762,6 +750,9 @@ class AnalyticsRepo:
                 q = q.filter(AccessLog.timestamp >= since)
             if until:
                 q = q.filter(AccessLog.timestamp < until)
+            q = q.filter(
+                *access_log_text_clauses(search, exclude, method_filter, ip_filter)
+            )
             rows = q.group_by(AttackDetection.rule_name, AttackDetection.attack_type)
             coordinator = detection.loaded_detection()
             sole = {}  # attack_type -> its only loaded rule
@@ -804,6 +795,10 @@ class AnalyticsRepo:
         days: int = 30,
         offset_days: int = 0,
         slot: str | None = None,
+        search: str | None = None,
+        exclude: list[str] | None = None,
+        method_filter: str | None = None,
+        ip_filter: str | None = None,
     ) -> dict[str, Any]:
         """Top attack types per 1h/4h/1d bucket over the window, plus per-slot totals."""
         session = self._db.session
@@ -818,9 +813,10 @@ class AnalyticsRepo:
                 "slot_totals": None,
                 "colours": {},
             }
+            text = access_log_text_clauses(search, exclude, method_filter, ip_filter)
             time_filter = range_conditions(
                 AccessLog.timestamp, period.since, period.until
-            )
+            ) + text
 
             top = (
                 session.query(
@@ -879,7 +875,10 @@ class AnalyticsRepo:
                         func.count(AttackDetection.id).label("total"),
                     )
                     .join(AccessLog, AttackDetection.access_log_id == AccessLog.id)
-                    .filter(*range_conditions(AccessLog.timestamp, sp.since, sp.until))
+                    .filter(
+                        *range_conditions(AccessLog.timestamp, sp.since, sp.until),
+                        *text,
+                    )
                     .group_by(AttackDetection.attack_type)
                     .order_by(func.count(AttackDetection.id).desc())
                     .all()
