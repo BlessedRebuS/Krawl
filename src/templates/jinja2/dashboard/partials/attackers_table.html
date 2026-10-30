@@ -1,7 +1,7 @@
 {# HTMX fragment: Attackers table #}
 <div class="panel-header">
     <div class="row row-wrap">
-        <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} attackers</span>
+        <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages | num }} &mdash; {{ pagination.total | num }} attackers</span>
         <span class="range-label" title="Range shown">{{ range_label }}</span>
     </div>
     <div class="row">
@@ -22,37 +22,58 @@
         <tr>
             <th>#</th>
             <th>IP Address</th>
-            <th class="{% if not in_period %}sortable {% endif %}{% if sort_by == 'total_requests' %}{{ sort_order }}{% endif %}"
-                {% if not in_period %}hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=total_requests&sort_order={% if sort_by == 'total_requests' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ period_qs }}{{ filter_qs }}"
+            {% if in_period %}
+            <th>Hits</th>
+            <th>Top type</th>
+            <th>Worst severity</th>
+            <th>Category</th>
+            <th>Last Seen</th>
+            {% else %}
+            <th class="sortable {% if sort_by == 'total_requests' %}{{ sort_order }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=total_requests&sort_order={% if sort_by == 'total_requests' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ period_qs }}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
-                hx-swap="innerHTML"{% endif %}>
+                hx-swap="innerHTML">
                 Total Requests
             </th>
-            <th class="{% if not in_period %}sortable {% endif %}{% if sort_by == 'first_seen' %}{{ sort_order }}{% endif %}"
-                {% if not in_period %}hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=first_seen&sort_order={% if sort_by == 'first_seen' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ period_qs }}{{ filter_qs }}"
+            <th class="sortable {% if sort_by == 'first_seen' %}{{ sort_order }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=first_seen&sort_order={% if sort_by == 'first_seen' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ period_qs }}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
-                hx-swap="innerHTML"{% endif %}>
+                hx-swap="innerHTML">
                 First Seen</th>
-            <th class="{% if not in_period %}sortable {% endif %}{% if sort_by == 'last_seen' %}{{ sort_order }}{% endif %}"
-                {% if not in_period %}hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=last_seen&sort_order={% if sort_by == 'last_seen' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ period_qs }}{{ filter_qs }}"
+            <th class="sortable {% if sort_by == 'last_seen' %}{{ sort_order }}{% endif %}"
+                hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=last_seen&sort_order={% if sort_by == 'last_seen' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ period_qs }}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
-                hx-swap="innerHTML"{% endif %}>
+                hx-swap="innerHTML">
                 Last Seen</th>
             <th>Location</th>
+            {% endif %}
             <th class="col-w-40"></th>
         </tr>
     </thead>
     <tbody>
 {# Bars are relative to the largest count on this page. #}
-{% set mx = (items | map(attribute='hits' if items and items[0].hits is defined else 'total_requests') | select | max) if items else 0 %}
+{% set count_key = 'hits' if in_period else 'total_requests' %}
+{% set mx = (items | map(attribute=count_key) | select | max) if items else 0 %}
         {% for ip in items %}
         <tr class="ip-row" data-ip="{{ ip.ip | e }}">
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
             <td class="ip-clickable">
                 <a class="ip-link" href="#ip-insight/{{ ip.ip | e }}" title="Open in IP Insight" @click.prevent="openIpInsight('{{ ip.ip | e }}')">{{ ip.ip | e }}</a>
             </td>
-            <td><span class="num-bar is-fill is-hostile" style="--pct: {{ (((ip.hits if ip.hits is defined else ip.total_requests) or 0) * 100 / mx) | round(1) if mx else 0 }}%">{{ (ip.hits if ip.hits is defined else ip.total_requests) | num }}</span></td>
-            <td class="ts-cell">{{ ip.first_seen | format_ts if ip.first_seen is defined else '' }}</td>
+            <td><span class="num-bar is-fill is-hostile" style="--pct: {{ ((ip[count_key] or 0) * 100 / mx) | round(1) if mx else 0 }}%">{{ ip[count_key] | num }}</span></td>
+            {% if in_period %}
+            <td>{% if ip.top_type %}<span class="{{ ip.top_type | attack_badge_class }}" title="{{ ip.top_type | attack_label }}">{{ ip.top_type | attack_label }}</span>{% endif %}</td>
+            <td><span class="sev-label"><span class="sev-dot sev-fg-{{ ip.worst_band | e }}" aria-hidden="true"></span>{{ ip.worst_band | capitalize }}</span></td>
+            <td><span class="category-badge category-{{ ip.category | default('unknown', true) | replace('_', '-') }}">{{ ip.category | default('unknown', true) | replace('_', ' ') | title }}</span></td>
+            <td class="ts-cell">{{ ip.last_seen | format_ts(time_only=ts_time_only or false) }}</td>
+            <td><div class="table-action-btns">
+                <button type="button" class="inspect-btn" data-ip="{{ ip.ip | e }}" onclick="setAttacksState({ip: this.dataset.ip})"
+                        title="Show only this IP's requests" aria-label="Show only this IP's requests">
+                    <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M.75 3h14.5a.75.75 0 0 1 0 1.5H.75a.75.75 0 0 1 0-1.5ZM3 7.75A.75.75 0 0 1 3.75 7h8.5a.75.75 0 0 1 0 1.5h-8.5A.75.75 0 0 1 3 7.75Zm3 4a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z"/></svg>
+                </button>
+            </div></td>
+            {% else %}
+            <td class="ts-cell">{{ ip.first_seen | format_ts }}</td>
             <td class="ts-cell">{{ ip.last_seen | format_ts }}</td>
             <td>{{ ip.city | default('', true) | e }}{% if ip.city and ip.country_code %}, {% endif %}{{ ip.country_code | default('N/A', true) | e }}</td>
             <td><div class="table-action-btns">
@@ -60,9 +81,10 @@
                     <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
                 </button>
             </div></td>
+            {% endif %}
         </tr>
         {% else %}
-        <tr><td colspan="6" class="empty-state">No attackers found</td></tr>
+        <tr><td colspan="{{ 8 if in_period else 7 }}" class="empty-state">No attackers found</td></tr>
         {% endfor %}
     </tbody>
 </table>

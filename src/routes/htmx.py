@@ -25,8 +25,9 @@ from dashboard_cache import (
 )
 from dependencies import get_db, get_templates
 from domain_map import build_domain_map
-from period import period_query, range_label, resolve_period
-from routes.api import verify_auth
+from logger import get_app_logger
+from period import period_query, range_label, resolve_period, time_only
+from routes.api import cached_attack_facets, verify_auth
 
 router = APIRouter()
 
@@ -877,6 +878,7 @@ async def htmx_attackers(
             "period_qs": period_qs,
             "range_label": range_label(period),
             "in_period": in_period,
+            "ts_time_only": time_only(period),
             "filter_qs": "".join(
                 f"&{k}={quote(v)}"
                 for k, v in (
@@ -1103,11 +1105,21 @@ async def htmx_attacks(
             }
         )
 
+    # The tab's table offers severity chips and a rule picker counted over the period.
+    facets = None
+    if period:
+        try:
+            facets = await cached_attack_facets(period)
+        except Exception as e:  # the table still renders without its filters
+            get_app_logger().error(f"Error fetching attack facets: {e}")
     templates = get_templates()
     return templates.TemplateResponse(
         request,
         "dashboard/partials/attack_types_table.html",
         {
+            "facets": facets,
+            "severities": severities,
+            "ts_time_only": time_only(period),
             "dashboard_path": _dashboard_path(request),
             "items": items,
             "pagination": result["pagination"],

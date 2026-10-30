@@ -30,6 +30,12 @@ function krawlTypeColor(colours, type, alpha) {
     return krawlSeverityColor(c.band, c.shade, alpha);
 }
 
+// Dot-grouped integer (12.166.543), identical to the `num` Jinja filter.
+function krawlNum(n) {
+    const v = Math.trunc(Number(n));
+    return Number.isFinite(v) ? String(v).replace(/\B(?=(\d{3})+(?!\d))/g, '.') : String(n);
+}
+
 // Detector ids as people say them; mirrors the attack_label Jinja filter.
 const KRAWL_ATTACK_LABELS = {
     sql_injection: 'SQL injection', command_injection: 'Command injection',

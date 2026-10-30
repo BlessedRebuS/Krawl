@@ -61,6 +61,13 @@ def period_query(period: Period | None) -> str:
     return q + f"&slot={period.slot}" if period.slot else q
 
 
+def time_only(period: Period | None) -> bool | None:
+    """Timestamps drop the date when the window sits in one UTC day; None without a period."""
+    if period is None:
+        return None
+    return period.since.date() == (period.until - timedelta(microseconds=1)).date()
+
+
 def range_label(period: Period | None) -> str:
     if period is None:
         return "All time"

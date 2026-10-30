@@ -89,8 +89,8 @@ def _attack_label(value):
     return ", ".join(labels)
 
 
-def _format_ts(value, time_only=False):
-    """Custom Jinja2 filter for formatting ISO timestamps."""
+def _format_ts(value, time_only=None):
+    """ISO timestamp; time_only True/False forces the form, None drops the date for today."""
     if not value:
         return "N/A"
     if isinstance(value, str):
@@ -100,7 +100,7 @@ def _format_ts(value, time_only=False):
             return value
     if time_only:
         return value.strftime("%H:%M:%S")
-    if value.date() == datetime.now().date():
+    if time_only is None and value.date() == datetime.now().date():
         return value.strftime("%H:%M:%S")
     # Year first: sorts as text and reads the same in every locale.
     return value.strftime("%Y-%m-%d %H:%M:%S")

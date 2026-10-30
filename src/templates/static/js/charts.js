@@ -224,6 +224,7 @@ async function loadAttackTrendsChart(canvasId) {
         }
 
         if (attackTypes.length === 0) {
+            _fillTrendsSlots([], []);
             _showTrendsMessage(canvas, 'No attacks detected in this period. Try a longer span or step back a period.');
             return;
         }
@@ -234,20 +235,29 @@ async function loadAttackTrendsChart(canvasId) {
         const bh = data.bucket_hours || 24;
         const shortLabels = dates.map(d => _trendsSlotText(d, bh));
 
-        const datasets = attackTypes.map(at => ({
-            label: `${krawlAttackLabel(at.type)} (${at.total})`,
-            data: at.daily,
-            borderColor: krawlTypeColor(data.colours, at.type),
-            backgroundColor: krawlTypeColor(data.colours, at.type, 0.05),
-            borderWidth: 2,
-            pointRadius: 0,
-            pointHitRadius: 8,
-            pointHoverRadius: 4,
-            pointHoverBackgroundColor: krawlTypeColor(data.colours, at.type),
-            tension: 0.15,
-            fill: false,
-            _attackType: at.type,
-        }));
+        // Critical/High lead; Medium/Low stay recessive; same band+shade differ by dash.
+        const dashes = [[], [6, 4], [2, 3]], seen = {};
+        const datasets = attackTypes.map(at => {
+            const c = (data.colours && data.colours[at.type]) || { band: 'low', shade: 1 };
+            const strong = c.band === 'critical' || c.band === 'high';
+            const key = `${c.band}-${c.shade}`;
+            seen[key] = (seen[key] || 0) + 1;
+            return {
+                label: `${krawlAttackLabel(at.type)} (${krawlNum(at.total)})`,
+                data: at.daily,
+                borderColor: krawlTypeColor(data.colours, at.type, strong ? 1 : 0.55),
+                borderWidth: strong ? 2.5 : 1.25,
+                borderDash: dashes[Math.min(seen[key], 3) - 1],
+                pointRadius: 0,
+                pointHitRadius: 8,
+                pointHoverRadius: 4,
+                pointHoverBackgroundColor: krawlTypeColor(data.colours, at.type),
+                tension: 0.15,
+                fill: false,
+                _attackType: at.type,
+                _base: { alpha: strong ? 1 : 0.55, width: strong ? 2.5 : 1.25 },
+            };
+        });
 
         const ctx = canvas.getContext('2d');
         attackTrendsChart = new Chart(ctx, {
@@ -278,10 +288,15 @@ async function loadAttackTrendsChart(canvasId) {
                         padding: 10,
                         titleFont: { size: 12, weight: 'bold' },
                         bodyFont: { size: 11 },
+                        itemSort: (a, b) => b.parsed.y - a.parsed.y,
+                        filter: item => item.parsed.y > 0,
                         callbacks: {
-                            label: function(context) {
-                                return `${krawlAttackLabel(context.dataset._attackType)}: ${context.parsed.y}`;
-                            }
+                            label: context => `${krawlAttackLabel(context.dataset._attackType)}: ${krawlNum(context.parsed.y)}`,
+                            // Full-strength swatch even for recessive lines.
+                            labelColor: context => {
+                                const c = krawlTypeColor(data.colours, context.dataset._attackType);
+                                return { borderColor: c, backgroundColor: c };
+                            },
                         }
                     }
                 },
@@ -293,15 +308,18 @@ async function loadAttackTrendsChart(canvasId) {
                     },
                     y: {
                         beginAtZero: true,
-                        ticks: { color: krawlToken('--text-dim'), font: { size: 11 }, precision: 0 },
+                        ticks: { color: krawlToken('--text-dim'), font: { size: 11 }, precision: 0, callback: v => krawlNum(v) },
                         grid: { color: krawlToken('--line-soft') },
+                        title: { display: true, text: bh === 1 ? 'per hour' : bh === 4 ? 'per 4 hours' : 'per day', color: krawlToken('--text-dim'), font: { size: 11 } },
                     }
                 },
                 animation: { enabled: false },
             }
         });
         attackTrendsChart.$slotIndex = s.slot ? dates.indexOf(s.slot) : -1;
-        attackTrendsChart.draw();
+        attackTrendsChart.$colours = data.colours;
+        _trendsEmphasise(s.type);
+        _fillTrendsSlots(dates, datasets);
 
     } catch (err) {
         if (req !== _trendsRequest) return;  // a newer request owns the chart
@@ -347,6 +365,55 @@ function _showTrendsMessage(canvas, text, retry = false) {
     }
 }
 
+// Highlights one type's line and dims the rest; null restores the severity emphasis.
+function _trendsEmphasise(type) {
+    const chart = attackTrendsChart;
+    if (!chart) return;
+    chart.data.datasets.forEach(d => {
+        const on = d._attackType === type;
+        d.borderColor = krawlTypeColor(chart.$colours, d._attackType, !type ? d._base.alpha : on ? 1 : 0.15);
+        d.borderWidth = type && on ? Math.max(d._base.width, 2.5) : d._base.width;
+    });
+    chart.update('none');
+}
+
+// Screen-reader and keyboard twin of the chart: one row per bucket, its button narrows to that slot.
+function _fillTrendsSlots(dates, datasets) {
+    const body = document.querySelector('#trends-slots tbody');
+    if (!body) return;
+    const s = window.attacksState;
+    body.replaceChildren(...dates.map((slot, i) => {
+        const tr = document.createElement('tr');
+        const label = attacksSlotLabel(slot, s.days);
+        const th = document.createElement('th');
+        th.scope = 'row';
+        th.textContent = label;
+        const total = document.createElement('td');
+        total.textContent = krawlNum(datasets.reduce((n, d) => n + (d.data[i] || 0), 0));
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = `Show ${label}`;
+        btn.setAttribute('aria-pressed', String(s.slot === slot));
+        btn.onclick = () => setAttacksState({ slot, type: null });
+        // Focus shows the bucket's tooltip, so sighted keyboard users see where they are.
+        btn.onfocus = () => _trendsActivate(i);
+        btn.onblur = () => _trendsActivate(-1);
+        const cell = document.createElement('td');
+        cell.append(btn);
+        tr.append(th, total, cell);
+        return tr;
+    }));
+}
+
+function _trendsActivate(i) {
+    const chart = attackTrendsChart;
+    if (!chart) return;
+    const els = i < 0 ? [] : chart.data.datasets.map((_, d) => ({ datasetIndex: d, index: i }));
+    chart.setActiveElements(els);
+    chart.tooltip.setActiveElements(els, { x: i < 0 ? 0 : chart.scales.x.getPixelForValue(i), y: chart.chartArea.top });
+    chart.update('none');
+}
+
 // Slot "YYYY-MM-DDTHH" (UTC) to "Apr 2 14:00" for 1h/4h buckets, "Apr 2" for daily.
 function _trendsSlotText(slot, bh) {
     const dt = new Date(slot.slice(0, 10) + 'T00:00:00');
@@ -382,8 +449,11 @@ function _updateTrendsTotals(totals, colours) {
         btn.title = `Show only ${krawlAttackLabel(at.type)}`;
         btn.innerHTML = '<span class="trends-total-dot"></span><span class="trends-total-name"></span><span class="trends-total-count"></span>';
         btn.querySelector('.trends-total-name').textContent = krawlAttackLabel(at.type);
-        btn.querySelector('.trends-total-count').textContent = at.total.toLocaleString('de-DE');
+        btn.querySelector('.trends-total-count').textContent = krawlNum(at.total);
         btn.onclick = () => setAttacksState({ type: s.type === at.type ? null : at.type });
+        // Hover or focus previews the line; leaving restores the pressed one.
+        btn.onmouseenter = btn.onfocus = () => _trendsEmphasise(at.type);
+        btn.onmouseleave = btn.onblur = () => _trendsEmphasise(s.type);
         container.appendChild(btn);
     });
 }
@@ -501,10 +571,10 @@ function _renderCampaignSummary(data) {
     const total = data.total_campaigns || campaigns.length;
     const noun = (n, one, many) => (n === 1 ? one : many);
     let text = campaigns.length < total
-        ? `${b(total.toLocaleString())} campaigns active; the ${b(campaigns.length)} shown hit ${b(hits.toLocaleString())} times.`
-        : `${b(total.toLocaleString())} ${noun(total, 'campaign', 'campaigns')} hit ${b(hits.toLocaleString())} ${noun(hits, 'time', 'times')}.`;
+        ? `${b(krawlNum(total))} campaigns active; the ${b(campaigns.length)} shown hit ${b(krawlNum(hits))} times.`
+        : `${b(krawlNum(total))} ${noun(total, 'campaign', 'campaigns')} hit ${b(krawlNum(hits))} ${noun(hits, 'time', 'times')}.`;
     if (slotTotals[peak]) {
-        text += ` Busiest: ${b(_escapeHtml(_campaignSlotText(data.slots[peak], data.slot_hours)))}, with ${slotTotals[peak].toLocaleString()} ${noun(slotTotals[peak], 'hit', 'hits')}.`;
+        text += ` Busiest: ${b(_escapeHtml(_campaignSlotText(data.slots[peak], data.slot_hours)))}, with ${krawlNum(slotTotals[peak])} ${noun(slotTotals[peak], 'hit', 'hits')}.`;
     }
     box.innerHTML = text;
 }
@@ -549,8 +619,8 @@ function _renderCampaignActivity(data) {
             `<span class="activity-target">${_escapeHtml(_middleEllipsis(name, 44))}</span>` +
             `<span class="activity-types">${typeList || _escapeHtml(c.sources)}</span></span>` +
             `<span class="activity-strip" role="cell">${cells}</span>` +
-            `<span class="num activity-hits" role="cell"><span class="num-bar" style="--pct:${(c.hits / maxHits * 100).toFixed(1)}%">${c.hits.toLocaleString()}</span></span>` +
-            `<span class="num" role="cell">${c.ips.toLocaleString()}</span></div>`;
+            `<span class="num activity-hits" role="cell"><span class="num-bar" style="--pct:${(c.hits / maxHits * 100).toFixed(1)}%">${krawlNum(c.hits)}</span></span>` +
+            `<span class="num" role="cell">${krawlNum(c.ips)}</span></div>`;
     }).join('');
 
     // Legend: the intensity ramp, then one swatch per row colour on screen.
@@ -623,7 +693,7 @@ function _bindCampaignActivity() {
             `<div class="activity-tooltip-title">${_escapeHtml(_campaignSlotText(data.slots[i], data.slot_hours))}</div>` +
             `<div class="data-mono">${_escapeHtml(_middleEllipsis(_campaignName(c), 56))}</div>` +
             ((c.attack_types || []).length ? `<div class="activity-tooltip-title">${_escapeHtml(c.attack_types.map(krawlAttackLabel).join(', '))}</div>` : '') +
-            `<div><strong>${n.toLocaleString()}</strong> ${n === 1 ? 'hit' : 'hits'}</div>`;
+            `<div><strong>${krawlNum(n)}</strong> ${n === 1 ? 'hit' : 'hits'}</div>`;
         tip.hidden = false;
         const host = tip.offsetParent || grid;
         const hostBox = host.getBoundingClientRect();

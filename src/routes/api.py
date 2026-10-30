@@ -734,22 +734,27 @@ async def attack_facets(
     offset_days: int = Query(0),
     slot: str | None = Query(None),
 ):
-    period = resolve_period(days, offset_days, slot)
-    cache_key = f"api:attack_facets:{period_query(period)}"
-    cached = get_cached_table(cache_key)
-    if cached:
-        return JSONResponse(content=cached, headers=_no_cache_headers())
     try:
-        result = await asyncio.to_thread(
-            get_db().analytics.get_attack_facets,
-            since=period.since if period else None,
-            until=period.until if period else None,
-        )
-        set_cached_table(cache_key, result)
+        result = await cached_attack_facets(resolve_period(days, offset_days, slot))
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
         get_app_logger().error(f"Error fetching attack facets: {e}")
         return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
+
+
+async def cached_attack_facets(period) -> dict:
+    """Severity and rule counts for a period, shared by the API and the attacks table."""
+    cache_key = f"api:attack_facets:{period_query(period)}"
+    cached = get_cached_table(cache_key)
+    if cached:
+        return cached
+    result = await asyncio.to_thread(
+        get_db().analytics.get_attack_facets,
+        since=period.since if period else None,
+        until=period.until if period else None,
+    )
+    set_cached_table(cache_key, result)
+    return result
 
 
 @router.get("/api/attack-types-daily")

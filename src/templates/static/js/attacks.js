@@ -139,6 +139,14 @@ function _syncAttacksOverlay(app) {
     _reloadExpandOverlay();
 }
 
+// Rule ids as people say them; credential_fields is a pseudo-rule.
+function attacksRuleLabel(rule) { return rule === 'credential_fields' ? 'Credential capture' : krawlAttackLabel(rule); }
+
+function toggleAttacksSeverity(band) {
+    const sev = attacksState.severities;
+    setAttacksState({ severities: sev.includes(band) ? sev.filter(b => b !== band) : [...sev, band] });
+}
+
 function attacksSlotLabel(slot, days) {
     const bh = _attacksBucketHours(days);
     const start = new Date(Date.parse(slot + ':00:00Z'));
@@ -186,6 +194,7 @@ function renderAttacksBar() {
         b.setAttribute('aria-pressed', String(on));
     });
     document.querySelectorAll('#trends-totals .trends-total').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.type === s.type)));
+    if (typeof _trendsEmphasise === 'function') _trendsEmphasise(s.type);
     const next = document.getElementById('attacks-next');
     if (next) next.disabled = s.offset <= 0;
     const range = document.getElementById('attacks-range');
@@ -195,7 +204,7 @@ function renderAttacksBar() {
     const list = [];
     if (s.slot) list.push(_attacksPill(attacksSlotLabel(s.slot, s.days), { slot: null }));
     if (s.type) list.push(_attacksPill(krawlAttackLabel(s.type), { type: null }));
-    if (s.rule) list.push(_attacksPill(s.rule === 'credential_fields' ? 'Credential capture' : s.rule, { rule: null }));
+    if (s.rule) list.push(_attacksPill(attacksRuleLabel(s.rule), { rule: null }));
     s.severities.forEach(b => list.push(_attacksPill(b[0].toUpperCase() + b.slice(1), { severities: s.severities.filter(x => x !== b) }, '', krawlSeverityColor(b, 1))));
     if (s.ip) list.push(_attacksPill(s.ip, { ip: null }));
     if (s.method) list.push(_attacksPill(s.method, { method: '' }, 'ok'));

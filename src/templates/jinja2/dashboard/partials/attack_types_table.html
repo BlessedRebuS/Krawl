@@ -1,11 +1,39 @@
-{# HTMX fragment: Detected Attack Types table #}
+{# HTMX fragment: Detected attacks table #}
 {% set filter_qs %}{% if ip_filter %}&ip_filter={{ ip_filter | urlencode }}{% endif %}{% if attack_type_filter %}&attack_type_filter={{ attack_type_filter | urlencode }}{% endif %}{% if search %}&search={{ search | urlencode }}{% endif %}{% if method_filter %}&method_filter={{ method_filter | urlencode }}{% endif %}{% if exclude %}&exclude={{ exclude | urlencode }}{% endif %}{% if rule_filter %}&rule_filter={{ rule_filter | urlencode }}{% endif %}{% if severity_filter %}&severity_filter={{ severity_filter | urlencode }}{% endif %}{{ period_qs }}{% endset %}
+{% if facets %}
+{# Severity chips and rule picker, counted over the tab's period. #}
+<div class="attack-facets">
+    <div class="row row-wrap gap-2" role="group" aria-label="Severity">
+        {% for band in ['critical', 'high', 'medium', 'low'] %}
+        {% set on = band in severities %}
+        <button type="button" class="facet-chip{% if on %} active{% endif %}" aria-pressed="{{ 'true' if on else 'false' }}"
+                onclick="toggleAttacksSeverity('{{ band }}')">
+            <span class="sev-dot sev-fg-{{ band }}" aria-hidden="true"></span>{{ band | capitalize }}
+            <span class="facet-count">{{ facets.severities[band] | num }}</span>
+        </button>
+        {% endfor %}
+    </div>
+    {% set rule_ids = facets.rules | map(attribute='rule') | list %}
+    <label class="map-limit-label">
+        <span class="rule-picker-label">Rule</span>
+        <select class="map-limit-select rule-picker" onchange="setAttacksState({rule: this.value || null})">
+            <option value="">All rules ({{ facets.rules | length }})</option>
+            {% for r in facets.rules %}
+            <option class="sev-fg-{{ r.band }}" value="{{ r.rule }}" {% if r.rule == rule_filter %}selected{% endif %}>&#9679; {{ r.label or (r.rule | attack_label) }} ({{ r.hits | num }})</option>
+            {% endfor %}
+            {% if rule_filter and rule_filter not in rule_ids %}
+            <option value="{{ rule_filter }}" selected>{{ rule_filter | attack_label }} (0)</option>
+            {% endif %}
+        </select>
+    </label>
+</div>
+{% endif %}
 <div class="panel-header">
     <div class="row row-wrap">
         {% if pagination.capped %}
-        <span class="pagination-info" title="Counted within the newest detected requests; older matches page in as you go">Page {{ pagination.page }} &mdash; {{ pagination.total }}+ matching</span>
+        <span class="pagination-info" title="Counted within the newest detected requests; older matches page in as you go">Page {{ pagination.page }} &mdash; {{ pagination.total | num }}+ matching</span>
         {% else %}
-        <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} total</span>
+        <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages | num }} &mdash; {{ pagination.total | num }} total</span>
         {% endif %}
         {% if range_label %}<span class="range-label" title="Range shown">{{ range_label }}</span>{% endif %}
         {% if attack_type_filter %}
@@ -139,7 +167,7 @@
                 {% endif %}
             </td>
             <td class="ua-cell">{{ (attack.user_agent | default('', true))[:50] | e }}</td>
-            <td class="ts-cell">{{ attack.timestamp | format_ts }}</td>
+            <td class="ts-cell">{{ attack.timestamp | format_ts(time_only=ts_time_only) }}</td>
             <td>
                 <div class="table-action-btns">
                 {% if attack.log_id %}
