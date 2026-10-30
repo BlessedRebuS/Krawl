@@ -10,6 +10,7 @@ window.attacksState = _attacksDefaults();
 const ATTACKS_PANEL_KEYS = {
     attacks: null,
     attackers: ['days', 'offset_days', 'slot', 'attack_type_filter', 'rule_filter', 'severity_filter'],
+    credentials: ['days', 'offset_days', 'slot', 'ip_filter'],
 };
 const ATTACKS_PERIOD_KEYS = ['days', 'offset_days', 'slot'];
 
@@ -117,10 +118,14 @@ function shiftAttacksPeriod(direction) {
     setAttacksState({ offset: Math.max(0, attacksState.offset - direction * attacksState.days) });
 }
 
+function _attacksPanelKeys(el) {
+    const name = el.dataset.attacksPanel;
+    return name in ATTACKS_PANEL_KEYS ? ATTACKS_PANEL_KEYS[name] : ATTACKS_PERIOD_KEYS;
+}
+
 // The params a panel understands, as a query string.
 function _attacksPanelQs(el) {
-    const name = el.dataset.attacksPanel;
-    const keys = name in ATTACKS_PANEL_KEYS ? ATTACKS_PANEL_KEYS[name] : ATTACKS_PERIOD_KEYS;
+    const keys = _attacksPanelKeys(el);
     return [...attacksParams()].filter(([k]) => !keys || keys.includes(k)).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
 }
 
@@ -216,6 +221,14 @@ function renderAttacksBar() {
     if (next) next.disabled = s.offset <= 0;
     const range = document.getElementById('attacks-range');
     if (range) range.textContent = _attacksRangeText();
+    // Panels honouring none of the active filters label their range "period only".
+    const active = [...attacksParams().keys()].filter(k => !ATTACKS_PERIOD_KEYS.includes(k));
+    document.querySelectorAll('[data-attacks-panel]').forEach(el => {
+        const keys = _attacksPanelKeys(el);
+        el.toggleAttribute('data-period-only', !!keys && active.length > 0 && !active.some(k => keys.includes(k)));
+    });
+    const scope = document.getElementById('trends-scope');
+    if (scope) scope.hidden = !active.length;
     const pills = document.getElementById('attacks-pills');
     if (!pills) return;
     const list = [];

@@ -132,3 +132,28 @@ def test_later_pages_reuse_the_warm_total(warmed, monkeypatch):
         "/dash/htmx/attacks", params={"page": 2, "days": 7, "offset_days": 0}
     )
     assert seen["total"] == 2
+
+
+def test_credentials_panel_narrows_by_ip_and_keeps_it_in_links(warmed):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from models import CredentialAttempt
+    from routes import htmx
+
+    s = warmed.session
+    now = datetime.utcnow()
+    for ip in ("203.0.113.1", "203.0.113.2"):
+        s.add(
+            CredentialAttempt(ip=ip, path="/login", username=f"u-{ip}", timestamp=now)
+        )
+    s.commit()
+    warmed.close_session()
+
+    app = FastAPI()
+    app.state.config = SimpleNamespace(dashboard_secret_path="dash")  # noqa: S106
+    app.include_router(htmx.router, prefix="/dash")
+    q = {"page": 1, "days": 7, "offset_days": 0, "ip_filter": "203.0.113.2"}
+    html = TestClient(app).get("/dash/htmx/credentials", params=q).text
+    assert "u-203.0.113.2" in html and "u-203.0.113.1" not in html
+    assert "ip_filter=203.0.113.2&amp;days=7" in html
