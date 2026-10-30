@@ -382,6 +382,7 @@ function _fillTrendsSlots(dates, datasets) {
     const body = document.querySelector('#trends-slots tbody');
     if (!body) return;
     const s = window.attacksState;
+    const had = body.contains(document.activeElement) ? document.activeElement.dataset.slot : null;
     body.replaceChildren(...dates.map((slot, i) => {
         const tr = document.createElement('tr');
         const label = attacksSlotLabel(slot, s.days);
@@ -393,6 +394,8 @@ function _fillTrendsSlots(dates, datasets) {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.textContent = `Show ${label}`;
+        btn.dataset.slot = slot;
+        btn.tabIndex = -1;
         btn.setAttribute('aria-pressed', String(s.slot === slot));
         btn.onclick = () => setAttacksState({ slot: s.slot === slot ? null : slot, type: null });  // toggles, like a chart click
         // Focus shows the bucket's tooltip, so sighted keyboard users see where they are.
@@ -403,6 +406,21 @@ function _fillTrendsSlots(dates, datasets) {
         tr.append(th, total, cell);
         return tr;
     }));
+    // Roving tabindex: one Tab stop (the pressed slot, else the latest); arrows move between slots.
+    const btns = [...body.querySelectorAll('button')];
+    const cur = btns.find(b => b.dataset.slot === (had || s.slot)) || btns[btns.length - 1];
+    if (cur) cur.tabIndex = 0;
+    if (cur && had) cur.focus();
+    body.onkeydown = (e) => {
+        const i = btns.indexOf(e.target);
+        const to = { ArrowLeft: i - 1, ArrowUp: i - 1, ArrowRight: i + 1, ArrowDown: i + 1, Home: 0, End: btns.length - 1 }[e.key];
+        if (i < 0 || to === undefined) return;
+        e.preventDefault();
+        const next = btns[Math.max(0, Math.min(btns.length - 1, to))];
+        btns[i].tabIndex = -1;
+        next.tabIndex = 0;
+        next.focus();
+    };
 }
 
 function _trendsActivate(i) {
