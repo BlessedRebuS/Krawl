@@ -52,6 +52,11 @@ def delta_e(a, b):
     return 100 * sum((x - y) ** 2 for x, y in zip(a, b)) ** 0.5
 
 
+def lch(hexv):
+    L, a, b = oklab(linear(hexv))
+    return L, (a * a + b * b) ** 0.5
+
+
 def contrast(a, b):
     lum = lambda h: sum(w * c for w, c in zip((0.2126, 0.7152, 0.0722), linear(h)))
     hi, lo = sorted((lum(a), lum(b)), reverse=True)
@@ -101,3 +106,13 @@ def test_band_anchors_apart_under_cvd(vision):
 @pytest.mark.parametrize("band", BANDS)
 def test_band_alias_points_at_anchor(band):
     assert re.search(rf"--sev-{band}:\s*var\(--sev-{band}-1\)\s*;", ROOT_BLOCK)
+
+
+@pytest.mark.parametrize("band", BANDS)
+def test_shades_keep_chroma_and_lightness_window(band):
+    anchor_l = lch(token(f"sev-{band}-1"))[0]
+    floor = 0.035 if band == "low" else 0.10
+    for n in SHADES[1:]:
+        L, C = lch(token(f"sev-{band}-{n}"))
+        assert C >= floor - 0.002, (band, n, C)
+        assert abs(L - anchor_l) <= 0.12, (band, n, L)

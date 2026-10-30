@@ -46,23 +46,23 @@
     --pink: #f2649f;
     --cyan: #3ad6d1;
 
-    /* Severity bands x 4 shades, OKLCH L step 0.06; gated by tests/test_severity_palette.py. */
+    /* Severity bands x 4 shades, shades keep chroma and stay within 0.12 L of the anchor; gated by tests/test_severity_palette.py. */
     --sev-critical-1: #ff5c52;
-    --sev-critical-2: #fd8674;
-    --sev-critical-3: #ffa693;
-    --sev-critical-4: #ffc4b4;
+    --sev-critical-2: #e35319;
+    --sev-critical-3: #ff875f;
+    --sev-critical-4: #fda797;
     --sev-high-1: #fda166;
-    --sev-high-2: #f08b27;
-    --sev-high-3: #d0800e;
-    --sev-high-4: #b17503;
+    --sev-high-2: #df7420;
+    --sev-high-3: #fa8054;
+    --sev-high-4: #eb8f15;
     --sev-medium-1: #b083f5;
-    --sev-medium-2: #c09bfe;
-    --sev-medium-3: #cfb5ff;
-    --sev-medium-4: #decefe;
+    --sev-medium-2: #a765cb;
+    --sev-medium-3: #d998fe;
+    --sev-medium-4: #beb7fe;
     --sev-low-1: #c7b8a6;
-    --sev-low-2: #b4a594;
-    --sev-low-3: #a29282;
-    --sev-low-4: #8f8070;
+    --sev-low-2: #b68d75;
+    --sev-low-3: #b2a47a;
+    --sev-low-4: #f9d2b3;
     --sev-critical: var(--sev-critical-1);
     --sev-high: var(--sev-high-1);
     --sev-medium: var(--sev-medium-1);
