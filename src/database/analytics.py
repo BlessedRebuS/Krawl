@@ -4,7 +4,7 @@ Top-N rankings, attack-type statistics, cross-table search, and
 metrics-summary persistence. All read-only except upsert_metrics_summary.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import and_, func, not_, or_
@@ -14,6 +14,7 @@ import detection
 from attack_colours import attack_band, colour_map
 from dashboard_cache import pagination
 from logger import get_app_logger
+from period import SLOT_FMT, parse_slot, range_conditions, resolve_period, slot_labels
 from models import (
     AccessLog,
     AttackDetection,
@@ -793,36 +794,30 @@ class AnalyticsRepo:
             self._db.close_session()
 
     def get_attack_types_daily(
-        self, limit: int = 10, days: int = 30, offset_days: int = 0
+        self,
+        limit: int = 10,
+        days: int = 30,
+        offset_days: int = 0,
+        slot: str | None = None,
     ) -> dict[str, Any]:
-        """
-        Get attack type counts for a sliding window (for line chart).
-        Uses hourly granularity for spans <= 7 days, daily otherwise.
-
-        Args:
-            limit: Max attack types to return
-            days: Window size in days
-            offset_days: How many days back to shift the window end
-                         (0 = ending today, 30 = ending 30 days ago, etc.)
-
-        Returns top N attack types with their breakdown and totals.
-        """
+        """Top attack types per 1h/4h/1d bucket over the window, plus per-slot totals."""
         session = self._db.session
         try:
-            from datetime import datetime, timedelta
+            period = resolve_period(days, offset_days)
+            labels = slot_labels(period)
+            bh = period.bucket_hours
+            out = {
+                "attack_types": [],
+                "dates": labels,
+                "bucket_hours": bh,
+                "slot_totals": None,
+                "colours": {},
+            }
+            time_filter = range_conditions(
+                AccessLog.timestamp, period.since, period.until
+            )
 
-            end = datetime.now() - timedelta(days=offset_days)
-            cutoff = end - timedelta(days=days)
-            use_hourly = True
-
-            # Time range filter used by both queries
-            time_filter = [
-                AccessLog.timestamp >= cutoff,
-                AccessLog.timestamp <= end,
-            ]
-
-            # Get top N attack types by total count in the period
-            top_types_q = (
+            top = (
                 session.query(
                     AttackDetection.attack_type,
                     func.count(AttackDetection.id).label("total"),
@@ -834,116 +829,62 @@ class AnalyticsRepo:
                 .limit(limit)
                 .all()
             )
+            names = [r.attack_type for r in top]
 
-            if not top_types_q:
-                return {"attack_types": [], "dates": [], "colours": {}}
-
-            top_type_names = [row.attack_type for row in top_types_q]
-            totals = {row.attack_type: row.total for row in top_types_q}
-
-            if use_hourly:
-                # Hourly granularity: build list of hour slots
-                slots = []
-                total_hours = days * 24
-                for i in range(total_hours, -1, -1):
-                    slot = (end - timedelta(hours=i)).strftime("%Y-%m-%d %H:00")
-                    slots.append(slot)
-
-                # Group by date + hour, portable across SQLite and PostgreSQL
-                # strftime works on SQLite, to_char on PostgreSQL
-
-                is_sqlite = "sqlite" in str(session.bind.url)
-                if is_sqlite:
-                    hour_expr = func.strftime("%Y-%m-%d %H:00", AccessLog.timestamp)
+            if names:
+                if "sqlite" in str(session.bind.url):
+                    hour_expr = func.strftime("%Y-%m-%dT%H", AccessLog.timestamp)
                 else:
-                    hour_expr = func.to_char(AccessLog.timestamp, "YYYY-MM-DD HH24:00")
-
-                hourly_q = (
+                    hour_expr = func.to_char(AccessLog.timestamp, 'YYYY-MM-DD"T"HH24')
+                rows = (
                     session.query(
                         AttackDetection.attack_type,
-                        hour_expr.label("slot"),
+                        hour_expr.label("hour"),
                         func.count(AttackDetection.id).label("count"),
                     )
                     .join(AccessLog, AttackDetection.access_log_id == AccessLog.id)
-                    .filter(
-                        *time_filter,
-                        AttackDetection.attack_type.in_(top_type_names),
-                    )
+                    .filter(*time_filter, AttackDetection.attack_type.in_(names))
                     .group_by(AttackDetection.attack_type, hour_expr)
                     .all()
                 )
+                data = {t: dict.fromkeys(labels, 0) for t in names}
+                for r in rows:
+                    h = parse_slot(str(r.hour))
+                    if h is None:
+                        continue
+                    h -= timedelta(hours=h.hour % bh)
+                    key = h.strftime(SLOT_FMT)
+                    if key in data[r.attack_type]:
+                        data[r.attack_type][key] += r.count
+                out["attack_types"] = [
+                    {
+                        "type": r.attack_type,
+                        "total": r.total,
+                        "daily": [data[r.attack_type][d] for d in labels],
+                    }
+                    for r in top
+                ]
 
-                slot_data = {t: {s: 0 for s in slots} for t in top_type_names}
-                for row in hourly_q:
-                    slot_str = str(row.slot)
-                    if (
-                        row.attack_type in slot_data
-                        and slot_str in slot_data[row.attack_type]
-                    ):
-                        slot_data[row.attack_type][slot_str] = row.count
-
-                return {
-                    "attack_types": [
-                        {
-                            "type": t,
-                            "total": totals[t],
-                            "daily": [slot_data[t][s] for s in slots],
-                        }
-                        for t in top_type_names
-                    ],
-                    "dates": slots,
-                    "colours": colour_map(top_type_names),
-                }
-            else:
-                # Daily granularity
-                dates = []
-                for i in range(days, -1, -1):
-                    d = (end - timedelta(days=i)).strftime("%Y-%m-%d")
-                    dates.append(d)
-
-                # Get daily breakdown for those types using func.date() for portability
-                day_expr = func.date(AccessLog.timestamp)
-                daily_q = (
+            types = set(names)
+            sp = resolve_period(days, offset_days, slot)
+            if sp.slot:
+                totals = (
                     session.query(
                         AttackDetection.attack_type,
-                        day_expr.label("day"),
-                        func.count(AttackDetection.id).label("count"),
+                        func.count(AttackDetection.id).label("total"),
                     )
                     .join(AccessLog, AttackDetection.access_log_id == AccessLog.id)
-                    .filter(
-                        *time_filter,
-                        AttackDetection.attack_type.in_(top_type_names),
-                    )
-                    .group_by(AttackDetection.attack_type, day_expr)
+                    .filter(*range_conditions(AccessLog.timestamp, sp.since, sp.until))
+                    .group_by(AttackDetection.attack_type)
+                    .order_by(func.count(AttackDetection.id).desc())
                     .all()
                 )
-
-                # Build daily data per attack type
-                daily_data = {t: {d: 0 for d in dates} for t in top_type_names}
-                for row in daily_q:
-                    day_str = (
-                        row.day.strftime("%Y-%m-%d")
-                        if hasattr(row.day, "strftime")
-                        else str(row.day)
-                    )
-                    if (
-                        row.attack_type in daily_data
-                        and day_str in daily_data[row.attack_type]
-                    ):
-                        daily_data[row.attack_type][day_str] = row.count
-
-                return {
-                    "attack_types": [
-                        {
-                            "type": t,
-                            "total": totals[t],
-                            "daily": [daily_data[t][d] for d in dates],
-                        }
-                        for t in top_type_names
-                    ],
-                    "dates": dates,
-                    "colours": colour_map(top_type_names),
-                }
+                out["slot_totals"] = [
+                    {"type": r.attack_type, "total": r.total} for r in totals
+                ]
+                types |= {r.attack_type for r in totals}
+            out["colours"] = colour_map(types)
+            return out
         finally:
             self._db.close_session()
 

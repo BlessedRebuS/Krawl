@@ -379,7 +379,7 @@ def main():
         set_cached("attention", attention)
 
         # Attack trends cache (used by API endpoint)
-        set_cached_table("api:attack_daily:10:7:0", attack_trends, ttl=WARM_TTL)
+        set_cached_table("api:attack_daily:10:7:0:", attack_trends, ttl=WARM_TTL)
 
         app_logger.info(f"[Background Task] {task_name} cache refreshed successfully.")
 

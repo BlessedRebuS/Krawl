@@ -758,12 +758,13 @@ async def attack_types_daily(
     limit: int = Query(10),
     days: int = Query(30),
     offset_days: int = Query(0),
+    slot: str | None = Query(None),
 ):
     limit = min(max(1, limit), 20)
     days = min(max(1, days), 90)
     offset_days = max(0, offset_days)
 
-    cache_key = f"api:attack_daily:{limit}:{days}:{offset_days}"
+    cache_key = f"api:attack_daily:{limit}:{days}:{offset_days}:{slot or ''}"
     cached = get_cached_table(cache_key)
     if cached:
         return JSONResponse(content=cached, headers=_no_cache_headers())
@@ -775,6 +776,7 @@ async def attack_types_daily(
             limit=limit,
             days=days,
             offset_days=offset_days,
+            slot=slot,
         )
         set_cached_table(cache_key, result)
         return JSONResponse(content=result, headers=_no_cache_headers())

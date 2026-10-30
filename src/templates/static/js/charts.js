@@ -194,7 +194,7 @@ async function loadAttackTrendsChart(canvasId) {
         const dates = data.dates || [];
 
         // Update period label
-        _updateTrendsPeriodLabel(dates);
+        _updateTrendsPeriodLabel(dates, data.bucket_hours || 24);
 
         // Update totals sidebar
         _updateTrendsTotals(attackTypes, data.colours);
@@ -212,18 +212,8 @@ async function loadAttackTrendsChart(canvasId) {
         // Restore canvas if previously hidden
         _showTrendsMessage(canvas, null);
 
-        const isHourly = dates.length > 0 && dates[0].includes(':');
-        const shortLabels = dates.map(d => {
-            if (isHourly) {
-                // "2026-04-02 14:00" → "Apr 2 14:00"
-                const [datePart, timePart] = d.split(' ');
-                const dt = new Date(datePart + 'T00:00:00');
-                const dayLabel = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                return `${dayLabel} ${timePart}`;
-            }
-            const dt = new Date(d + 'T00:00:00');
-            return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        });
+        const bh = data.bucket_hours || 24;
+        const shortLabels = dates.map(d => _trendsSlotText(d, bh));
 
         const datasets = attackTypes.map(at => ({
             label: `${krawlAttackLabel(at.type)} (${at.total})`,
@@ -326,7 +316,14 @@ function _showTrendsMessage(canvas, text, retry = false) {
     }
 }
 
-function _updateTrendsPeriodLabel(dates) {
+// Slot "YYYY-MM-DDTHH" (UTC) to "Apr 2 14:00" for 1h/4h buckets, "Apr 2" for daily.
+function _trendsSlotText(slot, bh) {
+    const dt = new Date(slot.slice(0, 10) + 'T00:00:00');
+    const day = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return bh < 24 ? `${day} ${slot.slice(11, 13)}:00` : day;
+}
+
+function _updateTrendsPeriodLabel(dates, bh) {
     const label = document.getElementById('trends-period-label');
 
     // Always update button states regardless of data
@@ -346,14 +343,7 @@ function _updateTrendsPeriodLabel(dates) {
         return;
     }
 
-    const isHourly = dates[0].includes(':');
-    const parseDate = d => isHourly ? new Date(d.replace(' ', 'T')) : new Date(d + 'T00:00:00');
-    const start = parseDate(dates[0]);
-    const end = parseDate(dates[dates.length - 1]);
-    const fmt = isHourly
-        ? { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }
-        : { month: 'short', day: 'numeric' };
-    label.textContent = `${start.toLocaleDateString('en-US', fmt)} — ${end.toLocaleDateString('en-US', fmt)}`;
+    label.textContent = `${_trendsSlotText(dates[0], bh)} — ${_trendsSlotText(dates[dates.length - 1], bh)}`;
 }
 
 function _updateTrendsTotals(attackTypes, colours) {
