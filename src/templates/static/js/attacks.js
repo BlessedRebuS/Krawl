@@ -93,12 +93,23 @@ function setAttacksState(patch) {
     // A new span or offset makes the old slot meaningless.
     if ('days' in patch || 'offset' in patch) patch = { slot: null, ...patch };
     Object.assign(attacksState, patch);
+    _attacksNormalise();
     _attacksRefresh(true);
+}
+
+// Rule -> severity band, learnt from the Detected attacks fragment.
+const attacksRuleBands = {};
+
+// A rule whose band is not among the selected severities is dropped; unknown bands are kept.
+function _attacksNormalise() {
+    const s = attacksState, band = s.rule && attacksRuleBands[s.rule];
+    if (band && s.severities.length && !s.severities.includes(band)) s.rule = null;
 }
 
 // Replace the whole state from a hash (reload, back, a shared link).
 function applyAttacksHash(hash, refresh = true) {
     Object.assign(attacksState, _attacksDefaults(), readAttacksHash(hash));
+    _attacksNormalise();
     if (refresh) _attacksRefresh(true);  // writes back the normalised hash
 }
 
@@ -148,12 +159,9 @@ function attacksRuleLabel(rule) {
     return m ? krawlAttackLabel(m[1]) + (m[2] ? ' ' + m[2].replace(/_/g, ' ') : '') : krawlAttackLabel(key);
 }
 
-// A severity set that excludes the picked rule's band also drops the rule.
 function toggleAttacksSeverity(band) {
-    const s = attacksState, sev = s.severities.includes(band) ? s.severities.filter(b => b !== band) : [...s.severities, band];
-    const opt = [...document.querySelectorAll('.rule-picker option')].find(o => o.value === s.rule);
-    const ruleBand = opt && opt.dataset.band;
-    setAttacksState({ severities: sev, rule: ruleBand && sev.length && !sev.includes(ruleBand) ? null : s.rule });
+    const sev = attacksState.severities;
+    setAttacksState({ severities: sev.includes(band) ? sev.filter(b => b !== band) : [...sev, band] });
 }
 
 function attacksSlotLabel(slot, days) {
@@ -222,6 +230,16 @@ function renderAttacksBar() {
     pills.replaceChildren(...list);
     pills.hidden = !list.length;
 }
+
+// A fresh fragment teaches the rule bands; a restored rule they exclude is dropped then.
+document.addEventListener('htmx:afterSwap', (e) => {
+    const picker = e.detail.target.querySelector && e.detail.target.querySelector('.rule-picker[data-rules]');
+    if (!picker) return;
+    JSON.parse(picker.dataset.rules).forEach(r => { attacksRuleBands[r.rule] = r.band; });
+    const before = attacksState.rule;
+    _attacksNormalise();
+    if (attacksState.rule !== before) _attacksRefresh(true);
+});
 
 // Panel loads (reveal or reload) carry the state the endpoint understands.
 document.addEventListener('htmx:configRequest', (e) => {

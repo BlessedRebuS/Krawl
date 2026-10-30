@@ -121,3 +121,17 @@ def test_rule_picker_offers_only_rules_in_selected_bands():
     )
     assert 'value="krawl_b"' in html and 'data-band="high"' in html
     assert 'value="krawl_a"' not in html and "All rules (1)" in html
+
+
+def test_rule_outside_offered_bands_keeps_its_band_and_hits():
+    facets = {
+        "severities": {"critical": 0, "high": 2, "medium": 3, "low": 0},
+        "rules": [{"rule": "krawl_a", "band": "medium", "hits": 3}],
+    }
+    ctx = dict(items=[], pagination=PAGE, facets=facets, severities=["high"], ts_time_only=None,
+               sort_by="timestamp", sort_order="desc", exclude_terms=[])
+    html = _render("attack_types_table.html", rule_filter="krawl_a", **ctx)
+    assert re.search(r'data-band="medium" value="krawl_a" selected>A \(3\)', html)
+    assert "data-rules=" in html
+    unknown = _render("attack_types_table.html", rule_filter="krawl_zz", **ctx)
+    assert 'value="krawl_zz" selected>Zz</option>' in unknown

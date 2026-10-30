@@ -15,7 +15,9 @@
     </div>
     <label class="map-limit-label">
         <span class="rule-picker-label">Rule</span>
-        <select class="map-limit-select rule-picker" onchange="setAttacksState({rule: this.value || null})">
+        {# Every rule's band, so any severity change can drop an excluded rule (attacks.js). #}
+        <select class="map-limit-select rule-picker" onchange="setAttacksState({rule: this.value || null})"
+                data-rules='{{ facets.rules | tojson }}'>
             {# Only rules in the selected bands, so the two filters never contradict. #}
             {% set offered = facets.rules | selectattr('band', 'in', severities or ['critical', 'high', 'medium', 'low']) | list %}
             <option value="">All rules ({{ offered | length }})</option>
@@ -23,7 +25,8 @@
             <option class="sev-fg-{{ r.band }}" data-band="{{ r.band }}" value="{{ r.rule }}" {% if r.rule == rule_filter %}selected{% endif %}>&#9679; {{ r.label or (r.rule | rule_label) }} ({{ r.hits | num }})</option>
             {% endfor %}
             {% if rule_filter and rule_filter not in offered | map(attribute='rule') | list %}
-            <option value="{{ rule_filter }}" selected>{{ rule_filter | rule_label }} (0)</option>
+            {% set known = facets.rules | selectattr('rule', 'equalto', rule_filter) | first %}
+            <option{% if known %} class="sev-fg-{{ known.band }}" data-band="{{ known.band }}"{% endif %} value="{{ rule_filter }}" selected>{{ rule_filter | rule_label }}{% if known %} ({{ known.hits | num }}){% endif %}</option>
             {% endif %}
         </select>
     </label>

@@ -30,10 +30,11 @@ function krawlTypeColor(colours, type, alpha) {
     return krawlSeverityColor(c.band, c.shade, alpha);
 }
 
-// Dot-grouped integer (12.166.543), identical to the `num` Jinja filter.
+// Dot-grouped integer (12.166.543), identical to the `num` Jinja filter; non-integers pass through.
 function krawlNum(n) {
-    const v = Math.trunc(Number(n));
-    return Number.isFinite(v) ? String(v).replace(/\B(?=(\d{3})+(?!\d))/g, '.') : String(n);
+    if (n === null || n === undefined) return '';
+    const ok = typeof n === 'number' ? Number.isFinite(n) : /^\s*[-+]?\d+\s*$/.test(String(n));
+    return ok ? String(Math.trunc(Number(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.') : n;
 }
 
 // Detector ids as people say them; mirrors the attack_label Jinja filter.
