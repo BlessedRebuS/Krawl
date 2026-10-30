@@ -143,6 +143,7 @@ async def htmx_targeted_domains(
         sort_order=sort_order,
         since=period and period.since,
         until=period and period.until,
+        period_key=period_qs,
     )
     return get_templates().TemplateResponse(
         request,
@@ -192,38 +193,19 @@ async def htmx_honeypot(
     page = max(1, page)
     period = resolve_period(days, offset_days, slot)
     period_qs = period_query(period)
-    config = get_config()
-    result = None
-
-    if (
-        not period
-        and config.dashboard_cache_warmup
-        and config.dashboard_warmup_aggregation
-        and sort_by == "count"
-        and sort_order == "desc"
-        and is_warm()
-    ):
-        sliced = get_cached_list_page("agg:honeypot", page=page, page_size=5)
-        if sliced is not None:
-            result = {"honeypots": sliced["items"], "pagination": sliced["pagination"]}
-
-    if result is None:
-        cache_key = f"honeypot:{page}:{sort_by}:{sort_order}{period_qs}"
-        cached = get_cached_table(cache_key)
-        if cached:
-            result = cached
-        else:
-            db = get_db()
-            result = await asyncio.to_thread(
-                db.access_logs.get_honeypot_paginated,
-                page=page,
-                page_size=5,
-                sort_by=sort_by,
-                sort_order=sort_order,
-                since=period and period.since,
-                until=period and period.until,
-            )
-            set_cached_table(cache_key, result)
+    cache_key = f"honeypot:{page}:{sort_by}:{sort_order}{period_qs}"
+    result = get_cached_table(cache_key)
+    if not result:
+        result = await asyncio.to_thread(
+            get_db().access_logs.get_honeypot_paginated,
+            page=page,
+            page_size=5,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            since=period and period.since,
+            until=period and period.until,
+        )
+        set_cached_table(cache_key, result)
 
     templates = get_templates()
     return templates.TemplateResponse(
@@ -802,6 +784,22 @@ async def htmx_top_ua(
 # ── Attackers ────────────────────────────────────────────────────────
 
 
+def attackers_cache_key(
+    page=1,
+    sort_by="total_requests",
+    sort_order="desc",
+    period_qs="",
+    attack_type_filter=None,
+    rule_filter=None,
+    severity_filter="",
+) -> str:
+    """Table-cache key of an Attackers page; the warmup writes the default 7D one."""
+    key = f"attackers:{page}:{sort_by}:{sort_order}"
+    if period_qs or attack_type_filter or rule_filter or severity_filter:
+        key += f":{period_qs}:{attack_type_filter or ''}:{rule_filter or ''}:{severity_filter}"
+    return key
+
+
 @router.get("/htmx/attackers")
 async def htmx_attackers(
     request: Request,
@@ -823,29 +821,18 @@ async def htmx_attackers(
     severities = parse_severities(severity_filter)
     severity_filter = ",".join(severities)
     in_period = bool(period or attack_type_filter or rule_filter or severities)
-    config = get_config()
-    result = None
-
-    if (
-        not in_period
-        and config.dashboard_cache_warmup
-        and config.dashboard_warmup_aggregation
-        and sort_by == "total_requests"
-        and sort_order == "desc"
-        and is_warm()
-    ):
-        sliced = get_cached_list_page("agg:attackers", page=page, page_size=10)
-        if sliced is not None:
-            result = {"attackers": sliced["items"], "pagination": sliced["pagination"]}
-
-    if result is None:
-        cache_key = f"attackers:{page}:{sort_by}:{sort_order}"
+    cache_key = attackers_cache_key(
+        page,
+        sort_by,
+        sort_order,
+        period_qs,
+        attack_type_filter,
+        rule_filter,
+        severity_filter,
+    )
+    result = get_cached_table(cache_key)
+    if not result:
         if in_period:
-            cache_key += f":{period_qs}:{attack_type_filter or ''}:{rule_filter or ''}:{severity_filter}"
-        cached = get_cached_table(cache_key)
-        if cached:
-            result = cached
-        elif in_period:
             result = await asyncio.to_thread(
                 get_db().analytics.get_attackers_in_period,
                 period and period.since,
@@ -856,17 +843,15 @@ async def htmx_attackers(
                 page_size=10,
                 severities=severities,
             )
-            set_cached_table(cache_key, result)
         else:
-            db = get_db()
             result = await asyncio.to_thread(
-                db.ip_stats.get_attackers_paginated,
+                get_db().ip_stats.get_attackers_paginated,
                 page=page,
                 page_size=10,
                 sort_by=sort_by,
                 sort_order=sort_order,
             )
-            set_cached_table(cache_key, result)
+        set_cached_table(cache_key, result)
 
     # Normalize pagination key (DB returns total_attackers, template expects total)
     pagination = result["pagination"]
@@ -1016,6 +1001,29 @@ def parse_exclude_terms(raw: str | None) -> list[str]:
     return [term for term in terms if term][:MAX_EXCLUDE_TERMS]
 
 
+def attacks_cache_key(
+    page=1,
+    sort_by="timestamp",
+    sort_order="desc",
+    period_qs="",
+    ip_filter=None,
+    attack_type_filter=None,
+    search=None,
+    method_filter=None,
+    exclude="",
+    rule_filter=None,
+    severity_filter="",
+) -> str:
+    """Table-cache key of a Detected attacks page; the warmup writes the default 7D one."""
+    key = (
+        f"attacks:{page}:{sort_by}:{sort_order}:{ip_filter or ''}:"
+        f"{attack_type_filter or ''}:{search or ''}:{method_filter or ''}:{exclude}"
+    )
+    if period_qs or rule_filter or severity_filter:
+        key += f":{period_qs}:{rule_filter or ''}:{severity_filter}"
+    return key
+
+
 @router.get("/htmx/attacks")
 async def htmx_attacks(
     request: Request,
@@ -1049,18 +1057,25 @@ async def htmx_attacks(
     # use cached results). When the expand overlay requests a different page
     # size (e.g. 25), skip the cache so cached pages don't bleed across sizes.
     use_cache = page_size == 15
-    cache_key = (
-        f"attacks:{page}:{sort_by}:{sort_order}:{ip_filter or ''}:"
-        f"{attack_type_filter or ''}:{search or ''}:{method_filter or ''}:{exclude}"
+    cache_key = attacks_cache_key(
+        page,
+        sort_by,
+        sort_order,
+        period_qs,
+        ip_filter,
+        attack_type_filter,
+        search,
+        method_filter,
+        exclude,
+        rule_filter,
+        severity_filter,
     )
-    if period or rule_filter or severities:
-        cache_key += f":{period_qs}:{rule_filter or ''}:{severity_filter}"
     cached = get_cached_table(cache_key) if use_cache else None
     if cached:
         result = cached
     else:
         db = get_db()
-        # Unfiltered, reuse the total the warmup counted for page 1.
+        # Unfiltered, reuse the total cached for page 1 of the same period.
         warm = (
             None
             if ip_filter
@@ -1068,10 +1083,9 @@ async def htmx_attacks(
             or search
             or method_filter
             or exclude
-            or period
             or rule_filter
             or severities
-            else get_cached_table("attacks:1:timestamp:desc:::::")
+            else get_cached_table(attacks_cache_key(period_qs=period_qs))
         )
         result = await asyncio.to_thread(
             db.analytics.get_attack_types_paginated,

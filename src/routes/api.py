@@ -742,19 +742,28 @@ async def attack_facets(
         return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
 
 
-async def cached_attack_facets(period) -> dict:
-    """Severity and rule counts for a period, shared by the API and the attacks table."""
-    cache_key = f"api:attack_facets:{period_query(period)}"
-    cached = get_cached_table(cache_key)
-    if cached:
-        return cached
-    result = await asyncio.to_thread(
-        get_db().analytics.get_attack_facets,
+def attack_facets_key(period) -> str:
+    return f"api:attack_facets:{period_query(period)}"
+
+
+def load_attack_facets(db, period) -> dict:
+    """Severity and rule counts for a period, straight from the database."""
+    result = db.analytics.get_attack_facets(
         since=period.since if period else None,
         until=period.until if period else None,
     )
     for r in result["rules"]:
         r["label"] = rule_label(r["rule"])
+    return result
+
+
+async def cached_attack_facets(period) -> dict:
+    """Severity and rule counts for a period, shared by the API and the attacks table."""
+    cache_key = attack_facets_key(period)
+    cached = get_cached_table(cache_key)
+    if cached:
+        return cached
+    result = await asyncio.to_thread(load_attack_facets, get_db(), period)
     set_cached_table(cache_key, result)
     return result
 

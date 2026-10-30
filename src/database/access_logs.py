@@ -164,15 +164,16 @@ class AccessLogRepo:
         sort_order: str = "desc",
         since: datetime | None = None,
         until: datetime | None = None,
+        period_key: str = "",
     ) -> dict[str, Any]:
         """Host-header targets ranked by retained request count.
 
         Hosts are few (hundreds), so search, sort and paging run over the
-        cached rollup; a range aggregates live from the log instead.
+        cached rollup; a range uses its own rollup, cached under period_key.
         """
         needle = search.casefold()
         rollup = (
-            self._domain_rollup_between(since, until)
+            self.get_domain_rollup_between(since, until, period_key)
             if since or until
             else self.get_domain_rollup()
         )
@@ -192,6 +193,24 @@ class AccessLogRepo:
             "domains": domains[start : start + page_size],
             "pagination": pagination(page, page_size, len(domains)),
         }
+
+    def get_domain_rollup_between(
+        self,
+        since: datetime | None,
+        until: datetime | None,
+        period_key: str = "",
+        refresh: bool = False,
+        ttl: int | None = None,
+    ) -> list[dict[str, Any]]:
+        """Host rollup restricted to [since, until), cached per period_key (the period query) when given."""
+        key = f"{DOMAIN_ROLLUP_KEY}:{period_key}" if period_key else None
+        rows = get_cached_table(key) if key and not refresh else None
+        if rows is not None:
+            return rows
+        rows = self._domain_rollup_between(since, until)
+        if key:
+            set_cached_table(key, rows, ttl=ttl)
+        return rows
 
     def _domain_rollup_between(
         self, since: datetime | None, until: datetime | None
