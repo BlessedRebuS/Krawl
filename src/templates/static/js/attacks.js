@@ -120,7 +120,7 @@ function _attacksRefresh(writeHash) {
 // The attacks expand overlay mirrors the shared state.
 function _syncAttacksOverlay(app) {
     const ov = app && app.expandOverlay;
-    if (!ov || !ov.show || ov.endpoint !== 'attacks') return;
+    if (!ov || !ov.show || !ov.shared) return;
     const s = attacksState;
     Object.assign(ov, { search: s.search, method: s.method, attackType: s.type || '', excludes: [...s.exclude], ipFilter: s.ip || '' });
     _reloadExpandOverlay();
@@ -193,3 +193,7 @@ document.addEventListener('htmx:configRequest', (e) => {
         if (!keys || keys.includes(k)) e.detail.parameters[k] = v;
     }
 });
+
+// The period bar sticks right under the tab strip, whatever its height.
+const _tabbar = document.querySelector('.tabbar');
+if (_tabbar) new ResizeObserver(() => document.documentElement.style.setProperty('--tabbar-h', _tabbar.offsetHeight + 'px')).observe(_tabbar);

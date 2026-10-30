@@ -420,7 +420,7 @@ document.addEventListener('alpine:init', () => {
         uploadModal: { show: false, path: '', fileName: '', fileContent: '', error: '', success: '', loading: false, dragging: false },
 
         // Expand overlay state
-        expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false, method: '', attackType: '', excludes: [], invert: false, attackTypes: [], ipFilter: '', artifactKind: '', artifactValue: '' },
+        expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false, method: '', attackType: '', excludes: [], invert: false, attackTypes: [], ipFilter: '', artifactKind: '', artifactValue: '', shared: false },
 
         // ⌘K search palette, opened from the header button.
         palette: { open: false },
@@ -2061,21 +2061,22 @@ window.openExpandOverlay = function(title, endpoint, pageSize, cluster, searchVa
         categories: [], honeypotOnly: false,
         method: '', attackType: '', excludes: [], invert: false, attackTypes: [],
         ipFilter: '', cluster: cluster || '', artifactKind: '', artifactValue: '',
+        // Only the Attacks tab's overlay shares its state; elsewhere it stays all-time.
+        shared: endpoint === 'attacks' && app.tab === 'attacks',
     });
-    // The attacks overlay shows the shared Attacks-tab state.
-    if (endpoint === 'attacks') {
+    if (app.expandOverlay.shared) {
         if (searchVal) setAttacksState({ search: searchVal });
         else _syncAttacksOverlay(app);
-        _loadExpandAttackTypes();
     } else {
         _reloadExpandOverlay();
     }
+    if (endpoint === 'attacks') _loadExpandAttackTypes();
 };
 
 // Attacks overlay edits go through the shared state, which reloads the overlay.
 function _attacksOverlay() {
     const app = _getAlpineData();
-    return app && app.expandOverlay.endpoint === 'attacks' ? app.expandOverlay : null;
+    return app && app.expandOverlay.endpoint === 'attacks' && app.expandOverlay.shared ? app.expandOverlay : null;
 }
 
 window.openArtifactInvestigation = function(kind, value) {
@@ -2086,7 +2087,7 @@ window.openArtifactInvestigation = function(kind, value) {
     Object.assign(app.expandOverlay, {
         show: true, title: titles[kind], endpoint: 'artifact',
         artifactKind: kind, artifactValue: value,
-        search: '', ipFilter: '', cluster: '',
+        search: '', ipFilter: '', cluster: '', shared: false,
     });
     _reloadExpandOverlay();
 };
@@ -2120,12 +2121,19 @@ window.addExpandExcludeTerm = function() {
     const ov = app.expandOverlay;
     if (!ov.invert || ov.endpoint !== 'attacks') return;
     const terms = (ov.search || '').split(',').map(s => s.trim()).filter(Boolean);
-    const exclude = [...new Set([...attacksState.exclude, ...terms])];
+    const exclude = [...new Set([...ov.excludes, ...terms])];
     ov.search = '';
-    setAttacksState({ exclude, search: '' });
+    if (ov.shared) return setAttacksState({ exclude, search: '' });
+    ov.excludes = exclude;
+    _reloadExpandOverlay();
 };
 
 window.removeExcludeTerm = function(term) {
+    const ov = _getAlpineData().expandOverlay;
+    if (ov.show && !ov.shared) {
+        ov.excludes = ov.excludes.filter(t => t !== term);
+        return _reloadExpandOverlay();
+    }
     setAttacksState({ exclude: attacksState.exclude.filter(t => t !== term) });
 };
 
@@ -2160,7 +2168,7 @@ window.clearExpandFilter = function(name) {
     const ov = app.expandOverlay;
     // Pills of the attacks table (inline or in the overlay) clear the shared state.
     const patch = { attackType: { type: null }, method: { method: '' }, search: { search: '' }, ipFilter: { ip: null } }[name];
-    if (patch && (!ov.show || ov.endpoint === 'attacks')) {
+    if (patch && (!ov.show || ov.shared)) {
         const el = document.querySelector('.expand-overlay-search');
         if (el && name === 'search') el.value = '';
         return setAttacksState(patch);
@@ -2209,7 +2217,13 @@ function _reloadExpandOverlay() {
         params.set('honeypot_only', '1');
     }
     if (ov.endpoint === 'attacks') {
-        for (const [k, v] of attacksParams()) params.set(k, v);
+        if (ov.shared) {
+            for (const [k, v] of attacksParams()) params.set(k, v);
+        } else {
+            if (ov.method) params.set('method_filter', ov.method);
+            if (ov.attackType) params.set('attack_type_filter', ov.attackType);
+            if (ov.excludes.length) params.set('exclude', ov.excludes.join(','));
+        }
         params.set('sort_by', 'timestamp');
         params.set('sort_order', 'desc');
     }

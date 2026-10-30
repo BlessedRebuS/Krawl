@@ -4369,10 +4369,10 @@ label:has(> .visually-hidden-input:focus-visible) {
 .trends-total-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trends-total-count { color: var(--text-strong); font-weight: 600; font-variant-numeric: tabular-nums; }
 /* Attacks period bar: one span, window and filter set for the whole tab,
-   sticky under the tab strip (strip is 8px down and 50px tall). */
+   sticky under the tab strip (--tabbar-h is measured by attacks.js). */
 .period-bar {
     position: sticky;
-    top: calc(var(--s2) * 2 + 50px);
+    top: calc(var(--s2) * 2 + var(--tabbar-h, 50px));
     z-index: var(--z-sticky);
     display: flex;
     flex-wrap: wrap;
@@ -4393,6 +4393,8 @@ label:has(> .visually-hidden-input:focus-visible) {
 }
 .period-bar .map-limit-btn:not(.active):hover { background: var(--raised); }
 .period-bar .period-label { font-family: var(--font-mono); font-size: var(--fs-xs); min-width: 0; padding-inline: var(--s2); }
+/* On the tab the period bar holds the pills; the overlay keeps its own. */
+[data-attacks-panel] .panel-header .filter-pill { display: none; }
 .period-pills { display: flex; flex-wrap: wrap; gap: var(--s2); }
 .period-pills[hidden] { display: none; }
 .filter-pill-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
