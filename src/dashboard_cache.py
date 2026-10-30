@@ -264,18 +264,20 @@ def set_cached_table(key: str, value: Any, ttl: int | None = None) -> None:
         )
 
 
-def invalidate_table_cache() -> None:
-    """Invalidate all cached table data (e.g. after a write operation).
+def invalidate_table_cache(keep: tuple[str, ...] = ()) -> None:
+    """Invalidate cached table data (e.g. after a write operation).
 
-    Useful after ban overrides, IP tracking changes, etc.
-    In standalone mode, this is a no-op.
+    Useful after ban overrides, IP tracking changes, etc. Keys starting with
+    a `keep` prefix (after "table:") survive. In standalone mode, a no-op.
     """
     if _backend == "scalable" and _redis_client is not None:
+        kept = tuple(f"{_REDIS_PREFIX}table:{k}" for k in keep)
         cursor = 0
         while True:
             cursor, keys = _redis_client.scan(
                 cursor, match=f"{_REDIS_PREFIX}table:*", count=100
             )
+            keys = [k for k in keys if not k.startswith(kept)] if kept else keys
             if keys:
                 _redis_client.delete(*keys)
             if cursor == 0:

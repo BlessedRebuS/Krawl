@@ -37,6 +37,13 @@ class FakeRedis:
     def exists(self, k):
         return int(k in self.store)
 
+    def scan(self, cursor, match, count):
+        return 0, [k for k in self.store if k.startswith(match.rstrip("*"))]
+
+    def delete(self, *keys):
+        for k in keys:
+            self.store.pop(k, None)
+
 
 @pytest.fixture
 def warmed(tmp_path, monkeypatch):
@@ -157,3 +164,15 @@ def test_credentials_panel_narrows_by_ip_and_keeps_it_in_links(warmed):
     html = TestClient(app).get("/dash/htmx/credentials", params=q).text
     assert "u-203.0.113.2" in html and "u-203.0.113.1" not in html
     assert "ip_filter=203.0.113.2&amp;days=7" in html
+
+
+def test_crunching_keeps_the_warm_attacks_tab(warmed):
+    from tasks.crunch_access_logs import CRUNCH_SAFE_KEYS
+
+    store = dashboard_cache._redis_client.store
+    warm = {k for k in store if ":table:" in k and "days=7" in k}
+    assert len(warm) >= 4
+    dashboard_cache.set_cached_table("access_logs:1:desc:", {"x": 1})
+    dashboard_cache.invalidate_table_cache(keep=CRUNCH_SAFE_KEYS)
+    assert warm <= set(store)
+    assert dashboard_cache.get_cached_table("access_logs:1:desc:") is None
