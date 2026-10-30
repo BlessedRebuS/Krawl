@@ -394,7 +394,7 @@ function _fillTrendsSlots(dates, datasets) {
         btn.type = 'button';
         btn.textContent = `Show ${label}`;
         btn.setAttribute('aria-pressed', String(s.slot === slot));
-        btn.onclick = () => setAttacksState({ slot, type: null });
+        btn.onclick = () => setAttacksState({ slot: s.slot === slot ? null : slot, type: null });  // toggles, like a chart click
         // Focus shows the bucket's tooltip, so sighted keyboard users see where they are.
         btn.onfocus = () => _trendsActivate(i);
         btn.onblur = () => _trendsActivate(-1);

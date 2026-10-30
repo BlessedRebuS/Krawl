@@ -39,6 +39,7 @@ def get_templates() -> Jinja2Templates:
         _templates.env.filters["safe_url"] = _safe_url
         _templates.env.filters["num"] = _format_num
         _templates.env.filters["attack_label"] = _attack_label
+        _templates.env.filters["rule_label"] = rule_label
         _templates.env.filters["attack_badge_class"] = attack_badge_class
     return _templates
 
@@ -87,6 +88,17 @@ def _attack_label(value):
             words = key.replace("_", " ").replace("-", " ")
             labels.append(words[:1].upper() + words[1:])
     return ", ".join(labels)
+
+
+def rule_label(rule):
+    """Readable YARA rule name: credential_fields is a pseudo-rule, krawl_ is dropped."""
+    if rule == "credential_fields":
+        return "Credential capture"
+    key = re.sub(r"^krawl_", "", str(rule or "").strip().lower())
+    m = re.match(r"(cve[_-]\d{4}[_-]\d{4,})(?:[_-](.+))?$", key)  # CVE id, then its words
+    if m:
+        return _attack_label(m[1]) + (" " + m[2].replace("_", " ") if m[2] else "")
+    return _attack_label(key)
 
 
 def _format_ts(value, time_only=None):

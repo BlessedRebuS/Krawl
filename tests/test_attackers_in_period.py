@@ -142,3 +142,18 @@ def test_targeted_domains_in_range_bypasses_rollup(stored):
         ("a.test", 3),
         ("b.test", 1),
     ]
+
+
+def test_severity_filter_counts_only_detections_in_selected_bands(stored):
+    out = _attackers(stored, severities=["high"])
+    assert [(a["ip"], a["hits"]) for a in out["attackers"]] == [(A, 2)]
+    assert _attackers(stored, severities=["critical"])["attackers"] == []
+    both = _attackers(stored, severities=["high", "medium"])["attackers"]
+    assert [(a["ip"], a["hits"]) for a in both] == [(A, 3), (B, 1)]
+
+
+def test_attackers_route_parses_severity_filter():
+    from routes.htmx import parse_severities
+
+    assert parse_severities("High,bogus,high,low") == ["high", "low"]
+    assert parse_severities(None) == []

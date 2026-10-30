@@ -29,6 +29,18 @@ if TYPE_CHECKING:
 _BAND_RANK = {"critical": 0, "high": 1, "medium": 2, "low": 3}
 
 
+def _types_in_bands(session, since, until, bands) -> list[str]:
+    """Attack types seen in [since, until) whose severity band is in bands."""
+    q = session.query(AttackDetection.attack_type).join(
+        AccessLog, AccessLog.id == AttackDetection.access_log_id
+    )
+    if since:
+        q = q.filter(AccessLog.timestamp >= since)
+    if until:
+        q = q.filter(AccessLog.timestamp < until)
+    return [t for (t,) in q.distinct() if attack_band(t) in bands]
+
+
 def _rule_match(rule: str):
     """Detections of this rule, crediting legacy unnamed rows to its sole type."""
     match = AttackDetection.rule_name == rule
@@ -385,6 +397,7 @@ class AnalyticsRepo:
         rule: str | None = None,
         page: int = 1,
         page_size: int = 10,
+        severities: list[str] | None = None,
     ) -> dict[str, Any]:
         """IPs ranked by matching detections in the window, whatever their category."""
         session = self._db.session
@@ -399,6 +412,9 @@ class AnalyticsRepo:
                 matching.append(AttackDetection.attack_type == attack_type)
             if rule:
                 matching.append(_rule_match(rule))
+            if severities:
+                banded = _types_in_bands(session, since, until, severities)
+                matching.append(AttackDetection.attack_type.in_(banded))
             grouped = (
                 session.query(
                     AccessLog.ip.label("ip"),
@@ -534,18 +550,7 @@ class AnalyticsRepo:
             if rule_filter:
                 detection_exists = detection_exists.filter(_rule_match(rule_filter))
             if severity_filter:
-                in_range = session.query(AttackDetection.attack_type).join(
-                    AccessLog, AccessLog.id == AttackDetection.access_log_id
-                )
-                if since:
-                    in_range = in_range.filter(AccessLog.timestamp >= since)
-                if until:
-                    in_range = in_range.filter(AccessLog.timestamp < until)
-                types = [
-                    t
-                    for (t,) in in_range.distinct()
-                    if attack_band(t) in severity_filter
-                ]
+                types = _types_in_bands(session, since, until, severity_filter)
                 detection_exists = detection_exists.filter(
                     AttackDetection.attack_type.in_(types)
                 )

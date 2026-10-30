@@ -813,13 +813,16 @@ async def htmx_attackers(
     days: int | None = Query(None),
     offset_days: int = Query(0),
     slot: str | None = Query(None),
+    severity_filter: str = Query(""),
 ):
     page = max(1, page)
     period = resolve_period(days, offset_days, slot)
     period_qs = period_query(period)
     attack_type_filter = (attack_type_filter or "").strip() or None
     rule_filter = (rule_filter or "").strip() or None
-    in_period = bool(period or attack_type_filter or rule_filter)
+    severities = parse_severities(severity_filter)
+    severity_filter = ",".join(severities)
+    in_period = bool(period or attack_type_filter or rule_filter or severities)
     config = get_config()
     result = None
 
@@ -838,7 +841,7 @@ async def htmx_attackers(
     if result is None:
         cache_key = f"attackers:{page}:{sort_by}:{sort_order}"
         if in_period:
-            cache_key += f":{period_qs}:{attack_type_filter or ''}:{rule_filter or ''}"
+            cache_key += f":{period_qs}:{attack_type_filter or ''}:{rule_filter or ''}:{severity_filter}"
         cached = get_cached_table(cache_key)
         if cached:
             result = cached
@@ -851,6 +854,7 @@ async def htmx_attackers(
                 rule=rule_filter,
                 page=page,
                 page_size=10,
+                severities=severities,
             )
             set_cached_table(cache_key, result)
         else:
@@ -884,6 +888,7 @@ async def htmx_attackers(
                 for k, v in (
                     ("attack_type_filter", attack_type_filter),
                     ("rule_filter", rule_filter),
+                    ("severity_filter", severity_filter),
                 )
                 if v
             ),
@@ -999,6 +1004,12 @@ async def htmx_credentials(
 MAX_EXCLUDE_TERMS = 10
 
 
+def parse_severities(raw: str | None) -> list[str]:
+    """Known severity bands from a comma list, deduplicated, in given order."""
+    bands = ("critical", "high", "medium", "low")
+    return [b for b in dict.fromkeys((raw or "").lower().split(",")) if b in bands]
+
+
 def parse_exclude_terms(raw: str | None) -> list[str]:
     """Comma-separated exclude terms, blanks dropped, at most MAX_EXCLUDE_TERMS."""
     terms = [term.strip()[:200] for term in (raw or "").split(",")]
@@ -1029,11 +1040,7 @@ async def htmx_attacks(
     period = resolve_period(days, offset_days, slot)
     period_qs = period_query(period)
     rule_filter = (rule_filter or "").strip() or None
-    severities = [
-        b
-        for b in dict.fromkeys(severity_filter.lower().split(","))
-        if b in ("critical", "high", "medium", "low")
-    ]
+    severities = parse_severities(severity_filter)
     severity_filter = ",".join(severities)
     method_filter = (method_filter or "").strip().upper() or None
     exclude_terms = parse_exclude_terms(exclude)

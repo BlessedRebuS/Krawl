@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from dependencies import _format_num, _format_ts, get_templates  # noqa: E402
+from dependencies import _format_num, _format_ts, get_templates, rule_label  # noqa: E402
 from period import resolve_period, time_only  # noqa: E402
 
 PAGE = {"page": 1, "total_pages": 1, "total": 1234, "page_size": 10}
@@ -70,7 +70,7 @@ def test_attacks_table_severity_chips_and_rule_picker():
         items=[],
         pagination=PAGE,
         facets=facets,
-        severities=["high"],
+        severities=["high", "low"],
         rule_filter="credential_fields",
         ts_time_only=None,
         sort_by="timestamp",
@@ -80,7 +80,7 @@ def test_attacks_table_severity_chips_and_rule_picker():
     assert "toggleAttacksSeverity('critical')" in html and "1.200" in html
     assert re.search(r'class="facet-chip active" aria-pressed="true"\s+onclick="toggleAttacksSeverity\(\'high\'\)"', html)
     assert re.search(r'value="credential_fields" selected>&#9679; Credential capture \(1\)', html)
-    assert "R sqli (1.200)" in html
+    assert "R sqli" not in html  # critical rule, critical not selected
 
 
 def test_time_column_forms():
@@ -97,3 +97,27 @@ def test_time_only_when_window_sits_in_one_utc_day():
     assert time_only(resolve_period(1, 0, now=now)) is False  # rolling 24h crosses midnight
     assert time_only(resolve_period(7, 0, "2026-10-27T04", now=now)) is True
     assert time_only(resolve_period(30, 0, "2026-10-26T00", now=now)) is True
+
+
+def test_rule_labels_read_as_names():
+    assert rule_label("krawl_login_attempt") == "Login attempt"
+    assert rule_label("krawl_cve_2025_29927_nextjs_middleware_bypass") == "CVE-2025-29927 nextjs middleware bypass"
+    assert rule_label("cve_2019_0193") == "CVE-2019-0193"
+    assert rule_label("credential_fields") == "Credential capture"
+    assert rule_label("krawl_probe_wordpress_users") == "Probe wordpress users"
+
+
+def test_rule_picker_offers_only_rules_in_selected_bands():
+    facets = {
+        "severities": {"critical": 1, "high": 2, "medium": 3, "low": 0},
+        "rules": [
+            {"rule": "krawl_a", "band": "medium", "hits": 3},
+            {"rule": "krawl_b", "band": "high", "hits": 2},
+        ],
+    }
+    html = _render(
+        "attack_types_table.html", items=[], pagination=PAGE, facets=facets, severities=["high"],
+        rule_filter="", ts_time_only=None, sort_by="timestamp", sort_order="desc", exclude_terms=[],
+    )
+    assert 'value="krawl_b"' in html and 'data-band="high"' in html
+    assert 'value="krawl_a"' not in html and "All rules (1)" in html

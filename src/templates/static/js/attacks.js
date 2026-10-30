@@ -9,7 +9,7 @@ window.attacksState = _attacksDefaults();
 // Backend params each panel understands (null = all of them).
 const ATTACKS_PANEL_KEYS = {
     attacks: null,
-    attackers: ['days', 'offset_days', 'slot', 'attack_type_filter', 'rule_filter'],
+    attackers: ['days', 'offset_days', 'slot', 'attack_type_filter', 'rule_filter', 'severity_filter'],
 };
 const ATTACKS_PERIOD_KEYS = ['days', 'offset_days', 'slot'];
 
@@ -140,11 +140,20 @@ function _syncAttacksOverlay(app) {
 }
 
 // Rule ids as people say them; credential_fields is a pseudo-rule.
-function attacksRuleLabel(rule) { return rule === 'credential_fields' ? 'Credential capture' : krawlAttackLabel(rule); }
+// Mirrors rule_label in dependencies.py.
+function attacksRuleLabel(rule) {
+    if (rule === 'credential_fields') return 'Credential capture';
+    const key = String(rule).trim().toLowerCase().replace(/^krawl_/, '');
+    const m = key.match(/^(cve[_-]\d{4}[_-]\d{4,})(?:[_-](.+))?$/);
+    return m ? krawlAttackLabel(m[1]) + (m[2] ? ' ' + m[2].replace(/_/g, ' ') : '') : krawlAttackLabel(key);
+}
 
+// A severity set that excludes the picked rule's band also drops the rule.
 function toggleAttacksSeverity(band) {
-    const sev = attacksState.severities;
-    setAttacksState({ severities: sev.includes(band) ? sev.filter(b => b !== band) : [...sev, band] });
+    const s = attacksState, sev = s.severities.includes(band) ? s.severities.filter(b => b !== band) : [...s.severities, band];
+    const opt = [...document.querySelectorAll('.rule-picker option')].find(o => o.value === s.rule);
+    const ruleBand = opt && opt.dataset.band;
+    setAttacksState({ severities: sev, rule: ruleBand && sev.length && !sev.includes(ruleBand) ? null : s.rule });
 }
 
 function attacksSlotLabel(slot, days) {

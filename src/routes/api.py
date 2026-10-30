@@ -38,7 +38,7 @@ from dashboard_cache import (
     invalidate_table_cache,
     set_cached_table,
 )
-from dependencies import get_client_ip, get_db
+from dependencies import get_client_ip, get_db, rule_label
 from detection import get_detection
 from period import period_query, resolve_period
 from logger import get_app_logger
@@ -753,6 +753,8 @@ async def cached_attack_facets(period) -> dict:
         since=period.since if period else None,
         until=period.until if period else None,
     )
+    for r in result["rules"]:
+        r["label"] = rule_label(r["rule"])
     set_cached_table(cache_key, result)
     return result
 

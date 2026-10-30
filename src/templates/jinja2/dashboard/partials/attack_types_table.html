@@ -13,16 +13,17 @@
         </button>
         {% endfor %}
     </div>
-    {% set rule_ids = facets.rules | map(attribute='rule') | list %}
     <label class="map-limit-label">
         <span class="rule-picker-label">Rule</span>
         <select class="map-limit-select rule-picker" onchange="setAttacksState({rule: this.value || null})">
-            <option value="">All rules ({{ facets.rules | length }})</option>
-            {% for r in facets.rules %}
-            <option class="sev-fg-{{ r.band }}" value="{{ r.rule }}" {% if r.rule == rule_filter %}selected{% endif %}>&#9679; {{ r.label or (r.rule | attack_label) }} ({{ r.hits | num }})</option>
+            {# Only rules in the selected bands, so the two filters never contradict. #}
+            {% set offered = facets.rules | selectattr('band', 'in', severities or ['critical', 'high', 'medium', 'low']) | list %}
+            <option value="">All rules ({{ offered | length }})</option>
+            {% for r in offered %}
+            <option class="sev-fg-{{ r.band }}" data-band="{{ r.band }}" value="{{ r.rule }}" {% if r.rule == rule_filter %}selected{% endif %}>&#9679; {{ r.label or (r.rule | rule_label) }} ({{ r.hits | num }})</option>
             {% endfor %}
-            {% if rule_filter and rule_filter not in rule_ids %}
-            <option value="{{ rule_filter }}" selected>{{ rule_filter | attack_label }} (0)</option>
+            {% if rule_filter and rule_filter not in offered | map(attribute='rule') | list %}
+            <option value="{{ rule_filter }}" selected>{{ rule_filter | rule_label }} (0)</option>
             {% endif %}
         </select>
     </label>
