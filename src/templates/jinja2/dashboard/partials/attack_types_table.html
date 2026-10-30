@@ -123,7 +123,7 @@
                 hx-swap="innerHTML">
                 Time
             </th>
-            <th class="col-w-80"></th>
+            <th class="col-w-80 row-actions"><span class="sr-only">Actions</span></th>
         </tr>
     </thead>
     <tbody>
@@ -174,7 +174,7 @@
             </td>
             <td class="ua-cell ua-col" title="{{ attack.user_agent | default('', true) | e }}">{{ attack.user_agent | default('', true) | e }}</td>
             <td class="ts-cell">{{ attack.timestamp | format_ts(time_only=ts_time_only) }}</td>
-            <td>
+            <td class="row-actions">
                 <div class="table-action-btns">
                 {% if attack.log_id %}
                 <button class="view-btn" @click="viewRawRequest({{ attack.log_id }})" title="View Request" aria-label="View request">

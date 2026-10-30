@@ -4707,6 +4707,19 @@ button.applied-pill-key:hover { color: var(--text-strong); background: var(--lin
     tbody tr:focus-within .table-action-btns {
         opacity: 1;
     }
+    /* Hover-only actions take no column: they float over the row's right end. */
+    tr:has(> .row-actions) { position: relative; }
+    th.row-actions,
+    td.row-actions { width: 0; min-width: 0; padding: 0 !important; }
+    td.row-actions .table-action-btns {
+        position: absolute;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+        padding: 0 var(--s2) 0 var(--s6);
+        /* The panel tone plus the row's 4% hover wash, so the strip blends in. */
+        background: linear-gradient(to right, transparent, color-mix(in srgb, #fff 4%, var(--surface)) var(--s5));
+    }
 }
 
 /* Secondary columns give way on narrower screens. */
