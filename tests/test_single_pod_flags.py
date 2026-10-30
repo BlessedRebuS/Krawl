@@ -25,6 +25,7 @@ EXPECTED_SINGLE_POD = {
     "crunch-access-logs",
     "dashboard-warmup",
     "db-retention",
+    "db-cleanup",
     "dump-krawl-data",
     "extract-captured-files",
     "extract-request-metadata",

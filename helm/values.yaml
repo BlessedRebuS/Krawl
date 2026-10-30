@@ -299,7 +299,7 @@ config:
     max_pages_limit: 250
     ban_duration_seconds: 600
   # IPs / CIDR ranges to ignore everywhere: never tracked, banned, exported, or
-  # persisted, and purged from the database on startup. Single IPs or CIDRs
+  # persisted, and purged from the database nightly (03:00). Single IPs or CIDRs
   # (IPv4/IPv6). Defaults cover loopback, RFC1918, link-local and CGNAT ranges;
   # add trusted networks (monitoring, health checks, office egress) as needed.
   ignored_ips:
@@ -366,7 +366,7 @@ config:
 
   ipv6:
     ignore: false          # Drop IPv6 requests: logged to stdout, never persisted or ban-checked
-    purge_existing: false  # Also delete existing IPv6 rows at next startup (irreversible)
+    purge_existing: false  # Also delete existing IPv6 rows at the next nightly cleanup (irreversible)
 
   map:
     # Raster {z}/{x}/{y} template only -- not a vector style.json. CARTO

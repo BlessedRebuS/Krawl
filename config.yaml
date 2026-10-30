@@ -113,7 +113,7 @@ retention:
 ipv6:
   # Drop IPv6: still logged to stdout, never persisted, ban-checked or exported.
   ignore: false
-  # Also delete existing IPv6 rows at next startup. Irreversible; needs `ignore`.
+  # Also delete existing IPv6 rows at the next nightly cleanup (03:00). Irreversible; needs `ignore`.
   purge_existing: false
 
 behavior:
@@ -173,7 +173,7 @@ crawl:
   max_pages_limit: 250
   ban_duration_seconds: 600
 
-# Never tracked, banned or exported, and purged at startup. Single IPs or CIDRs.
+# Never tracked, banned or exported, and purged nightly (03:00). Single IPs or CIDRs.
 # Add your own trusted networks: monitoring, health checks, office egress.
 ignored_ips:
   - 127.0.0.0/8      # loopback
