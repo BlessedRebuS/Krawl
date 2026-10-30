@@ -66,3 +66,13 @@ def range_label(period: Period | None) -> str:
         return "All time"
     f = "%b %d %H:%M"
     return f"{period.since.strftime(f)} – {period.until.strftime(f)} UTC"
+
+
+def range_conditions(column, since, until) -> list:
+    """Half-open [since, until) filter clauses for a timestamp column."""
+    conds = []
+    if since:
+        conds.append(column >= since)
+    if until:
+        conds.append(column < until)
+    return conds

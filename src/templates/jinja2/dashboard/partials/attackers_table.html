@@ -3,12 +3,12 @@
     <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} attackers</span>
     <div class="row">
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/attackers?page={{ pagination.page - 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{{ period_qs }}"
+                hx-get="{{ dashboard_path }}/htmx/attackers?page={{ pagination.page - 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{{ period_qs }}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
                 {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/attackers?page={{ pagination.page + 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{{ period_qs }}"
+                hx-get="{{ dashboard_path }}/htmx/attackers?page={{ pagination.page + 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{{ period_qs }}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
                 {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
@@ -19,21 +19,21 @@
         <tr>
             <th>#</th>
             <th>IP Address</th>
-            <th class="sortable {% if sort_by == 'total_requests' %}{{ sort_order }}{% endif %}"
-                hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=total_requests&sort_order={% if sort_by == 'total_requests' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ period_qs }}"
+            <th class="{% if not in_period %}sortable {% endif %}{% if sort_by == 'total_requests' %}{{ sort_order }}{% endif %}"
+                {% if not in_period %}hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=total_requests&sort_order={% if sort_by == 'total_requests' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ period_qs }}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
-                hx-swap="innerHTML">
+                hx-swap="innerHTML"{% endif %}>
                 Total Requests
             </th>
-            <th class="sortable {% if sort_by == 'first_seen' %}{{ sort_order }}{% endif %}"
-                hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=first_seen&sort_order={% if sort_by == 'first_seen' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ period_qs }}"
+            <th class="{% if not in_period %}sortable {% endif %}{% if sort_by == 'first_seen' %}{{ sort_order }}{% endif %}"
+                {% if not in_period %}hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=first_seen&sort_order={% if sort_by == 'first_seen' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ period_qs }}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
-                hx-swap="innerHTML">
+                hx-swap="innerHTML"{% endif %}>
                 First Seen</th>
-            <th class="sortable {% if sort_by == 'last_seen' %}{{ sort_order }}{% endif %}"
-                hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=last_seen&sort_order={% if sort_by == 'last_seen' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ period_qs }}"
+            <th class="{% if not in_period %}sortable {% endif %}{% if sort_by == 'last_seen' %}{{ sort_order }}{% endif %}"
+                {% if not in_period %}hx-get="{{ dashboard_path }}/htmx/attackers?page=1&sort_by=last_seen&sort_order={% if sort_by == 'last_seen' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ period_qs }}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
-                hx-swap="innerHTML">
+                hx-swap="innerHTML"{% endif %}>
                 Last Seen</th>
             <th>Location</th>
             <th class="col-w-40"></th>

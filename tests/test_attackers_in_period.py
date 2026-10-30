@@ -88,7 +88,31 @@ def test_type_narrowing_counts_only_that_type(stored):
     r = _attackers(stored, attack_type="login_attempt")
     assert [(a["ip"], a["hits"]) for a in r["attackers"]] == [(A, 1), (B, 1)]
     r = _attackers(stored, rule="r_login")
-    assert sorted(a["ip"] for a in r["attackers"]) == [A, B]
+    assert [(a["ip"], a["hits"]) for a in r["attackers"]] == [(A, 1), (B, 1)]
+
+
+def test_rule_filter_credits_legacy_null_rule_rows_to_sole_rule(stored):
+    s = stored.session
+    log = AccessLog(ip=C, path="/x", method="GET", timestamp=NOW - timedelta(hours=1))
+    s.add(log)
+    s.flush()
+    s.add(AttackDetection(access_log_id=log.id, attack_type="login_attempt"))
+    s.commit()
+    stored.close_session()
+    r = _attackers(stored, rule="r_login")
+    assert [(a["ip"], a["hits"]) for a in r["attackers"]] == [(A, 1), (B, 1), (C, 1)]
+
+
+def test_top_type_tie_breaks_by_name(stored):
+    s = stored.session
+    log = AccessLog(ip=B, path="/x", method="GET", timestamp=NOW - timedelta(hours=1))
+    s.add(log)
+    s.flush()
+    s.add(AttackDetection(access_log_id=log.id, attack_type="zz_type"))
+    s.commit()
+    stored.close_session()
+    b = [a for a in _attackers(stored)["attackers"] if a["ip"] == B][0]
+    assert b["top_type"] == "zz_type"
 
 
 def test_worst_band_and_top_type(stored):

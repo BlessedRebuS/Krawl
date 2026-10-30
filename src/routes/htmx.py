@@ -7,6 +7,7 @@ Server-rendered HTML partials for table pagination, sorting, IP details, and sea
 
 import asyncio
 import re
+from urllib.parse import quote
 from datetime import datetime
 from typing import Annotated
 
@@ -122,6 +123,7 @@ async def htmx_targeted_domains(
     slot: str | None = Query(None),
 ):
     period = resolve_period(days, offset_days, slot)
+    period_qs = period_query(period)
     search = search.strip()[:255]
     sort_by = (
         sort_by
@@ -146,8 +148,8 @@ async def htmx_targeted_domains(
         "dashboard/partials/targeted_domains_table.html",
         {
             "dashboard_path": _dashboard_path(request),
-            "period_qs": period_query(period),
-            "extra_qs": period_query(period),
+            "period_qs": period_qs,
+            "extra_qs": period_qs,
             "range_label": range_label(period),
             "items": result["domains"],
             "pagination": result["pagination"],
@@ -874,6 +876,15 @@ async def htmx_attackers(
             "dashboard_path": _dashboard_path(request),
             "period_qs": period_qs,
             "range_label": range_label(period),
+            "in_period": in_period,
+            "filter_qs": "".join(
+                f"&{k}={quote(v)}"
+                for k, v in (
+                    ("attack_type_filter", attack_type_filter),
+                    ("rule_filter", rule_filter),
+                )
+                if v
+            ),
             "items": result["attackers"],
             "pagination": pagination,
             "sort_by": sort_by,
@@ -1397,11 +1408,7 @@ async def htmx_request_assets(
     min_ips: int = Query(0),
     sort_by: str = Query("count"),
     sort_order: str = Query("desc"),
-    days: int | None = Query(None),
-    offset_days: int = Query(0),
-    slot: str | None = Query(None),
 ):
-    period = resolve_period(days, offset_days, slot)
     search = search.strip()[:255]
     sort_by = (
         sort_by
@@ -1533,11 +1540,7 @@ async def htmx_pattern_clusters(
     attack_type: str = Query(""),
     sort_by: str = Query("events"),
     sort_order: str = Query("desc"),
-    days: int | None = Query(None),
-    offset_days: int = Query(0),
-    slot: str | None = Query(None),
 ):
-    period = resolve_period(days, offset_days, slot)
     search = search.strip()[:255]
     attack_type = attack_type.strip()[:64]
     sort_by = sort_by if sort_by in _CAMPAIGN_SORTS else "events"

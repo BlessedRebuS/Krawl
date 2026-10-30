@@ -11,16 +11,13 @@ from sqlalchemy import distinct, func
 from dashboard_cache import pagination
 from logger import get_app_logger
 from models import CredentialAttempt
+from period import range_conditions
 from sanitizer import sanitize_ip
 
 if TYPE_CHECKING:
     from database.core import DatabaseManager
 
 applogger = get_app_logger()
-
-
-def _range(column, since, until):
-    return [c for c in (since and column >= since, until and column < until) if c is not None]
 
 
 class CredentialRepo:
@@ -109,7 +106,7 @@ class CredentialRepo:
                 count_query = count_query.filter(CredentialAttempt.ip == sanitized)
                 query = query.filter(CredentialAttempt.ip == sanitized)
 
-            for cond in _range(CredentialAttempt.timestamp, since, until):
+            for cond in range_conditions(CredentialAttempt.timestamp, since, until):
                 count_query = count_query.filter(cond)
                 query = query.filter(cond)
 

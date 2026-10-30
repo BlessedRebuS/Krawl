@@ -443,7 +443,7 @@ class AnalyticsRepo:
                     {
                         "ip": r.ip,
                         "hits": r.hits,
-                        "top_type": max(by_type, key=by_type.get) if by_type else None,
+                        "top_type": max(by_type, key=lambda t: (by_type[t], t)) if by_type else None,
                         "worst_band": min(
                             (attack_band(t) for t in by_type),
                             key=_BAND_RANK.get,

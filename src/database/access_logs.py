@@ -19,6 +19,7 @@ from dashboard_cache import (
 )
 from logger import get_app_logger
 from models import AccessLog, AttackDetection, CapturedPayload, IpStats, RequestAsset
+from period import range_conditions
 from sanitizer import sanitize_ip
 
 if TYPE_CHECKING:
@@ -205,10 +206,7 @@ class AccessLogRepo:
                 func.min(AccessLog.timestamp),
                 func.max(AccessLog.timestamp),
             ).filter(AccessLog.target_host.isnot(None), AccessLog.target_host != "")
-            if since:
-                q = q.filter(AccessLog.timestamp >= since)
-            if until:
-                q = q.filter(AccessLog.timestamp < until)
+            q = q.filter(*range_conditions(AccessLog.timestamp, since, until))
             return [
                 {
                     "domain": d,
@@ -734,14 +732,7 @@ class AccessLogRepo:
             base_query = session.query(AccessLog.ip, count_col).filter(
                 AccessLog.is_honeypot_trigger
             )
-            in_range = [
-                c
-                for c in (
-                    since and AccessLog.timestamp >= since,
-                    until and AccessLog.timestamp < until,
-                )
-                if c is not None
-            ]
+            in_range = range_conditions(AccessLog.timestamp, since, until)
             base_query = base_query.filter(*in_range)
             base_query = self._db._public_ip_filter(base_query, AccessLog.ip, server_ip)
             base_query = base_query.group_by(AccessLog.ip)
