@@ -7,7 +7,8 @@
         {% for band in ['critical', 'high', 'medium', 'low'] %}
         {% set on = band in severities %}
         <button type="button" class="facet-chip{% if on %} active{% endif %}" aria-pressed="{{ 'true' if on else 'false' }}"
-                onclick="toggleAttacksSeverity('{{ band }}')">
+                onclick="toggleAttacksSeverity('{{ band }}')"
+                title="{{ facets.severities[band] | num }} {{ band }} detections in the period">
             <span class="sev-dot sev-fg-{{ band }}" aria-hidden="true"></span>{{ band | capitalize }}
             <span class="facet-count">{{ facets.severities[band] | num }}</span>
         </button>

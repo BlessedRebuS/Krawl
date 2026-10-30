@@ -92,12 +92,12 @@ The Attacks tab focuses on detected malicious activity, attack patterns, and cap
 
 ### Period and drill-down
 
-The Attacks tab shares one period across the trends chart, the Detected Attack Types table, the type chart and the Attackers in period list.
+The Attacks tab shares one period across the trends chart, the Detected attacks table, Attackers in period, Captured Credentials, Targeted Domains and Honeypot Triggers.
 
 - **Period bar:** pick **1D**, **7D** or **30D**, and step to older or newer windows of that length. Labels are in UTC.
 - **Buckets:** the trends chart groups detections into 1 hour (1D), 4 hour (7D) or 1 day (30D) slots.
 - **Drill down:** click a slot in the chart. The table, charts and attackers re-scope to that slot, and the totals show that slot only. Click it again, or its pill, to go back.
-- **Keyboard:** below the chart, a list of the slots (hidden from sight, reachable with Tab) has one "Show ..." button per slot. Focusing a button shows its tooltip.
+- **Keyboard:** below the chart, a list of the slots (hidden from sight) is a single Tab stop. Left/Right (or Up/Down, Home, End) move between slots, Enter or Space toggles one, and the focused slot shows its tooltip.
 - **Colours:** each attack type is coloured by its worst rule severity (critical red, high orange, medium violet, low sand) and a stable shade within that band. Critical and high lines are thick; medium and low are thinner and fainter. See [DESIGN.md](../DESIGN.md).
 
 ### Filters
@@ -107,10 +107,11 @@ Active filters show as pills above the table; click a pill's x to remove it.
 - **Severity chips:** toggle critical, high, medium and low. Several can be on at once.
 - **Rule picker:** choose one YARA rule. Choosing a severity chip clears a rule that no longer fits.
 - **Attack type, IP and slot** filters come from clicking a type, an IP or a chart slot.
+- **Scope:** the Detected attacks table follows every filter. Attackers in period follows type, rule and severity; Captured Credentials follows the IP. The trends chart, Targeted Domains and Honeypot Triggers follow the period only, and their range label says "period only" while other filters are on.
 
 ### Attackers in period
 
-A list of the IPs seen in the current period and filters, with their request counts. It follows the period, slot, type, rule and severity. Overlays opened from other tabs (such as Top Attackers) keep showing all-time data.
+A list of the IPs seen in the current period and filters, ranked by detections (matching detected attacks, not raw requests). It follows the period, slot, type, rule and severity. Overlays opened from other tabs (such as Top Attackers) keep showing all-time data.
 
 ### Linkable view
 
@@ -121,19 +122,13 @@ The state is kept in the URL, so a view can be bookmarked or shared:
 | Field | Meaning |
 |-------|---------|
 | `days` | `1`, `7` or `30` |
-| `offset` | Windows back from now (0 = latest) |
+| `offset` | Days back from now (0 = latest); the arrows step by the span |
 | `slot` | UTC bucket start, `YYYY-MM-DDTHH` |
 | `type`, `rule` | Attack type or YARA rule name |
 | `sev` | Comma list of `critical`, `high`, `medium`, `low` |
 | `ip` | Source IP |
 
 `search`, `method` and `exclude` are also kept. Invalid fields are dropped when the link loads.
-
-### Attackers by Total Requests
-
-A paginated table listing all detected attackers ranked by total requests. Columns include IP, total requests, first seen, last seen, and location. Sortable by multiple fields.
-
-![Attacks — Attackers and Credentials](../img/top_attackers_dashboard.png)
 
 ### Captured Credentials
 
@@ -147,11 +142,13 @@ dots are removed, so `Example.org:443` and `example.org` aggregate together.
 The standard `Forwarded` and `X-Forwarded-Host` fields are used only when the
 request has no `Host` field.
 
+The table follows the period; the **Link map (all time)** next to it always covers every retained request.
+
 ### Honeypot Triggers by IP
 
 Shows which IPs accessed honeypot endpoints and how many times, sorted by trigger count.
 
-### Detected Attack Types
+### Detected attacks
 
 A detailed table of individual attack detections showing IP, path, attack type classifications, user-agent, request method, size, and timestamp. The size column is sortable, so the heaviest payloads surface first. Each entry can be expanded to view the raw HTTP request.
 

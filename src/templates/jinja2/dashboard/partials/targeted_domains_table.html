@@ -2,7 +2,7 @@
 {# HTMX fragment: Host-header targets ranked by request count. #}
 <div class="panel-header">
     <div class="row row-wrap">
-        <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} domains</span>
+        <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total | num }} domains</span>
         {% if range_label %}<span class="range-label" title="Range shown">{{ range_label }}</span>{% endif %}
     </div>
     <div class="row">
@@ -29,7 +29,7 @@
         <tr>
             <td class="data data-mono"><a href="{{ dashboard_path }}/htmx/artifact-requests?kind=domain&amp;value={{ item.domain | urlencode }}" class="campaign-target-link" data-value="{{ item.domain | e }}" @click.prevent="openArtifactInvestigation('domain', $event.currentTarget.dataset.value)" title="Inspect requests for {{ item.domain | e }}">{{ item.domain | e }}</a></td>
             <td class="ts-cell">{{ item.count | num }}</td>
-            <td class="ts-cell">{{ item.distinct_ips }}</td>
+            <td class="ts-cell">{{ item.distinct_ips | num }}</td>
             <td class="ts-cell">{{ item.first_seen | format_ts }}</td>
             <td class="ts-cell">{{ item.last_seen | format_ts }}</td>
         </tr>

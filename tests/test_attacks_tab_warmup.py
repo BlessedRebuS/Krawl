@@ -105,6 +105,8 @@ def test_default_7d_panels_are_served_from_the_warmup(warmed, monkeypatch):
     assert attacks.status_code == 200 and "/wp-login.php" in attacks.text
     attackers = client.get("/dash/htmx/attackers", params=q)
     assert attackers.status_code == 200 and "203.0.113.2" in attackers.text
+    assert ">Detections</th>" in attackers.text  # counts detections, not requests
+    assert "detections in the period" in attacks.text
     domains = client.get("/dash/htmx/targeted-domains", params=q)
     assert domains.status_code == 200 and "victim.test" in domains.text
 
