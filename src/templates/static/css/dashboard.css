@@ -1249,7 +1249,7 @@ tbody {
     border-radius: var(--r-sm);
     border: 1px solid color-mix(in srgb, var(--atk, var(--sev-low)) 40%, transparent);
     background: color-mix(in srgb, var(--atk, var(--sev-low)) 14%, transparent);
-    color: color-mix(in srgb, var(--atk, var(--sev-low)) 95%, var(--text-strong));
+    color: color-mix(in srgb, var(--atk, var(--sev-low)) 80%, var(--text-strong));
     font-size: var(--fs-2xs);
     font-weight: 600;
     line-height: 1;

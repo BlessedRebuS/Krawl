@@ -138,3 +138,32 @@ def test_shade_closer_to_own_anchor_than_any_other(band, n):
         delta_e(lab, oklab(linear(token(f"sev-{o}-1")))) for o in BANDS if o != band
     )
     assert own * 1.5 <= other, (band, n, own, other)
+
+
+def mix(a, b, p):
+    """color-mix(in srgb, a p, b); also a at alpha p composited over b."""
+    return "#" + "".join(
+        f"{round(int(a[i : i + 2], 16) * p + int(b[i : i + 2], 16) * (1 - p)):02x}"
+        for i in (1, 3, 5)
+    )
+
+
+BADGE = CSS[CSS.index(".atk-badge {") : CSS.index("}", CSS.index(".atk-badge {"))]
+ATK = r"color-mix\(in srgb, var\(--atk[^)]*\)\) (\d+)%"
+FILL = int(re.search(rf"background: {ATK}, transparent\)", BADGE).group(1)) / 100
+INK = int(re.search(rf"color: {ATK}, var\(--text-strong\)\)", BADGE).group(1)) / 100
+TINT = float(re.search(r"--tint-neutral:\s*rgba\(255, 255, 255, ([\d.]+)\)", ROOT_BLOCK).group(1))
+# Badges sit on panels, hovered rows (white tint) and hovered attacker rows (--raised).
+GROUNDS = {
+    "surface": token("surface"),
+    "row-hover": mix("#ffffff", token("surface"), TINT),
+    "attacker-row-hover": token("raised"),
+}
+
+
+@pytest.mark.parametrize("band,n", ALL)
+@pytest.mark.parametrize("ground", GROUNDS)
+def test_badge_text_reads_on_its_tinted_fill(band, n, ground):
+    shade = token(f"sev-{band}-{n}")
+    ink = mix(shade, token("text-strong"), INK)
+    assert contrast(ink, mix(shade, GROUNDS[ground], FILL)) >= 4.5
