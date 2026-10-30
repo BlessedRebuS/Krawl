@@ -14,6 +14,7 @@ from fastapi import Request
 from fastapi.templating import Jinja2Templates
 from jinja2 import select_autoescape
 
+from attack_colours import attack_badge_class
 from database import DatabaseManager, get_database
 
 # Shared Jinja2 templates instance
@@ -38,9 +39,6 @@ def get_templates() -> Jinja2Templates:
         _templates.env.filters["safe_url"] = _safe_url
         _templates.env.filters["num"] = _format_num
         _templates.env.filters["attack_label"] = _attack_label
-        _templates.env.filters["attack_severity_band"] = _attack_severity_band
-        from attack_colours import attack_badge_class
-
         _templates.env.filters["attack_badge_class"] = attack_badge_class
     return _templates
 
@@ -141,13 +139,6 @@ def _format_size(value):
     if value < 1024 * 1024:
         return f"{value / 1024:.1f} KB"
     return f"{value / (1024 * 1024):.1f} MB"
-
-
-def _attack_severity_band(attack_type):
-    """Deprecated alias of attack_band until the templates move to attack_badge_class."""
-    from attack_colours import attack_band
-
-    return attack_band(attack_type)
 
 
 def _safe_url(value):

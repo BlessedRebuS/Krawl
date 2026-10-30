@@ -48,3 +48,27 @@ def test_badge_class(stub):
         attack_badge_class("cve_x")
         == f"atk-badge atk-sev-critical atk-shade-{attack_shade('cve_x')}"
     )
+
+
+def test_attack_types_daily_carries_colours(stub, tmp_path):
+    from datetime import datetime
+
+    from database import get_database, initialize_database
+    from models import AccessLog, AttackDetection
+
+    initialize_database(str(tmp_path / "x.db"))
+    db = get_database()
+    s = db.session
+    for t in SEV:
+        log = AccessLog(ip="203.0.113.1", path="/", method="GET", is_suspicious=True, timestamp=datetime.utcnow())
+        s.add(log)
+        s.flush()
+        s.add(AttackDetection(access_log_id=log.id, attack_type=t))
+    s.commit()
+    db.close_session()
+
+    for result in (db.analytics.get_attack_types_daily(days=7), db.analytics.get_attack_types_stats()):
+        types = {a["type"] for a in result["attack_types"]}
+        assert types == set(SEV)
+        assert set(result["colours"]) == types
+        assert all(set(c) == {"band", "shade"} for c in result["colours"].values())

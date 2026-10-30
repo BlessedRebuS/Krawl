@@ -44,7 +44,7 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
 
         const labels = attackTypes.map(item => item.type);
         const counts = attackTypes.map(item => item.count);
-        const backgroundColors = labels.map(type => krawlAttackColor(type));
+        const backgroundColors = labels.map(type => krawlTypeColor(data.colours, type));
 
         // Create or update chart (track per canvas)
         if (!loadAttackTypesChart._instances) loadAttackTypesChart._instances = {};
@@ -197,7 +197,7 @@ async function loadAttackTrendsChart(canvasId) {
         _updateTrendsPeriodLabel(dates);
 
         // Update totals sidebar
-        _updateTrendsTotals(attackTypes);
+        _updateTrendsTotals(attackTypes, data.colours);
 
         if (attackTrendsChart) {
             attackTrendsChart.destroy();
@@ -228,13 +228,13 @@ async function loadAttackTrendsChart(canvasId) {
         const datasets = attackTypes.map(at => ({
             label: `${krawlAttackLabel(at.type)} (${at.total})`,
             data: at.daily,
-            borderColor: krawlAttackColor(at.type),
-            backgroundColor: krawlAttackColor(at.type, 0.05),
+            borderColor: krawlTypeColor(data.colours, at.type),
+            backgroundColor: krawlTypeColor(data.colours, at.type, 0.05),
             borderWidth: 2,
             pointRadius: 0,
             pointHitRadius: 8,
             pointHoverRadius: 4,
-            pointHoverBackgroundColor: krawlAttackColor(at.type),
+            pointHoverBackgroundColor: krawlTypeColor(data.colours, at.type),
             tension: 0.15,
             fill: false,
             _attackType: at.type,
@@ -356,7 +356,7 @@ function _updateTrendsPeriodLabel(dates) {
     label.textContent = `${start.toLocaleDateString('en-US', fmt)} — ${end.toLocaleDateString('en-US', fmt)}`;
 }
 
-function _updateTrendsTotals(attackTypes) {
+function _updateTrendsTotals(attackTypes, colours) {
     const container = document.getElementById('trends-totals');
     if (!container) return;
 
@@ -376,7 +376,7 @@ function _updateTrendsTotals(attackTypes) {
         btn.type = 'button';
         btn.className = 'trends-total';
         btn.dataset.type = at.type;
-        btn.style.setProperty('--type-c', krawlAttackColor(at.type));
+        btn.style.setProperty('--type-c', krawlTypeColor(colours, at.type));
         btn.setAttribute('aria-pressed', String(_activeAttackTypeFilter === at.type));
         btn.title = `Show only ${krawlAttackLabel(at.type)} in the table below`;
         btn.innerHTML = '<span class="trends-total-dot"></span><span class="trends-total-name"></span><span class="trends-total-count"></span>';
@@ -508,10 +508,9 @@ function _campaignTickLabel(iso, index, slotHours) {
     return index % 7 === 0 ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
 }
 
-/** Attack type -> inline style setting --atk to its token (grey if unknown). */
-function _atkStyle(type) {
-    const name = String(type || 'other').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    return `--atk: var(--atk-${name}, var(--atk-other))`;
+/** Attack type -> inline style setting --atk to its severity shade (low if unknown). */
+function _atkStyle(type, colours) {
+    return `--atk: ${krawlTypeColor(colours, type)}`;
 }
 
 /** Hits -> shade 1..5. Square-root scale: one loud campaign would otherwise
@@ -575,9 +574,9 @@ function _renderCampaignActivity(data) {
         const types = c.attack_types || [];
         // The row takes the hue of its main attack type (types arrive sorted
         // by count); file-only campaigns stay in the neutral bucket.
-        const hue = _atkStyle(types.length ? types[0] : 'other');
+        const hue = _atkStyle(types.length ? types[0] : 'other', data.colours);
         const typeList = types.slice(0, 3).map(t =>
-            `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t)}"></span>${_escapeHtml(krawlAttackLabel(t))}</span>`
+            `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t, data.colours)}"></span>${_escapeHtml(krawlAttackLabel(t))}</span>`
         ).join('') + (types.length > 3 ? `<span class="atk-tag">+${types.length - 3}</span>` : '');
         const cells = c.activity.map((n, i) =>
             `<span class="activity-cell shade-${_campaignShade(n, max)}${future[i] ? ' is-future' : ''}" data-row="${row}" data-slot="${i}"></span>`
@@ -603,7 +602,7 @@ function _renderCampaignActivity(data) {
         `<span class="activity-legend" aria-hidden="true"><span>Fewer hits</span>` +
         Array.from({ length: CAMPAIGN_SHADES }, (_, i) => `<span class="activity-cell shade-${i + 1}"></span>`).join('') +
         `<span>More</span><span class="activity-legend-key">Row colour is the main attack type:</span>` +
-        shown.map(t => `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t)}"></span>${_escapeHtml(t === 'other' ? 'Probes, uploads, other' : krawlAttackLabel(t))}</span>`).join('') +
+        shown.map(t => `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t, data.colours)}"></span>${_escapeHtml(t === 'other' ? 'Probes, uploads, other' : krawlAttackLabel(t))}</span>`).join('') +
         `</span>` +
         `<span class="activity-rows"><span class="activity-rows-label">${campaigns.length} of ${data.total_campaigns} shown</span>` +
         `<span class="row gap-1" role="group" aria-label="Campaigns shown">` +

@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import func, not_, or_
 from sqlalchemy.orm import joinedload
 
+from attack_colours import colour_map
 from dashboard_cache import pagination
 from logger import get_app_logger
 from models import (
@@ -602,7 +603,8 @@ class AnalyticsRepo:
             return {
                 "attack_types": [
                     {"type": row.attack_type, "count": row.count} for row in results
-                ]
+                ],
+                "colours": colour_map(row.attack_type for row in results),
             }
         finally:
             self._db.close_session()
@@ -651,7 +653,7 @@ class AnalyticsRepo:
             )
 
             if not top_types_q:
-                return {"attack_types": [], "dates": []}
+                return {"attack_types": [], "dates": [], "colours": {}}
 
             top_type_names = [row.attack_type for row in top_types_q]
             totals = {row.attack_type: row.total for row in top_types_q}
@@ -707,6 +709,7 @@ class AnalyticsRepo:
                         for t in top_type_names
                     ],
                     "dates": slots,
+                    "colours": colour_map(top_type_names),
                 }
             else:
                 # Daily granularity
@@ -756,6 +759,7 @@ class AnalyticsRepo:
                         for t in top_type_names
                     ],
                     "dates": dates,
+                    "colours": colour_map(top_type_names),
                 }
         finally:
             self._db.close_session()

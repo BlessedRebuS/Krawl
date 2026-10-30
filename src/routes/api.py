@@ -31,6 +31,7 @@ from auth_store import (
     is_valid_session,
     save_attempts,
 )
+from attack_colours import colour_map
 from config import get_config
 from dashboard_cache import (
     get_cached_table,
@@ -687,6 +688,7 @@ def build_campaign_stats(db, limit: int, day: str = "", days: int = 0, offset: i
         )
     rows.sort(key=lambda r: (-r["hits"], -r["ips"]))
     return {
+        "colours": colour_map({t for r in rows[:limit] for t in r["attack_types"]}),
         "campaigns": rows[:limit],
         "total_campaigns": len(rows),
         "slot_hours": slot_hours,
