@@ -116,7 +116,7 @@
                     <span class="th-hint-tip">Campaign hash for grouped attacks, click to open the campaign.</span>
                 </span>
             </th>
-            <th>User-Agent</th>
+            <th class="ua-col">User-Agent</th>
             <th class="sortable {% if sort_by == 'timestamp' %}{{ sort_order }}{% endif %}"
                 hx-get="{{ dashboard_path }}/htmx/attacks?page=1&page_size={{ pagination.page_size }}&sort_by=timestamp&sort_order={% if sort_by == 'timestamp' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
@@ -172,7 +172,7 @@
                    title="{{ attack.tlsh_hash | e }}">{{ attack.tlsh_hash[:12] }}</a>
                 {% endif %}
             </td>
-            <td class="ua-cell">{{ (attack.user_agent | default('', true))[:50] | e }}</td>
+            <td class="ua-cell ua-col" title="{{ attack.user_agent | default('', true) | e }}">{{ attack.user_agent | default('', true) | e }}</td>
             <td class="ts-cell">{{ attack.timestamp | format_ts(time_only=ts_time_only) }}</td>
             <td>
                 <div class="table-action-btns">

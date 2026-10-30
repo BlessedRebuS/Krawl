@@ -4,7 +4,7 @@
      x-show="expandOverlay.show"
      x-cloak
 >
-    <div class="expand-overlay-content">
+    <div class="expand-overlay-content" :class="{ 'is-wide': expandOverlay.endpoint === 'attacks' }">
         <div class="expand-overlay-header">
             <h2 class="panel-title" x-text="expandOverlay.title"></h2>
             <div class="row gap-3">

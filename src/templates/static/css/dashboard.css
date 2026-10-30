@@ -4879,6 +4879,12 @@ td:last-child {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+/* The Attacks tab's inline table drops the user agent; the expanded view shows it. */
+#attacks-htmx-container .ua-col { display: none; }
+.expand-overlay-content.is-wide { width: 1760px; max-width: 97vw; }
+/* The user agent takes whatever width the other columns leave, clipped; the cell title holds it whole. */
+.expand-overlay-content.is-wide table { width: 100%; }
+.expand-overlay-content.is-wide .ua-cell { max-width: 0; width: 100%; min-width: 96px; }
 
 
 /* ── Settings > Configuration ─────────────────────────────────────
