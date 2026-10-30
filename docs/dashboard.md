@@ -90,6 +90,45 @@ A paginated table of the most common user-agent strings with their frequency.
 
 The Attacks tab focuses on detected malicious activity, attack patterns, and captured credentials.
 
+### Period and drill-down
+
+The Attacks tab shares one period across the trends chart, the Detected Attack Types table, the type chart and the Attackers in period list.
+
+- **Period bar:** pick **1D**, **7D** or **30D**, and step to older or newer windows of that length. Labels are in UTC.
+- **Buckets:** the trends chart groups detections into 1 hour (1D), 4 hour (7D) or 1 day (30D) slots.
+- **Drill down:** click a slot in the chart. The table, charts and attackers re-scope to that slot, and the totals show that slot only. Click it again, or its pill, to go back.
+- **Keyboard:** below the chart, a list of the slots (hidden from sight, reachable with Tab) has one "Show ..." button per slot. Focusing a button shows its tooltip.
+- **Colours:** each attack type is coloured by its worst rule severity (critical red, high orange, medium violet, low sand) and a stable shade within that band. Critical and high lines are thick; medium and low are thinner and fainter. See [DESIGN.md](../DESIGN.md).
+
+### Filters
+
+Active filters show as pills above the table; click a pill's x to remove it.
+
+- **Severity chips:** toggle critical, high, medium and low. Several can be on at once.
+- **Rule picker:** choose one YARA rule. Choosing a severity chip clears a rule that no longer fits.
+- **Attack type, IP and slot** filters come from clicking a type, an IP or a chart slot.
+
+### Attackers in period
+
+A list of the IPs seen in the current period and filters, with their request counts. It follows the period, slot, type, rule and severity. Overlays opened from other tabs (such as Top Attackers) keep showing all-time data.
+
+### Linkable view
+
+The state is kept in the URL, so a view can be bookmarked or shared:
+
+`#attacks?days=7&offset=0&slot=2026-10-29T08&type=sql_injection&rule=...&sev=high,critical&ip=1.2.3.4`
+
+| Field | Meaning |
+|-------|---------|
+| `days` | `1`, `7` or `30` |
+| `offset` | Windows back from now (0 = latest) |
+| `slot` | UTC bucket start, `YYYY-MM-DDTHH` |
+| `type`, `rule` | Attack type or YARA rule name |
+| `sev` | Comma list of `critical`, `high`, `medium`, `low` |
+| `ip` | Source IP |
+
+`search`, `method` and `exclude` are also kept. Invalid fields are dropped when the link loads.
+
 ### Attackers by Total Requests
 
 A paginated table listing all detected attackers ranked by total requests. Columns include IP, total requests, first seen, last seen, and location. Sortable by multiple fields.

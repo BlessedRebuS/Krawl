@@ -85,7 +85,8 @@ without one.
 | `GET` | `/api/download-credentials` | Captured credentials as a downloadable file |
 | `GET` | `/api/attack-types` | Detected attack attempts |
 | `GET` | `/api/attack-types-stats` | Attack counts per type |
-| `GET` | `/api/attack-types-daily` | Attack counts per type per day |
+| `GET` | `/api/attack-types-daily` | Top attack types per bucket (`days`, `offset_days`, `slot`, `limit`). Returns `attack_types`, `dates`, `bucket_hours` (1, 4 or 24), `slot_totals` (totals for the selected slot, else null) and `colours` (type to its severity band and shade) |
+| `GET` | `/api/attack-facets` | Detections per severity band and per rule for a period (`days`, `offset_days`, `slot`) |
 | `GET` | `/api/raw-request/{log_id}` | Full raw HTTP request for one access log entry |
 | `GET` | `/api/attachments/{log_id}` | Files uploaded in that request — see [Attachments](#attachments) |
 | `GET` | `/api/attachments/{log_id}/download/{index}` | Download one of those files |
