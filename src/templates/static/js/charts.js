@@ -184,6 +184,7 @@ async function loadAttackTrendsChart(canvasId) {
     const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
     const req = ++_trendsRequest;
     const s = window.attacksState;
+    loadAttackTrendsChart.key = _attacksChartKey();
 
     let release = () => {};
     try {
@@ -303,6 +304,7 @@ async function loadAttackTrendsChart(canvasId) {
         attackTrendsChart.draw();
 
     } catch (err) {
+        if (req !== _trendsRequest) return;  // a newer request owns the chart
         console.error('Error loading attack trends chart:', err);
         const canvas = document.getElementById(canvasId);
         if (canvas) {

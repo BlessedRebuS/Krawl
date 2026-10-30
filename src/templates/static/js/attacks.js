@@ -41,7 +41,7 @@ function attacksParams() {
     if (s.rule) p.set('rule_filter', s.rule);
     if (s.severities.length) p.set('severity_filter', s.severities.join(','));
     if (s.ip) p.set('ip_filter', s.ip);
-    if (s.search) p.set('search', s.search);
+    if (s.search.trim()) p.set('search', s.search.trim());
     if (s.method) p.set('method_filter', s.method);
     if (s.exclude.length) p.set('exclude', s.exclude.join(','));
     return p;
@@ -49,7 +49,7 @@ function attacksParams() {
 
 // Valid fields of "#attacks?days=7&offset=0&slot=…&type=…&sev=high,critical…"; bad ones are dropped.
 function readAttacksHash(hash) {
-    const q = new URLSearchParams(String(hash || '').split('?')[1] || '');
+    const q = new URLSearchParams((hash = String(hash || '')).includes('?') ? hash.slice(hash.indexOf('?') + 1) : '');
     const get = k => (q.get(k) || '').trim();
     const word = /^[\w.-]{1,128}$/;
     const out = {};
@@ -76,7 +76,7 @@ function _attacksHash() {
     if (s.rule) q.set('rule', s.rule);
     if (s.severities.length) q.set('sev', s.severities.join(','));
     if (s.ip) q.set('ip', s.ip);
-    if (s.search) q.set('search', s.search);
+    if (s.search.trim()) q.set('search', s.search.trim());
     if (s.method) q.set('method', s.method);
     if (s.exclude.length) q.set('exclude', s.exclude.join(','));
     return '#attacks?' + q.toString().replace(/%2C/g, ',');
@@ -86,7 +86,7 @@ function _attacksHash() {
 function writeAttacksHash() {
     const h = _attacksHash();
     if (location.hash === h) return;
-    history[location.hash.startsWith('#attacks') ? 'replaceState' : 'pushState'](null, '', h);
+    history[/^#(attacks|ip-stats)/.test(location.hash) ? 'replaceState' : 'pushState'](null, '', h);
 }
 
 function setAttacksState(patch) {
@@ -99,22 +99,35 @@ function setAttacksState(patch) {
 // Replace the whole state from a hash (reload, back, a shared link).
 function applyAttacksHash(hash, refresh = true) {
     Object.assign(attacksState, _attacksDefaults(), readAttacksHash(hash));
-    if (refresh) _attacksRefresh(false);
+    if (refresh) _attacksRefresh(true);  // writes back the normalised hash
 }
 
 function shiftAttacksPeriod(direction) {
     setAttacksState({ offset: Math.max(0, attacksState.offset - direction * attacksState.days) });
 }
 
+// The params a panel understands, as a query string.
+function _attacksPanelQs(el) {
+    const name = el.dataset.attacksPanel;
+    const keys = name in ATTACKS_PANEL_KEYS ? ATTACKS_PANEL_KEYS[name] : ATTACKS_PERIOD_KEYS;
+    return [...attacksParams()].filter(([k]) => !keys || keys.includes(k)).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+}
+
+const _attacksChartKey = () => `${attacksState.days}|${attacksState.offset}|${attacksState.slot}`;
+
 function _attacksRefresh(writeHash) {
     const app = typeof _getAlpineData === 'function' ? _getAlpineData() : null;
     const onTab = app && app.tab === 'attacks';
     if (onTab && writeHash) writeAttacksHash();
     renderAttacksBar();
-    if (onTab && typeof loadAttackTrendsChart === 'function') loadAttackTrendsChart();
-    // Unrevealed panels pick the state up when they load.
-    document.querySelectorAll('[data-attacks-panel][data-hx-revealed]').forEach(el => htmx.trigger(el, 'attacks-reload'));
     _syncAttacksOverlay(app);
+    // While the overlay covers the tab, the tab catches up when it closes.
+    if (app && app.expandOverlay.show && app.expandOverlay.shared) return;
+    if (onTab && typeof loadAttackTrendsChart === 'function' && loadAttackTrendsChart.key !== _attacksChartKey()) loadAttackTrendsChart();
+    // Only panels whose params changed reload; unrevealed ones load fresh when revealed.
+    document.querySelectorAll('[data-attacks-panel][data-hx-revealed]').forEach(el => {
+        if (el.dataset.attacksQs !== _attacksPanelQs(el)) htmx.trigger(el, 'attacks-reload');
+    });
 }
 
 // The attacks expand overlay mirrors the shared state.
@@ -153,7 +166,14 @@ function _attacksPill(text, patch, tone, dot) {
     x.textContent = '×';
     x.title = 'Remove filter';
     x.setAttribute('aria-label', `Remove filter ${text}`);
-    x.onclick = () => setAttacksState(patch);
+    x.onclick = () => {
+        const i = [...pill.parentNode.children].indexOf(pill);
+        setAttacksState(patch);
+        // Keep keyboard focus in the bar: the next pill, else the span key.
+        const rest = document.querySelectorAll('#attacks-pills .filter-pill-clear');
+        const to = rest[Math.min(i, rest.length - 1)] || document.querySelector('#attacks-span .active');
+        if (to) to.focus();
+    };
     pill.append(text, x);
     return pill;
 }
@@ -165,6 +185,7 @@ function renderAttacksBar() {
         b.classList.toggle('active', on);
         b.setAttribute('aria-pressed', String(on));
     });
+    document.querySelectorAll('#trends-totals .trends-total').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.type === s.type)));
     const next = document.getElementById('attacks-next');
     if (next) next.disabled = s.offset <= 0;
     const range = document.getElementById('attacks-range');
@@ -178,7 +199,7 @@ function renderAttacksBar() {
     s.severities.forEach(b => list.push(_attacksPill(b[0].toUpperCase() + b.slice(1), { severities: s.severities.filter(x => x !== b) }, '', krawlSeverityColor(b, 1))));
     if (s.ip) list.push(_attacksPill(s.ip, { ip: null }));
     if (s.method) list.push(_attacksPill(s.method, { method: '' }, 'ok'));
-    if (s.search) list.push(_attacksPill(`“${s.search}”`, { search: '' }, 'danger'));
+    if (s.search.trim()) list.push(_attacksPill(`“${s.search.trim()}”`, { search: '' }, 'danger'));
     s.exclude.forEach(t => list.push(_attacksPill(`not “${t}”`, { exclude: s.exclude.filter(x => x !== t) })));
     pills.replaceChildren(...list);
     pills.hidden = !list.length;
@@ -188,10 +209,9 @@ function renderAttacksBar() {
 document.addEventListener('htmx:configRequest', (e) => {
     const el = e.detail.elt;
     if (!el || !el.dataset || !el.dataset.attacksPanel) return;
-    const keys = el.dataset.attacksPanel in ATTACKS_PANEL_KEYS ? ATTACKS_PANEL_KEYS[el.dataset.attacksPanel] : ATTACKS_PERIOD_KEYS;
-    for (const [k, v] of attacksParams()) {
-        if (!keys || keys.includes(k)) e.detail.parameters[k] = v;
-    }
+    const qs = _attacksPanelQs(el);
+    el.dataset.attacksQs = qs;
+    for (const [k, v] of new URLSearchParams(qs)) e.detail.parameters[k] = v;
 });
 
 // The period bar sticks right under the tab strip, whatever its height.

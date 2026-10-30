@@ -550,6 +550,8 @@ document.addEventListener('alpine:init', () => {
             // Anything opened from a search result (attack overlay, insight)
             // replaces the palette rather than stacking under it.
             this.$watch('expandOverlay.show', (show) => { if (show) this.palette.open = false; });
+            // Closing the Attacks overlay lets the tab catch up with its edits.
+            this.$watch('expandOverlay.show', (show) => { if (!show && this.expandOverlay.shared) _attacksRefresh(false); });
             this.$watch('tab', () => { this.palette.open = false; });
             this._bindShortcuts();
             this._bindTabbarEdges();
@@ -2100,7 +2102,7 @@ window.jumpToPath = function(event) {
 
 window.triggerExpandSearch = function() {
     const ov = _attacksOverlay();
-    if (ov) setAttacksState({ search: (ov.search || '').trim(), type: ov.attackType || null });
+    if (ov) setAttacksState({ search: ov.search || '', type: ov.attackType || null });
     else _reloadExpandOverlay();
 };
 
@@ -2129,7 +2131,9 @@ window.addExpandExcludeTerm = function() {
 };
 
 window.removeExcludeTerm = function(term) {
-    const ov = _getAlpineData().expandOverlay;
+    const app = _getAlpineData();
+    if (!app) return;
+    const ov = app.expandOverlay;
     if (ov.show && !ov.shared) {
         ov.excludes = ov.excludes.filter(t => t !== term);
         return _reloadExpandOverlay();
