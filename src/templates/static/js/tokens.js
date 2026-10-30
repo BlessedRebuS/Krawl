@@ -26,6 +26,14 @@ function krawlAttackColor(type, alpha) {
     return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`;
 }
 
+// Severity shade from --sev-<band>-<shade>; unknown bands fall back to low-1.
+function krawlSeverityColor(band, shade, alpha) {
+    const hex = krawlToken(`--sev-${band}-${shade}`) || krawlToken('--sev-low-1');
+    if (alpha === undefined) return hex;
+    const value = parseInt(hex.slice(1), 16);
+    return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`;
+}
+
 // Detector ids as people say them; mirrors the attack_label Jinja filter.
 const KRAWL_ATTACK_LABELS = {
     sql_injection: 'SQL injection', command_injection: 'Command injection',

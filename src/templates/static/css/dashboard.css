@@ -46,11 +46,27 @@
     --pink: #f2649f;
     --cyan: #3ad6d1;
 
-    /* Rule severity bands. Never honey (trap hits) or blue (structure). */
-    --sev-critical: var(--danger);
-    --sev-high: var(--warn);
-    --sev-medium: var(--violet);
-    --sev-low: var(--text-dim);
+    /* Severity bands x 4 shades, OKLCH L step 0.06; gated by tests/test_severity_palette.py. */
+    --sev-critical-1: #ff5c52;
+    --sev-critical-2: #fd8674;
+    --sev-critical-3: #ffa693;
+    --sev-critical-4: #ffc4b4;
+    --sev-high-1: #fda166;
+    --sev-high-2: #f08b27;
+    --sev-high-3: #d0800e;
+    --sev-high-4: #b17503;
+    --sev-medium-1: #b083f5;
+    --sev-medium-2: #c09bfe;
+    --sev-medium-3: #cfb5ff;
+    --sev-medium-4: #decefe;
+    --sev-low-1: #c7b8a6;
+    --sev-low-2: #b4a594;
+    --sev-low-3: #a29282;
+    --sev-low-4: #8f8070;
+    --sev-critical: var(--sev-critical-1);
+    --sev-high: var(--sev-high-1);
+    --sev-medium: var(--sev-medium-1);
+    --sev-low: var(--sev-low-1);
 
     /* Reserved: honeypot triggers only. If it is honey, a trap was hit. */
     --honey: #ffc94d;
@@ -1270,6 +1286,40 @@ tbody {
 .atk-sev-high { --atk: var(--sev-high); }
 .atk-sev-medium { --atk: var(--sev-medium); }
 .atk-sev-low { --atk: var(--sev-low); }
+/* Attack-type tag: severity band picks the family, a stable shade the type. */
+.atk-badge {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    max-width: 100%;
+    padding: 0 var(--s2);
+    border-radius: var(--r-sm);
+    border: 1px solid color-mix(in srgb, var(--atk, var(--sev-low)) 40%, transparent);
+    background: color-mix(in srgb, var(--atk, var(--sev-low)) 14%, transparent);
+    color: color-mix(in srgb, var(--atk, var(--sev-low)) 85%, var(--text-strong));
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.atk-sev-critical.atk-shade-1 { --atk: var(--sev-critical-1); }
+.atk-sev-critical.atk-shade-2 { --atk: var(--sev-critical-2); }
+.atk-sev-critical.atk-shade-3 { --atk: var(--sev-critical-3); }
+.atk-sev-critical.atk-shade-4 { --atk: var(--sev-critical-4); }
+.atk-sev-high.atk-shade-1 { --atk: var(--sev-high-1); }
+.atk-sev-high.atk-shade-2 { --atk: var(--sev-high-2); }
+.atk-sev-high.atk-shade-3 { --atk: var(--sev-high-3); }
+.atk-sev-high.atk-shade-4 { --atk: var(--sev-high-4); }
+.atk-sev-medium.atk-shade-1 { --atk: var(--sev-medium-1); }
+.atk-sev-medium.atk-shade-2 { --atk: var(--sev-medium-2); }
+.atk-sev-medium.atk-shade-3 { --atk: var(--sev-medium-3); }
+.atk-sev-medium.atk-shade-4 { --atk: var(--sev-medium-4); }
+.atk-sev-low.atk-shade-1 { --atk: var(--sev-low-1); }
+.atk-sev-low.atk-shade-2 { --atk: var(--sev-low-2); }
+.atk-sev-low.atk-shade-3 { --atk: var(--sev-low-3); }
+.atk-sev-low.atk-shade-4 { --atk: var(--sev-low-4); }
 /* Attack-type badges: tinted in the type's hue, see --atk-* above. */
 .method-command-injection { --atk: var(--atk-command-injection); }
 .method-sql-injection { --atk: var(--atk-sql-injection); }
@@ -1281,36 +1331,36 @@ tbody {
 .method-lfi-rfi { --atk: var(--atk-lfi-rfi); }
 .method-common-probes { --atk: var(--atk-other); }
 .method-get {
-    border-color: color-mix(in srgb, var(--accent) 30%, transparent);
-    background: color-mix(in srgb, var(--accent) 15%, transparent);
-    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 20%, transparent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    color: color-mix(in srgb, var(--accent) 70%, var(--text-dim));
 }
 .method-post {
-    border-color: color-mix(in srgb, var(--ok) 30%, transparent);
-    background: color-mix(in srgb, var(--ok) 15%, transparent);
-    color: var(--ok);
+    border-color: color-mix(in srgb, var(--ok) 20%, transparent);
+    background: color-mix(in srgb, var(--ok) 8%, transparent);
+    color: color-mix(in srgb, var(--ok) 70%, var(--text-dim));
 }
 .method-put,
 .method-patch {
-    border-color: color-mix(in srgb, var(--warn) 30%, transparent);
-    background: color-mix(in srgb, var(--warn) 15%, transparent);
-    color: var(--warn);
+    border-color: color-mix(in srgb, var(--warn) 20%, transparent);
+    background: color-mix(in srgb, var(--warn) 8%, transparent);
+    color: color-mix(in srgb, var(--warn) 70%, var(--text-dim));
 }
 .method-delete {
-    border-color: color-mix(in srgb, var(--danger) 30%, transparent);
-    background: color-mix(in srgb, var(--danger) 15%, transparent);
-    color: var(--danger);
+    border-color: color-mix(in srgb, var(--danger) 20%, transparent);
+    background: color-mix(in srgb, var(--danger) 8%, transparent);
+    color: color-mix(in srgb, var(--danger) 70%, var(--text-dim));
 }
 .method-head,
 .method-options {
-    border-color: color-mix(in srgb, var(--violet) 30%, transparent);
-    background: color-mix(in srgb, var(--violet) 15%, transparent);
-    color: var(--violet);
+    border-color: color-mix(in srgb, var(--violet) 20%, transparent);
+    background: color-mix(in srgb, var(--violet) 8%, transparent);
+    color: color-mix(in srgb, var(--violet) 70%, var(--text-dim));
 }
 .method-query {
-    border-color: color-mix(in srgb, var(--cyan) 30%, transparent);
-    background: color-mix(in srgb, var(--cyan) 15%, transparent);
-    color: var(--cyan);
+    border-color: color-mix(in srgb, var(--cyan) 20%, transparent);
+    background: color-mix(in srgb, var(--cyan) 8%, transparent);
+    color: color-mix(in srgb, var(--cyan) 70%, var(--text-dim));
 }
 .size-cell {
     white-space: nowrap;
@@ -2651,7 +2701,7 @@ tbody {
     text-overflow: ellipsis;
     white-space: nowrap;
     cursor: pointer;
-    color: var(--danger) !important;
+    color: color-mix(in srgb, var(--danger) 70%, var(--text-dim)) !important;
     font-weight: 500;
     text-decoration: underline;
     text-decoration-style: dotted;
@@ -2659,7 +2709,7 @@ tbody {
     transition: all 0.2s;
 }
 .path-truncated:hover {
-    color: var(--danger) !important;
+    color: color-mix(in srgb, var(--danger) 70%, var(--text-dim)) !important;
     text-decoration-style: solid;
 }
 .path-cell-container:hover .path-tooltip {
