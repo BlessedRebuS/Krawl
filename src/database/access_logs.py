@@ -216,7 +216,11 @@ class AccessLogRepo:
     ) -> list[dict[str, Any]]:
         """Host rollup restricted to [since, until) and text filters, cached per period_key plus filters."""
         suffix = "".join(f":{k}={v}" for k, v in sorted(text.items()) if v)
-        key = f"{DOMAIN_ROLLUP_KEY}:{period_key}{suffix}" if period_key or suffix else None
+        key = (
+            f"{DOMAIN_ROLLUP_KEY}:{period_key}{suffix}"
+            if period_key or suffix
+            else None
+        )
         rows = get_cached_table(key) if key and not refresh else None
         if rows is not None:
             return rows

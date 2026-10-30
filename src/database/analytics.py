@@ -56,6 +56,7 @@ def _rule_match(rule: str):
         )
     return match
 
+
 applogger = get_app_logger()
 
 # Newest detections a text-filtered attack count looks at.
@@ -455,8 +456,7 @@ class AnalyticsRepo:
                 for ip, atype, n in type_q:
                     types.setdefault(ip, {})[atype] = n
                 info = {
-                    i.ip: i
-                    for i in session.query(IpStats).filter(IpStats.ip.in_(ips))
+                    i.ip: i for i in session.query(IpStats).filter(IpStats.ip.in_(ips))
                 }
             attackers = []
             for r in rows:
@@ -466,7 +466,11 @@ class AnalyticsRepo:
                     {
                         "ip": r.ip,
                         "hits": r.hits,
-                        "top_type": max(by_type, key=lambda t: (by_type[t], t)) if by_type else None,
+                        "top_type": (
+                            max(by_type, key=lambda t: (by_type[t], t))
+                            if by_type
+                            else None
+                        ),
                         "worst_band": min(
                             (attack_band(t) for t in by_type),
                             key=_BAND_RANK.get,
@@ -575,7 +579,9 @@ class AnalyticsRepo:
             capped = False
             if total is not None:
                 total_attacks = total
-            elif (search or exclude or method_filter) and not ip_filter and not narrowed:
+            elif (
+                (search or exclude or method_filter) and not ip_filter and not narrowed
+            ):
                 # Unindexed text filters: an exact count reads every attack
                 # row's heap tuple (28s on the demo). Count within the newest
                 # COUNT_WINDOW detections instead, a lower bound once full.
@@ -814,9 +820,9 @@ class AnalyticsRepo:
                 "colours": {},
             }
             text = access_log_text_clauses(search, exclude, method_filter, ip_filter)
-            time_filter = range_conditions(
-                AccessLog.timestamp, period.since, period.until
-            ) + text
+            time_filter = (
+                range_conditions(AccessLog.timestamp, period.since, period.until) + text
+            )
 
             top = (
                 session.query(

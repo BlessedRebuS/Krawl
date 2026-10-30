@@ -95,7 +95,9 @@ def rule_label(rule):
     if rule == "credential_fields":
         return "Credential capture"
     key = re.sub(r"^krawl_", "", str(rule or "").strip().lower())
-    m = re.match(r"(cve[_-]\d{4}[_-]\d{4,})(?:[_-](.+))?$", key)  # CVE id, then its words
+    m = re.match(
+        r"(cve[_-]\d{4}[_-]\d{4,})(?:[_-](.+))?$", key
+    )  # CVE id, then its words
     if m:
         return _attack_label(m[1]) + (" " + m[2].replace("_", " ") if m[2] else "")
     return _attack_label(key)

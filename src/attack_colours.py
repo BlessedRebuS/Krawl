@@ -1,7 +1,7 @@
 """Attack type -> severity band + stable shade, for CSS badges, charts and JSON APIs."""
 
 import zlib
-from typing import Iterable
+from collections.abc import Iterable
 
 import detection
 

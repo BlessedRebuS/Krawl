@@ -164,7 +164,8 @@ class CredentialRepo:
         try:
             usernames = [
                 row[0]
-                for row in session.query(CredentialAttempt.username).distinct()
+                for row in session.query(CredentialAttempt.username)
+                .distinct()
                 .filter(CredentialAttempt.username.isnot(None))
                 .filter(CredentialAttempt.username != "")
                 .all()
@@ -172,7 +173,8 @@ class CredentialRepo:
             ]
             passwords = [
                 row[0]
-                for row in session.query(CredentialAttempt.password).distinct()
+                for row in session.query(CredentialAttempt.password)
+                .distinct()
                 .filter(CredentialAttempt.password.isnot(None))
                 .filter(CredentialAttempt.password != "")
                 .all()

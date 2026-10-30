@@ -220,7 +220,9 @@ async def htmx_honeypot(
     period = resolve_period(days, offset_days, slot)
     period_qs = period_query(period)
     tf = clean_text_filters(search, exclude, method_filter, ip_filter)
-    cache_key = f"honeypot:{page}:{sort_by}:{sort_order}{period_qs}{text_filter_key(tf)}"
+    cache_key = (
+        f"honeypot:{page}:{sort_by}:{sort_order}{period_qs}{text_filter_key(tf)}"
+    )
     result = get_cached_table(cache_key)
     if not result:
         result = await asyncio.to_thread(
@@ -1033,6 +1035,7 @@ async def htmx_credentials(
 
 
 # ── Attack Types ─────────────────────────────────────────────────────
+
 
 def parse_severities(raw: str | None) -> list[str]:
     """Known severity bands from a comma list, deduplicated, in given order."""
