@@ -655,7 +655,8 @@ document.addEventListener('alpine:init', () => {
         switchToAttacks() {
             if (this.tab === 'attacks') return;  // Prevent duplicate loading
             // A link or reload carries the drill-down; otherwise keep the last one.
-            if (/^#attacks(\?|$)/.test(window.location.hash)) applyAttacksHash(window.location.hash, false);
+            if (/^#attacks\?/.test(window.location.hash)) applyAttacksHash(window.location.hash, false);
+            else attacksRestoreFilters();
             this.tab = 'attacks';
             writeAttacksHash();
 
@@ -663,6 +664,7 @@ document.addEventListener('alpine:init', () => {
             this.$nextTick(() => {
                 setTimeout(() => {
                     renderAttacksBar();
+                    attacksLoadTypes();
                     if (typeof loadAttackTrendsChart === 'function') {
                         loadAttackTrendsChart();
                     }

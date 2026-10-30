@@ -4390,13 +4390,32 @@ label:has(> .visually-hidden-input:focus-visible) {
 }
 .period-bar .map-limit-btn:not(.active):hover { background: var(--raised); }
 .period-bar .period-label { font-family: var(--font-mono); font-size: var(--fs-xs); min-width: 0; padding-inline: var(--s2); }
+/* Filters take the middle, the window keys sit on the right, pills below. */
+.period-filters { flex: 1 1 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--s2); min-width: 0; }
+.period-window { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); margin-left: auto; }
+.period-pills { flex-basis: 100%; }
+.period-search {
+    width: 240px;
+    min-width: 0;
+    padding: var(--s1) var(--s3);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    color: var(--text-strong);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    outline: none;
+}
+.period-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
+.period-search.is-not { border-color: color-mix(in srgb, var(--danger) 55%, var(--line)); }
+.period-filters .select { min-width: 0; font-size: var(--fs-xs); }
 /* On the tab the period bar holds the pills; the overlay keeps its own. */
 [data-attacks-panel] .panel-header .filter-pill { display: none; }
 .period-pills { display: flex; flex-wrap: wrap; gap: var(--s2); }
 .period-pills[hidden] { display: none; }
 .filter-pill-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
 .range-label { color: var(--text-dim); font-family: var(--font-mono); font-size: var(--fs-2xs); white-space: nowrap; }
-[data-period-only] .range-label::after { content: " · period only"; }
+[data-ignored] .range-label::after { content: " · " attr(data-ignored) " not applied"; }
 /* Severity dot + label: colour never carries the band alone. */
 .sev-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex: none; background: currentColor; }
 .sev-fg-critical { color: var(--sev-critical-1); }
@@ -4416,6 +4435,9 @@ label:has(> .visually-hidden-input:focus-visible) {
 @media (max-width: 640px) {
     /* Two sticky bars would eat a phone screen; the bar scrolls away here. */
     .period-bar { position: static; }
+    .period-filters { justify-content: flex-start; }
+    .period-search { flex: 1 1 100%; width: auto; }
+    .period-window { margin-left: 0; }
 }
 .trends-empty-msg { height: 100%; gap: var(--s2); flex-wrap: wrap; text-align: center; padding: var(--s4); }
 .trends-empty-msg[hidden] { display: none; }

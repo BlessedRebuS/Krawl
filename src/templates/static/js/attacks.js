@@ -6,13 +6,21 @@ const ATTACKS_SPANS = [1, 7, 30];
 const _attacksDefaults = () => ({ days: 7, offset: 0, slot: null, type: null, rule: null, severities: [], ip: null, search: '', method: '', exclude: [] });
 window.attacksState = _attacksDefaults();
 
+const ATTACKS_PERIOD_KEYS = ['days', 'offset_days', 'slot'];
+const ATTACKS_TEXT_KEYS = ['search', 'exclude', 'method_filter', 'ip_filter'];
 // Backend params each panel understands (null = all of them).
 const ATTACKS_PANEL_KEYS = {
     attacks: null,
-    attackers: ['days', 'offset_days', 'slot', 'attack_type_filter', 'rule_filter', 'severity_filter'],
-    credentials: ['days', 'offset_days', 'slot', 'ip_filter'],
+    attackers: [...ATTACKS_PERIOD_KEYS, 'attack_type_filter', 'rule_filter', 'severity_filter', ...ATTACKS_TEXT_KEYS],
+    credentials: [...ATTACKS_PERIOD_KEYS, 'search', 'exclude', 'ip_filter'],
+    honeypot: [...ATTACKS_PERIOD_KEYS, ...ATTACKS_TEXT_KEYS],
+    'targeted-domains': [...ATTACKS_PERIOD_KEYS, ...ATTACKS_TEXT_KEYS],
+    chart: [...ATTACKS_PERIOD_KEYS, ...ATTACKS_TEXT_KEYS],
 };
-const ATTACKS_PERIOD_KEYS = ['days', 'offset_days', 'slot'];
+// Domains keep `search` for the host name; the log search goes as log_search.
+const ATTACKS_PARAM_RENAME = { 'targeted-domains': { search: 'log_search' } };
+const ATTACKS_PARAM_NAMES = { attack_type_filter: 'type', rule_filter: 'rule', severity_filter: 'severity', method_filter: 'method' };
+const ATTACKS_STORE = 'krawl.attacks.filters';
 
 const _MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const _pad = n => String(n).padStart(2, '0');
@@ -118,23 +126,122 @@ function shiftAttacksPeriod(direction) {
     setAttacksState({ offset: Math.max(0, attacksState.offset - direction * attacksState.days) });
 }
 
-function _attacksPanelKeys(el) {
-    const name = el.dataset.attacksPanel;
-    return name in ATTACKS_PANEL_KEYS ? ATTACKS_PANEL_KEYS[name] : ATTACKS_PERIOD_KEYS;
+const _attacksKeysOf = name => (name in ATTACKS_PANEL_KEYS ? ATTACKS_PANEL_KEYS[name] : ATTACKS_PERIOD_KEYS);
+const _attacksPanelKeys = el => _attacksKeysOf(el.dataset.attacksPanel);
+
+// The params a panel understands, named as its endpoint expects.
+function attacksPanelParams(name) {
+    const keys = _attacksKeysOf(name), rename = ATTACKS_PARAM_RENAME[name] || {};
+    return new URLSearchParams([...attacksParams()].filter(([k]) => !keys || keys.includes(k)).map(([k, v]) => [rename[k] || k, v]));
 }
 
-// The params a panel understands, as a query string.
-function _attacksPanelQs(el) {
-    const keys = _attacksPanelKeys(el);
-    return [...attacksParams()].filter(([k]) => !keys || keys.includes(k)).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+const _attacksPanelQs = el => attacksPanelParams(el.dataset.attacksPanel).toString();
+
+const _attacksChartKey = () => attacksPanelParams('chart').toString();
+
+// Active filters a panel does not apply, as people name them ("type, severity").
+function _attacksIgnored(name) {
+    const keys = _attacksKeysOf(name);
+    if (!keys) return '';
+    const off = [...attacksParams().keys()].filter(k => !keys.includes(k)).map(k => ATTACKS_PARAM_NAMES[k] || k);
+    return [...new Set(off)].join(', ');
 }
 
-const _attacksChartKey = () => `${attacksState.days}|${attacksState.offset}|${attacksState.slot}`;
+// The filter part of the state survives reloads; slot and offset are drill-downs.
+function _attacksSaveFilters() {
+    const q = new URLSearchParams(_attacksHash().slice('#attacks?'.length));
+    q.delete('slot');
+    q.delete('offset');
+    try { localStorage.setItem(ATTACKS_STORE, q.toString()); } catch (_) { /* private mode */ }
+}
+
+// Arriving without filters in the hash brings back the last ones used.
+function attacksRestoreFilters() {
+    let saved = '';
+    try { saved = localStorage.getItem(ATTACKS_STORE) || ''; } catch (_) { /* private mode */ }
+    applyAttacksHash('#attacks?' + saved, false);
+}
+
+let _attacksNot = false;
+let _attacksSearchTimer = null;
+
+function toggleAttacksNot() {
+    _attacksNot = !_attacksNot;
+    clearTimeout(_attacksSearchTimer);
+    renderAttacksBar();
+    const input = document.getElementById('attacks-search');
+    if (input) { input.value = _attacksNot ? '' : attacksState.search; input.focus(); }
+}
+
+function attacksSearchInput(input) {
+    if (_attacksNot) return;
+    clearTimeout(_attacksSearchTimer);
+    _attacksSearchTimer = setTimeout(() => setAttacksState({ search: input.value }), 300);
+}
+
+// Enter applies at once; with Not on it adds an exclude term. Escape clears.
+function attacksSearchKey(e, input) {
+    if (e.key === 'Escape') {
+        input.value = '';
+        if (!_attacksNot && attacksState.search) setAttacksState({ search: '' });
+        return;
+    }
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    clearTimeout(_attacksSearchTimer);
+    const term = input.value.trim().slice(0, 200);
+    if (!_attacksNot) return setAttacksState({ search: input.value });
+    if (!term) return;
+    input.value = '';
+    if (!attacksState.exclude.includes(term)) setAttacksState({ exclude: [...attacksState.exclude, term].slice(0, 10) });
+}
+
+let _attacksTypesLoading = false;
+
+// The type picker lists the attack types seen, labelled as people say them.
+function attacksLoadTypes() {
+    const pick = document.getElementById('attacks-type');
+    if (!pick || pick.options.length > 2 || _attacksTypesLoading) return;
+    _attacksTypesLoading = true;
+    fetch(`${window.__DASHBOARD_PATH__ || ''}/htmx/attack-types-list`)
+        .then(r => (r.ok ? r.json() : { attack_types: [] }))
+        .then(data => {
+            const sel = document.getElementById('attacks-type');
+            if (!sel) return;
+            const types = (Array.isArray(data.attack_types) ? data.attack_types : []).filter(t => !sel.querySelector(`option[value="${CSS.escape(t)}"]`));
+            sel.append(...types.map(t => new Option(krawlAttackLabel(t), t)));
+            sel.value = attacksState.type || '';
+        })
+        .catch(() => {})
+        .finally(() => { _attacksTypesLoading = false; });
+}
+
+// Keep the bar's controls showing the state, without fighting someone typing.
+function _attacksSyncControls() {
+    const s = attacksState;
+    const not = document.getElementById('attacks-not');
+    if (not) not.setAttribute('aria-pressed', String(_attacksNot));
+    if (not) not.classList.toggle('active', _attacksNot);
+    const input = document.getElementById('attacks-search');
+    if (input) {
+        input.classList.toggle('is-not', _attacksNot);
+        input.placeholder = _attacksNot ? 'Exclude… (Enter to add)' : 'Filter IP, path, user agent…';
+        if (!_attacksNot && document.activeElement !== input) input.value = s.search;
+    }
+    const method = document.getElementById('attacks-method');
+    if (method) method.value = s.method || '';
+    const type = document.getElementById('attacks-type');
+    if (type) {
+        if (s.type && !type.querySelector(`option[value="${CSS.escape(s.type)}"]`)) type.append(new Option(krawlAttackLabel(s.type), s.type));
+        type.value = s.type || '';
+    }
+}
 
 function _attacksRefresh(writeHash) {
     const app = typeof _getAlpineData === 'function' ? _getAlpineData() : null;
     const onTab = app && app.tab === 'attacks';
     if (onTab && writeHash) writeAttacksHash();
+    if (onTab) _attacksSaveFilters();
     renderAttacksBar();
     _syncAttacksOverlay(app);
     // While the overlay covers the tab, the tab catches up when it closes.
@@ -221,14 +328,19 @@ function renderAttacksBar() {
     if (next) next.disabled = s.offset <= 0;
     const range = document.getElementById('attacks-range');
     if (range) range.textContent = _attacksRangeText();
-    // Panels honouring none of the active filters label their range "period only".
-    const active = [...attacksParams().keys()].filter(k => !ATTACKS_PERIOD_KEYS.includes(k));
+    // Panels say which active filters they do not apply ("type, severity not applied").
     document.querySelectorAll('[data-attacks-panel]').forEach(el => {
-        const keys = _attacksPanelKeys(el);
-        el.toggleAttribute('data-period-only', !!keys && active.length > 0 && !active.some(k => keys.includes(k)));
+        const off = _attacksIgnored(el.dataset.attacksPanel);
+        if (off) el.dataset.ignored = off;
+        else delete el.dataset.ignored;
     });
     const scope = document.getElementById('trends-scope');
-    if (scope) scope.hidden = !active.length;
+    if (scope) {
+        const off = _attacksIgnored('chart');
+        scope.textContent = off ? `${off} not applied` : '';
+        scope.hidden = !off;
+    }
+    _attacksSyncControls();
     const pills = document.getElementById('attacks-pills');
     if (!pills) return;
     const list = [];

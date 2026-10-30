@@ -102,12 +102,15 @@ The Attacks tab shares one period across the trends chart, the Detected attacks 
 
 ### Filters
 
-Active filters show as pills above the table; click a pill's x to remove it.
+The period bar holds the shared filters in the middle and the 1D / 7D / 30D window on the right. Active filters show as pills below it; click a pill's x to remove it.
 
+- **Text filter:** type to keep requests whose IP, path or user agent contains the text. Turn on **Not** and press Enter to add a *not "…"* term instead (up to 10). Escape clears the box.
+- **Method and attack type** pickers narrow to one HTTP method or one attack type.
 - **Severity chips:** toggle critical, high, medium and low. Several can be on at once.
 - **Rule picker:** choose one YARA rule. Choosing a severity chip clears a rule that no longer fits.
 - **Attack type, IP and slot** filters come from clicking a type, an IP or a chart slot.
-- **Scope:** the Detected attacks table follows every filter. Attackers in period follows type, rule and severity; Captured Credentials follows the IP. The trends chart, Targeted Domains and Honeypot Triggers follow the period only, and their range label says "period only" while other filters are on.
+- **Scope:** the text filter, Not terms, method and IP narrow every panel: the trends chart and its totals, Detected attacks, Attackers in period, Captured Credentials (matched on IP, path and username), Targeted Domains and Honeypot Triggers. Type, rule and severity narrow Detected attacks and Attackers in period only. A panel's range label names any active filter it does not apply, for example "type, severity not applied".
+- **Saved filters:** the filters and the span are kept in the browser (localStorage) and come back when you reload or open the Attacks tab again. A link with filters in its `#attacks?…` hash wins over the saved ones; the clicked slot and older periods are not saved.
 
 ### Attackers in period
 

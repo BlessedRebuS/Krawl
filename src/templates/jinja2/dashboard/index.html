@@ -112,15 +112,34 @@
 
         {# Period bar: span, window and every active narrowing; sticky under the tab strip #}
         <div class="period-bar" role="group" aria-label="Attacks period and filters">
-            <div class="row gap-1" id="attacks-span" role="group" aria-label="Period length">
-                <button type="button" class="map-limit-btn" data-days="1" onclick="setAttacksState({days: 1, offset: 0})">1D</button>
-                <button type="button" class="map-limit-btn active" data-days="7" onclick="setAttacksState({days: 7, offset: 0})">7D</button>
-                <button type="button" class="map-limit-btn" data-days="30" onclick="setAttacksState({days: 30, offset: 0})">30D</button>
+            <div class="period-filters" role="search" aria-label="Filter every panel">
+                <button type="button" id="attacks-not" class="map-limit-btn btn-sm" aria-pressed="false"
+                        onclick="toggleAttacksNot()"
+                        title="Invert: Enter hides requests whose IP, path or user agent contains the text">Not</button>
+                <input type="search" id="attacks-search" class="period-search" autocomplete="off"
+                       placeholder="Filter IP, path, user agent…" aria-label="Filter requests by IP, path or user agent"
+                       oninput="attacksSearchInput(this)" onkeydown="attacksSearchKey(event, this)" />
+                <select id="attacks-method" class="select select-sm" aria-label="HTTP method"
+                        onchange="setAttacksState({method: this.value})">
+                    <option value="">Any method</option>
+                    {% for m in ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'] %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+                </select>
+                <select id="attacks-type" class="select select-sm" aria-label="Attack type"
+                        onchange="setAttacksState({type: this.value || null})">
+                    <option value="">All attack types</option>
+                </select>
             </div>
-            <div class="row">
-                <button type="button" id="attacks-prev" onclick="shiftAttacksPeriod(-1)" class="pagination-btn fs-sm" aria-label="Previous period">&#8592;</button>
-                <span id="attacks-range" class="period-label" aria-live="polite"></span>
-                <button type="button" id="attacks-next" onclick="shiftAttacksPeriod(1)" class="pagination-btn fs-sm" aria-label="Next period" disabled>&#8594;</button>
+            <div class="period-window">
+                <div class="row gap-1" id="attacks-span" role="group" aria-label="Period length">
+                    <button type="button" class="map-limit-btn" data-days="1" onclick="setAttacksState({days: 1, offset: 0})">1D</button>
+                    <button type="button" class="map-limit-btn active" data-days="7" onclick="setAttacksState({days: 7, offset: 0})">7D</button>
+                    <button type="button" class="map-limit-btn" data-days="30" onclick="setAttacksState({days: 30, offset: 0})">30D</button>
+                </div>
+                <div class="row">
+                    <button type="button" id="attacks-prev" onclick="shiftAttacksPeriod(-1)" class="pagination-btn fs-sm" aria-label="Previous period">&#8592;</button>
+                    <span id="attacks-range" class="period-label" aria-live="polite"></span>
+                    <button type="button" id="attacks-next" onclick="shiftAttacksPeriod(1)" class="pagination-btn fs-sm" aria-label="Next period" disabled>&#8594;</button>
+                </div>
             </div>
             <div id="attacks-pills" class="period-pills" role="group" aria-label="Active filters" hidden></div>
         </div>
@@ -129,7 +148,7 @@
         <div class="table-container alert-section">
             <div class="chart-head">
                 <h2 class="m-0">Attack Trends</h2>
-                <span id="trends-scope" class="range-label" title="The chart follows the period, not the other filters" hidden>period only</span>
+                <span id="trends-scope" class="range-label" hidden></span>
             </div>
             <div class="chart-row">
                 <div class="chart-wrapper chart-main">

@@ -192,8 +192,8 @@ async function loadAttackTrendsChart(canvasId) {
         if (!canvas) return;
         release = window.krawlBusy ? krawlBusy(canvas.parentElement) : release;
 
-        const q = new URLSearchParams({ limit: 10, days: s.days, offset_days: s.offset });
-        if (s.slot) q.set('slot', s.slot);
+        const q = attacksPanelParams('chart');
+        q.set('limit', 10);
         const url = `${DASHBOARD_PATH}/api/attack-types-daily?${q}`;
         // A stuck query must not leave the panel spinning forever.
         const timeout = new AbortController();
