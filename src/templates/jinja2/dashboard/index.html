@@ -157,9 +157,12 @@
                 </button>
             </div>
             <div class="panel-filters" role="search" aria-label="Filter every panel on this tab">
-                <button type="button" id="attacks-not" class="map-limit-btn btn-sm" aria-pressed="false"
-                        onclick="toggleAttacksNot()"
-                        title="Invert: Enter adds a term that hides requests whose IP, path or user agent contains it">Not</button>
+                <div class="term-mode" role="radiogroup" aria-label="What Enter adds">
+                    <button type="button" id="attacks-mode-only" role="radio" aria-checked="true" onclick="setAttacksMode(false)"
+                            title="Show only requests whose IP, path or user agent contains the text">Only</button>
+                    <button type="button" id="attacks-mode-hide" role="radio" aria-checked="false" onclick="setAttacksMode(true)"
+                            title="Hide requests whose IP, path or user agent contains the text">Hide</button>
+                </div>
                 <input type="search" id="attacks-search" class="panel-filter-input" autocomplete="off"
                        placeholder="Filter IP, path, user agent… Enter to add"
                        aria-label="Add a filter on IP, path or user agent; press Enter"

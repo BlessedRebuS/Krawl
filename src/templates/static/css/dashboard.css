@@ -4403,6 +4403,32 @@ label:has(> .visually-hidden-input:focus-visible) {
 }
 .applied-pill-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
 .applied-pill-key { color: var(--text-dim); font-size: var(--fs-2xs); white-space: nowrap; }
+button.applied-pill-key {
+    padding: 1px 6px;
+    margin-left: -6px;
+    background: none;
+    border: 0;
+    border-radius: var(--r-pill);
+    font-family: inherit;
+    cursor: pointer;
+}
+button.applied-pill-key:hover { color: var(--text-strong); background: var(--line); }
+/* Only | Hide: what Enter adds to the filters. */
+.term-mode { display: inline-flex; padding: 2px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-md); }
+.term-mode button {
+    height: 24px;
+    padding: 0 var(--s3);
+    color: var(--text-dim);
+    background: none;
+    border: 0;
+    border-radius: var(--r-sm);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    cursor: pointer;
+}
+.term-mode button:hover { color: var(--text); }
+.term-mode button.active { color: var(--text-strong); background: var(--raised); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 2px rgba(0, 0, 0, 0.45); }
+#attacks-mode-hide.active { color: var(--danger); }
 .applied-pill-value {
     min-width: 0;
     overflow: hidden;

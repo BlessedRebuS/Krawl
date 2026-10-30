@@ -165,8 +165,9 @@ function attacksRestoreFilters() {
 
 let _attacksNot = false;
 
-function toggleAttacksNot() {
-    _attacksNot = !_attacksNot;
+// Only (keep matching requests) or Hide (drop them): what the next Enter adds.
+function setAttacksMode(hide) {
+    _attacksNot = !!hide;
     _attacksSyncControls();
     const input = document.getElementById('attacks-search');
     if (input) input.focus();
@@ -211,13 +212,14 @@ function attacksLoadTypes() {
 // Keep the bar's controls showing the state, without fighting someone typing.
 function _attacksSyncControls() {
     const s = attacksState;
-    const not = document.getElementById('attacks-not');
-    if (not) not.setAttribute('aria-pressed', String(_attacksNot));
-    if (not) not.classList.toggle('active', _attacksNot);
+    for (const [id, on] of [['attacks-mode-only', !_attacksNot], ['attacks-mode-hide', _attacksNot]]) {
+        const b = document.getElementById(id);
+        if (b) { b.setAttribute('aria-checked', String(on)); b.classList.toggle('active', on); }
+    }
     const input = document.getElementById('attacks-search');
     if (input) {
         input.classList.toggle('is-not', _attacksNot);
-        input.placeholder = _attacksNot ? 'Exclude IP, path, user agent… Enter to add' : 'Filter IP, path, user agent… Enter to add';
+        input.placeholder = _attacksNot ? 'Hide requests containing… Enter to add' : 'Show only requests containing… Enter to add';
     }
     const method = document.getElementById('attacks-method');
     if (method) method.value = s.method || '';
@@ -280,7 +282,7 @@ function _attacksRangeText() {
 }
 
 // One applied filter: a dim key ("not", "method"), its value, and a remove button.
-function _attacksPill(key, value, patch, dot) {
+function _attacksPill(key, value, patch, dot, flip) {
     const pill = document.createElement('span');
     pill.className = 'applied-pill';
     if (dot) {
@@ -289,9 +291,16 @@ function _attacksPill(key, value, patch, dot) {
         d.style.background = dot;
         pill.append(d);
     }
-    const k = document.createElement('span');
+    // A text term's key is a button that flips it between only and hide.
+    const k = document.createElement(flip ? 'button' : 'span');
     k.className = 'applied-pill-key';
     k.textContent = key;
+    if (flip) {
+        k.type = 'button';
+        k.title = key === 'only' ? 'Hide these instead' : 'Show only these instead';
+        k.setAttribute('aria-label', `${key} ${value}: switch to ${key === 'only' ? 'hide' : 'only'}`);
+        k.onclick = () => setAttacksState(flip);
+    }
     const v = document.createElement('span');
     v.className = 'applied-pill-value';
     v.textContent = value;
@@ -354,8 +363,9 @@ function renderAttacksBar() {
     s.severities.forEach(b => list.push(_attacksPill('severity', b[0].toUpperCase() + b.slice(1), { severities: s.severities.filter(x => x !== b) }, krawlSeverityColor(b, 1))));
     if (s.ip) list.push(_attacksPill('ip', s.ip, { ip: null }));
     if (s.method) list.push(_attacksPill('method', s.method, { method: '' }));
-    s.search.forEach(t => list.push(_attacksPill('has', t, { search: s.search.filter(x => x !== t) })));
-    s.exclude.forEach(t => list.push(_attacksPill('not', t, { exclude: s.exclude.filter(x => x !== t) })));
+    const swap = (t, from, to) => ({ [from]: s[from].filter(x => x !== t), [to]: s[to].includes(t) ? s[to] : [...s[to], t].slice(0, 10) });
+    s.search.forEach(t => list.push(_attacksPill('only', t, { search: s.search.filter(x => x !== t) }, null, swap(t, 'search', 'exclude'))));
+    s.exclude.forEach(t => list.push(_attacksPill('hide', t, { exclude: s.exclude.filter(x => x !== t) }, null, swap(t, 'exclude', 'search'))));
     if (list.length > 1) {
         const all = document.createElement('button');
         all.type = 'button';

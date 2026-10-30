@@ -104,7 +104,7 @@ The Attacks tab shares one period across the trends chart, the Detected attacks 
 
 The period bar at the top shows the applied filters as pills on the left (click a pill's x to remove it, or **Clear all**) and the 1D / 7D / 30D window on the right. Filters are added in the Detected attacks panel (or its expanded view) and from the chart; they then apply to the whole tab.
 
-- **Text filter:** type in the Detected attacks filter box and press Enter to add a *has "…"* term: requests whose IP, path or user agent contains it. Turn on **Not** first to add a *not "…"* term instead. Terms stack (up to 10 of each) and all must hold. Escape clears the box.
+- **Text filter:** pick **Only** or **Hide** next to the Detected attacks filter box, type, and press Enter. *only "…"* keeps just the requests whose IP, path or user agent contains the text; *hide "…"* drops them. Terms stack (up to 10 of each) and all must hold. Click a pill's *only* / *hide* word to flip it. Escape clears the box.
 - **Method and attack type** pickers narrow to one HTTP method or one attack type.
 - **Severity chips:** toggle critical, high, medium and low. Several can be on at once.
 - **Rule picker:** choose one YARA rule. Choosing a severity chip clears a rule that no longer fits.
@@ -155,7 +155,7 @@ Shows which IPs accessed honeypot endpoints and how many times, sorted by trigge
 
 A detailed table of individual attack detections showing IP, path, attack type classifications, user-agent, request method, size, and timestamp. The size column is sortable, so the heaviest payloads surface first. Each entry can be expanded to view the raw HTTP request.
 
-In the expanded view, filter by method, attack type or the **Filter** box. Turn on **Not** next to it to invert the match: each time you press Enter, the typed text is added as a *not "…"* pill and every request whose IP, path or user agent contains it (ignoring case) is hidden. Terms add up, so `wp-login` ⏎ `app` ⏎ `test` ⏎ shows requests matching none of the three, up to 10 terms. Click a pill's × to bring those requests back; turn **Not** off to go back to a normal live search.
+In the expanded view, filter by method, attack type or the **Filter** box. Turn on **Hide** next to it to invert the match: each time you press Enter, the typed text is added as a *hide "…"* pill and every request whose IP, path or user agent contains it (ignoring case) is hidden. Terms add up, so `wp-login` ⏎ `app` ⏎ `test` ⏎ shows requests matching none of the three, up to 10 terms. Click a pill's × to bring those requests back; turn **Hide** off to go back to a normal live search.
 
 **Attachments.** When the request carried an upload — a webshell, a malware sample, an exfiltration payload — a paperclip button appears in the raw request modal listing the uploaded files, and downloads the one you click. Both `multipart/form-data` parts and raw-body uploads are recognised. Treat every download as hostile and open it in a sandbox. Requests with bodies above 64 KB are not buffered, so they have no retrievable attachment. The same data is available through the [Dashboard API](dashboard-api.md#attachments).
 

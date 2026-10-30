@@ -22,9 +22,9 @@
                         :class="{ active: expandOverlay.invert }"
                         :aria-pressed="expandOverlay.invert"
                         @click="toggleExpandInvert()"
-                        title="Invert match: each Enter hides requests whose IP, path or user agent contains the text"
+                        title="Hide: each Enter hides requests whose IP, path or user agent contains the text"
                         x-show="expandOverlay.endpoint === 'attacks'"
-                        x-cloak>Not</button>
+                        x-cloak>Hide</button>
                 <input type="text"
                        class="expand-overlay-search"
                        :placeholder="expandOverlay.invert ? 'Exclude... (Enter to add)' : expandOverlay.shared ? 'Filter... (Enter to add)' : (({ 'targeted-domains': 'Filter domains', 'global-filenames': 'Filter filenames', 'request-assets': 'Filter URLs' })[expandOverlay.endpoint] || 'Filter...')"
