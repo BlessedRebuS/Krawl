@@ -6,7 +6,7 @@ Writes (persist_credential) stay on DatabaseManager as a hot path.
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import distinct, func
+from sqlalchemy import func
 
 from dashboard_cache import pagination
 from logger import get_app_logger
@@ -159,7 +159,7 @@ class CredentialRepo:
         try:
             usernames = [
                 row[0]
-                for row in session.query(distinct(CredentialAttempt.username))
+                for row in session.query(CredentialAttempt.username).distinct()
                 .filter(CredentialAttempt.username.isnot(None))
                 .filter(CredentialAttempt.username != "")
                 .all()
@@ -167,7 +167,7 @@ class CredentialRepo:
             ]
             passwords = [
                 row[0]
-                for row in session.query(distinct(CredentialAttempt.password))
+                for row in session.query(CredentialAttempt.password).distinct()
                 .filter(CredentialAttempt.password.isnot(None))
                 .filter(CredentialAttempt.password != "")
                 .all()

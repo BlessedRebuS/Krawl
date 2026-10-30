@@ -827,7 +827,7 @@ class AccessLogRepo:
             from config import get_config
 
             server_ip = get_config().get_server_ip()
-            query = session.query(distinct(AccessLog.path))
+            query = session.query(AccessLog.path).distinct()
             query = self._db._public_ip_filter(query, AccessLog.ip, server_ip)
             return [row[0] for row in query.all() if row[0] is not None]
         except Exception as e:
