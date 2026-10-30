@@ -467,7 +467,7 @@ def test_attack_type_tags_are_banded_by_rule_severity(coordinator, monkeypatch):
     from dependencies import _attack_severity_band
 
     monkeypatch.setattr(detection, "_coordinator", None)
-    assert _attack_severity_band("cve_2019_0193") == "unknown"
+    assert _attack_severity_band("cve_2019_0193") == "low"
 
     monkeypatch.setattr(detection, "_coordinator", coordinator)
     expected = detection.severity_band(
@@ -475,4 +475,4 @@ def test_attack_type_tags_are_banded_by_rule_severity(coordinator, monkeypatch):
     )
     assert expected != "unknown"
     assert _attack_severity_band("cve_2019_0193") == expected
-    assert _attack_severity_band("no_such_type") == "unknown"
+    assert _attack_severity_band("no_such_type") == "low"
