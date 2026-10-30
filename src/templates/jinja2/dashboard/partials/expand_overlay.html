@@ -27,7 +27,7 @@
                         x-cloak>Not</button>
                 <input type="text"
                        class="expand-overlay-search"
-                       :placeholder="expandOverlay.invert ? 'Exclude... (Enter to add)' : (({ 'targeted-domains': 'Filter domains', 'global-filenames': 'Filter filenames', 'request-assets': 'Filter URLs' })[expandOverlay.endpoint] || 'Filter...')"
+                       :placeholder="expandOverlay.invert ? 'Exclude... (Enter to add)' : expandOverlay.shared ? 'Filter... (Enter to add)' : (({ 'targeted-domains': 'Filter domains', 'global-filenames': 'Filter filenames', 'request-assets': 'Filter URLs' })[expandOverlay.endpoint] || 'Filter...')"
                        :aria-label="expandOverlay.invert ? 'Exclude requests containing this text; press Enter to add' : (({ 'targeted-domains': 'Filter domains', 'global-filenames': 'Filter filenames', 'request-assets': 'Filter URLs' })[expandOverlay.endpoint] || 'Filter results')"
                        x-model="expandOverlay.search"
                        @input.debounce.300ms="expandOverlay.invert || triggerExpandSearch()"

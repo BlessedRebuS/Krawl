@@ -4365,23 +4365,21 @@ label:has(> .visually-hidden-input:focus-visible) {
 .trends-total-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--type-c); flex: none; }
 .trends-total-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trends-total-count { color: var(--text-strong); font-weight: 600; font-variant-numeric: tabular-nums; }
-/* Attacks period bar: one span, window and filter set for the whole tab,
-   sticky under the tab strip (--tabbar-h is measured by attacks.js). */
+/* Attacks period bar: the applied filters and the window for the whole tab.
+   A solid panel tone, sticky under the tab strip (--tabbar-h from attacks.js). */
 .period-bar {
     position: sticky;
     top: calc(var(--s2) * 2 + var(--tabbar-h, 50px));
     z-index: var(--z-sticky);
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: var(--s2) var(--s4);
+    gap: var(--s3) var(--s5);
+    min-height: 52px;
     margin-bottom: var(--s5);
-    padding: var(--s2) var(--s3);
-    background: color-mix(in srgb, var(--surface) 92%, transparent);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    padding: var(--s2) var(--s3) var(--s2) var(--s4);
+    background: var(--surface);
     border-radius: var(--r-panel);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035), var(--shadow-2);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 /* Span keys sit raised, like the tabs. */
 .period-bar .map-limit-btn:not(.active) {
@@ -4390,14 +4388,64 @@ label:has(> .visually-hidden-input:focus-visible) {
 }
 .period-bar .map-limit-btn:not(.active):hover { background: var(--raised); }
 .period-bar .period-label { font-family: var(--font-mono); font-size: var(--fs-xs); min-width: 0; padding-inline: var(--s2); }
-/* Filters take the middle, the window keys sit on the right, pills below. */
-.period-filters { flex: 1 1 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--s2); min-width: 0; }
-.period-window { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); margin-left: auto; }
-.period-pills { flex-basis: 100%; }
-.period-search {
-    width: 240px;
+/* Applied filters on the left, the window keys on the right. */
+.period-window { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); margin-left: auto; flex: none; }
+.applied-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 26px;
+    max-width: 320px;
+    padding: 0 3px 0 10px;
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+}
+.applied-pill-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.applied-pill-key { color: var(--text-dim); font-size: var(--fs-2xs); white-space: nowrap; }
+.applied-pill-value {
     min-width: 0;
-    padding: var(--s1) var(--s3);
+    overflow: hidden;
+    color: var(--text-strong);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.applied-pill-clear {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    flex: none;
+    padding: 0;
+    color: var(--text-dim);
+    background: none;
+    border: 0;
+    border-radius: 50%;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 150ms ease, color 150ms ease;
+}
+.applied-pill-clear:hover { color: var(--text-strong); background: var(--line); }
+.applied-clear-all {
+    padding: 0 var(--s1);
+    color: var(--text-dim);
+    background: none;
+    border: 0;
+    font-size: var(--fs-xs);
+    cursor: pointer;
+}
+.applied-clear-all:hover { color: var(--text-strong); text-decoration: underline; text-underline-offset: 3px; }
+.applied-empty { color: var(--text-faint); font-size: var(--fs-xs); }
+/* Detected attacks: the inputs that add filters for the whole tab. */
+.panel-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); margin-bottom: var(--s3); }
+.panel-filter-input {
+    width: 300px;
+    max-width: 100%;
+    height: 30px;
+    padding: 0 var(--s3);
     background: var(--bg);
     border: 1px solid var(--line);
     border-radius: var(--r-md);
@@ -4406,13 +4454,13 @@ label:has(> .visually-hidden-input:focus-visible) {
     font-size: var(--fs-xs);
     outline: none;
 }
-.period-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
-.period-search.is-not { border-color: color-mix(in srgb, var(--danger) 55%, var(--line)); }
-.period-filters .select { min-width: 0; font-size: var(--fs-xs); }
+.panel-filter-input::placeholder { color: var(--text-faint); font-family: var(--font-ui); }
+.panel-filter-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
+.panel-filter-input.is-not { border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); }
+.panel-filters .select { height: 30px; min-width: 0; font-size: var(--fs-xs); }
 /* On the tab the period bar holds the pills; the overlay keeps its own. */
 [data-attacks-panel] .panel-header .filter-pill { display: none; }
-.period-pills { display: flex; flex-wrap: wrap; gap: var(--s2); }
-.period-pills[hidden] { display: none; }
+.period-pills { display: flex; flex: 1 1 auto; flex-wrap: wrap; align-items: center; gap: var(--s2); min-width: 0; }
 .filter-pill-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
 .range-label { color: var(--text-dim); font-family: var(--font-mono); font-size: var(--fs-2xs); white-space: nowrap; }
 [data-ignored] .range-label::after { content: " · " attr(data-ignored) " not applied"; }
@@ -4435,9 +4483,9 @@ label:has(> .visually-hidden-input:focus-visible) {
 @media (max-width: 640px) {
     /* Two sticky bars would eat a phone screen; the bar scrolls away here. */
     .period-bar { position: static; }
-    .period-filters { justify-content: flex-start; }
-    .period-search { flex: 1 1 100%; width: auto; }
-    .period-window { margin-left: 0; }
+    .period-bar { flex-wrap: wrap; }
+    .period-window { flex: 1 1 100%; margin-left: 0; }
+    .panel-filter-input { flex: 1 1 100%; width: auto; }
 }
 .trends-empty-msg { height: 100%; gap: var(--s2); flex-wrap: wrap; text-align: center; padding: var(--s4); }
 .trends-empty-msg[hidden] { display: none; }

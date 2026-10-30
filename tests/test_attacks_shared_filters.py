@@ -125,3 +125,13 @@ def test_filter_helpers_normalise_and_quote():
     tf = clean_text_filters(" a b ", "wp-login, ,x", "get", "")
     assert tf == {"search": "a b", "exclude": "wp-login,x", "method_filter": "GET"}
     assert text_filter_qs(tf) == "&search=a%20b&exclude=wp-login%2Cx&method_filter=GET"
+
+
+def test_search_terms_stack_and_all_must_match(db):
+    a = db.analytics
+    base = dict(since=SINCE, until=UNTIL)
+    got = a.get_attackers_in_period(**base, search=".php,Mozilla")["attackers"]
+    assert _ips(got) == ["203.0.113.1", "203.0.113.2"]
+    got = a.get_attackers_in_period(**base, search=["xmlrpc", "Mozilla"])["attackers"]
+    assert _ips(got) == ["203.0.113.2"]
+    assert clean_text_filters("a, b,,a", "", "", "")["search"] == "a,b,a"

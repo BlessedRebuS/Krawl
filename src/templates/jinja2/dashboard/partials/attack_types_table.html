@@ -57,14 +57,15 @@
                     aria-label="Clear method filter" title="Clear method">&times;</button>
         </span>
         {% endif %}
-        {% if search %}
-        <span class="filter-pill filter-pill-danger">
-            &ldquo;{{ search | e }}&rdquo;
+        {% for term in search_terms %}
+        <span class="filter-pill">
+            has &ldquo;{{ term | e }}&rdquo;
             <button type="button" class="filter-pill-clear"
-                    onclick="clearExpandFilter('search')"
-                    aria-label="Clear search" title="Clear search">&times;</button>
+                    data-term="{{ term | e }}"
+                    onclick="removeSearchTerm(this.dataset.term)"
+                    aria-label="Stop filtering on {{ term | e }}" title="Remove filter">&times;</button>
         </span>
-        {% endif %}
+        {% endfor %}
         {% for term in exclude_terms %}
         <span class="filter-pill">
             not &ldquo;{{ term | e }}&rdquo;

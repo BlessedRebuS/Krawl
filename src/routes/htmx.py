@@ -1191,6 +1191,7 @@ async def htmx_attacks(
             "ip_filter": ip_filter or "",
             "attack_type_filter": attack_type_filter or "",
             "search": search or "",
+            "search_terms": parse_exclude_terms(search),
             "method_filter": method_filter or "",
             "exclude": exclude,
             "exclude_terms": exclude_terms,

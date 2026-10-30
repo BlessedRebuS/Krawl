@@ -110,25 +110,9 @@
     <template x-if="tab === 'attacks'">
     <div>
 
-        {# Period bar: span, window and every active narrowing; sticky under the tab strip #}
-        <div class="period-bar" role="group" aria-label="Attacks period and filters">
-            <div class="period-filters" role="search" aria-label="Filter every panel">
-                <button type="button" id="attacks-not" class="map-limit-btn btn-sm" aria-pressed="false"
-                        onclick="toggleAttacksNot()"
-                        title="Invert: Enter hides requests whose IP, path or user agent contains the text">Not</button>
-                <input type="search" id="attacks-search" class="period-search" autocomplete="off"
-                       placeholder="Filter IP, path, user agent…" aria-label="Filter requests by IP, path or user agent"
-                       oninput="attacksSearchInput(this)" onkeydown="attacksSearchKey(event, this)" />
-                <select id="attacks-method" class="select select-sm" aria-label="HTTP method"
-                        onchange="setAttacksState({method: this.value})">
-                    <option value="">Any method</option>
-                    {% for m in ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'] %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
-                </select>
-                <select id="attacks-type" class="select select-sm" aria-label="Attack type"
-                        onchange="setAttacksState({type: this.value || null})">
-                    <option value="">All attack types</option>
-                </select>
-            </div>
+        {# Period bar: applied filters and the window; sticky under the tab strip. Filters are added in the panels. #}
+        <div class="period-bar" role="group" aria-label="Attacks period and applied filters">
+            <div id="attacks-pills" class="period-pills" role="group" aria-label="Applied filters"></div>
             <div class="period-window">
                 <div class="row gap-1" id="attacks-span" role="group" aria-label="Period length">
                     <button type="button" class="map-limit-btn" data-days="1" onclick="setAttacksState({days: 1, offset: 0})">1D</button>
@@ -141,7 +125,6 @@
                     <button type="button" id="attacks-next" onclick="shiftAttacksPeriod(1)" class="pagination-btn fs-sm" aria-label="Next period" disabled>&#8594;</button>
                 </div>
             </div>
-            <div id="attacks-pills" class="period-pills" role="group" aria-label="Active filters" hidden></div>
         </div>
 
         {# Attack Trends line chart with totals sidebar #}
@@ -172,6 +155,24 @@
                 <button class="expand-btn" onclick="openExpandOverlay('Detected attacks', 'attacks', 25)" title="Expand" aria-label="Expand Detected attacks">
                     <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5H4.56l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L3.5 4.56v2.69a.75.75 0 0 1-1.5 0v-3.5A1.75 1.75 0 0 1 3.75 2Zm8.5 12h-3.5a.75.75 0 0 1 0-1.5h2.69l-2.72-2.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.72 2.72v-2.69a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14Z"/></svg>
                 </button>
+            </div>
+            <div class="panel-filters" role="search" aria-label="Filter every panel on this tab">
+                <button type="button" id="attacks-not" class="map-limit-btn btn-sm" aria-pressed="false"
+                        onclick="toggleAttacksNot()"
+                        title="Invert: Enter adds a term that hides requests whose IP, path or user agent contains it">Not</button>
+                <input type="search" id="attacks-search" class="panel-filter-input" autocomplete="off"
+                       placeholder="Filter IP, path, user agent… Enter to add"
+                       aria-label="Add a filter on IP, path or user agent; press Enter"
+                       onkeydown="attacksSearchKey(event, this)" />
+                <select id="attacks-method" class="select select-sm" aria-label="HTTP method"
+                        onchange="setAttacksState({method: this.value})">
+                    <option value="">Any method</option>
+                    {% for m in ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'] %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+                </select>
+                <select id="attacks-type" class="select select-sm" aria-label="Attack type"
+                        onchange="setAttacksState({type: this.value || null})">
+                    <option value="">All attack types</option>
+                </select>
             </div>
             <div id="attacks-htmx-container" class="htmx-container"
                  hx-get="{{ dashboard_path }}/htmx/attacks?page=1"

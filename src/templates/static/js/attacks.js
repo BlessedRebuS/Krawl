@@ -3,7 +3,7 @@
 
 const ATTACKS_SEVERITIES = ['critical', 'high', 'medium', 'low'];
 const ATTACKS_SPANS = [1, 7, 30];
-const _attacksDefaults = () => ({ days: 7, offset: 0, slot: null, type: null, rule: null, severities: [], ip: null, search: '', method: '', exclude: [] });
+const _attacksDefaults = () => ({ days: 7, offset: 0, slot: null, type: null, rule: null, severities: [], ip: null, search: [], method: '', exclude: [] });
 window.attacksState = _attacksDefaults();
 
 const ATTACKS_PERIOD_KEYS = ['days', 'offset_days', 'slot'];
@@ -50,7 +50,7 @@ function attacksParams() {
     if (s.rule) p.set('rule_filter', s.rule);
     if (s.severities.length) p.set('severity_filter', s.severities.join(','));
     if (s.ip) p.set('ip_filter', s.ip);
-    if (s.search.trim()) p.set('search', s.search.trim());
+    if (s.search.length) p.set('search', s.search.join(','));
     if (s.method) p.set('method_filter', s.method);
     if (s.exclude.length) p.set('exclude', s.exclude.join(','));
     return p;
@@ -69,7 +69,8 @@ function readAttacksHash(hash) {
     const sev = [...new Set(get('sev').toLowerCase().split(','))].filter(b => ATTACKS_SEVERITIES.includes(b));
     if (sev.length) out.severities = sev;
     if (/^[0-9a-fA-F:.]{2,45}$/.test(get('ip'))) out.ip = get('ip');
-    if (get('search')) out.search = get('search').slice(0, 200);
+    const has = [...new Set(get('search').split(',').map(t => t.trim().slice(0, 200)).filter(Boolean))].slice(0, 10);
+    if (has.length) out.search = has;
     if (/^[A-Z]{3,7}$/.test(get('method'))) out.method = get('method');
     const ex = [...new Set(get('exclude').split(',').map(t => t.trim().slice(0, 200)).filter(Boolean))];
     if (ex.length) out.exclude = ex;
@@ -85,7 +86,7 @@ function _attacksHash() {
     if (s.rule) q.set('rule', s.rule);
     if (s.severities.length) q.set('sev', s.severities.join(','));
     if (s.ip) q.set('ip', s.ip);
-    if (s.search.trim()) q.set('search', s.search.trim());
+    if (s.search.length) q.set('search', s.search.join(','));
     if (s.method) q.set('method', s.method);
     if (s.exclude.length) q.set('exclude', s.exclude.join(','));
     return '#attacks?' + q.toString().replace(/%2C/g, ',');
@@ -163,37 +164,28 @@ function attacksRestoreFilters() {
 }
 
 let _attacksNot = false;
-let _attacksSearchTimer = null;
 
 function toggleAttacksNot() {
     _attacksNot = !_attacksNot;
-    clearTimeout(_attacksSearchTimer);
-    renderAttacksBar();
+    _attacksSyncControls();
     const input = document.getElementById('attacks-search');
-    if (input) { input.value = _attacksNot ? '' : attacksState.search; input.focus(); }
+    if (input) input.focus();
 }
 
-function attacksSearchInput(input) {
-    if (_attacksNot) return;
-    clearTimeout(_attacksSearchTimer);
-    _attacksSearchTimer = setTimeout(() => setAttacksState({ search: input.value }), 300);
-}
-
-// Enter applies at once; with Not on it adds an exclude term. Escape clears.
+// Enter adds the typed text as a term (a "not" term with Not on); terms stack. Escape clears the box.
 function attacksSearchKey(e, input) {
-    if (e.key === 'Escape') {
-        input.value = '';
-        if (!_attacksNot && attacksState.search) setAttacksState({ search: '' });
-        return;
-    }
+    if (e.key === 'Escape') { input.value = ''; return; }
     if (e.key !== 'Enter') return;
     e.preventDefault();
-    clearTimeout(_attacksSearchTimer);
     const term = input.value.trim().slice(0, 200);
-    if (!_attacksNot) return setAttacksState({ search: input.value });
     if (!term) return;
     input.value = '';
-    if (!attacksState.exclude.includes(term)) setAttacksState({ exclude: [...attacksState.exclude, term].slice(0, 10) });
+    attacksAddTerm(term, _attacksNot);
+}
+
+function attacksAddTerm(term, not) {
+    const key = not ? 'exclude' : 'search';
+    if (!attacksState[key].includes(term)) setAttacksState({ [key]: [...attacksState[key], term].slice(0, 10) });
 }
 
 let _attacksTypesLoading = false;
@@ -225,8 +217,7 @@ function _attacksSyncControls() {
     const input = document.getElementById('attacks-search');
     if (input) {
         input.classList.toggle('is-not', _attacksNot);
-        input.placeholder = _attacksNot ? 'Exclude… (Enter to add)' : 'Filter IP, path, user agent…';
-        if (!_attacksNot && document.activeElement !== input) input.value = s.search;
+        input.placeholder = _attacksNot ? 'Exclude IP, path, user agent… Enter to add' : 'Filter IP, path, user agent… Enter to add';
     }
     const method = document.getElementById('attacks-method');
     if (method) method.value = s.method || '';
@@ -258,7 +249,7 @@ function _syncAttacksOverlay(app) {
     const ov = app && app.expandOverlay;
     if (!ov || !ov.show || !ov.shared) return;
     const s = attacksState;
-    Object.assign(ov, { search: s.search, method: s.method, attackType: s.type || '', excludes: [...s.exclude], ipFilter: s.ip || '' });
+    Object.assign(ov, { method: s.method, attackType: s.type || '', excludes: [...s.exclude], ipFilter: s.ip || '' });
     _reloadExpandOverlay();
 }
 
@@ -288,31 +279,44 @@ function _attacksRangeText() {
     return `${_utcDay(since)} ${_utcTime(since)} – ${_utcDay(until)} ${_utcTime(until)} UTC`;
 }
 
-function _attacksPill(text, patch, tone, dot) {
+// One applied filter: a dim key ("not", "method"), its value, and a remove button.
+function _attacksPill(key, value, patch, dot) {
     const pill = document.createElement('span');
-    pill.className = 'filter-pill' + (tone ? ` filter-pill-${tone}` : '');
+    pill.className = 'applied-pill';
     if (dot) {
         const d = document.createElement('span');
-        d.className = 'filter-pill-dot';
+        d.className = 'applied-pill-dot';
         d.style.background = dot;
         pill.append(d);
     }
+    const k = document.createElement('span');
+    k.className = 'applied-pill-key';
+    k.textContent = key;
+    const v = document.createElement('span');
+    v.className = 'applied-pill-value';
+    v.textContent = value;
     const x = document.createElement('button');
     x.type = 'button';
-    x.className = 'filter-pill-clear';
+    x.className = 'applied-pill-clear';
     x.textContent = '×';
     x.title = 'Remove filter';
-    x.setAttribute('aria-label', `Remove filter ${text}`);
+    x.setAttribute('aria-label', `Remove filter ${key} ${value}`);
     x.onclick = () => {
-        const i = [...pill.parentNode.children].indexOf(pill);
+        const i = [...pill.parentNode.querySelectorAll('.applied-pill')].indexOf(pill);
         setAttacksState(patch);
         // Keep keyboard focus in the bar: the next pill, else the span key.
-        const rest = document.querySelectorAll('#attacks-pills .filter-pill-clear');
+        const rest = document.querySelectorAll('#attacks-pills .applied-pill-clear');
         const to = rest[Math.min(i, rest.length - 1)] || document.querySelector('#attacks-span .active');
         if (to) to.focus();
     };
-    pill.append(text, x);
+    pill.append(k, v, x);
     return pill;
+}
+
+// Every filter off; the span and window stay.
+function clearAttacksFilters() {
+    const { days, offset } = attacksState;
+    setAttacksState({ ..._attacksDefaults(), days, offset });
 }
 
 function renderAttacksBar() {
@@ -344,16 +348,29 @@ function renderAttacksBar() {
     const pills = document.getElementById('attacks-pills');
     if (!pills) return;
     const list = [];
-    if (s.slot) list.push(_attacksPill(attacksSlotLabel(s.slot, s.days), { slot: null }));
-    if (s.type) list.push(_attacksPill(krawlAttackLabel(s.type), { type: null }));
-    if (s.rule) list.push(_attacksPill(attacksRuleLabel(s.rule), { rule: null }));
-    s.severities.forEach(b => list.push(_attacksPill(b[0].toUpperCase() + b.slice(1), { severities: s.severities.filter(x => x !== b) }, '', krawlSeverityColor(b, 1))));
-    if (s.ip) list.push(_attacksPill(s.ip, { ip: null }));
-    if (s.method) list.push(_attacksPill(s.method, { method: '' }, 'ok'));
-    if (s.search.trim()) list.push(_attacksPill(`“${s.search.trim()}”`, { search: '' }, 'danger'));
-    s.exclude.forEach(t => list.push(_attacksPill(`not “${t}”`, { exclude: s.exclude.filter(x => x !== t) })));
+    if (s.slot) list.push(_attacksPill('slot', attacksSlotLabel(s.slot, s.days), { slot: null }));
+    if (s.type) list.push(_attacksPill('type', krawlAttackLabel(s.type), { type: null }));
+    if (s.rule) list.push(_attacksPill('rule', attacksRuleLabel(s.rule), { rule: null }));
+    s.severities.forEach(b => list.push(_attacksPill('severity', b[0].toUpperCase() + b.slice(1), { severities: s.severities.filter(x => x !== b) }, krawlSeverityColor(b, 1))));
+    if (s.ip) list.push(_attacksPill('ip', s.ip, { ip: null }));
+    if (s.method) list.push(_attacksPill('method', s.method, { method: '' }));
+    s.search.forEach(t => list.push(_attacksPill('has', t, { search: s.search.filter(x => x !== t) })));
+    s.exclude.forEach(t => list.push(_attacksPill('not', t, { exclude: s.exclude.filter(x => x !== t) })));
+    if (list.length > 1) {
+        const all = document.createElement('button');
+        all.type = 'button';
+        all.className = 'applied-clear-all';
+        all.textContent = 'Clear all';
+        all.onclick = () => { clearAttacksFilters(); document.querySelector('#attacks-span .active')?.focus(); };
+        list.push(all);
+    }
+    if (!list.length) {
+        const empty = document.createElement('span');
+        empty.className = 'applied-empty';
+        empty.textContent = 'No filters. Add them from Detected attacks or the chart.';
+        list.push(empty);
+    }
     pills.replaceChildren(...list);
-    pills.hidden = !list.length;
 }
 
 // A fresh fragment teaches the rule bands; a restored rule they exclude is dropped then.

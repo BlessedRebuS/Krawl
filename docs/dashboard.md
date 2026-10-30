@@ -102,9 +102,9 @@ The Attacks tab shares one period across the trends chart, the Detected attacks 
 
 ### Filters
 
-The period bar holds the shared filters in the middle and the 1D / 7D / 30D window on the right. Active filters show as pills below it; click a pill's x to remove it.
+The period bar at the top shows the applied filters as pills on the left (click a pill's x to remove it, or **Clear all**) and the 1D / 7D / 30D window on the right. Filters are added in the Detected attacks panel (or its expanded view) and from the chart; they then apply to the whole tab.
 
-- **Text filter:** type to keep requests whose IP, path or user agent contains the text. Turn on **Not** and press Enter to add a *not "…"* term instead (up to 10). Escape clears the box.
+- **Text filter:** type in the Detected attacks filter box and press Enter to add a *has "…"* term: requests whose IP, path or user agent contains it. Turn on **Not** first to add a *not "…"* term instead. Terms stack (up to 10 of each) and all must hold. Escape clears the box.
 - **Method and attack type** pickers narrow to one HTTP method or one attack type.
 - **Severity chips:** toggle critical, high, medium and low. Several can be on at once.
 - **Rule picker:** choose one YARA rule. Choosing a severity chip clears a rule that no longer fits.

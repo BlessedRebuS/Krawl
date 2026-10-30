@@ -2069,7 +2069,8 @@ window.openExpandOverlay = function(title, endpoint, pageSize, cluster, searchVa
         shared: endpoint === 'attacks' && app.tab === 'attacks',
     });
     if (app.expandOverlay.shared) {
-        if (searchVal) setAttacksState({ search: searchVal });
+        app.expandOverlay.search = '';
+        if (searchVal) attacksAddTerm(searchVal, false);
         else _syncAttacksOverlay(app);
     } else {
         _reloadExpandOverlay();
@@ -2104,8 +2105,9 @@ window.jumpToPath = function(event) {
 
 window.triggerExpandSearch = function() {
     const ov = _attacksOverlay();
-    if (ov) setAttacksState({ search: ov.search || '', type: ov.attackType || null });
-    else _reloadExpandOverlay();
+    // On the tab, typed text waits for Enter (terms stack); the type applies at once.
+    if (!ov) return _reloadExpandOverlay();
+    if ((ov.attackType || null) !== attacksState.type) setAttacksState({ type: ov.attackType || null });
 };
 
 // Attacks overlay invert match: with Not on, Enter turns the filter text into
@@ -2123,11 +2125,16 @@ window.addExpandExcludeTerm = function() {
     const app = _getAlpineData();
     if (!app) return;
     const ov = app.expandOverlay;
-    if (!ov.invert || ov.endpoint !== 'attacks') return;
-    const terms = (ov.search || '').split(',').map(s => s.trim()).filter(Boolean);
+    if (ov.endpoint !== 'attacks') return;
+    const terms = (ov.search || '').split(',').map(s => s.trim().slice(0, 200)).filter(Boolean);
+    // On the tab every Enter stacks a term, plain or "not"; elsewhere only Not stacks.
+    if (ov.shared) {
+        ov.search = '';
+        return terms.forEach(t => attacksAddTerm(t, ov.invert));
+    }
+    if (!ov.invert) return;
     const exclude = [...new Set([...ov.excludes, ...terms])];
     ov.search = '';
-    if (ov.shared) return setAttacksState({ exclude, search: '' });
     ov.excludes = exclude;
     _reloadExpandOverlay();
 };
@@ -2141,6 +2148,19 @@ window.removeExcludeTerm = function(term) {
         return _reloadExpandOverlay();
     }
     setAttacksState({ exclude: attacksState.exclude.filter(t => t !== term) });
+};
+
+window.removeSearchTerm = function(term) {
+    const app = _getAlpineData();
+    if (!app) return;
+    const ov = app.expandOverlay;
+    if (ov.show && !ov.shared) {
+        ov.search = '';
+        const el = document.querySelector('.expand-overlay-search');
+        if (el) el.value = '';
+        return _reloadExpandOverlay();
+    }
+    setAttacksState({ search: attacksState.search.filter(t => t !== term) });
 };
 
 window.toggleExpandCategory = function(cat) {
@@ -2173,7 +2193,7 @@ window.clearExpandFilter = function(name) {
     if (!app) return;
     const ov = app.expandOverlay;
     // Pills of the attacks table (inline or in the overlay) clear the shared state.
-    const patch = { attackType: { type: null }, method: { method: '' }, search: { search: '' }, ipFilter: { ip: null } }[name];
+    const patch = { attackType: { type: null }, method: { method: '' }, search: { search: [] }, ipFilter: { ip: null } }[name];
     if (patch && (!ov.show || ov.shared)) {
         const el = document.querySelector('.expand-overlay-search');
         if (el && name === 'search') el.value = '';

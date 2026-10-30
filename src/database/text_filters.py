@@ -11,6 +11,13 @@ def _like(term: str) -> str:
     return f"%{term}%"
 
 
+def _terms(raw) -> list[str]:
+    """Search terms from a comma list or an iterable; every term must match."""
+    if not raw:
+        return []
+    return parse_exclude_terms(raw if isinstance(raw, str) else ",".join(raw))
+
+
 def access_log_text_clauses(
     search=None, exclude=None, method_filter=None, ip_filter=None
 ) -> list:
@@ -20,8 +27,8 @@ def access_log_text_clauses(
         clauses.append(AccessLog.ip == ip_filter)
     if method_filter:
         clauses.append(func.upper(AccessLog.method) == method_filter.upper())
-    if search:
-        like = _like(search)
+    for term in _terms(search):
+        like = _like(term)
         clauses.append(
             or_(
                 AccessLog.ip.ilike(like),
@@ -48,8 +55,8 @@ def credential_text_clauses(model, search=None, exclude=None) -> list:
     """CredentialAttempt clauses over ip/path/username (no method or UA there)."""
     cols = [model.ip, model.path, model.username]
     clauses = []
-    if search:
-        clauses.append(or_(*(c.ilike(_like(search)) for c in cols)))
+    for term in _terms(search):
+        clauses.append(or_(*(c.ilike(_like(term)) for c in cols)))
     for term in exclude or ():
         clauses.append(
             not_(or_(*(func.coalesce(c, "").ilike(_like(term)) for c in cols)))
@@ -70,7 +77,7 @@ def clean_text_filters(search, exclude, method_filter, ip_filter) -> dict:
     """Normalised text filters; only the ones set are kept."""
     terms = parse_exclude_terms(exclude)
     out = {
-        "search": (search or "").strip()[:255],
+        "search": ",".join(_terms(search)),
         "exclude": ",".join(terms),
         "method_filter": (method_filter or "").strip().upper(),
         "ip_filter": (ip_filter or "").strip(),
