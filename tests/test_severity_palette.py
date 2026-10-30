@@ -115,4 +115,4 @@ def test_shades_keep_chroma_and_lightness_window(band):
     for n in SHADES[1:]:
         L, C = lch(token(f"sev-{band}-{n}"))
         assert C >= floor - 0.002, (band, n, C)
-        assert abs(L - anchor_l) <= 0.12, (band, n, L)
+        assert abs(L - anchor_l) <= 0.06, (band, n, L)
