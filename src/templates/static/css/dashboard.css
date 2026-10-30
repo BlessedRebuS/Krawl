@@ -48,21 +48,21 @@
 
     /* Severity bands x 4 shades, shades keep chroma and stay within 0.12 L of the anchor; gated by tests/test_severity_palette.py. */
     --sev-critical-1: #ff5c52;
-    --sev-critical-2: #e5551b;
-    --sev-critical-3: #fd6e57;
-    --sev-critical-4: #e74d51;
+    --sev-critical-2: #eb4753;
+    --sev-critical-3: #c87073;
+    --sev-critical-4: #fe7a67;
     --sev-high-1: #fda166;
-    --sev-high-2: #f08d26;
-    --sev-high-3: #fdaa85;
-    --sev-high-4: #fd8a55;
+    --sev-high-2: #e8932b;
+    --sev-high-3: #fd8641;
+    --sev-high-4: #fe981a;
     --sev-medium-1: #b083f5;
-    --sev-medium-2: #ab6cdc;
-    --sev-medium-3: #a990fd;
-    --sev-medium-4: #9679ee;
+    --sev-medium-2: #9277e9;
+    --sev-medium-3: #d08ffe;
+    --sev-medium-4: #ad6cda;
     --sev-low-1: #c7b8a6;
-    --sev-low-2: #c7a085;
-    --sev-low-3: #e3bb9f;
-    --sev-low-4: #c1b086;
+    --sev-low-2: #bca58b;
+    --sev-low-3: #d2c3a4;
+    --sev-low-4: #bcb191;
     --sev-critical: var(--sev-critical-1);
     --sev-high: var(--sev-high-1);
     --sev-medium: var(--sev-medium-1);

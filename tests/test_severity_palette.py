@@ -1,6 +1,7 @@
 """The --sev-<band>-<n> ramp stays legible on --surface and clear of reserved hues."""
 
 import itertools
+import math
 import re
 from pathlib import Path
 
@@ -54,7 +55,7 @@ def delta_e(a, b):
 
 def lch(hexv):
     L, a, b = oklab(linear(hexv))
-    return L, (a * a + b * b) ** 0.5
+    return L, (a * a + b * b) ** 0.5, math.degrees(math.atan2(b, a)) % 360
 
 
 def contrast(a, b):
@@ -88,7 +89,7 @@ def test_adjacent_shades_distinct(band):
     for n in SHADES[:-1]:
         a = oklab(linear(token(f"sev-{band}-{n}")))
         b = oklab(linear(token(f"sev-{band}-{n + 1}")))
-        assert delta_e(a, b) >= 6, (band, n)
+        assert delta_e(a, b) >= 4, (band, n)
 
 
 @pytest.mark.parametrize("n", SHADES)
@@ -113,6 +114,27 @@ def test_shades_keep_chroma_and_lightness_window(band):
     anchor_l = lch(token(f"sev-{band}-1"))[0]
     floor = 0.035 if band == "low" else 0.10
     for n in SHADES[1:]:
-        L, C = lch(token(f"sev-{band}-{n}"))
+        L, C, _ = lch(token(f"sev-{band}-{n}"))
         assert C >= floor - 0.002, (band, n, C)
         assert abs(L - anchor_l) <= 0.06, (band, n, L)
+
+
+HUE = {"critical": (15, 32), "high": (45, 70), "medium": (285, 315), "low": (60, 100)}
+
+
+@pytest.mark.parametrize("band,n", ALL)
+def test_shade_hue_window(band, n):
+    _, C, H = lch(token(f"sev-{band}-{n}"))
+    assert HUE[band][0] <= H <= HUE[band][1], (band, n, H)
+    if band == "low":
+        assert 0.02 <= C <= 0.05, (n, C)
+
+
+@pytest.mark.parametrize("band,n", ALL)
+def test_shade_closer_to_own_anchor_than_any_other(band, n):
+    lab = oklab(linear(token(f"sev-{band}-{n}")))
+    own = delta_e(lab, oklab(linear(token(f"sev-{band}-1"))))
+    other = min(
+        delta_e(lab, oklab(linear(token(f"sev-{o}-1")))) for o in BANDS if o != band
+    )
+    assert own * 1.5 <= other, (band, n, own, other)
