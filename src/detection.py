@@ -515,6 +515,17 @@ def loaded_detection() -> DetectionCoordinator | None:
     return _coordinator
 
 
+def sole_rule_type(rule: str) -> str | None:
+    """The attack type rule reports when no other loaded rule shares it, else None."""
+    coordinator = _coordinator
+    if coordinator is None:
+        return None
+    for attack_type, rules in coordinator.yara.rule_details.items():
+        if len(rules) == 1 and rules[0]["rule"] == rule:
+            return attack_type
+    return None
+
+
 def get_detection() -> DetectionCoordinator:
     global _coordinator
     if _coordinator is None:

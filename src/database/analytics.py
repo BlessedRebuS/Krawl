@@ -7,10 +7,11 @@ metrics-summary persistence. All read-only except upsert_metrics_summary.
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import func, not_, or_
+from sqlalchemy import and_, func, not_, or_
 from sqlalchemy.orm import joinedload
 
-from attack_colours import colour_map
+import detection
+from attack_colours import attack_band, colour_map
 from dashboard_cache import pagination
 from logger import get_app_logger
 from models import (
@@ -370,6 +371,10 @@ class AnalyticsRepo:
         method_filter: str | None = None,
         total: int | None = None,
         exclude: list[str] | None = None,
+        since: datetime | None = None,
+        until: datetime | None = None,
+        rule_filter: str | None = None,
+        severity_filter: list[str] | None = None,
     ) -> dict[str, Any]:
         """
         Retrieve paginated list of detected attack types with access logs.
@@ -422,7 +427,41 @@ class AnalyticsRepo:
                 detection_exists = detection_exists.filter(
                     AttackDetection.attack_type == attack_type_filter
                 )
+            if rule_filter:
+                rule_match = AttackDetection.rule_name == rule_filter
+                sole_type = detection.sole_rule_type(rule_filter)
+                if sole_type:
+                    rule_match = or_(
+                        rule_match,
+                        and_(
+                            AttackDetection.rule_name.is_(None),
+                            AttackDetection.attack_type == sole_type,
+                        ),
+                    )
+                detection_exists = detection_exists.filter(rule_match)
+            if severity_filter:
+                in_range = session.query(AttackDetection.attack_type).join(
+                    AccessLog, AccessLog.id == AttackDetection.access_log_id
+                )
+                if since:
+                    in_range = in_range.filter(AccessLog.timestamp >= since)
+                if until:
+                    in_range = in_range.filter(AccessLog.timestamp < until)
+                types = [
+                    t
+                    for (t,) in in_range.distinct()
+                    if attack_band(t) in severity_filter
+                ]
+                detection_exists = detection_exists.filter(
+                    AttackDetection.attack_type.in_(types)
+                )
             match_filters = [detection_exists.exists()]
+            if since:
+                match_filters.append(AccessLog.timestamp >= since)
+            if until:
+                match_filters.append(AccessLog.timestamp < until)
+            # Detection-side filters need the exact EXISTS count, not the shortcuts.
+            narrowed = bool(since or until or rule_filter or severity_filter)
             if ip_filter:
                 match_filters.append(AccessLog.ip == ip_filter)
             if method_filter:
@@ -455,7 +494,7 @@ class AnalyticsRepo:
             capped = False
             if total is not None:
                 total_attacks = total
-            elif (search or exclude or method_filter) and not ip_filter:
+            elif (search or exclude or method_filter) and not ip_filter and not narrowed:
                 # Unindexed text filters: an exact count reads every attack
                 # row's heap tuple (28s on the demo). Count within the newest
                 # COUNT_WINDOW detections instead, a lower bound once full.
@@ -478,7 +517,7 @@ class AnalyticsRepo:
                     session.query(func.count()).select_from(window).scalar()
                     >= COUNT_WINDOW
                 )
-            elif len(match_filters) == 1:
+            elif len(match_filters) == 1 and not narrowed:
                 count_q = session.query(
                     func.count(func.distinct(AttackDetection.access_log_id))
                 )
@@ -605,6 +644,57 @@ class AnalyticsRepo:
                     {"type": row.attack_type, "count": row.count} for row in results
                 ],
                 "colours": colour_map(row.attack_type for row in results),
+            }
+        finally:
+            self._db.close_session()
+
+    def get_attack_facets(
+        self, since: datetime | None = None, until: datetime | None = None
+    ) -> dict[str, Any]:
+        """Detections per severity band and per rule within [since, until)."""
+        session = self._db.session
+        try:
+            q = session.query(
+                AttackDetection.rule_name,
+                AttackDetection.attack_type,
+                func.count(AttackDetection.id),
+            ).join(AccessLog, AccessLog.id == AttackDetection.access_log_id)
+            if since:
+                q = q.filter(AccessLog.timestamp >= since)
+            if until:
+                q = q.filter(AccessLog.timestamp < until)
+            rows = q.group_by(AttackDetection.rule_name, AttackDetection.attack_type)
+            coordinator = detection.loaded_detection()
+            sole = {}  # attack_type -> its only loaded rule
+            if coordinator:
+                sole = {
+                    t: r[0]["rule"]
+                    for t, r in coordinator.yara.rule_details.items()
+                    if len(r) == 1
+                }
+            severities = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+            rules: dict[str, dict] = {}
+            for rule, attack_type, hits in rows:
+                band = attack_band(attack_type)
+                severities[band] += hits
+                rule = rule or sole.get(attack_type)
+                if not rule:
+                    continue
+                entry = rules.setdefault(
+                    rule,
+                    {
+                        "rule": rule,
+                        "attack_type": attack_type,
+                        "band": band,
+                        "hits": 0,
+                    },
+                )
+                entry["hits"] += hits
+                if rule == "credential_fields":
+                    entry["label"] = "Credential capture"
+            return {
+                "severities": severities,
+                "rules": sorted(rules.values(), key=lambda r: -r["hits"]),
             }
         finally:
             self._db.close_session()

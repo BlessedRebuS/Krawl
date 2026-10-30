@@ -1,5 +1,5 @@
 {# HTMX fragment: Detected Attack Types table #}
-{% set filter_qs %}{% if ip_filter %}&ip_filter={{ ip_filter | urlencode }}{% endif %}{% if attack_type_filter %}&attack_type_filter={{ attack_type_filter | urlencode }}{% endif %}{% if search %}&search={{ search | urlencode }}{% endif %}{% if method_filter %}&method_filter={{ method_filter | urlencode }}{% endif %}{% if exclude %}&exclude={{ exclude | urlencode }}{% endif %}{% endset %}
+{% set filter_qs %}{% if ip_filter %}&ip_filter={{ ip_filter | urlencode }}{% endif %}{% if attack_type_filter %}&attack_type_filter={{ attack_type_filter | urlencode }}{% endif %}{% if search %}&search={{ search | urlencode }}{% endif %}{% if method_filter %}&method_filter={{ method_filter | urlencode }}{% endif %}{% if exclude %}&exclude={{ exclude | urlencode }}{% endif %}{% if rule_filter %}&rule_filter={{ rule_filter | urlencode }}{% endif %}{% if severity_filter %}&severity_filter={{ severity_filter | urlencode }}{% endif %}{{ period_qs }}{% endset %}
 <div class="panel-header">
     <div class="row row-wrap">
         {% if pagination.capped %}

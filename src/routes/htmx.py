@@ -24,6 +24,7 @@ from dashboard_cache import (
 )
 from dependencies import get_db, get_templates
 from domain_map import build_domain_map
+from period import period_query, resolve_period
 from routes.api import verify_auth
 
 router = APIRouter()
@@ -949,10 +950,24 @@ async def htmx_attacks(
     search: str = Query(""),
     method_filter: str = Query(None),
     exclude: str = Query(""),
+    days: int | None = Query(None),
+    offset_days: int = Query(0),
+    slot: str | None = Query(None),
+    rule_filter: str | None = Query(None),
+    severity_filter: str = Query(""),
 ):
     page = max(1, page)
     page_size = max(1, min(int(page_size), 200))
     search = search.strip() or None
+    period = resolve_period(days, offset_days, slot)
+    period_qs = period_query(period)
+    rule_filter = (rule_filter or "").strip() or None
+    severities = [
+        b
+        for b in dict.fromkeys(severity_filter.lower().split(","))
+        if b in ("critical", "high", "medium", "low")
+    ]
+    severity_filter = ",".join(severities)
     method_filter = (method_filter or "").strip().upper() or None
     exclude_terms = parse_exclude_terms(exclude)
     exclude = ",".join(exclude_terms)
@@ -964,6 +979,8 @@ async def htmx_attacks(
         f"attacks:{page}:{sort_by}:{sort_order}:{ip_filter or ''}:"
         f"{attack_type_filter or ''}:{search or ''}:{method_filter or ''}:{exclude}"
     )
+    if period or rule_filter or severities:
+        cache_key += f":{period_qs}:{rule_filter or ''}:{severity_filter}"
     cached = get_cached_table(cache_key) if use_cache else None
     if cached:
         result = cached
@@ -972,7 +989,14 @@ async def htmx_attacks(
         # Unfiltered, reuse the total the warmup counted for page 1.
         warm = (
             None
-            if ip_filter or attack_type_filter or search or method_filter or exclude
+            if ip_filter
+            or attack_type_filter
+            or search
+            or method_filter
+            or exclude
+            or period
+            or rule_filter
+            or severities
             else get_cached_table("attacks:1:timestamp:desc:::::")
         )
         result = await asyncio.to_thread(
@@ -987,6 +1011,10 @@ async def htmx_attacks(
             method_filter=method_filter,
             total=warm["pagination"]["total"] if warm else None,
             exclude=exclude_terms,
+            since=period.since if period else None,
+            until=period.until if period else None,
+            rule_filter=rule_filter,
+            severity_filter=severities,
         )
         if use_cache:
             set_cached_table(cache_key, result)
@@ -1026,6 +1054,9 @@ async def htmx_attacks(
             "method_filter": method_filter or "",
             "exclude": exclude,
             "exclude_terms": exclude_terms,
+            "period_qs": period_qs,
+            "rule_filter": rule_filter or "",
+            "severity_filter": severity_filter,
         },
     )
 

@@ -40,6 +40,7 @@ from dashboard_cache import (
 )
 from dependencies import get_client_ip, get_db
 from detection import get_detection
+from period import period_query, resolve_period
 from logger import get_app_logger
 
 # Sessions and bruteforce counters live in auth_store: Redis in scalable mode
@@ -724,6 +725,30 @@ async def campaign_stats(
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
         get_app_logger().error(f"Error fetching campaign stats: {e}")
+        return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
+
+
+@router.get("/api/attack-facets")
+async def attack_facets(
+    days: int | None = Query(None),
+    offset_days: int = Query(0),
+    slot: str | None = Query(None),
+):
+    period = resolve_period(days, offset_days, slot)
+    cache_key = f"api:attack_facets:{period_query(period)}"
+    cached = get_cached_table(cache_key)
+    if cached:
+        return JSONResponse(content=cached, headers=_no_cache_headers())
+    try:
+        result = await asyncio.to_thread(
+            get_db().analytics.get_attack_facets,
+            since=period.since if period else None,
+            until=period.until if period else None,
+        )
+        set_cached_table(cache_key, result)
+        return JSONResponse(content=result, headers=_no_cache_headers())
+    except Exception as e:
+        get_app_logger().error(f"Error fetching attack facets: {e}")
         return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
 
 
