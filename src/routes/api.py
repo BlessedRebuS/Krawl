@@ -23,6 +23,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyCookie
 from pydantic import BaseModel, validator
 
+from attack_colours import colour_map
 from auth_store import (
     clear_attempts,
     create_session,
@@ -37,9 +38,15 @@ from dashboard_cache import (
     invalidate_table_cache,
     set_cached_table,
 )
-from dependencies import get_client_ip, get_db
+from database.text_filters import (
+    clean_text_filters,
+    parse_exclude_terms,
+    text_filter_key,
+)
+from dependencies import get_client_ip, get_db, rule_label
 from detection import get_detection
 from logger import get_app_logger
+from period import period_query, resolve_period
 
 # Sessions and bruteforce counters live in auth_store: Redis in scalable mode
 # so they are shared by every replica, a local dict in standalone.
@@ -687,6 +694,7 @@ def build_campaign_stats(db, limit: int, day: str = "", days: int = 0, offset: i
         )
     rows.sort(key=lambda r: (-r["hits"], -r["ips"]))
     return {
+        "colours": colour_map({t for r in rows[:limit] for t in r["attack_types"]}),
         "campaigns": rows[:limit],
         "total_campaigns": len(rows),
         "slot_hours": slot_hours,
@@ -725,18 +733,76 @@ async def campaign_stats(
         return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
 
 
+@router.get("/api/attack-facets")
+async def attack_facets(
+    days: int | None = Query(None),
+    offset_days: int = Query(0),
+    slot: str | None = Query(None),
+    search: str = Query(""),
+    exclude: str = Query(""),
+    method_filter: str = Query(""),
+    ip_filter: str = Query(""),
+):
+    try:
+        result = await cached_attack_facets(
+            resolve_period(days, offset_days, slot),
+            clean_text_filters(search, exclude, method_filter, ip_filter),
+        )
+        return JSONResponse(content=result, headers=_no_cache_headers())
+    except Exception as e:
+        get_app_logger().error(f"Error fetching attack facets: {e}")
+        return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
+
+
+def attack_facets_key(period, tf=None) -> str:
+    return f"api:attack_facets:{period_query(period)}{text_filter_key(tf or {})}"
+
+
+def load_attack_facets(db, period, tf=None) -> dict:
+    """Severity and rule counts for a period, straight from the database."""
+    tf = tf or {}
+    result = db.analytics.get_attack_facets(
+        since=period.since if period else None,
+        until=period.until if period else None,
+        search=tf.get("search"),
+        exclude=parse_exclude_terms(tf.get("exclude")),
+        method_filter=tf.get("method_filter"),
+        ip_filter=tf.get("ip_filter"),
+    )
+    for r in result["rules"]:
+        r["label"] = rule_label(r["rule"])
+    return result
+
+
+async def cached_attack_facets(period, tf=None) -> dict:
+    """Severity and rule counts for a period, shared by the API and the attacks table."""
+    cache_key = attack_facets_key(period, tf)
+    cached = get_cached_table(cache_key)
+    if cached:
+        return cached
+    result = await asyncio.to_thread(load_attack_facets, get_db(), period, tf)
+    set_cached_table(cache_key, result)
+    return result
+
+
 @router.get("/api/attack-types-daily")
 async def attack_types_daily(
     request: Request,
     limit: int = Query(10),
     days: int = Query(30),
     offset_days: int = Query(0),
+    slot: str | None = Query(None),
+    search: str = Query(""),
+    exclude: str = Query(""),
+    method_filter: str = Query(""),
+    ip_filter: str = Query(""),
 ):
     limit = min(max(1, limit), 20)
+    tf = clean_text_filters(search, exclude, method_filter, ip_filter)
     days = min(max(1, days), 90)
     offset_days = max(0, offset_days)
 
-    cache_key = f"api:attack_daily:{limit}:{days}:{offset_days}"
+    cache_key = f"api:attack_daily:{limit}:{days}:{offset_days}:{slot or ''}{text_filter_key(tf)}"
     cached = get_cached_table(cache_key)
     if cached:
         return JSONResponse(content=cached, headers=_no_cache_headers())
@@ -748,6 +814,11 @@ async def attack_types_daily(
             limit=limit,
             days=days,
             offset_days=offset_days,
+            slot=slot,
+            search=tf.get("search"),
+            exclude=parse_exclude_terms(tf.get("exclude")),
+            method_filter=tf.get("method_filter"),
+            ip_filter=tf.get("ip_filter"),
         )
         set_cached_table(cache_key, result)
         return JSONResponse(content=result, headers=_no_cache_headers())

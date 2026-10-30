@@ -107,18 +107,6 @@ async def lifespan(app: FastAPI):
                 f"Database initialization failed: {e}. Continuing with in-memory only."
             )
 
-    # One-time startup cleanup: purge configured ignored IPs that predate the
-    # tracking guard and clear stale (fully expired) ban state.
-    with _phase(app_logger, "Database startup cleanup"):
-        from database.startup import run_startup_cleanup
-
-        run_startup_cleanup(
-            get_database(),
-            config.ban_duration_seconds,
-            config.ignored_ips,
-            purge_ipv6=config.ipv6_ignore and config.ipv6_purge_existing,
-        )
-
     # Initialize cache backend (in-memory dict for standalone, Redis for scalable)
     if config.mode == "scalable":
         # No fallback here on purpose. Falling back to the in-memory backend

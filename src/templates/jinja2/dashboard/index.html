@@ -110,42 +110,77 @@
     <template x-if="tab === 'attacks'">
     <div>
 
-        {# Attack Trends line chart with period navigation and totals sidebar #}
+        {# Period bar: applied filters and the window; sticky under the tab strip. Filters are added in the panels. #}
+        <div class="period-bar" role="group" aria-label="Attacks period and applied filters">
+            <div id="attacks-pills" class="period-pills" role="group" aria-label="Applied filters"></div>
+            <div class="period-window">
+                <div class="row gap-1" id="attacks-span" role="group" aria-label="Period length">
+                    <button type="button" class="map-limit-btn" data-days="1" onclick="setAttacksState({days: 1, offset: 0})">1D</button>
+                    <button type="button" class="map-limit-btn active" data-days="7" onclick="setAttacksState({days: 7, offset: 0})">7D</button>
+                    <button type="button" class="map-limit-btn" data-days="30" onclick="setAttacksState({days: 30, offset: 0})">30D</button>
+                </div>
+                <div class="row">
+                    <button type="button" id="attacks-prev" onclick="shiftAttacksPeriod(-1)" class="pagination-btn fs-sm" aria-label="Previous period">&#8592;</button>
+                    <span id="attacks-range" class="period-label" aria-live="polite"></span>
+                    <button type="button" id="attacks-next" onclick="shiftAttacksPeriod(1)" class="pagination-btn fs-sm" aria-label="Next period" disabled>&#8594;</button>
+                </div>
+            </div>
+        </div>
+
+        {# Attack Trends line chart with totals sidebar #}
         <div class="table-container alert-section">
             <div class="chart-head">
                 <h2 class="m-0">Attack Trends</h2>
-                <div class="row gap-3">
-                    <div class="row gap-1" id="trends-span-selector" role="group" aria-label="Period length">
-                        <button class="map-limit-btn" data-days="1" onclick="setTrendsSpan(1, this)">1D</button>
-                        <button class="map-limit-btn active" data-days="7" onclick="setTrendsSpan(7, this)">7D</button>
-                        <button class="map-limit-btn" data-days="30" onclick="setTrendsSpan(30, this)">30D</button>
-                    </div>
-                    <div class="row">
-                        <button id="trends-prev" onclick="shiftTrendsPeriod(-1)" class="pagination-btn fs-sm" aria-label="Previous period">&#8592;</button>
-                        <span id="trends-period-label" class="period-label" aria-live="polite">Last 7 days</span>
-                        <button id="trends-next" onclick="shiftTrendsPeriod(1)" class="pagination-btn fs-sm" aria-label="Next period" disabled>&#8594;</button>
-                    </div>
-                </div>
+                <span id="trends-scope" class="range-label" hidden></span>
             </div>
             <div class="chart-row">
                 <div class="chart-wrapper chart-main">
-                    <canvas id="attack-trends-chart"></canvas>
+                    <canvas id="attack-trends-chart" aria-hidden="true"></canvas>
+                    <div class="sr-only">
+                        <table id="trends-slots">
+                            <caption>Attacks per time slot; arrow keys move between slots</caption>
+                            <thead><tr><th scope="col">Slot</th><th scope="col">Attacks</th><th scope="col">Narrow</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
-                <div id="trends-totals" class="chart-totals" aria-label="Totals in period; press one to filter the table below"></div>
+                <div id="trends-totals" class="chart-totals" aria-label="Totals; press one to narrow the tab to that type"></div>
             </div>
         </div>
 
         {# Attack Types table #}
         <div class="table-container alert-section">
             <div class="row-top">
-                <h2>Detected Attack Types</h2>
-                <button class="expand-btn" onclick="openExpandOverlay('Detected Attack Types', 'attacks', 25)" title="Expand" aria-label="Expand Detected Attack Types">
+                <h2>Detected attacks</h2>
+                <button class="expand-btn" onclick="openExpandOverlay('Detected attacks', 'attacks', 25)" title="Expand" aria-label="Expand Detected attacks">
                     <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5H4.56l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L3.5 4.56v2.69a.75.75 0 0 1-1.5 0v-3.5A1.75 1.75 0 0 1 3.75 2Zm8.5 12h-3.5a.75.75 0 0 1 0-1.5h2.69l-2.72-2.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.72 2.72v-2.69a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14Z"/></svg>
                 </button>
             </div>
+            <div class="panel-filters" role="search" aria-label="Filter every panel on this tab">
+                <div class="term-mode" role="radiogroup" aria-label="What Enter adds">
+                    <button type="button" id="attacks-mode-only" role="radio" aria-checked="true" onclick="setAttacksMode(false)"
+                            title="Show only requests whose IP, path or user agent contains the text">Only</button>
+                    <button type="button" id="attacks-mode-hide" role="radio" aria-checked="false" onclick="setAttacksMode(true)"
+                            title="Hide requests whose IP, path or user agent contains the text">Hide</button>
+                </div>
+                <input type="search" id="attacks-search" class="panel-filter-input" autocomplete="off"
+                       placeholder="Filter IP, path, user agent… Enter to add"
+                       aria-label="Add a filter on IP, path or user agent; press Enter"
+                       onkeydown="attacksSearchKey(event, this)" />
+                <select id="attacks-method" class="select select-sm" aria-label="HTTP method"
+                        onchange="setAttacksState({method: this.value})">
+                    <option value="">Any method</option>
+                    {% for m in ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'] %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+                </select>
+                <select id="attacks-type" class="select select-sm" aria-label="Attack type"
+                        onchange="setAttacksState({type: this.value || null})">
+                    <option value="">All attack types</option>
+                </select>
+            </div>
             <div id="attacks-htmx-container" class="htmx-container"
                  hx-get="{{ dashboard_path }}/htmx/attacks?page=1"
-                 hx-trigger="revealed"
+                 hx-trigger="revealed, attacks-reload"
+                 data-attacks-panel="attacks"
                  hx-swap="innerHTML">
                 <div class="htmx-indicator">Loading...</div>
             </div>
@@ -153,10 +188,11 @@
 
         {# Attackers table - HTMX loaded #}
         <div class="table-container alert-section">
-            <h2>Attackers by Total Requests</h2>
+            <h2>Attackers in period</h2>
             <div class="htmx-container"
                  hx-get="{{ dashboard_path }}/htmx/attackers?page=1"
-                 hx-trigger="revealed"
+                 hx-trigger="revealed, attacks-reload"
+                 data-attacks-panel="attackers"
                  hx-swap="innerHTML">
                 <div class="htmx-indicator">Loading...</div>
             </div>
@@ -167,7 +203,8 @@
             <h2>Captured Credentials</h2>
             <div class="htmx-container"
                  hx-get="{{ dashboard_path }}/htmx/credentials?page=1"
-                 hx-trigger="revealed"
+                 hx-trigger="revealed, attacks-reload"
+                 data-attacks-panel="credentials"
                  hx-swap="innerHTML">
                 <div class="htmx-indicator">Loading...</div>
             </div>
@@ -179,14 +216,16 @@
                 <h2>Targeted Domains</h2>
                 <div class="row gap-2">
                     <button type="button" class="pagination-btn domain-map-open"
-                            onclick="openExpandOverlay('Link map', 'domain-map', 25)"
-                            aria-label="Open targeted domains link map">Link map</button>
+                            onclick="openExpandOverlay('Link map (all time)', 'domain-map', 25)"
+                            title="Every targeted domain, all time; ignores the period"
+                            aria-label="Open targeted domains link map, all time">Link map (all time)</button>
                     <button type="button" class="expand-btn" onclick="openExpandOverlay('Targeted Domains', 'targeted-domains', 10)" aria-label="Open targeted domains filter" title="Open targeted domains filter"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5H4.56l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L3.5 4.56v2.69a.75.75 0 0 1-1.5 0v-3.5A1.75 1.75 0 0 1 3.75 2Zm8.5 12h-3.5a.75.75 0 0 1 0-1.5h2.69l-2.72-2.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.72 2.72v-2.69a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14Z"/></svg></button>
                 </div>
             </div>
             <div class="htmx-container"
                  hx-get="{{ dashboard_path }}/htmx/targeted-domains?page=1"
-                 hx-trigger="revealed"
+                 hx-trigger="revealed, attacks-reload"
+                 data-attacks-panel="targeted-domains"
                  hx-swap="innerHTML">
                 <div class="htmx-indicator">Loading...</div>
             </div>
@@ -197,7 +236,8 @@
             <h2>Honeypot Triggers by IP</h2>
             <div class="htmx-container"
                  hx-get="{{ dashboard_path }}/htmx/honeypot?page=1"
-                 hx-trigger="revealed"
+                 hx-trigger="revealed, attacks-reload"
+                 data-attacks-panel="honeypot"
                  hx-swap="innerHTML">
                 <div class="htmx-indicator">Loading...</div>
             </div>

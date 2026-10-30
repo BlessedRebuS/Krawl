@@ -1,15 +1,49 @@
-{# HTMX fragment: Detected Attack Types table #}
-{% set filter_qs %}{% if ip_filter %}&ip_filter={{ ip_filter | urlencode }}{% endif %}{% if attack_type_filter %}&attack_type_filter={{ attack_type_filter | urlencode }}{% endif %}{% if search %}&search={{ search | urlencode }}{% endif %}{% if method_filter %}&method_filter={{ method_filter | urlencode }}{% endif %}{% if exclude %}&exclude={{ exclude | urlencode }}{% endif %}{% endset %}
+{# HTMX fragment: Detected attacks table #}
+{% set filter_qs %}{% if ip_filter %}&ip_filter={{ ip_filter | urlencode }}{% endif %}{% if attack_type_filter %}&attack_type_filter={{ attack_type_filter | urlencode }}{% endif %}{% if search %}&search={{ search | urlencode }}{% endif %}{% if method_filter %}&method_filter={{ method_filter | urlencode }}{% endif %}{% if exclude %}&exclude={{ exclude | urlencode }}{% endif %}{% if rule_filter %}&rule_filter={{ rule_filter | urlencode }}{% endif %}{% if severity_filter %}&severity_filter={{ severity_filter | urlencode }}{% endif %}{{ period_qs }}{% endset %}
+{% if facets %}
+{# Severity chips and rule picker, counted over the tab's period. #}
+<div class="attack-facets">
+    <div class="row row-wrap gap-2" role="group" aria-label="Severity">
+        {% for band in ['critical', 'high', 'medium', 'low'] %}
+        {% set on = band in severities %}
+        <button type="button" class="facet-chip{% if on %} active{% endif %}" aria-pressed="{{ 'true' if on else 'false' }}"
+                onclick="toggleAttacksSeverity('{{ band }}')"
+                title="{{ facets.severities[band] | num }} {{ band }} detections in the period">
+            <span class="sev-dot sev-fg-{{ band }}" aria-hidden="true"></span>{{ band | capitalize }}
+            <span class="facet-count">{{ facets.severities[band] | num }}</span>
+        </button>
+        {% endfor %}
+    </div>
+    <label class="map-limit-label">
+        <span class="rule-picker-label">Rule</span>
+        {# Every rule's band, so any severity change can drop an excluded rule (attacks.js). #}
+        <select class="map-limit-select rule-picker" onchange="setAttacksState({rule: this.value || null})"
+                data-rules='{{ facets.rules | tojson }}'>
+            {# Only rules in the selected bands, so the two filters never contradict. #}
+            {% set offered = facets.rules | selectattr('band', 'in', severities or ['critical', 'high', 'medium', 'low']) | list %}
+            <option value="">All rules ({{ offered | length }})</option>
+            {% for r in offered %}
+            <option class="sev-fg-{{ r.band }}" data-band="{{ r.band }}" value="{{ r.rule }}" {% if r.rule == rule_filter %}selected{% endif %}>&#9679; {{ r.label or (r.rule | rule_label) }} ({{ r.hits | num }})</option>
+            {% endfor %}
+            {% if rule_filter and rule_filter not in offered | map(attribute='rule') | list %}
+            {% set known = facets.rules | selectattr('rule', 'equalto', rule_filter) | first %}
+            <option{% if known %} class="sev-fg-{{ known.band }}" data-band="{{ known.band }}"{% endif %} value="{{ rule_filter }}" selected>{{ rule_filter | rule_label }}{% if known %} ({{ known.hits | num }}){% endif %}</option>
+            {% endif %}
+        </select>
+    </label>
+</div>
+{% endif %}
 <div class="panel-header">
     <div class="row row-wrap">
         {% if pagination.capped %}
-        <span class="pagination-info" title="Counted within the newest detected requests; older matches page in as you go">Page {{ pagination.page }} &mdash; {{ pagination.total }}+ matching</span>
+        <span class="pagination-info" title="Counted within the newest detected requests; older matches page in as you go">Page {{ pagination.page }} &mdash; {{ pagination.total | num }}+ matching</span>
         {% else %}
-        <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} total</span>
+        <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages | num }} &mdash; {{ pagination.total | num }} total</span>
         {% endif %}
+        {% if range_label %}<span class="range-label" title="Range shown">{{ range_label }}</span>{% endif %}
         {% if attack_type_filter %}
         <span class="filter-pill">
-            {{ attack_type_filter | e }}
+            {{ attack_type_filter | attack_label }}
             <button type="button" class="filter-pill-clear"
                     onclick="clearExpandFilter('attackType')"
                     aria-label="Clear attack type filter" title="Clear filter">&times;</button>
@@ -23,17 +57,18 @@
                     aria-label="Clear method filter" title="Clear method">&times;</button>
         </span>
         {% endif %}
-        {% if search %}
-        <span class="filter-pill filter-pill-danger">
-            &ldquo;{{ search | e }}&rdquo;
+        {% for term in search_terms %}
+        <span class="filter-pill">
+            only &ldquo;{{ term | e }}&rdquo;
             <button type="button" class="filter-pill-clear"
-                    onclick="clearExpandFilter('search')"
-                    aria-label="Clear search" title="Clear search">&times;</button>
+                    data-term="{{ term | e }}"
+                    onclick="removeSearchTerm(this.dataset.term)"
+                    aria-label="Stop filtering on {{ term | e }}" title="Remove filter">&times;</button>
         </span>
-        {% endif %}
+        {% endfor %}
         {% for term in exclude_terms %}
         <span class="filter-pill">
-            not &ldquo;{{ term | e }}&rdquo;
+            hide &ldquo;{{ term | e }}&rdquo;
             <button type="button" class="filter-pill-clear"
                     data-term="{{ term | e }}"
                     onclick="removeExcludeTerm(this.dataset.term)"
@@ -114,12 +149,12 @@
                 </div>
             </td>
             <td>
-                {# One badge per type in its own --atk-* hue, as in Campaigns; two
+                {# One badge per type in its severity colour; two
                    shown, the rest counted, all of them in the title. #}
                 {% set types = (attack.attack_type or '').split(',') | map('trim') | select | list %}
                 <div class="badge-row" title="{{ attack.attack_type | attack_label }}">
                     {% for t in types[:2] %}
-                    <span class="method-badge method-{{ t | lower | replace('_', '-') | e }} atk-sev-{{ t | attack_severity_band }}" title="{{ t | attack_label }}">{{ t | attack_label }}</span>
+                    <span class="{{ t | attack_badge_class }}" title="{{ t | attack_label }}">{{ t | attack_label }}</span>
                     {% endfor %}
                     {% if types | length > 2 %}<span class="badge-more">+{{ types | length - 2 }}</span>{% endif %}
                 </div>
@@ -138,7 +173,7 @@
                 {% endif %}
             </td>
             <td class="ua-cell">{{ (attack.user_agent | default('', true))[:50] | e }}</td>
-            <td class="ts-cell">{{ attack.timestamp | format_ts }}</td>
+            <td class="ts-cell">{{ attack.timestamp | format_ts(time_only=ts_time_only) }}</td>
             <td>
                 <div class="table-action-btns">
                 {% if attack.log_id %}

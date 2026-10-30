@@ -46,11 +46,27 @@
     --pink: #f2649f;
     --cyan: #3ad6d1;
 
-    /* Rule severity bands. Never honey (trap hits) or blue (structure). */
-    --sev-critical: var(--danger);
-    --sev-high: var(--warn);
-    --sev-medium: var(--violet);
-    --sev-low: var(--text-dim);
+    /* Severity bands x 4 shades, shades keep chroma and stay within 0.12 L of the anchor; gated by tests/test_severity_palette.py. */
+    --sev-critical-1: #ff5c52;
+    --sev-critical-2: #eb4753;
+    --sev-critical-3: #c87073;
+    --sev-critical-4: #fe7a67;
+    --sev-high-1: #fda166;
+    --sev-high-2: #e8932b;
+    --sev-high-3: #fd8641;
+    --sev-high-4: #fe981a;
+    --sev-medium-1: #b083f5;
+    --sev-medium-2: #9277e9;
+    --sev-medium-3: #d08ffe;
+    --sev-medium-4: #ad6cda;
+    --sev-low-1: #c7b8a6;
+    --sev-low-2: #bca58b;
+    --sev-low-3: #d2c3a4;
+    --sev-low-4: #bcb191;
+    --sev-critical: var(--sev-critical-1);
+    --sev-high: var(--sev-high-1);
+    --sev-medium: var(--sev-medium-1);
+    --sev-low: var(--sev-low-1);
 
     /* Reserved: honeypot triggers only. If it is honey, a trap was hit. */
     --honey: #ffc94d;
@@ -61,24 +77,6 @@
     --cat-good-crawler: var(--ok);
     --cat-regular-user: var(--blue);
     --cat-timed-out: var(--pink);
-
-    /* ── Attack types ─────────────────────────────────────────
-       One fixed hue per detected attack type, shared by badges, the
-       campaign heatmap and the overview charts, so a type looks the
-       same everywhere. Validated as a set on --surface: every pair is
-       apart for normal vision (OKLab dE >= 15). Nine hues cannot all
-       stay apart under colour-blindness, so every coloured mark also
-       names its type. Grey is the low-signal bucket (probes, uploads,
-       anything unknown). */
-    --atk-command-injection: #ff5c52;
-    --atk-sql-injection: #f2a63b;
-    --atk-ldap-injection: #9fd356;
-    --atk-xxe-injection: #3ad6d1;
-    --atk-login-attempt: #3b7cf0;
-    --atk-path-traversal: #c77dff;
-    --atk-xss-attempt: #ffa3d1;
-    --atk-lfi-rfi: #f3e2b0;
-    --atk-other: #8b9bb0;
 
     /* ── Tints (badges, rails, hover washes) ──────────────────── */
     --tint-accent: rgba(77, 163, 255, 0.13);
@@ -735,7 +733,7 @@ tbody tr { transition: background var(--dur) var(--ease); }
    states keep the UI face. */
 tbody td { font-family: var(--font-mono); font-size: var(--fs-sm); }
 tbody td :is(.method-badge, .category-badge, .category-tag, .badge-more,
-    .trap-mark, .attention-new, button),
+    .atk-badge, .sev-label, .trap-mark, .attention-new, button),
 tbody td.empty-state { font-family: var(--font-ui); }
 tbody tr:hover {
     background: var(--tint-neutral);
@@ -1216,28 +1214,6 @@ tbody {
     gap: var(--s2);
     row-gap: var(--s1);
 }
-/* Attack-type tags: one fixed height, one line, squared like the other
-   verdict tags (pills belong to HTTP methods). A narrow column ellipsises a
-   long name instead of wrapping it into a two-line blob; types without a
-   hue of their own (per-CVE rules) take the grey low-signal bucket. */
-.badge-row .method-badge {
-    display: inline-flex;
-    align-items: center;
-    height: 20px;
-    max-width: 100%;
-    padding: 0 var(--s2);
-    border-radius: var(--r-sm);
-    border-color: color-mix(in srgb, var(--atk, var(--atk-other)) 40%, transparent);
-    background: color-mix(in srgb, var(--atk, var(--atk-other)) 14%, transparent);
-    color: color-mix(in srgb, var(--atk, var(--atk-other)) 85%, var(--text-strong));
-    font-size: var(--fs-2xs);
-    font-weight: 600;
-    letter-spacing: 0;
-    line-height: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
 /* A diff of 0 is a byte-identical replay — the strongest campaign signal, so it
    reads as a warning, not an "all clear". */
 .diff-exact {
@@ -1263,54 +1239,71 @@ tbody {
     text-decoration: none;
     border-bottom: 1px dotted color-mix(in srgb, var(--accent) 40%, transparent);
 }
-/* Attack types with no fixed hue (per-CVE rule types) are tinted by the
-   severity of the rules behind them. Declared before the fixed hues, which
-   win on the types that have one. */
-.atk-sev-critical { --atk: var(--sev-critical); }
-.atk-sev-high { --atk: var(--sev-high); }
-.atk-sev-medium { --atk: var(--sev-medium); }
-.atk-sev-low { --atk: var(--sev-low); }
-/* Attack-type badges: tinted in the type's hue, see --atk-* above. */
-.method-command-injection { --atk: var(--atk-command-injection); }
-.method-sql-injection { --atk: var(--atk-sql-injection); }
-.method-ldap-injection { --atk: var(--atk-ldap-injection); }
-.method-xxe-injection { --atk: var(--atk-xxe-injection); }
-.method-login-attempt { --atk: var(--atk-login-attempt); }
-.method-path-traversal { --atk: var(--atk-path-traversal); }
-.method-xss-attempt { --atk: var(--atk-xss-attempt); }
-.method-lfi-rfi { --atk: var(--atk-lfi-rfi); }
-.method-common-probes { --atk: var(--atk-other); }
+/* Attack-type tag: severity band picks the family, a stable shade the type. */
+.atk-badge {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    max-width: 100%;
+    padding: 0 var(--s2);
+    border-radius: var(--r-sm);
+    border: 1px solid color-mix(in srgb, var(--atk, var(--sev-low)) 40%, transparent);
+    background: color-mix(in srgb, var(--atk, var(--sev-low)) 14%, transparent);
+    color: color-mix(in srgb, var(--atk, var(--sev-low)) 80%, var(--text-strong));
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.atk-sev-critical.atk-shade-1 { --atk: var(--sev-critical-1); }
+.atk-sev-critical.atk-shade-2 { --atk: var(--sev-critical-2); }
+.atk-sev-critical.atk-shade-3 { --atk: var(--sev-critical-3); }
+.atk-sev-critical.atk-shade-4 { --atk: var(--sev-critical-4); }
+.atk-sev-high.atk-shade-1 { --atk: var(--sev-high-1); }
+.atk-sev-high.atk-shade-2 { --atk: var(--sev-high-2); }
+.atk-sev-high.atk-shade-3 { --atk: var(--sev-high-3); }
+.atk-sev-high.atk-shade-4 { --atk: var(--sev-high-4); }
+.atk-sev-medium.atk-shade-1 { --atk: var(--sev-medium-1); }
+.atk-sev-medium.atk-shade-2 { --atk: var(--sev-medium-2); }
+.atk-sev-medium.atk-shade-3 { --atk: var(--sev-medium-3); }
+.atk-sev-medium.atk-shade-4 { --atk: var(--sev-medium-4); }
+.atk-sev-low.atk-shade-1 { --atk: var(--sev-low-1); }
+.atk-sev-low.atk-shade-2 { --atk: var(--sev-low-2); }
+.atk-sev-low.atk-shade-3 { --atk: var(--sev-low-3); }
+.atk-sev-low.atk-shade-4 { --atk: var(--sev-low-4); }
 .method-get {
-    border-color: color-mix(in srgb, var(--accent) 30%, transparent);
-    background: color-mix(in srgb, var(--accent) 15%, transparent);
-    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 20%, transparent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    color: color-mix(in srgb, var(--accent) 70%, var(--text-dim));
 }
 .method-post {
-    border-color: color-mix(in srgb, var(--ok) 30%, transparent);
-    background: color-mix(in srgb, var(--ok) 15%, transparent);
-    color: var(--ok);
+    border-color: color-mix(in srgb, var(--ok) 20%, transparent);
+    background: color-mix(in srgb, var(--ok) 8%, transparent);
+    color: color-mix(in srgb, var(--ok) 70%, var(--text-dim));
 }
 .method-put,
 .method-patch {
-    border-color: color-mix(in srgb, var(--warn) 30%, transparent);
-    background: color-mix(in srgb, var(--warn) 15%, transparent);
-    color: var(--warn);
+    border-color: color-mix(in srgb, var(--warn) 20%, transparent);
+    background: color-mix(in srgb, var(--warn) 8%, transparent);
+    color: color-mix(in srgb, var(--warn) 70%, var(--text-dim));
 }
 .method-delete {
-    border-color: color-mix(in srgb, var(--danger) 30%, transparent);
-    background: color-mix(in srgb, var(--danger) 15%, transparent);
-    color: var(--danger);
+    border-color: color-mix(in srgb, var(--danger) 20%, transparent);
+    background: color-mix(in srgb, var(--danger) 8%, transparent);
+    color: color-mix(in srgb, var(--danger) 70%, var(--text-dim));
 }
 .method-head,
 .method-options {
-    border-color: color-mix(in srgb, var(--violet) 30%, transparent);
-    background: color-mix(in srgb, var(--violet) 15%, transparent);
-    color: var(--violet);
+    border-color: color-mix(in srgb, var(--violet) 20%, transparent);
+    background: color-mix(in srgb, var(--violet) 8%, transparent);
+    color: color-mix(in srgb, var(--violet) 70%, var(--text-dim));
 }
 .method-query {
-    border-color: color-mix(in srgb, var(--cyan) 30%, transparent);
-    background: color-mix(in srgb, var(--cyan) 15%, transparent);
-    color: var(--cyan);
+    border-color: color-mix(in srgb, var(--cyan) 20%, transparent);
+    background: color-mix(in srgb, var(--cyan) 8%, transparent);
+    color: color-mix(in srgb, var(--cyan) 70%, var(--text-dim));
 }
 .size-cell {
     white-space: nowrap;
@@ -2651,7 +2644,7 @@ tbody {
     text-overflow: ellipsis;
     white-space: nowrap;
     cursor: pointer;
-    color: var(--danger) !important;
+    color: color-mix(in srgb, var(--danger) 70%, var(--text-dim)) !important;
     font-weight: 500;
     text-decoration: underline;
     text-decoration-style: dotted;
@@ -2659,7 +2652,7 @@ tbody {
     transition: all 0.2s;
 }
 .path-truncated:hover {
-    color: var(--danger) !important;
+    color: color-mix(in srgb, var(--danger) 70%, var(--text-dim)) !important;
     text-decoration-style: solid;
 }
 .path-cell-container:hover .path-tooltip {
@@ -2793,9 +2786,6 @@ tbody {
        timestamps and paths stay legible instead of wrapping one word per line. */
     .table-container table {
         min-width: 600px;
-    }
-    .ip-clickable {
-        display: inline-block;
     }
     .radar-chart {
         width: 140px;
@@ -4375,6 +4365,154 @@ label:has(> .visually-hidden-input:focus-visible) {
 .trends-total-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--type-c); flex: none; }
 .trends-total-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trends-total-count { color: var(--text-strong); font-weight: 600; font-variant-numeric: tabular-nums; }
+/* Attacks period bar: the applied filters and the window for the whole tab.
+   A solid panel tone, sticky under the tab strip (--tabbar-h from attacks.js). */
+.period-bar {
+    position: sticky;
+    top: calc(var(--s2) * 2 + var(--tabbar-h, 50px));
+    z-index: var(--z-sticky);
+    display: flex;
+    align-items: center;
+    gap: var(--s3) var(--s5);
+    min-height: 52px;
+    margin-bottom: var(--s5);
+    padding: var(--s2) var(--s3) var(--s2) var(--s4);
+    background: var(--surface);
+    border-radius: var(--r-panel);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+/* Span keys sit raised, like the tabs. */
+.period-bar .map-limit-btn:not(.active) {
+    background: color-mix(in srgb, var(--raised) 70%, var(--surface));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+.period-bar .map-limit-btn:not(.active):hover { background: var(--raised); }
+.period-bar .period-label { font-family: var(--font-mono); font-size: var(--fs-xs); min-width: 0; padding-inline: var(--s2); }
+/* Applied filters on the left, the window keys on the right. */
+.period-window { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); margin-left: auto; flex: none; }
+.applied-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 26px;
+    max-width: 320px;
+    padding: 0 3px 0 10px;
+    background: var(--raised);
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+}
+.applied-pill-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.applied-pill-key { color: var(--text-dim); font-size: var(--fs-2xs); white-space: nowrap; }
+button.applied-pill-key {
+    padding: 1px 6px;
+    margin-left: -6px;
+    background: none;
+    border: 0;
+    border-radius: var(--r-pill);
+    font-family: inherit;
+    cursor: pointer;
+}
+button.applied-pill-key:hover { color: var(--text-strong); background: var(--line); }
+/* Only | Hide: what Enter adds to the filters. */
+.term-mode { display: inline-flex; padding: 2px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-md); }
+.term-mode button {
+    height: 24px;
+    padding: 0 var(--s3);
+    color: var(--text-dim);
+    background: none;
+    border: 0;
+    border-radius: var(--r-sm);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    cursor: pointer;
+}
+.term-mode button:hover { color: var(--text); }
+.term-mode button.active { color: var(--text-strong); background: var(--raised); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 1px 2px rgba(0, 0, 0, 0.45); }
+#attacks-mode-hide.active { color: var(--danger); }
+.applied-pill-value {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--text-strong);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.applied-pill-clear {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    flex: none;
+    padding: 0;
+    color: var(--text-dim);
+    background: none;
+    border: 0;
+    border-radius: 50%;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 150ms ease, color 150ms ease;
+}
+.applied-pill-clear:hover { color: var(--text-strong); background: var(--line); }
+.applied-clear-all {
+    padding: 0 var(--s1);
+    color: var(--text-dim);
+    background: none;
+    border: 0;
+    font-size: var(--fs-xs);
+    cursor: pointer;
+}
+.applied-clear-all:hover { color: var(--text-strong); text-decoration: underline; text-underline-offset: 3px; }
+.applied-empty { color: var(--text-faint); font-size: var(--fs-xs); }
+/* Detected attacks: the inputs that add filters for the whole tab. */
+.panel-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2); margin-bottom: var(--s3); }
+.panel-filter-input {
+    width: 300px;
+    max-width: 100%;
+    height: 30px;
+    padding: 0 var(--s3);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    color: var(--text-strong);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    outline: none;
+}
+.panel-filter-input::placeholder { color: var(--text-faint); font-family: var(--font-ui); }
+.panel-filter-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
+.panel-filter-input.is-not { border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); }
+.panel-filters .select { height: 30px; min-width: 0; font-size: var(--fs-xs); }
+/* On the tab the period bar holds the pills; the overlay keeps its own. */
+[data-attacks-panel] .panel-header .filter-pill { display: none; }
+.period-pills { display: flex; flex: 1 1 auto; flex-wrap: wrap; align-items: center; gap: var(--s2); min-width: 0; }
+.filter-pill-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.range-label { color: var(--text-dim); font-family: var(--font-mono); font-size: var(--fs-2xs); white-space: nowrap; }
+[data-ignored] .range-label::after { content: " · " attr(data-ignored) " not applied"; }
+/* Severity dot + label: colour never carries the band alone. */
+.sev-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex: none; background: currentColor; }
+.sev-fg-critical { color: var(--sev-critical-1); }
+.sev-fg-high { color: var(--sev-high-1); }
+.sev-fg-medium { color: var(--sev-medium-1); }
+.sev-fg-low { color: var(--sev-low-1); }
+.sev-label { display: inline-flex; align-items: center; gap: var(--s2); white-space: nowrap; }
+/* Detected attacks: severity chips and rule picker above the table. */
+.attack-facets { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s2) var(--s4); margin-bottom: var(--s3); }
+.rule-picker { max-width: min(320px, 70vw); }
+.rule-picker option { background: var(--raised); }
+.rule-picker option:not([class]) { color: var(--text); }
+.rule-picker-label { color: var(--text-dim); font-size: var(--fs-xs); }
+/* Keyboard focus on the hidden slot buttons outlines the chart they mirror. */
+.chart-main:has(#trends-slots :focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-sm); }
+.trends-totals-empty { color: var(--text-dim); font-size: var(--fs-xs); padding: var(--s1) var(--s2); }
+@media (max-width: 640px) {
+    /* Two sticky bars would eat a phone screen; the bar scrolls away here. */
+    .period-bar { position: static; }
+    .period-bar { flex-wrap: wrap; }
+    .period-window { flex: 1 1 100%; margin-left: 0; }
+    .panel-filter-input { flex: 1 1 100%; width: auto; }
+}
 .trends-empty-msg { height: 100%; gap: var(--s2); flex-wrap: wrap; text-align: center; padding: var(--s4); }
 .trends-empty-msg[hidden] { display: none; }
 .chart-summary:empty {
@@ -5143,7 +5281,7 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
     width: 8px;
     height: 8px;
     border-radius: 2px;
-    background: var(--atk, var(--atk-other));
+    background: var(--atk, var(--sev-low-1));
 }
 .activity-legend > span:first-child { margin-right: var(--s1); }
 .activity-legend .activity-cell { --atk: var(--text-dim); width: 14px; height: 10px; }

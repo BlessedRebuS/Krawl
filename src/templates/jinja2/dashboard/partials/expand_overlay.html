@@ -22,12 +22,12 @@
                         :class="{ active: expandOverlay.invert }"
                         :aria-pressed="expandOverlay.invert"
                         @click="toggleExpandInvert()"
-                        title="Invert match: each Enter hides requests whose IP, path or user agent contains the text"
+                        title="Hide: each Enter hides requests whose IP, path or user agent contains the text"
                         x-show="expandOverlay.endpoint === 'attacks'"
-                        x-cloak>Not</button>
+                        x-cloak>Hide</button>
                 <input type="text"
                        class="expand-overlay-search"
-                       :placeholder="expandOverlay.invert ? 'Exclude... (Enter to add)' : (({ 'targeted-domains': 'Filter domains', 'global-filenames': 'Filter filenames', 'request-assets': 'Filter URLs' })[expandOverlay.endpoint] || 'Filter...')"
+                       :placeholder="expandOverlay.invert ? 'Exclude... (Enter to add)' : expandOverlay.shared ? 'Filter... (Enter to add)' : (({ 'targeted-domains': 'Filter domains', 'global-filenames': 'Filter filenames', 'request-assets': 'Filter URLs' })[expandOverlay.endpoint] || 'Filter...')"
                        :aria-label="expandOverlay.invert ? 'Exclude requests containing this text; press Enter to add' : (({ 'targeted-domains': 'Filter domains', 'global-filenames': 'Filter filenames', 'request-assets': 'Filter URLs' })[expandOverlay.endpoint] || 'Filter results')"
                        x-model="expandOverlay.search"
                        @input.debounce.300ms="expandOverlay.invert || triggerExpandSearch()"
@@ -112,7 +112,7 @@
                             class="select">
                         <option value="">All attack types</option>
                         <template x-for="t in expandOverlay.attackTypes" :key="t">
-                            <option :value="t" x-text="t"></option>
+                            <option :value="t" :selected="t === expandOverlay.attackType" x-text="krawlAttackLabel(t)"></option>
                         </template>
                     </select>
                 </div>

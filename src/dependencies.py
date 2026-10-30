@@ -14,6 +14,7 @@ from fastapi import Request
 from fastapi.templating import Jinja2Templates
 from jinja2 import select_autoescape
 
+from attack_colours import attack_badge_class
 from database import DatabaseManager, get_database
 
 # Shared Jinja2 templates instance
@@ -38,7 +39,8 @@ def get_templates() -> Jinja2Templates:
         _templates.env.filters["safe_url"] = _safe_url
         _templates.env.filters["num"] = _format_num
         _templates.env.filters["attack_label"] = _attack_label
-        _templates.env.filters["attack_severity_band"] = _attack_severity_band
+        _templates.env.filters["rule_label"] = rule_label
+        _templates.env.filters["attack_badge_class"] = attack_badge_class
     return _templates
 
 
@@ -88,8 +90,21 @@ def _attack_label(value):
     return ", ".join(labels)
 
 
-def _format_ts(value, time_only=False):
-    """Custom Jinja2 filter for formatting ISO timestamps."""
+def rule_label(rule):
+    """Readable YARA rule name: credential_fields is a pseudo-rule, krawl_ is dropped."""
+    if rule == "credential_fields":
+        return "Credential capture"
+    key = re.sub(r"^krawl_", "", str(rule or "").strip().lower())
+    m = re.match(
+        r"(cve[_-]\d{4}[_-]\d{4,})(?:[_-](.+))?$", key
+    )  # CVE id, then its words
+    if m:
+        return _attack_label(m[1]) + (" " + m[2].replace("_", " ") if m[2] else "")
+    return _attack_label(key)
+
+
+def _format_ts(value, time_only=None):
+    """ISO timestamp; time_only True/False forces the form, None drops the date for today."""
     if not value:
         return "N/A"
     if isinstance(value, str):
@@ -99,7 +114,7 @@ def _format_ts(value, time_only=False):
             return value
     if time_only:
         return value.strftime("%H:%M:%S")
-    if value.date() == datetime.now().date():
+    if time_only is None and value.date() == datetime.now().date():
         return value.strftime("%H:%M:%S")
     # Year first: sorts as text and reads the same in every locale.
     return value.strftime("%Y-%m-%d %H:%M:%S")
@@ -138,19 +153,6 @@ def _format_size(value):
     if value < 1024 * 1024:
         return f"{value / 1024:.1f} KB"
     return f"{value / (1024 * 1024):.1f} MB"
-
-
-def _attack_severity_band(attack_type):
-    """Severity band of the rules behind an attack type, "unknown" without them.
-
-    Tints attack types that have no fixed --atk-* hue (per-CVE rule types).
-    """
-    from detection import loaded_detection, severity_band
-
-    detection = loaded_detection()
-    if detection is None or not attack_type:
-        return "unknown"
-    return severity_band(detection.attack_type_severity(str(attack_type).strip()))
 
 
 def _safe_url(value):

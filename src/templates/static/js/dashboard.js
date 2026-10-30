@@ -420,7 +420,7 @@ document.addEventListener('alpine:init', () => {
         uploadModal: { show: false, path: '', fileName: '', fileContent: '', error: '', success: '', loading: false, dragging: false },
 
         // Expand overlay state
-        expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false, method: '', attackType: '', excludes: [], invert: false, attackTypes: [], ipFilter: '', artifactKind: '', artifactValue: '' },
+        expandOverlay: { show: false, title: '', endpoint: '', pageSize: 25, search: '', categories: [], honeypotOnly: false, method: '', attackType: '', excludes: [], invert: false, attackTypes: [], ipFilter: '', artifactKind: '', artifactValue: '', shared: false },
 
         // ⌘K search palette, opened from the header button.
         palette: { open: false },
@@ -550,6 +550,8 @@ document.addEventListener('alpine:init', () => {
             // Anything opened from a search result (attack overlay, insight)
             // replaces the palette rather than stacking under it.
             this.$watch('expandOverlay.show', (show) => { if (show) this.palette.open = false; });
+            // Closing the Attacks overlay lets the tab catch up with its edits.
+            this.$watch('expandOverlay.show', (show) => { if (!show && this.expandOverlay.shared) _attacksRefresh(false); });
             this.$watch('tab', () => { this.palette.open = false; });
             this._bindShortcuts();
             this._bindTabbarEdges();
@@ -583,7 +585,7 @@ document.addEventListener('alpine:init', () => {
 
             // Handle hash-based tab routing on page load
             const hash = window.location.hash.slice(1);
-            if (hash === 'ip-stats' || hash === 'attacks') {
+            if (hash === 'ip-stats' || /^attacks(\?|$)/.test(hash)) {
                 this.switchToAttacks();
             } else if (hash === 'banlist' && this.authenticated) {
                 this.switchToBanlist();
@@ -617,8 +619,10 @@ document.addEventListener('alpine:init', () => {
                 // Listen for hash changes (after initialization)
                 window.addEventListener('hashchange', () => {
                     const h = window.location.hash.slice(1);
-                    if (h === 'ip-stats' || h === 'attacks') {
-                        this.switchToAttacks();
+                    if (h === 'ip-stats' || /^attacks(\?|$)/.test(h)) {
+                        // On the tab already: a pasted link or Back replaces the drill-down.
+                        if (this.tab === 'attacks') applyAttacksHash(window.location.hash);
+                        else this.switchToAttacks();
                     } else if (h === 'banlist') {
                         if (this.authenticated) this.switchToBanlist();
                     } else if (h === 'timedout') {
@@ -650,12 +654,17 @@ document.addEventListener('alpine:init', () => {
 
         switchToAttacks() {
             if (this.tab === 'attacks') return;  // Prevent duplicate loading
+            // A link or reload carries the drill-down; otherwise keep the last one.
+            if (/^#attacks\?/.test(window.location.hash)) applyAttacksHash(window.location.hash, false);
+            else attacksRestoreFilters();
             this.tab = 'attacks';
-            window.location.hash = '#attacks';
+            writeAttacksHash();
 
             // x-if inserts new DOM — HTMX must process it for hx-trigger to work
             this.$nextTick(() => {
                 setTimeout(() => {
+                    renderAttacksBar();
+                    attacksLoadTypes();
                     if (typeof loadAttackTrendsChart === 'function') {
                         loadAttackTrendsChart();
                     }
@@ -2056,14 +2065,24 @@ window.openExpandOverlay = function(title, endpoint, pageSize, cluster, searchVa
         categories: [], honeypotOnly: false,
         method: '', attackType: '', excludes: [], invert: false, attackTypes: [],
         ipFilter: '', cluster: cluster || '', artifactKind: '', artifactValue: '',
+        // Only the Attacks tab's overlay shares its state; elsewhere it stays all-time.
+        shared: endpoint === 'attacks' && app.tab === 'attacks',
     });
-    _reloadExpandOverlay();
-    // For attacks, lazily load the list of distinct attack types for the
-    // dropdown filter.
-    if (endpoint === 'attacks') {
-        _loadExpandAttackTypes();
+    if (app.expandOverlay.shared) {
+        app.expandOverlay.search = '';
+        if (searchVal) attacksAddTerm(searchVal, false);
+        else _syncAttacksOverlay(app);
+    } else {
+        _reloadExpandOverlay();
     }
+    if (endpoint === 'attacks') _loadExpandAttackTypes();
 };
+
+// Attacks overlay edits go through the shared state, which reloads the overlay.
+function _attacksOverlay() {
+    const app = _getAlpineData();
+    return app && app.expandOverlay.endpoint === 'attacks' && app.expandOverlay.shared ? app.expandOverlay : null;
+}
 
 window.openArtifactInvestigation = function(kind, value) {
     if (!['domain', 'file', 'asset'].includes(kind) || !value) return;
@@ -2073,7 +2092,7 @@ window.openArtifactInvestigation = function(kind, value) {
     Object.assign(app.expandOverlay, {
         show: true, title: titles[kind], endpoint: 'artifact',
         artifactKind: kind, artifactValue: value,
-        search: '', ipFilter: '', cluster: '',
+        search: '', ipFilter: '', cluster: '', shared: false,
     });
     _reloadExpandOverlay();
 };
@@ -2085,7 +2104,10 @@ window.jumpToPath = function(event) {
 };
 
 window.triggerExpandSearch = function() {
-    _reloadExpandOverlay();
+    const ov = _attacksOverlay();
+    // On the tab, typed text waits for Enter (terms stack); the type applies at once.
+    if (!ov) return _reloadExpandOverlay();
+    if ((ov.attackType || null) !== attacksState.type) setAttacksState({ type: ov.attackType || null });
 };
 
 // Attacks overlay invert match: with Not on, Enter turns the filter text into
@@ -2096,19 +2118,24 @@ window.toggleExpandInvert = function() {
     const ov = app.expandOverlay;
     ov.invert = !ov.invert;
     // Typed text was a live search; it is not one in invert mode.
-    if (ov.search) { ov.search = ''; _reloadExpandOverlay(); }
+    if (ov.search) { ov.search = ''; triggerExpandSearch(); }
 };
 
 window.addExpandExcludeTerm = function() {
     const app = _getAlpineData();
     if (!app) return;
     const ov = app.expandOverlay;
-    if (!ov.invert || ov.endpoint !== 'attacks') return;
-    const terms = (ov.search || '').split(',').map(s => s.trim()).filter(Boolean);
-    for (const term of terms) {
-        if (!ov.excludes.includes(term)) ov.excludes.push(term);
+    if (ov.endpoint !== 'attacks') return;
+    const terms = (ov.search || '').split(',').map(s => s.trim().slice(0, 200)).filter(Boolean);
+    // On the tab every Enter stacks a term, plain or "not"; elsewhere only Not stacks.
+    if (ov.shared) {
+        ov.search = '';
+        return terms.forEach(t => attacksAddTerm(t, ov.invert));
     }
+    if (!ov.invert) return;
+    const exclude = [...new Set([...ov.excludes, ...terms])];
     ov.search = '';
+    ov.excludes = exclude;
     _reloadExpandOverlay();
 };
 
@@ -2116,8 +2143,24 @@ window.removeExcludeTerm = function(term) {
     const app = _getAlpineData();
     if (!app) return;
     const ov = app.expandOverlay;
-    ov.excludes = ov.excludes.filter(t => t !== term);
-    _reloadExpandOverlay();
+    if (ov.show && !ov.shared) {
+        ov.excludes = ov.excludes.filter(t => t !== term);
+        return _reloadExpandOverlay();
+    }
+    setAttacksState({ exclude: attacksState.exclude.filter(t => t !== term) });
+};
+
+window.removeSearchTerm = function(term) {
+    const app = _getAlpineData();
+    if (!app) return;
+    const ov = app.expandOverlay;
+    if (ov.show && !ov.shared) {
+        ov.search = '';
+        const el = document.querySelector('.expand-overlay-search');
+        if (el) el.value = '';
+        return _reloadExpandOverlay();
+    }
+    setAttacksState({ search: attacksState.search.filter(t => t !== term) });
 };
 
 window.toggleExpandCategory = function(cat) {
@@ -2140,6 +2183,7 @@ window.toggleExpandHoneypot = function() {
 window.toggleExpandMethod = function(method) {
     const app = _getAlpineData();
     if (!app) return;
+    if (_attacksOverlay()) return setAttacksState({ method: attacksState.method === method ? '' : method });
     app.expandOverlay.method = (app.expandOverlay.method === method) ? '' : method;
     _reloadExpandOverlay();
 };
@@ -2148,6 +2192,13 @@ window.clearExpandFilter = function(name) {
     const app = _getAlpineData();
     if (!app) return;
     const ov = app.expandOverlay;
+    // Pills of the attacks table (inline or in the overlay) clear the shared state.
+    const patch = { attackType: { type: null }, method: { method: '' }, search: { search: [] }, ipFilter: { ip: null } }[name];
+    if (patch && (!ov.show || ov.shared)) {
+        const el = document.querySelector('.expand-overlay-search');
+        if (el && name === 'search') el.value = '';
+        return setAttacksState(patch);
+    }
     if (name === 'attackType') ov.attackType = '';
     else if (name === 'method') ov.method = '';
     else if (name === 'search') { ov.search = ''; const el = document.querySelector('.expand-overlay-search'); if (el) el.value = ''; }
@@ -2192,13 +2243,15 @@ function _reloadExpandOverlay() {
         params.set('honeypot_only', '1');
     }
     if (ov.endpoint === 'attacks') {
-        if (ov.method) params.set('method_filter', ov.method);
-        if (ov.attackType) params.set('attack_type_filter', ov.attackType);
-        if (ov.excludes.length) params.set('exclude', ov.excludes.join(','));
-        // Pull sort defaults from the currently displayed partial if present,
-        // otherwise default to timestamp desc.
-        if (!params.has('sort_by')) params.set('sort_by', 'timestamp');
-        if (!params.has('sort_order')) params.set('sort_order', 'desc');
+        if (ov.shared) {
+            for (const [k, v] of attacksParams()) params.set(k, v);
+        } else {
+            if (ov.method) params.set('method_filter', ov.method);
+            if (ov.attackType) params.set('attack_type_filter', ov.attackType);
+            if (ov.excludes.length) params.set('exclude', ov.excludes.join(','));
+        }
+        params.set('sort_by', 'timestamp');
+        params.set('sort_order', 'desc');
     }
 
     const url = `${dashboardPath}/htmx/${ov.endpoint}?${params}`;

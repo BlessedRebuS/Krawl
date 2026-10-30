@@ -155,7 +155,9 @@ def test_filter_box_appends_not_terms_on_enter():
     assert '@keydown.enter.prevent="addExpandExcludeTerm()"' in overlay
     assert "window.addExpandExcludeTerm" in js
     assert "window.removeExcludeTerm" in js
-    assert "params.set('exclude', ov.excludes.join(','))" in js
+    # Excludes live in the shared Attacks-tab state, sent as one comma list.
+    attacks = (ROOT / "src/templates/static/js/attacks.js").read_text()
+    assert "p.set('exclude', s.exclude.join(','))" in attacks
 
 
 def test_unfiltered_total_counts_each_log_once(stored):

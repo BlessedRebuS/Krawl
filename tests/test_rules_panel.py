@@ -464,15 +464,15 @@ def test_cached_rule_stats_round_trip_to_tuples_and_datetimes(monkeypatch):
 def test_attack_type_tags_are_banded_by_rule_severity(coordinator, monkeypatch):
     # Per-CVE types have no fixed hue; their tag takes the rules' severity.
     import detection
-    from dependencies import _attack_severity_band
+    from dependencies import attack_badge_class
 
     monkeypatch.setattr(detection, "_coordinator", None)
-    assert _attack_severity_band("cve_2019_0193") == "unknown"
+    assert "atk-sev-low" in attack_badge_class("cve_2019_0193")
 
     monkeypatch.setattr(detection, "_coordinator", coordinator)
     expected = detection.severity_band(
         coordinator.attack_type_severity("cve_2019_0193")
     )
     assert expected != "unknown"
-    assert _attack_severity_band("cve_2019_0193") == expected
-    assert _attack_severity_band("no_such_type") == "unknown"
+    assert f"atk-sev-{expected}" in attack_badge_class("cve_2019_0193")
+    assert "atk-sev-low" in attack_badge_class("no_such_type")

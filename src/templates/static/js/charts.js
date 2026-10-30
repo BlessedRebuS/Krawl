@@ -44,7 +44,7 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
 
         const labels = attackTypes.map(item => item.type);
         const counts = attackTypes.map(item => item.count);
-        const backgroundColors = labels.map(type => krawlAttackColor(type));
+        const backgroundColors = labels.map(type => krawlTypeColor(data.colours, type));
 
         // Create or update chart (track per canvas)
         if (!loadAttackTypesChart._instances) loadAttackTypesChart._instances = {};
@@ -155,16 +155,36 @@ async function loadAttackTypesChart(canvasId, ipFilter, legendPosition) {
 
 
 /**
- * Attack Trends line chart with period navigation, totals sidebar,
- * and interactive legend that filters the Detected Attack Types table.
+ * Attack Trends line chart for the Attacks tab's period (attacks.js state).
+ * Clicking a bucket narrows the tab to that slot; the totals sidebar then
+ * totals the slot, and pressing a total narrows to that type.
  */
 let attackTrendsChart = null;
-let _trendsOffsetDays = 0;
-let _trendsDays = 7;
+let _trendsRequest = 0;
+
+// Shades the selected slot's bucket behind the lines.
+const _trendsSlotBand = {
+    id: 'trendsSlotBand',
+    beforeDatasetsDraw(chart) {
+        const i = chart.$slotIndex;
+        if (i === undefined || i < 0) return;
+        const x = chart.scales.x, area = chart.chartArea;
+        const step = chart.data.labels.length > 1 ? x.getPixelForValue(1) - x.getPixelForValue(0) : area.right - area.left;
+        const cx = x.getPixelForValue(i);
+        const left = Math.max(area.left, cx - step / 2), right = Math.min(area.right, cx + step / 2);
+        chart.ctx.save();
+        chart.ctx.fillStyle = krawlToken('--tint-accent');
+        chart.ctx.fillRect(left, area.top, right - left, area.bottom - area.top);
+        chart.ctx.restore();
+    },
+};
 
 async function loadAttackTrendsChart(canvasId) {
     canvasId = canvasId || 'attack-trends-chart';
     const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
+    const req = ++_trendsRequest;
+    const s = window.attacksState;
+    loadAttackTrendsChart.key = _attacksChartKey();
 
     let release = () => {};
     try {
@@ -172,7 +192,9 @@ async function loadAttackTrendsChart(canvasId) {
         if (!canvas) return;
         release = window.krawlBusy ? krawlBusy(canvas.parentElement) : release;
 
-        const url = `${DASHBOARD_PATH}/api/attack-types-daily?limit=10&days=${_trendsDays}&offset_days=${_trendsOffsetDays}`;
+        const q = attacksPanelParams('chart');
+        q.set('limit', 10);
+        const url = `${DASHBOARD_PATH}/api/attack-types-daily?${q}`;
         // A stuck query must not leave the panel spinning forever.
         const timeout = new AbortController();
         const timer = setTimeout(() => timeout.abort(), 20000);
@@ -190,14 +212,11 @@ async function loadAttackTrendsChart(canvasId) {
         if (!response.ok) throw new Error('Failed to fetch daily attack data');
 
         const data = await response.json();
+        if (req !== _trendsRequest) return;  // a newer state already asked
         const attackTypes = data.attack_types || [];
         const dates = data.dates || [];
 
-        // Update period label
-        _updateTrendsPeriodLabel(dates);
-
-        // Update totals sidebar
-        _updateTrendsTotals(attackTypes);
+        _updateTrendsTotals(s.slot ? (data.slot_totals || []) : attackTypes, data.colours);
 
         if (attackTrendsChart) {
             attackTrendsChart.destroy();
@@ -205,6 +224,7 @@ async function loadAttackTrendsChart(canvasId) {
         }
 
         if (attackTypes.length === 0) {
+            _fillTrendsSlots([], []);
             _showTrendsMessage(canvas, 'No attacks detected in this period. Try a longer span or step back a period.');
             return;
         }
@@ -212,42 +232,50 @@ async function loadAttackTrendsChart(canvasId) {
         // Restore canvas if previously hidden
         _showTrendsMessage(canvas, null);
 
-        const isHourly = dates.length > 0 && dates[0].includes(':');
-        const shortLabels = dates.map(d => {
-            if (isHourly) {
-                // "2026-04-02 14:00" → "Apr 2 14:00"
-                const [datePart, timePart] = d.split(' ');
-                const dt = new Date(datePart + 'T00:00:00');
-                const dayLabel = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                return `${dayLabel} ${timePart}`;
-            }
-            const dt = new Date(d + 'T00:00:00');
-            return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        });
+        const bh = data.bucket_hours || 24;
+        const shortLabels = dates.map(d => _trendsSlotText(d, bh));
 
-        const datasets = attackTypes.map(at => ({
-            label: `${krawlAttackLabel(at.type)} (${at.total})`,
-            data: at.daily,
-            borderColor: krawlAttackColor(at.type),
-            backgroundColor: krawlAttackColor(at.type, 0.05),
-            borderWidth: 2,
-            pointRadius: 0,
-            pointHitRadius: 8,
-            pointHoverRadius: 4,
-            pointHoverBackgroundColor: krawlAttackColor(at.type),
-            tension: 0.15,
-            fill: false,
-            _attackType: at.type,
-        }));
+        // Critical/High lead; Medium/Low stay recessive; same band+shade differ by dash.
+        const dashes = [[], [6, 4], [2, 3]], seen = {};
+        const datasets = attackTypes.map(at => {
+            const c = (data.colours && data.colours[at.type]) || { band: 'low', shade: 1 };
+            const strong = c.band === 'critical' || c.band === 'high';
+            const key = `${c.band}-${c.shade}`;
+            seen[key] = (seen[key] || 0) + 1;
+            return {
+                label: `${krawlAttackLabel(at.type)} (${krawlNum(at.total)})`,
+                data: at.daily,
+                borderColor: krawlTypeColor(data.colours, at.type, strong ? 1 : 0.55),
+                borderWidth: strong ? 2.5 : 1.25,
+                borderDash: dashes[Math.min(seen[key], 3) - 1],
+                pointRadius: 0,
+                pointHitRadius: 8,
+                pointHoverRadius: 4,
+                pointHoverBackgroundColor: krawlTypeColor(data.colours, at.type),
+                tension: 0.15,
+                fill: false,
+                _attackType: at.type,
+                _base: { alpha: strong ? 1 : 0.55, width: strong ? 2.5 : 1.25 },
+            };
+        });
 
         const ctx = canvas.getContext('2d');
         attackTrendsChart = new Chart(ctx, {
             type: 'line',
             data: { labels: shortLabels, datasets: datasets },
+            plugins: [_trendsSlotBand],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
+                // Click a bucket to narrow the tab to it; click it again to widen.
+                onClick(evt, _els, chart) {
+                    const hit = chart.getElementsAtEventForMode(evt, 'index', { intersect: false }, false);
+                    if (!hit.length) return;
+                    const slot = dates[hit[0].index];
+                    setAttacksState({ slot: window.attacksState.slot === slot ? null : slot, type: null });
+                },
+                onHover(evt, els) { evt.native.target.style.cursor = els.length ? 'pointer' : ''; },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
@@ -260,10 +288,15 @@ async function loadAttackTrendsChart(canvasId) {
                         padding: 10,
                         titleFont: { size: 12, weight: 'bold' },
                         bodyFont: { size: 11 },
+                        itemSort: (a, b) => b.parsed.y - a.parsed.y,
+                        filter: item => item.parsed.y > 0,
                         callbacks: {
-                            label: function(context) {
-                                return `${krawlAttackLabel(context.dataset._attackType)}: ${context.parsed.y}`;
-                            }
+                            label: context => `${krawlAttackLabel(context.dataset._attackType)}: ${krawlNum(context.parsed.y)}`,
+                            // Full-strength swatch even for recessive lines.
+                            labelColor: context => {
+                                const c = krawlTypeColor(data.colours, context.dataset._attackType);
+                                return { borderColor: c, backgroundColor: c };
+                            },
                         }
                     }
                 },
@@ -275,15 +308,21 @@ async function loadAttackTrendsChart(canvasId) {
                     },
                     y: {
                         beginAtZero: true,
-                        ticks: { color: krawlToken('--text-dim'), font: { size: 11 }, precision: 0 },
+                        ticks: { color: krawlToken('--text-dim'), font: { size: 11 }, precision: 0, callback: v => krawlNum(v) },
                         grid: { color: krawlToken('--line-soft') },
+                        title: { display: true, text: bh === 1 ? 'per hour' : bh === 4 ? 'per 4 hours' : 'per day', color: krawlToken('--text-dim'), font: { size: 11 } },
                     }
                 },
                 animation: { enabled: false },
             }
         });
+        attackTrendsChart.$slotIndex = s.slot ? dates.indexOf(s.slot) : -1;
+        attackTrendsChart.$colours = data.colours;
+        _trendsEmphasise(s.type);
+        _fillTrendsSlots(dates, datasets);
 
     } catch (err) {
+        if (req !== _trendsRequest) return;  // a newer request owns the chart
         console.error('Error loading attack trends chart:', err);
         const canvas = document.getElementById(canvasId);
         if (canvas) {
@@ -326,103 +365,114 @@ function _showTrendsMessage(canvas, text, retry = false) {
     }
 }
 
-function _updateTrendsPeriodLabel(dates) {
-    const label = document.getElementById('trends-period-label');
-
-    // Always update button states regardless of data
-    const nextBtn = document.getElementById('trends-next');
-    if (nextBtn) nextBtn.disabled = (_trendsOffsetDays <= 0);
-
-    if (!label) return;
-
-    if (dates.length === 0) {
-        // Show computed date range even when no data exists
-        const end = new Date();
-        end.setDate(end.getDate() - _trendsOffsetDays);
-        const start = new Date(end);
-        start.setDate(start.getDate() - _trendsDays);
-        const fmt = { month: 'short', day: 'numeric' };
-        label.textContent = `${start.toLocaleDateString('en-US', fmt)} — ${end.toLocaleDateString('en-US', fmt)}`;
-        return;
-    }
-
-    const isHourly = dates[0].includes(':');
-    const parseDate = d => isHourly ? new Date(d.replace(' ', 'T')) : new Date(d + 'T00:00:00');
-    const start = parseDate(dates[0]);
-    const end = parseDate(dates[dates.length - 1]);
-    const fmt = isHourly
-        ? { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }
-        : { month: 'short', day: 'numeric' };
-    label.textContent = `${start.toLocaleDateString('en-US', fmt)} — ${end.toLocaleDateString('en-US', fmt)}`;
+// Highlights one type's line and dims the rest; null restores the severity emphasis.
+function _trendsEmphasise(type) {
+    const chart = attackTrendsChart;
+    if (!chart) return;
+    chart.data.datasets.forEach(d => {
+        const on = d._attackType === type;
+        d.borderColor = krawlTypeColor(chart.$colours, d._attackType, !type ? d._base.alpha : on ? 1 : 0.15);
+        d.borderWidth = type && on ? Math.max(d._base.width, 2.5) : d._base.width;
+    });
+    chart.update('none');
 }
 
-function _updateTrendsTotals(attackTypes) {
+// Screen-reader and keyboard twin of the chart: one row per bucket, its button narrows to that slot.
+function _fillTrendsSlots(dates, datasets) {
+    const body = document.querySelector('#trends-slots tbody');
+    if (!body) return;
+    const s = window.attacksState;
+    const had = body.contains(document.activeElement) ? document.activeElement.dataset.slot : null;
+    body.replaceChildren(...dates.map((slot, i) => {
+        const tr = document.createElement('tr');
+        const label = attacksSlotLabel(slot, s.days);
+        const th = document.createElement('th');
+        th.scope = 'row';
+        th.textContent = label;
+        const total = document.createElement('td');
+        total.textContent = krawlNum(datasets.reduce((n, d) => n + (d.data[i] || 0), 0));
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = `Show ${label}`;
+        btn.dataset.slot = slot;
+        btn.tabIndex = -1;
+        btn.setAttribute('aria-pressed', String(s.slot === slot));
+        btn.onclick = () => setAttacksState({ slot: s.slot === slot ? null : slot, type: null });  // toggles, like a chart click
+        // Focus shows the bucket's tooltip, so sighted keyboard users see where they are.
+        btn.onfocus = () => _trendsActivate(i);
+        btn.onblur = () => _trendsActivate(-1);
+        const cell = document.createElement('td');
+        cell.append(btn);
+        tr.append(th, total, cell);
+        return tr;
+    }));
+    // Roving tabindex: one Tab stop (the pressed slot, else the latest); arrows move between slots.
+    const btns = [...body.querySelectorAll('button')];
+    const cur = btns.find(b => b.dataset.slot === (had || s.slot)) || btns[btns.length - 1];
+    if (cur) cur.tabIndex = 0;
+    if (cur && had) cur.focus();
+    body.onkeydown = (e) => {
+        const i = btns.indexOf(e.target);
+        const to = { ArrowLeft: i - 1, ArrowUp: i - 1, ArrowRight: i + 1, ArrowDown: i + 1, Home: 0, End: btns.length - 1 }[e.key];
+        if (i < 0 || to === undefined) return;
+        e.preventDefault();
+        const next = btns[Math.max(0, Math.min(btns.length - 1, to))];
+        btns[i].tabIndex = -1;
+        next.tabIndex = 0;
+        next.focus();
+    };
+}
+
+function _trendsActivate(i) {
+    const chart = attackTrendsChart;
+    if (!chart) return;
+    const els = i < 0 ? [] : chart.data.datasets.map((_, d) => ({ datasetIndex: d, index: i }));
+    chart.setActiveElements(els);
+    chart.tooltip.setActiveElements(els, { x: i < 0 ? 0 : chart.scales.x.getPixelForValue(i), y: chart.chartArea.top });
+    chart.update('none');
+}
+
+// Slot "YYYY-MM-DDTHH" (UTC) to "Apr 2 14:00" for 1h/4h buckets, "Apr 2" for daily.
+function _trendsSlotText(slot, bh) {
+    const dt = new Date(slot.slice(0, 10) + 'T00:00:00');
+    const day = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return bh < 24 ? `${day} ${slot.slice(11, 13)}:00` : day;
+}
+
+function _updateTrendsTotals(totals, colours) {
     const container = document.getElementById('trends-totals');
     if (!container) return;
+    const s = window.attacksState;
 
-    if (attackTypes.length === 0) {
-        // The chart wrapper already renders the empty-state message. Keeping
-        // a second "No data" label in the totals gutter made the mobile chart
-        // look like two unrelated empty visualizations.
+    // The chart wrapper already shows the empty period message.
+    if (totals.length === 0 && !s.slot) {
         container.innerHTML = '';
         return;
     }
 
-    // Each total is a button: pressing it filters the Detected Attack Types
-    // table to that type, by mouse or keyboard.
-    container.innerHTML = '<span class="trends-totals-title">Totals in period</span>';
-    attackTypes.forEach(at => {
+    // Each total is a button: pressing it narrows the tab to that type.
+    container.innerHTML = '<span class="trends-totals-title"></span>';
+    container.firstChild.textContent = s.slot ? `Totals in ${attacksSlotLabel(s.slot, s.days)}` : 'Totals in period';
+    if (totals.length === 0) {
+        container.insertAdjacentHTML('beforeend', '<span class="trends-totals-empty">No attacks in this slot.</span>');
+        return;
+    }
+    totals.forEach(at => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'trends-total';
         btn.dataset.type = at.type;
-        btn.style.setProperty('--type-c', krawlAttackColor(at.type));
-        btn.setAttribute('aria-pressed', String(_activeAttackTypeFilter === at.type));
-        btn.title = `Show only ${krawlAttackLabel(at.type)} in the table below`;
+        btn.style.setProperty('--type-c', krawlTypeColor(colours, at.type));
+        btn.setAttribute('aria-pressed', String(s.type === at.type));
+        btn.title = `Show only ${krawlAttackLabel(at.type)}`;
         btn.innerHTML = '<span class="trends-total-dot"></span><span class="trends-total-name"></span><span class="trends-total-count"></span>';
         btn.querySelector('.trends-total-name').textContent = krawlAttackLabel(at.type);
-        btn.querySelector('.trends-total-count').textContent = at.total.toLocaleString('de-DE');
-        btn.onclick = () => filterAttackTableByType(at.type);
+        btn.querySelector('.trends-total-count').textContent = krawlNum(at.total);
+        btn.onclick = () => setAttacksState({ type: s.type === at.type ? null : at.type });
+        // Hover or focus previews the line; leaving restores the pressed one.
+        btn.onmouseenter = btn.onfocus = () => _trendsEmphasise(at.type);
+        btn.onmouseleave = btn.onblur = () => _trendsEmphasise(s.type);
         container.appendChild(btn);
-    });
-}
-
-/** Shift the trends chart period by N windows (negative = older, positive = newer) */
-function shiftTrendsPeriod(direction) {
-    _trendsOffsetDays = Math.max(0, _trendsOffsetDays - (direction * _trendsDays));
-    loadAttackTrendsChart();
-}
-
-/** Switch the trends time span (7, 30, 90 days) and reset to current period */
-function setTrendsSpan(days, btn) {
-    _trendsDays = days;
-    _trendsOffsetDays = 0;
-    document.querySelectorAll('#trends-span-selector .map-limit-btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-    loadAttackTrendsChart();
-}
-
-/** Active attack type filter (null = show all) */
-let _activeAttackTypeFilter = null;
-
-/**
- * Filter the Detected Attack Types table by a specific attack type.
- * Clicking the same type again clears the filter.
- */
-function filterAttackTableByType(attackType) {
-    const DASHBOARD_PATH = window.__DASHBOARD_PATH__ || '';
-    const container = document.getElementById('attacks-htmx-container');
-    if (!container) return;
-
-    if (_activeAttackTypeFilter === attackType) {
-        _activeAttackTypeFilter = null;
-        htmx.ajax('GET', DASHBOARD_PATH + '/htmx/attacks?page=1', { target: container, swap: 'innerHTML' });
-    } else {
-        _activeAttackTypeFilter = attackType;
-        htmx.ajax('GET', DASHBOARD_PATH + '/htmx/attacks?page=1&attack_type_filter=' + encodeURIComponent(attackType), { target: container, swap: 'innerHTML' });
-    }
-    document.querySelectorAll('#trends-totals .trends-total').forEach(btn => {
-        btn.setAttribute('aria-pressed', String(btn.dataset.type === _activeAttackTypeFilter));
     });
 }
 
@@ -508,10 +558,9 @@ function _campaignTickLabel(iso, index, slotHours) {
     return index % 7 === 0 ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
 }
 
-/** Attack type -> inline style setting --atk to its token (grey if unknown). */
-function _atkStyle(type) {
-    const name = String(type || 'other').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    return `--atk: var(--atk-${name}, var(--atk-other))`;
+/** Attack type -> inline style setting --atk to its severity shade (low if unknown). */
+function _atkStyle(type, colours) {
+    return `--atk: ${krawlTypeColor(colours, type)}`;
 }
 
 /** Hits -> shade 1..5. Square-root scale: one loud campaign would otherwise
@@ -540,10 +589,10 @@ function _renderCampaignSummary(data) {
     const total = data.total_campaigns || campaigns.length;
     const noun = (n, one, many) => (n === 1 ? one : many);
     let text = campaigns.length < total
-        ? `${b(total.toLocaleString())} campaigns active; the ${b(campaigns.length)} shown hit ${b(hits.toLocaleString())} times.`
-        : `${b(total.toLocaleString())} ${noun(total, 'campaign', 'campaigns')} hit ${b(hits.toLocaleString())} ${noun(hits, 'time', 'times')}.`;
+        ? `${b(krawlNum(total))} campaigns active; the ${b(campaigns.length)} shown hit ${b(krawlNum(hits))} times.`
+        : `${b(krawlNum(total))} ${noun(total, 'campaign', 'campaigns')} hit ${b(krawlNum(hits))} ${noun(hits, 'time', 'times')}.`;
     if (slotTotals[peak]) {
-        text += ` Busiest: ${b(_escapeHtml(_campaignSlotText(data.slots[peak], data.slot_hours)))}, with ${slotTotals[peak].toLocaleString()} ${noun(slotTotals[peak], 'hit', 'hits')}.`;
+        text += ` Busiest: ${b(_escapeHtml(_campaignSlotText(data.slots[peak], data.slot_hours)))}, with ${krawlNum(slotTotals[peak])} ${noun(slotTotals[peak], 'hit', 'hits')}.`;
     }
     box.innerHTML = text;
 }
@@ -575,9 +624,9 @@ function _renderCampaignActivity(data) {
         const types = c.attack_types || [];
         // The row takes the hue of its main attack type (types arrive sorted
         // by count); file-only campaigns stay in the neutral bucket.
-        const hue = _atkStyle(types.length ? types[0] : 'other');
+        const hue = _atkStyle(types.length ? types[0] : 'other', data.colours);
         const typeList = types.slice(0, 3).map(t =>
-            `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t)}"></span>${_escapeHtml(krawlAttackLabel(t))}</span>`
+            `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t, data.colours)}"></span>${_escapeHtml(krawlAttackLabel(t))}</span>`
         ).join('') + (types.length > 3 ? `<span class="atk-tag">+${types.length - 3}</span>` : '');
         const cells = c.activity.map((n, i) =>
             `<span class="activity-cell shade-${_campaignShade(n, max)}${future[i] ? ' is-future' : ''}" data-row="${row}" data-slot="${i}"></span>`
@@ -588,8 +637,8 @@ function _renderCampaignActivity(data) {
             `<span class="activity-target">${_escapeHtml(_middleEllipsis(name, 44))}</span>` +
             `<span class="activity-types">${typeList || _escapeHtml(c.sources)}</span></span>` +
             `<span class="activity-strip" role="cell">${cells}</span>` +
-            `<span class="num activity-hits" role="cell"><span class="num-bar" style="--pct:${(c.hits / maxHits * 100).toFixed(1)}%">${c.hits.toLocaleString()}</span></span>` +
-            `<span class="num" role="cell">${c.ips.toLocaleString()}</span></div>`;
+            `<span class="num activity-hits" role="cell"><span class="num-bar" style="--pct:${(c.hits / maxHits * 100).toFixed(1)}%">${krawlNum(c.hits)}</span></span>` +
+            `<span class="num" role="cell">${krawlNum(c.ips)}</span></div>`;
     }).join('');
 
     // Legend: the intensity ramp, then one swatch per row colour on screen.
@@ -603,7 +652,7 @@ function _renderCampaignActivity(data) {
         `<span class="activity-legend" aria-hidden="true"><span>Fewer hits</span>` +
         Array.from({ length: CAMPAIGN_SHADES }, (_, i) => `<span class="activity-cell shade-${i + 1}"></span>`).join('') +
         `<span>More</span><span class="activity-legend-key">Row colour is the main attack type:</span>` +
-        shown.map(t => `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t)}"></span>${_escapeHtml(t === 'other' ? 'Probes, uploads, other' : krawlAttackLabel(t))}</span>`).join('') +
+        shown.map(t => `<span class="atk-tag"><span class="atk-swatch" style="${_atkStyle(t, data.colours)}"></span>${_escapeHtml(t === 'other' ? 'Probes, uploads, other' : krawlAttackLabel(t))}</span>`).join('') +
         `</span>` +
         `<span class="activity-rows"><span class="activity-rows-label">${campaigns.length} of ${data.total_campaigns} shown</span>` +
         `<span class="row gap-1" role="group" aria-label="Campaigns shown">` +
@@ -662,7 +711,7 @@ function _bindCampaignActivity() {
             `<div class="activity-tooltip-title">${_escapeHtml(_campaignSlotText(data.slots[i], data.slot_hours))}</div>` +
             `<div class="data-mono">${_escapeHtml(_middleEllipsis(_campaignName(c), 56))}</div>` +
             ((c.attack_types || []).length ? `<div class="activity-tooltip-title">${_escapeHtml(c.attack_types.map(krawlAttackLabel).join(', '))}</div>` : '') +
-            `<div><strong>${n.toLocaleString()}</strong> ${n === 1 ? 'hit' : 'hits'}</div>`;
+            `<div><strong>${krawlNum(n)}</strong> ${n === 1 ? 'hit' : 'hits'}</div>`;
         tip.hidden = false;
         const host = tip.offsetParent || grid;
         const hostBox = host.getBoundingClientRect();

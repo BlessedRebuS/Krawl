@@ -16,14 +16,25 @@ function krawlCategoryColors() {
     };
 }
 
-// Attack-type hue from the --atk-* tokens: a type keeps its colour in every
-// chart, whatever its rank. Unknown types fall back to the grey bucket.
-function krawlAttackColor(type, alpha) {
-    const name = String(type || '').toLowerCase().replace(/_/g, '-');
-    const hex = krawlToken(`--atk-${name}`) || krawlToken('--atk-other');
+// Severity shade from --sev-<band>-<shade>; unknown bands fall back to low-1.
+function krawlSeverityColor(band, shade, alpha) {
+    const hex = krawlToken(`--sev-${band}-${shade}`) || krawlToken('--sev-low-1');
     if (alpha === undefined) return hex;
     const value = parseInt(hex.slice(1), 16);
     return `rgba(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`;
+}
+
+// Colour of an attack type from the API's colours map; missing or 'other' is low-1.
+function krawlTypeColor(colours, type, alpha) {
+    const c = (colours && colours[type]) || { band: 'low', shade: 1 };
+    return krawlSeverityColor(c.band, c.shade, alpha);
+}
+
+// Dot-grouped integer (12.166.543), identical to the `num` Jinja filter; non-integers pass through.
+function krawlNum(n) {
+    if (n === null || n === undefined) return '';
+    const ok = typeof n === 'number' ? Number.isFinite(n) : /^\s*[-+]?\d+\s*$/.test(String(n));
+    return ok ? String(Math.trunc(Number(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.') : n;
 }
 
 // Detector ids as people say them; mirrors the attack_label Jinja filter.
