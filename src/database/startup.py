@@ -1,7 +1,8 @@
-"""One-time startup maintenance for the Krawl database.
+"""Nightly maintenance for the Krawl database.
 
-Runs at boot (idempotent, safe every time). Keeps the database consistent with
-rules that were introduced after some data had already been persisted:
+Runs from tasks/db_cleanup.py at 03:00 (idempotent, safe every time). Keeps
+the database consistent with rules that were introduced after some data had
+already been persisted:
 
 - Private/local/reserved IPs should never be tracked, so purge any that
   predate the tracking guard from every IP-bearing table.
@@ -10,7 +11,7 @@ rules that were introduced after some data had already been persisted:
 - Fully expired bans should not linger, so clear stale ban state.
 
 Each step is exposed as a standalone function so the dashboard maintenance
-panel can run them individually; ``run_startup_cleanup`` is just the boot-time
+panel can run them individually; ``run_startup_cleanup`` is the nightly
 composition of the three.
 
 Every step logs before it starts, not just after. This routine is the slowest

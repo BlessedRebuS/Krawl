@@ -4,13 +4,16 @@ Top-N rankings, attack-type statistics, cross-table search, and
 metrics-summary persistence. All read-only except upsert_metrics_summary.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import func, not_, or_
+from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import joinedload
 
+import detection
+from attack_colours import attack_band, colour_map
 from dashboard_cache import pagination
+from database.text_filters import access_log_text_clauses
 from logger import get_app_logger
 from models import (
     AccessLog,
@@ -19,9 +22,40 @@ from models import (
     IpStats,
     MetricsSummary,
 )
+from period import SLOT_FMT, parse_slot, range_conditions, resolve_period, slot_labels
 
 if TYPE_CHECKING:
     from database.core import DatabaseManager
+
+_BAND_RANK = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+
+
+def _types_in_bands(session, since, until, bands) -> list[str]:
+    """Attack types seen in [since, until) whose severity band is in bands."""
+    q = session.query(AttackDetection.attack_type).join(
+        AccessLog, AccessLog.id == AttackDetection.access_log_id
+    )
+    if since:
+        q = q.filter(AccessLog.timestamp >= since)
+    if until:
+        q = q.filter(AccessLog.timestamp < until)
+    return [t for (t,) in q.distinct() if attack_band(t) in bands]
+
+
+def _rule_match(rule: str):
+    """Detections of this rule, crediting legacy unnamed rows to its sole type."""
+    match = AttackDetection.rule_name == rule
+    sole_type = detection.sole_rule_type(rule)
+    if sole_type:
+        match = or_(
+            match,
+            and_(
+                AttackDetection.rule_name.is_(None),
+                AttackDetection.attack_type == sole_type,
+            ),
+        )
+    return match
+
 
 applogger = get_app_logger()
 
@@ -357,6 +391,104 @@ class AnalyticsRepo:
         finally:
             self._db.close_session()
 
+    def get_attackers_in_period(
+        self,
+        since: datetime | None,
+        until: datetime | None,
+        attack_type: str | None = None,
+        rule: str | None = None,
+        page: int = 1,
+        page_size: int = 10,
+        severities: list[str] | None = None,
+        search: str | None = None,
+        exclude: list[str] | None = None,
+        method_filter: str | None = None,
+        ip_filter: str | None = None,
+    ) -> dict[str, Any]:
+        """IPs ranked by matching detections in the window, whatever their category."""
+        session = self._db.session
+        try:
+            conds = [AttackDetection.access_log_id == AccessLog.id]
+            if since:
+                conds.append(AccessLog.timestamp >= since)
+            if until:
+                conds.append(AccessLog.timestamp < until)
+            conds += access_log_text_clauses(search, exclude, method_filter, ip_filter)
+            matching = list(conds)
+            if attack_type:
+                matching.append(AttackDetection.attack_type == attack_type)
+            if rule:
+                matching.append(_rule_match(rule))
+            if severities:
+                banded = _types_in_bands(session, since, until, severities)
+                matching.append(AttackDetection.attack_type.in_(banded))
+            grouped = (
+                session.query(
+                    AccessLog.ip.label("ip"),
+                    func.count(AttackDetection.id).label("hits"),
+                    func.max(AccessLog.timestamp).label("last_seen"),
+                )
+                .select_from(AttackDetection)
+                .join(AccessLog, AccessLog.id == AttackDetection.access_log_id)
+                .filter(*matching[1:])
+                .group_by(AccessLog.ip)
+            )
+            total = grouped.count()
+            rows = (
+                grouped.order_by(func.count(AttackDetection.id).desc(), AccessLog.ip)
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+                .all()
+            )
+            ips = [r.ip for r in rows]
+            types: dict[str, dict[str, int]] = {}
+            info = {}
+            if ips:
+                type_q = (
+                    session.query(
+                        AccessLog.ip, AttackDetection.attack_type, func.count()
+                    )
+                    .select_from(AttackDetection)
+                    .join(AccessLog, AccessLog.id == AttackDetection.access_log_id)
+                    .filter(*conds[1:], AccessLog.ip.in_(ips))
+                    .group_by(AccessLog.ip, AttackDetection.attack_type)
+                )
+                for ip, atype, n in type_q:
+                    types.setdefault(ip, {})[atype] = n
+                info = {
+                    i.ip: i for i in session.query(IpStats).filter(IpStats.ip.in_(ips))
+                }
+            attackers = []
+            for r in rows:
+                by_type = types.get(r.ip, {})
+                stats = info.get(r.ip)
+                attackers.append(
+                    {
+                        "ip": r.ip,
+                        "hits": r.hits,
+                        "top_type": (
+                            max(by_type, key=lambda t: (by_type[t], t))
+                            if by_type
+                            else None
+                        ),
+                        "worst_band": min(
+                            (attack_band(t) for t in by_type),
+                            key=_BAND_RANK.get,
+                            default="low",
+                        ),
+                        "category": stats.category if stats else None,
+                        "last_seen": r.last_seen,
+                        "city": stats.city if stats else None,
+                        "country_code": stats.country_code if stats else None,
+                    }
+                )
+            return {
+                "attackers": attackers,
+                "pagination": pagination(page, page_size, total),
+            }
+        finally:
+            self._db.close_session()
+
     def get_attack_types_paginated(
         self,
         page: int = 1,
@@ -369,6 +501,10 @@ class AnalyticsRepo:
         method_filter: str | None = None,
         total: int | None = None,
         exclude: list[str] | None = None,
+        since: datetime | None = None,
+        until: datetime | None = None,
+        rule_filter: str | None = None,
+        severity_filter: list[str] | None = None,
     ) -> dict[str, Any]:
         """
         Retrieve paginated list of detected attack types with access logs.
@@ -421,40 +557,31 @@ class AnalyticsRepo:
                 detection_exists = detection_exists.filter(
                     AttackDetection.attack_type == attack_type_filter
                 )
+            if rule_filter:
+                detection_exists = detection_exists.filter(_rule_match(rule_filter))
+            if severity_filter:
+                types = _types_in_bands(session, since, until, severity_filter)
+                detection_exists = detection_exists.filter(
+                    AttackDetection.attack_type.in_(types)
+                )
             match_filters = [detection_exists.exists()]
-            if ip_filter:
-                match_filters.append(AccessLog.ip == ip_filter)
-            if method_filter:
-                match_filters.append(
-                    func.upper(AccessLog.method) == method_filter.upper()
-                )
-            if search:
-                like = f"%{search}%"
-                match_filters.append(
-                    or_(
-                        AccessLog.ip.ilike(like),
-                        AccessLog.path.ilike(like),
-                        AccessLog.user_agent.ilike(like),
-                    )
-                )
-            for term in exclude or ():
-                like = f"%{term}%"
-                # A NULL user agent must not turn the NOT into NULL.
-                match_filters.append(
-                    not_(
-                        or_(
-                            AccessLog.ip.ilike(like),
-                            AccessLog.path.ilike(like),
-                            func.coalesce(AccessLog.user_agent, "").ilike(like),
-                        )
-                    )
-                )
+            if since:
+                match_filters.append(AccessLog.timestamp >= since)
+            if until:
+                match_filters.append(AccessLog.timestamp < until)
+            # Detection-side filters need the exact EXISTS count, not the shortcuts.
+            narrowed = bool(since or until or rule_filter or severity_filter)
+            match_filters += access_log_text_clauses(
+                search, exclude, method_filter, ip_filter
+            )
 
             # Unfiltered, count from attack_detections alone (10.9s -> 0.26s).
             capped = False
             if total is not None:
                 total_attacks = total
-            elif (search or exclude or method_filter) and not ip_filter:
+            elif (
+                (search or exclude or method_filter) and not ip_filter and not narrowed
+            ):
                 # Unindexed text filters: an exact count reads every attack
                 # row's heap tuple (28s on the demo). Count within the newest
                 # COUNT_WINDOW detections instead, a lower bound once full.
@@ -477,7 +604,7 @@ class AnalyticsRepo:
                     session.query(func.count()).select_from(window).scalar()
                     >= COUNT_WINDOW
                 )
-            elif len(match_filters) == 1:
+            elif len(match_filters) == 1 and not narrowed:
                 count_q = session.query(
                     func.count(func.distinct(AttackDetection.access_log_id))
                 )
@@ -602,42 +729,102 @@ class AnalyticsRepo:
             return {
                 "attack_types": [
                     {"type": row.attack_type, "count": row.count} for row in results
-                ]
+                ],
+                "colours": colour_map(row.attack_type for row in results),
+            }
+        finally:
+            self._db.close_session()
+
+    def get_attack_facets(
+        self,
+        since: datetime | None = None,
+        until: datetime | None = None,
+        search: str | None = None,
+        exclude: list[str] | None = None,
+        method_filter: str | None = None,
+        ip_filter: str | None = None,
+    ) -> dict[str, Any]:
+        """Detections per severity band and per rule within [since, until)."""
+        session = self._db.session
+        try:
+            q = session.query(
+                AttackDetection.rule_name,
+                AttackDetection.attack_type,
+                func.count(AttackDetection.id),
+            ).join(AccessLog, AccessLog.id == AttackDetection.access_log_id)
+            if since:
+                q = q.filter(AccessLog.timestamp >= since)
+            if until:
+                q = q.filter(AccessLog.timestamp < until)
+            q = q.filter(
+                *access_log_text_clauses(search, exclude, method_filter, ip_filter)
+            )
+            rows = q.group_by(AttackDetection.rule_name, AttackDetection.attack_type)
+            coordinator = detection.loaded_detection()
+            sole = {}  # attack_type -> its only loaded rule
+            if coordinator:
+                sole = {
+                    t: r[0]["rule"]
+                    for t, r in coordinator.yara.rule_details.items()
+                    if len(r) == 1
+                }
+            severities = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+            rules: dict[str, dict] = {}
+            for rule, attack_type, hits in rows:
+                band = attack_band(attack_type)
+                severities[band] += hits
+                rule = rule or sole.get(attack_type)
+                if not rule:
+                    continue
+                entry = rules.setdefault(
+                    rule,
+                    {
+                        "rule": rule,
+                        "attack_type": attack_type,
+                        "band": band,
+                        "hits": 0,
+                    },
+                )
+                entry["hits"] += hits
+                if rule == "credential_fields":
+                    entry["label"] = "Credential capture"
+            return {
+                "severities": severities,
+                "rules": sorted(rules.values(), key=lambda r: -r["hits"]),
             }
         finally:
             self._db.close_session()
 
     def get_attack_types_daily(
-        self, limit: int = 10, days: int = 30, offset_days: int = 0
+        self,
+        limit: int = 10,
+        days: int = 30,
+        offset_days: int = 0,
+        slot: str | None = None,
+        search: str | None = None,
+        exclude: list[str] | None = None,
+        method_filter: str | None = None,
+        ip_filter: str | None = None,
     ) -> dict[str, Any]:
-        """
-        Get attack type counts for a sliding window (for line chart).
-        Uses hourly granularity for spans <= 7 days, daily otherwise.
-
-        Args:
-            limit: Max attack types to return
-            days: Window size in days
-            offset_days: How many days back to shift the window end
-                         (0 = ending today, 30 = ending 30 days ago, etc.)
-
-        Returns top N attack types with their breakdown and totals.
-        """
+        """Top attack types per 1h/4h/1d bucket over the window, plus per-slot totals."""
         session = self._db.session
         try:
-            from datetime import datetime, timedelta
+            period = resolve_period(days, offset_days)
+            labels = slot_labels(period)
+            bh = period.bucket_hours
+            out = {
+                "attack_types": [],
+                "dates": labels,
+                "bucket_hours": bh,
+                "slot_totals": None,
+                "colours": {},
+            }
+            text = access_log_text_clauses(search, exclude, method_filter, ip_filter)
+            time_filter = (
+                range_conditions(AccessLog.timestamp, period.since, period.until) + text
+            )
 
-            end = datetime.now() - timedelta(days=offset_days)
-            cutoff = end - timedelta(days=days)
-            use_hourly = True
-
-            # Time range filter used by both queries
-            time_filter = [
-                AccessLog.timestamp >= cutoff,
-                AccessLog.timestamp <= end,
-            ]
-
-            # Get top N attack types by total count in the period
-            top_types_q = (
+            top = (
                 session.query(
                     AttackDetection.attack_type,
                     func.count(AttackDetection.id).label("total"),
@@ -649,114 +836,65 @@ class AnalyticsRepo:
                 .limit(limit)
                 .all()
             )
+            names = [r.attack_type for r in top]
 
-            if not top_types_q:
-                return {"attack_types": [], "dates": []}
-
-            top_type_names = [row.attack_type for row in top_types_q]
-            totals = {row.attack_type: row.total for row in top_types_q}
-
-            if use_hourly:
-                # Hourly granularity: build list of hour slots
-                slots = []
-                total_hours = days * 24
-                for i in range(total_hours, -1, -1):
-                    slot = (end - timedelta(hours=i)).strftime("%Y-%m-%d %H:00")
-                    slots.append(slot)
-
-                # Group by date + hour, portable across SQLite and PostgreSQL
-                # strftime works on SQLite, to_char on PostgreSQL
-
-                is_sqlite = "sqlite" in str(session.bind.url)
-                if is_sqlite:
-                    hour_expr = func.strftime("%Y-%m-%d %H:00", AccessLog.timestamp)
+            if names:
+                if "sqlite" in str(session.bind.url):
+                    hour_expr = func.strftime("%Y-%m-%dT%H", AccessLog.timestamp)
                 else:
-                    hour_expr = func.to_char(AccessLog.timestamp, "YYYY-MM-DD HH24:00")
-
-                hourly_q = (
+                    hour_expr = func.to_char(AccessLog.timestamp, 'YYYY-MM-DD"T"HH24')
+                rows = (
                     session.query(
                         AttackDetection.attack_type,
-                        hour_expr.label("slot"),
+                        hour_expr.label("hour"),
                         func.count(AttackDetection.id).label("count"),
                     )
                     .join(AccessLog, AttackDetection.access_log_id == AccessLog.id)
-                    .filter(
-                        *time_filter,
-                        AttackDetection.attack_type.in_(top_type_names),
-                    )
+                    .filter(*time_filter, AttackDetection.attack_type.in_(names))
                     .group_by(AttackDetection.attack_type, hour_expr)
                     .all()
                 )
+                data = {t: dict.fromkeys(labels, 0) for t in names}
+                for r in rows:
+                    h = parse_slot(str(r.hour))
+                    if h is None:
+                        continue
+                    h -= timedelta(hours=h.hour % bh)
+                    key = h.strftime(SLOT_FMT)
+                    if key in data[r.attack_type]:
+                        data[r.attack_type][key] += r.count
+                out["attack_types"] = [
+                    {
+                        "type": r.attack_type,
+                        "total": r.total,
+                        "daily": [data[r.attack_type][d] for d in labels],
+                    }
+                    for r in top
+                ]
 
-                slot_data = {t: {s: 0 for s in slots} for t in top_type_names}
-                for row in hourly_q:
-                    slot_str = str(row.slot)
-                    if (
-                        row.attack_type in slot_data
-                        and slot_str in slot_data[row.attack_type]
-                    ):
-                        slot_data[row.attack_type][slot_str] = row.count
-
-                return {
-                    "attack_types": [
-                        {
-                            "type": t,
-                            "total": totals[t],
-                            "daily": [slot_data[t][s] for s in slots],
-                        }
-                        for t in top_type_names
-                    ],
-                    "dates": slots,
-                }
-            else:
-                # Daily granularity
-                dates = []
-                for i in range(days, -1, -1):
-                    d = (end - timedelta(days=i)).strftime("%Y-%m-%d")
-                    dates.append(d)
-
-                # Get daily breakdown for those types using func.date() for portability
-                day_expr = func.date(AccessLog.timestamp)
-                daily_q = (
+            types = set(names)
+            sp = resolve_period(days, offset_days, slot)
+            if sp.slot:
+                totals = (
                     session.query(
                         AttackDetection.attack_type,
-                        day_expr.label("day"),
-                        func.count(AttackDetection.id).label("count"),
+                        func.count(AttackDetection.id).label("total"),
                     )
                     .join(AccessLog, AttackDetection.access_log_id == AccessLog.id)
                     .filter(
-                        *time_filter,
-                        AttackDetection.attack_type.in_(top_type_names),
+                        *range_conditions(AccessLog.timestamp, sp.since, sp.until),
+                        *text,
                     )
-                    .group_by(AttackDetection.attack_type, day_expr)
+                    .group_by(AttackDetection.attack_type)
+                    .order_by(func.count(AttackDetection.id).desc())
                     .all()
                 )
-
-                # Build daily data per attack type
-                daily_data = {t: {d: 0 for d in dates} for t in top_type_names}
-                for row in daily_q:
-                    day_str = (
-                        row.day.strftime("%Y-%m-%d")
-                        if hasattr(row.day, "strftime")
-                        else str(row.day)
-                    )
-                    if (
-                        row.attack_type in daily_data
-                        and day_str in daily_data[row.attack_type]
-                    ):
-                        daily_data[row.attack_type][day_str] = row.count
-
-                return {
-                    "attack_types": [
-                        {
-                            "type": t,
-                            "total": totals[t],
-                            "daily": [daily_data[t][d] for d in dates],
-                        }
-                        for t in top_type_names
-                    ],
-                    "dates": dates,
-                }
+                out["slot_totals"] = [
+                    {"type": r.attack_type, "total": r.total} for r in totals
+                ]
+                types |= {r.attack_type for r in totals}
+            out["colours"] = colour_map(types)
+            return out
         finally:
             self._db.close_session()
 

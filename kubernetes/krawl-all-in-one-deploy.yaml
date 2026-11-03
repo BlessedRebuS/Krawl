@@ -684,6 +684,8 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /var/lib/postgresql/data
+        - name: dshm
+          mountPath: /dev/shm
         resources:
             limits:
               cpu: 500m
@@ -717,6 +719,11 @@ spec:
       - name: data
         persistentVolumeClaim:
           claimName: krawl-postgres
+      # parallel queries need more than the 64Mi default /dev/shm
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 256Mi
 ---
 # Source: krawl-chart/templates/redis.yaml
 apiVersion: apps/v1

@@ -6,6 +6,8 @@
 services:
   postgres:
     image: postgres:16-alpine
+    # parallel queries need more than Docker's 64MB /dev/shm
+    shm_size: 256mb
     container_name: krawl-postgres
     ports:
       - 5432:5432

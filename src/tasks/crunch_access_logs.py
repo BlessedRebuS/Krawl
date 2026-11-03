@@ -34,6 +34,16 @@ TASK_CONFIG = {
 }
 
 MAX_SAMPLES = 3
+# Tables crunching leaves intact (it merges only non-suspicious, non-honeypot
+# rows, keeping hits and IPs per host), so the warmed Attacks tab survives it.
+CRUNCH_SAFE_KEYS = (
+    "attacks:",
+    "attackers:",
+    "api:attack_",
+    "credentials:",
+    "honeypot:",
+    "domains:rollup",
+)
 _CRUNCH_LOCK = 0x4B52_4352
 
 app_logger = get_app_logger()
@@ -233,7 +243,7 @@ def _crunch():
             groups_merged += merged
             rows_deleted += deleted
         if groups_merged:
-            invalidate_table_cache()
+            invalidate_table_cache(keep=CRUNCH_SAFE_KEYS)
             app_logger.info(
                 f"crunch-access-logs: {ips_done} IPs, {groups_merged} groups merged, "
                 f"{rows_deleted} rows deleted"

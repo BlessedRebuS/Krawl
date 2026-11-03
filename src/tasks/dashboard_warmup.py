@@ -20,8 +20,9 @@ from dashboard_cache import (
 from database import get_database
 from database.access_logs import DOMAIN_ROLLUP_KEY
 from logger import get_app_logger
-from routes.api import build_campaign_stats
-from routes.htmx import CAMPAIGN_TABLE_LIMIT
+from period import period_query, resolve_period
+from routes.api import attack_facets_key, build_campaign_stats, load_attack_facets
+from routes.htmx import CAMPAIGN_TABLE_LIMIT, attackers_cache_key, attacks_cache_key
 
 app_logger = get_app_logger()
 
@@ -86,7 +87,7 @@ def main():
             rows_key,
             total_key,
             page_size,
-            key_fmt,
+            key_for,
             clamp_pages=False,
         ):
             """Warm the first `warmup_pages` cache pages of a paginated table
@@ -97,7 +98,8 @@ def main():
             byte-identical to what the individual per-page query produced, so
             dashboard reads are unaffected. `clamp_pages` mirrors the source
             method's total_pages formula (honeypot clamps to a minimum of 1;
-            the others report 0 when empty). Returns the bulk result so callers
+            the others report 0 when empty). `key_for(page)` gives the route's
+            cache key. Returns the bulk result so callers
             can derive totals.
             """
             bulk = _timed(label, fetch_bulk)
@@ -109,7 +111,7 @@ def main():
             for p in range(1, warmup_pages + 1):
                 chunk = rows[(p - 1) * page_size : p * page_size]
                 set_cached_table(
-                    key_fmt.format(p=p),
+                    key_for(p),
                     ttl=WARM_TTL,
                     value={
                         rows_key: chunk,
@@ -179,27 +181,6 @@ def main():
                 }
                 set_cached("top_paths", top_paths, ttl=SLOW_TTL)
                 del top_paths_all, agg_paths
-
-            attackers_all = _timed(
-                "get_attackers_all",
-                lambda: db.ip_stats.get_attackers_paginated(
-                    page=1,
-                    page_size=100_000,
-                    sort_by="total_requests",
-                    sort_order="desc",
-                ),
-            )
-            set_cached_list("agg:attackers", attackers_all["attackers"])
-            del attackers_all
-
-            honeypot_all = _timed(
-                "get_honeypot_all",
-                lambda: db.access_logs.get_honeypot_paginated(
-                    page=1, page_size=100_000, sort_by="count", sort_order="desc"
-                ),
-            )
-            set_cached_list("agg:honeypot", honeypot_all["honeypots"])
-            del honeypot_all
         else:
             if slow_run or get_cached("top_ua") is None:
                 top_ua = _timed(
@@ -251,37 +232,51 @@ def main():
             ),
         )
 
+        # --- Attacks tab default view: 7D, offset 0, no filters ---
+        # Route keys carry the period query (days=7&offset_days=0), not the
+        # clock, so these entries serve every 7D visit until the next run.
+        period = resolve_period(7)
+        period_qs = period_query(period)
         # Each panel below warms warmup_pages cache pages with ONE query each
         # (bulk fetch + in-Python slicing) rather than one query per page.
         _warm_pages(
-            "attacks_all",
+            "attacks_7d",
             lambda: db.analytics.get_attack_types_paginated(
                 page=1,
                 page_size=15 * warmup_pages,
                 sort_by="timestamp",
                 sort_order="desc",
+                since=period.since,
+                until=period.until,
             ),
             rows_key="attacks",
             total_key="total",
             page_size=15,
-            key_fmt="attacks:{p}:timestamp:desc:::::",
+            key_for=lambda p: attacks_cache_key(page=p, period_qs=period_qs),
+            clamp_pages=True,
         )
-
-        # With aggregation on, the routes page the agg:* lists instead.
-        if not warmup_aggregation:
-            _warm_pages(
-                "attackers_all",
-                lambda: db.ip_stats.get_attackers_paginated(
-                    page=1,
-                    page_size=10 * warmup_pages,
-                    sort_by="total_requests",
-                    sort_order="desc",
-                ),
-                rows_key="attackers",
-                total_key="total_attackers",
-                page_size=10,
-                key_fmt="attackers:{p}:total_requests:desc",
-            )
+        set_cached_table(
+            attack_facets_key(period),
+            _timed("attack_facets_7d", lambda: load_attack_facets(db, period)),
+            ttl=WARM_TTL,
+        )
+        _warm_pages(
+            "attackers_7d",
+            lambda: db.analytics.get_attackers_in_period(
+                period.since, period.until, page=1, page_size=10 * warmup_pages
+            ),
+            rows_key="attackers",
+            total_key="total",
+            page_size=10,
+            key_for=lambda p: attackers_cache_key(page=p, period_qs=period_qs),
+            clamp_pages=True,
+        )
+        _timed(
+            "domain_rollup_7d",
+            lambda: db.access_logs.get_domain_rollup_between(
+                period.since, period.until, period_qs, refresh=True, ttl=WARM_TTL
+            ),
+        )
 
         credentials_bulk = _warm_pages(
             "credentials_all",
@@ -294,24 +289,8 @@ def main():
             rows_key="credentials",
             total_key="total",
             page_size=5,
-            key_fmt="credentials:{p}:timestamp:desc:",
+            key_for=lambda p: f"credentials:{p}:timestamp:desc:",
         )
-
-        if not warmup_aggregation:
-            _warm_pages(
-                "honeypot_all",
-                lambda: db.access_logs.get_honeypot_paginated(
-                    page=1,
-                    page_size=5 * warmup_pages,
-                    sort_by="count",
-                    sort_order="desc",
-                ),
-                rows_key="honeypots",
-                total_key="total",
-                page_size=5,
-                key_fmt="honeypot:{p}:count:desc",
-                clamp_pages=True,
-            )
 
         # --- Threats tab ---
         # The tab opens on an all-time cluster scan and the 1-day campaign
@@ -335,7 +314,7 @@ def main():
             rows_key="index",
             total_key="total",
             page_size=10,
-            key_fmt="filenames:{p}",
+            key_for=lambda p: f"filenames:{p}",
         )
 
         # First pages of the panels whose totals scan the whole access log,
@@ -379,7 +358,7 @@ def main():
         set_cached("attention", attention)
 
         # Attack trends cache (used by API endpoint)
-        set_cached_table("api:attack_daily:10:7:0", attack_trends, ttl=WARM_TTL)
+        set_cached_table("api:attack_daily:10:7:0:", attack_trends, ttl=WARM_TTL)
 
         app_logger.info(f"[Background Task] {task_name} cache refreshed successfully.")
 

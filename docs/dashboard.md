@@ -90,11 +90,48 @@ A paginated table of the most common user-agent strings with their frequency.
 
 The Attacks tab focuses on detected malicious activity, attack patterns, and captured credentials.
 
-### Attackers by Total Requests
+### Period and drill-down
 
-A paginated table listing all detected attackers ranked by total requests. Columns include IP, total requests, first seen, last seen, and location. Sortable by multiple fields.
+The Attacks tab shares one period across the trends chart, the Detected attacks table, Attackers in period, Captured Credentials, Targeted Domains and Honeypot Triggers.
 
-![Attacks — Attackers and Credentials](../img/top_attackers_dashboard.png)
+- **Period bar:** pick **1D**, **7D** or **30D**, and step to older or newer windows of that length. Labels are in UTC.
+- **Buckets:** the trends chart groups detections into 1 hour (1D), 4 hour (7D) or 1 day (30D) slots.
+- **Drill down:** click a slot in the chart. The table, charts and attackers re-scope to that slot, and the totals show that slot only. Click it again, or its pill, to go back.
+- **Keyboard:** below the chart, a list of the slots (hidden from sight) is a single Tab stop. Left/Right (or Up/Down, Home, End) move between slots, Enter or Space toggles one, and the focused slot shows its tooltip.
+- **Colours:** each attack type is coloured by its worst rule severity (critical red, high orange, medium violet, low sand) and a stable shade within that band. Critical and high lines are thick; medium and low are thinner and fainter. See [DESIGN.md](../DESIGN.md).
+
+### Filters
+
+The period bar at the top shows the applied filters as pills on the left (click a pill's x to remove it, or **Clear all**) and the 1D / 7D / 30D window on the right. Filters are added in the Detected attacks panel (or its expanded view) and from the chart; they then apply to the whole tab.
+
+- **Text filter:** pick **Only** or **Hide** next to the Detected attacks filter box, type, and press Enter. *only "…"* keeps just the requests whose IP, path or user agent contains the text; *hide "…"* drops them. Terms stack (up to 10 of each) and all must hold. Click a pill's *only* / *hide* word to flip it. Escape clears the box.
+- **Method and attack type** pickers narrow to one HTTP method or one attack type.
+- **Severity chips:** toggle critical, high, medium and low. Several can be on at once.
+- **Rule picker:** choose one YARA rule. Choosing a severity chip clears a rule that no longer fits.
+- **Attack type, IP and slot** filters come from clicking a type, an IP or a chart slot.
+- **Scope:** the text filter, Not terms, method and IP narrow every panel: the trends chart and its totals, Detected attacks, Attackers in period, Captured Credentials (matched on IP, path and username), Targeted Domains and Honeypot Triggers. Type, rule and severity narrow Detected attacks and Attackers in period only. A panel's range label names any active filter it does not apply, for example "type, severity not applied".
+- **Saved filters:** the filters and the span are kept in the browser (localStorage) and come back when you reload or open the Attacks tab again. A link with filters in its `#attacks?…` hash wins over the saved ones; the clicked slot and older periods are not saved.
+
+### Attackers in period
+
+A list of the IPs seen in the current period and filters, ranked by detections (matching detected attacks, not raw requests). It follows the period, slot, type, rule and severity. Overlays opened from other tabs (such as Top Attackers) keep showing all-time data.
+
+### Linkable view
+
+The state is kept in the URL, so a view can be bookmarked or shared:
+
+`#attacks?days=7&offset=0&slot=2026-10-29T08&type=sql_injection&rule=...&sev=high,critical&ip=1.2.3.4`
+
+| Field | Meaning |
+|-------|---------|
+| `days` | `1`, `7` or `30` |
+| `offset` | Days back from now (0 = latest); the arrows step by the span |
+| `slot` | UTC bucket start, `YYYY-MM-DDTHH` |
+| `type`, `rule` | Attack type or YARA rule name |
+| `sev` | Comma list of `critical`, `high`, `medium`, `low` |
+| `ip` | Source IP |
+
+`search`, `method` and `exclude` are also kept. Invalid fields are dropped when the link loads.
 
 ### Captured Credentials
 
@@ -108,15 +145,17 @@ dots are removed, so `Example.org:443` and `example.org` aggregate together.
 The standard `Forwarded` and `X-Forwarded-Host` fields are used only when the
 request has no `Host` field.
 
+The table follows the period; the **Link map (all time)** next to it always covers every retained request.
+
 ### Honeypot Triggers by IP
 
 Shows which IPs accessed honeypot endpoints and how many times, sorted by trigger count.
 
-### Detected Attack Types
+### Detected attacks
 
 A detailed table of individual attack detections showing IP, path, attack type classifications, user-agent, request method, size, and timestamp. The size column is sortable, so the heaviest payloads surface first. Each entry can be expanded to view the raw HTTP request.
 
-In the expanded view, filter by method, attack type or the **Filter** box. Turn on **Not** next to it to invert the match: each time you press Enter, the typed text is added as a *not "…"* pill and every request whose IP, path or user agent contains it (ignoring case) is hidden. Terms add up, so `wp-login` ⏎ `app` ⏎ `test` ⏎ shows requests matching none of the three, up to 10 terms. Click a pill's × to bring those requests back; turn **Not** off to go back to a normal live search.
+In the expanded view, filter by method, attack type or the **Filter** box. Turn on **Hide** next to it to invert the match: each time you press Enter, the typed text is added as a *hide "…"* pill and every request whose IP, path or user agent contains it (ignoring case) is hidden. Terms add up, so `wp-login` ⏎ `app` ⏎ `test` ⏎ shows requests matching none of the three, up to 10 terms. Click a pill's × to bring those requests back; turn **Hide** off to go back to a normal live search.
 
 **Attachments.** When the request carried an upload — a webshell, a malware sample, an exfiltration payload — a paperclip button appears in the raw request modal listing the uploaded files, and downloads the one you click. Both `multipart/form-data` parts and raw-body uploads are recognised. Treat every download as hostile and open it in a sandbox. Requests with bodies above 64 KB are not buffered, so they have no retrievable attachment. The same data is available through the [Dashboard API](dashboard-api.md#attachments).
 
