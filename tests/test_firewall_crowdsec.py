@@ -1,95 +1,92 @@
 #!/usr/bin/env python3
 
-"""The CrowdSec exporter emits decisions, not a ruleset (#148).
+"""The CrowdSec exporter emits what `cscli decisions import` actually reads.
 
-CrowdSec owns enforcement, so what it needs from Krawl is the ban list and a
-duration; a firewall ruleset would duplicate what CrowdSec already does. The
-output has to be something `cscli decisions import` accepts, which means the
-YAML decisions dialect: one mapping per IP with Duration, Scope, Type and Value.
-
-Getting the shape wrong is silent — cscli rejects or imports nothing, and the
-operators stay unbanned — so the structure is pinned here rather than eyeballed.
+CrowdSec owns enforcement, so Krawl supplies decisions and a duration. The
+import command accepts only csv, json or values and picks the parser from the
+file extension, so the format is not a style choice: a document that looks like
+a decision list but is neither is rejected, or worse, imported as nothing.
 
 Usage: python3 tests/test_firewall_crowdsec.py
 """
 
+import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from firewall import (  # noqa: E402
-    CROWDSEC_BAN_DURATION,
-    FORMATS,
-    format_banlist,
-)
+from firewall import CROWDSEC_BAN_DURATION, FORMATS, format_banlist  # noqa: E402
+
+IPS = ["203.0.113.7", "198.51.100.23", "45.155.205.233"]
 
 
-def _blocks(output: str) -> list[dict[str, str]]:
-    """Parse the emitted decisions back into mappings, without a YAML library."""
-    blocks: list[dict[str, str]] = []
-    for line in output.splitlines():
-        if line.startswith("#") or not line.strip():
-            continue
-        if line.startswith("- "):
-            blocks.append({})
-            line = line[2:]
-        key, _, value = line.strip().partition(":")
-        blocks[-1][key.strip()] = value.strip()
-    return blocks
+def decisions():
+    return json.loads(format_banlist("crowdsec", IPS))
+
+
+def test_output_is_json_and_one_decision_per_ip():
+    parsed = decisions()
+    assert isinstance(parsed, list)
+    assert len(parsed) == len(IPS)
+
+
+def test_every_decision_carries_the_documented_shape():
+    # cscli documents these four keys, lower-case, with ip/ban as the defaults
+    # this exporter states explicitly.
+    for entry in decisions():
+        assert set(entry) == {"duration", "scope", "type", "value"}
+        assert entry["scope"] == "ip"
+        assert entry["type"] == "ban"
+        assert entry["duration"] == CROWDSEC_BAN_DURATION
+
+
+def test_the_yaml_capitalised_keys_never_come_back():
+    # The first version of this exporter emitted YAML with Duration/Scope/Type/
+    # Value, which cscli cannot import. Pin the casing that replaced it.
+    raw = format_banlist("crowdsec", IPS)
+    for legacy in ("Duration:", "Scope:", "Type:", "Value:"):
+        assert legacy not in raw, legacy
+
+
+def test_values_are_the_input_ips_in_order():
+    assert [d["value"] for d in decisions()] == IPS
+
+
+def test_duration_survives_a_round_trip_through_json():
+    # CrowdSec parses newline-style durations, so the string must not become a
+    # number on the way out.
+    parsed = decisions()
+    assert all(isinstance(d["duration"], str) for d in parsed)
+
+
+def test_surrounding_whitespace_is_stripped():
+    parsed = json.loads(format_banlist("crowdsec", ["  203.0.113.7\n"]))
+    assert parsed[0]["value"] == "203.0.113.7"
+
+
+def test_empty_list_produces_nothing():
+    # A quiet export must be a no-op for the importer, not a header-only file.
+    assert format_banlist("crowdsec", []) == ""
 
 
 def test_crowdsec_is_a_registered_fwtype():
     assert "crowdsec" in FORMATS
-    assert FORMATS["crowdsec"] is not None
-
-
-def test_one_decision_per_ip():
-    ips = ["203.0.113.7", "198.51.100.23", "192.0.2.9"]
-    blocks = _blocks(format_banlist("crowdsec", ips))
-    assert len(blocks) == len(ips), blocks
-    assert [b["Value"] for b in blocks] == ips
-
-
-def test_every_decision_carries_the_full_shape():
-    blocks = _blocks(format_banlist("crowdsec", ["203.0.113.7"]))
-    assert blocks[0] == {
-        "Duration": CROWDSEC_BAN_DURATION,
-        "Scope": "Ip",
-        "Type": "ban",
-        "Value": "203.0.113.7",
-    }, blocks[0]
-
-
-def test_ban_duration_is_a_crowdsec_duration():
-    """cscli only accepts a Go-style duration, not a bare number."""
-    assert CROWDSEC_BAN_DURATION[-1] in "smh", CROWDSEC_BAN_DURATION
-    assert CROWDSEC_BAN_DURATION[:-1].isdigit(), CROWDSEC_BAN_DURATION
-
-
-def test_surrounding_whitespace_is_stripped():
-    blocks = _blocks(format_banlist("crowdsec", ["  203.0.113.7\n", " 198.51.100.23 "]))
-    assert [b["Value"] for b in blocks] == ["203.0.113.7", "198.51.100.23"]
-
-
-def test_empty_list_produces_nothing():
-    """An empty export must not emit a header cscli would try to import."""
-    assert format_banlist("crowdsec", []) == ""
 
 
 def test_unknown_format_still_names_crowdsec():
     try:
-        format_banlist("nope", ["203.0.113.7"])
-    except ValueError as exc:
-        assert "crowdsec" in str(exc), exc
+        format_banlist("pf", IPS)
+    except ValueError as err:
+        assert "crowdsec" in str(err)
     else:
-        raise AssertionError("unknown fwtype must raise")
+        raise AssertionError("expected ValueError for an unknown format")
 
 
 def test_existing_formats_are_untouched():
-    assert "iptables -A INPUT -s 203.0.113.7 -j DROP" in format_banlist("iptables", ["203.0.113.7"])
-    assert "nft add table inet filter" in format_banlist("nftables", ["203.0.113.7"])
-    assert format_banlist("raw", ["203.0.113.7"]) == "203.0.113.7"
+    assert format_banlist("raw", IPS) == "\n".join(IPS)
+    assert "iptables -A INPUT" in format_banlist("iptables", IPS)
+    assert "nft add set inet filter blacklist" in format_banlist("nftables", IPS)
 
 
 if __name__ == "__main__":
