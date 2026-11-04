@@ -52,8 +52,8 @@ class AccessLog(Base):
     __tablename__ = "access_logs"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    # ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False, index=True, ForeignKey('ip_logs.id', ondelete='CASCADE'))
-    ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False, index=True)
+    # No single-column index: ix_access_logs_ip_timestamp serves ip lookups.
+    ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False)
     path: Mapped[str] = mapped_column(String(MAX_PATH_LENGTH), nullable=False)
     user_agent: Mapped[str | None] = mapped_column(
         String(MAX_USER_AGENT_LENGTH), nullable=True
@@ -76,7 +76,7 @@ class AccessLog(Base):
     target_host: Mapped[str | None] = mapped_column(String(255), nullable=True)
     # False only for retained rows awaiting request-metadata backfill.
     request_metadata_extracted: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False, index=True
+        Boolean, nullable=False, default=False
     )
     request_metadata_version: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, index=True
@@ -106,7 +106,6 @@ class AccessLog(Base):
         Index("ix_access_logs_is_honeypot_trigger", "is_honeypot_trigger"),
         # Covering indexes for dashboard rollups; keep in sync with ONLINE_INDEXES.
         Index("ix_access_logs_path_hits", "path", postgresql_include=["hit_count"]),
-        Index("ix_access_logs_ua_hits", "user_agent", postgresql_include=["hit_count"]),
         Index(
             "ix_access_logs_host_ip",
             "target_host",
@@ -228,6 +227,11 @@ LIVE_ATTACKERS_WHERE = (
 )
 
 
+# Force-banned IPs; lets get_banned_ips BitmapOr with ix_ip_stats_ban_timestamp
+# instead of seq-scanning ip_stats every ban-cache refresh.
+BAN_OVERRIDE_WHERE = "ban_override IS TRUE"
+
+
 class IpStats(Base):
     """
     Aggregated statistics per IP address.
@@ -334,6 +338,12 @@ class IpStats(Base):
             postgresql_where=text(LIVE_ATTACKERS_WHERE),
             sqlite_where=text(LIVE_ATTACKERS_WHERE),
         ),
+        Index(
+            "ix_ip_stats_ban_override",
+            "ip",
+            postgresql_where=text(BAN_OVERRIDE_WHERE),
+            sqlite_where=text(BAN_OVERRIDE_WHERE),
+        ),
     )
 
     def __repr__(self) -> str:
@@ -351,7 +361,8 @@ class CategoryHistory(Base):
     __tablename__ = "category_history"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False, index=True)
+    # ix_category_history_ip_timestamp serves ip lookups.
+    ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False)
     old_category: Mapped[str | None] = mapped_column(String(50), nullable=True)
     new_category: Mapped[str] = mapped_column(String(50), nullable=False)
     timestamp: Mapped[datetime] = mapped_column(

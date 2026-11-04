@@ -15,6 +15,8 @@ _FORWARDED_HOST_PARAM_RE = re.compile(
     r"(?:^|[;,])\s*host=(?:\"([^\"]+)\"|([^;,\s]+))", re.IGNORECASE
 )
 _REFERER_RE = re.compile(r"^Referer:\s*([^\r\n]+)", re.IGNORECASE | re.MULTILINE)
+# Crawlers advertise their homepage here (+https://openai.com/gptbot): not an asset.
+_USER_AGENT_RE = re.compile(r"^User-Agent:[^\r\n]*", re.IGNORECASE | re.MULTILINE)
 _URL_RE = re.compile(r"https?://[^\s<>\"'\x00-\x1f]+", re.IGNORECASE)
 
 
@@ -40,7 +42,7 @@ def extract_request_metadata(raw_request: str) -> tuple[str | None, list[str]]:
     if not raw_request:
         return None, []
 
-    headers = raw_request.partition("\r\n\r\n")[0]
+    headers, sep, body = raw_request.partition("\r\n\r\n")
     forwarded = _FORWARDED_RE.search(headers)
     forwarded_param = (
         _FORWARDED_HOST_PARAM_RE.search(forwarded.group(1)) if forwarded else None
@@ -65,7 +67,7 @@ def extract_request_metadata(raw_request: str) -> tuple[str | None, list[str]]:
     target_host = normalize_target_host(raw_host)
 
     assets = []
-    for match in _URL_RE.finditer(raw_request):
+    for match in _URL_RE.finditer(_USER_AGENT_RE.sub("", headers) + sep + body):
         # Strip punctuation that commonly terminates URLs in prose, JSON, XML,
         # or form values. URL-internal punctuation remains untouched.
         url = match.group(0).rstrip(".,;!?)]}\\")[:2048]

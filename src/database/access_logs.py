@@ -4,6 +4,7 @@ Writes (persist_access, flush_access_log_buffer) stay on DatabaseManager
 as hot paths.
 """
 
+import json
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
@@ -12,14 +13,22 @@ from sqlalchemy.orm import joinedload
 
 from dashboard_cache import (
     SLOW_TABLE_TTL,
+    get_backend,
     get_cached_table,
+    get_redis_client,
     pagination,
     set_cached_table,
     table_row_count,
 )
 from database.text_filters import access_log_text_clauses
 from logger import get_app_logger
-from models import AccessLog, AttackDetection, CapturedPayload, IpStats, RequestAsset
+from models import (
+    AccessLog,
+    AttackDetection,
+    CapturedPayload,
+    IpStats,
+    RequestAsset,
+)
 from period import range_conditions
 from sanitizer import sanitize_ip
 
@@ -29,6 +38,8 @@ if TYPE_CHECKING:
 applogger = get_app_logger()
 
 DOMAIN_ROLLUP_KEY = "domains:rollup"
+# Per-day host totals written by the rollup-domains task (scalable mode only).
+DOMAIN_DAILY_KEY = "krawl:domains:daily"
 
 
 def _matches_headers(raw_request: str | None, headers: list[tuple[str, str]]) -> bool:
@@ -232,7 +243,12 @@ class AccessLogRepo:
     def _domain_rollup_between(
         self, since: datetime | None, until: datetime | None, **text
     ) -> list[dict[str, Any]]:
-        """Host rollup restricted to [since, until), straight from the log."""
+        """Host rollup restricted to [since, until); from the Redis day totals
+        by whole day when no text filter needs raw rows, else from the log."""
+        if not any(text.values()):
+            rows = self._rollup_from_daily(since, until)
+            if rows is not None:
+                return rows
         session = self._db.session
         try:
             q = session.query(
@@ -260,49 +276,53 @@ class AccessLogRepo:
     def get_domain_rollup(self, refresh: bool = False) -> list[dict[str, Any]]:
         """Every Host target with hits, distinct IPs and first/last seen.
 
-        A whole-log GROUP BY (30-60s on 12M rows), so one cached result serves
-        Targeted Domains in every sort and search, and the domain map. One
-        pass groups by (host, ip): a hash of pairs instead of sorting the whole
-        log to count distinct IPs per host.
+        Summed from the rollup-domains day totals in Redis (live from the log
+        in standalone); one cached result serves Targeted Domains in every
+        sort and search, and the domain map.
         """
         rows = None if refresh else get_cached_table(DOMAIN_ROLLUP_KEY)
-        if rows is not None:
-            return rows
-        session = self._db.session
-        try:
-            pairs = (
-                session.query(
-                    AccessLog.target_host.label("domain"),
-                    func.sum(AccessLog.hit_count).label("hits"),
-                    func.min(AccessLog.timestamp).label("first_seen"),
-                    func.max(AccessLog.timestamp).label("last_seen"),
-                )
-                .filter(AccessLog.target_host.isnot(None), AccessLog.target_host != "")
-                .group_by(AccessLog.target_host, AccessLog.ip)
-                .subquery()
-            )
-            rows = [
-                {
-                    "domain": row.domain,
-                    "count": int(row.count),
-                    "distinct_ips": row.distinct_ips,
-                    "first_seen": row.first_seen,
-                    "last_seen": row.last_seen,
-                }
-                for row in session.query(
-                    pairs.c.domain,
-                    func.sum(pairs.c.hits).label("count"),
-                    func.count().label("distinct_ips"),
-                    func.min(pairs.c.first_seen).label("first_seen"),
-                    func.max(pairs.c.last_seen).label("last_seen"),
-                )
-                .group_by(pairs.c.domain)
-                .all()
-            ]
-        finally:
-            self._db.close_session()
-        set_cached_table(DOMAIN_ROLLUP_KEY, rows, ttl=SLOW_TABLE_TTL)
+        if rows is None:
+            rows = self._domain_rollup_between(None, None)
+            set_cached_table(DOMAIN_ROLLUP_KEY, rows, ttl=SLOW_TABLE_TTL)
         return rows
+
+    @staticmethod
+    def _rollup_from_daily(
+        since: datetime | None, until: datetime | None
+    ) -> list[dict[str, Any]] | None:
+        """Per-host totals of the Redis day totals in range; None without them.
+        An IP seen on several days counts once per day."""
+        client = get_redis_client()
+        raw = (
+            client.get(DOMAIN_DAILY_KEY)
+            if get_backend() == "scalable" and client
+            else None
+        )
+        if raw is None:
+            return None
+        lo = since.date().isoformat() if since else ""
+        hi = until.date().isoformat() if until else "9999"
+        totals: dict[str, list] = {}
+        for day, kinds in json.loads(raw).items():
+            if not lo <= day <= hi:
+                continue
+            for hosts in kinds.values():
+                for host, (hits, ips, first, last) in hosts.items():
+                    t = totals.setdefault(host, [0, 0, first, last])
+                    t[0] += hits
+                    t[1] += ips
+                    t[2] = min(t[2], first)
+                    t[3] = max(t[3], last)
+        return [
+            {
+                "domain": host,
+                "count": hits,
+                "distinct_ips": ips,
+                "first_seen": datetime.fromisoformat(first),
+                "last_seen": datetime.fromisoformat(last),
+            }
+            for host, (hits, ips, first, last) in totals.items()
+        ]
 
     def get_request_assets(
         self,

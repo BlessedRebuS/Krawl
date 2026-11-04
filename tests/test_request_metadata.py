@@ -180,3 +180,14 @@ def test_request_metadata_pipeline():
 if __name__ == "__main__":
     test_request_metadata_pipeline()
     print("OK: request metadata extraction, aggregation, and backfill")
+
+
+def test_user_agent_urls_are_not_assets():
+    from request_metadata import extract_request_metadata
+
+    raw = (
+        "GET / HTTP/1.1\r\nHost: a.test\r\n"
+        "User-Agent: Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)\r\n"
+        "\r\nurl=https://evil.test/x.sh"
+    )
+    assert extract_request_metadata(raw) == ("a.test", ["https://evil.test/x.sh"])
