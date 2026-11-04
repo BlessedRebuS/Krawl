@@ -243,6 +243,27 @@ def run_migrations(engine: Engine) -> None:
             continue
         _apply(f"add index {idx_name}", f"CREATE INDEX {idx_name} ON {table}({column})")
 
+    # Assets once included URLs from the User-Agent header (crawler homepages).
+    # ponytail: rescans request_assets each boot; drop once installs have run it.
+    instr = (
+        "strpos(a.user_agent, r.url)"
+        if engine.dialect.name == "postgresql"
+        else "instr(a.user_agent, r.url)"
+    )
+    try:
+        with engine.begin() as conn:
+            gone = conn.execute(
+                text(
+                    "DELETE FROM request_assets WHERE id IN (SELECT r.id FROM "  # noqa: S608
+                    "request_assets r JOIN access_logs a ON a.id = r.access_log_id "
+                    f"WHERE {instr} > 0)"
+                )
+            ).rowcount
+        if gone:
+            applied.append(f"remove {gone} User-Agent URLs from request_assets")
+    except Exception as e:
+        logger.error(f"Migration error (user-agent assets): {e}")
+
     # Storage parameters are a PostgreSQL concept; SQLite has no autovacuum
     # daemon to tune, so standalone mode skips this entirely.
     if engine.dialect.name == "postgresql":
