@@ -344,11 +344,48 @@ sizes Krawl reaches on a busy sensor:
 | `maintenance_work_mem` | `128MB` | `64MB` |
 | `random_page_cost` | `4` | `4` |
 | `effective_io_concurrency` | `1` | `1` |
+| `checkpoint_timeout` | `15min` | `5min` |
+| `max_wal_size` | `2GB` | `1GB` |
+| `wal_compression` | `lz4` | `off` |
+| `synchronous_commit` | `off` | `on` |
 
 The last two are deliberately left at their rotational-disk defaults. On
 SSD-backed storage set `random_page_cost: "1.1"` and
 `effective_io_concurrency: "100"`; both are actively harmful on spinning or
 network-replicated volumes, so the chart does not assume SSD.
+
+The write-path settings matter most on a busy sensor, where `ip_stats` is
+updated on nearly every request. The first change to a page after a checkpoint
+writes the whole 8 KB page into the WAL, so fewer, evenly spaced checkpoints cut
+WAL volume directly, and `wal_compression` shrinks the full-page images that
+remain. `max_wal_size` is a soft cap that `pg_wal` only grows towards during
+write bursts. `synchronous_commit: "off"` lets a commit return before its WAL is
+flushed; a crash can lose the last fraction of a second of access logs but
+cannot corrupt the database (unlike `fsync=off`). It helps most on network or
+replicated storage (Longhorn, Ceph, EBS), where each flush costs milliseconds.
+Set it to `"on"` if you need every commit durable. On one production sensor
+(10 GB database) these settings took WAL from ~4 GB/h to ~190 MB/h and volume
+writes from 8–15 MB/s to under 0.5 MB/s.
+
+Busy-sensor profile, for databases around 10 GB:
+
+```yaml
+postgres:
+  persistence:
+    size: 20Gi
+  config:
+    shared_buffers: 1GB
+    effective_cache_size: 2560MB
+    maintenance_work_mem: 256MB
+    max_wal_size: 3GB
+  resources:
+    limits:
+      memory: 3Gi
+```
+
+Lowering `retention.non-suspicious` on an existing install makes the next
+`db-retention` run delete the whole backlog at once, which is a large I/O
+spike. Lower it in steps if the database is already big.
 
 `postgres.shmSize` mounts `/dev/shm` as an in-memory `emptyDir`. Kubernetes
 gives a container only 64Mi there, and PostgreSQL allocates dynamic shared

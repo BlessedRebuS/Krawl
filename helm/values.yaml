@@ -63,10 +63,12 @@ probes:
     periodSeconds: 5
     timeoutSeconds: 2
     failureThreshold: 3
+  # Readiness already drains a slow pod; liveness only catches a hung process
+  # (~3 min), so a slow database doesn't get both replicas killed mid-batch.
   liveness:
-    periodSeconds: 15
-    timeoutSeconds: 3
-    failureThreshold: 3
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 6
 
 service:
   type: ClusterIP
@@ -452,6 +454,12 @@ postgres:
     maintenance_work_mem: 128MB
     random_page_cost: "4"
     effective_io_concurrency: "1"
+    # Write path: fewer checkpoints means fewer full-page images in the WAL.
+    checkpoint_timeout: 15min
+    max_wal_size: 2GB  # soft cap, only reached during write bursts
+    wal_compression: lz4
+    # Can lose the last ~200ms of commits on a crash, never corrupts data.
+    synchronous_commit: "off"
   # /dev/shm size (tmpfs). The k8s default of 64Mi is too small for parallel
   # VACUUM. "" leaves it at the default. Counts against the memory limit below.
   shmSize: 256Mi
