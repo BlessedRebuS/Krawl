@@ -80,6 +80,28 @@ _dropped_rows = 0
 _buffer_bytes = 0
 
 
+def dialect_insert(session: Session):
+    """The insert() with on_conflict_* for the session's backend."""
+    if session.get_bind().dialect.name == "postgresql":
+        from sqlalchemy.dialects.postgresql import insert
+    else:
+        from sqlalchemy.dialects.sqlite import insert
+    return insert
+
+
+def _insert_ip_stats_if_missing(session: Session, ip: str, now: datetime) -> bool:
+    """INSERT ... ON CONFLICT DO NOTHING, so replicas racing on a new IP don't
+    hit ip_stats_pkey. Returns True if this call created the row."""
+    stmt = (
+        dialect_insert(session)(IpStats)
+        .values(
+            ip=ip, total_requests=0, first_seen=now, last_seen=now, page_visit_count=0
+        )
+        .on_conflict_do_nothing(index_elements=["ip"])
+    )
+    return session.execute(stmt).rowcount == 1
+
+
 def _entry_bytes(entry: dict) -> int:
     """Conservative heap estimate, including Unicode and nested metadata.
 
@@ -741,27 +763,16 @@ class DatabaseManager:
         # rotating proxy pools mint one address per request and never reuse it,
         # which was 42% of this table. Suspicious traffic is exempt, so nothing
         # worth investigating is dropped. See ip_utils.defer_persist.
-        if ip_stats is None and defer_persist(
-            sanitized_ip, is_suspicious, is_honeypot_trigger
-        ):
-            return 0, False, False
+        if ip_stats is None:
+            if defer_persist(sanitized_ip, is_suspicious, is_honeypot_trigger):
+                return 0, False, False
+            was_new_ip = _insert_ip_stats_if_missing(session, sanitized_ip, now)
+            ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).one()
 
-        if ip_stats:
-            ip_stats.total_requests += 1
-            ip_stats.last_seen = now
-            if is_suspicious:
-                ip_stats.need_reevaluation = True
-        else:
-            was_new_ip = True
-            ip_stats = IpStats(
-                ip=sanitized_ip,
-                total_requests=1,
-                first_seen=now,
-                last_seen=now,
-                need_reevaluation=is_suspicious,
-                page_visit_count=0,
-            )
-            session.add(ip_stats)
+        ip_stats.total_requests += 1
+        ip_stats.last_seen = now
+        if is_suspicious:
+            ip_stats.need_reevaluation = True
 
         if is_honeypot_trigger and not ip_stats.has_triggered_honeypot:
             ip_stats.has_triggered_honeypot = True
@@ -795,15 +806,10 @@ class DatabaseManager:
             ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
 
             if not ip_stats:
-                now = datetime.now()
-                ip_stats = IpStats(
-                    ip=sanitized_ip,
-                    total_requests=0,
-                    first_seen=now,
-                    last_seen=now,
-                    page_visit_count=0,
+                _insert_ip_stats_if_missing(session, sanitized_ip, datetime.now())
+                ip_stats = (
+                    session.query(IpStats).filter(IpStats.ip == sanitized_ip).one()
                 )
-                session.add(ip_stats)
 
             ip_stats.page_visit_count = (ip_stats.page_visit_count or 0) + 1
 
