@@ -3,6 +3,8 @@
 One function per output format; `format_banlist` picks by name.
 """
 
+import json
+
 # How long a CrowdSec ban lasts. Short enough that a stale export ages out on
 # its own if the sync stops running, long enough not to churn decisions.
 CROWDSEC_BAN_DURATION = "4h"
@@ -43,25 +45,36 @@ def _nftables(ips: list[str]) -> str:
 
 
 def _crowdsec(ips: list[str]) -> str:
-    """CrowdSec decisions, in the dialect `cscli decisions import` reads.
+    """CrowdSec decisions, as the JSON `cscli decisions import` reads.
 
     Decisions rather than a ruleset: CrowdSec owns the enforcement, so the
     export carries the bans and a duration and leaves the firewall alone.
+
+    JSON, not YAML: `cscli decisions import` accepts only csv, json or values,
+    and picks the parser from the file extension. Save this as `.json`.
     """
     if not ips:
         return ""
-    lines = ["# Import with: cscli decisions import -i <this file>"]
-    for ip in ips:
-        lines += [
-            f"- Duration: {CROWDSEC_BAN_DURATION}",
-            "  Scope: Ip",
-            "  Type: ban",
-            f"  Value: {ip.strip()}",
-        ]
-    return "\n".join(lines)
+    return json.dumps(
+        [
+            {
+                "duration": CROWDSEC_BAN_DURATION,
+                "scope": "ip",
+                "type": "ban",
+                "value": ip.strip(),
+            }
+            for ip in ips
+        ],
+        indent=2,
+    )
 
 
-FORMATS = {"raw": _raw, "iptables": _iptables, "nftables": _nftables, "crowdsec": _crowdsec}
+FORMATS = {
+    "raw": _raw,
+    "iptables": _iptables,
+    "nftables": _nftables,
+    "crowdsec": _crowdsec,
+}
 
 
 def format_banlist(fwtype: str, ips: list[str]) -> str:
