@@ -1,0 +1,23 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "service_test",
+      "email": "service_test@example.com",
+      "role": "Developer"
+    },
+    {
+      "id": 2,
+      "username": "backup_admin",
+      "email": "backup_admin@example.com",
+      "role": "Viewer"
+    },
+    {
+      "id": 3,
+      "username": "test2024",
+      "email": "test2024@example.com",
+      "role": "Developer"
+    }
+  ],
+  "total": 486
+}

@@ -1,0 +1,60 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "api_backup",
+      "email": "api_backup@corp.example.com",
+      "password": "nwbpghuz",
+      "role": "Editor",
+      "api_token": "sk_test_DDpAwKuKc9aDxi8BlulH97oSIVjch4dc"
+    },
+    {
+      "id": 2,
+      "username": "service",
+      "email": "service@corp.example.com",
+      "password": "System282!",
+      "role": "Manager",
+      "api_token": "secret_SaISrO940pU7kAvtJnUsQ9uMKliitgSx"
+    },
+    {
+      "id": 3,
+      "username": "api_backup",
+      "email": "api_backup@corp.example.com",
+      "password": "evpxriuc",
+      "role": "Support",
+      "api_token": "key_RXPx2ftLclmlMFNaPZx7kFN8fIlm06BC"
+    },
+    {
+      "id": 4,
+      "username": "api_test",
+      "email": "api_test@example.com",
+      "password": "sample7499",
+      "role": "Support",
+      "api_token": "key_M3eAFG0WEdGhvhPvjjsQJGjsTnT6OFiD"
+    },
+    {
+      "id": 5,
+      "username": "backup_test",
+      "email": "backup_test@corp.example.com",
+      "password": "wkgufjaf",
+      "role": "Viewer",
+      "api_token": "secret_OQHibZhv3QqtfHmS4knWKWOndOnWBHrr"
+    },
+    {
+      "id": 6,
+      "username": "user_backup",
+      "email": "user_backup@mail.example.com",
+      "password": "zbSylUzFLCQr",
+      "role": "User",
+      "api_token": "key_HvAGrI9mY3xr7ryj45sdovYufsSyP8C7"
+    },
+    {
+      "id": 7,
+      "username": "api_service",
+      "email": "api_service@corp.example.com",
+      "password": "xyvfvldb",
+      "role": "Moderator",
+      "api_token": "sk_test_sJs1uNp1n6kzRyWk9F3kzF69yyveiVgZ"
+    }
+  ]
+}

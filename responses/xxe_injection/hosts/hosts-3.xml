@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<response>
+    <status>success</status>
+    <data>127.0.0.1	localhost localhost.localdomain
+203.0.113.5	prod-web-02
+203.0.113.40	vault.internal
+203.0.113.41	backup.internal
+</data>
+</response>

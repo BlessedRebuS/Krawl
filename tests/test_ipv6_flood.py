@@ -95,6 +95,32 @@ def test_geo_shared():
     print("OK: one geolocation lookup per /48, failures and IPv4 excluded")
 
 
+def test_compressed_ipv6_prefixes_are_canonical():
+    assert geo_utils._geo_cache_key("2001:db8::1") == geo_utils._geo_cache_key(
+        "2001:0db8:0000:0000:0000:0000:0000:0002"
+    )
+    assert geo_utils._geo_cache_key("2001:db8:1::1") != geo_utils._geo_cache_key(
+        "2001:db8::1"
+    )
+
+
+def test_sighting_does_not_scan_the_whole_ledger_every_time(monkeypatch):
+    class Ledger(dict):
+        scans = 0
+
+        def items(self):
+            self.scans += 1
+            return super().items()
+
+    ledger = Ledger()
+    monkeypatch.setattr(ip_utils, "_seen", ledger)
+    monkeypatch.setattr(ip_utils, "_next_seen_prune", 0)
+    monkeypatch.setattr(ip_utils.time, "time", lambda: 1000)
+    for i in range(1000):
+        ip_utils.seen_before(f"2001:db8::{i:x}")
+    assert ledger.scans == 1
+
+
 def test_ignore_ipv6_policy():
     """`ipv6.ignore` must drop IPv6 wholesale, and must not leak into callers
     that pass the flag explicitly (the startup purge)."""

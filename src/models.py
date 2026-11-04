@@ -18,6 +18,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -29,6 +30,7 @@ from sanitizer import (
     MAX_IP_LENGTH,
     MAX_PATH_LENGTH,
     MAX_REPUTATION_SOURCE_LENGTH,
+    MAX_RULE_NAME_LENGTH,
     MAX_USER_AGENT_LENGTH,
 )
 
@@ -70,6 +72,27 @@ class AccessLog(Base):
     raw_request: Mapped[str | None] = mapped_column(Text, nullable=True, deferred=True)
     # Inbound HTTP Referer header — which bait page/URL this request came from.
     referer: Mapped[str | None] = mapped_column(String(MAX_PATH_LENGTH), nullable=True)
+    # Host header normalized to a hostname (port removed), for target reporting.
+    target_host: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # False only for retained rows awaiting request-metadata backfill.
+    request_metadata_extracted: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, index=True
+    )
+    request_metadata_version: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, index=True
+    )
+    file_extraction_version: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, index=True
+    )
+    # Requests this row stands for: >1 once crunch-access-logs merged similar
+    # non-suspicious requests of an inactive IP into it. Count with SUM(hit_count).
+    hit_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=1, server_default="1"
+    )
+    # Up to 3 real paths of a crunched row, ", "-joined; `path` holds the template.
+    path_samples: Mapped[str | None] = mapped_column(
+        String(MAX_PATH_LENGTH), nullable=True
+    )
 
     # Relationship to attack detections
     attack_detections: Mapped[list["AttackDetection"]] = relationship(
@@ -81,12 +104,39 @@ class AccessLog(Base):
         Index("ix_access_logs_ip_timestamp", "ip", "timestamp"),
         Index("ix_access_logs_is_suspicious", "is_suspicious"),
         Index("ix_access_logs_is_honeypot_trigger", "is_honeypot_trigger"),
-        Index("ix_access_logs_path", "path"),
-        Index("ix_access_logs_user_agent", "user_agent"),
+        # Covering indexes for dashboard rollups; keep in sync with ONLINE_INDEXES.
+        Index("ix_access_logs_path_hits", "path", postgresql_include=["hit_count"]),
+        Index("ix_access_logs_ua_hits", "user_agent", postgresql_include=["hit_count"]),
+        Index(
+            "ix_access_logs_host_ip",
+            "target_host",
+            "ip",
+            postgresql_include=["hit_count", "timestamp"],
+        ),
     )
 
     def __repr__(self) -> str:
         return f"<AccessLog(id={self.id}, ip='{self.ip}', path='{self.path[:50]}')>"
+
+
+class RequestAsset(Base):
+    """One absolute HTTP(S) URL occurrence extracted from a request."""
+
+    __tablename__ = "request_assets"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    access_log_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("access_logs.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    url: Mapped[str] = mapped_column(
+        String(MAX_PATH_LENGTH), nullable=False, index=True
+    )
+
+    def __repr__(self) -> str:
+        return f"<RequestAsset(id={self.id}, url='{self.url[:80]}')>"
 
 
 class CredentialAttempt(Base):
@@ -139,6 +189,11 @@ class AttackDetection(Base):
     matched_pattern: Mapped[str | None] = mapped_column(
         String(MAX_ATTACK_PATTERN_LENGTH), nullable=True
     )
+    # Name of the YARA rule that matched. NULL on rows stored before it was
+    # recorded; the dashboard then looks the rule up by attack_type.
+    rule_name: Mapped[str | None] = mapped_column(
+        String(MAX_RULE_NAME_LENGTH), nullable=True
+    )
     # TLSH fuzzy hash of the payload that matched (near-duplicate variant clustering).
     tlsh_hash: Mapped[str | None] = mapped_column(String(72), nullable=True, index=True)
     # Campaign membership: payload_clusters.id (NULL until a valid hash is clustered).
@@ -158,6 +213,19 @@ class AttackDetection(Base):
 
     def __repr__(self) -> str:
         return f"<AttackDetection(id={self.id}, type='{self.attack_type}')>"
+
+
+# IPs crunch-access-logs still has to merge; crunch filters on exactly this.
+CRUNCH_QUEUE_WHERE = (
+    "total_requests > 1 AND (crunched_at IS NULL OR crunched_at < last_seen)"
+)
+
+# Geolocated hostile IPs the map's live feed polls; get_live_attackers filters
+# on exactly this so the partial index applies (a seq scan of ip_stats otherwise).
+LIVE_ATTACKERS_WHERE = (
+    "(has_triggered_honeypot IS TRUE OR category = 'attacker') "
+    "AND latitude IS NOT NULL AND longitude IS NOT NULL"
+)
 
 
 class IpStats(Base):
@@ -211,6 +279,8 @@ class IpStats(Base):
     category_scores: Mapped[dict[str, int]] = mapped_column(JSON, nullable=True)
     manual_category: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
     last_analysis: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    # crunch-access-logs cursor: crunched again only after new activity.
+    crunched_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     need_reevaluation: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=True
     )
@@ -250,6 +320,20 @@ class IpStats(Base):
         Index("ix_ip_stats_ban_timestamp", "ban_timestamp"),
         # analyze-ips orders the reevaluation queue by last_analysis.
         Index("ix_ip_stats_last_analysis", "last_analysis"),
+        Index(
+            "ix_ip_stats_crunch_queue",
+            "last_seen",
+            postgresql_include=["ip"],
+            postgresql_where=text(CRUNCH_QUEUE_WHERE),
+            sqlite_where=text(CRUNCH_QUEUE_WHERE),
+        ),
+        Index(
+            "ix_ip_stats_live_attackers",
+            "last_seen",
+            postgresql_include=["ip"],
+            postgresql_where=text(LIVE_ATTACKERS_WHERE),
+            sqlite_where=text(LIVE_ATTACKERS_WHERE),
+        ),
     )
 
     def __repr__(self) -> str:
@@ -436,6 +520,24 @@ class PayloadHashWatermark(Base):
     access_log_id: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+
+class CustomYaraRule(Base):
+    """A YARA rule file uploaded from the dashboard, loaded next to rules/.
+
+    Stored in the database so every replica loads it and it survives restarts
+    and read-only rule mounts. See custom_rules.py.
+    """
+
+    __tablename__ = "custom_yara_rules"
+
+    filename: Mapped[str] = mapped_column(String(80), primary_key=True)
+    source: Mapped[str] = mapped_column(Text, nullable=False)
+    # Comma-separated rule names, for the dashboard list.
+    rule_names: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    uploaded_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.utcnow
     )
 
 

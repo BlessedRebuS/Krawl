@@ -2,28 +2,40 @@
 
 Access the dashboard at `http://<server-ip>:<port>/<dashboard-path>`
 
-The Krawl dashboard is a single-page application with four open tabs — Overview,
-Attacks, Threats and IP Insight — and five more that appear once you authenticate
-with the dashboard password: Tracked IPs, IP Banlist, Timed Out IPs, Deception
-and Webhooks.
+The Krawl dashboard is a single-page application with five open tabs — Overview,
+Attacks, Threats, Advanced search and IP Insight — and five more that appear once
+you authenticate with the dashboard password: Tracked IPs, Banlist, Timed out,
+Deception, Rules and Webhooks.
+
+Every IP address in a table is a link to its IP Insight page, so it can be
+reached with Tab and opened with Enter. The page address carries the IP
+(`#ip-insight/<ip>`): the browser's back button walks between the IPs you
+inspected, and a reload or a shared link reopens the same one.
 
 ---
 
 ## Overview
 
-The default landing page provides a high-level summary of all traffic and suspicious activity detected by Krawl.
+The default landing page answers "what changed?" first, then "how much, in total?".
 
-### Stats Cards
+### Last 24 hours
 
-Seven metric cards are displayed at the top:
+The lead panel counts attackers active, new IPs seen and credentials captured
+in the last 24 hours, and lists the attackers active in that window, most
+recent first. Each one opens in IP Insight, where it can be tracked or banned.
 
-- **Total Accesses** — total number of requests received
-- **Unique IPs** — distinct IP addresses observed
-- **Unique Paths** — distinct request paths
-- **Suspicious Accesses** — requests flagged as suspicious
-- **Honeypot Caught** — requests that hit honeypot endpoints
-- **Credentials Captured** — login attempts captured by the honeypot
-- **Unique Attackers** — distinct IPs classified as attackers
+### Summary tiles
+
+Seven all-time totals sit under it. Only the hostile, trap and defence figures
+are coloured:
+
+- **Requests** — total number of requests received
+- **Source IPs** — distinct IP addresses observed
+- **Paths** — distinct request paths
+- **Suspicious requests** — requests flagged as suspicious, with their share of all requests
+- **Attackers** — distinct IPs classified as attackers, with how many were active in the last 24 hours
+- **Timed out now** — IPs currently held on an automatic ban
+- **Credentials captured** — login attempts captured by the honeypot
 
 ### Search
 
@@ -78,23 +90,72 @@ A paginated table of the most common user-agent strings with their frequency.
 
 The Attacks tab focuses on detected malicious activity, attack patterns, and captured credentials.
 
-### Attackers by Total Requests
+### Period and drill-down
 
-A paginated table listing all detected attackers ranked by total requests. Columns include IP, total requests, first seen, last seen, and location. Sortable by multiple fields.
+The Attacks tab shares one period across the trends chart, the Detected attacks table, Attackers in period, Captured Credentials, Targeted Domains and Honeypot Triggers.
 
-![Attacks — Attackers and Credentials](../img/top_attackers_dashboard.png)
+- **Period bar:** pick **1D**, **7D** or **30D**, and step to older or newer windows of that length. Labels are in UTC.
+- **Buckets:** the trends chart groups detections into 1 hour (1D), 4 hour (7D) or 1 day (30D) slots.
+- **Drill down:** click a slot in the chart. The table, charts and attackers re-scope to that slot, and the totals show that slot only. Click it again, or its pill, to go back.
+- **Keyboard:** below the chart, a list of the slots (hidden from sight) is a single Tab stop. Left/Right (or Up/Down, Home, End) move between slots, Enter or Space toggles one, and the focused slot shows its tooltip.
+- **Colours:** each attack type is coloured by its worst rule severity (critical red, high orange, medium violet, low sand) and a stable shade within that band. Critical and high lines are thick; medium and low are thinner and fainter. See [DESIGN.md](../DESIGN.md).
+
+### Filters
+
+The period bar at the top shows the applied filters as pills on the left (click a pill's x to remove it, or **Clear all**) and the 1D / 7D / 30D window on the right. Filters are added in the Detected attacks panel (or its expanded view) and from the chart; they then apply to the whole tab.
+
+- **Text filter:** pick **Only** or **Hide** next to the Detected attacks filter box, type, and press Enter. *only "…"* keeps just the requests whose IP, path or user agent contains the text; *hide "…"* drops them. Terms stack (up to 10 of each) and all must hold. Click a pill's *only* / *hide* word to flip it. Escape clears the box.
+- **Method and attack type** pickers narrow to one HTTP method or one attack type.
+- **Severity chips:** toggle critical, high, medium and low. Several can be on at once.
+- **Rule picker:** choose one YARA rule. Choosing a severity chip clears a rule that no longer fits.
+- **Attack type, IP and slot** filters come from clicking a type, an IP or a chart slot.
+- **Scope:** the text filter, Not terms, method and IP narrow every panel: the trends chart and its totals, Detected attacks, Attackers in period, Captured Credentials (matched on IP, path and username), Targeted Domains and Honeypot Triggers. Type, rule and severity narrow Detected attacks and Attackers in period only. A panel's range label names any active filter it does not apply, for example "type, severity not applied".
+- **Saved filters:** the filters and the span are kept in the browser (localStorage) and come back when you reload or open the Attacks tab again. A link with filters in its `#attacks?…` hash wins over the saved ones; the clicked slot and older periods are not saved.
+
+### Attackers in period
+
+A list of the IPs seen in the current period and filters, ranked by detections (matching detected attacks, not raw requests). It follows the period, slot, type, rule and severity. Overlays opened from other tabs (such as Top Attackers) keep showing all-time data.
+
+### Linkable view
+
+The state is kept in the URL, so a view can be bookmarked or shared:
+
+`#attacks?days=7&offset=0&slot=2026-10-29T08&type=sql_injection&rule=...&sev=high,critical&ip=1.2.3.4`
+
+| Field | Meaning |
+|-------|---------|
+| `days` | `1`, `7` or `30` |
+| `offset` | Days back from now (0 = latest); the arrows step by the span |
+| `slot` | UTC bucket start, `YYYY-MM-DDTHH` |
+| `type`, `rule` | Attack type or YARA rule name |
+| `sev` | Comma list of `critical`, `high`, `medium`, `low` |
+| `ip` | Source IP |
+
+`search`, `method` and `exclude` are also kept. Invalid fields are dropped when the link loads.
 
 ### Captured Credentials
 
 A table of usernames and passwords captured from honeypot login forms, with timestamps. Useful for analyzing common credential stuffing patterns.
 
+### Targeted Domains
+
+Ranks normalized HTTP `Host` targets by retained request count, including the
+number of distinct source IPs and first/last seen times. Ports and trailing root
+dots are removed, so `Example.org:443` and `example.org` aggregate together.
+The standard `Forwarded` and `X-Forwarded-Host` fields are used only when the
+request has no `Host` field.
+
+The table follows the period; the **Link map (all time)** next to it always covers every retained request.
+
 ### Honeypot Triggers by IP
 
 Shows which IPs accessed honeypot endpoints and how many times, sorted by trigger count.
 
-### Detected Attack Types
+### Detected attacks
 
 A detailed table of individual attack detections showing IP, path, attack type classifications, user-agent, request method, size, and timestamp. The size column is sortable, so the heaviest payloads surface first. Each entry can be expanded to view the raw HTTP request.
+
+In the expanded view, filter by method, attack type or the **Filter** box. Turn on **Hide** next to it to invert the match: each time you press Enter, the typed text is added as a *hide "…"* pill and every request whose IP, path or user agent contains it (ignoring case) is hidden. Terms add up, so `wp-login` ⏎ `app` ⏎ `test` ⏎ shows requests matching none of the three, up to 10 terms. Click a pill's × to bring those requests back; turn **Hide** off to go back to a normal live search.
 
 **Attachments.** When the request carried an upload — a webshell, a malware sample, an exfiltration payload — a paperclip button appears in the raw request modal listing the uploaded files, and downloads the one you click. Both `multipart/form-data` parts and raw-body uploads are recognised. Treat every download as hostile and open it in a sandbox. Requests with bodies above 64 KB are not buffered, so they have no retrievable attachment. The same data is available through the [Dashboard API](dashboard-api.md#attachments).
 
@@ -142,13 +203,23 @@ out of the table.
 ### Captured Files
 
 An index of every file Krawl captured, across all IPs — name, size, type and the
-campaign it belongs to.
+campaign it belongs to. New uploads are extracted inline; the scheduled
+`extract-captured-files` task scans retained historical raw requests in bounded
+batches after an upgrade.
+
+### Assets
+
+Absolute HTTP(S) URLs extracted from raw request lines, headers, and bodies,
+ranked by total occurrences. Repeated appearances in one request count
+separately; the table also shows distinct source IPs and first/last seen times.
+The scheduled `extract-request-metadata` task backfills retained requests in
+bounded batches after an upgrade.
 
 ---
 
 ## IP Insight
 
-The IP Insight tab provides a deep-dive view for a single IP address. It is activated by clicking "Inspect IP" from any table in the dashboard.
+The IP Insight tab provides a deep-dive view for a single IP address. It opens when you select an IP address in any table, map popup or search result.
 
 ### IP Information Card
 
@@ -160,14 +231,20 @@ Displays comprehensive details about the selected IP:
 
 ### Ban & Track Actions
 
-When authenticated, admin actions are available:
+The header states the IP's ban state in words: **On banlist** (an attacker, or
+banned by hand), **Exempt from banlist**, or **Not banned**. Next to it:
 
-- **Ban/Unban** — immediately add or remove the IP from the banlist
-- **Track/Untrack** — add the IP to your watchlist for ongoing monitoring
+- **Add to banlist / Remove from banlist** — the confirmation says what changes:
+  banlist exports and firewall webhooks include or leave out the IP
+- **Track / Stop tracking** — add the IP to your watchlist for ongoing monitoring
+
+The buttons are always shown. When you are logged out they are marked
+"Log in to act", and pressing one asks for the dashboard password.
 
 ### Blocklist Memberships
 
-Shows which threat intelligence blocklists the IP appears on, providing external reputation context.
+Shows which threat intelligence feeds list the IP, one chip per feed, with the
+total count first. Past six feeds the rest fold behind a "more" toggle.
 
 ### Referer History
 
@@ -243,6 +320,42 @@ A dropdown menu to download the current banlist in two formats:
 
 ---
 
+## Rules
+
+> Requires authentication with the dashboard password.
+
+The Rules tab lists every YARA rule loaded at startup, read-only. Each row shows
+the rule name and file, attack type, classification, severity, confidence, the
+fake reply it triggers (`response_type`, or *route* when the normal page
+answers), how many stored detections it produced and when it last matched.
+Click a row for the rule card: description, MITRE ATT&CK techniques and CVEs
+(linked), known false positives and references, and the 20 newest requests the
+rule matched, with time, IP, method, path and the matched text. Click the
+`<>` button to open the raw request, or the IP to open IP Insight. Requests
+stored before rule names were recorded are marked *legacy*; they are listed
+under a rule only when it is the only loaded rule of their attack type.
+
+Filter by rule file, classification or minimum severity, sort by clicking the
+Rule, Attack type, Severity, Matches or Last match header, and type in the
+search box to find rules by name, attack type, file, CVE or description. The
+table shows 50 rules per page; search, filters and sorting run on the server.
+
+**Upload rule file** adds a `.yar` file of your own; its rules are live at
+once, without a restart, and listed under **Uploaded rule files** with
+**Download** and **Delete** buttons. A file that does not compile or breaks a
+rule (duplicate name, missing metadata, unknown reply type, too slow) is
+rejected with the reason. See
+[Uploading rules from the dashboard](detection.md#uploading-rules-from-the-dashboard).
+Bundled rules are read-only here: to change them, edit the files under
+`rules/` and restart Krawl; see [Attack detection](detection.md).
+
+Counts come from `attack_detections.rule_name`. Detections stored before Krawl
+recorded the rule name count toward a rule only when its attack type belongs to
+that one rule, so rules that share a type (the two path-traversal rules) count
+from the upgrade on.
+
+---
+
 ## Authentication
 
 The dashboard uses session-based authentication with secure HTTP-only cookies. Protected features (Tracked IPs, IP Banlist, ban/track actions) require entering the dashboard password. The login includes brute-force protection with IP-based rate limiting and exponential backoff.
@@ -282,6 +395,7 @@ dashboard:
   warmup_pages: 10         # pages to pre-warm per table panel
   warmup_aggregation: false  # pre-compute full top_paths/top_ua aggregations
   top_n_min_count: 5       # minimum access count to appear in top paths/user-agents panels
+  domain_map_host_limit: 200 # maximum hosts drawn for the selected root (1-2000)
 ```
 
 | Env var | Description | Default |
@@ -290,6 +404,7 @@ dashboard:
 | `KRAWL_DASHBOARD_WARMUP_PAGES` | Pages to pre-warm per table panel | `10` |
 | `KRAWL_DASHBOARD_WARMUP_AGGREGATION` | Pre-compute full top_paths/top_ua aggregations for zero-query serving | `false` |
 | `KRAWL_DASHBOARD_TOP_N_MIN_COUNT` | Minimum access count for top paths/user-agents (set to `1` to disable filtering) | `5` |
+| `KRAWL_DASHBOARD_DOMAIN_MAP_HOST_LIMIT` | Maximum hostnames drawn for the selected root in the domain link map (1–2000) | `200` |
 
 > **Scalable mode**: `warmup_aggregation` is enabled by default in Helm and Kubernetes deployments. In standalone mode it is disabled because SQLite handles the load without it.
 
@@ -311,7 +426,7 @@ dashboard:
   branding:
     name: "Krawl"
     url: "https://github.com/BlessedRebuS/Krawl"  # null renders the name as plain text
-    logo: null             # image URL shown instead of the GitHub mark
+    logo: null             # image URL shown instead of the Krawl mark
     show_version: true
     contact: null          # "soc@example.com", a URL, or plain text
 ```
@@ -326,7 +441,7 @@ dropped rather than placed in the page.
 |---|---|---|
 | `KRAWL_DASHBOARD_BRAND_NAME` | Wordmark and heading name | `Krawl` |
 | `KRAWL_DASHBOARD_BRAND_URL` | Where the wordmark links | Krawl's repository |
-| `KRAWL_DASHBOARD_BRAND_LOGO` | Image URL replacing the GitHub mark | Unset |
+| `KRAWL_DASHBOARD_BRAND_LOGO` | Image URL replacing the Krawl mark | Unset |
 | `KRAWL_DASHBOARD_BRAND_SHOW_VERSION` | Show the version next to the name | `true` |
 | `KRAWL_DASHBOARD_BRAND_CONTACT` | Contact shown under the wordmark | Unset |
 

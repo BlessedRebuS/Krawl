@@ -1,0 +1,60 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "user02",
+      "email": "user02@example.com",
+      "password": "Admin642!",
+      "role": "Moderator",
+      "api_token": "api_1WUXppAVXUJDmPOFT86grMQr5CVdrbXG"
+    },
+    {
+      "id": 2,
+      "username": "test_test",
+      "email": "test_test@corp.example.com",
+      "password": "admin7144",
+      "role": "Moderator",
+      "api_token": "prod_mgOtCRqBuuPgygPs7DPGYRNbiUz8NZU7"
+    },
+    {
+      "id": 3,
+      "username": "db_backup",
+      "email": "db_backup@example.com",
+      "password": "admin2805",
+      "role": "Guest",
+      "api_token": "prod_QI8PZ9lrugwaMvjCznRKV9TYXufkBulP"
+    },
+    {
+      "id": 4,
+      "username": "webapp_service",
+      "email": "webapp_service@corp.example.com",
+      "password": "temp5548",
+      "role": "User",
+      "api_token": "api_LMMWWJtnRbHySl9154BifTTy1gRAMLM1"
+    },
+    {
+      "id": 5,
+      "username": "webapp_backup",
+      "email": "webapp_backup@mail.example.com",
+      "password": "COhElBoRsQgJ",
+      "role": "User",
+      "api_token": "token_7QbXQEbHcTKWPbuGq0xE7GKfUzivCCdr"
+    },
+    {
+      "id": 6,
+      "username": "webapp_prod",
+      "email": "webapp_prod@mail.example.com",
+      "password": "Secure812!",
+      "role": "Editor",
+      "api_token": "token_1VQQ7Ac2PtK438uLL4x2ZSgQ4x2RYMx6"
+    },
+    {
+      "id": 7,
+      "username": "jenkins_user",
+      "email": "jenkins_user@mail.example.com",
+      "password": "temp9623",
+      "role": "Manager",
+      "api_token": "sk_test_Fp8FVQZg7LkKdAgdB0V5WML7iGHa2QvX"
+    }
+  ]
+}

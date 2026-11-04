@@ -137,11 +137,14 @@ class PayloadRepo:
         filename: str | None = None,
         ip: str | None = None,
         sort_by: str = "last_seen",
+        sort_order: str = "desc",
+        min_ips: int = 0,
     ) -> dict[str, Any]:
         """Global filename index across all IPs (Threat tab).
 
         Groups by filename, counting distinct source IPs and first/last seen,
         so recurring file names (WebShell/script uploads) surface as campaigns.
+        ``min_ips`` keeps only names sent by at least that many IPs.
         """
         session = self._db.session
         try:
@@ -163,6 +166,10 @@ class PayloadRepo:
             )
             if ip_q is not None:
                 base = base.filter(ip_q)
+            if min_ips > 1:
+                base = base.having(
+                    func.count(func.distinct(CapturedPayload.ip)) >= min_ips
+                )
 
             total_rows = base.count()
             valid_sort = {
@@ -170,10 +177,12 @@ class PayloadRepo:
                 "first_seen": func.min(CapturedPayload.timestamp),
                 "filename": CapturedPayload.filename,
                 "distinct_ips": func.count(func.distinct(CapturedPayload.ip)),
+                "total": func.count(CapturedPayload.id),
             }
             order = valid_sort.get(sort_by, valid_sort["last_seen"])
+            direction = order.asc() if sort_order == "asc" else order.desc()
             rows = (
-                base.order_by(order.desc())
+                base.order_by(direction, CapturedPayload.filename.asc())
                 .offset((page - 1) * page_size)
                 .limit(page_size)
                 .all()
@@ -583,6 +592,54 @@ class PayloadRepo:
             ]
             result.sort(key=lambda c: c["events"], reverse=True)
             return result[:limit]
+        finally:
+            self._db.close_session()
+
+    def get_campaign_activity(
+        self, cluster_ids: list[str], start: Any, end: Any, hourly: bool
+    ) -> dict[str, dict[str, int]]:
+        """Member hits per campaign per time slot inside [start, end), for the
+        Threats tab activity strip. Slots are "YYYY-MM-DD HH:00" when
+        ``hourly``, else "YYYY-MM-DD" — the same keys the caller builds in
+        Python, so empty slots are simply absent."""
+        if not cluster_ids:
+            return {}
+        session = self._db.session
+        try:
+            postgres = self._db.engine.dialect.name == "postgresql"
+
+            def slot(col):
+                if postgres:
+                    return func.to_char(
+                        col, "YYYY-MM-DD HH24:00" if hourly else "YYYY-MM-DD"
+                    )
+                return func.strftime("%Y-%m-%d %H:00" if hourly else "%Y-%m-%d", col)
+
+            activity: dict[str, dict[str, int]] = {}
+            attack_slot = slot(AccessLog.timestamp)
+            file_slot = slot(CapturedPayload.timestamp)
+            queries = (
+                session.query(AttackDetection.cluster_id, attack_slot, func.count())
+                .join(AccessLog, AttackDetection.access_log_id == AccessLog.id)
+                .filter(
+                    AttackDetection.cluster_id.in_(cluster_ids),
+                    AccessLog.timestamp >= start,
+                    AccessLog.timestamp < end,
+                )
+                .group_by(AttackDetection.cluster_id, attack_slot),
+                session.query(CapturedPayload.cluster_id, file_slot, func.count())
+                .filter(
+                    CapturedPayload.cluster_id.in_(cluster_ids),
+                    CapturedPayload.timestamp >= start,
+                    CapturedPayload.timestamp < end,
+                )
+                .group_by(CapturedPayload.cluster_id, file_slot),
+            )
+            for query in queries:
+                for cid, key, cnt in query.all():
+                    slots = activity.setdefault(cid, {})
+                    slots[key] = slots.get(key, 0) + cnt
+            return activity
         finally:
             self._db.close_session()
 

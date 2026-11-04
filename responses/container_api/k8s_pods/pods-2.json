@@ -1,0 +1,100 @@
+{
+  "kind": "PodList",
+  "apiVersion": "v1",
+  "metadata": {
+    "resourceVersion": "982744"
+  },
+  "items": [
+    {
+      "metadata": {
+        "name": "worker-lluqvocix5-j82zb",
+        "namespace": "default",
+        "uid": "3931599e-d55a-6e60-d39d-0e266cf69f80",
+        "labels": {
+          "app": "worker"
+        }
+      },
+      "spec": {
+        "serviceAccountName": "default",
+        "containers": [
+          {
+            "name": "worker",
+            "image": "registry.example.com/shop/worker:2.4.1",
+            "env": [
+              {
+                "name": "DATABASE_URL",
+                "value": "postgres://app:Bl4ckP3pper#@db.internal:5432/app"
+              }
+            ]
+          }
+        ],
+        "nodeName": "node-4"
+      },
+      "status": {
+        "phase": "Running",
+        "hostIP": "198.51.100.120",
+        "podIP": "192.0.2.3",
+        "startTime": "2024-10-02T11:20:31Z"
+      }
+    },
+    {
+      "metadata": {
+        "name": "cache-jk96j82zqw-mrst8",
+        "namespace": "default",
+        "uid": "10d16c5e-9c03-3dec-98e2-1a1fdab42e59",
+        "labels": {
+          "app": "cache"
+        }
+      },
+      "spec": {
+        "serviceAccountName": "default",
+        "containers": [
+          {
+            "name": "cache",
+            "image": "redis:7-alpine",
+            "env": []
+          }
+        ],
+        "nodeName": "node-3"
+      },
+      "status": {
+        "phase": "Running",
+        "hostIP": "198.51.100.9",
+        "podIP": "192.0.2.203",
+        "startTime": "2024-10-02T11:20:31Z"
+      }
+    },
+    {
+      "metadata": {
+        "name": "api-qfc562j67z-69272",
+        "namespace": "default",
+        "uid": "a8c82ae6-6153-af05-e334-be69ed8dcc9a",
+        "labels": {
+          "app": "api"
+        }
+      },
+      "spec": {
+        "serviceAccountName": "default",
+        "containers": [
+          {
+            "name": "api",
+            "image": "registry.example.com/shop/api:2.4.1",
+            "env": [
+              {
+                "name": "DATABASE_URL",
+                "value": "postgres://app:Winter2024!@db.internal:5432/app"
+              }
+            ]
+          }
+        ],
+        "nodeName": "node-3"
+      },
+      "status": {
+        "phase": "Running",
+        "hostIP": "198.51.100.187",
+        "podIP": "192.0.2.53",
+        "startTime": "2024-10-02T11:20:31Z"
+      }
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "prod_test",
+      "email": "prod_test@mail.example.com",
+      "password": "Admin681!",
+      "role": "Moderator",
+      "api_token": "secret_jKi5s3nmpZZUJjoc5hSarLle3raR9Hcz"
+    },
+    {
+      "id": 2,
+      "username": "deploy_test",
+      "email": "deploy_test@example.com",
+      "password": "jgqvefvz",
+      "role": "Moderator",
+      "api_token": "sk_test_5DB3DdBqOYct3YWy70YHNicadF6JWU6r"
+    },
+    {
+      "id": 3,
+      "username": "user_prod",
+      "email": "user_prod@corp.example.com",
+      "password": "ptiowjdg",
+      "role": "Administrator",
+      "api_token": "api_fhoUFGg6MeFZR4nLn8yOtOXQh7g7Kl28"
+    },
+    {
+      "id": 4,
+      "username": "root_service",
+      "email": "root_service@mail.example.com",
+      "password": "default4000",
+      "role": "Viewer",
+      "api_token": "token_Ii0QcySja2viSJ0onHEL0OGmJBQfDcyP"
+    },
+    {
+      "id": 5,
+      "username": "test_admin",
+      "email": "test_admin@corp.example.com",
+      "password": "demo1350",
+      "role": "Analyst",
+      "api_token": "key_FhuA1ueQwJLHDEXvCcWiWumYLyAap6VM"
+    },
+    {
+      "id": 6,
+      "username": "service02",
+      "email": "service02@corp.example.com",
+      "password": "vxaewzwb",
+      "role": "Support",
+      "api_token": "secret_B15dnyWeFmQNe3R4DCY0cPXkUMq48IPe"
+    },
+    {
+      "id": 7,
+      "username": "webapp_test",
+      "email": "webapp_test@corp.example.com",
+      "password": "admin8987",
+      "role": "Administrator",
+      "api_token": "sk_test_N3vCQUxv0PHpwfpfnMI0JvvZbkBjyjM1"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "compute": {
+    "location": "eastus",
+    "name": "vm-cllumn",
+    "vmId": "f7255906-c830-eec4-2c7a-96cb3c54f7b2",
+    "vmSize": "Standard_D2s_v3",
+    "osType": "Linux",
+    "resourceGroupName": "prod-rg"
+  },
+  "network": {
+    "interface": [
+      {
+        "ipv4": {
+          "ipAddress": [
+            {
+              "privateIpAddress": "192.0.2.206",
+              "publicIpAddress": "203.0.113.166"
+            }
+          ]
+        },
+        "macAddress": "9D9BD90EF315"
+      }
+    ]
+  }
+}

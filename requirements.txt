@@ -29,3 +29,6 @@ prometheus-client>=0.25.0
 
 # Fuzzy hashing (near-duplicate payload clustering)
 py-tlsh>=5.0.0
+
+# Request signature matching
+yara-python>=4.5.0,<5.0.0

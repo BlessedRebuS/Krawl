@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<response>
+    <status>success</status>
+    <message>Entity processed successfully</message>
+    <entity_value>dtd_entity_resolved</entity_value>
+</response>

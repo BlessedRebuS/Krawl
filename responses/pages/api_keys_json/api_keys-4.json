@@ -1,0 +1,17 @@
+{
+  "stripe": {
+    "public_key": "pk_live_YIDv93PFGj57Drq2NvaSDG6I",
+    "secret_key": "prod_djjGqBb74gdF3LFknL3YV7C3TxI2iWAD"
+  },
+  "aws": {
+    "access_key_id": "AKIA3BXGLUFZX1R40TXJ",
+    "secret_access_key": "MsiM7EkOmPVntCQS9M7nq+YzeqAbM6vwrzMsde7Q"
+  },
+  "sendgrid": {
+    "api_key": "SG.hzUxO9wCjRDHtML4Vfhxlll0gWDTCoy4VOzUjCwAYjrIs3Ba"
+  },
+  "twilio": {
+    "account_sid": "ACjkoa7pzqqk6fsjld8lz06qr3tim6lv12",
+    "auth_token": "w19rmo0h4jf0l1hjqzt87e49kou9jk5k"
+  }
+}

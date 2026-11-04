@@ -1,0 +1,6 @@
+{
+  "app_name": "API Gateway",
+  "debug": true,
+  "secret_key": "prod_Yoriw00JJ9PeOJRQdfYIR3UHFzwBKHVf",
+  "database_url": "postgresql://system:welcome6387@localhost/prod_db"
+}

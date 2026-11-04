@@ -3,13 +3,16 @@
 Writes (persist_credential) stay on DatabaseManager as a hot path.
 """
 
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import distinct, func
+from sqlalchemy import func
 
 from dashboard_cache import pagination
+from database.text_filters import credential_text_clauses
 from logger import get_app_logger
 from models import CredentialAttempt
+from period import range_conditions
 from sanitizer import sanitize_ip
 
 if TYPE_CHECKING:
@@ -70,6 +73,10 @@ class CredentialRepo:
         sort_by: str = "timestamp",
         sort_order: str = "desc",
         ip_filter: str | None = None,
+        since: datetime | None = None,
+        until: datetime | None = None,
+        search: str | None = None,
+        exclude: list[str] | None = None,
     ) -> dict[str, Any]:
         """
         Retrieve paginated list of credential attempts.
@@ -101,6 +108,12 @@ class CredentialRepo:
                 sanitized = sanitize_ip(ip_filter)
                 count_query = count_query.filter(CredentialAttempt.ip == sanitized)
                 query = query.filter(CredentialAttempt.ip == sanitized)
+
+            for cond in range_conditions(
+                CredentialAttempt.timestamp, since, until
+            ) + credential_text_clauses(CredentialAttempt, search, exclude):
+                count_query = count_query.filter(cond)
+                query = query.filter(cond)
 
             total_credentials = count_query.scalar() or 0
 
@@ -151,7 +164,8 @@ class CredentialRepo:
         try:
             usernames = [
                 row[0]
-                for row in session.query(distinct(CredentialAttempt.username))
+                for row in session.query(CredentialAttempt.username)
+                .distinct()
                 .filter(CredentialAttempt.username.isnot(None))
                 .filter(CredentialAttempt.username != "")
                 .all()
@@ -159,7 +173,8 @@ class CredentialRepo:
             ]
             passwords = [
                 row[0]
-                for row in session.query(distinct(CredentialAttempt.password))
+                for row in session.query(CredentialAttempt.password)
+                .distinct()
                 .filter(CredentialAttempt.password.isnot(None))
                 .filter(CredentialAttempt.password != "")
                 .all()

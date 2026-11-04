@@ -1,0 +1,9 @@
+APP_ENV=production
+APP_KEY=base64:mrxxDjEK6d5Klcv8z6MAjzCSgVxhyPbyvO7OCqLulpg=
+DB_HOST=db.internal
+DB_PORT=3306
+DB_DATABASE=production_db
+DB_USERNAME=app_user
+DB_PASSWORD=VelvetSummer38#
+MAIL_HOST=smtp.example.com
+MAIL_PASSWORD=ienRt3jzXHog0bXNfG3PoErJ

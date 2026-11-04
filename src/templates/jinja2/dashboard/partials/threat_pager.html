@@ -1,0 +1,28 @@
+{# Pager for the Threats tab tables: position, rows per page, Prev/Next.
+ # `url` is the endpoint with every filter and sort already in its query
+ # string, but no page or page_size; the pager appends those. #}
+{% macro pager(url, pagination, page_sizes, noun) %}
+<div class="panel-header">
+    <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} {{ noun }}</span>
+    <div class="row">
+        {% if pagination.total > page_sizes[0] %}
+        <div class="row gap-1" role="group" aria-label="Rows per page">
+            {% for size in page_sizes %}
+            <button type="button" class="map-limit-btn {% if pagination.page_size == size %}active{% endif %}"
+                    aria-pressed="{{ 'true' if pagination.page_size == size else 'false' }}"
+                    hx-get="{{ url }}&amp;page=1&amp;page_size={{ size }}"
+                    hx-target="closest .htmx-container" hx-swap="innerHTML">{{ size }}</button>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <button class="pagination-btn"
+                hx-get="{{ url }}&amp;page={{ pagination.page - 1 }}&amp;page_size={{ pagination.page_size }}"
+                hx-target="closest .htmx-container" hx-swap="innerHTML"
+                {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
+        <button class="pagination-btn"
+                hx-get="{{ url }}&amp;page={{ pagination.page + 1 }}&amp;page_size={{ pagination.page_size }}"
+                hx-target="closest .htmx-container" hx-swap="innerHTML"
+                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
+    </div>
+</div>
+{% endmacro %}

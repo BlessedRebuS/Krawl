@@ -1,0 +1,8 @@
+{
+  "repositories": [
+    "billing/api",
+    "billing/cron",
+    "base/python",
+    "base/node"
+  ]
+}

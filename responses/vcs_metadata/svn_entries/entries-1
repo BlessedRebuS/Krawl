@@ -1,0 +1,27 @@
+10
+
+dir
+1180
+svn://svn.example.com/shop-backend/trunk
+svn://svn.example.com/shop-backend
+
+
+
+2024-03-14T09:21:07.000000Z
+1180
+mrossi
+
+index.php
+file
+
+config.inc.php
+file
+
+admin
+dir
+
+lib
+dir
+
+uploads
+dir

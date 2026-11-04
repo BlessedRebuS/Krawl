@@ -34,8 +34,14 @@ Then access at: http://localhost:{{ .Values.service.port }}
 {{- end }}
 {{- end }}
 Dashboard Access:
-  To retrieve the dashboard path, run:
-    kubectl get secret {{ include "krawl.fullname" . }} -n {{ .Release.Namespace }} -o jsonpath='{.data.dashboard-path}' | base64 -d && echo
+{{- if .Values.config.dashboard.secret_path }}
+  Configured path: /{{ .Values.config.dashboard.secret_path | trimPrefix "/" }}
+{{- else if .Values.dashboardExistingSecret.pathKey }}
+  The dashboard path comes from Secret {{ .Values.dashboardExistingSecret.name }} key {{ .Values.dashboardExistingSecret.pathKey }}.
+{{- else }}
+  The path is generated at startup. Retrieve it from the logs:
+    kubectl logs -n {{ .Release.Namespace }} deployment/{{ include "krawl.fullname" . }} | grep -A4 'DASHBOARD AVAILABLE'
+{{- end }}
   
   Then access the dashboard at:
     http://<EXTERNAL-IP>:{{ .Values.service.port }}/<dashboard-path>

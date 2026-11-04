@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="ca3cb9f0-237e-bf15-91a4-72776e94cb61" name="Changes" comment="" />
+  </component>
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="prod@db.internal">
+      <driver-ref>postgresql</driver-ref>
+      <jdbc-url>jdbc:postgresql://db.internal:5432/app</jdbc-url>
+      <user-name>app</user-name>
+    </data-source>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="RunManager" selected="Application.Main">
+    <configuration name="Main" type="Application" factoryName="Application">
+      <envs>
+        <env name="SPRING_PROFILES_ACTIVE" value="prod" />
+      </envs>
+    </configuration>
+  </component>
+</project>

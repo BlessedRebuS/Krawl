@@ -1,0 +1,1 @@
+MySQL Error 1317 (70100): Query execution was interrupted

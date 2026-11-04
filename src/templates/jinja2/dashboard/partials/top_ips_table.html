@@ -33,25 +33,29 @@
         </tr>
     </thead>
     <tbody>
+{# Bars are relative to the largest count on this page. #}
+{% set mx = (items | map(attribute='count') | select | max) if items else 0 %}
         {% for item in items %}
         <tr class="ip-row" data-ip="{{ item.ip | e }}">
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
-            <td class="ip-clickable"
-                title="Open in IP Insight"
-                @click="openIpInsight('{{ item.ip | e }}')">
-                {{ item.ip | e }}
+            <td class="ip-clickable">
+                <a class="ip-link" href="#ip-insight/{{ item.ip | e }}" title="Open in IP Insight" @click.prevent="openIpInsight('{{ item.ip | e }}')">{{ item.ip | e }}</a>
             </td>
             <td>
                 {% set cat = item.category | default('unknown') %}
-                {% set cat_colors = {'attacker': 'var(--danger)', 'good_crawler': 'var(--ok)', 'bad_crawler': 'var(--warn)', 'regular_user': 'var(--accent)', 'unknown': 'var(--text-dim)'} %}
-                <span class="category-dot dot-inline" style="color: {{ cat_colors.get(cat, 'var(--text-dim)') }}" title="{{ cat | replace('_', ' ') | title }}"></span>
+                {% set cat_colors = {'attacker': 'var(--cat-attacker)', 'good_crawler': 'var(--cat-good-crawler)', 'bad_crawler': 'var(--cat-bad-crawler)', 'regular_user': 'var(--cat-regular-user)', 'unknown': 'var(--text-dim)'} %}
+                {# Colour plus words: the dot alone fails anyone who cannot tell red from orange. #}
+                <span class="category-tag"><span class="category-dot dot-inline" style="color: {{ cat_colors.get(cat, 'var(--text-dim)') }}" aria-hidden="true"></span>{{ cat | replace('_', ' ') | capitalize }}</span>
             </td>
             <td>
+                {# The count sits outside the hover-revealed actions, or it hides with them. #}
+                <div class="count-with-action">
+                <span class="num-bar is-fill" style="--pct: {{ (((item.count) or 0) * 100 / mx) | round(1) if mx else 0 }}%">{{ item.count | num }}</span>
                 <div class="table-action-btns">
-                    <span>{{ item.count }}</span>
-                    <button class="inspect-btn" style="margin-left:auto" @click="openIpInsight('{{ item.ip | e }}')" title="Inspect IP">
+                    <button class="inspect-btn" @click="openIpInsight('{{ item.ip | e }}')" title="Inspect IP" aria-label="Inspect {{ item.ip | e }} in IP Insight">
                         <svg class="icon-sm" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
                     </button>
+                </div>
                 </div>
             </td>
         </tr>

@@ -1,0 +1,61 @@
+{
+  "took": 3,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 38320,
+      "relation": "eq"
+    },
+    "max_score": 1.0,
+    "hits": [
+      {
+        "_index": "accounts",
+        "_id": "9xh2C6oC7zAEgFiAShne",
+        "_score": 1.0,
+        "_source": {
+          "username": "lukas.weber",
+          "full_name": "Lukas Weber",
+          "email": "lukas.weber@example.com",
+          "password_hash": "$2b$12$wiG69VgoP9WLLKjr8vmm.UHb.pQCDM0icjte3S0UxyA5S6KpCITL9",
+          "role": "support",
+          "api_key": "b0acc8a78312c5a63ec3389b375af267",
+          "last_login_ip": "198.51.100.17"
+        }
+      },
+      {
+        "_index": "accounts",
+        "_id": "wMt2FkHO9ycEo4ZfMe5R",
+        "_score": 1.0,
+        "_source": {
+          "username": "sofia.novak",
+          "full_name": "Sofia Novak",
+          "email": "sofia.novak@example.com",
+          "password_hash": "$2b$12$h0mg4rmX9LQtnabCZfEn.paIA7hiJbmTcdpE9qdgnxtxSWEMe0ue7",
+          "role": "admin",
+          "api_key": "91d1a6fbc5f2304dc34c88d1552bfa4e",
+          "last_login_ip": "198.51.100.17"
+        }
+      },
+      {
+        "_index": "accounts",
+        "_id": "T8GH088DI8vJShWrUu3H",
+        "_score": 1.0,
+        "_source": {
+          "username": "carlos.mendez",
+          "full_name": "Carlos Mendez",
+          "email": "carlos.mendez@example.com",
+          "password_hash": "$2b$12$OMlsxObJF18FeBwmzlZqGmOrGrctvv7tGwHASw7v2RO67AMWcbrAy",
+          "role": "admin",
+          "api_key": "ef1731be477e079629413d1b47e0a0d0",
+          "last_login_ip": "198.51.100.33"
+        }
+      }
+    ]
+  }
+}

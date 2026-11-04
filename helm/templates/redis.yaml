@@ -57,6 +57,7 @@ spec:
         app.kubernetes.io/name: {{ include "krawl.name" . }}-redis
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      automountServiceAccountToken: false
       containers:
       - name: redis
         image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
@@ -67,7 +68,7 @@ spec:
           protocol: TCP
         command:
           - redis-server
-          {{- if .Values.redis.password }}
+          {{- if or .Values.redis.password .Values.redis.existingSecret.name }}
           - --requirepass
           - $(REDIS_PASSWORD)
           {{- end }}
@@ -77,7 +78,7 @@ spec:
           - --maxmemory-policy
           - {{ .Values.redis.maxmemoryPolicy | quote }}
           {{- end }}
-        {{- if .Values.redis.password }}
+        {{- if or .Values.redis.password .Values.redis.existingSecret.name }}
         env:
         - name: REDIS_PASSWORD
           valueFrom:

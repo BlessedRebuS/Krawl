@@ -1,0 +1,36 @@
+{% from "dashboard/partials/artifact_sort_header.html" import header with context %}
+{% from "dashboard/partials/threat_pager.html" import pager %}
+{# HTMX fragment: absolute URLs extracted from retained raw requests.
+ # State rides on .threat-table so the panel's search box and 2+ IPs toggle
+ # can reload without dropping the sort or the page size. #}
+<div class="threat-table" data-sort-by="{{ sort_by }}" data-sort-order="{{ sort_order }}" data-page-size="{{ pagination.page_size }}">
+{{ pager(dashboard_path ~ '/htmx/request-assets?search=' ~ (search | urlencode) ~ '&sort_by=' ~ sort_by ~ '&sort_order=' ~ sort_order ~ '&min_ips=' ~ min_ips, pagination, page_sizes, 'URLs') }}
+<table>
+    <thead><tr>
+        {{ header('url', 'URL', 'request-assets', sort_by, sort_order, search) }}
+        {{ header('count', 'Occurrences', 'request-assets', sort_by, sort_order, search) }}
+        {{ header('distinct_ips', 'Distinct IPs', 'request-assets', sort_by, sort_order, search, 'Distinct source IPs') }}
+        {{ header('first_seen', 'First Seen', 'request-assets', sort_by, sort_order, search) }}
+        {{ header('last_seen', 'Last Seen', 'request-assets', sort_by, sort_order, search) }}
+    </tr></thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td class="data data-mono">
+                <div class="asset-link-cell"><a href="{{ dashboard_path }}/htmx/artifact-requests?kind=asset&amp;value={{ item.url | urlencode }}" class="campaign-target-link" data-value="{{ item.url | e }}" @click.prevent="openArtifactInvestigation('asset', $event.currentTarget.dataset.value)" title="Inspect requests containing this URL">{{ item.url | e }}</a>
+                {% set asset_url = item.url | safe_url %}{% if asset_url %}<a href="{{ asset_url | e }}" target="_blank" rel="noopener noreferrer" class="artifact-external-link" title="Open URL in a new tab" aria-label="Open {{ item.url | e }} in a new tab">↗</a>{% endif %}</div>
+            </td>
+            <td class="ts-cell">{{ item.count | num }}</td>
+            <td class="ts-cell">{{ item.distinct_ips }}</td>
+            <td class="ts-cell">{{ item.first_seen | format_ts }}</td>
+            <td class="ts-cell">{{ item.last_seen | format_ts }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="empty-state">
+            {% if search or min_ips %}No URLs match this filter.
+            {% else %}No URL assets extracted yet. They appear when a request carries an absolute URL.{% endif %}
+        </td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>

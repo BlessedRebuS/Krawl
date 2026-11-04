@@ -1,0 +1,6 @@
+health status index                         uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+green  open   users                         Z3DaCnHGcnUAKWo352TZ-F 1   1    2230048          170    773.1mb        773.1mb
+green  open   orders                        bp5gRaJaNzVzj5GC6u3vsW 1   1     476891          886    341.2mb        341.2mb
+green  open   payments                      ro1e8tZkvZC4CUTq1_lOnX 1   1     687324          738    374.4mb        374.4mb
+yellow  open   .kibana_1                     L-bueMb085rzxdyBKWFTxb 1   1    2398211          597    137.6mb        137.6mb
+yellow  open   audit-2024.10                 xkNpYey2-RbxKMbkC2bRqE 1   1    1349097          144    254.2mb        254.2mb

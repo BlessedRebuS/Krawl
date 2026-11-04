@@ -1,0 +1,6 @@
+health status index                         uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+green  open   accounts                      AzhZzFL5X4-q4mChITAQgi 1   1     785490          288    520.7mb        520.7mb
+green  open   transactions                  tfOLuKPXsY-U6nqJk1Ryq4 1   1     997451           32    350.5mb        350.5mb
+green  open   api_keys                      1G5ItKw1-L8KeZeLrO1mFP 1   1     406031          770    564.1mb        564.1mb
+green  open   products                      e9stqkLvBot7a44QndlYzw 1   1    1018937          866     44.5mb         44.5mb
+green  open   filebeat-7.10.2-2024.09       LkJcy679Xgmveh3g3j8yzX 1   1     177277          438     21.2mb         21.2mb

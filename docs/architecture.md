@@ -35,11 +35,11 @@ Krawl/
 │   ├── webhooks.py               # Outbound integrations (CloudFlare WAF / IP lists)
 │   ├── metrics.py                # Prometheus collector
 │   ├── metrics_counters.py       # Counter state shared with the flush task
-│   ├── deception_responses.py    # Attack detection + fake responses
+│   ├── detection.py              # YARA attack detection, startup validation
+│   ├── custom_rules.py           # Rule files uploaded from the dashboard (validate, store, hot reload)
+│   ├── responses.py              # Fake replies and bait pages from responses/manifest.yaml
 │   ├── generative_ai.py          # AI deception page generation
 │   ├── sanitizer.py              # Input sanitization
-│   ├── generators.py             # Random content generators
-│   ├── wordlists.py              # JSON wordlist loader
 │   ├── geo_utils.py              # IP geolocation API
 │   ├── ip_utils.py               # IP validation + ignored IP/CIDR matching
 │   │
@@ -62,7 +62,7 @@ Krawl/
 │   │   └── ban_check.py          # Banned IP enforcement
 │   │
 │   ├── tasks/                    # APScheduler background jobs (auto-discovered)
-│   │   ├── analyze_ips.py        # IP categorization scoring
+│   │   ├── analyze_ips.py        # IP categorization scoring (docs/algorithms.md)
 │   │   ├── fetch_ip_rep.py       # Geolocation + blocklist enrichment
 │   │   ├── flag_stale_ips.py     # Flag stale IPs for reevaluation
 │   │   ├── flush_access_logs.py  # Drain the access-log write buffer
@@ -96,7 +96,8 @@ Krawl/
 │               └── radar.js                  # SVG radar chart
 │
 ├── config.yaml                # Application configuration
-├── wordlists.json             # Attack patterns + fake credentials
+├── rules/                    # Startup-compiled YARA request rules
+├── responses/                # All fake content: attack replies, bait pages, trap shell
 ├── Dockerfile                 # Container build
 ├── docker/                    # Production compose files (dev/ for source builds)
 ├── entrypoint.sh              # Container startup (gosu privilege drop)
@@ -198,6 +199,9 @@ Dashboard, API, and HTMX routers are mounted with `prefix=f"/{secret}"` in `app.
 | `GET` | `/api/attack-types` | Paginated attack log |
 | `GET` | `/api/raw-request/{id}` | Full HTTP request |
 | `GET` | `/api/export-ips` | Export IPs for firewall integration |
+| `POST` | `/api/rules/upload` | Validate and load an uploaded YARA rule file (authenticated) |
+| `GET` | `/api/rules/{filename}` | Download an uploaded rule file (authenticated) |
+| `DELETE` | `/api/rules/{filename}` | Delete an uploaded rule file and unload its rules (authenticated) |
 
 ### HTMX Fragment Routes (`routes/htmx.py`)
 
@@ -214,6 +218,8 @@ Each returns a server-rendered Jinja2 partial (`hx-swap="innerHTML"`):
 | `/htmx/attacks` | `attack_types_table.html` |
 | `/htmx/patterns` | `patterns_table.html` |
 | `/htmx/ip-detail/{ip}` | `ip_detail.html` |
+| `/htmx/rules` | `rules_panel.html` (authenticated) |
+| `/htmx/rules/table` | `rules_table.html` (authenticated) |
 
 ## Database Schema
 
@@ -224,7 +230,8 @@ Each returns a server-rendered Jinja2 partial (`hx-swap="innerHTML"`):
 │ id (PK)         │◄────│ access_log_id(FK)│
 │ ip (indexed)    │     │ attack_type      │
 │ path            │     │ matched_pattern  │
-│ user_agent      │     └──────────────────┘
+│ user_agent      │     │ rule_name        │
+│                 │     └──────────────────┘
 │ method          │
 │ is_suspicious   │     ┌──────────────────┐
 │ is_honeypot     │     │CredentialAttempt │
@@ -248,8 +255,14 @@ Each returns a server-rendered Jinja2 partial (`hx-swap="innerHTML"`):
 │ category        │
 │ category_scores │
 │ analyzed_metrics│
-│ manual_category │
-└─────────────────┘
+│ manual_category │     ┌──────────────────┐
+└─────────────────┘     │ CustomYaraRule   │
+                        ├──────────────────┤
+                        │ filename (PK)    │
+                        │ source           │
+                        │ rule_names       │
+                        │ uploaded_at      │
+                        └──────────────────┘
 ```
 
 **SQLite config** (standalone): WAL mode, 30s busy timeout, file permissions 600.
@@ -297,6 +310,7 @@ Managed by `TasksMaster` (APScheduler). Tasks are auto-discovered from `src/task
 | Task | Schedule | Purpose |
 |------|----------|---------|
 | `flush_access_logs` | Every 30 s | Drain the in-memory access-log write buffer into the database |
+| `reload_custom_rules` | Every 30 s, on every pod | Load YARA rule files uploaded or deleted on another replica |
 | `analyze_ips` | Every 1 min | Score IPs into categories (attacker, crawler, user) |
 | `metrics_flush` | Every 2 min | Persist Prometheus counter state |
 | `fetch_ip_rep` | Every 5 min | Enrich IPs with geolocation + blocklist data |
@@ -307,6 +321,10 @@ Managed by `TasksMaster` (APScheduler). Tasks are auto-discovered from `src/task
 | `flag_stale_ips` | Daily (8 AM) | Flag stale IPs for reevaluation by the analyzer |
 | `pre_retention_cleanup` | Daily (8:30 AM) | Prune non-suspicious access rows ahead of retention |
 | `db_retention` | Daily (9 AM) | Clean up old records based on retention policy |
+
+Each sweeping task takes a bounded slice per run and picks the rest up next
+run. The slice sizes live in the `tasks:` config section (see Configuration) —
+raise them when a backlog never drains, keeping the pod's memory limit in mind.
 
 ### IP Categorization Model
 
@@ -336,7 +354,13 @@ dashboard:
 
 database:
   path: "data/krawl.db"
-  retention_days: 30
+
+retention:
+  non-suspicious: 30d
+  recheck-suspicious: 30d
+  re-evaluate-interval: 5d
+  crunch-after: 7d
+  overall: null
 
 # Scalable mode only
 postgres:
@@ -349,6 +373,16 @@ redis:
   cache_ttl: 600                # Dashboard warmup data TTL
   hot_ttl: 30                   # Ban info / IP category TTL
   table_ttl: 120                # Paginated table TTL
+
+tasks:                          # Rows each scheduled task handles per run
+  analyze_ips_batch: 2000
+  extract_metadata_batch: 500
+  extract_files_batch: 500
+  hash_payloads_batch: 500
+  hash_payloads_chunk: 50       # Raw requests held in memory at once
+  hash_files_batch: 50
+  cleanup_batch: 1000
+  retention_delete_batch: 10000
 
 crawl:
   infinite_pages_for_malicious: true
