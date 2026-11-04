@@ -12,7 +12,7 @@ from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
 
 from logger import get_app_logger
-from models import CRUNCH_QUEUE_WHERE, LIVE_ATTACKERS_WHERE
+from models import BAN_OVERRIDE_WHERE, CRUNCH_QUEUE_WHERE, LIVE_ATTACKERS_WHERE
 
 logger = get_app_logger()
 
@@ -66,11 +66,6 @@ INDEXES = [
         "ix_attack_detections_type_log",
         "attack_detections",
         "attack_type, access_log_id",
-    ),
-    (
-        "ix_access_logs_request_metadata_extracted",
-        "access_logs",
-        "request_metadata_extracted",
     ),
     (
         "ix_access_logs_request_metadata_version",
@@ -142,14 +137,6 @@ ONLINE_INDEXES = [
         "ix_access_logs_path",
     ),
     (
-        "ix_access_logs_ua_hits",
-        "access_logs",
-        "user_agent",
-        "hit_count",
-        None,
-        "ix_access_logs_user_agent",
-    ),
-    (
         "ix_access_logs_host_ip",
         "access_logs",
         "target_host, ip",
@@ -173,6 +160,17 @@ ONLINE_INDEXES = [
         LIVE_ATTACKERS_WHERE,
         None,
     ),
+    ("ix_ip_stats_ban_override", "ip_stats", "ip", None, BAN_OVERRIDE_WHERE, None),
+]
+
+# Unused (few distinct UAs: seq scan + hash wins) or a prefix of a composite
+# index; each only cost writes.
+DROPPED_INDEXES = [
+    "ix_access_logs_ua_hits",
+    "ix_access_logs_user_agent",
+    "ix_access_logs_ip",
+    "ix_category_history_ip",
+    "ix_access_logs_request_metadata_extracted",
 ]
 
 _ONLINE_INDEX_LOCK = 0x4B52_4157
@@ -300,7 +298,8 @@ def build_online_indexes(engine: Engine) -> list[str]:
                         conn.execute(
                             text(
                                 f"CREATE INDEX CONCURRENTLY {name} "
-                                f"ON {table} ({columns}) INCLUDE ({include})"
+                                f"ON {table} ({columns})"
+                                + (f" INCLUDE ({include})" if include else "")
                                 + (f" WHERE {where}" if where else "")
                             )
                         )
@@ -309,6 +308,15 @@ def build_online_indexes(engine: Engine) -> list[str]:
                         conn.execute(text(f"DROP INDEX CONCURRENTLY IF EXISTS {old}"))
                 except Exception as e:
                     logger.error(f"Migration error (online index {name}): {e}")
+            for name in DROPPED_INDEXES:
+                try:
+                    if conn.execute(
+                        text("SELECT to_regclass(:n)"), {"n": name}
+                    ).scalar():
+                        conn.execute(text(f"DROP INDEX CONCURRENTLY IF EXISTS {name}"))
+                        applied.append(f"drop unused index {name}")
+                except Exception as e:
+                    logger.error(f"Migration error (drop index {name}): {e}")
 
     for m in applied:
         logger.info(f"Migration applied: {m}")
