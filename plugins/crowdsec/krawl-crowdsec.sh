@@ -8,7 +8,7 @@ CATEGORIES="attacker"
 # Optional: also export IPs pulled from the configured upstream banlists
 MERGE_BANLISTS="false"
 
-OUT="$(mktemp /tmp/krawl_crowdsec.XXXXXX.yaml)"
+OUT="$(mktemp /tmp/krawl_crowdsec.XXXXXX.json)"
 trap 'rm -f "${OUT}"' EXIT
 
 # Fetch CrowdSec decisions from the Krawl export API
@@ -20,7 +20,7 @@ if [ ! -s "${OUT}" ]; then
 fi
 
 # Import them. Decisions already present are skipped by CrowdSec.
-if ! cscli decisions import -i "${OUT}"; then
+if ! cscli decisions import -i "${OUT}" --format json; then
   echo "Error: cscli decisions import failed"
   exit 1
 fi

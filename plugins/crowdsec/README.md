@@ -25,15 +25,19 @@ list lets CrowdSec decide how to apply the ban.
 ```bash
 #!/bin/bash
 KRAWL_URL="https://your-krawl-instance/your-dashboard-path"
-OUT="$(mktemp /tmp/krawl_crowdsec.XXXXXX.yaml)"
+OUT="$(mktemp /tmp/krawl_crowdsec.XXXXXX.json)"
 trap 'rm -f "${OUT}"' EXIT
 curl -fsS "${KRAWL_URL}/api/export-ips?categories=attacker&fwtype=crowdsec" -o "${OUT}"
 [ -s "${OUT}" ] || { echo "nothing to import"; exit 1; }
-cscli decisions import -i "${OUT}"
+cscli decisions import -i "${OUT}" --format json
 ```
 
 Save as `krawl-crowdsec.sh`, `chmod +x` it, and run it once by hand to confirm
 the import works before scheduling it.
+
+The export is JSON because `cscli decisions import` reads only csv, json or
+values, and chooses the parser from the file extension; the `--format json`
+flag makes that explicit when a temp file has an unexpected name.
 
 ### 2. Schedule it
 
