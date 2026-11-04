@@ -136,7 +136,7 @@ def test_credentials_and_honeypot_respect_range(stored):
     assert stored.access_logs.get_honeypot_paginated()["pagination"]["total"] == 2
 
 
-def test_targeted_domains_in_range_bypasses_rollup(stored):
+def test_targeted_domains_in_range(stored):
     r = stored.access_logs.get_targeted_domains(since=SINCE, until=UNTIL)
     assert [(d["domain"], d["count"]) for d in r["domains"]] == [
         ("a.test", 3),

@@ -33,6 +33,7 @@ EXPECTED_SINGLE_POD = {
     "flag-stale-ips",
     "hash-payloads",
     "pre-retention-cleanup",
+    "rollup-domains",
     "refresh-banlist",     # gated, but followers adopt via on_skip()
     "sync-cloudflare",
 }
