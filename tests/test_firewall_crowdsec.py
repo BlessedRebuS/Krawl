@@ -87,7 +87,9 @@ def test_unknown_format_still_names_crowdsec():
 
 
 def test_existing_formats_are_untouched():
-    assert "iptables -A INPUT -s 203.0.113.7 -j DROP" in format_banlist("iptables", ["203.0.113.7"])
+    assert "iptables -A INPUT -s 203.0.113.7 -j DROP" in format_banlist(
+        "iptables", ["203.0.113.7"]
+    )
     assert "nft add table inet filter" in format_banlist("nftables", ["203.0.113.7"])
     assert format_banlist("raw", ["203.0.113.7"]) == "203.0.113.7"
 
