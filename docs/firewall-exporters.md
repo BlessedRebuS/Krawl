@@ -84,6 +84,33 @@ curl -o /etc/iptables/krawl-banlist.sh \
 
 The same functionality is available from the dashboard via the **Export IPs Banlist** button, which opens a modal where you can select categories and format before downloading.
 
+## CrowdSec decisions (`fwtype=crowdsec`)
+
+CrowdSec is not a firewall: it takes a list of decisions and lets its bouncers
+enforce them. `fwtype=crowdsec` therefore emits the YAML decisions dialect that
+`cscli decisions import` reads, one mapping per IP:
+
+```yaml
+# Import with: cscli decisions import -i <this file>
+- Duration: 4h
+  Scope: Ip
+  Type: ban
+  Value: 203.0.113.7
+```
+
+The duration comes from `CROWDSEC_BAN_DURATION` in `src/firewall/__init__.py`
+(4 hours): short enough that a stale export ages out by itself if the sync
+stops, long enough that a half-hourly sync refreshes rather than churns.
+
+```bash
+curl -s "<DASHBOARD-PATH>/api/export-ips?categories=attacker&fwtype=crowdsec" \
+  | cscli decisions import -i /dev/stdin
+```
+
+An empty IP list returns an empty body rather than a header, so importing a
+quiet export is a no-op instead of an error. See `plugins/crowdsec/` for a
+ready-made script and cron example.
+
 ## Architecture
 
 Each output format is a function in `src/firewall/__init__.py`, registered by name
