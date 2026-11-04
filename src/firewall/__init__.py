@@ -61,7 +61,12 @@ def _crowdsec(ips: list[str]) -> str:
     return "\n".join(lines)
 
 
-FORMATS = {"raw": _raw, "iptables": _iptables, "nftables": _nftables, "crowdsec": _crowdsec}
+FORMATS = {
+    "raw": _raw,
+    "iptables": _iptables,
+    "nftables": _nftables,
+    "crowdsec": _crowdsec,
+}
 
 
 def format_banlist(fwtype: str, ips: list[str]) -> str:
