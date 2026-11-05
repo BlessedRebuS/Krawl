@@ -185,7 +185,7 @@ def build_ip_overview(ip: str, stats: dict[str, Any]) -> dict[str, Any]:
                 func.count(
                     distinct(
                         func.coalesce(CredentialAttempt.username, "")
-                        + "\x00"
+                        + "\x1f"
                         + func.coalesce(CredentialAttempt.password, "")
                     )
                 ),
