@@ -32,6 +32,7 @@ from database.text_filters import (
 )
 from dependencies import get_db, get_templates
 from domain_map import build_domain_map
+from ip_overview import get_ip_overview, template_stats
 from logger import get_app_logger
 from period import period_query, range_label, resolve_period, time_only
 from routes.api import cached_attack_facets, verify_auth
@@ -940,9 +941,14 @@ async def htmx_access_logs_by_ip(
     sort_by: str = Query("total_requests"),
     sort_order: str = Query("desc"),
     ip_filter: str = Query(None),
+    search: str = Query(""),
+    exclude: str = Query(""),
+    method_filter: str = Query(""),
 ):
     page = max(1, page)
-    cache_key = f"access_logs:{page}:{sort_order}:{ip_filter or ''}"
+    tf = clean_text_filters(search, exclude, method_filter, None)
+    filter_qs = text_filter_qs(tf)
+    cache_key = f"access_logs:{page}:{sort_order}:{ip_filter or ''}{filter_qs}"
     cached = get_cached_table(cache_key)
     if cached:
         result = cached
@@ -954,6 +960,9 @@ async def htmx_access_logs_by_ip(
             page_size=25,
             ip_filter=ip_filter,
             sort_order=sort_order if sort_order in ("asc", "desc") else "desc",
+            search=tf.get("search"),
+            exclude=parse_exclude_terms(tf.get("exclude")),
+            method_filter=tf.get("method_filter"),
         )
         set_cached_table(cache_key, result)
 
@@ -968,6 +977,7 @@ async def htmx_access_logs_by_ip(
         "dashboard/partials/access_by_ip_table.html",
         {
             "dashboard_path": _dashboard_path(request),
+            "filter_qs": filter_qs,
             "items": result["access_logs"],
             "pagination": pagination,
             "sort_by": sort_by,
@@ -1083,6 +1093,7 @@ async def htmx_attacks(
     slot: str | None = Query(None),
     rule_filter: str | None = Query(None),
     severity_filter: str = Query(""),
+    embed: int = Query(0),
 ):
     page = max(1, page)
     page_size = max(1, min(int(page_size), 200))
@@ -1183,6 +1194,7 @@ async def htmx_attacks(
         request,
         "dashboard/partials/attack_types_table.html",
         {
+            "embed": bool(embed),
             "facets": facets,
             "severities": severities,
             "ts_time_only": time_only(period),
@@ -1328,22 +1340,9 @@ async def htmx_ip_insight(ip_address: str, request: Request):
     stats = await asyncio.to_thread(db.ip_stats.get_ip_stats_by_ip, ip_address)
 
     if not stats:
-        stats = {"ip": ip_address, "total_requests": "N/A"}
+        stats = {"ip": ip_address, "total_requests": 0}
 
-    # Transform fields for template compatibility
-    list_on = stats.get("list_on") or {}
-    stats["blocklist_memberships"] = list(list_on.keys()) if list_on else []
-    stats["reverse_dns"] = stats.get("reverse")
-
-    # Filter out unhashable types (dicts, lists) for Jinja2 template engine compatibility
-    # but keep specific fields needed by the template (category_scores, category_history, blocklist_memberships)
-    _keep_keys = {"blocklist_memberships", "category_scores", "category_history"}
-    clean_stats = {}
-    for k, v in stats.items():
-        if isinstance(v, (int, str, float, type(None), bool)):
-            clean_stats[k] = v
-        elif k in _keep_keys:
-            clean_stats[k] = v
+    overview = await asyncio.to_thread(get_ip_overview, ip_address, stats)
 
     is_tracked = await asyncio.to_thread(db.ip_stats.is_ip_tracked, ip_address)
 
@@ -1353,7 +1352,8 @@ async def htmx_ip_insight(ip_address: str, request: Request):
         "dashboard/partials/ip_insight.html",
         {
             "dashboard_path": _dashboard_path(request),
-            "stats": clean_stats,
+            "stats": template_stats(stats),
+            "overview": overview,
             "ip_address": ip_address,
             "is_tracked": is_tracked,
         },

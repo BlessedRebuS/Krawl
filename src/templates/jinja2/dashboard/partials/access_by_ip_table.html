@@ -3,12 +3,12 @@
     <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} total</span>
     <div class="row">
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/access-logs?page={{ pagination.page - 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&ip_filter={{ ip_filter }}"
+                hx-get="{{ dashboard_path }}/htmx/access-logs?page={{ pagination.page - 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&ip_filter={{ ip_filter | urlencode }}{{ filter_qs | default('') }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
                 {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/access-logs?page={{ pagination.page + 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&ip_filter={{ ip_filter }}"
+                hx-get="{{ dashboard_path }}/htmx/access-logs?page={{ pagination.page + 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&ip_filter={{ ip_filter | urlencode }}{{ filter_qs | default('') }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
                 {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
@@ -20,10 +20,9 @@
             <th>#</th>
             <th>Method</th>
             <th>Path</th>
-            <th>Examples</th>
             <th>User-Agent</th>
             <th class="sortable {% if sort_by == 'timestamp' %}{{ sort_order }}{% endif %}"
-                hx-get="{{ dashboard_path }}/htmx/access-logs?page=1&sort_by=timestamp&sort_order={% if sort_by == 'timestamp' and sort_order == 'desc' %}asc{% else %}desc{% endif %}&ip_filter={{ ip_filter }}"
+                hx-get="{{ dashboard_path }}/htmx/access-logs?page=1&sort_by=timestamp&sort_order={% if sort_by == 'timestamp' and sort_order == 'desc' %}asc{% else %}desc{% endif %}&ip_filter={{ ip_filter | urlencode }}{{ filter_qs | default('') }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML">
                 Time
@@ -42,13 +41,12 @@
             </td>
             <td>
                 <div class="path-cell-container">
-                    <span class="path-truncated{% if crunched %} path-crunched{% endif %}">{{ log.path | e }}{% if crunched %} ×{{ log.hit_count }}{% endif %}</span>
+                    <span class="path-truncated{% if crunched %} path-crunched{% endif %}"{% if crunched and log.path_samples and log.path_samples != log.path %} title="{{ log.path_samples | e }}"{% endif %}>{{ log.path | e }}{% if crunched %} ×{{ log.hit_count }}{% endif %}</span>
                     {% if log.path | length > 30 %}
                     <div class="path-tooltip">{{ log.path | e }}</div>
                     {% endif %}
                 </div>
             </td>
-            <td class="examples-cell">{% if crunched and log.path_samples and log.path_samples != log.path %}{{ log.path_samples | e }}{% endif %}</td>
             <td class="ua-cell">{{ (log.user_agent | default('', true))[:50] | e }}</td>
             <td class="ts-cell">{{ log.timestamp | format_ts }}</td>
             <td><div class="table-action-btns">
@@ -61,7 +59,7 @@
             </div></td>
         </tr>
         {% else %}
-        <tr><td colspan="7" class="cell-empty text-center">No logs detected</td></tr>
+        <tr><td colspan="6" class="cell-empty text-center">No requests match</td></tr>
         {% endfor %}
     </tbody>
 </table>
