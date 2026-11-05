@@ -396,7 +396,7 @@ Storage location, how long data is kept, and the dump job.
 | `KRAWL_RETENTION_NON_SUSPICIOUS` | Keep non-suspicious logs, clean IPs and their history this long (`12h`, `30d`, `2w`, `6m`, `1y`) | `30d` |
 | `KRAWL_RETENTION_RECHECK_SUSPICIOUS` | Re-check suspicious logs older than this against current rules | `30d` |
 | `KRAWL_RETENTION_REEVALUATE_INTERVAL` | Re-score IPs whose last analysis is older than this | `5d` |
-| `KRAWL_RETENTION_CRUNCH_AFTER` | Merge similar non-suspicious requests of IPs inactive this long | `7d` |
+| `KRAWL_RETENTION_UNINTERESTING` | Delete random-path crawler GETs after this long | `7d` |
 | `KRAWL_RETENTION_OVERALL` | Hard cap on all data, attack evidence included; empty = keep forever | _(empty)_ |
 | `KRAWL_DATABASE_RETENTION_DAYS` | Deprecated: days for the two windows above when their own variable is unset | `30` |
 | `KRAWL_BACKUPS_PATH` | Path where database dump are saved | `backups` |

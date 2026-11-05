@@ -2,6 +2,7 @@
 
 import importlib.util
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import pytest
 from sqlalchemy import create_engine, inspect, text
@@ -28,6 +29,7 @@ def test_new_columns_default_correctly(tmp_path):
     assert stats.pruned_requests == 0
     assert stats.pruned_total == 0
     assert stats.pruned_since is None
+    assert stats.pruned_previous == 0
 
 
 def test_migration_adds_columns_to_old_database(tmp_path):
@@ -49,6 +51,7 @@ def test_migration_adds_columns_to_old_database(tmp_path):
         assert conn.execute(text("SELECT is_interesting FROM access_logs")).scalar()
         assert conn.execute(text("SELECT pruned_requests FROM ip_stats")).scalar() == 0
         assert conn.execute(text("SELECT pruned_total FROM ip_stats")).scalar() == 0
+        assert conn.execute(text("SELECT pruned_previous FROM ip_stats")).scalar() == 0
     names = {i["name"] for i in inspect(engine).get_indexes("access_logs")}
     assert "ix_access_logs_prunable" in names
 
@@ -212,20 +215,37 @@ def test_counter_adds_within_window(tmp_path):
     assert stats.pruned_since == since
 
 
-def test_stale_counter_restarts(tmp_path):
-    since = datetime.now() - timedelta(days=31)
+def test_expired_period_rolls_over(tmp_path):
+    since = datetime.now() - timedelta(days=24)
     db = _seed(
         tmp_path,
         ("/Gw2JM958", 8, False),
         ("/Ab3dEf9h", 8, False),
         pruned_requests=5,
+        pruned_previous=99,
         pruned_total=5,
         pruned_since=since,
     )
     prune_uninteresting.main()
     stats = _stats(db)
-    assert (stats.pruned_requests, stats.pruned_total) == (2, 7)
+    assert (stats.pruned_requests, stats.pruned_previous) == (2, 5)
+    assert stats.pruned_total == 7
     assert stats.pruned_since > since
+
+
+def test_long_idle_counter_drops_history(tmp_path):
+    db = _seed(
+        tmp_path,
+        ("/Gw2JM958", 8, False),
+        pruned_requests=5,
+        pruned_previous=99,
+        pruned_total=104,
+        pruned_since=datetime.now() - timedelta(days=47),
+    )
+    prune_uninteresting.main()
+    stats = _stats(db)
+    assert (stats.pruned_requests, stats.pruned_previous) == (1, 0)
+    assert stats.pruned_total == 105
 
 
 def test_row_without_ip_stats_is_deleted(tmp_path):
@@ -313,3 +333,9 @@ def test_crunch_queue_index_is_dropped_on_sqlite(tmp_path):
     run_migrations(engine)
     names = {i["name"] for i in inspect(engine).get_indexes("ip_stats")}
     assert "ix_ip_stats_crunch_queue" not in names
+
+
+def test_docs_name_the_current_retention_env_var():
+    readme = (Path(__file__).parent.parent / "README.md").read_text()
+    assert "KRAWL_RETENTION_UNINTERESTING" in readme
+    assert "KRAWL_RETENTION_CRUNCH_AFTER" not in readme

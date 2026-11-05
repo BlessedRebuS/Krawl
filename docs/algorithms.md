@@ -96,10 +96,12 @@ older than `retention.uninteresting` (7d), in batches of
 
 **Counters.** Each batch updates `ip_stats` in the same transaction as the delete:
 
-- `pruned_requests` is what IP evaluation adds to its denominators. It restarts once
-  `pruned_since` is older than the 30-day analysis window, so old GETs can't hide a
-  new attack. Right after a restart it's low, so ratios run slightly high until
-  pruned rows accumulate again.
+- `pruned_requests` and `pruned_previous` count two consecutive periods, each as long
+  as a pruned request stays inside the 30-day analysis window (23 days by default).
+  IP evaluation adds an estimate from the two to its denominators: the current period
+  plus the part of the previous one still in the window, assuming a steady rate.
+  GETs from more than two periods ago count for nothing, so they can't hide a new
+  attack. A burst from an IP that then went idle can count for up to one extra period.
 - `pruned_total` never restarts. IP evaluation ignores it.
 
 **IP evaluation.** Pruned rows are GETs outside robots paths, so they can only add

@@ -157,3 +157,29 @@ def test_robots_readers_use_the_catalogue(monkeypatch):
 
     assert generative_ai.load_robots_disallowed() == list(catalog.robots_disallows)
     assert analyze_ips.robots_disallows() == list(catalog.robots_disallows)
+
+
+def _stored_marks(path):
+    from database import get_database
+    from models import AccessLog
+
+    db = get_database()
+    db.close_session()
+    return [r.is_interesting for r in db.session.query(AccessLog).filter_by(path=path)]
+
+
+def test_trap_get_with_referer_is_marked_uninteresting(app_client):
+    app_client.get(
+        "/Gw2JM958", headers={**CLIENT, "Referer": "https://example.com/from"}
+    )
+    assert _stored_marks("/Gw2JM958") == [False]
+
+
+def test_readable_get_stays_interesting(app_client):
+    app_client.get("/test", headers=CLIENT)
+    assert _stored_marks("/test") == [True]
+
+
+def test_post_to_trap_path_stays_interesting(app_client):
+    app_client.post("/Gw2JM958", headers=CLIENT, data={"a": "1"})
+    assert all(_stored_marks("/Gw2JM958"))

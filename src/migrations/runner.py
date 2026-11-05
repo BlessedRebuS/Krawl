@@ -60,6 +60,7 @@ COLUMNS = [
     # prune-uninteresting: DEFAULT TRUE keeps existing rows out of the prune.
     ("access_logs", "is_interesting", "BOOLEAN NOT NULL DEFAULT TRUE"),
     ("ip_stats", "pruned_requests", "INTEGER NOT NULL DEFAULT 0"),
+    ("ip_stats", "pruned_previous", "INTEGER NOT NULL DEFAULT 0"),
     ("ip_stats", "pruned_since", "TIMESTAMP"),
     ("ip_stats", "pruned_total", "INTEGER NOT NULL DEFAULT 0"),
 ]

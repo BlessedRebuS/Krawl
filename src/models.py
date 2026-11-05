@@ -293,8 +293,12 @@ class IpStats(Base):
     last_analysis: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     # Unused since crunching was removed; dropped with hit_count in a later release.
     crunched_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    # Pruned requests the analyzer still counts; restarts after the lookback window.
+    # Requests pruned this counter period, and in the period before it; the
+    # analyzer estimates what is still inside its window from the two.
     pruned_requests: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    pruned_previous: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default="0"
     )
     pruned_since: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

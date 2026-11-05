@@ -13,12 +13,22 @@ import yaml
 
 from logger import get_app_logger
 
+# Days of history the analyzer scores.
+ANALYZER_LOOKBACK_DAYS = 30
+
+
+def pruned_window(config) -> timedelta:
+    """Time a pruned request stays inside the analyzer's lookback."""
+    return max(
+        timedelta(days=ANALYZER_LOOKBACK_DAYS) - config.retention_uninteresting,
+        timedelta(days=1),
+    )
+
+
 # IPs/CIDRs ignored everywhere (never tracked, banned, exported, and purged on
 # startup). Defaults reproduce the previous hardcoded private/loopback/
 # link-local/CGNAT behaviour; operators can override via the `ignored_ips`
 # config section.
-# Days of history the analyzer scores; prune-uninteresting shares this window.
-ANALYZER_LOOKBACK_DAYS = 30
 
 DEFAULT_IGNORED_IPS = [
     "127.0.0.0/8",

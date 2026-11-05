@@ -7,11 +7,11 @@ ratios. See docs/algorithms.md.
 """
 
 from collections import Counter, defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from sqlalchemy import DateTime, case, literal, or_, update
 
-from config import ANALYZER_LOOKBACK_DAYS, get_config
+from config import get_config, pruned_window
 from dashboard_cache import invalidate_table_cache
 from database import get_database
 from database.maintenance import advisory_lock
@@ -41,13 +41,13 @@ app_logger = get_app_logger()
 
 
 def _bump_counters(session, counts: Counter, now: datetime) -> None:
-    """Add each IP's pruned rows, restarting pruned_requests once it has expired."""
+    """Add each IP's pruned rows, rolling to a new counter period once this one ends."""
     from models import IpStats
 
-    stale = or_(
-        IpStats.pruned_since.is_(None),
-        IpStats.pruned_since < now - timedelta(days=ANALYZER_LOOKBACK_DAYS),
-    )
+    window = pruned_window(get_config())
+    since = IpStats.pruned_since
+    ended = or_(since.is_(None), since < now - window)
+    gone = or_(since.is_(None), since < now - 2 * window)
     # Most IPs share a small count, so grouping keeps this to a few statements.
     by_count = defaultdict(list)
     for ip, n in counts.items():
@@ -58,10 +58,13 @@ def _bump_counters(session, counts: Counter, now: datetime) -> None:
             .where(IpStats.ip.in_(sorted(ips)))
             .values(
                 pruned_total=IpStats.pruned_total + n,
-                pruned_requests=case((stale, n), else_=IpStats.pruned_requests + n),
-                pruned_since=case(
-                    (stale, literal(now, DateTime)), else_=IpStats.pruned_since
+                pruned_previous=case(
+                    (gone, 0),
+                    (ended, IpStats.pruned_requests),
+                    else_=IpStats.pruned_previous,
                 ),
+                pruned_requests=case((ended, n), else_=IpStats.pruned_requests + n),
+                pruned_since=case((ended, literal(now, DateTime)), else_=since),
             )
             .execution_options(synchronize_session=False)
         )
