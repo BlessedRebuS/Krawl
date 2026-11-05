@@ -13,7 +13,7 @@ Krawl is a cloud-native deception honeypot server built on **FastAPI**. It creat
 | **Templating** | Jinja2 (server-side rendering) |
 | **Reactivity** | Alpine.js 3.14 |
 | **Partial Updates** | HTMX 2.0 |
-| **Charts** | Chart.js 3.9 (doughnut), custom SVG radar |
+| **Charts** | Chart.js 3.9 (attack trends), custom SVG (map radar, IP hexagon) |
 | **Maps** | Leaflet 1.9 + configurable raster tiles (Esri dark canvas by default) |
 | **Scheduling** | APScheduler |
 | **Container** | Docker (python:3.11-slim), Helm/K8s ready |
@@ -92,8 +92,7 @@ Krawl/
 │               ├── tokens.js                 # Design tokens shared with the CSS
 │               ├── dashboard.js              # Alpine.js app controller
 │               ├── map.js                    # Leaflet map
-│               ├── charts.js                 # Chart.js doughnut
-│               └── radar.js                  # SVG radar chart
+│               └── charts.js                 # Chart.js attack trends
 │
 ├── config.yaml                # Application configuration
 ├── rules/                    # Startup-compiled YARA request rules
@@ -300,8 +299,8 @@ base.html
 - **Alpine.js** — Tab state, modals, dropdowns, lazy initialization
 - **HTMX** — Table pagination, sorting, IP detail expansion
 - **Leaflet** — Interactive map with category-colored markers
-- **Chart.js** — Doughnut chart for attack type distribution
-- **Custom SVG** — Radar charts for IP category scores
+- **Chart.js** — Attack trends line chart
+- **Custom SVG** — Map popup radar and the IP Insight behaviour hexagon, server-rendered
 
 ## Background Tasks
 
@@ -437,7 +436,7 @@ Browser → GET /{secret}/ → SSR initial stats + Jinja2 render
        → Alpine.js init → HTMX fires hx-get for each table
        → User clicks Attacks tab → setTimeout → init Leaflet + Chart.js
        → Leaflet fetches /api/all-ips → plots markers
-       → Chart.js fetches /api/attack-types-stats → renders doughnut
+       → Chart.js renders attack trends
 ```
 
 ### IP Enrichment Pipeline
