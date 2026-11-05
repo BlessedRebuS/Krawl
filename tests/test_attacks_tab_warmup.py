@@ -166,13 +166,13 @@ def test_credentials_panel_narrows_by_ip_and_keeps_it_in_links(warmed):
     assert "ip_filter=203.0.113.2&amp;days=7" in html
 
 
-def test_crunching_keeps_the_warm_attacks_tab(warmed):
-    from tasks.crunch_access_logs import CRUNCH_SAFE_KEYS
+def test_pruning_keeps_the_warm_attacks_tab(warmed):
+    from tasks.prune_uninteresting import PRUNE_SAFE_KEYS
 
     store = dashboard_cache._redis_client.store
     warm = {k for k in store if ":table:" in k and "days=7" in k}
     assert len(warm) >= 4
     dashboard_cache.set_cached_table("access_logs:1:desc:", {"x": 1})
-    dashboard_cache.invalidate_table_cache(keep=CRUNCH_SAFE_KEYS)
+    dashboard_cache.invalidate_table_cache(keep=PRUNE_SAFE_KEYS)
     assert warm <= set(store)
     assert dashboard_cache.get_cached_table("access_logs:1:desc:") is None

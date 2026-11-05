@@ -232,6 +232,7 @@ class Config:
     retention_recheck_suspicious: timedelta = timedelta(days=30)
     retention_reevaluate_interval: timedelta = timedelta(days=5)
     retention_crunch_after: timedelta = timedelta(days=7)
+    retention_uninteresting: timedelta = timedelta(days=7)
     retention_overall: timedelta | None = None
 
     # IPv6 settings — rotating IPv6 proxy pools burn a fresh address per
@@ -557,6 +558,10 @@ class Config:
             or timedelta(days=5),
             retention_crunch_after=parse_duration(
                 retention.get("crunch-after"), timedelta(days=7)
+            )
+            or timedelta(days=7),
+            retention_uninteresting=parse_duration(
+                retention.get("uninteresting"), timedelta(days=7)
             )
             or timedelta(days=7),
             retention_overall=parse_duration(retention.get("overall"), None),
