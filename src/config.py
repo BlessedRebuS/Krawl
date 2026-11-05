@@ -208,9 +208,7 @@ class Config:
     metrics_enabled: bool = True
 
     # Crawl limiting settings - for legitimate vs malicious crawlers
-    max_pages_limit: int = (
-        250  # Max pages limit for good crawlers and regular users (and bad crawlers/attackers if infinite_pages_for_malicious is False)
-    )
+    max_pages_limit: int = 250  # Max pages limit for good crawlers and regular users (and bad crawlers/attackers if infinite_pages_for_malicious is False)
     infinite_pages_for_malicious: bool = True  # Infinite pages for malicious crawlers
     ban_duration_seconds: int = 600  # Ban duration in seconds for IPs exceeding limits
 
@@ -231,7 +229,6 @@ class Config:
     retention_non_suspicious: timedelta = timedelta(days=30)
     retention_recheck_suspicious: timedelta = timedelta(days=30)
     retention_reevaluate_interval: timedelta = timedelta(days=5)
-    retention_crunch_after: timedelta = timedelta(days=7)
     retention_uninteresting: timedelta = timedelta(days=7)
     retention_overall: timedelta | None = None
 
@@ -321,7 +318,6 @@ class Config:
     tasks_hash_files_batch: int = 50
     tasks_cleanup_batch: int = 1000
     tasks_retention_delete_batch: int = 10_000
-    tasks_crunch_ips_batch: int = 5000
 
     # Banlist export/import settings
     banlist_export_path: str = ""
@@ -556,10 +552,6 @@ class Config:
                 retention.get("re-evaluate-interval"), timedelta(days=5)
             )
             or timedelta(days=5),
-            retention_crunch_after=parse_duration(
-                retention.get("crunch-after"), timedelta(days=7)
-            )
-            or timedelta(days=7),
             retention_uninteresting=parse_duration(
                 retention.get("uninteresting"), timedelta(days=7)
             )
@@ -631,7 +623,6 @@ class Config:
             tasks_retention_delete_batch=int(
                 tasks_cfg.get("retention_delete_batch", 10_000)
             ),
-            tasks_crunch_ips_batch=int(tasks_cfg.get("crunch_ips_batch", 5000)),
         )
 
 

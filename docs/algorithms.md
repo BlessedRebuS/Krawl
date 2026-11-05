@@ -4,7 +4,7 @@ How Krawl decides things. Each section: purpose, inputs, steps, a worked example
 config knobs, and known limits.
 
 - [IP evaluation](#ip-evaluation)
-- [Request crunching](#request-crunching)
+- [Pruning uninteresting requests](#pruning-uninteresting-requests)
 
 ## IP evaluation
 
@@ -62,69 +62,59 @@ The IP becomes an `attacker`.
 - The `regular_user` "many user agents" flag is never set, so its weight (3) is unused.
 - The stored `uneven_request_timing` metric is the mean gap, not the CV that the
   threshold compares.
-- A crunched access-log row counts as `hit_count` requests in the ratios, so
-  crunching does not move a category (see below).
+- Pruned requests still count in the ratio denominators, and an access-log row
+  merged by the old crunch job counts as `hit_count` requests, so neither moves
+  a category (see below).
 
-## Request crunching
+## Pruning uninteresting requests
 
 **Purpose.** Most stored requests are crawlers following Krawl's own random
-homepage links: on the demo instance about 3M IPs, each with a handful of
-unique paths like `/Gw2JM958`. The crunch job keeps that history but stores it
-compactly, by merging similar non-suspicious requests of an inactive IP into one
-row that remembers how many requests it stands for.
+homepage links: on the demo instance about 3M IPs, each with a handful of unique
+paths like `/Gw2JM958`. Nobody needs those after a week, so they are marked when
+written and deleted early, with no per-IP reads of the access log.
 
-**When.** `crunch-access-logs` runs every 5 minutes and takes up to
-`tasks.crunch_ips_batch` IPs (default 5000) whose `last_seen` is older than `retention.crunch-after` (7d)
-and that have not been crunched since their last activity (`ip_stats.crunched_at`).
-IPs with a single request are skipped (nothing to merge), and the most recently
-idle IPs go first: the oldest rows are purged by retention soon anyway.
-An IP that comes back and goes idle again is crunched again.
+**Marking.** A request is uninteresting only if all of these hold, otherwise
+`access_logs.is_interesting` stays true:
 
-**Which rows.** Only non-suspicious, non-honeypot rows that have no uploaded file
-and no request asset. Attack evidence is never merged.
+- the method is `GET`
+- it is not suspicious and not a honeypot trigger
+- it has no attack types, uploaded files or request assets
+- the whole path is one segment of `links.char_space` characters, within
+  `links.min_length`..`max_length`, with a digit or an uppercase letter after the
+  first character
+- it is not under a robots.txt `Disallow` prefix
 
-**Templates.** Each path is reduced to a shape; the first matching rule wins:
+The rule also matches readable names with a digit or inner capital, like `/HNAP1`,
+`/GponForm`, `/MyAdmin` and `/test1`. These weren't flagged as suspicious, so losing
+them after the window is accepted. All-lowercase paths like `/kpjud` and paths with
+more than one segment are kept. Rows stored before marking existed stay interesting
+and age out under `retention.non-suspicious`.
 
-| Rule | Example | Template |
-|---|---|---|
-| Whole path is a Krawl trap link: one segment, `links.char_space` only, length within `links.min_length`..`max_length`, and a digit or an uppercase letter after the first character | `/Gw2JM958` | `/{link}` |
-| Segment is a UUID | `/u/550e8400-e29b-41d4-a716-446655440000` | `/u/{uuid}` |
-| Segment is all digits | `/post/1234` | `/post/{num}` |
-| Segment is ≥ 8 hex characters with a digit | `/c/9f86d081a2` | `/c/{hex}` |
-| Segment is ≥ 8 `[A-Za-z0-9]` with a digit and a letter, no `_`/`-` and no run of 5+ lowercase letters (extension kept) | `/f/aB3xK9pQ.js` | `/f/{rand}.js` |
-| Anything else, including readable names with digits | `/wp-login.php`, `/login`, `/.ssh/id_ed25519`, `/wp2shell_opt_woocommerce_stripe_settings` | unchanged |
-| Query values | `?q=foo&page=2` | `?q={v}&page={v}` |
+**When.** `prune-uninteresting` runs every 4 hours and deletes uninteresting rows
+older than `retention.uninteresting` (7d), in batches of
+`tasks.retention_delete_batch`, through a partial index.
 
-The "visibly random" requirement on trap links exists because Krawl's minimum
-link length (5) also fits words like `/login` and `/admin`. On the demo data it
-caught 98.7% of trap links and matched none of the real top paths. The 1.3% it
-misses (all-lowercase, like `/kpjud`) simply stay uncrunched.
+**Counters.** Each batch updates `ip_stats` in the same transaction as the delete:
 
-**Merge.** Rows of one IP sharing `(method, template, target host, user agent)`
-become one row: the lowest id is kept, `path` becomes the template, `hit_count`
-is the sum, `timestamp` is the newest, and `path_samples` keeps up to 3 real
-example paths. A group of a single row is left untouched: merging it would
-save nothing and only hide the real path. The user agent is part of the key because IP evaluation counts
-distinct user agents. Paths under a robots.txt `Disallow` prefix are never
-templated (IP evaluation scores them by prefix), and neither is a path whose
-template would not fit the path column.
+- `pruned_requests` is what IP evaluation adds to its denominators. It restarts once
+  `pruned_since` is older than the 30-day analysis window, so old GETs can't hide a
+  new attack. Right after a restart it's low, so ratios run slightly high until
+  pruned rows accumulate again.
+- `pruned_total` never restarts. IP evaluation ignores it.
 
-**Example.**
-
-    GET /dasidaniodna, GET /daefndisjd, GET /sdleijfwmi, GET /test   (one user agent)
-      → GET /{link}  ×3  (e.g. /dasidaniodna, /daefndisjd, /sdleijfwmi)
-      → GET /test    ×1
+**IP evaluation.** Pruned rows are GETs outside robots paths, so they can only add
+to the risky-method and robots denominators, which `pruned_requests` restores. Timing
+reads only the last 300s by default; if
+`uneven_request_timing_time_window_seconds` is set above the prune window, timing sees
+fewer rows. While an IP has pruned requests, its previous user-agent list is merged
+with the current one, so pruning can't lower the distinct count; those user agents can
+stay counted past 30 days. Rows with detections are never pruned.
 
 **Effects elsewhere.**
-- Top paths, top user agents and target-host counts sum `hit_count`, so totals are unchanged.
-- Unique-path counts drop, because templates collapse random paths.
-- IP evaluation weights rows by `hit_count`, so a crunched IP keeps its category.
-- Retention purges a crunched row once its newest request is older than `retention.non-suspicious`.
+- Top User-Agents and unique-path counts drop, because pruned rows stop counting.
+- Top Paths loses mostly random trap links.
+- All-time totals are unaffected: they come from `ip_stats.total_requests`.
 
-**Known limits.**
-- Merging is per IP. Dormant crawlers usually have only 1–2 rows each, so the
-  saving is concentrated on heavy single-IP crawlers. Lowering
-  `retention.non-suspicious` is the bigger lever for table size.
-- Ratios can still shift slightly for long-lived groups: IP evaluation reads 30
-  days / 10,000 rows of history, and a crunched row carries its newest timestamp
-  and its full hit count.
+**Older crunched rows.** An earlier job merged similar requests into rows with a
+`hit_count` above 1, shown as `/{link} ×4`. Those rows are still read correctly and
+age out under `retention.non-suspicious`.

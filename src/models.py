@@ -85,8 +85,8 @@ class AccessLog(Base):
     file_extraction_version: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, index=True
     )
-    # Requests this row stands for: >1 once crunch-access-logs merged similar
-    # non-suspicious requests of an inactive IP into it. Count with SUM(hit_count).
+    # Requests this row stands for: >1 on rows the old crunch job merged.
+    # Count with SUM(hit_count).
     hit_count: Mapped[int] = mapped_column(
         Integer, nullable=False, default=1, server_default="1"
     )
@@ -227,11 +227,6 @@ class AttackDetection(Base):
         return f"<AttackDetection(id={self.id}, type='{self.attack_type}')>"
 
 
-# IPs crunch-access-logs still has to merge; crunch filters on exactly this.
-CRUNCH_QUEUE_WHERE = (
-    "total_requests > 1 AND (crunched_at IS NULL OR crunched_at < last_seen)"
-)
-
 # Geolocated hostile IPs the map's live feed polls; get_live_attackers filters
 # on exactly this so the partial index applies (a seq scan of ip_stats otherwise).
 LIVE_ATTACKERS_WHERE = (
@@ -296,7 +291,7 @@ class IpStats(Base):
     category_scores: Mapped[dict[str, int]] = mapped_column(JSON, nullable=True)
     manual_category: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
     last_analysis: Mapped[datetime] = mapped_column(DateTime, nullable=True)
-    # crunch-access-logs cursor: crunched again only after new activity.
+    # Unused since crunching was removed; dropped with hit_count in a later release.
     crunched_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     # Pruned requests the analyzer still counts; restarts after the lookback window.
     pruned_requests: Mapped[int] = mapped_column(
@@ -346,13 +341,6 @@ class IpStats(Base):
         Index("ix_ip_stats_ban_timestamp", "ban_timestamp"),
         # analyze-ips orders the reevaluation queue by last_analysis.
         Index("ix_ip_stats_last_analysis", "last_analysis"),
-        Index(
-            "ix_ip_stats_crunch_queue",
-            "last_seen",
-            postgresql_include=["ip"],
-            postgresql_where=text(CRUNCH_QUEUE_WHERE),
-            sqlite_where=text(CRUNCH_QUEUE_WHERE),
-        ),
         Index(
             "ix_ip_stats_live_attackers",
             "last_seen",

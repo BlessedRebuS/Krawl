@@ -359,7 +359,7 @@ retention:
   non-suspicious: 30d
   recheck-suspicious: 30d
   re-evaluate-interval: 5d
-  crunch-after: 7d
+  uninteresting: 7d
   overall: null
 
 # Scalable mode only

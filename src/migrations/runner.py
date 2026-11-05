@@ -12,7 +12,7 @@ from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
 
 from logger import get_app_logger
-from models import BAN_OVERRIDE_WHERE, CRUNCH_QUEUE_WHERE, LIVE_ATTACKERS_WHERE
+from models import BAN_OVERRIDE_WHERE, LIVE_ATTACKERS_WHERE
 
 logger = get_app_logger()
 
@@ -52,7 +52,7 @@ COLUMNS = [
     # Campaign clustering: payload_clusters.id, assigned incrementally at ingest.
     ("captured_payloads", "cluster_id", "VARCHAR(36)"),
     ("attack_detections", "cluster_id", "VARCHAR(36)"),
-    # crunch-access-logs: merged non-suspicious requests of inactive IPs.
+    # Left by the removed crunch job: merged non-suspicious requests.
     ("access_logs", "hit_count", "INTEGER NOT NULL DEFAULT 1"),
     ("access_logs", "path_samples", "VARCHAR(2048)"),
     # TIMESTAMP, not DATETIME: PostgreSQL has no DATETIME type.
@@ -150,14 +150,6 @@ ONLINE_INDEXES = [
         "ix_access_logs_target_host",
     ),
     (
-        "ix_ip_stats_crunch_queue",
-        "ip_stats",
-        "last_seen",
-        "ip",
-        CRUNCH_QUEUE_WHERE,
-        None,
-    ),
-    (
         "ix_ip_stats_live_attackers",
         "ip_stats",
         "last_seen",
@@ -184,6 +176,7 @@ DROPPED_INDEXES = [
     "ix_access_logs_ip",
     "ix_category_history_ip",
     "ix_access_logs_request_metadata_extracted",
+    "ix_ip_stats_crunch_queue",
 ]
 
 _ONLINE_INDEX_LOCK = 0x4B52_4157
@@ -266,6 +259,7 @@ def run_migrations(engine: Engine) -> None:
         try:
             with engine.begin() as conn:
                 conn.execute(text(_SQLITE_PRUNE_INDEX))
+                conn.execute(text("DROP INDEX IF EXISTS ix_ip_stats_crunch_queue"))
         except Exception as e:
             logger.error(f"Migration error (prunable index): {e}")
 

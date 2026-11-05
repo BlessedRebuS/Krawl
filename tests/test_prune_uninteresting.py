@@ -1,5 +1,6 @@
 """Random-path GETs are marked at write time and pruned after a window."""
 
+import importlib.util
 from datetime import datetime, timedelta
 
 import pytest
@@ -269,3 +270,46 @@ def test_uneven_counts_per_ip_are_each_correct(tmp_path):
     prune_uninteresting.main()
     assert _stats(db).pruned_total == 2
     assert db.session.get(IpStats, other).pruned_total == 1
+
+
+@pytest.mark.parametrize(
+    "path,expected",
+    [
+        ("/Gw2JM958", True),
+        ("/A0ZUzQqbrhyDm", True),
+        ("/kpjud", False),
+        ("/Rsxmhx", False),
+        ("/login", False),
+        ("/admin", False),
+        ("/dashboard", False),
+        ("/Jenkinsfile", False),
+        ("/wp-login.php", False),
+        ("/.env", False),
+        ("/", False),
+    ],
+)
+def test_is_trap_link(path, expected):
+    assert generative_ai._is_trap_link(path) is expected
+
+
+def test_crunch_task_is_gone():
+    assert importlib.util.find_spec("tasks.crunch_access_logs") is None
+
+
+def test_crunch_queue_index_is_dropped_on_sqlite(tmp_path):
+    engine = create_engine(f"sqlite:///{tmp_path / 'old.db'}")
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "CREATE TABLE access_logs (id INTEGER PRIMARY KEY, timestamp TIMESTAMP)"
+            )
+        )
+        conn.execute(
+            text("CREATE TABLE ip_stats (ip TEXT PRIMARY KEY, last_seen TEXT)")
+        )
+        conn.execute(
+            text("CREATE INDEX ix_ip_stats_crunch_queue ON ip_stats (last_seen)")
+        )
+    run_migrations(engine)
+    names = {i["name"] for i in inspect(engine).get_indexes("ip_stats")}
+    assert "ix_ip_stats_crunch_queue" not in names

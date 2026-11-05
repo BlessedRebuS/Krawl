@@ -22,7 +22,6 @@ from tasks_master import TasksMaster
 EXPECTED_SINGLE_POD = {
     "analyze-ips",
     "build-online-indexes",
-    "crunch-access-logs",
     "dashboard-warmup",
     "db-retention",
     "db-cleanup",

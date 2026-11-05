@@ -649,10 +649,10 @@ See the [Monitoring documentation](docs/monitoring.md) for the full metric list,
 | [External APIs](docs/api.md) | Third-party APIs Krawl calls out to for IP data, reputation, and geolocation |
 | [Reverse Proxy](docs/reverse-proxy.md) | How to deploy Krawl behind NGINX or use decoy subdomains |
 | [Database Backups](docs/backups.md) | Enable and configure the automatic database dump job |
-| [Retention](docs/retention.md) | How long each kind of data is kept, and which job removes or crunches it |
+| [Retention](docs/retention.md) | How long each kind of data is kept, and which job removes it |
 | [Canary Token](docs/canary-token.md) | Set up external alert triggers via canarytokens.org |
 | [Architecture](docs/architecture.md) | Technical overview of the codebase, request pipeline, database schema, and background tasks |
-| [Algorithms](docs/algorithms.md) | How IPs are evaluated and categorized, and how similar requests are crunched |
+| [Algorithms](docs/algorithms.md) | How IPs are evaluated and categorized, and how uninteresting requests are pruned |
 | [Cloudflare Banlist Sync](docs/cloudflare_banlist.md) | Pushes banned IPs from Krawl to a Cloudflare Account IP List for use in WAF rules. The sync runs as a background task and updates the list by full replacement. |
 | [Firewall Exporters](docs/firewall-exporters.md) | Export IP banlists in raw, iptables, or nftables format via REST API |
 | [Tarpit](docs/tarpit.md) | Slow down and poison AI crawlers with delayed, noise-padded responses |

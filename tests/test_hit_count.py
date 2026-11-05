@@ -49,3 +49,96 @@ def test_log_dicts_carry_hit_count_and_samples(tmp_path):
     assert crunched["path_samples"] == "/Gw2JM958, /A0ZUzQq"
     page = db.access_logs.get_paginated(page=1, page_size=10, ip_filter="192.0.2.1")
     assert {r["hit_count"] for r in page["access_logs"]} == {1, 5}
+
+
+IP = "192.0.2.50"
+
+
+def test_access_table_shows_count_and_samples():
+    from dependencies import get_templates
+
+    env = get_templates().env  # the app's env, with every custom filter registered
+    html = env.get_template("dashboard/partials/access_by_ip_table.html").render(
+        dashboard_path="/d",
+        items=[
+            {
+                "id": 1,
+                "ip": IP,
+                "path": "/{link}",
+                "user_agent": "ua",
+                "method": "GET",
+                "is_suspicious": False,
+                "is_honeypot_trigger": False,
+                "timestamp": "2026-10-01T00:00:00",
+                "attack_types": [],
+                "hit_count": 4,
+                "path_samples": "/Gw2JM958, /A0ZUzQqbrhyDm",
+            }
+        ],
+        pagination={"page": 1, "page_size": 25, "total": 1, "total_pages": 1},
+        sort_by="timestamp",
+        sort_order="desc",
+        ip_filter=IP,
+    )
+    assert "/{link} ×4" in html
+    assert "access-row-normal" in html  # crunched rows look like normal rows
+    assert 'class="path-truncated path-crunched"' in html  # lighter blue path
+    assert '<td class="examples-cell">/Gw2JM958, /A0ZUzQqbrhyDm</td>' in html
+    assert "<th>Examples</th>" in html
+    assert "<th>Method</th>" in html
+    assert '<span class="method-badge method-get">GET</span>' in html
+
+
+def test_access_table_hides_examples_that_repeat_the_path():
+    from dependencies import get_templates
+
+    html = (
+        get_templates()
+        .env.get_template("dashboard/partials/access_by_ip_table.html")
+        .render(
+            dashboard_path="/d",
+            items=[
+                {
+                    "id": 1,
+                    "ip": IP,
+                    "path": "/sitemap.xml",
+                    "user_agent": "ua",
+                    "method": "GET",
+                    "is_suspicious": False,
+                    "is_honeypot_trigger": False,
+                    "timestamp": "2026-10-01T00:00:00",
+                    "attack_types": [],
+                    "hit_count": 10,
+                    "path_samples": "/sitemap.xml",
+                },
+                {
+                    "id": 2,
+                    "ip": IP,
+                    "path": "/test",
+                    "user_agent": "ua",
+                    "method": "GET",
+                    "is_suspicious": False,
+                    "is_honeypot_trigger": False,
+                    "timestamp": "2026-10-01T00:00:00",
+                    "attack_types": [],
+                    "hit_count": 1,
+                    "path_samples": None,
+                },
+            ],
+            pagination={"page": 1, "page_size": 25, "total": 2, "total_pages": 1},
+            sort_by="timestamp",
+            sort_order="desc",
+            ip_filter=IP,
+        )
+    )
+    assert "/sitemap.xml ×10" in html
+    assert html.count('<td class="examples-cell"></td>') == 2
+
+
+def test_crunched_at_migration_type_is_valid_on_postgres():
+    # PostgreSQL has no DATETIME type; the ALTER would fail and every ip_stats
+    # query would then hit a missing column on upgraded installs.
+    from migrations.runner import COLUMNS
+
+    types = {(t, c): ty for t, c, ty in COLUMNS}
+    assert types[("ip_stats", "crunched_at")] == "TIMESTAMP"
