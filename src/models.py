@@ -19,6 +19,7 @@ from sqlalchemy import (
     String,
     Text,
     text,
+    true,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -93,6 +94,10 @@ class AccessLog(Base):
     path_samples: Mapped[str | None] = mapped_column(
         String(MAX_PATH_LENGTH), nullable=True
     )
+    # False for random-path crawler GETs, which prune-uninteresting deletes early.
+    is_interesting: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=true()
+    )
 
     # Relationship to attack detections
     attack_detections: Mapped[list["AttackDetection"]] = relationship(
@@ -111,6 +116,14 @@ class AccessLog(Base):
             "target_host",
             "ip",
             postgresql_include=["hit_count", "timestamp"],
+        ),
+        # prune-uninteresting finds its rows here; keep in sync with ONLINE_INDEXES.
+        Index(
+            "ix_access_logs_prunable",
+            "timestamp",
+            postgresql_include=["ip"],
+            postgresql_where=text("is_interesting = false"),
+            sqlite_where=text("is_interesting = 0"),
         ),
     )
 
@@ -285,6 +298,15 @@ class IpStats(Base):
     last_analysis: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     # crunch-access-logs cursor: crunched again only after new activity.
     crunched_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    # Pruned requests the analyzer still counts; restarts after the lookback window.
+    pruned_requests: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    pruned_since: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    # Requests ever pruned for this IP; never restarts.
+    pruned_total: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
     need_reevaluation: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=True
     )

@@ -57,6 +57,11 @@ COLUMNS = [
     ("access_logs", "path_samples", "VARCHAR(2048)"),
     # TIMESTAMP, not DATETIME: PostgreSQL has no DATETIME type.
     ("ip_stats", "crunched_at", "TIMESTAMP"),
+    # prune-uninteresting: DEFAULT TRUE keeps existing rows out of the prune.
+    ("access_logs", "is_interesting", "BOOLEAN NOT NULL DEFAULT TRUE"),
+    ("ip_stats", "pruned_requests", "INTEGER NOT NULL DEFAULT 0"),
+    ("ip_stats", "pruned_since", "TIMESTAMP"),
+    ("ip_stats", "pruned_total", "INTEGER NOT NULL DEFAULT 0"),
 ]
 
 # (index name, table, column) — created if the index is missing.
@@ -161,6 +166,14 @@ ONLINE_INDEXES = [
         None,
     ),
     ("ix_ip_stats_ban_override", "ip_stats", "ip", None, BAN_OVERRIDE_WHERE, None),
+    (
+        "ix_access_logs_prunable",
+        "access_logs",
+        "timestamp",
+        "ip",
+        "is_interesting = false",
+        None,
+    ),
 ]
 
 # Unused (few distinct UAs: seq scan + hash wins) or a prefix of a composite
@@ -174,6 +187,11 @@ DROPPED_INDEXES = [
 ]
 
 _ONLINE_INDEX_LOCK = 0x4B52_4157
+
+_SQLITE_PRUNE_INDEX = (
+    "CREATE INDEX IF NOT EXISTS ix_access_logs_prunable "
+    "ON access_logs(timestamp) WHERE is_interesting = 0"
+)
 
 
 def _reloptions(engine: Engine, table: str) -> set[str]:
@@ -242,6 +260,14 @@ def run_migrations(engine: Engine) -> None:
         if indexes[table] is None or idx_name in indexes[table]:
             continue
         _apply(f"add index {idx_name}", f"CREATE INDEX {idx_name} ON {table}({column})")
+
+    # ONLINE_INDEXES is PostgreSQL-only, and create_all skips existing tables.
+    if engine.dialect.name == "sqlite":
+        try:
+            with engine.begin() as conn:
+                conn.execute(text(_SQLITE_PRUNE_INDEX))
+        except Exception as e:
+            logger.error(f"Migration error (prunable index): {e}")
 
     # Assets once included URLs from the User-Agent header (crawler homepages).
     # ponytail: rescans request_assets each boot; drop once installs have run it.

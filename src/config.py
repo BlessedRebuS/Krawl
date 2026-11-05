@@ -17,6 +17,9 @@ from logger import get_app_logger
 # startup). Defaults reproduce the previous hardcoded private/loopback/
 # link-local/CGNAT behaviour; operators can override via the `ignored_ips`
 # config section.
+# Days of history the analyzer scores; prune-uninteresting shares this window.
+ANALYZER_LOOKBACK_DAYS = 30
+
 DEFAULT_IGNORED_IPS = [
     "127.0.0.0/8",
     "10.0.0.0/8",
