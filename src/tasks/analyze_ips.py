@@ -347,6 +347,7 @@ def main():
             "risky_http_methods": http_method_attacker_score,
             "robots_violations": violated_robots_ratio,
             "uneven_request_timing": mean,
+            "request_timing_cv": cv,
             "different_user_agents": user_agents_used,
             "attack_url": attack_urls_found_list,
         }
