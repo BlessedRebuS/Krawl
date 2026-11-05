@@ -13,10 +13,23 @@ import yaml
 
 from logger import get_app_logger
 
+# Days of history the analyzer scores.
+ANALYZER_LOOKBACK_DAYS = 30
+
+
+def pruned_window(config) -> timedelta:
+    """Time a pruned request stays inside the analyzer's lookback."""
+    return max(
+        timedelta(days=ANALYZER_LOOKBACK_DAYS) - config.retention_uninteresting,
+        timedelta(days=1),
+    )
+
+
 # IPs/CIDRs ignored everywhere (never tracked, banned, exported, and purged on
 # startup). Defaults reproduce the previous hardcoded private/loopback/
 # link-local/CGNAT behaviour; operators can override via the `ignored_ips`
 # config section.
+
 DEFAULT_IGNORED_IPS = [
     "127.0.0.0/8",
     "10.0.0.0/8",
@@ -228,7 +241,7 @@ class Config:
     retention_non_suspicious: timedelta = timedelta(days=30)
     retention_recheck_suspicious: timedelta = timedelta(days=30)
     retention_reevaluate_interval: timedelta = timedelta(days=5)
-    retention_crunch_after: timedelta = timedelta(days=7)
+    retention_uninteresting: timedelta = timedelta(days=7)
     retention_overall: timedelta | None = None
 
     # IPv6 settings — rotating IPv6 proxy pools burn a fresh address per
@@ -317,7 +330,6 @@ class Config:
     tasks_hash_files_batch: int = 50
     tasks_cleanup_batch: int = 1000
     tasks_retention_delete_batch: int = 10_000
-    tasks_crunch_ips_batch: int = 5000
 
     # Banlist export/import settings
     banlist_export_path: str = ""
@@ -552,8 +564,8 @@ class Config:
                 retention.get("re-evaluate-interval"), timedelta(days=5)
             )
             or timedelta(days=5),
-            retention_crunch_after=parse_duration(
-                retention.get("crunch-after"), timedelta(days=7)
+            retention_uninteresting=parse_duration(
+                retention.get("uninteresting"), timedelta(days=7)
             )
             or timedelta(days=7),
             retention_overall=parse_duration(retention.get("overall"), None),
@@ -623,7 +635,6 @@ class Config:
             tasks_retention_delete_batch=int(
                 tasks_cfg.get("retention_delete_batch", 10_000)
             ),
-            tasks_crunch_ips_batch=int(tasks_cfg.get("crunch_ips_batch", 5000)),
         )
 
 

@@ -22,7 +22,6 @@ from tasks_master import TasksMaster
 EXPECTED_SINGLE_POD = {
     "analyze-ips",
     "build-online-indexes",
-    "crunch-access-logs",
     "dashboard-warmup",
     "db-retention",
     "db-cleanup",
@@ -33,6 +32,7 @@ EXPECTED_SINGLE_POD = {
     "flag-stale-ips",
     "hash-payloads",
     "pre-retention-cleanup",
+    "prune-uninteresting",
     "rollup-domains",
     "refresh-banlist",     # gated, but followers adopt via on_skip()
     "sync-cloudflare",

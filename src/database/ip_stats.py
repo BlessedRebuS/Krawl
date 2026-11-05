@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import and_, func, or_, text
 
+from config import get_config, pruned_window
 from dashboard_cache import pagination
 from logger import get_app_logger
 from models import (
@@ -44,6 +45,25 @@ def _publish_ban_change(sanitized_ip: str, banned: bool) -> None:
         import ban_cache
 
         ban_cache.add(sanitized_ip)
+
+
+def pruned_estimate(
+    current: int,
+    previous: int,
+    since: datetime | None,
+    now: datetime,
+    window: timedelta,
+) -> int:
+    """Pruned requests still inside the window, assuming a steady rate across the
+    two counter periods. An idle IP's burst can count for up to one extra window."""
+    if since is None:
+        return 0
+    age = (now - since) / window
+    if age < 1:
+        return round(current + previous * (1 - age))
+    if age < 2:
+        return round(current * (2 - age))
+    return 0
 
 
 class IpStatsRepo:
@@ -418,6 +438,35 @@ class IpStatsRepo:
         except Exception as e:
             session.rollback()
             applogger.error(f"Error updating IP stats analysis: {e}")
+        finally:
+            self._db.close_session()
+
+    def get_pruned_state(self, ip: str) -> tuple[int, list[str]]:
+        """Pruned requests still inside the analyzer window, and the IP's last
+        analysed user agents. Reads the database, so never a cached value."""
+        session = self._db.session
+        try:
+            row = (
+                session.query(
+                    IpStats.pruned_requests,
+                    IpStats.pruned_previous,
+                    IpStats.pruned_since,
+                    IpStats.analyzed_metrics,
+                )
+                .filter(IpStats.ip == sanitize_ip(ip))
+                .first()
+            )
+            if row is None:
+                return 0, []
+            estimate = pruned_estimate(
+                row.pruned_requests,
+                row.pruned_previous,
+                row.pruned_since,
+                datetime.now(),
+                pruned_window(get_config()),
+            )
+            previous = (row.analyzed_metrics or {}).get("different_user_agents")
+            return estimate, list(previous or [])
         finally:
             self._db.close_session()
 

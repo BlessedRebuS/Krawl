@@ -66,8 +66,23 @@ def test_defaults_from_empty_config():
     assert cfg.retention_non_suspicious == timedelta(days=30)
     assert cfg.retention_recheck_suspicious == timedelta(days=30)
     assert cfg.retention_reevaluate_interval == timedelta(days=5)
-    assert cfg.retention_crunch_after == timedelta(days=7)
+    assert cfg.retention_uninteresting == timedelta(days=7)
     assert cfg.retention_overall is None
+
+
+def test_uninteresting_env_override(monkeypatch):
+    monkeypatch.setenv("KRAWL_RETENTION_UNINTERESTING", "3d")
+    assert _load("{}\n").retention_uninteresting == timedelta(days=3)
+
+
+def test_crunch_after_key_is_ignored():
+    cfg = _load("retention:\n  crunch-after: 2d\n")
+    assert cfg.retention_uninteresting == timedelta(days=7)
+
+
+def test_blank_uninteresting_uses_default():
+    cfg = _load("retention:\n  uninteresting:\n")
+    assert cfg.retention_uninteresting == timedelta(days=7)
 
 
 def test_legacy_yaml_retention_days_drives_both_windows():

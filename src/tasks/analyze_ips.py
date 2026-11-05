@@ -2,7 +2,7 @@ from collections import Counter
 from datetime import datetime, timedelta
 
 import metrics
-from config import get_config
+from config import ANALYZER_LOOKBACK_DAYS, get_config
 from database import get_database
 from logger import get_app_logger
 
@@ -103,17 +103,19 @@ def main():
     for ip in ips_to_analyze:
         # Get full history for this IP to perform accurate analysis
         ip_accesses = db_manager.access_logs.get_list(
-            limit=10000, ip_filter=ip, since_minutes=1440 * 30
+            limit=10000, ip_filter=ip, since_minutes=1440 * ANALYZER_LOOKBACK_DAYS
         )  # look back up to 30 days of history for better accuracy
         # A crunched row stands for hit_count requests; weighting by it keeps
         # crunching from moving any ratio (docs/algorithms.md).
         hits = [item.get("hit_count") or 1 for item in ip_accesses]
-        total_accesses_count = sum(hits)
-        if total_accesses_count <= 0:
+        if not ip_accesses:
             # No history left in the window (logs aged out or were purged).
             # Clear the flag anyway, or this IP is re-read on every run forever.
             db_manager.ip_stats.mark_analysed(ip, datetime.now())
             continue
+        # Pruned rows are GETs outside robots paths: denominators only.
+        pruned, previous_user_agents = db_manager.ip_stats.get_pruned_state(ip)
+        total_accesses_count = sum(hits) + pruned
 
         # --------------------- HTTP Methods ---------------------
         method_counts = Counter()
@@ -204,6 +206,8 @@ def main():
         # --------------------- Different User Agents ---------------------
         # Header Quality and Consistency: Crawlers tend to use complete and consistent headers, attackers might miss, fake, or change headers
         user_agents_used = [item["user_agent"] for item in ip_accesses]
+        if pruned:
+            user_agents_used = previous_user_agents + user_agents_used
         user_agents_used = list(dict.fromkeys(user_agents_used))
         # print(f"User agents used: {user_agents_used}")
         if len(user_agents_used) >= user_agents_used_threshold:

@@ -808,3 +808,32 @@ def _is_random_link(path: str) -> bool:
         return True
 
     return False
+
+
+def _is_trap_link(path: str) -> bool:
+    """Krawl homepage link (generative_ai._is_random_link) that also looks random:
+    a digit, or an uppercase letter after the first character. The extra rule
+    keeps /login, /admin, /Jenkinsfile literal; a few all-lowercase links slip
+    through and simply stay uncrunched."""
+    segment = path.lstrip("/")
+    return _is_random_link(path) and (
+        any(c.isdigit() for c in segment) or any(c.isupper() for c in segment[1:])
+    )
+
+
+def is_uninteresting_request(
+    path: str,
+    method: str,
+    is_suspicious: bool,
+    is_honeypot_trigger: bool,
+    attack_types: list | None,
+    file_payloads: list | None,
+    request_assets: list | None,
+) -> bool:
+    """A random-path crawler GET with no evidence, safe to prune early."""
+    if method != "GET" or is_suspicious or is_honeypot_trigger:
+        return False
+    if attack_types or file_payloads or request_assets or not _is_trap_link(path):
+        return False
+    disallows = [d.rstrip("/") for d in load_robots_disallowed() if d.rstrip("/")]
+    return not any(path.rstrip("/").startswith(d) for d in disallows)

@@ -384,6 +384,22 @@ class DatabaseManager:
                 raw_request, compute_tlsh=config.tlsh_enabled
             )
 
+        try:
+            from generative_ai import is_uninteresting_request
+
+            is_interesting = not is_uninteresting_request(
+                path,
+                method,
+                is_suspicious,
+                is_honeypot_trigger,
+                attack_types,
+                file_payloads,
+                request_assets,
+            )
+        except Exception as e:  # never lose a request to classification
+            applogger.error(f"Request classification failed for {path}: {e}")
+            is_interesting = True
+
         session = self.session
         try:
             # In scalable mode, buffer access log writes and flush in bulk later.
@@ -405,6 +421,7 @@ class DatabaseManager:
                         file_payloads=file_payloads,
                         target_host=target_host,
                         request_assets=request_assets,
+                        is_interesting=is_interesting,
                     )
             else:
                 if not persist_suspicious_only or is_suspicious:
@@ -422,6 +439,7 @@ class DatabaseManager:
                         request_metadata_extracted=True,
                         request_metadata_version=CURRENT_METADATA_VERSION,
                         file_extraction_version=1,
+                        is_interesting=is_interesting,
                     )
                     session.add(access_log)
                     session.flush()
@@ -598,6 +616,7 @@ class DatabaseManager:
                         "request_metadata_extracted": True,
                         "request_metadata_version": CURRENT_METADATA_VERSION,
                         "file_extraction_version": 1,
+                        "is_interesting": entry.get("is_interesting", True),
                     }
                 )
 
