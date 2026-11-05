@@ -453,6 +453,9 @@ class AccessLogRepo:
         suspicious_only: bool = False,
         since_minutes: int | None = None,
         sort_order: str = "desc",
+        search: str | None = None,
+        exclude: list[str] | None = None,
+        method_filter: str | None = None,
     ) -> dict[str, Any]:
         """
         Retrieve access logs with pagination and optional filtering.
@@ -464,12 +467,16 @@ class AccessLogRepo:
             suspicious_only: Only return suspicious requests
             since_minutes: Only return logs from the last N minutes
             sort_order: Sort direction for timestamp ('asc' or 'desc')
+            search: Comma list of terms each path, IP or user agent must contain
+            exclude: Terms none of those fields may contain
+            method_filter: HTTP method
 
         Returns:
             List of access log dictionaries
         """
         session = self._db.session
         try:
+            text_clauses = access_log_text_clauses(search, exclude, method_filter)
             offset = (page - 1) * page_size
             order = (
                 AccessLog.timestamp.asc()
@@ -480,6 +487,7 @@ class AccessLogRepo:
                 session.query(AccessLog)
                 .options(joinedload(AccessLog.attack_detections))
                 .order_by(order)
+                .filter(*text_clauses)
             )
 
             if ip_filter:
@@ -493,14 +501,19 @@ class AccessLogRepo:
             logs = query.offset(offset).limit(page_size).all()
 
             # Count query with same filters
-            count_query = session.query(func.count(AccessLog.id))
+            count_query = session.query(func.count(AccessLog.id)).filter(*text_clauses)
             if ip_filter:
                 count_query = count_query.filter(AccessLog.ip == sanitize_ip(ip_filter))
             if suspicious_only:
                 count_query = count_query.filter(AccessLog.is_suspicious)
             if since_minutes is not None:
                 count_query = count_query.filter(AccessLog.timestamp >= cutoff_time)
-            if ip_filter or suspicious_only or since_minutes is not None:
+            if (
+                ip_filter
+                or suspicious_only
+                or since_minutes is not None
+                or text_clauses
+            ):
                 total_access_logs = count_query.scalar()
             else:
                 total_access_logs = table_row_count(session, AccessLog)

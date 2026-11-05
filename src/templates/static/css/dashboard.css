@@ -1020,27 +1020,6 @@ tbody {
     font-weight: 500;
 }
 
-/* IP Insight overview: IP Information spans two rows on the left; the
-   radar, attack types, timeline and a card-sized map fill two columns
-   beside it, so the profile reads on one screen. */
-.ip-overview {
-    display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
-    grid-auto-flow: row dense;
-    gap: var(--s5);
-    margin-bottom: var(--s6);
-}
-.ip-overview > .table-container { margin: 0; min-width: 0; display: flex; flex-direction: column; }
-.ip-overview .ip-info-card { grid-row: span 2; }
-.ip-map-frame { flex: 1; min-height: 180px; }
-@media (max-width: 1100px) {
-    .ip-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 720px) {
-    .ip-overview { grid-template-columns: minmax(0, 1fr); }
-    .ip-overview .ip-info-card { grid-row: auto; }
-}
-
 /* Facts read label-then-value, side by side, instead of label at one
    edge and value at the other. */
 .ip-info-card .ip-dl-row { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: var(--s3); padding: 6px 0; }
@@ -1048,6 +1027,177 @@ tbody {
 .ip-info-card .ip-dl dd { text-align: left; font-family: var(--font-mono); font-weight: 400; }
 .ip-info-card .ip-section-heading { margin: var(--s4) 0 var(--s1); font-size: var(--fs-sm); }
 .ip-info-card .ip-section-heading:first-of-type { margin-top: 0; }
+
+/* ── IP Insight scoreboard ──
+   Tiles keep their detail line visible; there's no second click to get it. */
+.ip-tiles { margin-bottom: var(--s4); }
+.ip-tiles .tile { justify-content: flex-start; align-items: flex-start; text-align: left; padding: var(--s3) var(--s4); }
+.ip-tiles .tile:hover :is(.tile-value, .tile-label),
+.ip-tiles .tile:focus-visible :is(.tile-value, .tile-label) { transform: none; }
+.ip-tiles .tile-value { font-family: var(--font-mono); }
+.ip-tiles .tile-sub { position: static; opacity: 1; transform: none; font-size: var(--fs-xs); }
+.ip-split { display: flex; gap: 2px; width: 100%; height: 6px; margin: var(--s1) 0 2px; }
+.ip-split i { display: block; min-width: 2px; flex-basis: 0; }
+.ip-split i[style*="flex-grow: 0"] { display: none; }
+.ip-split-good { background: var(--ok); }
+.ip-split-bad { background: var(--danger); }
+
+/* Details runs the full height on the left; Behaviour and Attack types sit
+   beside it with the Timeline underneath them. */
+.ip-panes {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-rows: 1fr auto;
+    gap: var(--s4);
+    margin-bottom: var(--s4);
+}
+.ip-panes > .ip-details { grid-row: 1 / span 2; display: flex; flex-direction: column; gap: var(--s4); }
+.ip-panes > .ip-details h2 { margin-bottom: 0; }
+.ip-panes > .ip-timeline-pane { grid-column: 2 / -1; }
+.ip-details .ip-map-frame { flex: 1 1 0; min-height: 150px; }
+/* No attacks: Behaviour takes the width, Attack types shrinks beside the Timeline. */
+@media (min-width: 1201px) {
+    .ip-panes.no-attacks { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 1.1fr); }
+    .no-attacks > .ip-behaviour {
+        grid-column: 2 / -1;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-rows: auto 1fr auto auto 1fr;
+        column-gap: var(--s5);
+    }
+    .no-attacks > .ip-behaviour h2 { grid-column: 1 / -1; }
+    .no-attacks > .ip-behaviour .ip-hex { grid-column: 1; grid-row: 2 / -1; align-self: center; margin: 0; }
+    .no-attacks > .ip-behaviour .ip-classes { grid-column: 2; grid-row: 3; }
+    .no-attacks > .ip-behaviour .ip-hex-help { grid-column: 2; grid-row: 4; margin: var(--s3) 0 0; }
+    .ip-panes.no-attacks > .ip-timeline-pane { grid-column: 3; }
+}
+.ip-panes > .ip-pane { margin: 0; min-width: 0; }
+.ip-pane h2 { margin-bottom: var(--s3); }
+.ip-pane-note { margin: var(--s3) 0 0; font-size: var(--fs-xs); color: var(--text-dim); }
+
+/* The behaviour hexagon: stepped rings and square pips, a stat screen's shape
+   drawn in the verdict's own hue. */
+.ip-hex { margin: 0 0 var(--s3); }
+.ip-hex svg { display: block; width: 100%; max-width: 420px; height: auto; margin: 0 auto; }
+.ip-hex-ring { fill: none; stroke: var(--text-faint); stroke-opacity: 0.45; }
+.ip-hex-ring:first-child { stroke: var(--text-dim); stroke-opacity: 1; stroke-width: 1.5; }
+.ip-hex-ring.is-alt { fill: var(--raised); fill-opacity: 0.5; }
+.ip-hex-spoke { stroke: var(--text-faint); stroke-opacity: 0.3; }
+.ip-hex-fill { fill: var(--hex-c); fill-opacity: 0.2; stroke: var(--hex-c); stroke-width: 2; stroke-linejoin: miter; }
+.ip-hex-pip { fill: var(--hex-c); stroke: var(--bg); }
+.ip-hex-label { font-size: var(--fs-2xs); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; fill: var(--text-dim); }
+.ip-hex-value { font-family: var(--font-mono); font-size: var(--fs-md); font-weight: 700; fill: var(--text-strong); }
+.ip-hex-shape { transform-origin: 0 0; animation: ipHexIn 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes ipHexIn { from { transform: scale(0); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .ip-hex-shape { animation: none; } }
+
+.ip-hex-help { margin-bottom: var(--s3); font-size: var(--fs-xs); color: var(--text-dim); }
+.ip-hex-help dl { display: grid; gap: var(--s1); margin: var(--s2) 0 0; }
+.ip-hex-help dl div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: var(--s2); }
+.ip-hex-help dt { color: var(--text); }
+.ip-hex-help dd { margin: 0; }
+:is(.ip-hex-help, .ip-atk-more) summary { display: inline-flex; align-items: center; gap: var(--s1); cursor: pointer; list-style: none; }
+:is(.ip-hex-help, .ip-atk-more) summary::-webkit-details-marker { display: none; }
+.ip-disclosure { width: 12px; height: 12px; transition: transform 150ms var(--ease); }
+:is(.ip-hex-help, .ip-atk-more)[open] .ip-disclosure { transform: rotate(90deg); }
+.ip-classes { display: grid; gap: var(--s2); }
+.ip-class { display: grid; grid-template-columns: 64px minmax(0, 1fr) 28px; align-items: center; gap: var(--s2); }
+.ip-class-name { font-size: var(--fs-xs); color: var(--text-dim); }
+.ip-class-points { font-family: var(--font-mono); font-size: var(--fs-sm); text-align: right; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.ip-class.is-current :is(.ip-class-name, .ip-class-points) { color: var(--text-strong); }
+.ip-class-bar { display: grid; grid-template-columns: repeat(var(--class-n), minmax(0, 1fr)); gap: 2px; }
+.ip-class-bar i { display: block; height: 10px; background: var(--raised); }
+.ip-class-bar i.on { background: var(--class-c); }
+
+.ip-atks { display: grid; gap: var(--s3); }
+.ip-atk { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 40px 48px; align-items: center; gap: var(--s2); }
+.ip-atk-name { font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ip-atk-track { display: block; height: 12px; background: var(--raised); }
+.ip-atk-track i { display: block; height: 100%; min-width: 2px; background: var(--atk, var(--sev-low)); }
+.ip-atk-count { font-family: var(--font-mono); font-size: var(--fs-sm); text-align: right; font-variant-numeric: tabular-nums; }
+.ip-atk-band { font-size: var(--fs-2xs); font-weight: 600; text-transform: capitalize; color: var(--atk, var(--sev-low)); }
+.ip-atk.is-unscored { --atk: var(--text-faint); }
+.ip-atk-more { display: grid; gap: var(--s3); font-size: var(--fs-sm); color: var(--text-dim); }
+.ip-atk-more[open] .ip-atk + .ip-atk { margin-top: var(--s3); }
+.ip-atk-more[open] summary { margin-bottom: var(--s3); }
+
+.ip-tabs { display: flex; gap: var(--s1); overflow-x: auto; margin-bottom: var(--s4); border-bottom: 1px solid var(--line); }
+.ip-tab {
+    flex: none;
+    padding: var(--s2) var(--s3);
+    font: inherit;
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: color 150ms var(--ease);
+}
+.ip-tab:hover { color: var(--text); }
+.ip-tab[aria-selected="true"] { color: var(--text-strong); border-bottom-color: var(--accent); }
+.ip-tab-count { margin-left: var(--s1); font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text-faint); font-variant-numeric: tabular-nums; }
+.ip-panel[hidden] { display: none; }
+
+/* Long or many values stay inside their pane: the page's shape never depends
+   on what an attacker or a feed happened to send. Full text is in each title. */
+.ip-page-header h1 { flex-wrap: wrap; min-width: 0; }
+.ip-address-title { min-width: 0; overflow-wrap: anywhere; }
+.ip-page-header-row { flex-wrap: wrap; }
+.ip-ban-actions { flex-wrap: wrap; }
+.ip-location-subtitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ip-details .ip-dl dd { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ip-details .reputation-badge { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ip-details .ip-rep-more[open] { max-height: 180px; overflow-y: auto; }
+.ip-timeline-pane .ip-timeline-scroll { max-height: 220px; overflow: hidden auto; }
+.ip-atk-more[open] { max-height: 240px; overflow-y: auto; }
+.ip-evidence table { min-width: 0; table-layout: fixed; }
+.ip-evidence :is(th, td) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ip-evidence :is(th, td).rank, .ip-evidence th:first-child:empty { width: 44px; }
+.ip-evidence th:first-child { width: 44px; }
+.ip-evidence-referers th:first-child { width: auto; }
+.ip-evidence .ts-cell { width: 170px; }
+.ip-filter-bar { display: grid; gap: var(--s3); margin-bottom: var(--s3); }
+.ip-filter-bar [hidden] { display: none; }
+.ip-filter-bar .attack-facets { margin: 0; }
+.ip-filter-bar .term-mode button:disabled { color: var(--text-faint); cursor: not-allowed; }
+.ip-filter-bar .facet-chip:disabled { opacity: 0.5; cursor: not-allowed; }
+.ip-filter-select { max-width: 240px; }
+.ip-filter-pills:empty { display: none; }
+.ip-evidence { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s4); align-items: start; margin-bottom: var(--s4); }
+.ip-evidence[hidden] { display: none; }
+.ip-evidence > .ip-section { margin: 0; min-width: 0; }
+.ip-evidence-files { grid-column: 1 / -1; grid-row: 2; }
+.ip-evidence-referers .htmx-container { max-height: 340px; overflow: auto; }
+@media (max-width: 1000px) {
+    .ip-evidence { grid-template-columns: minmax(0, 1fr); }
+    .ip-evidence-files { grid-row: auto; }
+}
+.ip-evidence h2 { margin-bottom: var(--s3); }
+
+@media (max-width: 1200px) {
+    .ip-panes { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
+    .ip-panes > .ip-details { grid-row: auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: var(--s5); }
+    .ip-panes > .ip-details h2 { grid-column: 1 / -1; }
+    .ip-panes > .ip-timeline-pane { grid-column: auto; }
+    .ip-tiles .tile:first-child { grid-column: span 2; }
+    .ip-behaviour { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: var(--s5); align-items: center; }
+    .ip-behaviour h2 { grid-column: 1 / -1; }
+    .ip-behaviour .ip-hex { grid-column: 1; grid-row: 2 / span 2; margin: 0; }
+    .ip-behaviour .ip-hex-help { grid-column: 2; grid-row: 3; align-self: start; margin: var(--s3) 0 0; }
+    .ip-behaviour .ip-classes { grid-column: 2; grid-row: 2; align-self: end; }
+}
+@media (max-width: 800px) {
+    .ip-panes > .ip-details { display: flex; }
+    .ip-behaviour { display: block; }
+    .ip-page-header-row { flex-wrap: wrap; }
+    .ip-hex-label { font-size: 16px; }
+    .ip-hex-value { font-size: 16px; }
+    .ip-behaviour .ip-hex { margin-bottom: var(--s3); }
+    .ip-behaviour .ip-hex-help { margin: 0 0 var(--s3); }
+    .ip-atk { grid-template-columns: minmax(0, 1fr) 40px 48px; row-gap: var(--s1); }
+    .ip-atk-name { grid-column: 1 / -1; white-space: normal; }
+}
 
 /* An evidence section with no rows shrinks to its heading and the one
    empty-state line: no column headers, pager or row padding. */
@@ -1319,20 +1469,6 @@ tbody {
     display: flex;
     flex-wrap: wrap;
     gap: var(--s2);
-}
-
-.ip-attack-chart-wrapper {
-    position: relative;
-    flex: 1;
-    min-height: 220px;
-}
-
-/* Radar chart */
-.radar-chart-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--s3) 0;
 }
 
 /* ── Behavior Timeline (full-width horizontal) ──── */
@@ -3043,14 +3179,6 @@ tbody {
 .path-truncated.path-crunched,
 #access-history-section .access-row-normal .path-truncated.path-crunched {
     color: var(--accent-hi) !important;
-}
-.examples-cell {
-    color: var(--text-dim);
-    font-size: 0.85em;
-    max-width: 320px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 .inspect-btn {
     display: inline-flex;

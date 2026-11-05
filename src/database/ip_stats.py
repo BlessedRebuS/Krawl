@@ -895,6 +895,7 @@ class IpStatsRepo:
             result = {
                 "ip": stat.ip,
                 "total_requests": stat.total_requests,
+                "pruned_total": stat.pruned_total,
                 "first_seen": stat.first_seen.isoformat() if stat.first_seen else None,
                 "last_seen": stat.last_seen.isoformat() if stat.last_seen else None,
                 "country_code": stat.country_code,

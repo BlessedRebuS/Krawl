@@ -223,3 +223,25 @@ def test_window_never_collapses():
     assert pruned_window(cfg) == timedelta(days=30) - cfg.retention_uninteresting
     long_retention = type("C", (), {"retention_uninteresting": timedelta(days=90)})
     assert pruned_window(long_retention) == timedelta(days=1)
+
+
+def test_analyzer_stores_timing_for_the_hexagon(tmp_path):
+    initialize_database(str(tmp_path / "a.db"))
+    db = get_database()
+    ip = "192.0.2.18"
+    _ip(db.session, ip)
+    for gap in (0, 1, 40, 41, 200):
+        db.session.add(
+            AccessLog(
+                ip=ip,
+                path="/test",
+                method="GET",
+                user_agent=UA,
+                timestamp=datetime.now() - timedelta(seconds=gap),
+            )
+        )
+    db.session.commit()
+
+    analyze_ips.main()
+
+    assert _analyzed(db, ip).analyzed_metrics["request_timing_cv"] > 0

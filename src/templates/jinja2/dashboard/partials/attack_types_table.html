@@ -1,5 +1,5 @@
 {# HTMX fragment: Detected attacks table #}
-{% set filter_qs %}{% if ip_filter %}&ip_filter={{ ip_filter | urlencode }}{% endif %}{% if attack_type_filter %}&attack_type_filter={{ attack_type_filter | urlencode }}{% endif %}{% if search %}&search={{ search | urlencode }}{% endif %}{% if method_filter %}&method_filter={{ method_filter | urlencode }}{% endif %}{% if exclude %}&exclude={{ exclude | urlencode }}{% endif %}{% if rule_filter %}&rule_filter={{ rule_filter | urlencode }}{% endif %}{% if severity_filter %}&severity_filter={{ severity_filter | urlencode }}{% endif %}{{ period_qs }}{% endset %}
+{% set filter_qs %}{% if embed %}&embed=1{% endif %}{% if ip_filter %}&ip_filter={{ ip_filter | urlencode }}{% endif %}{% if attack_type_filter %}&attack_type_filter={{ attack_type_filter | urlencode }}{% endif %}{% if search %}&search={{ search | urlencode }}{% endif %}{% if method_filter %}&method_filter={{ method_filter | urlencode }}{% endif %}{% if exclude %}&exclude={{ exclude | urlencode }}{% endif %}{% if rule_filter %}&rule_filter={{ rule_filter | urlencode }}{% endif %}{% if severity_filter %}&severity_filter={{ severity_filter | urlencode }}{% endif %}{{ period_qs }}{% endset %}
 {% if facets %}
 {# Severity chips and rule picker, counted over the tab's period. #}
 <div class="attack-facets">
@@ -41,6 +41,8 @@
         <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages | num }} &mdash; {{ pagination.total | num }} total</span>
         {% endif %}
         {% if range_label %}<span class="range-label" title="Range shown">{{ range_label }}</span>{% endif %}
+        {# Embedded on IP Insight, whose own filter bar shows and clears these. #}
+        {% if not embed %}
         {% if attack_type_filter %}
         <span class="filter-pill">
             {{ attack_type_filter | attack_label }}
@@ -75,6 +77,7 @@
                     aria-label="Stop excluding {{ term | e }}" title="Show these requests again">&times;</button>
         </span>
         {% endfor %}
+        {% endif %}
     </div>
     <div class="row">
         <button class="pagination-btn"

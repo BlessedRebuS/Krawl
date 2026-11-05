@@ -221,13 +221,40 @@ bounded batches after an upgrade.
 
 The IP Insight tab provides a deep-dive view for a single IP address. It opens when you select an IP address in any table, map popup or search result.
 
-### IP Information Card
+The top of the page answers what the IP is and what it did; the evidence sits in tabs below.
 
-Displays comprehensive details about the selected IP:
+### Totals
 
-- **Activity** — total requests, first seen, last seen, last analysis timestamp
-- **Geo & Network** — location, region, timezone, ISP, ASN, reverse DNS
-- **Category** — classification badge (Attacker, Good Crawler, Bad Crawler, Regular User, Unknown)
+Seven tiles:
+
+- **Total requests** — lifetime count, split into good and bad. Bad is this IP's stored suspicious requests; good is everything else
+- **Attacks** — detections, and how many attack types they cover
+- **Avg severity** — the average YARA rule severity (1–10) of its detections, with the highest beside it. Detections with no scored rule are left out
+- **Requests deleted** — random-path GETs removed early, see [retention](retention.md)
+- **Honeypot hits**, **Credentials**, **Captured files** — with the traps, unique pairs and campaigns behind them
+
+Attack, severity and honeypot figures cover stored requests, so they can drop when retention removes rows.
+
+### Behaviour
+
+A hexagon scores six signals from 0 to 100: risky methods, robots violations, request timing, user-agent variety, attack variety and evidence. "What the axes mean" explains each one. An IP analysed before this view existed shows timing 0 until its next analysis.
+
+The category points sit below it, one segment per point: the category with the most points is the IP's category. See [how IPs are evaluated](algorithms.md).
+
+### Attack Types
+
+Attack types are ranked by detections and coloured by severity. A type no loaded rule scores shows `–`.
+
+### Details and Timeline
+
+Details lists activity times, location, ISP, ASN, reverse DNS, flags and threat feeds, with the IP on a map. The Timeline shows each category change.
+
+### Evidence Tabs
+
+Two tabs sit below, each showing its count:
+
+- **Requests** — the access history, or "Only attacks" for the requests with detections. Only/Hide and the search box stack text filters, next to a method picker. Only attacks adds attack type, severity and rule, counted for this IP. These filters never touch the Attacks tab.
+- **Evidence** — credentials and referers side by side with files below, loaded when the tab first opens.
 
 ### Ban & Track Actions
 
@@ -246,22 +273,22 @@ The buttons are always shown. When you are logged out they are marked
 Shows which threat intelligence feeds list the IP, one chip per feed, with the
 total count first. Past six feeds the rest fold behind a "more" toggle.
 
-### Referer History
+### Referers
 
 The `Referer` headers this IP arrived with, so you can see which bait link, page
 or external source led it here. Empty unless `analyzer.referer_enabled` is on.
 
-### Captured Files
+### Files
 
 Files this IP uploaded or requested, with the TLSH digest that ties each one to
 a campaign. A file opens in place rather than downloading.
 
-### Captured Credentials
+### Credentials
 
 The usernames and passwords this IP submitted to the login traps, filtered to
 this address alone.
 
-### Access Logs
+### Access History
 
 A filtered view of all requests made by this specific IP, with full request
 details. The tables on this tab drop their IP column — every row is the address
@@ -578,8 +605,8 @@ built around that. Everything visual is defined once, as tokens, at the top of
   the page (the two trap-count stat cards and the honeypot trigger counts).
 - **One icon system.** Inline Octicon SVGs on a 16 viewBox, sized by `.icon`,
   `.icon-sm` or `.icon-lg`, filled with `currentColor`. No icon webfont.
-- **Category colors come from the tokens**, including in JavaScript — `map.js`,
-  `radar.js` and `charts.js` read them through `krawlCategoryColors()` in
+- **Category colors come from the tokens**, including in JavaScript — `map.js`
+  and `charts.js` read them through `krawlCategoryColors()` in
   `tokens.js`, so a category cannot look one way in a table and another on the map.
 - **No `style="…"` in templates.** Add a class to `dashboard.css` instead; the
   component layer at the bottom of the file exists for exactly this. The only

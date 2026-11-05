@@ -2,6 +2,7 @@
    Expects: stats, ip_address, dashboard_path, uid (unique prefix for element IDs) #}
 
 {% from "dashboard/partials/_icons.html" import icon %}
+{% from "dashboard/partials/_tiles.html" import n, tile %}
 {# Page header #}
 <div class="ip-page-header">
     <div class="ip-page-header-row">
@@ -45,28 +46,48 @@
             <span class="ip-actions-lock">{{ icon('lock') }}Log in to act</span>
         </div>
     </div>
-    {% if stats.city or stats.country %}
-    <p class="ip-location-subtitle">
-        {{ stats.city | default('', true) }}{% if stats.city and stats.country %}, {% endif %}{{ stats.country | default(stats.country_code | default('')) }}
-    </p>
-    {% endif %}
+    {% set facts = [] %}
+    {% if stats.city or stats.country %}{% set _ = facts.append((stats.city ~ ', ' if stats.city else '') ~ (stats.country or stats.country_code or '')) %}{% endif %}
+    {% if stats.asn_org or stats.isp %}{% set _ = facts.append(stats.asn_org or stats.isp) %}{% endif %}
+    {% if stats.asn %}{% set _ = facts.append('AS' ~ stats.asn) %}{% endif %}
+    {% if stats.is_proxy %}{% set _ = facts.append('Proxy') %}{% endif %}
+    {% if stats.is_hosting %}{% set _ = facts.append('Hosting') %}{% endif %}
+    {% if stats.last_seen %}{% set _ = facts.append('last seen ' ~ (stats.last_seen | format_ts)) %}{% endif %}
+    {% if facts %}<p class="ip-location-subtitle" title="{{ facts | join(' · ') | e }}">{{ facts | join(' · ') | e }}</p>{% endif %}
 </div>
 
-{# ── Overview grid: the facts on the left, the read-outs beside them ──
-   IP Information spans two rows; Category Analysis, Attack Types, the
-   Behavior Timeline and a card-sized Location map fill the two columns
-   next to it, so the whole profile sits on one screen. #}
-<div class="ip-overview">
-    <div class="table-container ip-detail-card ip-info-card">
-        <h2>IP Information</h2>
+{# ── Scoreboard: the whole verdict on one screen ── #}
+<section class="tiles ip-tiles" aria-label="Totals for this IP">
+    <div class="tile">
+        <span class="tile-value">{{ n(overview.total) }}</span>
+        <span class="tile-label">Total requests</span>
+        {% if overview.total %}
+        <span class="ip-split" aria-hidden="true"><i class="ip-split-good" style="flex-grow: {{ 100 - overview.bad_share }}"></i><i class="ip-split-bad" style="flex-grow: {{ overview.bad_share }}"></i></span>
+        {% endif %}
+        <span class="tile-sub">{{ n(overview.good) }} good · {{ n(overview.bad) }} bad</span>
+    </div>
+    {{ tile(n(overview.attacks), 'Attacks', 'is-hostile' if overview.attacks else '',
+            (overview.attack_types | length) ~ (' type' if overview.attack_types | length == 1 else ' types'), false) }}
+    <div class="tile"{% if overview.severity_band %} style="--tile-c: var(--sev-{{ overview.severity_band }})"{% endif %}>
+        <span class="tile-value" data-static>{{ ('%.1f' | format(overview.severity_avg)).replace('.', ',') if overview.severity_avg else '–' }}</span>
+        <span class="tile-label">Avg severity</span>
+        <span class="tile-sub">{{ 'peak ' ~ overview.severity_peak if overview.severity_peak else ('not scored' if overview.attacks else 'no attacks') }}</span>
+    </div>
+    {{ tile(n(overview.deleted), 'Requests deleted', '', 'random-path GETs', false) }}
+    {{ tile(n(overview.honeypot_hits), 'Honeypot hits', 'is-trapped' if overview.honeypot_hits else '',
+            overview.honeypot_traps ~ (' trap' if overview.honeypot_traps == 1 else ' traps'), false) }}
+    {{ tile(n(overview.credentials), 'Credentials', '', overview.credentials_unique ~ ' unique', false) }}
+    {{ tile(n(overview.files), 'Captured files', '',
+            overview.campaigns ~ (' campaign' if overview.campaigns == 1 else ' campaigns'), false) }}
+</section>
 
+<div class="ip-panes{% if not overview.attacks %} no-attacks{% endif %}">
+    <div class="table-container ip-detail-card ip-pane ip-details">
+        <h2>Details</h2>
+        <div class="ip-info-card">
         {# Activity section #}
         <h3 class="ip-section-heading">Activity</h3>
         <dl class="ip-dl">
-            <div class="ip-dl-row">
-                <dt>Total Requests</dt>
-                <dd>{{ stats.total_requests | default('N/A') }}</dd>
-            </div>
             <div class="ip-dl-row">
                 <dt>First Seen</dt>
                 <dd class="ip-dl-highlight">{{ stats.first_seen | format_ts }}</dd>
@@ -89,31 +110,31 @@
             {% if stats.city or stats.country %}
             <div class="ip-dl-row">
                 <dt>Location</dt>
-                <dd>{{ stats.city | default('', true) | e }}{% if stats.city and stats.country %}, {% endif %}{{ stats.country | default(stats.country_code | default('')) | e }}</dd>
+                <dd title="{{ stats.city | default('', true) | e }}{% if stats.city and stats.country %}, {% endif %}{{ stats.country | default(stats.country_code | default('')) | e }}">{{ stats.city | default('', true) | e }}{% if stats.city and stats.country %}, {% endif %}{{ stats.country | default(stats.country_code | default('')) | e }}</dd>
             </div>
             {% endif %}
             {% if stats.region_name %}
             <div class="ip-dl-row">
                 <dt>Region</dt>
-                <dd>{{ stats.region_name | e }}</dd>
+                <dd title="{{ stats.region_name | e }}">{{ stats.region_name | e }}</dd>
             </div>
             {% endif %}
             {% if stats.timezone %}
             <div class="ip-dl-row">
                 <dt>Timezone</dt>
-                <dd>{{ stats.timezone | e }}</dd>
+                <dd title="{{ stats.timezone | e }}">{{ stats.timezone | e }}</dd>
             </div>
             {% endif %}
             {% if stats.isp %}
             <div class="ip-dl-row">
                 <dt>ISP</dt>
-                <dd>{{ stats.isp | e }}</dd>
+                <dd title="{{ stats.isp | e }}">{{ stats.isp | e }}</dd>
             </div>
             {% endif %}
             {% if stats.asn_org %}
             <div class="ip-dl-row">
                 <dt>Organization</dt>
-                <dd>{{ stats.asn_org | e }}</dd>
+                <dd title="{{ stats.asn_org | e }}">{{ stats.asn_org | e }}</dd>
             </div>
             {% endif %}
             {% if stats.asn %}
@@ -125,7 +146,7 @@
             {% if stats.reverse_dns %}
             <div class="ip-dl-row">
                 <dt>Reverse DNS</dt>
-                <dd class="ip-dl-mono">{{ stats.reverse_dns | e }}</dd>
+                <dd class="ip-dl-mono" title="{{ stats.reverse_dns | e }}">{{ stats.reverse_dns | e }}</dd>
             </div>
             {% endif %}
         </dl>
@@ -179,30 +200,97 @@
                 {% endif %}
             </div>
         </div>
-    </div>
-
-    {% if stats.category_scores %}
-    <div class="table-container ip-detail-card ip-radar-card">
-        <h2>Category Analysis</h2>
-        <div class="radar-chart-container">
-            <div class="radar-chart" id="{{ uid }}-radar-chart"></div>
         </div>
+        {% if stats.latitude and stats.longitude %}
+        <div id="{{ uid }}-ip-map" class="map-frame ip-map-frame"></div>
+        {% endif %}
     </div>
-    {% endif %}
 
-    <div class="table-container ip-detail-card ip-attack-types-card">
-        <h2>Attack Types</h2>
-        <div class="ip-attack-chart-wrapper">
-            <canvas id="{{ uid }}-attack-types-chart"></canvas>
+    <div class="table-container ip-detail-card ip-pane ip-behaviour">
+        <h2>Behaviour</h2>
+        {% if overview.analysed %}
+        {% set hex_c = 'var(--cat-' ~ (stats.category | replace('_', '-')) ~ ')' if stats.category in ('attacker', 'bad_crawler', 'good_crawler', 'regular_user') else 'var(--text-dim)' %}
+        {% set unit = [(0, -1), (0.866, -0.5), (0.866, 0.5), (0, 1), (-0.866, 0.5), (-0.866, -0.5)] %}
+        {% set r = 92 %}
+        {# Drawn from a small floor, so a clean IP is a small even shape; the numbers stay real. #}
+        {% set floor = 0.15 %}
+        <figure class="ip-hex" style="--hex-c: {{ hex_c }}">
+            <svg viewBox="-205 -132 410 264" role="img" aria-labelledby="{{ uid }}-hex-desc">
+                {% for ring in [1, 0.8, 0.6, 0.4, 0.2] %}
+                <polygon class="ip-hex-ring{% if loop.index is even %} is-alt{% endif %}" points="{% for x, y in unit %}{{ '%.1f,%.1f' | format(x * r * ring, y * r * ring) }} {% endfor %}"/>
+                {% endfor %}
+                {% for x, y in unit %}<line class="ip-hex-spoke" x1="0" y1="0" x2="{{ '%.1f' | format(x * r) }}" y2="{{ '%.1f' | format(y * r) }}"/>{% endfor %}
+                <g class="ip-hex-shape">
+                    <polygon class="ip-hex-fill" points="{% for axis in overview.axes %}{% set u = unit[loop.index0] %}{% set reach = r * (floor + (1 - floor) * axis.value / 100) %}{{ '%.1f,%.1f' | format(u[0] * reach, u[1] * reach) }} {% endfor %}"/>
+                    {% for axis in overview.axes %}{% set u = unit[loop.index0] %}{% if axis.value %}{% set reach = r * (floor + (1 - floor) * axis.value / 100) %}<rect class="ip-hex-pip" x="{{ '%.1f' | format(u[0] * reach - 4) }}" y="{{ '%.1f' | format(u[1] * reach - 4) }}" width="8" height="8"/>{% endif %}{% endfor %}
+                </g>
+                {% for axis in overview.axes %}
+                {% set u = unit[loop.index0] %}
+                {% set ax = 'middle' if u[0] == 0 else ('start' if u[0] > 0 else 'end') %}
+                {% set lx = u[0] * (r + 12) %}
+                {% set ly = u[1] * (r + 22) if u[0] == 0 else u[1] * (r + 12) %}
+                <g class="ip-hex-axis"><title>{{ axis.label }}: {{ axis.hint }}</title>
+                    {% if axis.key == 'attacks' %}<text class="ip-hex-label" x="{{ '%.1f' | format(lx) }}" y="{{ '%.1f' | format(ly - 3) }}" text-anchor="{{ ax }}"><tspan x="{{ '%.1f' | format(lx) }}" dy="-1.15em">Attack</tspan><tspan x="{{ '%.1f' | format(lx) }}" dy="1.15em">variety</tspan></text>{% else %}<text class="ip-hex-label" x="{{ '%.1f' | format(lx) }}" y="{{ '%.1f' | format(ly - 3) }}" text-anchor="{{ ax }}">{{ axis.label }}</text>{% endif %}
+                    <text class="ip-hex-value" x="{{ '%.1f' | format(lx) }}" y="{{ '%.1f' | format(ly + 13) }}" text-anchor="{{ ax }}">{{ axis.value }}</text>
+                </g>
+                {% endfor %}
+            </svg>
+            <figcaption class="sr-only" id="{{ uid }}-hex-desc">Behaviour out of 100: {% for axis in overview.axes %}{{ axis.label }} {{ axis.value }}{% if not loop.last %}, {% endif %}{% endfor %}.</figcaption>
+        </figure>
+        <details class="ip-hex-help">
+            <summary>{{ icon('chevron-right', 'ip-disclosure') }}What the axes mean</summary>
+            <dl>
+                {% for axis in overview.axes %}<div><dt>{{ axis.label }}</dt><dd>{{ axis.hint }}</dd></div>{% endfor %}
+            </dl>
+        </details>
+        {% set cats = [('attacker', 'Attacker'), ('regular_user', 'User'), ('bad_crawler', 'Bad bot'), ('good_crawler', 'Good bot')] %}
+        <div class="ip-classes" aria-label="Category points">
+            {% for key, label in cats %}
+            {% set points = overview.scores.get(key, 0) %}
+            <div class="ip-class{% if stats.category == key %} is-current{% endif %}" style="--class-c: var(--cat-{{ key | replace('_', '-') }}); --class-n: {{ overview.score_max }}">
+                <span class="ip-class-name">{{ label }}</span>
+                <span class="ip-class-bar" aria-hidden="true">{% for i in range(overview.score_max) %}<i{% if i < points %} class="on"{% endif %}></i>{% endfor %}</span>
+                <span class="ip-class-points">{{ points }}</span>
+            </div>
+            {% endfor %}
         </div>
+        {% else %}
+        <p class="empty-state">Not analysed yet. Scores appear after the next analysis run.</p>
+        {% endif %}
     </div>
 
-    {% if stats.category_history %}
-    <div class="table-container ip-detail-card ip-timeline-card">
-        <h2>Behavior Timeline</h2>
+    <div class="table-container ip-detail-card ip-pane">
+        <h2>Attack types</h2>
+        {% macro attack_row(a) %}
+        <div class="ip-atk {{ (a.type | attack_badge_class | replace('atk-badge ', '')) if a.band else 'is-unscored' }}">
+            <span class="ip-atk-name" title="{{ a.type | e }}">{{ a.type | attack_label | e }}</span>
+            <span class="ip-atk-track" aria-hidden="true"><i style="width: {{ a.share }}%"></i></span>
+            <span class="ip-atk-count">{{ n(a.count) }}</span>
+            <span class="ip-atk-band">{{ a.band or '–' }}</span>
+        </div>
+        {% endmacro %}
+        {% if overview.attack_types %}
+        <div class="ip-atks">
+            {% for a in overview.attack_types[:9] %}{{ attack_row(a) }}{% endfor %}
+            {% if overview.attack_types | length > 9 %}
+            <details class="ip-atk-more">
+                <summary>{{ icon('chevron-right', 'ip-disclosure') }}{{ overview.attack_types | length - 9 }} more</summary>
+                {% for a in overview.attack_types[9:] %}{{ attack_row(a) }}{% endfor %}
+            </details>
+            {% endif %}
+        </div>
+        <p class="ip-pane-note">Most detections first. Severity comes from the YARA rule.</p>
+        {% else %}
+        <p class="empty-state">No attacks detected for this IP.</p>
+        {% endif %}
+    </div>
+
+    <div class="table-container ip-detail-card ip-pane ip-timeline-pane">
+        <h2>Timeline{% if stats.category_history %}<span class="ip-tab-count">{{ stats.category_history | length }}</span>{% endif %}</h2>
+        {% if stats.category_history %}
         <div class="ip-timeline-scroll">
             <div class="ip-timeline-hz">
-                {% for entry in stats.category_history %}
+                {% for entry in stats.category_history | reverse %}
                 <div class="ip-tl-entry">
                     <div class="ip-tl-dot {{ entry.new_category | default('unknown') | replace('_', '-') }}"></div>
                     <div class="ip-tl-content">
@@ -218,69 +306,88 @@
                 {% endfor %}
             </div>
         </div>
-    </div>
-    {% endif %}
-
-    {% if stats.latitude and stats.longitude %}
-    <div class="table-container ip-detail-card ip-location-card">
-        <h2>Location</h2>
-        <div id="{{ uid }}-ip-map" class="map-frame ip-map-frame"></div>
-    </div>
-    {% endif %}
-</div>
-
-{# ── Evidence, most telling first. A section with nothing in it shrinks
-   to its heading and one line (see .ip-section:has(.empty-state)). ── #}
-{% if stats.category and stats.category | lower == 'attacker' %}
-<div class="table-container alert-section ip-section">
-    <h2>Detected Attack Types</h2>
-    <div class="htmx-container"
-         hx-get="{{ dashboard_path }}/htmx/attacks?page=1&ip_filter={{ ip_address }}"
-         hx-trigger="revealed"
-         hx-swap="innerHTML">
-        <div class="htmx-indicator">Loading...</div>
-    </div>
-</div>
-{% endif %}
-
-<div class="table-container alert-section ip-section">
-    <h2>Captured Credentials</h2>
-    <div class="htmx-container"
-         hx-get="{{ dashboard_path }}/htmx/credentials?ip_filter={{ ip_address }}&page=1"
-         hx-trigger="revealed"
-         hx-swap="innerHTML">
-        <div class="htmx-indicator">Loading...</div>
+        {% else %}
+        <p class="empty-state">No category changes recorded.</p>
+        {% endif %}
     </div>
 </div>
 
-<div class="table-container alert-section ip-section">
-    <h2>Captured Files</h2>
-    <div class="htmx-container"
-         hx-get="{{ dashboard_path }}/htmx/ip-payloads?ip_filter={{ ip_address }}&page=1"
-         hx-trigger="revealed"
-         hx-swap="innerHTML">
-        <div class="htmx-indicator">Loading...</div>
-    </div>
+{# ── Evidence: one tab per kind. Tables load on first open. ── #}
+{% set open_tab = 'requests' %}
+{% set tabs = [
+    ('requests', 'Requests', overview.access_rows),
+    ('evidence', 'Evidence', overview.credentials + overview.files + overview.referers),
+] %}
+<div class="ip-tabs" role="tablist" aria-label="Evidence for this IP" id="{{ uid }}-tabs">
+    {% for key, label, count in tabs %}
+    <button type="button" role="tab" class="ip-tab" id="{{ uid }}-tab-{{ key }}" aria-controls="{{ uid }}-panel-{{ key }}" aria-selected="{{ 'true' if key == open_tab else 'false' }}"{% if key != open_tab %} tabindex="-1"{% endif %}>
+        {{ label }}<span class="ip-tab-count">{{ n(count) }}</span>
+    </button>
+    {% endfor %}
 </div>
 
-{# Referer history – bait-chain tracking #}
-<div class="table-container alert-section ip-section">
-    <h2>Referer History</h2>
-    <div class="htmx-container"
-         hx-get="{{ dashboard_path }}/htmx/ip-referers?ip_filter={{ ip_address }}"
-         hx-trigger="revealed"
-         hx-swap="innerHTML">
-        <div class="htmx-indicator">Loading...</div>
+{% macro panel_attrs(key) %}role="tabpanel" id="{{ uid }}-panel-{{ key }}" aria-labelledby="{{ uid }}-tab-{{ key }}"{% if key != open_tab %} hidden{% endif %}{% endmacro %}
+{% macro lazy(url, trigger) %}<div class="htmx-container" hx-get="{{ dashboard_path }}{{ url }}" hx-trigger="{{ trigger }}" hx-swap="innerHTML"><div class="htmx-indicator">Loading...</div></div>{% endmacro %}
+
+<div class="table-container alert-section ip-section ip-panel access-history-panel" {{ panel_attrs('requests') }}>
+    <div class="ip-filter-bar" id="{{ uid }}-requests-bar" data-ip="{{ ip_address | e }}" data-path="{{ dashboard_path }}">
+        <div class="panel-filters" role="search" aria-label="Filter this IP's requests">
+            <div class="term-mode" role="radiogroup" aria-label="Which requests to show">
+                <button type="button" role="radio" data-view="all" class="active" aria-checked="true">All requests</button>
+                <button type="button" role="radio" data-view="attacks" aria-checked="false"{% if not overview.attacks %} disabled title="No attacks detected for this IP"{% endif %}>Only attacks<span class="ip-tab-count">{{ n(overview.attacks) }}</span></button>
+            </div>
+            <div class="term-mode" role="radiogroup" aria-label="What Enter adds">
+                <button type="button" role="radio" data-mode="only" class="active" aria-checked="true" title="Show only requests containing the text">Only</button>
+                <button type="button" role="radio" data-mode="hide" aria-checked="false" title="Hide requests containing the text">Hide</button>
+            </div>
+            <input type="search" class="panel-filter-input" autocomplete="off" aria-label="Add a filter on path or user agent; press Enter">
+            <select class="select select-sm" data-filter="method" aria-label="HTTP method">
+                <option value="">Any method</option>
+                {% for m in ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'] %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+            </select>
+            <select class="select select-sm ip-filter-select" data-filter="type" data-attacks-only hidden aria-label="Attack type">
+                <option value="">All attack types</option>
+                {% for a in overview.attack_types %}<option value="{{ a.type | e }}">{{ a.type | attack_label | e }} ({{ n(a.count) }})</option>{% endfor %}
+            </select>
+        </div>
+        <div class="attack-facets" data-attacks-only hidden>
+            <div class="row row-wrap gap-2" role="group" aria-label="Severity">
+                {% for band in ['critical', 'high', 'medium', 'low'] %}
+                {% set count = overview.severity_counts[band] %}
+                <button type="button" class="facet-chip" data-severity="{{ band }}" aria-pressed="false"{% if not count %} disabled{% endif %}>
+                    <span class="sev-dot sev-fg-{{ band }}" aria-hidden="true"></span>{{ band | capitalize }}
+                    <span class="facet-count">{{ n(count) }}</span>
+                </button>
+                {% endfor %}
+            </div>
+            {% if overview.rules %}
+            <label class="map-limit-label">
+                <span class="rule-picker-label">Rule</span>
+                <select class="map-limit-select rule-picker ip-filter-select" data-filter="rule">
+                    <option value="">All rules ({{ overview.rules | length }})</option>
+                    {% for r in overview.rules %}<option value="{{ r.rule | e }}"{% if r.band %} class="sev-fg-{{ r.band }}"{% endif %}>{{ r.rule | rule_label | e }} ({{ n(r.count) }})</option>{% endfor %}
+                </select>
+            </label>
+            {% endif %}
+        </div>
+        <div class="row row-wrap ip-filter-pills"></div>
+    </div>
+    <div id="access-history-section">
+        <div class="htmx-container" id="{{ uid }}-requests-box" hx-get="{{ dashboard_path }}/htmx/access-logs?page=1&ip_filter={{ ip_address | urlencode }}" hx-trigger="load" hx-swap="innerHTML"><div class="htmx-indicator">Loading...</div></div>
     </div>
 </div>
-
-<div class="table-container alert-section ip-section" id="access-history-section">
-    <h2>Access History</h2>
-    <div class="htmx-container"
-         hx-get="{{ dashboard_path }}/htmx/access-logs?page=1&ip_filter={{ ip_address }}"
-         hx-trigger="revealed"
-         hx-swap="innerHTML">
-        <div class="htmx-indicator">Loading...</div>
+<div class="ip-panel ip-evidence" {{ panel_attrs('evidence') }}>
+    <div class="table-container alert-section ip-section">
+        <h2>Credentials<span class="ip-tab-count">{{ n(overview.credentials) }}</span></h2>
+        {{ lazy('/htmx/credentials?ip_filter=' ~ ip_address ~ '&page=1', 'krawl-open once') }}
+    </div>
+    <div class="table-container alert-section ip-section ip-evidence-files">
+        <h2>Files<span class="ip-tab-count">{{ n(overview.files) }}</span></h2>
+        {{ lazy('/htmx/ip-payloads?ip_filter=' ~ ip_address ~ '&page=1', 'krawl-open once') }}
+    </div>
+    <div class="table-container alert-section ip-section ip-evidence-referers">
+        <h2>Referers<span class="ip-tab-count">{{ n(overview.referers) }}</span></h2>
+        {{ lazy('/htmx/ip-referers?ip_filter=' ~ ip_address, 'krawl-open once') }}
     </div>
 </div>
 
@@ -289,26 +396,37 @@
 (function() {
     var UID = '{{ uid }}';
 
-    // Radar chart
-    {% if stats.category_scores %}
-    var scores = {{ stats.category_scores | tojson }};
-    var radarEl = document.getElementById(UID + '-radar-chart');
-    if (radarEl && typeof generateRadarChart === 'function') {
-        radarEl.innerHTML = generateRadarChart(scores, 230, true, 'side');
+    // Evidence tabs: first open loads the panel's table.
+    var tablist = document.getElementById(UID + '-tabs');
+    var tabs = tablist ? Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"]')) : [];
+    function panelOf(tab) { return document.getElementById(tab.getAttribute('aria-controls')); }
+    function openTab(tab, focus) {
+        tabs.forEach(function (other) {
+            var active = other === tab;
+            other.setAttribute('aria-selected', active ? 'true' : 'false');
+            other.tabIndex = active ? 0 : -1;
+            panelOf(other).hidden = !active;
+        });
+        if (focus) tab.focus();
+        if (typeof htmx === 'undefined') return;
+        panelOf(tab).querySelectorAll('[hx-trigger="krawl-open once"]').forEach(function (lazy) {
+            htmx.trigger(lazy, 'krawl-open');
+        });
     }
-    {% endif %}
+    tabs.forEach(function (tab, index) {
+        tab.addEventListener('click', function () { openTab(tab); });
+        tab.addEventListener('keydown', function (event) {
+            var step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
+            if (!step) return;
+            event.preventDefault();
+            openTab(tabs[(index + step + tabs.length) % tabs.length], true);
+        });
+    });
 
-    // Attack types chart
-    function initAttackChart() {
-        if (typeof loadAttackTypesChart === 'function') {
-            loadAttackTypesChart(UID + '-attack-types-chart', '{{ ip_address }}', 'bottom');
-        }
-    }
-    if (typeof Chart !== 'undefined') {
-        initAttackChart();
-    } else {
-        document.addEventListener('DOMContentLoaded', initAttackChart);
-    }
+    // Deferred on a full page load, already there when htmx swaps this in.
+    function boot() { initIpRequests(UID); }
+    if (typeof initIpRequests === 'function') boot();
+    else document.addEventListener('DOMContentLoaded', boot);
 
     // Location map
     {% if stats.latitude and stats.longitude %}
@@ -369,11 +487,6 @@
         L.marker([lat, lng], { icon: icon }).addTo(map);
     }
     setTimeout(initMap, 100);
-    {% else %}
-    var mapContainer = document.getElementById(UID + '-ip-map');
-    if (mapContainer) {
-        mapContainer.innerHTML = '<div class="center muted" style="height:100%">Location data not available</div>';
-    }
     {% endif %}
 })();
 </script>

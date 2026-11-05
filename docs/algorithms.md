@@ -60,8 +60,8 @@ The IP becomes an `attacker`.
 - The risky-method ratio is computed only when the row count exceeds
   `http_risky_methods_threshold` (0.1), so in practice always.
 - The `regular_user` "many user agents" flag is never set, so its weight (3) is unused.
-- The stored `uneven_request_timing` metric is the mean gap, not the CV that the
-  threshold compares.
+- The stored `uneven_request_timing` metric is the mean gap. The CV that the
+  threshold compares is stored as `request_timing_cv`.
 - Pruned requests still count in the ratio denominators, and an access-log row
   merged by the old crunch job counts as `hit_count` requests, so neither moves
   a category (see below).

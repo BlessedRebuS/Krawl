@@ -106,7 +106,7 @@ The dashboard is organized in six tabs:
 
 - **Threats**: payloads grouped into campaigns by TLSH fuzzy hash, so a webshell and its edited variants read as one campaign rather than unrelated hits, with an index of every captured file.
 
-- **IP Insight**: in-depth forensic view of a selected IP: geolocation, ISP/ASN info, reputation flags, behavioral timeline, attack type distribution, referer history, captured files and credentials, and full access history.
+- **IP Insight**: in-depth forensic view of a selected IP: geolocation, ISP/ASN info, reputation flags, a behaviour hexagon, ranked attack types, good and bad request counts, average severity, referer history, captured files and credentials, category timeline, and full access history.
 
 ![ipinsight](img/ip_insight_dashboard.png)
 
