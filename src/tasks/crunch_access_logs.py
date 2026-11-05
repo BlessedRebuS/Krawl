@@ -59,19 +59,6 @@ _RAND = re.compile(r"[A-Za-z0-9_-]{8,}")
 _WORDY = re.compile(r"[_-]|[a-z]{5,}")
 
 
-def _is_trap_link(path: str) -> bool:
-    """Krawl homepage link (generative_ai._is_random_link) that also looks random:
-    a digit, or an uppercase letter after the first character. The extra rule
-    keeps /login, /admin, /Jenkinsfile literal; a few all-lowercase links slip
-    through and simply stay uncrunched."""
-    from generative_ai import _is_random_link
-
-    segment = path.lstrip("/")
-    return _is_random_link(path) and (
-        any(c.isdigit() for c in segment) or any(c.isupper() for c in segment[1:])
-    )
-
-
 def _segment_template(segment: str) -> str:
     if not segment or PLACEHOLDER.fullmatch(segment):
         return segment
@@ -99,6 +86,8 @@ def _segment_template(segment: str) -> str:
 def path_template(path: str) -> str:
     """Generic shape of a request path; idempotent."""
     base, sep, query = path.partition("?")
+    from generative_ai import _is_trap_link
+
     if _is_trap_link(base):
         base = "/{link}"
     else:
