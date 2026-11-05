@@ -121,9 +121,9 @@ def _attack_stats(session, ip: str) -> dict[str, Any]:
     severity_counts = dict.fromkeys(("critical", "high", "medium", "low"), 0)
     for attack_type, count in per_type.items():
         if type_severity[attack_type]:
-            severity_counts[detection.severity_band(type_severity[attack_type])] += (
-                count
-            )
+            severity_counts[
+                detection.severity_band(type_severity[attack_type])
+            ] += count
     return {
         "severity_counts": severity_counts,
         "rules": [
