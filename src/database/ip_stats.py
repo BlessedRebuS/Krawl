@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import and_, func, or_, text
 
+from config import ANALYZER_LOOKBACK_DAYS
 from dashboard_cache import pagination
 from logger import get_app_logger
 from models import (
@@ -418,6 +419,29 @@ class IpStatsRepo:
         except Exception as e:
             session.rollback()
             applogger.error(f"Error updating IP stats analysis: {e}")
+        finally:
+            self._db.close_session()
+
+    def get_pruned_state(self, ip: str) -> tuple[int, list[str]]:
+        """Pruned requests still inside the analyzer window, and the IP's last
+        analysed user agents. Reads the database, so never a cached value."""
+        session = self._db.session
+        try:
+            row = (
+                session.query(
+                    IpStats.pruned_requests,
+                    IpStats.pruned_since,
+                    IpStats.analyzed_metrics,
+                )
+                .filter(IpStats.ip == sanitize_ip(ip))
+                .first()
+            )
+            if row is None:
+                return 0, []
+            floor = datetime.now() - timedelta(days=ANALYZER_LOOKBACK_DAYS)
+            active = row.pruned_since is not None and row.pruned_since >= floor
+            previous = (row.analyzed_metrics or {}).get("different_user_agents")
+            return (row.pruned_requests if active else 0), list(previous or [])
         finally:
             self._db.close_session()
 
