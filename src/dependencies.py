@@ -55,6 +55,10 @@ def _format_num(value):
 
 # Detector ids as people say them. Anything unlisted is de-snaked.
 _ATTACK_LABELS = {
+    "xss": "XSS",
+    "log4shell": "Log4Shell",
+    "nosql_injection": "NoSQL injection",
+    "ssti": "SSTI",
     "sql_injection": "SQL injection",
     "command_injection": "Command injection",
     "ldap_injection": "LDAP injection",

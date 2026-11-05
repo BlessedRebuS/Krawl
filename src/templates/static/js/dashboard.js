@@ -2631,7 +2631,7 @@ function resetAdvancedSearch() {
 // reduced motion simply shows them as they are.
 document.addEventListener('DOMContentLoaded', () => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const tiles = [...document.querySelectorAll('.tile-value')];
+    const tiles = [...document.querySelectorAll('.tile-value:not([data-static])')];
     const targets = tiles.map(el => ({ el, text: el.textContent.trim(), n: parseInt(el.textContent.replace(/\D/g, ''), 10) }))
         .filter(t => Number.isFinite(t.n) && t.n > 0);
     if (!targets.length) return;

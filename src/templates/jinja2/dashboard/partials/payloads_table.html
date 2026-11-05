@@ -37,8 +37,8 @@
         {% for item in items %}
         <tr>
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
-            <td class="data data-mono">
-                <a href="#"
+            <td class="data data-mono" title="{{ item.filename | e }}">
+<a href="#"
                    class="data-link"
                    data-filename="{{ item.filename | e }}"
                    @click.prevent="viewPayload({{ item.access_log_id }}, $event.currentTarget.dataset.filename)"
