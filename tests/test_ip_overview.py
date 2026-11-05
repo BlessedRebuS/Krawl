@@ -690,9 +690,10 @@ def test_attack_search_panel_gets_a_longer_timeout():
 def test_other_panels_keep_the_default_timeout():
     from pathlib import Path
 
-    assert "htmx.config.timeout = 30000" in Path(
-        "src/templates/static/js/loading.js"
-    ).read_text()
+    assert (
+        "htmx.config.timeout = 30000"
+        in Path("src/templates/static/js/loading.js").read_text()
+    )
 
 
 def test_expand_overlay_load_uses_its_container_timeout():
@@ -704,3 +705,10 @@ def test_expand_overlay_load_uses_its_container_timeout():
     assert """id="expand-overlay-table" hx-request='{"timeout": 90000}'""" in overlay
     js = Path("src/templates/static/js/dashboard.js").read_text()
     assert "{ source: container, target: container, swap: 'innerHTML' }" in js
+
+
+def test_overview_sends_no_nul_character_to_the_database():
+    # PostgreSQL rejects NUL in a string; SQLite accepts it, so this needs its own check.
+    from pathlib import Path
+
+    assert "\\x00" not in Path("src/ip_overview.py").read_text()
