@@ -50,6 +50,7 @@
                 </div>
                 <div class="htmx-container"
                      hx-get="{{ dashboard_path }}/htmx/top-ips?page=1"
+                     hx-request='{"timeout": 90000}'
                      hx-trigger="load"
                      hx-swap="innerHTML">
                     <div class="htmx-indicator">Loading...</div>
@@ -65,6 +66,7 @@
                 </div>
                 <div class="htmx-container"
                      hx-get="{{ dashboard_path }}/htmx/top-paths?page=1"
+                     hx-request='{"timeout": 90000}'
                      hx-trigger="load"
                      hx-swap="innerHTML">
                     <div class="htmx-indicator">Loading...</div>
@@ -82,6 +84,7 @@
             </div>
             <div class="htmx-container"
                  hx-get="{{ dashboard_path }}/htmx/top-ua?page=1"
+                 hx-request='{"timeout": 90000}'
                  hx-trigger="load"
                  hx-swap="innerHTML">
                 <div class="htmx-indicator">Loading...</div>
@@ -178,6 +181,7 @@
                 </select>
             </div>
             <div id="attacks-htmx-container" class="htmx-container"
+                 hx-request='{"timeout": 90000}'
                  hx-get="{{ dashboard_path }}/htmx/attacks?page=1"
                  hx-trigger="revealed, attacks-reload"
                  data-attacks-panel="attacks"

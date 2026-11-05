@@ -2271,7 +2271,7 @@ function _reloadExpandOverlay() {
     }
 
     container.innerHTML = '<div class="htmx-indicator">Loading...</div>';
-    htmx.ajax('GET', targetUrl, { target: container, swap: 'innerHTML' });
+    htmx.ajax('GET', targetUrl, { source: container, target: container, swap: 'innerHTML' });
 }
 
 // Escape HTML to prevent XSS when inserting into innerHTML

@@ -666,3 +666,41 @@ def test_panes_compact_when_there_are_no_attacks():
     )
     assert 'class="ip-panes no-attacks"' in quiet
     assert 'class="ip-panes"' in _render(overview=_overview())
+
+
+@pytest.mark.parametrize("panel", ["top-ips", "top-paths", "top-ua"])
+def test_whole_table_panels_get_a_longer_timeout(panel):
+    from pathlib import Path
+
+    html = Path("src/templates/jinja2/dashboard/index.html").read_text()
+    start = html.index(f"/htmx/{panel}?page=1")
+    tag = html[html.rfind("<div", 0, start) : html.index(">", start)]
+    assert """hx-request='{"timeout": 90000}'""" in tag
+
+
+def test_attack_search_panel_gets_a_longer_timeout():
+    from pathlib import Path
+
+    html = Path("src/templates/jinja2/dashboard/index.html").read_text()
+    start = html.index('id="attacks-htmx-container"')
+    tag = html[start : html.index(">", start)]
+    assert """hx-request='{"timeout": 90000}'""" in tag
+
+
+def test_other_panels_keep_the_default_timeout():
+    from pathlib import Path
+
+    assert "htmx.config.timeout = 30000" in Path(
+        "src/templates/static/js/loading.js"
+    ).read_text()
+
+
+def test_expand_overlay_load_uses_its_container_timeout():
+    from pathlib import Path
+
+    overlay = Path(
+        "src/templates/jinja2/dashboard/partials/expand_overlay.html"
+    ).read_text()
+    assert """id="expand-overlay-table" hx-request='{"timeout": 90000}'""" in overlay
+    js = Path("src/templates/static/js/dashboard.js").read_text()
+    assert "{ source: container, target: container, swap: 'innerHTML' }" in js
