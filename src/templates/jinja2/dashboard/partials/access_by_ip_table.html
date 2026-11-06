@@ -32,7 +32,6 @@
     </thead>
     <tbody>
         {% for log in items %}
-        {% set crunched = (log.hit_count or 1) > 1 %}
         <tr class="ip-row{% if log.is_suspicious %} access-row-suspicious{% else %} access-row-normal{% endif %}" data-ip="{{ log.ip | e }}">
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
             <td>
@@ -41,7 +40,7 @@
             </td>
             <td>
                 <div class="path-cell-container">
-                    <span class="path-truncated{% if crunched %} path-crunched{% endif %}"{% if crunched and log.path_samples and log.path_samples != log.path %} title="{{ log.path_samples | e }}"{% endif %}>{{ log.path | e }}{% if crunched %} ×{{ log.hit_count }}{% endif %}</span>
+                    <span class="path-truncated">{{ log.path | e }}</span>
                     {% if log.path | length > 30 %}
                     <div class="path-tooltip">{{ log.path | e }}</div>
                     {% endif %}

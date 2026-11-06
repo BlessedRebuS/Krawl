@@ -12,7 +12,7 @@ from sqlalchemy.orm import joinedload
 
 import detection
 from attack_colours import attack_band, colour_map
-from dashboard_cache import pagination
+from dashboard_cache import pagination, table_row_count
 from database.text_filters import access_log_text_clauses
 from logger import get_app_logger
 from models import (
@@ -94,10 +94,6 @@ class AnalyticsRepo:
         finally:
             self._db.close_session()
 
-    # Crunch merges (hit_count > 1) under a template like /{link}: not a real
-    # path. Both columns are in ix_access_logs_path_hits, so scans stay index-only.
-    _NOT_CRUNCH_TEMPLATE = or_(AccessLog.hit_count == 1, ~AccessLog.path.contains("{"))
-
     def get_top_paths(self, limit: int = 10, min_count: int = 1) -> list[tuple]:
         """
         Get top paths by access count.
@@ -111,10 +107,9 @@ class AnalyticsRepo:
         """
         session = self._db.session
         try:
-            count_col = func.sum(AccessLog.hit_count)
+            count_col = func.count()
             results = (
                 session.query(AccessLog.path, count_col.label("count"))
-                .filter(self._NOT_CRUNCH_TEMPLATE)
                 .group_by(AccessLog.path)
                 .having(count_col >= min_count)
                 .order_by(count_col.desc())
@@ -139,7 +134,7 @@ class AnalyticsRepo:
         """
         session = self._db.session
         try:
-            count_col = func.sum(AccessLog.hit_count)
+            count_col = func.count()
             results = (
                 session.query(AccessLog.user_agent, count_col.label("count"))
                 .filter(AccessLog.user_agent.isnot(None), AccessLog.user_agent != "")
@@ -208,7 +203,12 @@ class AnalyticsRepo:
                 count_q = count_q.filter(IpStats.ip.ilike(f"%{search}%"))
             if categories:
                 count_q = count_q.filter(IpStats.category.in_(categories))
-            total_ips = count_q.scalar() or 0
+            # Unfiltered, an exact count walks all of ip_stats on every page.
+            total_ips = (
+                count_q.scalar() or 0
+                if search or categories
+                else table_row_count(session, IpStats)
+            )
 
             if sort_by == "count":
                 order_col = IpStats.total_requests
@@ -267,11 +267,11 @@ class AnalyticsRepo:
         session = self._db.session
         try:
             offset = (page - 1) * page_size
-            count_col = func.sum(AccessLog.hit_count).label("count")
+            count_col = func.count().label("count")
 
             path_expr = AccessLog.path.label("path")
 
-            search_filter = [self._NOT_CRUNCH_TEMPLATE]
+            search_filter = []
             if search:
                 search_filter.append(AccessLog.path.ilike(f"%{search}%"))
             if honeypot_only:
@@ -282,7 +282,7 @@ class AnalyticsRepo:
                 session.query(path_expr)
                 .filter(*search_filter)
                 .group_by(path_expr)
-                .having(func.sum(AccessLog.hit_count) >= min_count)
+                .having(func.count() >= min_count)
                 .subquery()
             )
             total_paths = (
@@ -294,7 +294,7 @@ class AnalyticsRepo:
                 session.query(path_expr, count_col)
                 .filter(*search_filter)
                 .group_by(path_expr)
-                .having(func.sum(AccessLog.hit_count) >= min_count)
+                .having(func.count() >= min_count)
             )
 
             if sort_by == "count":
@@ -344,7 +344,7 @@ class AnalyticsRepo:
         session = self._db.session
         try:
             offset = (page - 1) * page_size
-            count_col = func.sum(AccessLog.hit_count).label("count")
+            count_col = func.count().label("count")
 
             ua_expr = AccessLog.user_agent.label("user_agent")
 
@@ -357,7 +357,7 @@ class AnalyticsRepo:
                 session.query(ua_expr)
                 .filter(*base_filter)
                 .group_by(ua_expr)
-                .having(func.sum(AccessLog.hit_count) >= min_count)
+                .having(func.count() >= min_count)
                 .subquery()
             )
             total_uas = (
@@ -369,7 +369,7 @@ class AnalyticsRepo:
                 session.query(ua_expr, count_col)
                 .filter(*base_filter)
                 .group_by(ua_expr)
-                .having(func.sum(AccessLog.hit_count) >= min_count)
+                .having(func.count() >= min_count)
             )
 
             if sort_by == "count":
@@ -550,20 +550,19 @@ class AnalyticsRepo:
             # ORDER BY timestamp ... LIMIT by walking the index newest-first and
             # stopping early, instead of materializing every match into a temp
             # B-tree to sort (the cost of the previous GROUP BY form).
-            detection_exists = session.query(AttackDetection.id).filter(
-                AttackDetection.access_log_id == AccessLog.id
-            )
+            detection_filters = []
             if attack_type_filter:
-                detection_exists = detection_exists.filter(
+                detection_filters.append(
                     AttackDetection.attack_type == attack_type_filter
                 )
             if rule_filter:
-                detection_exists = detection_exists.filter(_rule_match(rule_filter))
+                detection_filters.append(_rule_match(rule_filter))
             if severity_filter:
                 types = _types_in_bands(session, since, until, severity_filter)
-                detection_exists = detection_exists.filter(
-                    AttackDetection.attack_type.in_(types)
-                )
+                detection_filters.append(AttackDetection.attack_type.in_(types))
+            detection_exists = session.query(AttackDetection.id).filter(
+                AttackDetection.access_log_id == AccessLog.id, *detection_filters
+            )
             match_filters = [detection_exists.exists()]
             if since:
                 match_filters.append(AccessLog.timestamp >= since)
@@ -614,9 +613,14 @@ class AnalyticsRepo:
                     )
                 total_attacks = count_q.scalar() or 0
             else:
+                # From the detections, not EXISTS: the planner seq-scans the
+                # log for a wide period (11s vs 0.1s on the demo).
                 total_attacks = (
-                    session.query(func.count(AccessLog.id))
-                    .filter(*match_filters)
+                    session.query(
+                        func.count(func.distinct(AttackDetection.access_log_id))
+                    )
+                    .join(AccessLog, AccessLog.id == AttackDetection.access_log_id)
+                    .filter(*detection_filters, *match_filters[1:])
                     .scalar()
                     or 0
                 )
@@ -1007,7 +1011,8 @@ class AnalyticsRepo:
                 or 0
             )
             ips = (
-                ip_query.order_by(IpStats.total_requests.desc())
+                # + 0: a rare term must not walk the whole total_requests index.
+                ip_query.order_by((IpStats.total_requests + 0).desc())
                 .offset(offset)
                 .limit(page_size)
                 .all()

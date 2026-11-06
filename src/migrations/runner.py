@@ -12,7 +12,12 @@ from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
 
 from logger import get_app_logger
-from models import BAN_OVERRIDE_WHERE, LIVE_ATTACKERS_WHERE
+from models import (
+    ATTACKER_SORTS,
+    ATTACKERS_WHERE,
+    BAN_OVERRIDE_WHERE,
+    LIVE_ATTACKERS_WHERE,
+)
 
 logger = get_app_logger()
 
@@ -52,11 +57,6 @@ COLUMNS = [
     # Campaign clustering: payload_clusters.id, assigned incrementally at ingest.
     ("captured_payloads", "cluster_id", "VARCHAR(36)"),
     ("attack_detections", "cluster_id", "VARCHAR(36)"),
-    # Left by the removed crunch job: merged non-suspicious requests.
-    ("access_logs", "hit_count", "INTEGER NOT NULL DEFAULT 1"),
-    ("access_logs", "path_samples", "VARCHAR(2048)"),
-    # TIMESTAMP, not DATETIME: PostgreSQL has no DATETIME type.
-    ("ip_stats", "crunched_at", "TIMESTAMP"),
     # prune-uninteresting: DEFAULT TRUE keeps existing rows out of the prune.
     ("access_logs", "is_interesting", "BOOLEAN NOT NULL DEFAULT TRUE"),
     ("ip_stats", "pruned_requests", "INTEGER NOT NULL DEFAULT 0"),
@@ -91,7 +91,6 @@ INDEXES = [
     # Sort columns for paginated attacker / all-IP views.
     ("ix_ip_stats_last_seen", "ip_stats", "last_seen"),
     ("ix_ip_stats_first_seen", "ip_stats", "first_seen"),
-    ("ix_ip_stats_reputation_score", "ip_stats", "reputation_score"),
     # Startup cleanup scans for live bans; the analyzer orders its queue by
     # last analysis time. Both were full scans of ip_stats without these.
     ("ix_ip_stats_ban_timestamp", "ip_stats", "ban_timestamp"),
@@ -135,20 +134,20 @@ AUTOVACUUM = [
 # built CONCURRENTLY by a task since a startup build would block writes.
 ONLINE_INDEXES = [
     (
-        "ix_access_logs_path_hits",
+        "ix_access_logs_path",
         "access_logs",
         "path",
-        "hit_count",
         None,
-        "ix_access_logs_path",
+        None,
+        "ix_access_logs_path_hits",
     ),
     (
-        "ix_access_logs_host_ip",
-        "access_logs",
-        "target_host, ip",
-        "hit_count, timestamp",
-        None,
         "ix_access_logs_target_host",
+        "access_logs",
+        "target_host",
+        None,
+        None,
+        "ix_access_logs_host_ip",
     ),
     (
         "ix_ip_stats_live_attackers",
@@ -167,6 +166,10 @@ ONLINE_INDEXES = [
         "is_interesting = false",
         None,
     ),
+    *(
+        (f"ix_ip_stats_attackers_{c}", "ip_stats", c, None, ATTACKERS_WHERE, None)
+        for c in ATTACKER_SORTS
+    ),
 ]
 
 # Unused (few distinct UAs: seq scan + hash wins) or a prefix of a composite
@@ -178,6 +181,7 @@ DROPPED_INDEXES = [
     "ix_category_history_ip",
     "ix_access_logs_request_metadata_extracted",
     "ix_ip_stats_crunch_queue",
+    "ix_ip_stats_reputation_score",
 ]
 
 _ONLINE_INDEX_LOCK = 0x4B52_4157

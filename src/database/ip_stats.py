@@ -8,7 +8,7 @@ category_history, and tracked_ips tables.
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import and_, func, or_, text
+from sqlalchemy import func, or_, text
 
 from config import get_config, pruned_window
 from dashboard_cache import pagination
@@ -1514,17 +1514,14 @@ class IpStatsRepo:
         """
         session = self._db.session
         try:
-            query = session.query(IpStats.ip).filter(
-                or_(
-                    and_(
-                        IpStats.category.in_(categories),
-                        or_(
-                            IpStats.ban_override.is_(None),
-                            IpStats.ban_override,
-                        ),
-                    ),
-                    IpStats.ban_override,
+            # UNION, not OR: an OR across both seq-scans ip_stats (12s vs 14ms).
+            query = (
+                session.query(IpStats.ip)
+                .filter(
+                    IpStats.category.in_(categories),
+                    IpStats.ban_override.isnot(False),
                 )
+                .union(session.query(IpStats.ip).filter(IpStats.ban_override.is_(True)))
             )
             return [row.ip for row in query.all()]
         finally:

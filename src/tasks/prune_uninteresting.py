@@ -70,24 +70,11 @@ def _bump_counters(session, counts: Counter, now: datetime) -> None:
         )
 
 
-def _prune_batch(session, cutoff: datetime, batch: int, now: datetime) -> int:
-    """Delete one batch and its counters in one transaction. Returns rows deleted."""
+def delete_counted(session, ids: list[int], counts: Counter, now: datetime) -> None:
+    """Delete these logs and add their requests to the IPs' pruned counters, in one
+    transaction."""
     from models import AccessLog, AttackDetection, RequestAsset
 
-    rows = (
-        session.query(AccessLog.id, AccessLog.ip)
-        .filter(
-            AccessLog.is_interesting == False,  # noqa: E712 (matches the partial index)
-            AccessLog.is_suspicious.is_(False),
-            AccessLog.is_honeypot_trigger.is_(False),
-            AccessLog.timestamp < cutoff,
-        )
-        .limit(batch)
-        .all()
-    )
-    if not rows:
-        return 0
-    ids = [row.id for row in rows]
     session.query(AttackDetection).filter(
         AttackDetection.access_log_id.in_(ids)
     ).delete(synchronize_session=False)
@@ -97,9 +84,33 @@ def _prune_batch(session, cutoff: datetime, batch: int, now: datetime) -> int:
     session.query(AccessLog).filter(AccessLog.id.in_(ids)).delete(
         synchronize_session=False
     )
-    _bump_counters(session, Counter(row.ip for row in rows), now)
+    _bump_counters(session, counts, now)
     session.commit()
-    return len(ids)
+
+
+def _prune_batch(session, cutoff: datetime, batch: int, now: datetime) -> int:
+    """Delete one batch and its counters in one transaction. Returns rows deleted."""
+    from models import AccessLog
+
+    rows = (
+        session.query(AccessLog.id, AccessLog.ip)
+        .filter(
+            AccessLog.is_interesting == False,  # noqa: E712 (matches the partial index)
+            AccessLog.is_suspicious.is_(False),
+            AccessLog.is_honeypot_trigger.is_(False),
+            AccessLog.timestamp < cutoff,
+        )
+        # Without it the planner expects LIMIT to stop a seq scan early (24s).
+        .order_by(AccessLog.timestamp)
+        .limit(batch)
+        .all()
+    )
+    if not rows:
+        return 0
+    delete_counted(
+        session, [row.id for row in rows], Counter(row.ip for row in rows), now
+    )
+    return len(rows)
 
 
 def _prune() -> None:

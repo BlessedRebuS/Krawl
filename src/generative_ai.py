@@ -814,7 +814,7 @@ def _is_trap_link(path: str) -> bool:
     """Krawl homepage link (generative_ai._is_random_link) that also looks random:
     a digit, or an uppercase letter after the first character. The extra rule
     keeps /login, /admin, /Jenkinsfile literal; a few all-lowercase links slip
-    through and simply stay uncrunched."""
+    through and simply stay interesting."""
     segment = path.lstrip("/")
     return _is_random_link(path) and (
         any(c.isdigit() for c in segment) or any(c.isupper() for c in segment[1:])

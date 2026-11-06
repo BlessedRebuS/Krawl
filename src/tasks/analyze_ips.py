@@ -105,9 +105,6 @@ def main():
         ip_accesses = db_manager.access_logs.get_list(
             limit=10000, ip_filter=ip, since_minutes=1440 * ANALYZER_LOOKBACK_DAYS
         )  # look back up to 30 days of history for better accuracy
-        # A crunched row stands for hit_count requests; weighting by it keeps
-        # crunching from moving any ratio (docs/algorithms.md).
-        hits = [item.get("hit_count") or 1 for item in ip_accesses]
         if not ip_accesses:
             # No history left in the window (logs aged out or were purged).
             # Clear the flag anyway, or this IP is re-read on every run forever.
@@ -115,12 +112,12 @@ def main():
             continue
         # Pruned rows are GETs outside robots paths: denominators only.
         pruned, previous_user_agents = db_manager.ip_stats.get_pruned_state(ip)
-        total_accesses_count = sum(hits) + pruned
+        total_accesses_count = len(ip_accesses) + pruned
 
         # --------------------- HTTP Methods ---------------------
         method_counts = Counter()
-        for item, n in zip(ip_accesses, hits, strict=True):
-            method_counts[item["method"]] += n
+        for item in ip_accesses:
+            method_counts[item["method"]] += 1
         if total_accesses_count > http_risky_methods_threshold:
             risky_count = sum(
                 method_counts.get(m, 0)
@@ -142,8 +139,8 @@ def main():
             score["regular_user"]["risky_http_methods"] = False
         # --------------------- Robots Violations ---------------------
         violated_robots_count = sum(
-            n
-            for item, n in zip(ip_accesses, hits, strict=True)
+            1
+            for item in ip_accesses
             if any(
                 item["path"].rstrip("/").startswith(disallow)
                 for disallow in disallowed_paths
