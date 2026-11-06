@@ -10,10 +10,11 @@ import os
 import stat
 import sys
 import threading
+from contextvars import ContextVar
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import create_engine, event, insert
+from sqlalchemy import create_engine, event, insert, text
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from database.access_logs import AccessLogRepo
@@ -167,6 +168,16 @@ def get_dropped_rows() -> int:
     return _dropped_rows
 
 
+# Set for dashboard GETs. Tasks stay unlimited: index builds and purges run longer.
+dashboard_read: ContextVar[bool] = ContextVar("dashboard_read", default=False)
+
+
+def limit_dashboard_read(session, transaction, connection) -> None:
+    """Stop a dashboard read at 60s, or it runs on after the browser gives up."""
+    if dashboard_read.get():
+        connection.execute(text("SET LOCAL statement_timeout = '60s'"))
+
+
 class DatabaseManager:
     """
     Singleton database manager for the Krawl honeypot.
@@ -263,6 +274,8 @@ class DatabaseManager:
         # Create session factory with scoped_session for thread safety
         session_factory = sessionmaker(bind=self._engine)
         self._Session = scoped_session(session_factory)
+        if self._engine.dialect.name == "postgresql":
+            event.listen(session_factory, "after_begin", limit_dashboard_read)
 
         # Create all tables
         Base.metadata.create_all(self._engine)
