@@ -25,7 +25,7 @@ class FakeRedis:
         self.store[key] = value
 
 
-def _log(s, ip, host, age, suspicious=False, hits=1):
+def _log(s, ip, host, age, suspicious=False):
     s.add(
         AccessLog(
             ip=ip,
@@ -33,7 +33,6 @@ def _log(s, ip, host, age, suspicious=False, hits=1):
             target_host=host,
             timestamp=NOW - age,
             is_suspicious=suspicious,
-            hit_count=hits,
         )
     )
 
@@ -54,7 +53,8 @@ def test_day_totals_in_redis_and_retention(tmp_path, monkeypatch):
     _log(s, "192.0.2.1", "a.test", timedelta(days=10))
     _log(s, "192.0.2.1", "a.test", timedelta(days=10), suspicious=True)
     _log(s, "192.0.2.2", "a.test", timedelta(days=10))
-    _log(s, "192.0.2.2", "a.test", timedelta(days=1), hits=4)
+    for _ in range(4):
+        _log(s, "192.0.2.2", "a.test", timedelta(days=1))
     _log(s, "192.0.2.3", "b.test", timedelta(minutes=2))
     s.commit()
     db.close_session()

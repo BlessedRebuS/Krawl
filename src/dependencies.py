@@ -16,9 +16,16 @@ from jinja2 import select_autoescape
 
 from attack_colours import attack_badge_class
 from database import DatabaseManager, get_database
+from database.core import dashboard_read
 
 # Shared Jinja2 templates instance
 _templates = None
+
+
+async def limit_dashboard_reads(request: Request) -> None:
+    """Router dependency: asyncio.to_thread carries this into the query's thread."""
+    if request.method == "GET":
+        dashboard_read.set(True)
 
 
 def get_templates() -> Jinja2Templates:

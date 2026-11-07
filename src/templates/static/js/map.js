@@ -628,14 +628,16 @@ async function fetchAndBuildMap(limit, sortBy) {
 
     const pageSize = 5000;
     const maxIps = limit === 'all' ? Infinity : parseInt(limit, 10);
-    let page = 1;
+    // Cursor paging over geolocated IPs only: the rest cannot be plotted.
+    let cursor = '';
 
     while (true) {
         const fetchSize = Math.min(pageSize, maxIps - allIps.length);
         if (fetchSize <= 0) break;
 
+        const after = cursor ? `&cursor=${encodeURIComponent(cursor)}` : '';
         const response = await fetch(
-            `${DASHBOARD_PATH}/api/all-ips?page=${page}&page_size=${fetchSize}&sort_by=${sortBy}&sort_order=desc`,
+            `${DASHBOARD_PATH}/api/all-ips?page_size=${fetchSize}&sort_by=${sortBy}&sort_order=desc&geolocated=1${after}`,
             { cache: 'no-store', headers }
         );
         if (!response.ok) throw new Error('Failed to fetch IPs');
@@ -666,8 +668,8 @@ async function fetchAndBuildMap(limit, sortBy) {
         const overlay = document.getElementById('map-loading-overlay');
         if (overlay) overlay.textContent = `Loading IPs... ${allIps.length} loaded`;
 
-        if (batch.length < fetchSize || page >= data.pagination.total_pages) break;
-        page++;
+        if (batch.length < fetchSize || !data.next_cursor) break;
+        cursor = data.next_cursor;
 
         // Small delay to let the browser paint the batch
         await new Promise(r => setTimeout(r, 80));

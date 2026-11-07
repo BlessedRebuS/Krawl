@@ -4,6 +4,7 @@ Writes (persist_access, flush_access_log_buffer) stay on DatabaseManager
 as hot paths.
 """
 
+import ipaddress
 import json
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
@@ -62,6 +63,14 @@ def _matches_headers(raw_request: str | None, headers: list[tuple[str, str]]) ->
     )
 
 
+def _is_full_ip(value: str) -> bool:
+    try:
+        ipaddress.ip_address(value)
+        return True
+    except ValueError:
+        return False
+
+
 class AccessLogRepo:
     """Reads over access_logs plus honeypot and dashboard aggregations."""
 
@@ -84,18 +93,34 @@ class AccessLogRepo:
     ) -> dict[str, Any]:
         """Search retained requests, including arbitrary captured HTTP headers."""
         headers = headers or []
+        # Hosts are few: name them from the rollup so the host index applies.
+        # Read first, since the rollup closes the session.
+        hosts = (
+            [
+                d["domain"]
+                for d in self.get_domain_rollup()
+                if host.casefold() in d["domain"].casefold()
+            ]
+            if host
+            else []
+        )
+        exact_ip = _is_full_ip(ip)
         session = self._db.session
         try:
             query = session.query(AccessLog)
             for column, value in (
                 (AccessLog.path, path),
-                (AccessLog.target_host, host),
                 (AccessLog.referer, referer),
-                (AccessLog.ip, ip),
                 (AccessLog.user_agent, user_agent),
             ):
                 if value:
                     query = query.filter(column.ilike(f"%{value}%"))
+            if host:
+                query = query.filter(AccessLog.target_host.in_(hosts))
+            if exact_ip:
+                query = query.filter(AccessLog.ip == ip)
+            elif ip:
+                query = query.filter(AccessLog.ip.ilike(f"%{ip}%"))
             if method:
                 query = query.filter(func.upper(AccessLog.method) == method.upper())
             if raw_text:
@@ -136,15 +161,34 @@ class AccessLogRepo:
                 )
             else:
                 filtered = any((path, host, referer, ip, user_agent, method, raw_text))
-                total = (
-                    query.count() if filtered else table_row_count(session, AccessLog)
-                )
-                results = (
-                    query.order_by(AccessLog.timestamp.desc(), AccessLog.id.desc())
-                    .offset((page - 1) * page_size)
-                    .limit(page_size)
-                    .all()
-                )
+                unindexed = path or referer or user_agent or raw_text
+                unindexed = unindexed or (ip and not exact_ip)
+                ts = AccessLog.timestamp
+                if unindexed:
+                    # A substring has no index: one scan returns the page and,
+                    # through the window, the total. coalesce keeps the planner
+                    # off the timestamp index, which a rare match walks end to end.
+                    rows = (
+                        query.add_columns(func.count().over())
+                        .order_by(func.coalesce(ts, ts).desc(), AccessLog.id.desc())
+                        .offset((page - 1) * page_size)
+                        .limit(page_size)
+                        .all()
+                    )
+                    results = [row[0] for row in rows]
+                    total = rows[0][1] if rows else (query.count() if page > 1 else 0)
+                else:
+                    total = (
+                        query.count()
+                        if filtered
+                        else table_row_count(session, AccessLog)
+                    )
+                    results = (
+                        query.order_by(ts.desc(), AccessLog.id.desc())
+                        .offset((page - 1) * page_size)
+                        .limit(page_size)
+                        .all()
+                    )
             return {
                 "requests": [
                     {
@@ -253,7 +297,7 @@ class AccessLogRepo:
         try:
             q = session.query(
                 AccessLog.target_host,
-                func.sum(AccessLog.hit_count),
+                func.count(),
                 func.count(distinct(AccessLog.ip)),
                 func.min(AccessLog.timestamp),
                 func.max(AccessLog.timestamp),
@@ -531,8 +575,6 @@ class AccessLogRepo:
                         "is_honeypot_trigger": log.is_honeypot_trigger,
                         "timestamp": log.timestamp.isoformat(),
                         "attack_types": [d.attack_type for d in log.attack_detections],
-                        "hit_count": log.hit_count,
-                        "path_samples": log.path_samples,
                     }
                     for log in logs
                 ],
@@ -596,8 +638,6 @@ class AccessLogRepo:
                     "is_honeypot_trigger": log.is_honeypot_trigger,
                     "timestamp": log.timestamp.isoformat(),
                     "attack_types": [d.attack_type for d in log.attack_detections],
-                    "hit_count": log.hit_count,
-                    "path_samples": log.path_samples,
                 }
                 for log in logs
             ]
@@ -633,8 +673,6 @@ class AccessLogRepo:
                     "user_agent": log.user_agent,
                     "timestamp": log.timestamp.isoformat(),
                     "attack_types": [d.attack_type for d in log.attack_detections],
-                    "hit_count": log.hit_count,
-                    "path_samples": log.path_samples,
                 }
                 for log in logs
             ]

@@ -13,13 +13,14 @@ import time
 from contextlib import asynccontextmanager, contextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, Request, Response
+from fastapi import Depends, FastAPI, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from config import get_config
 from dashboard_cache import initialize_cache
 from database import get_database, initialize_database
+from dependencies import limit_dashboard_reads
 from detection import initialize_detection
 from logger import get_access_logger, get_app_logger, initialize_logging
 from routes.dashboard import KRAWL_VERSION
@@ -427,12 +428,21 @@ def create_app() -> FastAPI:
     from routes.htmx import router as htmx_router
 
     # Dashboard/API/HTMX routes (prefixed with secret path, before honeypot catch-all)
+    read_limit = [Depends(limit_dashboard_reads)]
     application.include_router(
-        dashboard_router, prefix=dashboard_prefix, include_in_schema=False
+        dashboard_router,
+        prefix=dashboard_prefix,
+        include_in_schema=False,
+        dependencies=read_limit,
     )
-    application.include_router(api_router, prefix=dashboard_prefix)
     application.include_router(
-        htmx_router, prefix=dashboard_prefix, include_in_schema=False
+        api_router, prefix=dashboard_prefix, dependencies=read_limit
+    )
+    application.include_router(
+        htmx_router,
+        prefix=dashboard_prefix,
+        include_in_schema=False,
+        dependencies=read_limit,
     )
 
     # Public banlist route (before honeypot catch-all, after dashboard)
