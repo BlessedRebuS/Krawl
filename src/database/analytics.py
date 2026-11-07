@@ -12,7 +12,7 @@ from sqlalchemy.orm import joinedload
 
 import detection
 from attack_colours import attack_band, colour_map
-from dashboard_cache import pagination, table_row_count
+from dashboard_cache import pagination, table_row_count, walks_cheaply
 from database.text_filters import access_log_text_clauses
 from logger import get_app_logger
 from models import (
@@ -636,6 +636,16 @@ class AnalyticsRepo:
             else:
                 order_col = AccessLog.timestamp
             order_expr = order_col.desc() if sort_order == "desc" else order_col.asc()
+            # A filtered view is few rows reached from the detections, and its
+            # matches can all be old: coalesce keeps it off the sort index.
+            may_walk = not detection_filters and len(match_filters) == 1
+            page_col = (
+                order_col
+                if may_walk
+                and walks_cheaply(session, AccessLog, total_attacks, offset + page_size)
+                else func.coalesce(order_col, order_col)
+            )
+            page_expr = page_col.desc() if sort_order == "desc" else page_col.asc()
 
             # Two-step load: page the matching ids first (index-driven, no
             # collection join), then eager-load attack_detections for just that
@@ -644,7 +654,7 @@ class AnalyticsRepo:
             paginated_ids = (
                 session.query(AccessLog.id)
                 .filter(*match_filters)
-                .order_by(order_expr)
+                .order_by(page_expr)
                 .offset(offset)
                 .limit(page_size)
                 .subquery()

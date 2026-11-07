@@ -20,6 +20,7 @@ from dashboard_cache import (
     pagination,
     set_cached_table,
     table_row_count,
+    walks_cheaply,
 )
 from database.text_filters import access_log_text_clauses
 from logger import get_app_logger
@@ -164,13 +165,16 @@ class AccessLogRepo:
                 total = (
                     query.count() if filtered else table_row_count(session, AccessLog)
                 )
-                # A rare substring makes the planner walk the timestamp index
-                # over the whole log (13+ min on the demo); coalesce stops that,
-                # leaving one scan the count above already paid for.
+                # coalesce keeps the planner off the timestamp index.
                 unindexed = path or referer or user_agent or raw_text
                 unindexed = unindexed or (ip and not exact_ip)
                 ts = AccessLog.timestamp
-                sort_key = func.coalesce(ts, ts) if unindexed else ts
+                sort_key = (
+                    func.coalesce(ts, ts)
+                    if unindexed
+                    and not walks_cheaply(session, AccessLog, total, page * page_size)
+                    else ts
+                )
                 results = (
                     query.order_by(sort_key.desc(), AccessLog.id.desc())
                     .offset((page - 1) * page_size)

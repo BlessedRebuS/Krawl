@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from database import get_database, initialize_database
-from models import AccessLog, IpStats
+from models import AccessLog, AttackDetection, IpStats
 
 
 def _seed(db):
@@ -113,3 +113,34 @@ def test_request_search_narrows_by_ip_and_host(tmp_path):
     assert ips(host="GITEA") == ["45.1.2.3"]
     assert ips(host="nope") == []
     assert ips(host="demo", ip="45.1") == ["145.1.2.3", "45.1.2.30"]
+
+
+def test_sorted_pages_keep_their_order_without_the_index_walk(tmp_path, monkeypatch):
+    import dashboard_cache
+
+    initialize_database(str(tmp_path / "walk.db"))
+    db = get_database()
+    base = datetime(2026, 11, 1)
+    for i in range(3):
+        log = AccessLog(
+            ip="192.0.2.1", path=f"/p{i}", timestamp=base + timedelta(hours=i)
+        )
+        log.attack_detections.append(AttackDetection(attack_type="sqli"))
+        db.session.add(log)
+    db.session.commit()
+    db.close_session()
+
+    def pages():
+        searched = db.access_logs.search_requests(path="/p", page_size=2)
+        attacks = db.analytics.get_attack_types_paginated(page_size=2, search="/p")
+        return [r["path"] for r in searched["requests"]], [
+            a["path"] for a in attacks["attacks"]
+        ]
+
+    assert dashboard_cache.walks_cheaply(db.session, AccessLog, 3, 2)
+    db.close_session()
+    walked = pages()
+    monkeypatch.setattr(dashboard_cache, "WALK_LIMIT", 0)
+    assert not dashboard_cache.walks_cheaply(db.session, AccessLog, 3, 2)
+    db.close_session()
+    assert pages() == walked == (["/p2", "/p1"], ["/p2", "/p1"])
