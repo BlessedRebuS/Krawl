@@ -18,7 +18,6 @@ from dashboard_cache import (
     pagination,
     set_cached_table,
     table_row_count,
-    walks_cheaply,
 )
 from database.text_filters import access_log_text_clauses
 from logger import get_app_logger
@@ -612,21 +611,18 @@ class AnalyticsRepo:
                 and not detection_filters
                 and len(match_filters) == 1
             )
-            page_col = (
-                order_col
-                if may_walk
-                and walks_cheaply(session, AccessLog, total_attacks, offset + page_size)
-                else func.coalesce(order_col, order_col)
-            )
+            page_col = order_col if may_walk else func.coalesce(order_col, order_col)
             page_expr = page_col.desc() if sort_order == "desc" else page_col.asc()
 
             # Two-step load: page the matching ids first (index-driven, no
             # collection join), then eager-load attack_detections for just that
             # page. This keeps joinedload + LIMIT correct (limiting a collection
             # join directly can truncate the eager-loaded rows).
+            # Every attack log is suspicious (tracker), so this walks the small
+            # ix_access_logs_suspicious_timestamp instead of all of access_logs.
             paginated_ids = (
                 session.query(AccessLog.id)
-                .filter(*match_filters)
+                .filter(AccessLog.is_suspicious, *match_filters)
                 .order_by(page_expr)
                 .offset(offset)
                 .limit(page_size)

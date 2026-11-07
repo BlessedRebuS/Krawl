@@ -123,7 +123,10 @@ def test_sorted_pages_keep_their_order_without_the_index_walk(tmp_path, monkeypa
     base = datetime(2026, 11, 1)
     for i in range(3):
         log = AccessLog(
-            ip="192.0.2.1", path=f"/p{i}", timestamp=base + timedelta(hours=i)
+            ip="192.0.2.1",
+            path=f"/p{i}",
+            timestamp=base + timedelta(hours=i),
+            is_suspicious=True,
         )
         log.attack_detections.append(AttackDetection(attack_type="sqli"))
         db.session.add(log)

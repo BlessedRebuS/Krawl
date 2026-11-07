@@ -98,7 +98,13 @@ class AccessLog(Base):
     # Indexes for common queries
     __table_args__ = (
         Index("ix_access_logs_ip_timestamp", "ip", "timestamp"),
-        Index("ix_access_logs_is_suspicious", "is_suspicious"),
+        # Attacks and suspicious tables walk this newest-first; keep in sync with ONLINE_INDEXES.
+        Index(
+            "ix_access_logs_suspicious_timestamp",
+            "timestamp",
+            postgresql_where=text("is_suspicious"),
+            sqlite_where=text("is_suspicious"),
+        ),
         Index("ix_access_logs_is_honeypot_trigger", "is_honeypot_trigger"),
         # Keep in sync with ONLINE_INDEXES.
         Index("ix_access_logs_path", "path"),

@@ -169,6 +169,14 @@ ONLINE_INDEXES = [
         "is_interesting = false",
         None,
     ),
+    (
+        "ix_access_logs_suspicious_timestamp",
+        "access_logs",
+        "timestamp",
+        None,
+        "is_suspicious",
+        "ix_access_logs_is_suspicious",
+    ),
     *(
         (f"ix_ip_stats_attackers_{c}", "ip_stats", c, None, ATTACKERS_WHERE, None)
         for c in ATTACKER_SORTS
