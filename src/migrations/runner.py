@@ -19,6 +19,7 @@ from models import (
     GEO_SORTS,
     GEO_WHERE,
     LIVE_ATTACKERS_WHERE,
+    MAP_COLUMNS,
 )
 
 logger = get_app_logger()
@@ -173,7 +174,14 @@ ONLINE_INDEXES = [
         for c in ATTACKER_SORTS
     ),
     *(
-        (f"ix_ip_stats_geo_{c}", "ip_stats", f"{c}, ip", None, GEO_WHERE, None)
+        (
+            f"ix_ip_stats_map_{c}",
+            "ip_stats",
+            f"{c}, ip",
+            ", ".join(m for m in MAP_COLUMNS if m != c),
+            GEO_WHERE,
+            f"ix_ip_stats_geo_{c}",
+        )
         for c in GEO_SORTS
     ),
 ]

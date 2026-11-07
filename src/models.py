@@ -231,9 +231,25 @@ BAN_OVERRIDE_WHERE = "ban_override IS TRUE"
 ATTACKERS_WHERE = "category = 'attacker'"
 ATTACKER_SORTS = ("total_requests", "first_seen", "last_seen")
 
-# The map pages geolocated IPs by these sorts; keep in sync with ONLINE_INDEXES.
+# The map pages geolocated IPs by these sorts. Its columns ride in the index, so
+# a full map load never reads the ip_stats heap, which on a big install pushed
+# everything else out of the cache. Keep in sync with ONLINE_INDEXES.
 GEO_WHERE = "latitude IS NOT NULL AND longitude IS NOT NULL"
 GEO_SORTS = ("total_requests", "last_seen")
+MAP_COLUMNS = (
+    "total_requests",
+    "first_seen",
+    "last_seen",
+    "country_code",
+    "city",
+    "latitude",
+    "longitude",
+    "asn",
+    "asn_org",
+    "reputation_score",
+    "reputation_source",
+    "category",
+)
 
 
 class IpStats(Base):
@@ -362,9 +378,10 @@ class IpStats(Base):
         ),
         *(
             Index(
-                f"ix_ip_stats_geo_{column}",
+                f"ix_ip_stats_map_{column}",
                 column,
                 "ip",
+                postgresql_include=[c for c in MAP_COLUMNS if c != column],
                 postgresql_where=text(GEO_WHERE),
                 sqlite_where=text(GEO_WHERE),
             )
