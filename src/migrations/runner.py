@@ -16,6 +16,8 @@ from models import (
     ATTACKER_SORTS,
     ATTACKERS_WHERE,
     BAN_OVERRIDE_WHERE,
+    GEO_SORTS,
+    GEO_WHERE,
     LIVE_ATTACKERS_WHERE,
 )
 
@@ -169,6 +171,10 @@ ONLINE_INDEXES = [
     *(
         (f"ix_ip_stats_attackers_{c}", "ip_stats", c, None, ATTACKERS_WHERE, None)
         for c in ATTACKER_SORTS
+    ),
+    *(
+        (f"ix_ip_stats_geo_{c}", "ip_stats", f"{c}, ip", None, GEO_WHERE, None)
+        for c in GEO_SORTS
     ),
 ]
 

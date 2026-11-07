@@ -20,7 +20,6 @@ from dashboard_cache import (
     pagination,
     set_cached_table,
     table_row_count,
-    walks_cheaply,
 )
 from database.text_filters import access_log_text_clauses
 from logger import get_app_logger
@@ -162,25 +161,34 @@ class AccessLogRepo:
                 )
             else:
                 filtered = any((path, host, referer, ip, user_agent, method, raw_text))
-                total = (
-                    query.count() if filtered else table_row_count(session, AccessLog)
-                )
-                # coalesce keeps the planner off the timestamp index.
                 unindexed = path or referer or user_agent or raw_text
                 unindexed = unindexed or (ip and not exact_ip)
                 ts = AccessLog.timestamp
-                sort_key = (
-                    func.coalesce(ts, ts)
-                    if unindexed
-                    and not walks_cheaply(session, AccessLog, total, page * page_size)
-                    else ts
-                )
-                results = (
-                    query.order_by(sort_key.desc(), AccessLog.id.desc())
-                    .offset((page - 1) * page_size)
-                    .limit(page_size)
-                    .all()
-                )
+                if unindexed:
+                    # A substring has no index: one scan returns the page and,
+                    # through the window, the total. coalesce keeps the planner
+                    # off the timestamp index, which a rare match walks end to end.
+                    rows = (
+                        query.add_columns(func.count().over())
+                        .order_by(func.coalesce(ts, ts).desc(), AccessLog.id.desc())
+                        .offset((page - 1) * page_size)
+                        .limit(page_size)
+                        .all()
+                    )
+                    results = [row[0] for row in rows]
+                    total = rows[0][1] if rows else (query.count() if page > 1 else 0)
+                else:
+                    total = (
+                        query.count()
+                        if filtered
+                        else table_row_count(session, AccessLog)
+                    )
+                    results = (
+                        query.order_by(ts.desc(), AccessLog.id.desc())
+                        .offset((page - 1) * page_size)
+                        .limit(page_size)
+                        .all()
+                    )
             return {
                 "requests": [
                     {

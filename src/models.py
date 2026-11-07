@@ -231,6 +231,10 @@ BAN_OVERRIDE_WHERE = "ban_override IS TRUE"
 ATTACKERS_WHERE = "category = 'attacker'"
 ATTACKER_SORTS = ("total_requests", "first_seen", "last_seen")
 
+# The map pages geolocated IPs by these sorts; keep in sync with ONLINE_INDEXES.
+GEO_WHERE = "latitude IS NOT NULL AND longitude IS NOT NULL"
+GEO_SORTS = ("total_requests", "last_seen")
+
 
 class IpStats(Base):
     """
@@ -355,6 +359,16 @@ class IpStats(Base):
                 sqlite_where=text(ATTACKERS_WHERE),
             )
             for column in ATTACKER_SORTS
+        ),
+        *(
+            Index(
+                f"ix_ip_stats_geo_{column}",
+                column,
+                "ip",
+                postgresql_where=text(GEO_WHERE),
+                sqlite_where=text(GEO_WHERE),
+            )
+            for column in GEO_SORTS
         ),
     )
 

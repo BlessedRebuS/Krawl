@@ -34,6 +34,7 @@ PRUNE_SAFE_KEYS = (
     "credentials:",
     "honeypot:",
     "domains:rollup",
+    "user_agents:rollup",
 )
 _PRUNE_LOCK = 0x4B52_5052
 

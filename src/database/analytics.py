@@ -12,7 +12,14 @@ from sqlalchemy.orm import joinedload
 
 import detection
 from attack_colours import attack_band, colour_map
-from dashboard_cache import pagination, table_row_count, walks_cheaply
+from dashboard_cache import (
+    SLOW_TABLE_TTL,
+    get_cached_table,
+    pagination,
+    set_cached_table,
+    table_row_count,
+    walks_cheaply,
+)
 from database.text_filters import access_log_text_clauses
 from logger import get_app_logger
 from models import (
@@ -61,6 +68,10 @@ applogger = get_app_logger()
 
 # Newest detections a text-filtered attack count looks at.
 COUNT_WINDOW = 5000
+
+
+# Cached by user_agent_counts(); the warmup refreshes it on its slow run.
+UA_ROLLUP_KEY = "user_agents:rollup"
 
 
 class AnalyticsRepo:
@@ -121,33 +132,31 @@ class AnalyticsRepo:
         finally:
             self._db.close_session()
 
+    def user_agent_counts(self, refresh: bool = False) -> list[list]:
+        """Every user agent with its request count. Few distinct values over many
+        rows, so one cached scan serves every sort, search and page."""
+        rows = None if refresh else get_cached_table(UA_ROLLUP_KEY)
+        if rows is None:
+            session = self._db.session
+            try:
+                rows = [
+                    [ua, n]
+                    for ua, n in session.query(AccessLog.user_agent, func.count())
+                    .filter(
+                        AccessLog.user_agent.isnot(None), AccessLog.user_agent != ""
+                    )
+                    .group_by(AccessLog.user_agent)
+                ]
+            finally:
+                self._db.close_session()
+            set_cached_table(UA_ROLLUP_KEY, rows, ttl=SLOW_TABLE_TTL)
+        return rows
+
     def get_top_user_agents(self, limit: int = 10, min_count: int = 1) -> list[tuple]:
-        """
-        Get top user agents by access count.
-
-        Args:
-            limit: Maximum number of results
-            min_count: Minimum access count threshold (user agents below this are excluded)
-
-        Returns:
-            List of (user_agent, count) tuples ordered by count descending
-        """
-        session = self._db.session
-        try:
-            count_col = func.count()
-            results = (
-                session.query(AccessLog.user_agent, count_col.label("count"))
-                .filter(AccessLog.user_agent.isnot(None), AccessLog.user_agent != "")
-                .group_by(AccessLog.user_agent)
-                .having(count_col >= min_count)
-                .order_by(count_col.desc())
-                .limit(limit)
-                .all()
-            )
-
-            return [(row.user_agent, row.count) for row in results]
-        finally:
-            self._db.close_session()
+        """Top user agents as (user_agent, count), most requests first."""
+        rows = [r for r in self.user_agent_counts() if r[1] >= min_count]
+        rows.sort(key=lambda r: (-r[1], r[0]))
+        return [(ua, n) for ua, n in rows[:limit]]
 
     def get_top_ips_paginated(
         self,
@@ -204,11 +213,16 @@ class AnalyticsRepo:
             if categories:
                 count_q = count_q.filter(IpStats.category.in_(categories))
             # Unfiltered, an exact count walks all of ip_stats on every page.
-            total_ips = (
-                count_q.scalar() or 0
-                if search or categories
-                else table_row_count(session, IpStats)
-            )
+            if search:
+                total_ips = count_q.scalar() or 0
+            elif categories:
+                count_key = f"top_ips:count:{','.join(sorted(categories))}"
+                total_ips = get_cached_table(count_key)
+                if total_ips is None:  # 0 is a valid count
+                    total_ips = count_q.scalar() or 0
+                    set_cached_table(count_key, total_ips)
+            else:
+                total_ips = table_row_count(session, IpStats)
 
             if sort_by == "count":
                 order_col = IpStats.total_requests
@@ -324,72 +338,26 @@ class AnalyticsRepo:
         search: str | None = None,
         min_count: int = 1,
     ) -> dict[str, Any]:
-        """
-        Retrieve paginated list of top user agents by access count.
-
-        Groups access logs by user agent with SQL-level sorting and
-        index and avoid a full table scan.
-
-        Args:
-            page: Page number (1-indexed)
-            page_size: Number of results per page
-            sort_by: Field to sort by (count or user_agent)
-            sort_order: Sort order (asc or desc)
-            search: Optional search string to filter user agents
-            min_count: Minimum access count threshold (user agents below this are excluded)
-
-        Returns:
-            Dictionary with user agents list and pagination info
-        """
-        session = self._db.session
-        try:
-            offset = (page - 1) * page_size
-            count_col = func.count().label("count")
-
-            ua_expr = AccessLog.user_agent.label("user_agent")
-
-            base_filter = [AccessLog.user_agent.isnot(None), AccessLog.user_agent != ""]
-            if search:
-                base_filter.append(AccessLog.user_agent.ilike(f"%{search}%"))
-
-            # Count distinct user agents that meet the min_count threshold
-            count_subq = (
-                session.query(ua_expr)
-                .filter(*base_filter)
-                .group_by(ua_expr)
-                .having(func.count() >= min_count)
-                .subquery()
-            )
-            total_uas = (
-                session.query(func.count()).select_from(count_subq).scalar() or 0
-            )
-
-            # Build query with SQL-level sorting and pagination
-            query = (
-                session.query(ua_expr, count_col)
-                .filter(*base_filter)
-                .group_by(ua_expr)
-                .having(func.count() >= min_count)
-            )
-
-            if sort_by == "count":
-                order_expr = (
-                    count_col.desc() if sort_order == "desc" else count_col.asc()
-                )
-            else:
-                order_expr = ua_expr.desc() if sort_order == "desc" else ua_expr.asc()
-
-            results = query.order_by(order_expr).offset(offset).limit(page_size).all()
-
-            return {
-                "user_agents": [
-                    {"user_agent": row.user_agent, "count": row.count}
-                    for row in results
-                ],
-                "pagination": pagination(page, page_size, int(total_uas)),
-            }
-        finally:
-            self._db.close_session()
+        """A page of user agents by count or name, filtered by a substring."""
+        needle = (search or "").casefold()
+        rows = [
+            r
+            for r in self.user_agent_counts()
+            if r[1] >= min_count and needle in r[0].casefold()
+        ]
+        rows.sort(key=lambda r: r[0])
+        if sort_by == "count":
+            rows.sort(key=lambda r: r[1], reverse=sort_order == "desc")
+        elif sort_order == "desc":
+            rows.reverse()
+        start = (page - 1) * page_size
+        return {
+            "user_agents": [
+                {"user_agent": ua, "count": n}
+                for ua, n in rows[start : start + page_size]
+            ],
+            "pagination": pagination(page, page_size, len(rows)),
+        }
 
     def get_attackers_in_period(
         self,
@@ -638,7 +606,12 @@ class AnalyticsRepo:
             order_expr = order_col.desc() if sort_order == "desc" else order_col.asc()
             # A filtered view is few rows reached from the detections, and its
             # matches can all be old: coalesce keeps it off the sort index.
-            may_walk = not detection_filters and len(match_filters) == 1
+            # Only the timestamp walk meets recent attacks early (ip: 24s).
+            may_walk = (
+                sort_by == "timestamp"
+                and not detection_filters
+                and len(match_filters) == 1
+            )
             page_col = (
                 order_col
                 if may_walk
@@ -1004,29 +977,34 @@ class AnalyticsRepo:
                 )
             )
 
-            total_ips = (
-                session.query(func.count(IpStats.ip))
-                .filter(
-                    or_(
-                        IpStats.ip.like(like_q),
-                        IpStats.city.like(like_q),
-                        IpStats.country.like(like_q),
-                        IpStats.country_code.like(like_q),
-                        IpStats.isp.like(like_q),
-                        IpStats.asn_org.like(like_q),
-                        IpStats.reverse.like(like_q),
-                    )
-                )
-                .scalar()
-                or 0
-            )
-            ips = (
-                # + 0: a rare term must not walk the whole total_requests index.
-                ip_query.order_by((IpStats.total_requests + 0).desc())
+            ip_rows = (
+                # + 0: a rare term must not walk the whole total_requests index;
+                # the window count saves a second scan of ip_stats.
+                ip_query.add_columns(func.count().over())
+                .order_by((IpStats.total_requests + 0).desc())
                 .offset(offset)
                 .limit(page_size)
                 .all()
             )
+            ips = [row[0] for row in ip_rows]
+            total_ips = ip_rows[0][1] if ip_rows else 0
+            if not ip_rows and page > 1:
+                total_ips = (
+                    session.query(func.count(IpStats.ip))
+                    .filter(
+                        or_(
+                            IpStats.ip.like(like_q),
+                            IpStats.city.like(like_q),
+                            IpStats.country.like(like_q),
+                            IpStats.country_code.like(like_q),
+                            IpStats.isp.like(like_q),
+                            IpStats.asn_org.like(like_q),
+                            IpStats.reverse.like(like_q),
+                        )
+                    )
+                    .scalar()
+                    or 0
+                )
 
             ip_results = [
                 {
