@@ -393,7 +393,9 @@ async def all_ips(
             cursor=cursor or None,
             geolocated=geolocated,
         )
-        set_cached_table(cache_key, result)
+        # Cursor pages are cheap index reads; caching a full map load (~2MB/page) floods Redis.
+        if not cursor:
+            set_cached_table(cache_key, result)
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
         get_app_logger().error(f"Error fetching all IPs: {e}")

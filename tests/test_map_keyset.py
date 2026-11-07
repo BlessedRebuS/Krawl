@@ -69,3 +69,36 @@ def test_user_agent_pages_sort_and_search(tmp_path):
     assert uas(sort_by="user_agent", sort_order="asc")[0] == ("Mozilla/5.0", 2)
     assert uas(search="MOZ") == [("Mozilla/5.0", 2)]
     assert uas(min_count=2) == [("curl/8", 3), ("Mozilla/5.0", 2)]
+
+
+def test_cursor_pages_skip_the_table_cache(monkeypatch):
+    """A full map load must not land ~2MB per page in Redis."""
+    import asyncio
+
+    from routes import api
+
+    stored = []
+    fake_db = type("D", (), {})()
+    fake_db.ip_stats = type(
+        "S", (), {"get_all_ips_paginated": staticmethod(lambda **kw: {"ips": []})}
+    )()
+    monkeypatch.setattr(api, "get_db", lambda: fake_db)
+    monkeypatch.setattr(api, "get_cached_table", lambda key: None)
+    monkeypatch.setattr(api, "set_cached_table", lambda key, value: stored.append(key))
+
+    def call(cursor):
+        asyncio.run(
+            api.all_ips(
+                None,
+                page=1,
+                page_size=5000,
+                sort_by="last_seen",
+                sort_order="desc",
+                cursor=cursor,
+                geolocated=True,
+            )
+        )
+
+    call("")
+    call("2026-11-06T11:40:22|1.2.3.4")
+    assert len(stored) == 1 and "desc::True" in stored[0]
