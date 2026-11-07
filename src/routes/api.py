@@ -368,12 +368,16 @@ async def all_ips(
     page_size: int = Query(25),
     sort_by: str = Query("total_requests"),
     sort_order: str = Query("desc"),
+    cursor: str = Query(""),
+    geolocated: bool = Query(False),
 ):
     page = max(1, page)
     page_size = min(max(1, page_size), 10000)
 
     # Check table cache for any paginated request
-    cache_key = f"all_ips:{page}:{page_size}:{sort_by}:{sort_order}"
+    cache_key = (
+        f"all_ips:{page}:{page_size}:{sort_by}:{sort_order}:{cursor}:{geolocated}"
+    )
     cached = get_cached_table(cache_key)
     if cached:
         return JSONResponse(content=cached, headers=_no_cache_headers())
@@ -386,6 +390,8 @@ async def all_ips(
             page_size=page_size,
             sort_by=sort_by,
             sort_order=sort_order,
+            cursor=cursor or None,
+            geolocated=geolocated,
         )
         set_cached_table(cache_key, result)
         return JSONResponse(content=result, headers=_no_cache_headers())

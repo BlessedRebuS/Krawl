@@ -165,12 +165,11 @@ def build_ip_overview(ip: str, stats: dict[str, Any]) -> dict[str, Any]:
     db = get_database()
     session = db.session
     try:
-        hits = func.coalesce(AccessLog.hit_count, 1)
         logs = (
             session.query(
                 func.count(),
-                func.sum(case((AccessLog.is_suspicious, hits), else_=0)),
-                func.sum(case((AccessLog.is_honeypot_trigger, hits), else_=0)),
+                func.sum(case((AccessLog.is_suspicious, 1), else_=0)),
+                func.sum(case((AccessLog.is_honeypot_trigger, 1), else_=0)),
                 func.count(
                     distinct(case((AccessLog.is_honeypot_trigger, AccessLog.path)))
                 ),

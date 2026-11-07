@@ -126,6 +126,11 @@ def main():
             return bulk
 
         slow_run = int(time.time() // 300) % 6 == 0
+        if slow_run:
+            _timed(
+                "user_agent_counts",
+                lambda: db.analytics.user_agent_counts(refresh=True),
+            )
 
         # --- Server-rendered data (stats cards + suspicious table) ---
         stats = _timed("get_dashboard_counts", db.access_logs.get_dashboard_counts)

@@ -62,8 +62,7 @@ The IP becomes an `attacker`.
 - The `regular_user` "many user agents" flag is never set, so its weight (3) is unused.
 - The stored `uneven_request_timing` metric is the mean gap. The CV that the
   threshold compares is stored as `request_timing_cv`.
-- Pruned requests still count in the ratio denominators, and an access-log row
-  merged by the old crunch job counts as `hit_count` requests, so neither moves
+- Pruned requests still count in the ratio denominators, so pruning doesn't move
   a category (see below).
 
 ## Pruning uninteresting requests
@@ -117,6 +116,6 @@ stay counted past 30 days. Rows with detections are never pruned.
 - Top Paths loses mostly random trap links.
 - All-time totals are unaffected: they come from `ip_stats.total_requests`.
 
-**Older crunched rows.** An earlier job merged similar requests into rows with a
-`hit_count` above 1, shown as `/{link} ×4`. Those rows are still read correctly and
-age out under `retention.non-suspicious`.
+**Older crunched rows.** An earlier job merged similar requests into single rows. The
+`drop-crunch-leftovers` task deletes them, adds their requests to the pruned counters,
+then drops the old columns at least an hour later.

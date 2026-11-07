@@ -25,6 +25,7 @@ EXPECTED_SINGLE_POD = {
     "dashboard-warmup",
     "db-retention",
     "db-cleanup",
+    "drop-crunch-leftovers",
     "dump-krawl-data",
     "extract-captured-files",
     "extract-request-metadata",

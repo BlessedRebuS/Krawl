@@ -43,12 +43,11 @@ def _day(session, day: date) -> dict:
     """Both kinds of one day's per-host totals, in one pass over the log."""
     ts = AccessLog.timestamp
     start = datetime.combine(day, time.min)
-    hits = func.coalesce(AccessLog.hit_count, 1)
     ip = distinct(AccessLog.ip)
     cols = [
         agg.filter(kind)
         for kind in (_EVIDENCE, ~_EVIDENCE)
-        for agg in (func.sum(hits), func.count(ip), func.min(ts), func.max(ts))
+        for agg in (func.count(), func.count(ip), func.min(ts), func.max(ts))
     ]
     out = {"1": {}, "0": {}}
     for host, all_ips, *aggs in session.execute(
