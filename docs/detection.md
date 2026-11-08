@@ -25,6 +25,12 @@ Bait pages that are not attack replies (login forms, fake credential files, the
 fake API) live in the same manifest under `pages:`; see
 [Honeypot](honeypot.md#the-pages-section).
 
+
+!!! tip "Write and test a rule in your browser"
+    The [Rule builder](rule-builder.md) builds a rule from a form, checks it
+    against the [rule contract](#rule-contract), and shows which request fields
+    it matches and which fake reply Krawl would send.
+
 ## How a request flows
 
 ```

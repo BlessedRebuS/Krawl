@@ -329,7 +329,7 @@ Krawl reads [config.yaml](config.yaml); every setting can also be set with a
 `KRAWL_` plus the setting path in upper case, so `dashboard.password` becomes
 `KRAWL_DASHBOARD_PASSWORD`.
 
-See [Configuration](docs/configuration.md) for every variable and its default.
+See [Configuration](docs/configuration.md) for every variable and its default, or build a config with the [Config builder](https://blessedrebus.github.io/Krawl/config-builder/).
 
 ## Use Krawl to Ban Malicious IPs
 Krawl uses a reputation-based system to classify attacker IP addresses and provides two ways to export IP lists for firewall integration.
@@ -354,7 +354,7 @@ Krawl can also push banned IPs directly to a Cloudflare Account IP List for use 
 
 Every request is scanned by the [YARA](https://virustotal.github.io/yara/) rules in [`rules/`](rules/): SQL injection, XSS, path traversal, command injection, SSRF, SSTI, deserialization, webshells, exposure probes and the exploit requests of over 2,500 CVEs. A rule records the attack type, severity and MITRE ATT&CK mapping, and can name a fake reply from [`responses/manifest.yaml`](responses/manifest.yaml), so `/etc/passwd` returns a fake passwd file, a SQL injection gets a database error, and an SSRF to the cloud metadata address gets fake credentials.
 
-Rules and replies are plain files: add a `.yar` rule, drop the fake files under `responses/`, list them in the manifest and restart. The [detection documentation](docs/detection.md) walks through the whole flow, from writing a rule to testing and shipping its fake reply.
+Rules and replies are plain files: add a `.yar` rule, drop the fake files under `responses/`, list them in the manifest and restart. The [detection documentation](docs/detection.md) walks through the whole flow, from writing a rule to testing and shipping its fake reply, and the [Rule builder](https://blessedrebus.github.io/Krawl/rule-builder/) writes and tests a rule in your browser.
 
 ## IP Reputation
 Every minute the [`analyze-ips`](src/tasks/analyze_ips.py) task scores each new or flagged IP from its last 30 days of requests and puts it in one category: `attacker`, `bad_crawler`, `good_crawler` or `regular_user`. IPs not analysed yet show as unknown. The category drives bans, banlist exports and the dashboard.
@@ -414,6 +414,10 @@ See the [Monitoring documentation](docs/monitoring.md) for the full metric list,
 The full documentation is live at **[blessedrebus.github.io/Krawl](https://blessedrebus.github.io/Krawl/)**, and its source is in [docs/](docs/index.md): configuration,
 deployment, detection rules, the dashboard, the API and operations. Upgrading
 from 2.4? Start with [Upgrading from 2.4 to 3.0](docs/upgrading.md).
+
+Two interactive tools live there too:
+- **[Config builder](https://blessedrebus.github.io/Krawl/config-builder/)**: every setting as a form field, copied out as `config.yaml`, environment variables or Helm values.
+- **[Rule builder](https://blessedrebus.github.io/Krawl/rule-builder/)**: write a YARA rule, validate it against Krawl's rule contract and test it on a request before uploading it.
 
 ## Contributing
 

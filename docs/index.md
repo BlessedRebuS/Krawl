@@ -19,6 +19,18 @@ attackers, web crawlers and automated scanners.</p>
 
 </div>
 
+<div class="krawl-tools" markdown>
+
+[<span class="krawl-tool-icon">:material-tune-variant:</span>
+<span class="krawl-tool-title">Config builder</span>
+<span class="krawl-tool-text">Every setting as a form field. Copy the result as config.yaml, environment variables or Helm values.</span>](config-builder.md)
+
+[<span class="krawl-tool-icon">:material-shield-search:</span>
+<span class="krawl-tool-title">Rule builder</span>
+<span class="krawl-tool-text">Write a YARA rule, check it against Krawl's rule contract, and test it on a request before uploading it.</span>](rule-builder.md)
+
+</div>
+
 Krawl serves realistic fake applications, such as admin panels, exposed
 configuration files and leaked credentials. It detects attacks with YARA rules,
 answers each one with a convincing fake reply, and classifies every client IP
@@ -55,7 +67,6 @@ Helm are covered in [Deployment modes](deployment-modes.md).
     ---
 
     [Configuration](configuration.md): `config.yaml` and every `KRAWL_*` variable<br>
-    [Config builder](config-builder.md): pick settings, copy YAML or env<br>
     [Deployment modes](deployment-modes.md): SQLite, or PostgreSQL and Redis<br>
     [Reverse proxy](reverse-proxy.md): NGINX, CDNs and decoy subdomains<br>
     [Upgrading from 2.4 to 3.0](upgrading.md)
@@ -66,7 +77,6 @@ Helm are covered in [Deployment modes](deployment-modes.md).
 
     [Honeypot](honeypot.md): bait pages and the `pages:` manifest<br>
     [Attack detection](detection.md): YARA rules and fake replies<br>
-    [Rule builder](rule-builder.md): write, check and test a rule<br>
     [How IPs are evaluated](algorithms.md): categories and pruning<br>
     [Tarpit](tarpit.md) · [AI generation](ai_generation.md) ·
     [Deception pages](deception_pages.md) · [Canary token](canary-token.md)

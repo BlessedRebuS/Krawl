@@ -1,14 +1,15 @@
 # Configuration
 
+!!! tip "Build your config interactively"
+    The [Config builder](config-builder.md) lists every setting below as a form
+    field, with its help and `KRAWL_*` variable, and prints the result as
+    `config.yaml`, environment variables or Helm values.
+
 Krawl reads `config.yaml` (or the file named by `CONFIG_LOCATION`) and then
 applies environment variables, which win. The annotated
 [config.yaml](https://github.com/BlessedRebuS/Krawl/blob/main/config.yaml) is
 the full reference for the file; the Helm chart exposes the same keys under
 `config:` in [values.yaml](https://github.com/BlessedRebuS/Krawl/blob/main/helm/values.yaml).
-
-To build a config without editing YAML by hand, use the
-[Config builder](config-builder.md): change any setting and copy it as
-`config.yaml`, environment variables or Helm values.
 
 The running configuration, with secrets hidden, is shown in the dashboard under
 **Settings → Configuration**; see [Dashboard](dashboard.md#settings).

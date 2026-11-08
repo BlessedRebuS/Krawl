@@ -163,3 +163,19 @@
 .md-typeset .krb-none { color: var(--md-default-fg-color--light); font-size: 0.7rem; }
 @media (max-width: 40em) { .krb-string { grid-template-columns: 1fr 1fr; } .krb-string .krb-sval { grid-column: 1 / -1; } }
 .krb-grid label :is(input, select) { font-weight: 400; }
+
+/* Home page: the two tools, right under the hero. */
+.krawl-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; margin: 1.5rem 0 2rem; }
+.md-typeset .krawl-tools p { display: contents; }
+.md-typeset .krawl-tools a {
+  display: grid; grid-template-columns: auto 1fr; gap: 0.2rem 0.9rem; align-items: start;
+  padding: 1rem 1.2rem; border-radius: 10px; color: var(--md-default-fg-color);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  background: linear-gradient(135deg, rgba(77, 163, 255, 0.10), rgba(255, 201, 77, 0.06));
+  transition: border-color 0.15s, transform 0.15s;
+}
+.md-typeset .krawl-tools a:hover { border-color: #4da3ff; transform: translateY(-2px); }
+.krawl-tool-icon { grid-row: span 2; font-size: 1.8rem; color: #4da3ff; line-height: 1; }
+.krawl-tool-icon svg { width: 1.8rem; height: 1.8rem; fill: currentColor; }
+.krawl-tool-title { font-weight: 700; font-size: 0.95rem; }
+.krawl-tool-text { font-size: 0.72rem; color: var(--md-default-fg-color--light); }

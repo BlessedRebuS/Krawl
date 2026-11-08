@@ -78,6 +78,9 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Tools:
+      - config-builder.md
+      - rule-builder.md
   - Set up:
       - configuration.md
       - deployment-modes.md
@@ -102,9 +105,6 @@ nav:
       - retention.md
       - backups.md
       - api.md
-  - Tools:
-      - config-builder.md
-      - rule-builder.md
   - Develop:
       - architecture.md
       - coding-guidelines.md
