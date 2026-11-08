@@ -5339,6 +5339,20 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
 .panel-search:focus { outline: none; border-color: var(--accent); }
 
 /* Facet chips: attack-type filter and the 2+ IPs toggle. */
+/* Campaigns table: the period's hits beside all-time numbers. */
+.period-cell { white-space: nowrap; }
+.new-tag {
+    margin-right: var(--s2);
+    padding: 0 6px;
+    border-radius: var(--r-pill);
+    background: var(--tint-accent);
+    color: var(--accent-hi);
+    font-family: var(--font-ui);
+    font-size: var(--fs-2xs);
+    font-weight: 600;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+}
 .facet-row { display: flex; flex-wrap: wrap; gap: var(--s2); margin-bottom: var(--s3); }
 .facet-chip {
     display: inline-flex;

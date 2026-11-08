@@ -8,6 +8,7 @@ Lets the dashboard respond instantly without hitting the database.
 import time
 
 import metrics
+from attack_colours import colour_map
 from config import get_config
 from dashboard_cache import (
     SLOW_TABLE_TTL,
@@ -21,7 +22,12 @@ from database import get_database
 from database.access_logs import DOMAIN_ROLLUP_KEY
 from logger import get_app_logger
 from period import period_query, resolve_period
-from routes.api import attack_facets_key, build_campaign_stats, load_attack_facets
+from routes.api import (
+    _campaign_window,
+    attack_facets_key,
+    build_campaign_stats,
+    load_attack_facets,
+)
 from routes.htmx import CAMPAIGN_TABLE_LIMIT, attackers_cache_key, attacks_cache_key
 
 app_logger = get_app_logger()
@@ -301,17 +307,39 @@ def main():
         # The tab opens on an all-time cluster scan and the 1-day campaign
         # chart, which are the two slowest reads in the dashboard. Warm the
         # exact keys the tab requests on open; other spans stay on demand.
+        # The Campaigns table is all time; its In period column and the
+        # heatmap both read today's ranking (the tab's default span).
         clusters = _timed(
             "campaign_clusters_all",
             lambda: db.payloads.get_campaign_clusters(limit=CAMPAIGN_TABLE_LIMIT),
         )
         set_cached_table("clusters:all", {"clusters": clusters}, ttl=WARM_TTL)
-
-        top_campaigns = _timed(
-            "campaign_stats_top",
-            lambda: build_campaign_stats(db, 8, days=1, offset=0),
+        ids = [c["id"] for c in clusters]
+        targets = _timed(
+            "campaign_targets_all",
+            lambda: db.payloads.get_campaign_targets(ids, CAMPAIGN_TABLE_LIMIT),
         )
-        set_cached_table("api:campaign_stats:8:1:0", top_campaigns, ttl=WARM_TTL)
+        set_cached_table("clusters:targets", {"targets": targets}, ttl=WARM_TTL)
+        start, end = _campaign_window(days=1, offset=0)
+        day_targets = _timed(
+            "campaign_targets_day",
+            lambda: db.payloads.get_campaign_targets(ids, CAMPAIGN_TABLE_LIMIT, start, end),
+        )
+        set_cached_table("clusters:targets:1:0", {"targets": day_targets}, ttl=WARM_TTL)
+
+        # One 200-row build serves the In period column and, sliced, the
+        # heatmap's default Top 8.
+        day_stats = _timed(
+            "campaign_stats_day",
+            lambda: build_campaign_stats(db, CAMPAIGN_TABLE_LIMIT, days=1, offset=0),
+        )
+        set_cached_table(f"api:campaign_stats:{CAMPAIGN_TABLE_LIMIT}:1:0", day_stats, ttl=WARM_TTL)
+        top8 = day_stats["campaigns"][:8]
+        set_cached_table(
+            "api:campaign_stats:8:1:0",
+            {**day_stats, "campaigns": top8, "colours": colour_map({t for c in top8 for t in c["attack_types"]})},
+            ttl=WARM_TTL,
+        )
 
         _warm_pages(
             "global_filenames_all",

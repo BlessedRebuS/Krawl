@@ -1,19 +1,19 @@
 {% from "dashboard/partials/threat_pager.html" import pager %}
 {# HTMX fragment: campaign clusters (Threats tab Campaigns table).
- # Expects: clusters (one page), facets [(type, n)], all_count, search,
+ # Expects: rows (one page), facets [(type, n)], all_count, filtered,
+ # filters_qs (the tab-wide period and Only/Hide terms), period_label, endpoint,
  # attack_type, sort_by, sort_order, pagination, page_sizes, dashboard_path.
  # Clicking a target opens the campaign's events in the expand overlay.
  #
  # The target path leads, because that is what a reader recognises — the TLSH
  # digest identifies the campaign to the database, not to a person, so it stays
- # in the row's tooltip. State rides on the root's data-* attributes so the
- # panel's search box can reload without dropping the sort, the type filter
- # or the page size. #}
+ # in the row's tooltip. Sort and page size ride on the root's data-* attributes
+ # so a reload keeps them; the type chips set the tab-wide type filter. #}
 {% set size_qs = '&page_size=' ~ pagination.page_size %}
-{% set base = dashboard_path ~ '/htmx/pattern-clusters?search=' ~ (search | urlencode) %}
+{% set base = dashboard_path ~ '/htmx/' ~ endpoint ~ '?' ~ filters_qs %}
 {% set with_type = base ~ '&attack_type=' ~ (attack_type | urlencode) %}
 {% set with_sort = with_type ~ '&sort_by=' ~ sort_by ~ '&sort_order=' ~ sort_order %}
-{% set max_events = (clusters | map(attribute='events') | max) if clusters else 0 %}
+{% set max_events = (rows | map(attribute='events') | max) if rows else 0 %}
 {% macro sort_th(field, label, cls='', tooltip='') %}
 {% set next_order = 'asc' if sort_by == field and sort_order == 'desc' else 'desc' %}
 <th class="sortable {{ cls }} {% if sort_by == field %}{{ sort_order }}{% endif %}"
@@ -31,15 +31,14 @@
     <div class="facet-row" role="group" aria-label="Filter campaigns by attack type">
         <button type="button" class="facet-chip {% if not attack_type %}active{% endif %}"
                 aria-pressed="{{ 'true' if not attack_type else 'false' }}"
-                hx-get="{{ base }}&amp;sort_by={{ sort_by }}&amp;sort_order={{ sort_order }}{{ size_qs }}"
-                hx-target="closest .htmx-container" hx-swap="innerHTML">
+                data-type="" onclick="setThreatsState({type: null})">
             All <span class="facet-count">{{ all_count }}</span>
         </button>
         {% for t, n in facets %}
         <button type="button" class="facet-chip {% if attack_type == t %}active{% endif %}"
                 aria-pressed="{{ 'true' if attack_type == t else 'false' }}"
-                hx-get="{{ base }}&amp;attack_type={{ (t if attack_type != t else '') | urlencode }}&amp;sort_by={{ sort_by }}&amp;sort_order={{ sort_order }}{{ size_qs }}"
-                hx-target="closest .htmx-container" hx-swap="innerHTML">
+                data-type="{{ (t if attack_type != t else '') | e }}"
+                onclick="setThreatsState({type: this.dataset.type || null})">
             <span class="atk-swatch {{ (t | attack_badge_class)[10:] }}" aria-hidden="true"></span>{{ t | attack_label }} <span class="facet-count">{{ n }}</span>
         </button>
         {% endfor %}
@@ -51,14 +50,15 @@
             <tr>
                 {{ sort_th('target', 'Target', tooltip='Most frequently targeted path within this campaign') }}
                 <th class="col-optional">Attack types</th>
-                {{ sort_th('events', 'Captures', 'num') }}
+                {{ sort_th('period', 'In period', 'num', 'Hits in ' ~ period_label ~ '. Set the period in the bar above') }}
+                {{ sort_th('events', 'Captures', 'num', 'All-time captures') }}
                 {{ sort_th('ips', 'IPs', 'num', 'Distinct source IPs') }}
                 {{ sort_th('first_seen', 'Started', 'num col-optional') }}
                 {{ sort_th('last_seen', 'Last hit', 'num') }}
             </tr>
         </thead>
         <tbody>
-            {% for c in clusters %}
+            {% for c in rows %}
             {% set types = c.attack_types or [] %}
             {% set target = c.top_path or c.path or ('campaign ' ~ (c.rep_hash or '')[:8]) %}
             <tr>
@@ -80,6 +80,10 @@
                         {% endif %}
                     </div>
                 </td>
+                <td class="num period-cell">
+                    {% if c.is_new %}<span class="new-tag" title="First seen in {{ period_label }}">new</span>{% endif %}
+                    {% if c.period %}{{ '{:,}'.format(c.period) }}{% else %}<span class="faint" title="No hits in {{ period_label }}">0</span>{% endif %}
+                </td>
                 <td class="num">
                     <span class="num-bar" style="--pct: {{ ((c.events / max_events) * 100) | round(1) if max_events else 0 }}%">{{ '{:,}'.format(c.events) }}</span>
                 </td>
@@ -88,8 +92,8 @@
                 <td class="num ts-cell" title="{{ c.last_seen | format_ts }}">{{ c.last_seen | format_ago }}</td>
             </tr>
             {% else %}
-            <tr><td colspan="6" class="empty-state">
-                {% if search or attack_type %}No campaigns match this filter. Clear the search or pick another attack type.
+            <tr><td colspan="7" class="empty-state">
+                {% if filtered %}No campaigns match these filters. Remove one from the bar above.
                 {% else %}No campaigns yet. One appears when a payload repeats.{% endif %}
             </td></tr>
             {% endfor %}

@@ -804,17 +804,8 @@ document.addEventListener('alpine:init', () => {
                 if (typeof loadCampaignsChart === 'function') {
                     loadCampaignsChart();
                 }
-                const container = document.getElementById('threats-htmx-container');
-                if (container && typeof htmx !== 'undefined') {
-                    htmx.ajax('GET', `${this.dashboardPath}/htmx/global-filenames?page=1`, {
-                        target: '#threats-htmx-container',
-                        swap: 'innerHTML'
-                    });
-                    htmx.ajax('GET', `${this.dashboardPath}/htmx/pattern-clusters`, {
-                        target: '#patterns-htmx-container',
-                        swap: 'innerHTML'
-                    });
-                }
+                // Every panel, with its saved filters and grouping.
+                threatPanelsLoadAll();
             });
         },
 
@@ -2095,22 +2086,175 @@ window.submitUploadPage = async function() {
 // The search box and the 2+ IPs toggle live outside the swapped fragment so
 // typing never loses focus. The fragment carries the rest of the state (sort,
 // attack type, page size) on its .threat-table root, and every reload reads
-// it back.
+// it back. Like the Attacks tab, each panel's filters and the Campaigns
+// grouping survive a reload (localStorage, per browser).
+const THREATS_STORE = 'krawl.threats.filters';
+
+function _threatsLoad() {
+    try { return JSON.parse(localStorage.getItem(THREATS_STORE)) || {}; } catch (_) { return {}; }
+}
+
+function _threatsSave(store) {
+    try { localStorage.setItem(THREATS_STORE, JSON.stringify(store)); } catch (_) { /* private mode */ }
+}
+
+// === Threats tab shared filter ===
+// Period, Only/Hide terms and attack type for Campaign activity and the
+// Campaigns panel (either grouping), like the Attacks tab's bar.
+const THREATS_SPANS = [1, 7, 30];
+const _threatsDefaults = () => ({ days: 1, offset: 0, type: null, search: [], exclude: [] });
+
+// Saved state is user-editable storage: keep only well-formed fields.
+function _threatsValid(saved) {
+    const out = {}, terms = v => (Array.isArray(v) ? [...new Set(v.filter(t => typeof t === 'string').map(t => t.trim().slice(0, 200)).filter(Boolean))].slice(0, 10) : []);
+    if (!saved || typeof saved !== 'object') return out;
+    if (THREATS_SPANS.includes(saved.days)) out.days = saved.days;
+    if (Number.isInteger(saved.offset) && saved.offset >= 0 && saved.offset < 3650) out.offset = saved.offset;
+    if (typeof saved.type === 'string' && /^[\w.-]{1,64}$/.test(saved.type)) out.type = saved.type;
+    out.search = terms(saved.search);
+    out.exclude = terms(saved.exclude);
+    return out;
+}
+window.threatsState = Object.assign(_threatsDefaults(), _threatsValid(_threatsLoad().state));
+
+function threatsFilterParams() {
+    const s = threatsState, p = new URLSearchParams({ days: s.days, offset: s.offset });
+    if (s.search.length) p.set('search', s.search.join(','));
+    if (s.exclude.length) p.set('exclude', s.exclude.join(','));
+    if (s.type) p.set('attack_type', s.type);
+    return p;
+}
+
+function setThreatsState(patch) {
+    Object.assign(threatsState, patch);
+    const store = _threatsLoad();
+    store.state = threatsState;
+    _threatsSave(store);
+    renderThreatsBar();
+    const app = typeof _getAlpineData === 'function' ? _getAlpineData() : null;
+    if (!app || app.tab !== 'threats') return;
+    if (typeof loadCampaignsChart === 'function') loadCampaignsChart();
+    document.querySelectorAll('.threat-panel[data-threats-shared]').forEach(_threatPanelReload);
+}
+
+// Arrows: +1 steps back one span (older), -1 towards now.
+function shiftThreatsPeriod(direction) {
+    setThreatsState({ offset: Math.max(0, threatsState.offset + direction) });
+}
+
+let _threatsNot = false;
+
+function setThreatsMode(hide) {
+    _threatsNot = !!hide;
+    _threatsSyncControls();
+    document.getElementById('threats-search')?.focus();
+}
+
+// Enter adds the typed text as a term; terms stack. Escape clears the box.
+function threatsSearchKey(e, input) {
+    if (e.key === 'Escape') { input.value = ''; return; }
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const term = input.value.trim().slice(0, 200);
+    if (!term) return;
+    input.value = '';
+    const key = _threatsNot ? 'exclude' : 'search';
+    if (!threatsState[key].includes(term)) setThreatsState({ [key]: [...threatsState[key], term].slice(0, 10) });
+}
+
+let _threatsTypesLoaded = false;
+function _threatsLoadTypes() {
+    if (_threatsTypesLoaded) return;
+    _threatsTypesLoaded = true;
+    fetch(`${window.__DASHBOARD_PATH__ || ''}/htmx/attack-types-list`)
+        .then(r => (r.ok ? r.json() : { attack_types: [] }))
+        .then(data => {
+            const sel = document.getElementById('threats-type');
+            if (!sel) return;
+            const types = (Array.isArray(data.attack_types) ? data.attack_types : []).filter(t => !sel.querySelector(`option[value="${CSS.escape(t)}"]`));
+            sel.append(...types.map(t => new Option(krawlAttackLabel(t), t)));
+            _threatsSyncControls();
+        })
+        .catch(() => { _threatsTypesLoaded = false; });
+}
+
+function _threatsSyncControls() {
+    for (const [id, on] of [['threats-mode-only', !_threatsNot], ['threats-mode-hide', _threatsNot]]) {
+        const b = document.getElementById(id);
+        if (b) { b.setAttribute('aria-checked', String(on)); b.classList.toggle('active', on); }
+    }
+    const input = document.getElementById('threats-search');
+    if (input) {
+        input.classList.toggle('is-not', _threatsNot);
+        input.placeholder = _threatsNot ? 'Hide campaigns containing… Enter to add' : 'Show only campaigns containing… Enter to add';
+    }
+    const type = document.getElementById('threats-type');
+    if (type) {
+        const t = threatsState.type;
+        if (t && !type.querySelector(`option[value="${CSS.escape(t)}"]`)) type.append(new Option(krawlAttackLabel(t), t));
+        type.value = t || '';
+    }
+}
+
+function renderThreatsBar() {
+    const s = threatsState;
+    document.querySelectorAll('#threats-span [data-days]').forEach(b => {
+        const on = Number(b.dataset.days) === s.days;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', String(on));
+    });
+    _threatsSyncControls();
+    const pills = document.getElementById('threats-pills');
+    if (!pills || typeof _attacksPill !== 'function') return;
+    const pill = (key, value, patch, flip) => _attacksPill(key, value, patch, null, flip, setThreatsState, 'threats');
+    const swap = (t, from, to) => ({ [from]: s[from].filter(x => x !== t), [to]: s[to].includes(t) ? s[to] : [...s[to], t].slice(0, 10) });
+    const list = [];
+    if (s.type) list.push(pill('type', krawlAttackLabel(s.type), { type: null }));
+    s.search.forEach(t => list.push(pill('only', t, { search: s.search.filter(x => x !== t) }, swap(t, 'search', 'exclude'))));
+    s.exclude.forEach(t => list.push(pill('hide', t, { exclude: s.exclude.filter(x => x !== t) }, swap(t, 'exclude', 'search'))));
+    if (list.length > 1) {
+        const all = document.createElement('button');
+        all.type = 'button';
+        all.className = 'applied-clear-all';
+        all.textContent = 'Clear all';
+        all.onclick = () => { setThreatsState({ type: null, search: [], exclude: [] }); document.querySelector('#threats-span .active')?.focus(); };
+        list.push(all);
+    }
+    if (!list.length) {
+        const empty = document.createElement('span');
+        empty.className = 'applied-empty';
+        empty.textContent = 'No filters. Add them from Campaign activity or a type chip.';
+        list.push(empty);
+    }
+    pills.replaceChildren(...list);
+}
+
+// A panel's filters, without the page: a reload starts on page 1. The shared
+// Campaigns panel takes the tab-wide filter instead of its own search and type.
+function _threatPanelParams(panel) {
+    const shared = panel.hasAttribute('data-threats-shared');
+    const params = shared ? threatsFilterParams() : new URLSearchParams();
+    const search = panel.querySelector('.panel-search');
+    if (search && search.value.trim()) params.set('search', search.value.trim());
+    const state = panel.querySelector('.htmx-container .threat-table');
+    // Before the first fetch there is no fragment yet: fall back to what was saved.
+    const saved = new URLSearchParams(state ? '' : (_threatsLoad().panels || {})[panel.dataset.endpoint] || '');
+    const keys = { sortBy: 'sort_by', sortOrder: 'sort_order', pageSize: 'page_size' };
+    if (!shared) keys.attackType = 'attack_type';
+    for (const [prop, key] of Object.entries(keys)) {
+        const value = state ? state.dataset[prop] : saved.get(key);
+        if (value) params.set(key, value);
+    }
+    const twoIps = panel.querySelector('[data-min-ips]');
+    if (twoIps && twoIps.getAttribute('aria-pressed') === 'true') params.set('min_ips', '2');
+    return params;
+}
+
 function _threatPanelReload(panel) {
     const container = panel.querySelector('.htmx-container');
     if (!container || typeof htmx === 'undefined') return;
-    const state = container.querySelector('.threat-table');
-    const params = new URLSearchParams({ page: '1' });
-    const search = panel.querySelector('.panel-search');
-    if (search && search.value.trim()) params.set('search', search.value.trim());
-    if (state) {
-        if (state.dataset.sortBy) params.set('sort_by', state.dataset.sortBy);
-        if (state.dataset.sortOrder) params.set('sort_order', state.dataset.sortOrder);
-        if (state.dataset.attackType) params.set('attack_type', state.dataset.attackType);
-        if (state.dataset.pageSize) params.set('page_size', state.dataset.pageSize);
-    }
-    const shared = panel.querySelector('[data-min-ips]');
-    if (shared && shared.getAttribute('aria-pressed') === 'true') params.set('min_ips', '2');
+    const params = _threatPanelParams(panel);
+    params.set('page', '1');
     const dashboardPath = window.__DASHBOARD_PATH__ || '';
     htmx.ajax('GET', `${dashboardPath}/htmx/${panel.dataset.endpoint}?${params}`, {
         target: container,
@@ -2118,9 +2262,71 @@ function _threatPanelReload(panel) {
     });
 }
 
+// Every swap (sort header, type chip, page size, search) records the panel.
+document.addEventListener('htmx:afterSwap', (event) => {
+    const panel = event.target.closest && event.target.closest('.threat-panel[data-endpoint]');
+    if (!panel || !event.target.classList.contains('htmx-container')) return;
+    const store = _threatsLoad();
+    store.panels = store.panels || {};
+    const params = _threatPanelParams(panel);
+    if (panel.hasAttribute('data-threats-shared')) {
+        for (const k of [...threatsFilterParams().keys()]) params.delete(k);
+    }
+    store.panels[panel.dataset.endpoint] = params.toString();
+    if (panel.querySelector('[data-group-endpoint]')) store.campaignsGroup = panel.dataset.endpoint;
+    _threatsSave(store);
+});
+
+// Put the saved search text, 2+ IPs toggle and grouping back on the panels
+// (once per page load, before their first fetch), then load every panel.
+let _threatsRestored = false;
+function threatPanelsLoadAll() {
+    const store = _threatsLoad();
+    renderThreatsBar();
+    _threatsLoadTypes();
+    for (const panel of document.querySelectorAll('.threat-panel[data-endpoint]')) {
+        if (!_threatsRestored) {
+            const group = panel.querySelector(`[data-group-endpoint="${store.campaignsGroup}"]`);
+            if (group) _threatPanelSetGroup(group);
+            const saved = new URLSearchParams((store.panels || {})[panel.dataset.endpoint] || '');
+            const search = panel.querySelector('.panel-search');
+            if (search && !search.value) search.value = saved.get('search') || '';
+            const shared = panel.querySelector('[data-min-ips]');
+            if (shared && saved.get('min_ips')) {
+                shared.setAttribute('aria-pressed', 'true');
+                shared.classList.add('active');
+            }
+        }
+        _threatPanelReload(panel);
+    }
+    _threatsRestored = true;
+}
+
 window.threatPanelSearch = function(input) {
     clearTimeout(input._threatTimer);
     input._threatTimer = setTimeout(() => _threatPanelReload(input.closest('.threat-panel')), 300);
+};
+
+// Campaigns panel: Campaign / Target grouping swaps the panel's endpoint.
+// Each grouping keeps its own saved sort and type filter.
+function _threatPanelSetGroup(btn) {
+    const panel = btn.closest('.threat-panel');
+    panel.dataset.endpoint = btn.dataset.groupEndpoint;
+    for (const b of btn.parentElement.querySelectorAll('[data-group-endpoint]')) {
+        const on = b === btn;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-checked', on ? 'true' : 'false');
+    }
+    // The previous grouping's fragment must not lend its sort to the new one.
+    const state = panel.querySelector('.htmx-container .threat-table');
+    if (state) state.remove();
+}
+
+window.threatPanelGroupBy = function(btn) {
+    const panel = btn.closest('.threat-panel');
+    if (panel.dataset.endpoint === btn.dataset.groupEndpoint) return;
+    _threatPanelSetGroup(btn);
+    _threatPanelReload(panel);
 };
 
 window.threatPanelToggleShared = function(btn) {

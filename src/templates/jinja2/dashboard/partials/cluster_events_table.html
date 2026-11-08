@@ -1,7 +1,8 @@
 {# HTMX fragment: one campaign's events (cluster drill-down).
  # Expects: items (cluster event dicts), cluster, dashboard_path. #}
 <div class="panel-header">
-    <span class="pagination-info">Campaign events &mdash; {{ items | length }} shown</span>
+    {% set targets = items | selectattr('path') | map(attribute='path') | unique | list %}
+    <span class="pagination-info">Campaign events &mdash; {{ items | length }} shown{% if targets | length > 1 %} across {{ targets | length }} targets{% endif %}</span>
 </div>
 <table>
     <thead>
