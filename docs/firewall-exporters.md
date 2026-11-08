@@ -87,24 +87,32 @@ The same functionality is available from the dashboard via the **Export IPs Banl
 ## CrowdSec decisions (`fwtype=crowdsec`)
 
 CrowdSec is not a firewall: it takes a list of decisions and lets its bouncers
-enforce them. `fwtype=crowdsec` therefore emits the YAML decisions dialect that
-`cscli decisions import` reads, one mapping per IP:
+enforce them. `fwtype=crowdsec` therefore emits the JSON decisions that
+`cscli decisions import` reads, one object per IP:
 
-```yaml
-# Import with: cscli decisions import -i <this file>
-- Duration: 4h
-  Scope: Ip
-  Type: ban
-  Value: 203.0.113.7
+```json
+[
+  {
+    "duration": "4h",
+    "scope": "ip",
+    "type": "ban",
+    "value": "203.0.113.7"
+  }
+]
 ```
 
 The duration comes from `CROWDSEC_BAN_DURATION` in `src/firewall/__init__.py`
 (4 hours): short enough that a stale export ages out by itself if the sync
 stops, long enough that a half-hourly sync refreshes rather than churns.
 
+`cscli decisions import` accepts only csv, json or values, and picks the
+parser from the file extension, so save the export as a `.json` file (or pass
+`--format json`):
+
 ```bash
-curl -s "<DASHBOARD-PATH>/api/export-ips?categories=attacker&fwtype=crowdsec" \
-  | cscli decisions import -i /dev/stdin
+curl -fsS "<DASHBOARD-PATH>/api/export-ips?categories=attacker&fwtype=crowdsec" \
+  -o /tmp/krawl_decisions.json
+cscli decisions import -i /tmp/krawl_decisions.json --format json
 ```
 
 An empty IP list returns an empty body rather than a header, so importing a
