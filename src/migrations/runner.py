@@ -142,7 +142,7 @@ ONLINE_INDEXES = [
         "path",
         None,
         None,
-        "ix_access_logs_path_hits",
+        None,
     ),
     (
         "ix_access_logs_target_host",
@@ -150,7 +150,7 @@ ONLINE_INDEXES = [
         "target_host",
         None,
         None,
-        "ix_access_logs_host_ip",
+        None,
     ),
     (
         "ix_ip_stats_live_attackers",
@@ -188,7 +188,7 @@ ONLINE_INDEXES = [
             f"{c}, ip",
             ", ".join(m for m in MAP_COLUMNS if m != c),
             GEO_WHERE,
-            f"ix_ip_stats_geo_{c}",
+            None,
         )
         for c in GEO_SORTS
     ),
@@ -197,12 +197,9 @@ ONLINE_INDEXES = [
 # Unused (few distinct UAs: seq scan + hash wins) or a prefix of a composite
 # index; each only cost writes.
 DROPPED_INDEXES = [
-    "ix_access_logs_ua_hits",
     "ix_access_logs_user_agent",
     "ix_access_logs_ip",
     "ix_category_history_ip",
-    "ix_access_logs_request_metadata_extracted",
-    "ix_ip_stats_crunch_queue",
     "ix_ip_stats_reputation_score",
 ]
 
@@ -293,7 +290,6 @@ def run_migrations(engine: Engine) -> None:
         try:
             with engine.begin() as conn:
                 conn.execute(text(_SQLITE_PRUNE_INDEX))
-                conn.execute(text("DROP INDEX IF EXISTS ix_ip_stats_crunch_queue"))
         except Exception as e:
             logger.error(f"Migration error (prunable index): {e}")
         try:
@@ -301,27 +297,6 @@ def run_migrations(engine: Engine) -> None:
                 conn.execute(text(_SQLITE_CLUSTER_MEMBERS_INDEX))
         except Exception as e:
             logger.error(f"Migration error (cluster members index): {e}")
-
-    # Assets once included URLs from the User-Agent header (crawler homepages).
-    # ponytail: rescans request_assets each boot; drop once installs have run it.
-    instr = (
-        "strpos(a.user_agent, r.url)"
-        if engine.dialect.name == "postgresql"
-        else "instr(a.user_agent, r.url)"
-    )
-    try:
-        with engine.begin() as conn:
-            gone = conn.execute(
-                text(
-                    "DELETE FROM request_assets WHERE id IN (SELECT r.id FROM "  # noqa: S608
-                    "request_assets r JOIN access_logs a ON a.id = r.access_log_id "
-                    f"WHERE {instr} > 0)"
-                )
-            ).rowcount
-        if gone:
-            applied.append(f"remove {gone} User-Agent URLs from request_assets")
-    except Exception as e:
-        logger.error(f"Migration error (user-agent assets): {e}")
 
     # Storage parameters are a PostgreSQL concept; SQLite has no autovacuum
     # daemon to tune, so standalone mode skips this entirely.

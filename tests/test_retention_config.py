@@ -75,11 +75,6 @@ def test_uninteresting_env_override(monkeypatch):
     assert _load("{}\n").retention_uninteresting == timedelta(days=3)
 
 
-def test_crunch_after_key_is_ignored():
-    cfg = _load("retention:\n  crunch-after: 2d\n")
-    assert cfg.retention_uninteresting == timedelta(days=7)
-
-
 def test_blank_uninteresting_uses_default():
     cfg = _load("retention:\n  uninteresting:\n")
     assert cfg.retention_uninteresting == timedelta(days=7)
