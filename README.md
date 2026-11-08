@@ -48,11 +48,12 @@
   - [Uvicorn (Python)](#uvicorn-python)
 - [Configuration](#configuration)
 - [Ban Malicious IPs](#use-krawl-to-ban-malicious-ips)
+- [Attack Detection](#attack-detection)
 - [IP Reputation](#ip-reputation)
+- [Deception using AI](#ai-generated-deception-pages)
 - [Running Behind a Reverse Proxy or CDN](#running-behind-a-reverse-proxy-or-cdn)
 - [Metrics & Monitoring](#metrics--monitoring)
 - [Documentation](#documentation)
-- [Deception using AI](#ai-generated-deception-pages)
 - [Contributing](#contributing)
 
 ## Demo
@@ -356,35 +357,28 @@ Every request is scanned by the [YARA](https://virustotal.github.io/yara/) rules
 Rules and replies are plain files: add a `.yar` rule, drop the fake files under `responses/`, list them in the manifest and restart. The [detection documentation](docs/detection.md) walks through the whole flow, from writing a rule to testing and shipping its fake reply.
 
 ## IP Reputation
-Krawl [uses tasks that analyze recent traffic to build and continuously update an IP reputation](src/tasks/analyze_ips.py) score. It runs periodically and evaluates each active IP address based on multiple behavioral indicators to classify it as an attacker, crawler, or regular user. Thresholds are fully customizable.
+Every minute the [`analyze-ips`](src/tasks/analyze_ips.py) task scores each new or flagged IP from its last 30 days of requests and puts it in one category: `attacker`, `bad_crawler`, `good_crawler` or `regular_user`. IPs not analysed yet show as unknown. The category drives bans, banlist exports and the dashboard.
 
 ![ip reputation](docs/img/ip-reputation.png)
 
-The analysis includes:
-- **Risky HTTP methods usage** (e.g. POST, PUT, DELETE ratios)
-- **Robots.txt violations**
-- **Request timing anomalies** (bursty or irregular patterns)
-- **User-Agent consistency**
-- **Attack detection** (attack types found by the [YARA rules](docs/detection.md))
+Five signals feed the score, each with a configurable threshold and weight:
+- **Risky HTTP methods**: the share of POST, PUT, DELETE, OPTIONS and PATCH requests
+- **robots.txt violations**: requests under a path Krawl's robots.txt disallows
+- **Uneven timing**: bursty or irregular gaps between requests
+- **User-Agent variety**: how many distinct user agents the IP sent
+- **Attack detection**: attack types found by the [YARA rules](docs/detection.md)
 
-Each signal contributes to a weighted scoring model that assigns a reputation category:
-- `attacker`
-- `bad_crawler`
-- `good_crawler`
-- `regular_user`
-- `unknown` (for insufficient data)
-
-The resulting scores and metrics are stored in the database and used by Krawl to drive dashboards, reputation tracking, and automated mitigation actions such as IP banning or firewall integration.
+The IP Insight page draws them as the radar above, with each category's score below it; the highest score wins. [How IPs are evaluated](docs/algorithms.md) has the scoring table and a worked example.
 
 ## AI-Generated Deception Pages
 
-Krawl can automatically generate realistic deception pages using AI models from **OpenRouter** or **OpenAI** APIs. This feature creates unique, plausible honeypot pages on-the-fly to deceive attackers without manual page creation.
+Krawl can automatically generate realistic deception pages using AI models from **OpenRouter**, **OpenAI**, or any OpenAI-compatible engine such as **Ollama** or **llama.cpp**. This feature creates unique, plausible honeypot pages on-the-fly to deceive attackers without manual page creation.
 
 **Key Features:**
 - **Dynamic Generation**: Creates unique HTML pages for any request path
 - **Smart Caching**: Caches generated pages to avoid redundant API calls
 - **Daily Rate Limiting**: Control API costs with configurable request limits
-- **Multiple Providers**: Support for OpenRouter (free options) and OpenAI
+- **Multiple Providers**: OpenRouter (free options), OpenAI, or a local OpenAI-compatible engine
 - **Graceful Fallback**: Falls back to standard honeypot when disabled or limit reached
 - **Cached Serving**: Previously generated pages served even when AI is disabled
 
@@ -417,7 +411,7 @@ See the [Monitoring documentation](docs/monitoring.md) for the full metric list,
 
 ## Documentation
 
-The full documentation lives in [docs/](docs/index.md): configuration,
+The full documentation is live at **[blessedrebus.github.io/Krawl](https://blessedrebus.github.io/Krawl/)**, and its source is in [docs/](docs/index.md): configuration,
 deployment, detection rules, the dashboard, the API and operations. Upgrading
 from 2.4? Start with [Upgrading from 2.4 to 3.0](docs/upgrading.md).
 
