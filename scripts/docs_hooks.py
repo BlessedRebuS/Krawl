@@ -1,4 +1,7 @@
-"""MkDocs hook: builds assets/config-schema.json for the config builder page.
+"""MkDocs hook: builds the data the docs' interactive tools load.
+
+assets/config-schema.json feeds the config builder; assets/rules-meta.json
+(reply types and bundled rule names) feeds the rule builder.
 
 Every key comes from config.yaml (default, and its comments as help), and the
 KRAWL_* variable that sets it comes from Config.from_yaml in src/config.py, so
@@ -15,6 +18,9 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_YAML = ROOT / "config.yaml"
 CONFIG_PY = ROOT / "src" / "config.py"
+MANIFEST = ROOT / "responses" / "manifest.yaml"
+RULES = ROOT / "rules"
+RULE_NAME = re.compile(r"^\s*(?:(?:private|global)\s+)*rule\s+(\w+)", re.M)
 
 ENUMS = {
     "mode": ["standalone", "scalable"],
@@ -190,7 +196,17 @@ def build_schema() -> list[dict]:
     return {"fields": out, "sections": sections}
 
 
+def build_rules_meta() -> dict:
+    responses = yaml.safe_load(MANIFEST.read_text())["responses"]
+    names = sorted({n for f in RULES.glob("*.yar*") for n in RULE_NAME.findall(f.read_text())})
+    return {
+        "responses": {k: sorted(v.get("variants", {})) for k, v in responses.items()},
+        "ruleNames": names,
+    }
+
+
 def on_post_build(config, **kwargs):
-    target = Path(config["site_dir"]) / "assets" / "config-schema.json"
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps(build_schema()))
+    assets = Path(config["site_dir"]) / "assets"
+    assets.mkdir(parents=True, exist_ok=True)
+    (assets / "config-schema.json").write_text(json.dumps(build_schema()))
+    (assets / "rules-meta.json").write_text(json.dumps(build_rules_meta()))

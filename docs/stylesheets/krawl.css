@@ -121,3 +121,45 @@
   .kcb-layout, .krb-layout { grid-template-columns: 1fr; }
   .kcb-panel, .krb-panel { position: static; }
 }
+
+.md-typeset .krb-box { border: 1px solid var(--md-default-fg-color--lightest); border-radius: 8px; padding: 0.4rem 0.9rem 0.9rem; margin: 0 0 0.9rem; }
+.md-typeset .krb-box legend { font-weight: 700; font-size: 0.8rem; padding: 0 0.3rem; }
+.krb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: 0.6rem 1rem; }
+.krb-grid label, .krb-wide { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.68rem; font-weight: 600; }
+.krb-wide { grid-column: 1 / -1; }
+.krb-hint, .md-typeset p.krb-hint { font-weight: 400; color: var(--md-default-fg-color--light); font-size: 0.62rem; }
+.krb-grid output { color: var(--krawl-honey); font-family: var(--md-code-font-family); }
+.krb input[type="range"] { accent-color: #4da3ff; }
+.md-typeset .krb-variants { font-size: 0.64rem; color: var(--md-default-fg-color--light); margin: 0.6rem 0 0; }
+.krb-string { display: grid; grid-template-columns: 7rem 5.5rem minmax(0, 1fr) auto auto; gap: 0.4rem; align-items: center; margin-bottom: 0.4rem; }
+.krb-string input[type="text"] { font-family: var(--md-code-font-family); }
+.krb-nocase { display: flex; gap: 0.25rem; align-items: center; font-size: 0.64rem; white-space: nowrap; }
+.krb-remove { border: 0; background: none; color: var(--md-default-fg-color--light); cursor: pointer; font-size: 0.8rem; padding: 0.2rem 0.4rem; }
+.krb-remove:hover { color: #ff5c52; }
+.md-typeset .krb-add { padding: 0.3rem 0.9rem; font-size: 0.66rem; margin: 0.2rem 0 0; }
+.krb-targets { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; align-items: center; font-size: 0.68rem; margin-bottom: 0.7rem; }
+.krb-targets > span { font-weight: 600; }
+.krb-targets label { display: flex; gap: 0.3rem; align-items: center; }
+.krb-targets input[type="text"] { flex: 1 1 14rem; width: auto; }
+.krb-tabs { display: flex; gap: 0.6rem; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 0.4rem; }
+.krb-title { font-weight: 700; font-size: 0.78rem; }
+.krb-sample { max-width: 14rem; }
+.krb .krb-source, .krb .krb-request { font-size: 0.68rem; line-height: 1.5; tab-size: 4; }
+.krb-dirty { font-size: 0.64rem; color: var(--krawl-honey); }
+.krb-dirty button { font: inherit; color: var(--md-typeset-a-color); background: none; border: 0; cursor: pointer; text-decoration: underline; padding: 0; }
+.md-typeset .krb-problems { list-style: none; margin: 0; padding: 0; font-size: 0.66rem; }
+.md-typeset .krb-problems li { margin: 0 0 0.3rem; padding: 0.35rem 0.6rem; border-radius: 6px; border-left: 3px solid; }
+.md-typeset .krb-problems li[tabindex] { cursor: pointer; }
+.krb-problems .krb-error { border-color: #ff5c52; background: rgba(255, 92, 82, 0.1); }
+.krb-problems .krb-warn { border-color: #f2a63b; background: rgba(242, 166, 59, 0.1); }
+.krb-problems .krb-ok { border-color: #35d07f; background: rgba(53, 208, 127, 0.1); }
+.krb-actions { display: flex; gap: 0.5rem; }
+.md-typeset .krb-actions .md-button { margin: 0; padding: 0.35rem 1rem; font-size: 0.7rem; }
+.krb-results { display: flex; flex-direction: column; gap: 0.6rem; padding-top: 2rem; }
+.krb-hit { border: 1px solid var(--md-default-fg-color--lightest); border-left: 3px solid var(--krawl-honey); border-radius: 8px; padding: 0.6rem 0.9rem; }
+.md-typeset .krb-hit p, .md-typeset .krb-hit ul { margin: 0.15rem 0; font-size: 0.68rem; }
+.md-typeset .krb-hit-title { font-weight: 700; }
+.md-typeset .krb-hit-where, .md-typeset .krb-hit-reply { color: var(--md-default-fg-color--light); }
+.md-typeset .krb-none { color: var(--md-default-fg-color--light); font-size: 0.7rem; }
+@media (max-width: 40em) { .krb-string { grid-template-columns: 1fr 1fr; } .krb-string .krb-sval { grid-column: 1 / -1; } }
+.krb-grid label :is(input, select) { font-weight: 400; }

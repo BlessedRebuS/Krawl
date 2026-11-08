@@ -66,6 +66,7 @@ Helm are covered in [Deployment modes](deployment-modes.md).
 
     [Honeypot](honeypot.md): bait pages and the `pages:` manifest<br>
     [Attack detection](detection.md): YARA rules and fake replies<br>
+    [Rule builder](rule-builder.md): write, check and test a rule<br>
     [How IPs are evaluated](algorithms.md): categories and pruning<br>
     [Tarpit](tarpit.md) · [AI generation](ai_generation.md) ·
     [Deception pages](deception_pages.md) · [Canary token](canary-token.md)

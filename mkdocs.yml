@@ -50,6 +50,8 @@ watch:
   - config.yaml
   - src/config.py
   - scripts/docs_hooks.py
+  - rules
+  - responses/manifest.yaml
 
 extra_css:
   - stylesheets/krawl.css
@@ -102,6 +104,7 @@ nav:
       - api.md
   - Tools:
       - config-builder.md
+      - rule-builder.md
   - Develop:
       - architecture.md
       - coding-guidelines.md
