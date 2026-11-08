@@ -13,12 +13,22 @@
   A modern, customizable web honeypot server designed to detect and track malicious activity from attackers and web crawlers through deceptive web pages, fake credentials, and canary tokens.
 </p>
 
+<p align="center">
+  <a href="https://blessedrebus.github.io/Krawl/"><b>Documentation</b></a> ·
+  <a href="https://blessedrebus.github.io/Krawl/config-builder/">Config builder</a> ·
+  <a href="https://blessedrebus.github.io/Krawl/rule-builder/">Rule builder</a> ·
+  <a href="http://demo.krawlme.com/das_dashboard">Live demo</a>
+</p>
+
 <div align="center">
   <a href="https://github.com/blessedrebus/krawl/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/blessedrebus/krawl" alt="License">
   </a>
   <a href="https://github.com/blessedrebus/krawl/releases">
     <img src="https://img.shields.io/github/v/release/blessedrebus/krawl" alt="Release">
+  </a>
+  <a href="https://blessedrebus.github.io/Krawl/">
+    <img src="https://img.shields.io/badge/docs-live-4da3ff" alt="Documentation">
   </a>
 </div>
 
