@@ -5377,6 +5377,8 @@ th.sortable.num::after { position: static; transform: none; margin-left: 4px; }
 }
 .facet-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .facet-count { color: var(--text-faint); font-variant-numeric: tabular-nums; }
+.facet-row:not(.is-open) .facet-extra { display: none; }
+.facet-more { border-style: dashed; }
 .facet-chip.active .facet-count { color: var(--accent); }
 
 

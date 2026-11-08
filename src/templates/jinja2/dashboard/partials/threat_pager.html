@@ -26,3 +26,34 @@
     </div>
 </div>
 {% endmacro %}
+
+
+{# Attack-type chips for the Campaigns panel: the top `shown` types by
+ # count, the rest behind a "+N more" chip (the bar's type picker lists them
+ # all). The selected type always shows. Chips set the tab-wide type filter. #}
+{% macro type_facets(facets, attack_type, all_count, label, shown=8) %}
+{% if facets %}
+{% set ns = namespace(hidden=0) %}
+<div class="facet-row" role="group" aria-label="{{ label }}">
+    <button type="button" class="facet-chip {% if not attack_type %}active{% endif %}"
+            aria-pressed="{{ 'true' if not attack_type else 'false' }}"
+            onclick="setThreatsState({type: null})">
+        All <span class="facet-count">{{ all_count }}</span>
+    </button>
+    {% for t, n in facets %}
+    {% set extra = loop.index > shown and attack_type != t %}
+    {% if extra %}{% set ns.hidden = ns.hidden + 1 %}{% endif %}
+    <button type="button" class="facet-chip {% if attack_type == t %}active{% endif %}{% if extra %} facet-extra{% endif %}"
+            aria-pressed="{{ 'true' if attack_type == t else 'false' }}"
+            data-type="{{ (t if attack_type != t else '') | e }}"
+            onclick="setThreatsState({type: this.dataset.type || null})">
+        <span class="atk-swatch {{ (t | attack_badge_class)[10:] }}" aria-hidden="true"></span>{{ t | attack_label }} <span class="facet-count">{{ n }}</span>
+    </button>
+    {% endfor %}
+    {% if ns.hidden %}
+    <button type="button" class="facet-chip facet-more" aria-expanded="false"
+            data-more="+{{ ns.hidden }} more" onclick="toggleThreatFacets(this)">+{{ ns.hidden }} more</button>
+    {% endif %}
+</div>
+{% endif %}
+{% endmacro %}

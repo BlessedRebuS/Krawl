@@ -1,4 +1,4 @@
-{% from "dashboard/partials/threat_pager.html" import pager %}
+{% from "dashboard/partials/threat_pager.html" import pager, type_facets %}
 {# HTMX fragment: campaign clusters (Threats tab Campaigns table).
  # Expects: rows (one page), facets [(type, n)], all_count, filtered,
  # filters_qs (the tab-wide period and Only/Hide terms), period_label, endpoint,
@@ -27,23 +27,7 @@
 <div class="threat-table"
      data-sort-by="{{ sort_by }}" data-sort-order="{{ sort_order }}"
      data-attack-type="{{ attack_type | e }}" data-page-size="{{ pagination.page_size }}">
-    {% if facets %}
-    <div class="facet-row" role="group" aria-label="Filter campaigns by attack type">
-        <button type="button" class="facet-chip {% if not attack_type %}active{% endif %}"
-                aria-pressed="{{ 'true' if not attack_type else 'false' }}"
-                data-type="" onclick="setThreatsState({type: null})">
-            All <span class="facet-count">{{ all_count }}</span>
-        </button>
-        {% for t, n in facets %}
-        <button type="button" class="facet-chip {% if attack_type == t %}active{% endif %}"
-                aria-pressed="{{ 'true' if attack_type == t else 'false' }}"
-                data-type="{{ (t if attack_type != t else '') | e }}"
-                onclick="setThreatsState({type: this.dataset.type || null})">
-            <span class="atk-swatch {{ (t | attack_badge_class)[10:] }}" aria-hidden="true"></span>{{ t | attack_label }} <span class="facet-count">{{ n }}</span>
-        </button>
-        {% endfor %}
-    </div>
-    {% endif %}
+    {{ type_facets(facets, attack_type, all_count, 'Filter campaigns by attack type') }}
     {{ pager(with_sort, pagination, page_sizes, 'campaigns') }}
     <table class="table-compact">
         <thead>

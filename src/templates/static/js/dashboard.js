@@ -2275,7 +2275,24 @@ document.addEventListener('htmx:afterSwap', (event) => {
     store.panels[panel.dataset.endpoint] = params.toString();
     if (panel.querySelector('[data-group-endpoint]')) store.campaignsGroup = panel.dataset.endpoint;
     _threatsSave(store);
+    const more = panel.querySelector('.facet-more');
+    if (more && store.facetsOpen) _setThreatFacets(more, true);
 });
+
+function _setThreatFacets(btn, open) {
+    btn.closest('.facet-row').classList.toggle('is-open', open);
+    btn.setAttribute('aria-expanded', String(open));
+    btn.textContent = open ? 'Fewer' : btn.dataset.more;
+}
+
+// "+N more" type chips: the choice survives reloads like the other filters.
+window.toggleThreatFacets = function(btn) {
+    const open = btn.getAttribute('aria-expanded') !== 'true';
+    _setThreatFacets(btn, open);
+    const store = _threatsLoad();
+    store.facetsOpen = open;
+    _threatsSave(store);
+};
 
 // Put the saved search text, 2+ IPs toggle and grouping back on the panels
 // (once per page load, before their first fetch), then load every panel.
