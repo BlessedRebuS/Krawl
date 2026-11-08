@@ -26,7 +26,8 @@ version:
 | `/<DASHBOARD-PATH>/openapi.json` | Raw OpenAPI schema |
 
 Only `/api/*` routes are in the schema; the dashboard pages and HTMX fragment endpoints
-are excluded.
+are excluded. A read-only copy for the current release is in the
+[API reference](api-reference.md).
 
 ## Authentication
 

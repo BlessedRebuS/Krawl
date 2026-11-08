@@ -68,3 +68,8 @@
   --md-accent-fg-color: #4da3ff;
   --krawl-honey: #a86f00;
 }
+
+/* Swagger UI is light-only: give it a light panel in both schemes. */
+.krawl-swagger { background: #fff; border-radius: 8px; padding: 0.5rem 1rem; color: #3b4151; }
+.krawl-swagger .swagger-ui .info { margin: 1rem 0; }
+.krawl-swagger .swagger-ui .auth-wrapper { display: none; }

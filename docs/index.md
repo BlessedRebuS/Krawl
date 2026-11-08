@@ -74,7 +74,7 @@ Helm are covered in [Deployment modes](deployment-modes.md).
     ---
 
     [Dashboard](dashboard.md): every tab, with screenshots<br>
-    [Dashboard API](dashboard-api.md): JSON API and OpenAPI docs<br>
+    [Dashboard API](dashboard-api.md): JSON API, with an [API reference](api-reference.md)<br>
     [Firewall exporters](firewall-exporters.md): raw, iptables, nftables<br>
     [Cloudflare banlist](cloudflare_banlist.md) · [Monitoring](monitoring.md)
 

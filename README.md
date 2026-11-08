@@ -120,7 +120,7 @@ Additionally, after authenticating with the dashboard password, protected tabs b
 - **Rules**: browse the loaded YARA rules with their metadata, fake reply and match counts, and upload or delete your own rule files without a restart.
 - **Webhooks**: forward bans to CloudFlare and other firewalls.
 
-The header icons open the API docs, the banlist export, and a settings panel showing the running configuration and a maintenance page for running scheduled tasks on demand.
+The header icons open the [documentation](https://blessedrebus.github.io/Krawl/), the banlist export, and a settings panel showing the running configuration and a maintenance page for running scheduled tasks on demand.
 
 For more details, see the [Dashboard documentation](docs/dashboard.md).
 

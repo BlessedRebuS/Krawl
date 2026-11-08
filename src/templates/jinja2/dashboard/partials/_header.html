@@ -20,8 +20,8 @@
     <h1 class="dashboard-title">{{ brand.name }} Dashboard</h1>
     <div class="topbar-end">
         <div class="topbar-actions">
-            <a href="{{ dashboard_path }}/docs" target="_blank" rel="noopener"
-               class="rail-btn" title="API documentation" aria-label="API documentation">{{ icon('docs') }}</a>
+            <a href="https://blessedrebus.github.io/Krawl/" target="_blank" rel="noopener"
+               class="rail-btn" title="Documentation" aria-label="Documentation">{{ icon('docs') }}</a>
             <button type="button" class="rail-btn" title="Export IPs banlist" aria-label="Export IPs banlist"
                     @click="exportModal.show = true; exportModal.error = ''">{{ icon('export') }}</button>
             {# Settings runs privileged jobs and shows the running config, so it
