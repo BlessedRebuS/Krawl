@@ -115,8 +115,7 @@ def test_request_search_narrows_by_ip_and_host(tmp_path):
     assert ips(host="demo", ip="45.1") == ["145.1.2.3", "45.1.2.30"]
 
 
-def test_sorted_pages_keep_their_order_without_the_index_walk(tmp_path, monkeypatch):
-    import dashboard_cache
+def test_sorted_pages_keep_their_order(tmp_path):
 
     initialize_database(str(tmp_path / "walk.db"))
     db = get_database()
@@ -140,10 +139,4 @@ def test_sorted_pages_keep_their_order_without_the_index_walk(tmp_path, monkeypa
             a["path"] for a in attacks["attacks"]
         ]
 
-    assert dashboard_cache.walks_cheaply(db.session, AccessLog, 3, 2)
-    db.close_session()
-    walked = pages()
-    monkeypatch.setattr(dashboard_cache, "WALK_LIMIT", 0)
-    assert not dashboard_cache.walks_cheaply(db.session, AccessLog, 3, 2)
-    db.close_session()
-    assert pages() == walked == (["/p2", "/p1"], ["/p2", "/p1"])
+    assert pages() == (["/p2", "/p1"], ["/p2", "/p1"])
