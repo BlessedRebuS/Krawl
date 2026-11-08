@@ -2,8 +2,7 @@ name: Docs
 
 # Builds docs/ with MkDocs Material and publishes it to GitHub Pages.
 # Settings → Pages → Source must be "GitHub Actions".
-# mkdocs.yml arrives with 3.0, so this file is not in the paths filter:
-# merging it alone must not trigger a build that has nothing to build.
+# The config builder page is generated from config.yaml and src/config.py.
 # Never add a pull_request trigger: this runs on a self-hosted runner with
 # Pages deploy rights, so fork code must not reach it.
 
@@ -14,6 +13,10 @@ on:
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
+      - 'config.yaml'
+      - 'src/config.py'
+      - 'scripts/docs_hooks.py'
+      - '.github/workflows/docs.yml'
   workflow_dispatch:
 
 permissions:

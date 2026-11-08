@@ -43,6 +43,14 @@ theme:
     - content.code.copy
     - content.action.edit
 
+hooks:
+  - scripts/docs_hooks.py
+
+watch:
+  - config.yaml
+  - src/config.py
+  - scripts/docs_hooks.py
+
 extra_css:
   - stylesheets/krawl.css
 
@@ -92,6 +100,8 @@ nav:
       - retention.md
       - backups.md
       - api.md
+  - Tools:
+      - config-builder.md
   - Develop:
       - architecture.md
       - coding-guidelines.md

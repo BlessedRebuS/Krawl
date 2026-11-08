@@ -55,6 +55,7 @@ Helm are covered in [Deployment modes](deployment-modes.md).
     ---
 
     [Configuration](configuration.md): `config.yaml` and every `KRAWL_*` variable<br>
+    [Config builder](config-builder.md): pick settings, copy YAML or env<br>
     [Deployment modes](deployment-modes.md): SQLite, or PostgreSQL and Redis<br>
     [Reverse proxy](reverse-proxy.md): NGINX, CDNs and decoy subdomains<br>
     [Upgrading from 2.4 to 3.0](upgrading.md)
