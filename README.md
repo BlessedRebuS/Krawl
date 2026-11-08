@@ -3,7 +3,7 @@
 <h3 align="center">
   <a name="readme-top"></a>
   <img
-    src="img/krawl-svg.svg"
+    src="docs/img/krawl-svg.svg"
     height="250"
   >
 </h3>
@@ -68,7 +68,7 @@ Tip: crawl the `robots.txt` paths for additional fun
 
 It creates realistic fake web applications filled with low‑hanging fruit such as admin panels, configuration files, and exposed fake credentials to attract and identify suspicious activity.
 
-![dashboard](img/deception-page.png)
+![dashboard](docs/img/deception-page.png)
 
 By wasting attacker resources, Krawl helps clearly distinguish malicious behavior from legitimate crawlers.
 
@@ -88,7 +88,7 @@ It features:
 
 You can easily expose Krawl alongside your other services to shield them from web crawlers and malicious users using a reverse proxy. For more details, see the [Reverse Proxy documentation](docs/reverse-proxy.md).
 
-![use case](img/use-case.png)
+![use case](docs/img/use-case.png)
 
 ## Krawl Dashboard
 
@@ -98,17 +98,17 @@ The dashboard is organized in six tabs:
 
 - **Overview**: high-level view of attack activity: an interactive map of IP origins, recent suspicious requests, and top IPs, User-Agents, and paths.
 
-![geoip](img/geoip_dashboard.png)
+![geoip](docs/img/geoip_dashboard.png)
 
 - **Attacks**: detailed breakdown of captured credentials, honeypot triggers, and detected attack types (SQLi, XSS, path traversal, etc.) with charts and tables.
 
-![attack_types](img/attack_types.png)
+![attack_types](docs/img/attack_types.png)
 
 - **Threats**: payloads grouped into campaigns by TLSH fuzzy hash, so a webshell and its edited variants read as one campaign rather than unrelated hits, with an index of every captured file.
 
 - **IP Insight**: in-depth forensic view of a selected IP: geolocation, ISP/ASN info, reputation flags, a behaviour hexagon, ranked attack types, good and bad request counts, average severity, referer history, captured files and credentials, category timeline, and full access history.
 
-![ipinsight](img/ip_insight_dashboard.png)
+![ipinsight](docs/img/ip_insight_dashboard.png)
 
 Additionally, after authenticating with the dashboard password, protected tabs become available:
 
@@ -578,7 +578,7 @@ Rules and replies are plain files: add a `.yar` rule, drop the fake files under 
 ## IP Reputation
 Krawl [uses tasks that analyze recent traffic to build and continuously update an IP reputation](src/tasks/analyze_ips.py) score. It runs periodically and evaluates each active IP address based on multiple behavioral indicators to classify it as an attacker, crawler, or regular user. Thresholds are fully customizable.
 
-![ip reputation](img/ip-reputation.png)
+![ip reputation](docs/img/ip-reputation.png)
 
 The analysis includes:
 - **Risky HTTP methods usage** (e.g. POST, PUT, DELETE ratios)

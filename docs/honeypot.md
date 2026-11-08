@@ -92,12 +92,12 @@ The actual (juicy) robots.txt configuration [is the following](../responses/page
 ### Common Login Attempts
 Requests to common admin endpoints (`/admin/`, `/wp-admin/`, `/phpMyAdmin/`) return a fake login page. Any login attempt triggers a 1-second delay to simulate real processing and is fully logged in the dashboard (credentials, IP, headers, timing).
 
-![admin page](../img/admin-page.png)
+![admin page](img/admin-page.png)
 
 ### Common Misconfiguration Paths
 Requests to paths like `/backup/`, `/config/`, `/database/`, `/private/`, or `/uploads/` return a fake directory listing populated with "interesting" files.
 
-![directory-page](../img/directory-page.png)
+![directory-page](img/directory-page.png)
 
 ### Environment File Leakage
 The `.env` endpoint exposes fake database connection strings, **AWS API keys** and API secrets, as plain text.
@@ -105,22 +105,22 @@ The `.env` endpoint exposes fake database connection strings, **AWS API keys** a
 ### Server Error Information
 The `/server` page returns a fake 500 error page from Apache, nginx or IIS.
 
-![server and env page](../img/server-and-env-page.png)
+![server and env page](img/server-and-env-page.png)
 
 ### API Endpoints with Sensitive Data
 The pages `/api/v1/users` and `/api/v2/secrets` show fake users and random secrets in JSON format
 
-![users and secrets](../img/users-and-secrets.png)
+![users and secrets](img/users-and-secrets.png)
 
 ### Exposed Credential Files
 The pages `/credentials.txt` and `/passwords.txt` show fake users and random secrets
 
-![credentials and passwords](../img/credentials-and-passwords.png)
+![credentials and passwords](img/credentials-and-passwords.png)
 
 ### SQL Injection and XSS Detection
 Pages such as `/users`, `/search`, `/contact`, `/info`, `/input`, and `/feedback`, along with APIs like `/api/sql` and `/api/database`, are designed to lure attackers into performing attacks such as **SQL injection** or **XSS**.
 
-![sql injection](../img/sql_injection.png)
+![sql injection](img/sql_injection.png)
 
 Automated tools like **SQLMap** receive a database error picked from several files, matched to the database the payload targets (MySQL, PostgreSQL or SQL Server). All detected attacks are logged and displayed in the dashboard.
 

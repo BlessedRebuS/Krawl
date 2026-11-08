@@ -65,7 +65,7 @@ Point-in-time values. `krawl_clients_total` is recomputed live at scrape time; t
 A pre-built dashboard is provided at [`grafana-dashboard.json`](../grafana-dashboard.json) in the repository root.
 
 <!-- TODO: replace with an actual screenshot of the imported Grafana dashboard -->
-![Grafana dashboard](../img/grafana_dashboard.png)
+![Grafana dashboard](img/grafana_dashboard.png)
 
 To import it:
 

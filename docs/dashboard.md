@@ -64,7 +64,7 @@ The basemap is deliberately desaturated so that the category colours are the
 only saturated thing on the panel. See [Map tiles](#map-tiles) to change the
 tile provider.
 
-![Overview — Stats and Map](../img/geoip_dashboard.png)
+![Overview — Stats and Map](img/geoip_dashboard.png)
 
 ### Recent Suspicious Activity
 
@@ -82,7 +82,7 @@ A paginated table of the most accessed HTTP paths and their request counts.
 
 A paginated table of the most common user-agent strings with their frequency.
 
-![Overview — Tables](../img/overview_tables_dashboard.png)
+![Overview — Tables](img/overview_tables_dashboard.png)
 
 ---
 
@@ -167,7 +167,7 @@ A Chart.js visualization showing the frequency distribution of detected attack c
 
 A paginated table of specific attack patterns and their occurrence counts across all traffic.
 
-![Attacks — Attack Types and Patterns](../img/attack_types_dashboard.png)
+![Attacks — Attack Types and Patterns](img/attack_types_dashboard.png)
 
 ---
 
@@ -294,7 +294,7 @@ A filtered view of all requests made by this specific IP, with full request
 details. The tables on this tab drop their IP column — every row is the address
 the tab is already about.
 
-![IP Insight — Detail View](../img/ip_insight_dashboard.png)
+![IP Insight — Detail View](img/ip_insight_dashboard.png)
 
 ---
 
@@ -312,7 +312,7 @@ A form to add any IP address to your tracking list for ongoing observation.
 
 A paginated table of all manually tracked IPs, with the option to untrack each one.
 
-![Tracked IPs](../img/tracked_ips_dashboard.png)
+![Tracked IPs](img/tracked_ips_dashboard.png)
 
 ---
 
@@ -330,13 +330,13 @@ A form to immediately ban any IP address by entering it manually.
 
 A paginated list of all IPs detected as attackers, with quick-ban actions for each entry.
 
-![IP Banlist — Detected](../img/banlist_attackers_dashboard.png)
+![IP Banlist — Detected](img/banlist_attackers_dashboard.png)
 
 ### Active Ban Overrides
 
 A table of currently active manual ban overrides, with options to unban or reset the override status for each IP.
 
-![IP Banlist — Overrides](../img/banlist_overrides_dashboard.png)
+![IP Banlist — Overrides](img/banlist_overrides_dashboard.png)
 
 ### Export Banlist
 
@@ -391,7 +391,7 @@ Sessions and the attempt counters live in Redis in scalable mode, so a cookie is
 
 Click the lock icon in the top-right corner of the navigation bar to authenticate or log out.
 
-![Authentication Modal](../img/auth_prompt.png)
+![Authentication Modal](img/auth_prompt.png)
 
 ---
 
