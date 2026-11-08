@@ -12,6 +12,8 @@ config knobs, and known limits.
 `good_crawler` or `regular_user` — from its behaviour. The category drives bans,
 banlist exports and the dashboard.
 
+![The Behaviour panel of IP Insight: the signals as a radar, and each category's score](img/ip-reputation.png)
+
 **When.** `analyze-ips` runs every minute and takes up to `tasks.analyze_ips_batch`
 IPs (default 2000): those never analysed, then those flagged `need_reevaluation`,
 oldest analysis first. `flag-stale-ips` (daily) flags IPs seen within

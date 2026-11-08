@@ -25,6 +25,12 @@ Bait pages that are not attack replies (login forms, fake credential files, the
 fake API) live in the same manifest under `pages:`; see
 [Honeypot](honeypot.md#the-pages-section).
 
+
+!!! tip "Write and test a rule in your browser"
+    The [Rule builder](rule-builder.md) builds a rule from a form, checks it
+    against the [rule contract](#rule-contract), and shows which request fields
+    it matches and which fake reply Krawl would send.
+
 ## How a request flows
 
 ```
@@ -356,7 +362,8 @@ loaded rule with its metadata, reply type and match count.
 The **Rules** tab (authenticated) has an **Upload rule file** button for
 analysts who need a detection now, without editing `rules/` or restarting:
 
-1. Write the rule as in [step 1](#1-write-the-rule). Only `attack_type`,
+1. Write the rule as in [step 1](#1-write-the-rule), or build and test it in
+   the [Rule builder](rule-builder.md). Only `attack_type`,
    `classification` and `severity` are required for uploaded rules; the other
    fields are validated when present. Prefix the name with something of your
    own (`krawl_custom_...`, `acme_...`) so it never collides with a bundled rule.

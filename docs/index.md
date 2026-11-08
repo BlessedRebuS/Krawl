@@ -19,6 +19,18 @@ attackers, web crawlers and automated scanners.</p>
 
 </div>
 
+<div class="krawl-tools" markdown>
+
+[<span class="krawl-tool-icon">:material-tune-variant:</span>
+<span class="krawl-tool-title">Config builder</span>
+<span class="krawl-tool-text">Every setting as a form field. Copy the result as config.yaml, environment variables or Helm values.</span>](config-builder.md)
+
+[<span class="krawl-tool-icon">:material-shield-search:</span>
+<span class="krawl-tool-title">Rule builder</span>
+<span class="krawl-tool-text">Write a YARA rule, check it against Krawl's rule contract, and test it on a request before uploading it.</span>](rule-builder.md)
+
+</div>
+
 Krawl serves realistic fake applications, such as admin panels, exposed
 configuration files and leaked credentials. It detects attacks with YARA rules,
 answers each one with a convincing fake reply, and classifies every client IP
@@ -74,7 +86,7 @@ Helm are covered in [Deployment modes](deployment-modes.md).
     ---
 
     [Dashboard](dashboard.md): every tab, with screenshots<br>
-    [Dashboard API](dashboard-api.md): JSON API and OpenAPI docs<br>
+    [Dashboard API](dashboard-api.md): JSON API, with an [API reference](api-reference.md)<br>
     [Firewall exporters](firewall-exporters.md): raw, iptables, nftables<br>
     [Cloudflare banlist](cloudflare_banlist.md) · [Monitoring](monitoring.md)
 

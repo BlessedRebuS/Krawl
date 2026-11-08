@@ -66,7 +66,7 @@ function initIpRequests(uid) {
 
     function apply() {
         render();
-        if (typeof htmx !== 'undefined') htmx.ajax('GET', url(), { target: box, swap: 'innerHTML' });
+        if (typeof htmx !== 'undefined') htmx.ajax('GET', url(), { source: box, target: box, swap: 'innerHTML' });
     }
 
     function removeTerm(key, term) {

@@ -13,6 +13,15 @@
   A modern, customizable web honeypot server designed to detect and track malicious activity from attackers and web crawlers through deceptive web pages, fake credentials, and canary tokens.
 </p>
 
+<p align="center">
+  <a href="https://blessedrebus.github.io/Krawl/"><img src="https://img.shields.io/badge/Read_the_docs-blessedrebus.github.io%2FKrawl-4da3ff?style=for-the-badge&logo=materialformkdocs&logoColor=white" alt="Read the documentation"></a>
+</p>
+<p align="center">
+  <a href="https://blessedrebus.github.io/Krawl/config-builder/"><img src="https://img.shields.io/badge/Config_builder-121822?style=for-the-badge&logo=yaml&logoColor=white" alt="Config builder"></a>
+  <a href="https://blessedrebus.github.io/Krawl/rule-builder/"><img src="https://img.shields.io/badge/Rule_builder-121822?style=for-the-badge&logo=virustotal&logoColor=white" alt="Rule builder"></a>
+  <a href="http://demo.krawlme.com/das_dashboard"><img src="https://img.shields.io/badge/Live_demo-121822?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Live demo"></a>
+</p>
+
 <div align="center">
   <a href="https://github.com/blessedrebus/krawl/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/blessedrebus/krawl" alt="License">
@@ -48,11 +57,12 @@
   - [Uvicorn (Python)](#uvicorn-python)
 - [Configuration](#configuration)
 - [Ban Malicious IPs](#use-krawl-to-ban-malicious-ips)
+- [Attack Detection](#attack-detection)
 - [IP Reputation](#ip-reputation)
+- [Deception using AI](#ai-generated-deception-pages)
 - [Running Behind a Reverse Proxy or CDN](#running-behind-a-reverse-proxy-or-cdn)
 - [Metrics & Monitoring](#metrics--monitoring)
 - [Documentation](#documentation)
-- [Deception using AI](#ai-generated-deception-pages)
 - [Contributing](#contributing)
 
 ## Demo
@@ -119,7 +129,7 @@ Additionally, after authenticating with the dashboard password, protected tabs b
 - **Rules**: browse the loaded YARA rules with their metadata, fake reply and match counts, and upload or delete your own rule files without a restart.
 - **Webhooks**: forward bans to CloudFlare and other firewalls.
 
-The header icons open the API docs, the banlist export, and a settings panel showing the running configuration and a maintenance page for running scheduled tasks on demand.
+The header icons open the [documentation](https://blessedrebus.github.io/Krawl/), the banlist export, and a settings panel showing the running configuration and a maintenance page for running scheduled tasks on demand.
 
 For more details, see the [Dashboard documentation](docs/dashboard.md).
 
@@ -328,7 +338,7 @@ Krawl reads [config.yaml](config.yaml); every setting can also be set with a
 `KRAWL_` plus the setting path in upper case, so `dashboard.password` becomes
 `KRAWL_DASHBOARD_PASSWORD`.
 
-See [Configuration](docs/configuration.md) for every variable and its default.
+See [Configuration](docs/configuration.md) for every variable and its default, or build a config with the [Config builder](https://blessedrebus.github.io/Krawl/config-builder/).
 
 ## Use Krawl to Ban Malicious IPs
 Krawl uses a reputation-based system to classify attacker IP addresses and provides two ways to export IP lists for firewall integration.
@@ -353,38 +363,31 @@ Krawl can also push banned IPs directly to a Cloudflare Account IP List for use 
 
 Every request is scanned by the [YARA](https://virustotal.github.io/yara/) rules in [`rules/`](rules/): SQL injection, XSS, path traversal, command injection, SSRF, SSTI, deserialization, webshells, exposure probes and the exploit requests of over 2,500 CVEs. A rule records the attack type, severity and MITRE ATT&CK mapping, and can name a fake reply from [`responses/manifest.yaml`](responses/manifest.yaml), so `/etc/passwd` returns a fake passwd file, a SQL injection gets a database error, and an SSRF to the cloud metadata address gets fake credentials.
 
-Rules and replies are plain files: add a `.yar` rule, drop the fake files under `responses/`, list them in the manifest and restart. The [detection documentation](docs/detection.md) walks through the whole flow, from writing a rule to testing and shipping its fake reply.
+Rules and replies are plain files: add a `.yar` rule, drop the fake files under `responses/`, list them in the manifest and restart. The [detection documentation](docs/detection.md) walks through the whole flow, from writing a rule to testing and shipping its fake reply, and the [Rule builder](https://blessedrebus.github.io/Krawl/rule-builder/) writes and tests a rule in your browser.
 
 ## IP Reputation
-Krawl [uses tasks that analyze recent traffic to build and continuously update an IP reputation](src/tasks/analyze_ips.py) score. It runs periodically and evaluates each active IP address based on multiple behavioral indicators to classify it as an attacker, crawler, or regular user. Thresholds are fully customizable.
+Every minute the [`analyze-ips`](src/tasks/analyze_ips.py) task scores each new or flagged IP from its last 30 days of requests and puts it in one category: `attacker`, `bad_crawler`, `good_crawler` or `regular_user`. IPs not analysed yet show as unknown. The category drives bans, banlist exports and the dashboard.
 
 ![ip reputation](docs/img/ip-reputation.png)
 
-The analysis includes:
-- **Risky HTTP methods usage** (e.g. POST, PUT, DELETE ratios)
-- **Robots.txt violations**
-- **Request timing anomalies** (bursty or irregular patterns)
-- **User-Agent consistency**
-- **Attack detection** (attack types found by the [YARA rules](docs/detection.md))
+Five signals feed the score, each with a configurable threshold and weight:
+- **Risky HTTP methods**: the share of POST, PUT, DELETE, OPTIONS and PATCH requests
+- **robots.txt violations**: requests under a path Krawl's robots.txt disallows
+- **Uneven timing**: bursty or irregular gaps between requests
+- **User-Agent variety**: how many distinct user agents the IP sent
+- **Attack detection**: attack types found by the [YARA rules](docs/detection.md)
 
-Each signal contributes to a weighted scoring model that assigns a reputation category:
-- `attacker`
-- `bad_crawler`
-- `good_crawler`
-- `regular_user`
-- `unknown` (for insufficient data)
-
-The resulting scores and metrics are stored in the database and used by Krawl to drive dashboards, reputation tracking, and automated mitigation actions such as IP banning or firewall integration.
+The IP Insight page draws them as the radar above, with each category's score below it; the highest score wins. [How IPs are evaluated](docs/algorithms.md) has the scoring table and a worked example.
 
 ## AI-Generated Deception Pages
 
-Krawl can automatically generate realistic deception pages using AI models from **OpenRouter** or **OpenAI** APIs. This feature creates unique, plausible honeypot pages on-the-fly to deceive attackers without manual page creation.
+Krawl can automatically generate realistic deception pages using AI models from **OpenRouter**, **OpenAI**, or any OpenAI-compatible engine such as **Ollama** or **llama.cpp**. This feature creates unique, plausible honeypot pages on-the-fly to deceive attackers without manual page creation.
 
 **Key Features:**
 - **Dynamic Generation**: Creates unique HTML pages for any request path
 - **Smart Caching**: Caches generated pages to avoid redundant API calls
 - **Daily Rate Limiting**: Control API costs with configurable request limits
-- **Multiple Providers**: Support for OpenRouter (free options) and OpenAI
+- **Multiple Providers**: OpenRouter (free options), OpenAI, or a local OpenAI-compatible engine
 - **Graceful Fallback**: Falls back to standard honeypot when disabled or limit reached
 - **Cached Serving**: Previously generated pages served even when AI is disabled
 
@@ -417,9 +420,13 @@ See the [Monitoring documentation](docs/monitoring.md) for the full metric list,
 
 ## Documentation
 
-The full documentation lives in [docs/](docs/index.md): configuration,
+The full documentation is live at **[blessedrebus.github.io/Krawl](https://blessedrebus.github.io/Krawl/)**, and its source is in [docs/](docs/index.md): configuration,
 deployment, detection rules, the dashboard, the API and operations. Upgrading
 from 2.4? Start with [Upgrading from 2.4 to 3.0](docs/upgrading.md).
+
+Two interactive tools live there too:
+- **[Config builder](https://blessedrebus.github.io/Krawl/config-builder/)**: every setting as a form field, copied out as `config.yaml`, environment variables or Helm values.
+- **[Rule builder](https://blessedrebus.github.io/Krawl/rule-builder/)**: write a YARA rule, validate it against Krawl's rule contract and test it on a request before uploading it.
 
 ## Contributing
 

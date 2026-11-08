@@ -1,5 +1,10 @@
 # Configuration
 
+!!! tip "Build your config interactively"
+    The [Config builder](config-builder.md) lists every setting below as a form
+    field, with its help and `KRAWL_*` variable, and prints the result as
+    `config.yaml`, environment variables or Helm values.
+
 Krawl reads `config.yaml` (or the file named by `CONFIG_LOCATION`) and then
 applies environment variables, which win. The annotated
 [config.yaml](https://github.com/BlessedRebuS/Krawl/blob/main/config.yaml) is

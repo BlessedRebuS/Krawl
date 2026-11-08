@@ -32,8 +32,6 @@ theme:
         icon: material/weather-night
         name: Dark mode
   features:
-    - navigation.instant
-    - navigation.instant.progress
     - navigation.tabs
     - navigation.sections
     - navigation.top
@@ -44,6 +42,16 @@ theme:
     - search.highlight
     - content.code.copy
     - content.action.edit
+
+hooks:
+  - scripts/docs_hooks.py
+
+watch:
+  - config.yaml
+  - src/config.py
+  - scripts/docs_hooks.py
+  - rules
+  - responses/manifest.yaml
 
 extra_css:
   - stylesheets/krawl.css
@@ -70,6 +78,9 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Tools:
+      - config-builder.md
+      - rule-builder.md
   - Set up:
       - configuration.md
       - deployment-modes.md
@@ -86,6 +97,7 @@ nav:
   - Use the data:
       - dashboard.md
       - dashboard-api.md
+      - api-reference.md
       - firewall-exporters.md
       - cloudflare_banlist.md
       - monitoring.md
