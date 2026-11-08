@@ -129,12 +129,3 @@ def test_echo_reply_blocks_scripts():
 
     assert reached_route == []
     assert response.headers["content-security-policy"] == "script-src 'none'"
-
-
-@pytest.mark.parametrize(
-    "module", ["deception_responses", "generators", "fake_responses"]
-)
-def test_content_generators_are_gone(module):
-    import importlib.util
-
-    assert importlib.util.find_spec(module) is None

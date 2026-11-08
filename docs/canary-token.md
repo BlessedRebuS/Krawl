@@ -36,4 +36,4 @@ canary:
   token_tries: 10
 ```
 
-See the full [environment variables reference](../README.md#configuration-via-environmental-variables) for more configuration options.
+See the full [environment variables reference](configuration.md) for more configuration options.

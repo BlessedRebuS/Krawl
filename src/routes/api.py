@@ -2115,6 +2115,7 @@ _SENSITIVE_FIELDS = frozenset(
 _NOT_SENSITIVE_FIELDS = frozenset(
     {
         "canary_token_tries",
+        "credential_password_fields",  # form field names, not a password
         "dashboard_password_generated",
         "dashboard_secret_path_generated",
     }
@@ -2207,7 +2208,12 @@ def _json_safe(value):
         return format_duration(value)
     if isinstance(value, tuple):
         return list(value)
-    if isinstance(value, (str, int, float, bool, list, dict)) or value is None:
+    if isinstance(value, dict):
+        # The panel shows text; a nested dict would render as [object Object].
+        import json
+
+        return json.dumps(value, separators=(", ", ": "))
+    if isinstance(value, (str, int, float, bool, list)) or value is None:
         return value
     return str(value)
 

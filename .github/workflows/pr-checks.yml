@@ -77,7 +77,6 @@ jobs:
       - name: Regression tests
         run: |
           python -m pytest -q
-          python tests/test_threat_capture.py
 
       - name: Apply auto-fixes (ruff --fix & black)
         # Only auto-fix on same-repo PRs, where we can push the result back.

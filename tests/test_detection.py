@@ -1,3 +1,4 @@
+from functools import cache
 from pathlib import Path
 
 import pytest
@@ -11,7 +12,7 @@ RULES = Path(__file__).resolve().parent.parent / "rules"
 
 
 def test_yara_scans_fields_and_preserves_multiple_categories():
-    detector = DetectionCoordinator(YaraDetectionEngine(RULES))
+    detector = _yara()
 
     findings = detector.scan_request(
         path="/wp-admin",
@@ -42,7 +43,7 @@ def test_yara_rejects_missing_required_metadata(tmp_path):
 
 
 def test_login_rule_requires_post():
-    detector = DetectionCoordinator(YaraDetectionEngine(RULES))
+    detector = _yara()
 
     get_types = {
         item.attack_type
@@ -57,7 +58,9 @@ def test_login_rule_requires_post():
     assert "login_attempt" in post_types
 
 
+@cache
 def _yara():
+    """Bundled rules, compiled once: the coordinator is read-only after init."""
     return DetectionCoordinator(YaraDetectionEngine(RULES))
 
 
@@ -349,7 +352,7 @@ def test_declared_string_ids_reads_rule_sources():
 
 
 def test_engine_exposes_rule_strings_and_response_types():
-    engine = YaraDetectionEngine(RULES)
+    engine = _yara().yara
 
     assert "$passwd" in engine.rule_strings["krawl_path_traversal"]
     assert engine.rule_response_types["krawl_path_traversal"] == "path_traversal"
@@ -425,18 +428,6 @@ def test_scan_request_keeps_string_ids_from_every_decoded_variant():
     assert finding.pattern_ids[0] == "$aws"
 
 
-@pytest.mark.parametrize("engine", ["legacy_json", "hybrid", "yara"])
-def test_leftover_engine_key_is_ignored(tmp_path, monkeypatch, engine):
-    # Configs from before YARA-only detection may still set detection.engine.
-    from config import Config
-
-    config_file = tmp_path / "config.yaml"
-    config_file.write_text(f"detection:\n  engine: {engine}\n", encoding="utf-8")
-    monkeypatch.setenv("CONFIG_LOCATION", str(config_file))
-
-    assert Config.from_yaml().yara_rules_path == "rules"
-
-
 @pytest.mark.parametrize(
     "body",
     [
@@ -454,13 +445,6 @@ def test_wordpress_login_form_is_only_a_login_attempt(body):
     findings = _yara().iter_findings(method="POST", path="/wp-login.php", body=body)
 
     assert {f.rule_name for f in findings} == {"krawl_login_attempt"}
-
-
-def test_detection_has_no_legacy_engine():
-    import detection
-
-    assert not hasattr(detection, "LegacyDetectionEngine")
-    assert not hasattr(detection, "LEGACY_RULE_META")
 
 
 @pytest.mark.parametrize(

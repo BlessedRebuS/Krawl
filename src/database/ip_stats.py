@@ -490,41 +490,6 @@ class IpStatsRepo:
         finally:
             self._db.close_session()
 
-    def manual_update_category(self, ip: str, category: str) -> None:
-        """
-        Update IP category as a result of a manual intervention by an admin
-
-        Args:
-            ip: IP address to update
-            category: selected category
-
-        """
-        session = self._db.session
-        sanitized_ip = sanitize_ip(ip)
-        ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
-
-        if not ip_stats:
-            applogger.warning(f"No IpStats record found for {sanitized_ip}")
-            return
-
-        # Record the manual category change
-        old_category = ip_stats.category
-        if old_category != category:
-            self._record_category_change(
-                sanitized_ip, old_category, category, datetime.now()
-            )
-
-        ip_stats.category = category
-        ip_stats.manual_category = True
-
-        try:
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            applogger.error(f"Error updating manual category: {e}")
-        finally:
-            self._db.close_session()
-
     def _record_category_change(
         self,
         ip: str,

@@ -15,7 +15,7 @@ A Helm chart for deploying the Krawl honeypot application on Kubernetes.
 
 ```bash
 helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
-  --version 2.4.0 \
+  --version 3.0.0 \
   --namespace krawl-system \
   --create-namespace \
   -f values.yaml  # optional
@@ -578,7 +578,7 @@ kubectl get secret krawl-server -n krawl-system \
 ### Scalable with bundled PostgreSQL and Redis (default)
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 3.0.0 \
   --set replicaCount=3 \
   --set postgres.password=your-password \
   --set redis.password=your-redis-password \
@@ -588,7 +588,7 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
 ### Scalable with external PostgreSQL and Redis
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 3.0.0 \
   --set replicaCount=3 \
   --set postgres.enabled=false \
   --set postgres.host=your-postgres-host \
@@ -602,7 +602,7 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
 ### Standalone with custom settings
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 3.0.0 \
   --set mode=standalone \
   --set postgres.enabled=false \
   --set redis.enabled=false \
@@ -624,7 +624,7 @@ helm upgrade krawl ./helm \
 ## Upgrading
 
 ```bash
-helm upgrade krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 -f values.yaml
+helm upgrade krawl oci://ghcr.io/blessedrebus/krawl-chart --version 3.0.0 -f values.yaml
 ```
 
 ## Uninstalling

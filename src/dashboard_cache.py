@@ -316,16 +316,6 @@ def table_row_count(session, model) -> int:
     return session.query(func.count()).select_from(model).scalar() or 0
 
 
-# Log rows a sorted page may read through a sort index before a full scan wins.
-WALK_LIMIT = 100_000
-
-
-def walks_cheaply(session, model, matches: int, reach: int) -> bool:
-    """Whether ORDER BY ... LIMIT may walk a sort index: with few matches it reads
-    most of the table to fill a page (13+ min on the demo)."""
-    return table_row_count(session, model) * reach <= matches * WALK_LIMIT
-
-
 def paginate_cached_list(items: list, page: int, page_size: int) -> dict:
     """Slice a pre-computed sorted list into a paginated response."""
     total = len(items)

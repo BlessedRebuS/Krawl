@@ -5,11 +5,11 @@ Below is a complete overview of the Krawl honeypot's capabilities
 ## How a request is answered
 
 Every fake reply comes from files in `responses/`, listed in
-[`responses/manifest.yaml`](../responses/manifest.yaml). Krawl tries three
+[`responses/manifest.yaml`](https://github.com/BlessedRebuS/Krawl/blob/main/responses/manifest.yaml). Krawl tries three
 layers in order:
 
 1. **YARA reply.** A rule fired and its `response_type` allows the method; see
-   [Response types](detection.md#response-types).
+   [Bundled response types](detection.md#bundled-response-types).
 2. **Page.** The request path is in the manifest's `pages:` section and the
    entry allows the method.
 3. **Trap maze.** Any other GET gets a page of random links, with the canary
@@ -76,7 +76,7 @@ warning at startup and ignores it. Move any values you customised:
 | `server_headers` | `server.server_headers` in `config.yaml` (`KRAWL_SERVER_HEADERS`) |
 | `credential_fields.username_fields` | `credentials.username_fields` (`KRAWL_CREDENTIAL_USERNAME_FIELDS`) |
 | `credential_fields.password_fields` | `credentials.password_fields` (`KRAWL_CREDENTIAL_PASSWORD_FIELDS`) |
-| `error_codes` | `behavior.error_codes` |
+| `error_codes` | `behavior.error_codes` (`KRAWL_ERROR_CODES`) |
 | `scoring_weights` | `analyzer.scoring_weights` |
 | `usernames`, `passwords`, `emails`, `api_keys`, `databases`, `applications`, `users`, `directory_listing`, `server_errors`, `sql_errors` | files under `responses/pages/` (bait pages) and `responses/sql_error/` (SQL errors) |
 | `attack_patterns`, `suspicious_patterns`, `fake_*`, `xxe_responses`, `command_outputs` | removed; detection is YARA-only and attack replies are files under `responses/` |
@@ -85,19 +85,19 @@ In Helm, the `wordlists:` values and their ConfigMap are gone; set the keys
 above under `config:` instead.
 
 ## robots.txt
-The actual (juicy) robots.txt configuration [is the following](../responses/pages/robots/robots.txt).
+The actual (juicy) robots.txt configuration [is the following](https://github.com/BlessedRebuS/Krawl/blob/main/responses/pages/robots/robots.txt).
 
 ## Honeypot pages
 
 ### Common Login Attempts
 Requests to common admin endpoints (`/admin/`, `/wp-admin/`, `/phpMyAdmin/`) return a fake login page. Any login attempt triggers a 1-second delay to simulate real processing and is fully logged in the dashboard (credentials, IP, headers, timing).
 
-![admin page](../img/admin-page.png)
+![admin page](img/admin-page.png)
 
 ### Common Misconfiguration Paths
 Requests to paths like `/backup/`, `/config/`, `/database/`, `/private/`, or `/uploads/` return a fake directory listing populated with "interesting" files.
 
-![directory-page](../img/directory-page.png)
+![directory-page](img/directory-page.png)
 
 ### Environment File Leakage
 The `.env` endpoint exposes fake database connection strings, **AWS API keys** and API secrets, as plain text.
@@ -105,22 +105,22 @@ The `.env` endpoint exposes fake database connection strings, **AWS API keys** a
 ### Server Error Information
 The `/server` page returns a fake 500 error page from Apache, nginx or IIS.
 
-![server and env page](../img/server-and-env-page.png)
+![server and env page](img/server-and-env-page.png)
 
 ### API Endpoints with Sensitive Data
 The pages `/api/v1/users` and `/api/v2/secrets` show fake users and random secrets in JSON format
 
-![users and secrets](../img/users-and-secrets.png)
+![users and secrets](img/users-and-secrets.png)
 
 ### Exposed Credential Files
 The pages `/credentials.txt` and `/passwords.txt` show fake users and random secrets
 
-![credentials and passwords](../img/credentials-and-passwords.png)
+![credentials and passwords](img/credentials-and-passwords.png)
 
 ### SQL Injection and XSS Detection
 Pages such as `/users`, `/search`, `/contact`, `/info`, `/input`, and `/feedback`, along with APIs like `/api/sql` and `/api/database`, are designed to lure attackers into performing attacks such as **SQL injection** or **XSS**.
 
-![sql injection](../img/sql_injection.png)
+![sql injection](img/sql_injection.png)
 
 Automated tools like **SQLMap** receive a database error picked from several files, matched to the database the payload targets (MySQL, PostgreSQL or SQL Server). All detected attacks are logged and displayed in the dashboard.
 

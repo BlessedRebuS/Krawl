@@ -62,10 +62,10 @@ Point-in-time values. `krawl_clients_total` is recomputed live at scrape time; t
 
 ## Grafana Dashboard
 
-A pre-built dashboard is provided at [`grafana-dashboard.json`](../grafana-dashboard.json) in the repository root.
+A pre-built dashboard is provided at [`grafana-dashboard.json`](https://github.com/BlessedRebuS/Krawl/blob/main/grafana-dashboard.json) in the repository root.
 
 <!-- TODO: replace with an actual screenshot of the imported Grafana dashboard -->
-![Grafana dashboard](../img/grafana_dashboard.png)
+![Grafana dashboard](img/grafana_dashboard.png)
 
 To import it:
 
@@ -115,7 +115,7 @@ grafanaDashboard:
 ### Editing the dashboard
 
 Both `grafana-dashboard.json` and the copy the chart embeds at
-`helm/files/grafana-dashboard.json` are generated from [`scripts/build_grafana_dashboard.py`](../scripts/build_grafana_dashboard.py).
+`helm/files/grafana-dashboard.json` are generated from [`scripts/build_grafana_dashboard.py`](https://github.com/BlessedRebuS/Krawl/blob/main/scripts/build_grafana_dashboard.py).
 Edit the script and re-run it rather than editing the JSON:
 
 ```bash

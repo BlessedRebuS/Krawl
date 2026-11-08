@@ -390,7 +390,9 @@ class Config:
 
         try:
             with open(config_path) as f:
-                data = yaml.safe_load(f)
+                # C loader when libyaml is present: ~10x faster than pure Python.
+                loader = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
+                data = yaml.load(f, Loader=loader)  # noqa: S506 -- a safe loader
         except FileNotFoundError:
             print(
                 f"Error: Configuration file '{config_path}' not found.", file=sys.stderr
@@ -714,6 +716,12 @@ def override_config_from_env(config: Config = None):
                         config,
                         field,
                         [p.strip() for p in env_value.split(",") if p.strip()],
+                    )
+                elif field_type == list[int]:
+                    setattr(
+                        config,
+                        field,
+                        [int(p) for p in env_value.split(",") if p.strip()],
                     )
                 elif field_type is timedelta:
                     current = getattr(config, field)

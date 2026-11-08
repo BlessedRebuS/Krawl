@@ -306,23 +306,36 @@ base.html
 
 Managed by `TasksMaster` (APScheduler). Tasks are auto-discovered from `src/tasks/`.
 
-| Task | Schedule | Purpose |
-|------|----------|---------|
-| `flush_access_logs` | Every 30 s | Drain the in-memory access-log write buffer into the database |
-| `reload_custom_rules` | Every 30 s, on every pod | Load YARA rule files uploaded or deleted on another replica |
-| `analyze_ips` | Every 1 min | Score IPs into categories (attacker, crawler, user) |
-| `metrics_flush` | Every 2 min | Persist Prometheus counter state |
-| `fetch_ip_rep` | Every 5 min | Enrich IPs with geolocation + blocklist data |
-| `dashboard_warmup` | Every 5 min | Pre-compute dashboard overview data (optional, disable via `cache_warmup: false`) |
-| `sync_cloudflare` | Every 1 min | Push banned IPs to a CloudFlare Account IP List (opt-in) |
-| `refresh_banlist` | `banlist.refresh_interval` (default 1 h) | Fetch and merge upstream community banlists |
-| `db_dump` | `backups.cron` | Export database backups |
-| `flag_stale_ips` | Daily (8 AM) | Flag stale IPs for reevaluation by the analyzer |
-| `pre_retention_cleanup` | Daily (8:30 AM) | Prune non-suspicious access rows ahead of retention |
-| `db_retention` | Daily (9 AM) | Clean up old records based on retention policy |
+Names match **Settings → Maintenance**, where any task can be run on demand.
+In scalable mode, "one pod" tasks run on a single pod per occurrence; see
+[Deployment modes](deployment-modes.md#scheduled-tasks-across-pods).
+
+| Task | Schedule | Runs on | Purpose |
+|------|----------|---------|---------|
+| `flush-access-logs` | Every 30 s (scalable only) | Every pod | Drain the in-memory access-log write buffer into the database |
+| `refresh-ban-cache` | Every 30 s | Every pod | Reload this pod's in-memory set of banned IPs |
+| `reload-custom-rules` | Every 30 s | Every pod | Load YARA rule files uploaded or deleted on another replica |
+| `analyze-ips` | Every 1 min | One pod | Score IPs into categories (attacker, crawler, user) |
+| `extract-request-metadata` | Every 1 min | One pod | Backfill target hosts and URL assets from stored raw requests |
+| `extract-captured-files` | Every 1 min | One pod | Backfill captured files from stored raw requests |
+| `hash-payloads` | Every 1 min | One pod | TLSH-hash new payloads and cluster them into campaigns |
+| `sync-cloudflare` | Every 1 min | One pod | Push banned IPs to a Cloudflare IP list (opt-in) |
+| `metrics-flush` | Every 2 min | Every pod | Persist Prometheus counter state |
+| `fetch-ip-rep` | Every 5 min | One pod | Enrich IPs with geolocation and blocklist data |
+| `dashboard-warmup` | Every 5 min | One pod | Pre-compute dashboard data (disable with `cache_warmup: false`) |
+| `build-online-indexes` | Hourly at :17 | One pod | Build PostgreSQL indexes concurrently, off the startup path |
+| `rollup-domains` | Hourly at :23 | One pod | Keep per-day Targeted Domains totals in Redis |
+| `refresh-banlist` | Every 1 h | One pod | Fetch and merge upstream community banlists |
+| `prune-uninteresting` | Every 4 h | One pod | Delete random-path crawler GETs past `retention.uninteresting` |
+| `dump-krawl-data` | `backups.cron` | One pod | Export database backups (opt-in) |
+| `db-cleanup` | Daily 03:00 | One pod | Purge ignored IPs (and IPv6 rows if configured), clear expired bans |
+| `flag-stale-ips` | Daily 08:00 | One pod | Flag stale IPs for re-evaluation by the analyzer |
+| `pre-retention-cleanup` | Daily 08:30 | One pod | Re-check old suspicious logs against current rules |
+| `db-retention` | Daily 09:00 | One pod | Delete records past their retention window |
+| `purge` | Never scheduled | Serving pod | Database purge, run from the dashboard maintenance panel |
 
 Each sweeping task takes a bounded slice per run and picks the rest up next
-run. The slice sizes live in the `tasks:` config section (see Configuration) —
+run. The slice sizes live in the `tasks:` config section (see [Configuration](configuration.md)) —
 raise them when a backlog never drains, keeping the pod's memory limit in mind.
 
 ### IP Categorization Model

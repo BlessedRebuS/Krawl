@@ -106,3 +106,6 @@ graphify-out/
 # patterns above (responses/spring_actuator/env/ matches env/).
 !/responses/**
 !/rules/**
+
+# MkDocs build output
+site/

@@ -622,7 +622,7 @@ see [Dashboard](dashboard.md#rules) and
 
 Krawl no longer reads `wordlists.json`; see
 [Honeypot](honeypot.md#moving-from-wordlistsjson) for where each key went. YARA
-is the only detection engine; a leftover `detection.engine` key is ignored. The
+is the only detection engine. The
 `attack_detections.rule_name` column and its index are added automatically at
 startup on existing SQLite and PostgreSQL databases.
 

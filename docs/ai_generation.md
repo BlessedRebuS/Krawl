@@ -37,7 +37,7 @@ export KRAWL_AI_MAX_DAILY_REQUESTS=10
 
 Krawl can be configured to use a self-hosted LLM to generate deception pages using [llama.cpp](https://github.com/ggml-org/llama.cpp) or [ollama](https://ollama.com/).
 
-The [docker-compose setup](../docker/docker-compose.scalable.yaml) includes both **llama.cpp** and **Ollama** as optional services.
+The [docker-compose setup](https://github.com/BlessedRebuS/Krawl/blob/main/docker/docker-compose.scalable.yaml) includes both **llama.cpp** and **Ollama** as optional services.
 
 The LLM endpoint can be configured via `openai_base_url` environment variable pointing to the local service because it is OpenAI compatible. For docker deployments it can be used `http://krawl-llm:8080/v1` as endpoint because it is the service name of the llm.
 
@@ -68,7 +68,7 @@ For maximum privacy and cost efficiency, Krawl can run with self-hosted LLMs usi
 
 See both [llama.cpp](https://github.com/ggml-org/llama.cpp) and [Ollama](https://docs.ollama.com/) documentation to choose the best engine for your setup.
 
-In our tests, we used models like [Qwen 1.5-1.8B](https://huggingface.co/Qwen/Qwen1.5-1.8B) and [Qwen3.5-4B](https://huggingface.co/Qwen/Qwen3.5-4B) to perform basic **JSON, TXT, and fake vulnerable static HTML page** generation. In order to modify the result on your scenario, modify the  [prompt section](../config.yaml)  in the config.yaml file
+In our tests, we used models like [Qwen 1.5-1.8B](https://huggingface.co/Qwen/Qwen1.5-1.8B) and [Qwen3.5-4B](https://huggingface.co/Qwen/Qwen3.5-4B) to perform basic **JSON, TXT, and fake vulnerable static HTML page** generation. In order to modify the result on your scenario, modify the  [prompt section](https://github.com/BlessedRebuS/Krawl/blob/main/config.yaml)  in the config.yaml file
 
 In general, the larger the model parameter count, the more polished, realistic, and complex the generated HTML pages tend to be.
 
@@ -77,7 +77,7 @@ In general, the larger the model parameter count, the more polished, realistic, 
 
 #### Option 1: llama.cpp with Docker Compose
 
-- Deploy the [docker/docker-compose.scalable.yaml](../docker/docker-compose.scalable.yaml) uncommenting the preferred LLM
+- Deploy the [docker/docker-compose.scalable.yaml](https://github.com/BlessedRebuS/Krawl/blob/main/docker/docker-compose.scalable.yaml) uncommenting the preferred LLM
 - Specify the model from HuggingFace on first run with **repo/model** standard and specify the GGUF file name. [See GGUF documentation for more information](https://huggingface.co/docs/hub/gguf-llamacpp).
 ```yaml
 command: >
@@ -106,7 +106,7 @@ HF_TOKEN=your_hf_token
 
 #### Option 2: Ollama with Docker Compose
 
-- Set up the alternative service in [docker/docker-compose.scalable.yaml](../docker/docker-compose.scalable.yaml) uncommenting ollama
+- Set up the alternative service in [docker/docker-compose.scalable.yaml](https://github.com/BlessedRebuS/Krawl/blob/main/docker/docker-compose.scalable.yaml) uncommenting ollama
 - Modify the entrypoint with your desired model [from the ollama library](https://ollama.com/library)
 ```yaml
 entrypoint: >

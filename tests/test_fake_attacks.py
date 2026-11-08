@@ -93,7 +93,7 @@ def _replay(item: FakeRequest, detector):
 
 
 @pytest.mark.parametrize("item", ATTACKS, ids=lambda item: item.name)
-def test_fake_attack_is_detected_with_expected_type(item, detector):
+def test_fake_attack_is_detected_by_its_rule(item, detector):
     findings, tracker = _replay(item, detector)
 
     matching = [finding for finding in findings if finding.attack_type == item.expect]
@@ -104,6 +104,21 @@ def test_fake_attack_is_detected_with_expected_type(item, detector):
         assert tracker.recorded, f"{item.name} was not recorded"
         assert len(tracker.recorded) == 1, f"{item.name} was recorded twice"
         assert tracker.recorded[0]["detection_findings"] == findings
+
+    # Findings above are folded per attack type; the raw scan names each rule.
+    raw = detector.iter_findings(
+        path=urllib.parse.unquote(item.path),
+        query=item.query,
+        body=item.body,
+        user_agent=item.user_agent,
+        method=item.method,
+        headers={
+            "host": "honeypot.test",
+            **{k.lower(): v for k, v in item.headers.items()},
+        }.items(),
+    )
+    rules = {finding.rule_name for finding in raw}
+    assert item.rule in rules, f"{item.name}: got {sorted(rules)}"
 
 
 @pytest.mark.parametrize("item", BENIGN, ids=lambda item: item.name)
@@ -220,27 +235,6 @@ def test_every_attack_names_the_rule_that_must_fire(detector):
 
 def test_every_bundled_rule_has_a_fake_attack(detector):
     assert set(_rule_attack_types(detector)) - {item.rule for item in ATTACKS} == set()
-
-
-@pytest.mark.parametrize("item", ATTACKS, ids=lambda item: item.name)
-def test_fake_attack_fires_its_named_rule(item, detector):
-    raw = list(
-        detector.iter_findings(
-            path=urllib.parse.unquote(item.path),
-            query=item.query,
-            body=item.body,
-            user_agent=item.user_agent,
-            method=item.method,
-            headers={
-                "host": "honeypot.test",
-                **{k.lower(): v for k, v in item.headers.items()},
-            }.items(),
-        )
-    )
-
-    assert item.rule in {finding.rule_name for finding in raw}, (
-        f"{item.name}: got {sorted({f.rule_name for f in raw})}"
-    )
 
 
 def test_replay_selects_by_attack_type_or_rule_name():

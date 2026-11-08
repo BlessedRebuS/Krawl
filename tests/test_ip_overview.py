@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 
 import pytest
-from test_pages_routing import app_client  # noqa: F401
+from test_pages_routing import app_client, bundled_detection  # noqa: F401
 
 from database import get_database, initialize_database
 from ip_overview import (

@@ -1114,18 +1114,6 @@ class AnalyticsRepo:
         finally:
             self._db.close_session()
 
-    def get_metrics_summary(self) -> dict[tuple, int]:
-        """Load all persisted summary rows as {(metric, label): value}."""
-        session = self._db.session
-        try:
-            rows = session.query(MetricsSummary).all()
-            return {(r.metric, r.label or ""): int(r.value) for r in rows}
-        except Exception as e:
-            applogger.error(f"Error reading metrics summary: {e}")
-            return {}
-        finally:
-            self._db.close_session()
-
     def get_heavy_summary(self) -> dict[str, int]:
         """Load the persisted heavy-aggregate snapshot as {metric: value}.
 

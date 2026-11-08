@@ -11,13 +11,13 @@ This generates realistic-looking test data including:
 - Real good crawler IPs (Googlebot, Bingbot, etc.)
 
 Usage:
-    python test_insert_fake_ips.py [num_ips] [logs_per_ip] [credentials_per_ip] [--no-cleanup]
+    python scripts/insert_fake_ips.py [num_ips] [logs_per_ip] [credentials_per_ip] [--no-cleanup]
 
 Examples:
-    python test_insert_fake_ips.py              # Generate 20 IPs with defaults, cleanup DB first
-    python test_insert_fake_ips.py 30           # Generate 30 IPs with defaults
-    python test_insert_fake_ips.py 30 20 5      # Generate 30 IPs, 20 logs each, 5 credentials each
-    python test_insert_fake_ips.py --no-cleanup # Generate data without cleaning DB first
+    python scripts/insert_fake_ips.py              # Generate 20 IPs with defaults, cleanup DB first
+    python scripts/insert_fake_ips.py 30           # Generate 30 IPs with defaults
+    python scripts/insert_fake_ips.py 30 20 5      # Generate 30 IPs, 20 logs each, 5 credentials each
+    python scripts/insert_fake_ips.py --no-cleanup # Generate data without cleaning DB first
 
 Note: This script will make API calls to fetch geolocation data, so it may take a while.
 """
@@ -32,7 +32,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 # Add parent src directory to path so we can import database and logger
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from database import get_database
 from geo_utils import extract_geolocation_from_ip
@@ -139,7 +139,9 @@ FAKE_USER_AGENTS = [
 ]
 
 
-def _build_fake_raw_request(method: str, path: str, user_agent: str, large: bool = False, huge: bool = False) -> str:
+def _build_fake_raw_request(
+    method: str, path: str, user_agent: str, large: bool = False, huge: bool = False
+) -> str:
     """Build a fake raw HTTP request string matching build_raw_request format."""
     raw = f"{method} {path} HTTP/1.1\r\n"
     raw += "Host: example.com\r\n"
@@ -201,7 +203,9 @@ RAW_FILE_UPLOADS = [
 ]
 
 
-def _build_multipart_raw_request(path: str, filename: str, content_type_file: str, file_body: str, user_agent: str) -> str:
+def _build_multipart_raw_request(
+    path: str, filename: str, content_type_file: str, file_body: str, user_agent: str
+) -> str:
     """Build a raw HTTP request with multipart/form-data body containing a file attachment."""
     raw = f"POST {path} HTTP/1.1\r\n"
     raw += "Host: example.com\r\n"
@@ -220,7 +224,9 @@ def _build_multipart_raw_request(path: str, filename: str, content_type_file: st
     return raw
 
 
-def _build_raw_body_request(path: str, content_type: str, body: str, user_agent: str) -> str:
+def _build_raw_body_request(
+    path: str, content_type: str, body: str, user_agent: str
+) -> str:
     """Build a raw HTTP request with a file body (no multipart encoding)."""
     raw = f"POST {path} HTTP/1.1\r\n"
     raw += "Host: example.com\r\n"
@@ -232,6 +238,7 @@ def _build_raw_body_request(path: str, content_type: str, body: str, user_agent:
     raw += "\r\n"
     raw += body
     return raw
+
 
 FAKE_CREDENTIALS = [
     ("admin", "admin"),
@@ -433,9 +440,23 @@ def generate_fake_data(
                 num_attacks = random.randint(1, 3)
                 attack_types = random.sample(ATTACK_TYPES, num_attacks)
 
-            method = random.choice(["GET", "POST", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "QUERY"])
+            method = random.choice(
+                [
+                    "GET",
+                    "POST",
+                    "POST",
+                    "PUT",
+                    "PATCH",
+                    "DELETE",
+                    "HEAD",
+                    "OPTIONS",
+                    "QUERY",
+                ]
+            )
             r = random.random()
-            raw_request = _build_fake_raw_request(method, path, user_agent, large=r < 0.3, huge=r < 0.05)
+            raw_request = _build_fake_raw_request(
+                method, path, user_agent, large=r < 0.3, huge=r < 0.05
+            )
 
             log_id = db_manager.persist_access(
                 ip=ip,
@@ -582,7 +603,11 @@ def generate_fake_data(
                 is_suspicious=False,
                 is_honeypot_trigger=False,
                 attack_types=None,
-                raw_request=_build_fake_raw_request("GET", "/robots.txt", "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"),
+                raw_request=_build_fake_raw_request(
+                    "GET",
+                    "/robots.txt",
+                    "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+                ),
             )
 
             # Add geolocation if API fetch was successful
@@ -631,7 +656,11 @@ def generate_fake_data(
     attacker_ip = random.choice(FAKE_IPS[:5])
     for att in MULTIPART_ATTACHMENTS:
         raw = _build_multipart_raw_request(
-            att["path"], att["filename"], att["content_type_file"], att["body"], "curl/7.68.0"
+            att["path"],
+            att["filename"],
+            att["content_type_file"],
+            att["body"],
+            "curl/7.68.0",
         )
         db_manager.persist_access(
             ip=attacker_ip,
@@ -643,7 +672,9 @@ def generate_fake_data(
             attack_types=["suspicious_pattern"],
             raw_request=raw,
         )
-        app_logger.info(f"  ✓ Inserted multipart request: {att['filename']} → {att['path']}")
+        app_logger.info(
+            f"  ✓ Inserted multipart request: {att['filename']} → {att['path']}"
+        )
     total_logs += len(MULTIPART_ATTACHMENTS)
 
     # Insert raw body file uploads (no multipart) for dashboard testing
@@ -664,7 +695,9 @@ def generate_fake_data(
             attack_types=["suspicious_pattern"],
             raw_request=raw,
         )
-        app_logger.info(f"  ✓ Inserted raw body upload: {att['path']} ({att['content_type']})")
+        app_logger.info(
+            f"  ✓ Inserted raw body upload: {att['path']} ({att['content_type']})"
+        )
     total_logs += len(RAW_FILE_UPLOADS)
 
     # Print summary
