@@ -711,7 +711,7 @@ def override_config_from_env(config: Config = None):
                     parts = env_value.split(",")
                     if len(parts) == 2:
                         setattr(config, field, (int(parts[0]), int(parts[1])))
-                elif field_type == list[str]:
+                elif field_type in (list[str], list[str] | None):
                     setattr(
                         config,
                         field,

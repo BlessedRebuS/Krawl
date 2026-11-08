@@ -155,6 +155,16 @@ def test_env_overrides_error_codes_as_ints(monkeypatch):
     assert config.error_codes == [404, 503]
 
 
+def test_env_overrides_banlist_sources_as_a_list(monkeypatch):
+    from config import Config, override_config_from_env
+
+    monkeypatch.setenv("KRAWL_BANLIST_SOURCES", "https://a.example/x.txt, https://b.example/y.txt")
+    config = Config()
+    override_config_from_env(config)
+
+    assert config.banlist_sources == ["https://a.example/x.txt", "https://b.example/y.txt"]
+
+
 @pytest.mark.parametrize(
     "text",
     [
