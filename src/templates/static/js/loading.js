@@ -138,7 +138,7 @@
         retry.className = 'pagination-btn';
         retry.textContent = 'Try again';
         retry.addEventListener('click', () => {
-            htmx.ajax('GET', path, { target, swap: 'innerHTML' });
+            htmx.ajax('GET', path, { source: target, target, swap: 'innerHTML' });
         });
         box.append(text, retry);
         target.replaceChildren(box);

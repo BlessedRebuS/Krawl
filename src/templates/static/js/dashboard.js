@@ -43,7 +43,7 @@ document.addEventListener('alpine:init', () => {
             const container = document.getElementById('overrides-container');
             if (container && typeof htmx !== 'undefined') {
                 htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/ban/overrides?page=1`, {
-                    target: '#overrides-container',
+                    source: '#overrides-container', target: '#overrides-container',
                     swap: 'innerHTML'
                 });
             }
@@ -90,7 +90,7 @@ document.addEventListener('alpine:init', () => {
             const container = document.getElementById('tracked-ips-container');
             if (container && typeof htmx !== 'undefined') {
                 htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/tracked-ips/list?page=1`, {
-                    target: '#tracked-ips-container',
+                    source: '#tracked-ips-container', target: '#tracked-ips-container',
                     swap: 'innerHTML'
                 });
             }
@@ -703,7 +703,7 @@ document.addEventListener('alpine:init', () => {
                 const container = document.getElementById('banlist-htmx-container');
                 if (container && typeof htmx !== 'undefined') {
                     htmx.ajax('GET', `${this.dashboardPath}/htmx/banlist`, {
-                        target: '#banlist-htmx-container',
+                        source: '#banlist-htmx-container', target: '#banlist-htmx-container',
                         swap: 'innerHTML'
                     });
                 }
@@ -719,7 +719,7 @@ document.addEventListener('alpine:init', () => {
                 const container = document.getElementById('timedout-htmx-container');
                 if (container && typeof htmx !== 'undefined') {
                     htmx.ajax('GET', `${this.dashboardPath}/htmx/timedout`, {
-                        target: '#timedout-htmx-container',
+                        source: '#timedout-htmx-container', target: '#timedout-htmx-container',
                         swap: 'innerHTML'
                     });
                 }
@@ -735,7 +735,7 @@ document.addEventListener('alpine:init', () => {
                 const container = document.getElementById('tracked-ips-htmx-container');
                 if (container && typeof htmx !== 'undefined') {
                     htmx.ajax('GET', `${this.dashboardPath}/htmx/tracked-ips`, {
-                        target: '#tracked-ips-htmx-container',
+                        source: '#tracked-ips-htmx-container', target: '#tracked-ips-htmx-container',
                         swap: 'innerHTML'
                     });
                 }
@@ -751,7 +751,7 @@ document.addEventListener('alpine:init', () => {
                 const container = document.getElementById('deception-htmx-container');
                 if (container && typeof htmx !== 'undefined') {
                     htmx.ajax('GET', `${this.dashboardPath}/htmx/deception`, {
-                        target: '#deception-htmx-container',
+                        source: '#deception-htmx-container', target: '#deception-htmx-container',
                         swap: 'innerHTML'
                     });
                 }
@@ -767,7 +767,7 @@ document.addEventListener('alpine:init', () => {
                 const container = document.getElementById('rules-htmx-container');
                 if (container && typeof htmx !== 'undefined') {
                     htmx.ajax('GET', `${this.dashboardPath}/htmx/rules`, {
-                        target: '#rules-htmx-container',
+                        source: '#rules-htmx-container', target: '#rules-htmx-container',
                         swap: 'innerHTML'
                     });
                 }
@@ -783,7 +783,7 @@ document.addEventListener('alpine:init', () => {
                 const container = document.getElementById('webhooks-htmx-container');
                 if (container && typeof htmx !== 'undefined') {
                     htmx.ajax('GET', `${this.dashboardPath}/htmx/webhooks`, {
-                        target: '#webhooks-htmx-container',
+                        source: '#webhooks-htmx-container', target: '#webhooks-htmx-container',
                         swap: 'innerHTML'
                     });
                 }
@@ -995,7 +995,7 @@ document.addEventListener('alpine:init', () => {
                 const container = document.getElementById('ip-insight-htmx-container');
                 if (container && typeof htmx !== 'undefined') {
                     htmx.ajax('GET', `${this.dashboardPath}/htmx/ip-insight/${encodeURIComponent(ip)}`, {
-                        target: '#ip-insight-htmx-container',
+                        source: '#ip-insight-htmx-container', target: '#ip-insight-htmx-container',
                         swap: 'innerHTML'
                     });
                 }
@@ -1381,7 +1381,7 @@ const RULES_OFFLINE = 'Could not reach the server. Check your connection, then t
 window.rulesUploader = function() {
     const dashboardPath = document.querySelector('[x-data="dashboardApp()"]')?.__alpine_data?.dashboardPath || window.__DASHBOARD_PATH__ || '';
     const reloadPanel = () => htmx.ajax('GET', dashboardPath + '/htmx/rules', {
-        target: '#rules-htmx-container',
+        source: '#rules-htmx-container', target: '#rules-htmx-container',
         swap: 'innerHTML'
     });
     // The success line outlives the panel reload that shows the new file.
@@ -1447,7 +1447,7 @@ window.reloadGeneratedPagesTable = function() {
     if (htmxContainer && typeof htmx !== 'undefined') {
         const tableUrl = dashboardPath + '/htmx/generated-pages?page=1&sort_by=created_at&sort_order=desc';
         htmx.ajax('GET', tableUrl, {
-            target: htmxContainer,
+            source: htmxContainer, target: htmxContainer,
             swap: 'innerHTML'
         });
     }
@@ -2250,6 +2250,9 @@ function _threatPanelParams(panel) {
     return params;
 }
 
+// Every htmx.ajax call passes `source`: without it htmx uses <body> for all of
+// them and keeps only the last queued request, so of three panels loading at
+// once the middle one was never fetched (Captured files on the Threats tab).
 function _threatPanelReload(panel) {
     const container = panel.querySelector('.htmx-container');
     if (!container || typeof htmx === 'undefined') return;
@@ -2257,7 +2260,7 @@ function _threatPanelReload(panel) {
     params.set('page', '1');
     const dashboardPath = window.__DASHBOARD_PATH__ || '';
     htmx.ajax('GET', `${dashboardPath}/htmx/${panel.dataset.endpoint}?${params}`, {
-        target: container,
+        source: container, target: container,
         swap: 'innerHTML',
     });
 }
@@ -2693,7 +2696,7 @@ function refreshIpInsight(ip) {
     const data = getAlpineData('[x-data="dashboardApp()"]');
     if (!data || data.tab !== 'ip-insight' || data.insightIp !== ip) return;
     htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/ip-insight/${encodeURIComponent(ip)}`, {
-        target: '#ip-insight-htmx-container',
+        source: '#ip-insight-htmx-container', target: '#ip-insight-htmx-container',
         swap: 'innerHTML'
     });
 }
@@ -2724,7 +2727,7 @@ window.ipBanAction = async function(ip, action) {
             const overrides = document.getElementById('overrides-container');
             if (overrides) {
                 htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/ban/overrides?page=1`, {
-                    target: '#overrides-container',
+                    source: '#overrides-container', target: '#overrides-container',
                     swap: 'innerHTML'
                 });
             }
@@ -2761,13 +2764,13 @@ window.timeoutExemptAction = async function(ip, action) {
             const active = document.getElementById('timedout-active-container');
             if (active && typeof htmx !== 'undefined') {
                 htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/timedout/active?page=1`, {
-                    target: '#timedout-active-container', swap: 'innerHTML'
+                    source: '#timedout-active-container', target: '#timedout-active-container', swap: 'innerHTML'
                 });
             }
             const exempt = document.getElementById('timeout-exempt-container');
             if (exempt && typeof htmx !== 'undefined') {
                 htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/timeout-exempt?page=1`, {
-                    target: '#timeout-exempt-container', swap: 'innerHTML'
+                    source: '#timeout-exempt-container', target: '#timeout-exempt-container', swap: 'innerHTML'
                 });
             }
         } else {
@@ -2846,7 +2849,7 @@ window.ipTrackAction = async function(ip, action) {
             const container = document.getElementById('tracked-ips-container');
             if (container && typeof htmx !== 'undefined') {
                 htmx.ajax('GET', `${window.__DASHBOARD_PATH__}/htmx/tracked-ips/list?page=1`, {
-                    target: '#tracked-ips-container',
+                    source: '#tracked-ips-container', target: '#tracked-ips-container',
                     swap: 'innerHTML'
                 });
             }
