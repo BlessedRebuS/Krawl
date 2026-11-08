@@ -212,6 +212,13 @@ _SQLITE_PRUNE_INDEX = (
     "CREATE INDEX IF NOT EXISTS ix_access_logs_prunable "
     "ON access_logs(timestamp) WHERE is_interesting = 0"
 )
+# Campaign reads (Threats tab targets / signature mix) answer from this index
+# alone instead of fetching every wide detection row: 7.7s -> 0.46s on 500k
+# detections. SQLite only: PostgreSQL hash-joins these reads and gained nothing.
+_SQLITE_CLUSTER_MEMBERS_INDEX = (
+    "CREATE INDEX IF NOT EXISTS ix_attack_detections_cluster_members "
+    "ON attack_detections(cluster_id, access_log_id, attack_type)"
+)
 
 
 def _reloptions(engine: Engine, table: str) -> set[str]:
@@ -289,6 +296,11 @@ def run_migrations(engine: Engine) -> None:
                 conn.execute(text("DROP INDEX IF EXISTS ix_ip_stats_crunch_queue"))
         except Exception as e:
             logger.error(f"Migration error (prunable index): {e}")
+        try:
+            with engine.begin() as conn:
+                conn.execute(text(_SQLITE_CLUSTER_MEMBERS_INDEX))
+        except Exception as e:
+            logger.error(f"Migration error (cluster members index): {e}")
 
     # Assets once included URLs from the User-Agent header (crawler homepages).
     # ponytail: rescans request_assets each boot; drop once installs have run it.

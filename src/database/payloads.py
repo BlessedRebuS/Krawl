@@ -595,6 +595,76 @@ class PayloadRepo:
         finally:
             self._db.close_session()
 
+    def get_campaign_targets(
+        self,
+        cluster_ids: list[str],
+        limit: int = 200,
+        start: Any = None,
+        end: Any = None,
+    ) -> list[dict[str, Any]]:
+        """The campaigns' attack requests grouped by the path they hit, so a
+        defender reads "what is being attacked" rather than "which payload".
+        One row per path: requests, distinct IPs, campaigns, attack types
+        (most frequent first) and the first/last hit. With ``start``/``end``
+        only requests inside that window count."""
+        if not cluster_ids:
+            return []
+        session = self._db.session
+        try:
+            members = (
+                session.query(AccessLog.path)
+                .join(AttackDetection, AttackDetection.access_log_id == AccessLog.id)
+                .filter(AttackDetection.cluster_id.in_(cluster_ids))
+            )
+            if start is not None and end is not None:
+                members = members.filter(
+                    AccessLog.timestamp >= start, AccessLog.timestamp < end
+                )
+            rows = (
+                members.add_columns(
+                    func.count(func.distinct(AccessLog.id)),
+                    func.count(func.distinct(AccessLog.ip)),
+                    func.count(func.distinct(AttackDetection.cluster_id)),
+                    func.min(AccessLog.timestamp),
+                    func.max(AccessLog.timestamp),
+                )
+                .group_by(AccessLog.path)
+                .order_by(func.count(func.distinct(AccessLog.id)).desc())
+                .limit(limit)
+                .all()
+            )
+            targets = {
+                path: {
+                    "path": path,
+                    "events": events,
+                    "ips": ips,
+                    "campaigns": campaigns,
+                    "first_seen": first,
+                    "last_seen": last,
+                    "types": {},
+                }
+                for path, events, ips, campaigns, first, last in rows
+            }
+            if not targets:
+                return []
+            for path, atype, cnt in (
+                members.filter(AccessLog.path.in_(list(targets)))
+                .add_columns(AttackDetection.attack_type, func.count())
+                .group_by(AccessLog.path, AttackDetection.attack_type)
+                .all()
+            ):
+                targets[path]["types"][atype] = cnt
+            result = []
+            for t in targets.values():
+                types = t.pop("types")
+                t["attack_types"] = [
+                    a for a, _ in sorted(types.items(), key=lambda kv: (-kv[1], kv[0]))
+                ]
+                result.append(t)
+            return result
+        finally:
+            self._db.close_session()
+
     def get_campaign_activity(
         self, cluster_ids: list[str], start: Any, end: Any, hourly: bool
     ) -> dict[str, dict[str, int]]:
@@ -619,7 +689,13 @@ class PayloadRepo:
             attack_slot = slot(AccessLog.timestamp)
             file_slot = slot(CapturedPayload.timestamp)
             queries = (
-                session.query(AttackDetection.cluster_id, attack_slot, func.count())
+                # One request trips several rules (one detection row each);
+                # count requests, the unit capture_count uses.
+                session.query(
+                    AttackDetection.cluster_id,
+                    attack_slot,
+                    func.count(func.distinct(AttackDetection.access_log_id)),
+                )
                 .join(AccessLog, AttackDetection.access_log_id == AccessLog.id)
                 .filter(
                     AttackDetection.cluster_id.in_(cluster_ids),

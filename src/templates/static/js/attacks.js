@@ -282,7 +282,8 @@ function _attacksRangeText() {
 }
 
 // One applied filter: a dim key ("not", "method"), its value, and a remove button.
-function _attacksPill(key, value, patch, dot, flip) {
+// `set` applies a patch and `bar` names the tab's bar (the Threats tab reuses this).
+function _attacksPill(key, value, patch, dot, flip, set = setAttacksState, bar = 'attacks') {
     const pill = document.createElement('span');
     pill.className = 'applied-pill';
     if (dot) {
@@ -299,7 +300,7 @@ function _attacksPill(key, value, patch, dot, flip) {
         k.type = 'button';
         k.title = key === 'only' ? 'Hide these instead' : 'Show only these instead';
         k.setAttribute('aria-label', `${key} ${value}: switch to ${key === 'only' ? 'hide' : 'only'}`);
-        k.onclick = () => setAttacksState(flip);
+        k.onclick = () => set(flip);
     }
     const v = document.createElement('span');
     v.className = 'applied-pill-value';
@@ -312,10 +313,10 @@ function _attacksPill(key, value, patch, dot, flip) {
     x.setAttribute('aria-label', `Remove filter ${key} ${value}`);
     x.onclick = () => {
         const i = [...pill.parentNode.querySelectorAll('.applied-pill')].indexOf(pill);
-        setAttacksState(patch);
+        set(patch);
         // Keep keyboard focus in the bar: the next pill, else the span key.
-        const rest = document.querySelectorAll('#attacks-pills .applied-pill-clear');
-        const to = rest[Math.min(i, rest.length - 1)] || document.querySelector('#attacks-span .active');
+        const rest = document.querySelectorAll(`#${bar}-pills .applied-pill-clear`);
+        const to = rest[Math.min(i, rest.length - 1)] || document.querySelector(`#${bar}-span .active`);
         if (to) to.focus();
     };
     pill.append(k, v, x);

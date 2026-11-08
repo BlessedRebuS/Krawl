@@ -639,6 +639,27 @@ def _campaign_slot_hours(days: int) -> int:
     return 24
 
 
+def campaign_terms(raw: str) -> list[str]:
+    """Threats tab filter terms from a comma list: lowercased, deduped, max 10."""
+    terms = (t.strip().lower()[:200] for t in (raw or "").split(","))
+    return [t for t in dict.fromkeys(terms) if t][:10]
+
+
+def campaign_matches(
+    texts, types, search: list[str], exclude: list[str], attack_type: str = ""
+) -> bool:
+    """Shared Threats tab filter: every Only term must appear in one of the
+    texts (path, target, digest), no Hide term may, and the type must be among
+    ``types``. Mirrors the Attacks tab's term semantics."""
+    fields = [(t or "").lower() for t in texts]
+    has = lambda term: any(term in f for f in fields)  # noqa: E731
+    return (
+        all(has(t) for t in search)
+        and not any(has(t) for t in exclude)
+        and (not attack_type or attack_type in (types or []))
+    )
+
+
 def build_campaign_stats(db, limit: int, day: str = "", days: int = 0, offset: int = 0):
     """Top campaigns in a window with their per-slot activity, for the Threats
     tab chart. Shared with dashboard warmup, which writes this same payload
@@ -688,6 +709,7 @@ def build_campaign_stats(db, limit: int, day: str = "", days: int = 0, offset: i
             {
                 "id": c["id"],
                 "label": (c["rep_hash"] or "")[:8],
+                "rep_hash": c["rep_hash"],
                 "path": c["path"],
                 "top_path": c["top_path"],
                 "attack_types": c.get("attack_types") or [],
@@ -719,22 +741,53 @@ async def campaign_stats(
     day: str = Query(""),
     days: int = Query(1),
     offset: int = Query(0),
+    search: str = Query(""),
+    exclude: str = Query(""),
+    attack_type: str = Query(""),
 ):
     # Up to every campaign the builder considers (it scans 200), for "All".
     limit = min(max(1, limit), 200)
     days = min(max(1, days), 90)
     offset = max(0, offset)
-    cache_key = f"api:campaign_stats:{limit}:{day or days}:{offset}"
-    cached = get_cached_table(cache_key)
-    if cached:
-        return JSONResponse(content=cached, headers=_no_cache_headers())
+    search_terms, exclude_terms = campaign_terms(search), campaign_terms(exclude)
+    attack_type = attack_type.strip()[:64]
+    filtered = bool(search_terms or exclude_terms or attack_type)
+    # Filters apply to the whole ranked list, then the chart takes its top rows.
+    fetch_limit = 200 if filtered else limit
+    cache_key = f"api:campaign_stats:{fetch_limit}:{day or days}:{offset}"
 
-    db = get_db()
     try:
-        result = await asyncio.to_thread(
-            build_campaign_stats, db, limit, day=day, days=days, offset=offset
-        )
-        set_cached_table(cache_key, result)
+        result = get_cached_table(cache_key)
+        if not result:
+            result = await asyncio.to_thread(
+                build_campaign_stats,
+                get_db(),
+                fetch_limit,
+                day=day,
+                days=days,
+                offset=offset,
+            )
+            set_cached_table(cache_key, result)
+        if filtered:
+            rows = [
+                r
+                for r in result["campaigns"]
+                if campaign_matches(
+                    (r["top_path"], r["path"], r.get("rep_hash")),
+                    r["attack_types"],
+                    search_terms,
+                    exclude_terms,
+                    attack_type,
+                )
+            ]
+            result = {
+                **result,
+                "campaigns": rows[:limit],
+                "total_campaigns": len(rows),
+                "colours": colour_map(
+                    {t for r in rows[:limit] for t in r["attack_types"]}
+                ),
+            }
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
         get_app_logger().error(f"Error fetching campaign stats: {e}")

@@ -7,9 +7,9 @@ Server-rendered HTML partials for table pagination, sorting, IP details, and sea
 
 import asyncio
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Annotated
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 from fastapi import APIRouter, Query, Request, Response
 from fastapi.responses import HTMLResponse
@@ -35,7 +35,14 @@ from domain_map import build_domain_map
 from ip_overview import get_ip_overview, template_stats
 from logger import get_app_logger
 from period import period_query, range_label, resolve_period, time_only
-from routes.api import cached_attack_facets, verify_auth
+from routes.api import (
+    _campaign_window,
+    build_campaign_stats,
+    cached_attack_facets,
+    campaign_matches,
+    campaign_terms,
+    verify_auth,
+)
 
 router = APIRouter()
 
@@ -1611,79 +1618,260 @@ _CAMPAIGN_SORTS = {
 }
 
 
+def _campaign_span(days: int, offset: int) -> tuple[int, int]:
+    """The Threats tab period, clamped like the campaign chart's."""
+    return (days if days in (1, 7, 30) else 1), max(0, min(offset, 3650))
+
+
+async def _campaign_clusters() -> list[dict]:
+    """Every campaign, all time: the Campaigns table is the catalogue."""
+    cached = get_cached_table("clusters:all")
+    if cached:
+        return cached["clusters"]
+    clusters = await asyncio.to_thread(
+        get_db().payloads.get_campaign_clusters, limit=CAMPAIGN_TABLE_LIMIT
+    )
+    set_cached_table("clusters:all", {"clusters": clusters})
+    return clusters
+
+
+async def _campaign_period_hits(days: int, offset: int) -> dict[str, int]:
+    """Hits per campaign inside the period: the heatmap's own ranking, read
+    from the same cache key its "All" view uses."""
+    key = f"api:campaign_stats:{CAMPAIGN_TABLE_LIMIT}:{days}:{offset}"
+    stats = get_cached_table(key)
+    if not stats:
+        stats = await asyncio.to_thread(
+            build_campaign_stats,
+            get_db(),
+            CAMPAIGN_TABLE_LIMIT,
+            days=days,
+            offset=offset,
+        )
+        set_cached_table(key, stats)
+    return {c["id"]: c["hits"] for c in stats["campaigns"]}
+
+
+async def _campaign_rows(days: int, offset: int) -> list[dict]:
+    hits = await _campaign_period_hits(days, offset)
+    start, _ = _campaign_window(days=days, offset=offset)
+    return [
+        {
+            **c,
+            "period": hits.get(c["id"], 0),
+            "is_new": bool(c["first_seen"] and c["first_seen"] >= start),
+        }
+        for c in await _campaign_clusters()
+    ]
+
+
+def _period_label(days: int, offset: int) -> str:
+    """ "Nov 02" or "Nov 02 – Nov 08": the days the In period column covers."""
+    start, end = _campaign_window(days=days, offset=offset)
+    last = end - timedelta(seconds=1)
+    return f"{start:%b %d}" if days == 1 else f"{start:%b %d} – {last:%b %d}"
+
+
+def _campaign_page(rows, sorts, sort_by, sort_order, page, page_size):
+    rows.sort(key=sorts[sort_by], reverse=sort_order == "desc")
+    total = len(rows)
+    total_pages = max(1, (total + page_size - 1) // page_size)
+    page = min(max(1, page), total_pages)
+    offset = (page - 1) * page_size
+    return rows[offset : offset + page_size], {
+        "page": page,
+        "page_size": page_size,
+        "total": total,
+        "total_pages": total_pages,
+    }
+
+
+def _type_facets(rows) -> list[tuple[str, int]]:
+    counts: dict[str, int] = {}
+    for r in rows:
+        for t in r.get("attack_types") or []:
+            counts[t] = counts.get(t, 0) + 1
+    return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+
+
+async def _campaign_panel(
+    request,
+    endpoint,
+    template,
+    rows_of,
+    sorts,
+    texts_of,
+    page,
+    page_size,
+    search,
+    exclude,
+    attack_type,
+    sort_by,
+    sort_order,
+    days,
+    offset,
+):
+    """Campaigns panel, either grouping: the Threats tab's shared filter (period,
+    Only/Hide terms, attack type) applied, facets counted before the type, then
+    sorted and paged in Python over the cached list."""
+    days, offset = _campaign_span(days, offset)
+    search_terms, exclude_terms = campaign_terms(search), campaign_terms(exclude)
+    attack_type = attack_type.strip()[:64]
+    sorts = {**sorts, "period": lambda r: (r["period"], r["events"] or 0)}
+    sort_by = sort_by if sort_by in sorts else "events"
+    sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
+    page_size = page_size if page_size in THREAT_PAGE_SIZES else 10
+
+    texted = [
+        r
+        for r in await rows_of(days, offset)
+        if campaign_matches(texts_of(r), (), search_terms, exclude_terms)
+    ]
+    rows = [
+        r
+        for r in texted
+        if not attack_type or attack_type in (r.get("attack_types") or [])
+    ]
+    page_rows, pagination = _campaign_page(
+        rows, sorts, sort_by, sort_order, page, page_size
+    )
+    # Everything but the type and sort: the fragment's links add those.
+    filters_qs = urlencode(
+        {
+            "days": days,
+            "offset": offset,
+            "search": ",".join(search_terms),
+            "exclude": ",".join(exclude_terms),
+        }
+    )
+    return get_templates().TemplateResponse(
+        request,
+        template,
+        {
+            "dashboard_path": _dashboard_path(request),
+            "endpoint": endpoint,
+            "rows": page_rows,
+            "facets": _type_facets(texted),
+            "all_count": len(texted),
+            "filtered": bool(search_terms or exclude_terms or attack_type),
+            "filters_qs": filters_qs,
+            "period_label": _period_label(days, offset),
+            "attack_type": attack_type,
+            "sort_by": sort_by,
+            "sort_order": sort_order,
+            "pagination": pagination,
+            "page_sizes": THREAT_PAGE_SIZES,
+        },
+    )
+
+
 @router.get("/htmx/pattern-clusters")
 async def htmx_pattern_clusters(
     request: Request,
     page: int = Query(1),
     page_size: int = Query(10),
     search: str = Query(""),
+    exclude: str = Query(""),
     attack_type: str = Query(""),
     sort_by: str = Query("events"),
     sort_order: str = Query("desc"),
+    days: int = Query(1),
+    offset: int = Query(0),
 ):
-    search = search.strip()[:255]
-    attack_type = attack_type.strip()[:64]
-    sort_by = sort_by if sort_by in _CAMPAIGN_SORTS else "events"
-    sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
-    page_size = page_size if page_size in THREAT_PAGE_SIZES else 10
-
-    cached = get_cached_table("clusters:all")
-    if cached:
-        clusters = cached["clusters"]
-    else:
-        db = get_db()
-        clusters = await asyncio.to_thread(
-            db.payloads.get_campaign_clusters, limit=CAMPAIGN_TABLE_LIMIT
-        )
-        set_cached_table("clusters:all", {"clusters": clusters})
-
-    # Facets count campaigns per type over the whole list, so the chips stay
-    # put while the reader narrows the table.
-    type_counts: dict[str, int] = {}
-    for c in clusters:
-        for t in c.get("attack_types") or []:
-            type_counts[t] = type_counts.get(t, 0) + 1
-    facets = sorted(type_counts.items(), key=lambda kv: (-kv[1], kv[0]))
-
-    needle = search.lower()
-    rows = [
-        c
-        for c in clusters
-        if (not attack_type or attack_type in (c.get("attack_types") or []))
-        and (
-            not needle
-            or needle in (c.get("top_path") or "").lower()
-            or needle in (c.get("path") or "").lower()
-            or needle in (c.get("rep_hash") or "").lower()
-        )
-    ]
-    rows.sort(key=_CAMPAIGN_SORTS[sort_by], reverse=sort_order == "desc")
-
-    total = len(rows)
-    total_pages = max(1, (total + page_size - 1) // page_size)
-    page = min(max(1, page), total_pages)
-    offset = (page - 1) * page_size
-    templates = get_templates()
-    return templates.TemplateResponse(
+    return await _campaign_panel(
         request,
+        "pattern-clusters",
         "dashboard/partials/pattern_clusters_table.html",
+        _campaign_rows,
+        _CAMPAIGN_SORTS,
+        lambda c: (c.get("top_path"), c.get("path"), c.get("rep_hash")),
+        page,
+        page_size,
+        search,
+        exclude,
+        attack_type,
+        sort_by,
+        sort_order,
+        days,
+        offset,
+    )
+
+
+_TARGET_SORTS = {
+    "events": lambda t: t["events"] or 0,
+    "ips": lambda t: t["ips"] or 0,
+    "campaigns": lambda t: t["campaigns"] or 0,
+    "last_seen": lambda t: t["last_seen"] or datetime.min,
+    "target": lambda t: (t["path"] or "").lower(),
+}
+
+
+async def _campaign_targets(days: int, offset: int) -> list[dict]:
+    """Every campaign target, all time, with its requests inside the period."""
+    targets = get_cached_table("clusters:targets")
+    targets = targets["targets"] if targets else None
+    if targets is None:
+        ids = [c["id"] for c in await _campaign_clusters()]
+        targets = await asyncio.to_thread(
+            get_db().payloads.get_campaign_targets, ids, CAMPAIGN_TABLE_LIMIT
+        )
+        set_cached_table("clusters:targets", {"targets": targets})
+    key = f"clusters:targets:{days}:{offset}"
+    start, end = _campaign_window(days=days, offset=offset)
+    windowed = get_cached_table(key)
+    windowed = windowed["targets"] if windowed else None
+    if windowed is None:
+        ids = [c["id"] for c in await _campaign_clusters()]
+        windowed = await asyncio.to_thread(
+            get_db().payloads.get_campaign_targets,
+            ids,
+            CAMPAIGN_TABLE_LIMIT,
+            start,
+            end,
+        )
+        set_cached_table(key, {"targets": windowed})
+    in_period = {t["path"]: t["events"] for t in windowed}
+    return [
         {
-            "dashboard_path": _dashboard_path(request),
-            "clusters": rows[offset : offset + page_size],
-            "facets": facets,
-            "all_count": len(clusters),
-            "search": search,
-            "attack_type": attack_type,
-            "sort_by": sort_by,
-            "sort_order": sort_order,
-            "pagination": {
-                "page": page,
-                "page_size": page_size,
-                "total": total,
-                "total_pages": total_pages,
-            },
-            "page_sizes": THREAT_PAGE_SIZES,
-        },
+            **t,
+            "period": in_period.get(t["path"], 0),
+            "is_new": bool(t["first_seen"] and t["first_seen"] >= start),
+        }
+        for t in targets
+    ]
+
+
+@router.get("/htmx/campaign-targets")
+async def htmx_campaign_targets(
+    request: Request,
+    page: int = Query(1),
+    page_size: int = Query(10),
+    search: str = Query(""),
+    exclude: str = Query(""),
+    attack_type: str = Query(""),
+    sort_by: str = Query("events"),
+    sort_order: str = Query("desc"),
+    days: int = Query(1),
+    offset: int = Query(0),
+):
+    """Campaigns panel grouped by target: the same campaigns, one row per
+    path they hit, so defenders see which endpoints draw which attacks."""
+    return await _campaign_panel(
+        request,
+        "campaign-targets",
+        "dashboard/partials/campaign_targets_table.html",
+        _campaign_targets,
+        _TARGET_SORTS,
+        lambda t: (t.get("path"),),
+        page,
+        page_size,
+        search,
+        exclude,
+        attack_type,
+        sort_by,
+        sort_order,
+        days,
+        offset,
     )
 
 

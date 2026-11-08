@@ -329,8 +329,6 @@ function _updateTrendsTotals(totals, colours) {
  * named by the target they hit, since a TLSH prefix says nothing to a reader.
  * Selecting a row opens that campaign's events in the expand overlay.
  */
-let _campaignDays = 1;
-let _campaignOffset = 0;
 let _campaignRequest = 0;
 // Rows the heatmap offers: a glanceable top, a longer list, and every
 // campaign the API ranks (it considers up to 200).
@@ -340,13 +338,13 @@ const CAMPAIGN_SHADES = 5;
 
 function _campaignEndDate() {
     const d = new Date();
-    d.setDate(d.getDate() - (_campaignOffset * _campaignDays));
+    d.setDate(d.getDate() - (threatsState.offset * threatsState.days));
     return d;
 }
 
 function _campaignStartDate() {
     const d = _campaignEndDate();
-    d.setDate(d.getDate() - (_campaignDays - 1));
+    d.setDate(d.getDate() - (threatsState.days - 1));
     return d;
 }
 
@@ -355,14 +353,14 @@ function _campaignLabel() {
     if (label) {
         const fmt = { month: 'short', day: 'numeric' };
         const end = _campaignEndDate();
-        if (_campaignDays === 1) {
-            label.textContent = _campaignOffset === 0 ? `Today, ${end.toLocaleDateString('en-US', fmt)}` : end.toLocaleDateString('en-US', { weekday: 'short', ...fmt });
+        if (threatsState.days === 1) {
+            label.textContent = threatsState.offset === 0 ? `Today, ${end.toLocaleDateString('en-US', fmt)}` : end.toLocaleDateString('en-US', { weekday: 'short', ...fmt });
         } else {
             label.textContent = `${_campaignStartDate().toLocaleDateString('en-US', fmt)} – ${end.toLocaleDateString('en-US', fmt)}`;
         }
     }
     const next = document.getElementById('campaigns-period-next');
-    if (next) next.disabled = _campaignOffset === 0;
+    if (next) next.disabled = threatsState.offset === 0;
 }
 
 function _escapeHtml(value) {
@@ -585,7 +583,7 @@ async function loadCampaignsChart() {
 
     try {
         const response = await fetch(
-            DASHBOARD_PATH + `/api/campaign-stats?limit=${_campaignRows}&days=${_campaignDays}&offset=${_campaignOffset}`,
+            DASHBOARD_PATH + `/api/campaign-stats?limit=${_campaignRows}&${threatsFilterParams()}`,
             { cache: 'no-store', headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } }
         );
         if (!response.ok) throw new Error('Failed to fetch campaign stats');
@@ -606,19 +604,3 @@ async function loadCampaignsChart() {
     }
 }
 
-/** Shift the campaign period by N spans (negative = newer, towards now) */
-function shiftCampaignPeriod(direction) {
-    _campaignOffset = Math.max(0, _campaignOffset + direction);
-    loadCampaignsChart();
-}
-
-/** Switch the campaign span (1, 7, 30 days) and reset to the current period */
-function setCampaignSpan(days, btn) {
-    _campaignDays = days;
-    _campaignOffset = 0;
-    document.querySelectorAll('#campaigns-span-selector .map-limit-btn').forEach(b => {
-        b.classList.toggle('active', b === btn);
-        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
-    });
-    loadCampaignsChart();
-}

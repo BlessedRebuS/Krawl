@@ -115,3 +115,56 @@ def test_filename_index_keeps_names_shared_by_two_or_more_ips(tmp_path):
     shared = db.payloads.get_global_index(min_ips=2)
     assert [r["filename"] for r in shared["index"]] == ["shared.php"]
     assert shared["pagination"]["total"] == 1
+
+
+def test_campaign_targets_group_requests_by_path(tmp_path):
+    """Issue #346: the Campaigns panel can group by target path."""
+    from models import PayloadCluster
+
+    db = _db(tmp_path)
+    s = db.session
+    now = datetime.now()
+    s.add_all(
+        [
+            PayloadCluster(id=cid, representative_hash=f"T1{cid}", capture_count=9,
+                           first_seen=now, last_seen=now)
+            for cid in ("a", "b", "skip")
+        ]
+    )
+    s.flush()
+    for i in range(3):
+        _attack(s, "a", "/admin", f"10.0.0.{i}", now - timedelta(minutes=i))
+    _attack(s, "b", "/admin", "10.0.0.9", now)
+    _attack(s, "b", "/login", "10.0.0.9", now)
+    _attack(s, "skip", "/ignored", "10.0.0.8", now)  # not a listed campaign
+    s.commit()
+
+    targets = db.payloads.get_campaign_targets(["a", "b"])
+    assert [t["path"] for t in targets] == ["/admin", "/login"]
+    admin = targets[0]
+    assert (admin["events"], admin["ips"], admin["campaigns"]) == (4, 4, 2)
+    assert admin["attack_types"] == ["sql_injection"]
+    assert db.payloads.get_campaign_targets([]) == []
+
+
+def test_campaign_hits_count_requests_not_detections(tmp_path):
+    """A request that trips several rules is one hit, as captures count it."""
+    from models import AccessLog, AttackDetection, PayloadCluster
+
+    db = _db(tmp_path)
+    s = db.session
+    now = datetime.now()
+    s.add(PayloadCluster(id="m", representative_hash="T1M", capture_count=1,
+                         first_seen=now, last_seen=now))
+    s.flush()
+    log = AccessLog(ip="10.0.0.1", path="/x", method="POST", timestamp=now, user_agent="t")
+    s.add(log)
+    s.flush()
+    for t in ("sql_injection", "xss_attempt", "lfi_rfi"):
+        s.add(AttackDetection(access_log_id=log.id, attack_type=t, matched_pattern="x", cluster_id="m"))
+    s.commit()
+
+    activity = db.payloads.get_campaign_activity(
+        ["m"], now - timedelta(hours=1), now + timedelta(hours=1), hourly=True
+    )
+    assert sum(activity["m"].values()) == 1

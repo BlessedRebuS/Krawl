@@ -338,23 +338,48 @@
 
     {# ==================== THREAT TAB (global captured-file index) ==================== #}
     <div x-show="tab === 'threats'" x-cloak>
+        {# Period bar: applied filters and the window, sticky under the tab strip.
+           Only/Hide terms and attack type filter Campaign activity and the
+           Campaigns panel. The period windows the heatmap; the Campaigns panel
+           stays all time and shows the period as its In period column.
+           Captured files and Assets keep their own filters. #}
+        <div class="period-bar" role="group" aria-label="Threats period and applied filters">
+            <div id="threats-pills" class="period-pills" role="group" aria-label="Applied filters"></div>
+            <div class="period-window">
+                <div class="row gap-1" id="threats-span" role="group" aria-label="Period length">
+                    <button type="button" class="map-limit-btn active" data-days="1" onclick="setThreatsState({days: 1, offset: 0})">1D</button>
+                    <button type="button" class="map-limit-btn" data-days="7" onclick="setThreatsState({days: 7, offset: 0})">7D</button>
+                    <button type="button" class="map-limit-btn" data-days="30" onclick="setThreatsState({days: 30, offset: 0})">30D</button>
+                </div>
+                <div class="row">
+                    <button type="button" id="campaigns-period-prev" onclick="shiftThreatsPeriod(1)" class="pagination-btn fs-sm" aria-label="Previous period">&#8592;</button>
+                    <span id="campaigns-period-label" class="period-label" aria-live="polite"></span>
+                    <button type="button" id="campaigns-period-next" onclick="shiftThreatsPeriod(-1)" class="pagination-btn fs-sm" aria-label="Next period" disabled>&#8594;</button>
+                </div>
+            </div>
+        </div>
+
         {# Campaign activity: one row per campaign, one cell per hour (1D),
            quarter-day (7D) or day (30D). Filled by loadCampaignsChart. #}
         <div class="table-container alert-section">
             <div class="chart-head">
                 <h2 class="m-0">Campaign activity</h2>
-                <div class="row">
-                    <div class="row gap-1" id="campaigns-span-selector" role="group" aria-label="Period length">
-                        <button class="map-limit-btn active" data-days="1" onclick="setCampaignSpan(1, this)">1D</button>
-                        <button class="map-limit-btn" data-days="7" onclick="setCampaignSpan(7, this)">7D</button>
-                        <button class="map-limit-btn" data-days="30" onclick="setCampaignSpan(30, this)">30D</button>
-                    </div>
-                    <div class="row">
-                        <button id="campaigns-period-prev" onclick="shiftCampaignPeriod(1)" class="pagination-btn fs-sm" aria-label="Previous period">&#8592;</button>
-                        <span id="campaigns-period-label" class="period-label" aria-live="polite"></span>
-                        <button id="campaigns-period-next" onclick="shiftCampaignPeriod(-1)" class="pagination-btn fs-sm" aria-label="Next period" disabled>&#8594;</button>
-                    </div>
+            </div>
+            <div class="panel-filters" role="search" aria-label="Filter campaign activity and the Campaigns panel">
+                <div class="term-mode" role="radiogroup" aria-label="What Enter adds">
+                    <button type="button" id="threats-mode-only" role="radio" aria-checked="true" class="active" onclick="setThreatsMode(false)"
+                            title="Show only campaigns whose target, path or digest contains the text">Only</button>
+                    <button type="button" id="threats-mode-hide" role="radio" aria-checked="false" onclick="setThreatsMode(true)"
+                            title="Hide campaigns whose target, path or digest contains the text">Hide</button>
                 </div>
+                <input type="search" id="threats-search" class="panel-filter-input" autocomplete="off"
+                       placeholder="Show only campaigns containing… Enter to add"
+                       aria-label="Add a filter on target, path or digest; press Enter"
+                       onkeydown="threatsSearchKey(event, this)" />
+                <select id="threats-type" class="select select-sm" aria-label="Attack type"
+                        onchange="setThreatsState({type: this.value || null})">
+                    <option value="">All attack types</option>
+                </select>
             </div>
             <div id="campaigns-summary" class="activity-summary"></div>
             <div id="campaigns-activity" class="activity" role="table" aria-label="Campaign hits over time"></div>
@@ -362,13 +387,21 @@
             <div id="campaigns-tooltip" class="activity-tooltip" role="tooltip" hidden></div>
         </div>
 
-        <div class="table-container alert-section threat-panel" data-endpoint="pattern-clusters">
+        <div class="table-container alert-section threat-panel" data-endpoint="pattern-clusters" data-threats-shared>
             <div class="threat-panel-bar">
-                <h2>Campaigns</h2>
+                <div class="row">
+                    <h2>Campaigns</h2>
+                    <span class="range-label" title="Sort by In period to see what was active in the period from the bar above">All time · In period follows the bar</span>
+                </div>
                 <div class="threat-panel-tools">
-                    <input type="search" class="panel-search" name="search"
-                           placeholder="Filter by target or digest" aria-label="Filter campaigns by target or digest"
-                           autocomplete="off" oninput="threatPanelSearch(this)">
+                    <div class="term-mode" role="radiogroup" aria-label="Group campaigns by">
+                        <button type="button" role="radio" aria-checked="true" class="active"
+                                data-group-endpoint="pattern-clusters" onclick="threatPanelGroupBy(this)"
+                                title="One row per payload campaign">Campaign</button>
+                        <button type="button" role="radio" aria-checked="false"
+                                data-group-endpoint="campaign-targets" onclick="threatPanelGroupBy(this)"
+                                title="One row per path the campaigns hit">Target</button>
+                    </div>
                 </div>
             </div>
             <div id="patterns-htmx-container" class="htmx-container">
@@ -406,10 +439,7 @@
                     <button type="button" class="expand-btn" onclick="openExpandOverlay('Assets', 'request-assets', 20)" aria-label="Open all assets" title="Open all assets"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5H4.56l2.72 2.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L3.5 4.56v2.69a.75.75 0 0 1-1.5 0v-3.5A1.75 1.75 0 0 1 3.75 2Zm8.5 12h-3.5a.75.75 0 0 1 0-1.5h2.69l-2.72-2.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.72 2.72v-2.69a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14Z"/></svg></button>
                 </div>
             </div>
-            <div id="assets-htmx-container" class="htmx-container"
-                 hx-get="{{ dashboard_path }}/htmx/request-assets?page=1"
-                 hx-trigger="load"
-                 hx-swap="innerHTML">
+            <div id="assets-htmx-container" class="htmx-container">
                 <div class="htmx-indicator">Loading...</div>
             </div>
         </div>
