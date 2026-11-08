@@ -75,6 +75,8 @@ jobs:
           pip install black pip-check-reqs
 
       - name: Regression tests
+        # Like the steps above: on a docs-only PR there is no checkout or venv.
+        if: ${{ needs.changes.outputs.code == 'true' }}
         run: |
           python -m pytest -q
 
