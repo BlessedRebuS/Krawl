@@ -145,6 +145,16 @@ def test_env_overrides_proxy_headers(monkeypatch):
     assert config.proxy_headers == ["X-Real-IP", "X-Forwarded-For"]
 
 
+def test_env_overrides_error_codes_as_ints(monkeypatch):
+    from config import Config, override_config_from_env
+
+    monkeypatch.setenv("KRAWL_ERROR_CODES", "404, 503")
+    config = Config()
+    override_config_from_env(config)
+
+    assert config.error_codes == [404, 503]
+
+
 @pytest.mark.parametrize(
     "text",
     [

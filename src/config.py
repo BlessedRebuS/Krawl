@@ -717,6 +717,12 @@ def override_config_from_env(config: Config = None):
                         field,
                         [p.strip() for p in env_value.split(",") if p.strip()],
                     )
+                elif field_type == list[int]:
+                    setattr(
+                        config,
+                        field,
+                        [int(p) for p in env_value.split(",") if p.strip()],
+                    )
                 elif field_type is timedelta:
                     current = getattr(config, field)
                     setattr(
