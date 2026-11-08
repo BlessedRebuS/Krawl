@@ -1652,6 +1652,15 @@ async def _campaign_period_hits(days: int, offset: int) -> dict[str, int]:
     return {c["id"]: c["hits"] for c in stats["campaigns"]}
 
 
+def _seen_since(row: dict, start: datetime) -> bool:
+    """First seen at or after ``start``. Rows read back from the Redis table
+    cache (scalable mode) carry their datetimes as ISO strings."""
+    first = row.get("first_seen")
+    if isinstance(first, str):
+        first = datetime.fromisoformat(first)
+    return bool(first and first >= start)
+
+
 async def _campaign_rows(days: int, offset: int) -> list[dict]:
     hits = await _campaign_period_hits(days, offset)
     start, _ = _campaign_window(days=days, offset=offset)
@@ -1659,7 +1668,7 @@ async def _campaign_rows(days: int, offset: int) -> list[dict]:
         {
             **c,
             "period": hits.get(c["id"], 0),
-            "is_new": bool(c["first_seen"] and c["first_seen"] >= start),
+            "is_new": _seen_since(c, start),
         }
         for c in await _campaign_clusters()
     ]
@@ -1835,7 +1844,7 @@ async def _campaign_targets(days: int, offset: int) -> list[dict]:
         {
             **t,
             "period": in_period.get(t["path"], 0),
-            "is_new": bool(t["first_seen"] and t["first_seen"] >= start),
+            "is_new": _seen_since(t, start),
         }
         for t in targets
     ]
