@@ -390,7 +390,9 @@ class Config:
 
         try:
             with open(config_path) as f:
-                data = yaml.safe_load(f)
+                # C loader when libyaml is present: ~10x faster than pure Python.
+                loader = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
+                data = yaml.load(f, Loader=loader)  # noqa: S506 -- a safe loader
         except FileNotFoundError:
             print(
                 f"Error: Configuration file '{config_path}' not found.", file=sys.stderr

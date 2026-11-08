@@ -22,12 +22,28 @@ if "aiohttp" not in sys.modules:
 
 from test_page_content import CASES  # noqa: E402
 
+from detection import set_detection  # noqa: E402
+
 RESPONSES = Path(__file__).resolve().parent.parent / "responses"
 CLIENT = {"X-Forwarded-For": "198.51.100.40"}
 
 
+@pytest.fixture(scope="module")
+def bundled_detection():
+    """Bundled rules compiled once; a fresh database has no uploads to add."""
+    from config import get_config
+    from detection import build_detection
+
+    return build_detection(get_config(), {})
+
+
+def _install(built):
+    set_detection(*built)
+    return built[0]
+
+
 @pytest.fixture
-def app_client(monkeypatch):
+def app_client(monkeypatch, bundled_detection):
     """The real app with a scratch database, no delay, no AI and no imports."""
     fd, db_path = tempfile.mkstemp(suffix=".db")
     os.close(fd)
@@ -47,6 +63,11 @@ def app_client(monkeypatch):
     captured = []
     with (
         patch.object(config, "resolve_server_ip"),
+        patch.object(
+            appmod,
+            "initialize_detection",
+            lambda config: _install(bundled_detection),
+        ),
         patch.object(
             appmod,
             "get_tasksmaster",
