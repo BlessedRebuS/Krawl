@@ -760,7 +760,12 @@ async def campaign_stats(
         result = get_cached_table(cache_key)
         if not result:
             result = await asyncio.to_thread(
-                build_campaign_stats, get_db(), fetch_limit, day=day, days=days, offset=offset
+                build_campaign_stats,
+                get_db(),
+                fetch_limit,
+                day=day,
+                days=days,
+                offset=offset,
             )
             set_cached_table(cache_key, result)
         if filtered:
@@ -779,7 +784,9 @@ async def campaign_stats(
                 **result,
                 "campaigns": rows[:limit],
                 "total_campaigns": len(rows),
-                "colours": colour_map({t for r in rows[:limit] for t in r["attack_types"]}),
+                "colours": colour_map(
+                    {t for r in rows[:limit] for t in r["attack_types"]}
+                ),
             }
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:

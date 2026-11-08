@@ -1642,7 +1642,11 @@ async def _campaign_period_hits(days: int, offset: int) -> dict[str, int]:
     stats = get_cached_table(key)
     if not stats:
         stats = await asyncio.to_thread(
-            build_campaign_stats, get_db(), CAMPAIGN_TABLE_LIMIT, days=days, offset=offset
+            build_campaign_stats,
+            get_db(),
+            CAMPAIGN_TABLE_LIMIT,
+            days=days,
+            offset=offset,
         )
         set_cached_table(key, stats)
     return {c["id"]: c["hits"] for c in stats["campaigns"]}
@@ -1652,13 +1656,17 @@ async def _campaign_rows(days: int, offset: int) -> list[dict]:
     hits = await _campaign_period_hits(days, offset)
     start, _ = _campaign_window(days=days, offset=offset)
     return [
-        {**c, "period": hits.get(c["id"], 0), "is_new": bool(c["first_seen"] and c["first_seen"] >= start)}
+        {
+            **c,
+            "period": hits.get(c["id"], 0),
+            "is_new": bool(c["first_seen"] and c["first_seen"] >= start),
+        }
         for c in await _campaign_clusters()
     ]
 
 
 def _period_label(days: int, offset: int) -> str:
-    """"Nov 02" or "Nov 02 – Nov 08": the days the In period column covers."""
+    """ "Nov 02" or "Nov 02 – Nov 08": the days the In period column covers."""
     start, end = _campaign_window(days=days, offset=offset)
     last = end - timedelta(seconds=1)
     return f"{start:%b %d}" if days == 1 else f"{start:%b %d} – {last:%b %d}"
@@ -1687,8 +1695,21 @@ def _type_facets(rows) -> list[tuple[str, int]]:
 
 
 async def _campaign_panel(
-    request, endpoint, template, rows_of, sorts, texts_of,
-    page, page_size, search, exclude, attack_type, sort_by, sort_order, days, offset,
+    request,
+    endpoint,
+    template,
+    rows_of,
+    sorts,
+    texts_of,
+    page,
+    page_size,
+    search,
+    exclude,
+    attack_type,
+    sort_by,
+    sort_order,
+    days,
+    offset,
 ):
     """Campaigns panel, either grouping: the Threats tab's shared filter (period,
     Only/Hide terms, attack type) applied, facets counted before the type, then
@@ -1702,14 +1723,26 @@ async def _campaign_panel(
     page_size = page_size if page_size in THREAT_PAGE_SIZES else 10
 
     texted = [
-        r for r in await rows_of(days, offset)
+        r
+        for r in await rows_of(days, offset)
         if campaign_matches(texts_of(r), (), search_terms, exclude_terms)
     ]
-    rows = [r for r in texted if not attack_type or attack_type in (r.get("attack_types") or [])]
-    page_rows, pagination = _campaign_page(rows, sorts, sort_by, sort_order, page, page_size)
+    rows = [
+        r
+        for r in texted
+        if not attack_type or attack_type in (r.get("attack_types") or [])
+    ]
+    page_rows, pagination = _campaign_page(
+        rows, sorts, sort_by, sort_order, page, page_size
+    )
     # Everything but the type and sort: the fragment's links add those.
     filters_qs = urlencode(
-        {"days": days, "offset": offset, "search": ",".join(search_terms), "exclude": ",".join(exclude_terms)}
+        {
+            "days": days,
+            "offset": offset,
+            "search": ",".join(search_terms),
+            "exclude": ",".join(exclude_terms),
+        }
     )
     return get_templates().TemplateResponse(
         request,
@@ -1746,10 +1779,21 @@ async def htmx_pattern_clusters(
     offset: int = Query(0),
 ):
     return await _campaign_panel(
-        request, "pattern-clusters", "dashboard/partials/pattern_clusters_table.html",
-        _campaign_rows, _CAMPAIGN_SORTS,
+        request,
+        "pattern-clusters",
+        "dashboard/partials/pattern_clusters_table.html",
+        _campaign_rows,
+        _CAMPAIGN_SORTS,
         lambda c: (c.get("top_path"), c.get("path"), c.get("rep_hash")),
-        page, page_size, search, exclude, attack_type, sort_by, sort_order, days, offset,
+        page,
+        page_size,
+        search,
+        exclude,
+        attack_type,
+        sort_by,
+        sort_order,
+        days,
+        offset,
     )
 
 
@@ -1779,12 +1823,20 @@ async def _campaign_targets(days: int, offset: int) -> list[dict]:
     if windowed is None:
         ids = [c["id"] for c in await _campaign_clusters()]
         windowed = await asyncio.to_thread(
-            get_db().payloads.get_campaign_targets, ids, CAMPAIGN_TABLE_LIMIT, start, end
+            get_db().payloads.get_campaign_targets,
+            ids,
+            CAMPAIGN_TABLE_LIMIT,
+            start,
+            end,
         )
         set_cached_table(key, {"targets": windowed})
     in_period = {t["path"]: t["events"] for t in windowed}
     return [
-        {**t, "period": in_period.get(t["path"], 0), "is_new": bool(t["first_seen"] and t["first_seen"] >= start)}
+        {
+            **t,
+            "period": in_period.get(t["path"], 0),
+            "is_new": bool(t["first_seen"] and t["first_seen"] >= start),
+        }
         for t in targets
     ]
 
@@ -1805,9 +1857,21 @@ async def htmx_campaign_targets(
     """Campaigns panel grouped by target: the same campaigns, one row per
     path they hit, so defenders see which endpoints draw which attacks."""
     return await _campaign_panel(
-        request, "campaign-targets", "dashboard/partials/campaign_targets_table.html",
-        _campaign_targets, _TARGET_SORTS, lambda t: (t.get("path"),),
-        page, page_size, search, exclude, attack_type, sort_by, sort_order, days, offset,
+        request,
+        "campaign-targets",
+        "dashboard/partials/campaign_targets_table.html",
+        _campaign_targets,
+        _TARGET_SORTS,
+        lambda t: (t.get("path"),),
+        page,
+        page_size,
+        search,
+        exclude,
+        attack_type,
+        sort_by,
+        sort_order,
+        days,
+        offset,
     )
 
 
