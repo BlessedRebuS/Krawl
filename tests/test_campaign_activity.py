@@ -115,3 +115,33 @@ def test_filename_index_keeps_names_shared_by_two_or_more_ips(tmp_path):
     shared = db.payloads.get_global_index(min_ips=2)
     assert [r["filename"] for r in shared["index"]] == ["shared.php"]
     assert shared["pagination"]["total"] == 1
+
+
+def test_campaign_targets_group_requests_by_path(tmp_path):
+    """Issue #346: the Campaigns panel can group by target path."""
+    from models import PayloadCluster
+
+    db = _db(tmp_path)
+    s = db.session
+    now = datetime.now()
+    s.add_all(
+        [
+            PayloadCluster(id=cid, representative_hash=f"T1{cid}", capture_count=9,
+                           first_seen=now, last_seen=now)
+            for cid in ("a", "b", "skip")
+        ]
+    )
+    s.flush()
+    for i in range(3):
+        _attack(s, "a", "/admin", f"10.0.0.{i}", now - timedelta(minutes=i))
+    _attack(s, "b", "/admin", "10.0.0.9", now)
+    _attack(s, "b", "/login", "10.0.0.9", now)
+    _attack(s, "skip", "/ignored", "10.0.0.8", now)  # not a listed campaign
+    s.commit()
+
+    targets = db.payloads.get_campaign_targets(["a", "b"])
+    assert [t["path"] for t in targets] == ["/admin", "/login"]
+    admin = targets[0]
+    assert (admin["events"], admin["ips"], admin["campaigns"]) == (4, 4, 2)
+    assert admin["attack_types"] == ["sql_injection"]
+    assert db.payloads.get_campaign_targets([]) == []
