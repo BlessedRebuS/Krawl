@@ -14,10 +14,12 @@
 </p>
 
 <p align="center">
-  <a href="https://blessedrebus.github.io/Krawl/"><b>Documentation</b></a> ·
-  <a href="https://blessedrebus.github.io/Krawl/config-builder/">Config builder</a> ·
-  <a href="https://blessedrebus.github.io/Krawl/rule-builder/">Rule builder</a> ·
-  <a href="http://demo.krawlme.com/das_dashboard">Live demo</a>
+  <a href="https://blessedrebus.github.io/Krawl/"><img src="https://img.shields.io/badge/Read_the_docs-blessedrebus.github.io%2FKrawl-4da3ff?style=for-the-badge&logo=materialformkdocs&logoColor=white" alt="Read the documentation"></a>
+</p>
+<p align="center">
+  <a href="https://blessedrebus.github.io/Krawl/config-builder/"><img src="https://img.shields.io/badge/Config_builder-121822?style=for-the-badge&logo=yaml&logoColor=white" alt="Config builder"></a>
+  <a href="https://blessedrebus.github.io/Krawl/rule-builder/"><img src="https://img.shields.io/badge/Rule_builder-121822?style=for-the-badge&logo=virustotal&logoColor=white" alt="Rule builder"></a>
+  <a href="http://demo.krawlme.com/das_dashboard"><img src="https://img.shields.io/badge/Live_demo-121822?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Live demo"></a>
 </p>
 
 <div align="center">
@@ -26,9 +28,6 @@
   </a>
   <a href="https://github.com/blessedrebus/krawl/releases">
     <img src="https://img.shields.io/github/v/release/blessedrebus/krawl" alt="Release">
-  </a>
-  <a href="https://blessedrebus.github.io/Krawl/">
-    <img src="https://img.shields.io/badge/docs-live-4da3ff" alt="Documentation">
   </a>
 </div>
 
