@@ -126,8 +126,13 @@ def test_campaign_targets_group_requests_by_path(tmp_path):
     now = datetime.now()
     s.add_all(
         [
-            PayloadCluster(id=cid, representative_hash=f"T1{cid}", capture_count=9,
-                           first_seen=now, last_seen=now)
+            PayloadCluster(
+                id=cid,
+                representative_hash=f"T1{cid}",
+                capture_count=9,
+                first_seen=now,
+                last_seen=now,
+            )
             for cid in ("a", "b", "skip")
         ]
     )
@@ -154,17 +159,76 @@ def test_campaign_hits_count_requests_not_detections(tmp_path):
     db = _db(tmp_path)
     s = db.session
     now = datetime.now()
-    s.add(PayloadCluster(id="m", representative_hash="T1M", capture_count=1,
-                         first_seen=now, last_seen=now))
+    s.add(
+        PayloadCluster(
+            id="m",
+            representative_hash="T1M",
+            capture_count=1,
+            first_seen=now,
+            last_seen=now,
+        )
+    )
     s.flush()
-    log = AccessLog(ip="10.0.0.1", path="/x", method="POST", timestamp=now, user_agent="t")
+    log = AccessLog(
+        ip="10.0.0.1", path="/x", method="POST", timestamp=now, user_agent="t"
+    )
     s.add(log)
     s.flush()
     for t in ("sql_injection", "xss_attempt", "lfi_rfi"):
-        s.add(AttackDetection(access_log_id=log.id, attack_type=t, matched_pattern="x", cluster_id="m"))
+        s.add(
+            AttackDetection(
+                access_log_id=log.id, attack_type=t, matched_pattern="x", cluster_id="m"
+            )
+        )
     s.commit()
 
     activity = db.payloads.get_campaign_activity(
         ["m"], now - timedelta(hours=1), now + timedelta(hours=1), hourly=True
     )
     assert sum(activity["m"].values()) == 1
+
+
+def test_campaign_panels_survive_the_redis_json_round_trip(tmp_path, monkeypatch):
+    """Scalable mode caches tables as JSON, so datetimes come back as ISO
+    strings; the Campaigns panel must render both groupings from them."""
+    import asyncio
+    import json
+
+    import dashboard_cache
+    import routes.htmx as htmx
+    from models import PayloadCluster
+
+    db = _db(tmp_path)
+    s = db.session
+    now = datetime.now()
+    s.add(
+        PayloadCluster(
+            id="a",
+            representative_hash="T1A",
+            capture_count=50,
+            first_seen=now,
+            last_seen=now,
+        )
+    )
+    s.flush()
+    for i in range(3):
+        _attack(s, "a", "/admin", f"10.0.0.{i}", now)
+    s.commit()
+
+    store: dict = {}
+    monkeypatch.setattr(htmx, "get_db", lambda: db)
+    monkeypatch.setattr(
+        htmx,
+        "set_cached_table",
+        lambda k, v, ttl=None: store.__setitem__(
+            k, json.dumps(v, default=dashboard_cache._json_serializer)
+        ),
+    )
+    monkeypatch.setattr(
+        htmx, "get_cached_table", lambda k: json.loads(store[k]) if k in store else None
+    )
+
+    for rows_of in (htmx._campaign_rows, htmx._campaign_targets):
+        for _ in range(2):  # first call fills the cache, second reads it back as JSON
+            rows = asyncio.run(rows_of(1, 0))
+            assert rows and rows[0]["is_new"] is True
