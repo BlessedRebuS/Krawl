@@ -1,0 +1,54 @@
+name: Docs
+
+# Builds docs/ with MkDocs Material and publishes it to GitHub Pages.
+# Settings → Pages → Source must be "GitHub Actions".
+# mkdocs.yml arrives with 3.0, so this file is not in the paths filter:
+# merging it alone must not trigger a build that has nothing to build.
+# Never add a pull_request trigger: this runs on a self-hosted runner with
+# Pages deploy rights, so fork code must not reach it.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+
+      # Same venv approach as pr-checks.yml: setup-python has no build for
+      # the runner's distro.
+      - name: Build
+        env:
+          NO_MKDOCS_2_WARNING: '1'
+        run: |
+          python3 -m venv "$RUNNER_TEMP/docs-venv"
+          "$RUNNER_TEMP/docs-venv/bin/pip" install -q mkdocs-material==9.8.1
+          "$RUNNER_TEMP/docs-venv/bin/mkdocs" build --strict -d "$RUNNER_TEMP/site"
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ runner.temp }}/site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
