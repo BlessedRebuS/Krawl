@@ -1023,9 +1023,9 @@ document.addEventListener('alpine:init', () => {
                 }
                 const data = await resp.json();
                 this.rawModal.content = data.raw_request || 'No content available';
-                this.rawModal.highlightedContent = this.highlightRawRequest(this.rawModal.content);
-                this.rawModal.logId = logId;
                 this.rawModal.detections = data.detections || [];
+                this.rawModal.highlightedContent = this.highlightRawRequest(this.rawModal.content, this.rawModal.detections);
+                this.rawModal.logId = logId;
                 this.rawModal.hoverDetection = null;
                 this.rawModal.pinnedDetection = null;
                 const ctMatch = this.rawModal.content.match(/content-type:\s*([^\r\n]+)/i);
@@ -1053,6 +1053,32 @@ document.addEventListener('alpine:init', () => {
 
         toggleDetectionPin(index) {
             this.rawModal.pinnedDetection = this.rawModal.pinnedDetection === index ? null : index;
+            // Pinning a rule scrolls its first match to the top of the request:
+            // the rule card overlays the lower part, so "nearest" lands under it.
+            if (this.rawModal.pinnedDetection !== null) {
+                const mark = document.querySelector(`.raw-request-content mark[data-det~="${index}"]`);
+                const pre = mark && mark.closest('.raw-request-content');
+                if (pre) {
+                    const top = pre.scrollTop + mark.getBoundingClientRect().top - pre.getBoundingClientRect().top - 16;
+                    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                    pre.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
+                }
+            }
+        },
+
+        // Clicking a highlighted match pins (docks) its rule card.
+        rawMarkClick(event) {
+            const mark = event.target.closest('mark[data-det]');
+            if (mark) this.toggleDetectionPin(Number(mark.dataset.det.split(' ')[0]));
+        },
+
+        // Light up the current rule's matches, dim the others.
+        syncRawMarks(el) {
+            const det = this.rawModal.hoverDetection ?? this.rawModal.pinnedDetection;
+            el.classList.toggle('has-active-match', det !== null);
+            for (const mark of el.querySelectorAll('mark[data-det]')) {
+                mark.classList.toggle('is-active', det !== null && mark.dataset.det.split(' ').includes(String(det)));
+            }
         },
 
         detectionSeverityBand(severity) {
@@ -1081,7 +1107,56 @@ document.addEventListener('alpine:init', () => {
                 .replace(/'/g, '&#39;');
         },
 
-        highlightRawRequest(rawRequest) {
+        // Where each rule's stored evidence occurs verbatim in the request.
+        // YARA scans fields one at a time (some URL-decoded) and keeps only the
+        // first matched string, so this searches the text rather than trusting
+        // offsets; evidence that was decoded before matching finds no spot and
+        // the rule card says so. Sets det.hits; returns non-overlapping
+        // single-line ranges [start, end, [detIndex...]]: rules that matched
+        // the exact same text share one mark, otherwise highest severity wins.
+        findRawMatches(text, detections) {
+            const lower = text.toLowerCase();
+            const sameLength = lower.length === text.length;
+            const ranges = [];
+            detections.forEach((det, index) => {
+                const needle = (det.matched_pattern || '').trim();
+                det.hits = 0;
+                if (needle.length < 2 || /[\r\n]/.test(needle)) return;
+                // YARA strings are often nocase: fall back to a caseless search
+                // when the exact one misses.
+                let hay = text, pin = needle;
+                if (!text.includes(needle) && sameLength && needle.toLowerCase().length === needle.length) {
+                    hay = lower; pin = needle.toLowerCase();
+                }
+                // ponytail: capped at 50 marks per rule; a body made of one repeated token stays readable.
+                for (let at = hay.indexOf(pin); at !== -1 && det.hits < 50; at = hay.indexOf(pin, at + pin.length)) {
+                    det.hits++;
+                    const end = at + pin.length;
+                    const same = ranges.find(([s, e]) => s === at && e === end);
+                    if (same) same[2].push(index);
+                    else if (!ranges.some(([s, e]) => at < e && end > s)) ranges.push([at, end, [index]]);
+                }
+            });
+            return ranges.sort((a, b) => a[0] - b[0]);
+        },
+
+        highlightRawRequest(rawRequest, detections = []) {
+            // Private-use sentinels mark match bounds through escaping and the
+            // token regexes, then become <mark>s. Strip any the attacker sent.
+            let text = String(rawRequest).replace(/[\uE000-\uE002]/g, '\uFFFD');
+            const ranges = this.findRawMatches(text, detections);
+            for (let i = ranges.length - 1; i >= 0; i--) {
+                const [start, end, dets] = ranges[i];
+                text = text.slice(0, start) + `\uE000${dets.join(' ')}\uE001` + text.slice(start, end) + '\uE002' + text.slice(end);
+            }
+            const html = this._tokenizeRawRequest(text);
+            return html
+                .replace(/\uE000([\d ]+)\uE001/g, (_, dets) =>
+                    `<mark class="raw-match sev-${this.detectionSeverityBand(detections[dets.split(' ')[0]].severity)}" data-det="${dets}">`)
+                .replace(/\uE002/g, '</mark>');
+        },
+
+        _tokenizeRawRequest(rawRequest) {
             const escapedLines = this.escapeHtml(rawRequest).split(/\r?\n/);
             const requestLine = /^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+(\S+)\s+(HTTP\/\d(?:\.\d)?)$/i;
             const headerLine = /^([^:\s][^:]*):(.*)$/;

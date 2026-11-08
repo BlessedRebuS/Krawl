@@ -5,7 +5,11 @@
      x-show="rawModal.detections.length"
      @mouseleave="rawModal.hoverDetection = null"
 >
-    <div class="raw-detections-card-anchor" x-show="currentDetection()" x-cloak>
+    {# A pinned card docks between the request and the chips so the matches
+       it explains stay visible; a hover preview floats over the request. #}
+    <div class="raw-detections-card-anchor" x-show="currentDetection()" x-cloak
+         :class="{ 'is-docked': rawModal.pinnedDetection !== null
+                   && (rawModal.hoverDetection === null || rawModal.hoverDetection === rawModal.pinnedDetection) }">
         <template x-if="currentDetection()">
             <div class="raw-detection-card" role="tooltip" id="raw-detection-card">
                 <div class="raw-detection-card-head">
@@ -21,6 +25,10 @@
                 <div class="raw-detection-evidence" x-show="currentDetection().matched_pattern">
                     <span class="raw-detection-label">Matched</span>
                     <code x-text="currentDetection().matched_pattern"></code>
+                    <span class="raw-detection-hits"
+                          x-text="currentDetection().hits
+                                  ? (currentDetection().hits === 1 ? 'Highlighted above' : 'Highlighted ' + currentDetection().hits + '× above')
+                                  : 'Not found verbatim in the request (likely matched after decoding)'"></span>
                 </div>
 
                 <p class="raw-detection-empty" x-show="!currentDetection().rules.length">

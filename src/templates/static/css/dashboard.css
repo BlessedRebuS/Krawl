@@ -2051,6 +2051,12 @@ tbody {
     padding-bottom: var(--s2);
     z-index: 5;
 }
+.raw-detections-card-anchor.is-docked {
+    position: static;
+    padding-bottom: 0;
+    margin-bottom: var(--s4);
+}
+.raw-detections-card-anchor.is-docked .raw-detection-card { box-shadow: none; }
 .raw-detection-card {
     max-height: 45vh;
     overflow-y: auto;
@@ -2110,6 +2116,38 @@ tbody {
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     word-break: break-all;
+}
+.raw-detection-hits {
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+}
+
+/* YARA evidence inside the raw request. Each mark carries its rule's
+   severity; hovering a mark or a rule chip lights that rule's matches
+   and recedes the rest. */
+.raw-match {
+    --sev: var(--text-dim);
+    padding: 0 1px;
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--sev) 22%, transparent);
+    box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--sev) 80%, transparent);
+    color: var(--text-strong);
+    cursor: pointer;
+    transition: background var(--dur) var(--ease), opacity var(--dur) var(--ease);
+}
+.raw-match.sev-critical { --sev: var(--sev-critical); }
+.raw-match.sev-high { --sev: var(--sev-high); }
+.raw-match.sev-medium { --sev: var(--sev-medium); }
+.raw-match.sev-low { --sev: var(--sev-low); }
+.raw-match:hover { background: color-mix(in srgb, var(--sev) 40%, transparent); }
+.has-active-match .raw-match { opacity: 0.45; }
+.has-active-match .raw-match.is-active {
+    opacity: 1;
+    background: color-mix(in srgb, var(--sev) 40%, transparent);
+    box-shadow: inset 0 -2px 0 var(--sev);
+}
+@media (prefers-reduced-motion: reduce) {
+    .raw-match { transition: none; }
 }
 .raw-detection-empty {
     margin: 0;

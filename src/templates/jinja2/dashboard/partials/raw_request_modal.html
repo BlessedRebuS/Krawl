@@ -10,7 +10,9 @@
             <span class="raw-request-modal-close" @click="closeRawModal()">&times;</span>
         </div>
         <div class="raw-request-modal-body">
-            <pre class="raw-request-content" x-html="rawModal.highlightedContent"></pre>
+            <pre class="raw-request-content" x-html="rawModal.highlightedContent"
+                 x-effect="rawModal.highlightedContent; syncRawMarks($el)"
+                 @click="rawMarkClick($event)"></pre>
             {% include "dashboard/partials/raw_request_detections.html" %}
         </div>
         <div class="raw-request-modal-footer">
