@@ -145,3 +145,26 @@ def test_campaign_targets_group_requests_by_path(tmp_path):
     assert (admin["events"], admin["ips"], admin["campaigns"]) == (4, 4, 2)
     assert admin["attack_types"] == ["sql_injection"]
     assert db.payloads.get_campaign_targets([]) == []
+
+
+def test_campaign_hits_count_requests_not_detections(tmp_path):
+    """A request that trips several rules is one hit, as captures count it."""
+    from models import AccessLog, AttackDetection, PayloadCluster
+
+    db = _db(tmp_path)
+    s = db.session
+    now = datetime.now()
+    s.add(PayloadCluster(id="m", representative_hash="T1M", capture_count=1,
+                         first_seen=now, last_seen=now))
+    s.flush()
+    log = AccessLog(ip="10.0.0.1", path="/x", method="POST", timestamp=now, user_agent="t")
+    s.add(log)
+    s.flush()
+    for t in ("sql_injection", "xss_attempt", "lfi_rfi"):
+        s.add(AttackDetection(access_log_id=log.id, attack_type=t, matched_pattern="x", cluster_id="m"))
+    s.commit()
+
+    activity = db.payloads.get_campaign_activity(
+        ["m"], now - timedelta(hours=1), now + timedelta(hours=1), hourly=True
+    )
+    assert sum(activity["m"].values()) == 1

@@ -689,7 +689,13 @@ class PayloadRepo:
             attack_slot = slot(AccessLog.timestamp)
             file_slot = slot(CapturedPayload.timestamp)
             queries = (
-                session.query(AttackDetection.cluster_id, attack_slot, func.count())
+                # One request trips several rules (one detection row each);
+                # count requests, the unit capture_count uses.
+                session.query(
+                    AttackDetection.cluster_id,
+                    attack_slot,
+                    func.count(func.distinct(AttackDetection.access_log_id)),
+                )
                 .join(AccessLog, AttackDetection.access_log_id == AccessLog.id)
                 .filter(
                     AttackDetection.cluster_id.in_(cluster_ids),
