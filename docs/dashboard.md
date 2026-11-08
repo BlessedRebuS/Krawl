@@ -3,7 +3,7 @@
 Access the dashboard at `http://<server-ip>:<port>/<dashboard-path>`
 
 The Krawl dashboard is a single-page application with five open tabs — Overview,
-Attacks, Threats, Advanced search and IP Insight — and five more that appear once
+Attacks, Threats, Advanced search and IP Insight — and six more that appear once
 you authenticate with the dashboard password: Tracked IPs, Banlist, Timed out,
 Deception, Rules and Webhooks.
 
@@ -90,6 +90,13 @@ A paginated table of the most common user-agent strings with their frequency.
 
 The Attacks tab focuses on detected malicious activity, attack patterns, and captured credentials.
 
+![Attacks — trends and detected attacks](img/attack_types_dashboard.png)
+
+### Attack Trends
+
+A line chart of detections per attack type over the period, one line per type.
+The totals above it count detections and attack types in the window.
+
 ### Period and drill-down
 
 The Attacks tab shares one period across the trends chart, the Detected attacks table, Attackers in period, Captured Credentials, Targeted Domains and Honeypot Triggers.
@@ -98,7 +105,7 @@ The Attacks tab shares one period across the trends chart, the Detected attacks 
 - **Buckets:** the trends chart groups detections into 1 hour (1D), 4 hour (7D) or 1 day (30D) slots.
 - **Drill down:** click a slot in the chart. The table, charts and attackers re-scope to that slot, and the totals show that slot only. Click it again, or its pill, to go back.
 - **Keyboard:** below the chart, a list of the slots (hidden from sight) is a single Tab stop. Left/Right (or Up/Down, Home, End) move between slots, Enter or Space toggles one, and the focused slot shows its tooltip.
-- **Colours:** each attack type is coloured by its worst rule severity (critical red, high orange, medium violet, low sand) and a stable shade within that band. Critical and high lines are thick; medium and low are thinner and fainter. See [DESIGN.md](../DESIGN.md).
+- **Colours:** each attack type is coloured by its worst rule severity (critical red, high orange, medium violet, low sand) and a stable shade within that band. Critical and high lines are thick; medium and low are thinner and fainter. See [Design system](#design-system).
 
 ### Filters
 
@@ -159,15 +166,7 @@ In the expanded view, filter by method, attack type or the **Filter** box. Turn 
 
 **Attachments.** When the request carried an upload — a webshell, a malware sample, an exfiltration payload — a paperclip button appears in the raw request modal listing the uploaded files, and downloads the one you click. Both `multipart/form-data` parts and raw-body uploads are recognised. Treat every download as hostile and open it in a sandbox. Requests with bodies above 64 KB are not buffered, so they have no retrievable attachment. The same data is available through the [Dashboard API](dashboard-api.md#attachments).
 
-### Most Recurring Attack Types
-
-A Chart.js visualization showing the frequency distribution of detected attack categories (e.g., SQL injection, path traversal, XSS).
-
-### Most Recurring Attack Patterns
-
-A paginated table of specific attack patterns and their occurrence counts across all traffic.
-
-![Attacks — Attack Types and Patterns](img/attack_types_dashboard.png)
+![Attacks — Detected attacks](img/attack_types.png)
 
 ---
 
@@ -187,11 +186,15 @@ tab in over a few task cycles rather than immediately.
 The whole tab is pre-computed by the warmup task, so it opens instantly; see
 [Cache warmup](#cache-warmup).
 
-### Attack Campaigns
+![Threats — Campaign activity](img/threats_dashboard.png)
 
-A bar chart of campaign activity over the selected span (1, 7 or 30 days), with
-arrows to step through earlier periods. Clicking a bar loads that campaign's
-events.
+### Campaign activity
+
+A heatmap with one row per campaign and one cell per hour (1D) or day (7D,
+30D); brighter cells mean more hits. Each row names the target path, its attack
+types, total hits and distinct IPs. Arrows step through earlier periods. Narrow
+it with **Only** / **Hide** terms, an attack type picker, or the Top 8 / Top 20 /
+All toggle. Clicking a row or a type chip adds it as a filter for the whole tab.
 
 ### Campaigns
 
@@ -200,7 +203,7 @@ distinct IPs sent it. A campaign appears only once its payload has been seen
 more than `analyzer.tlsh_campaign_min_events` times, which keeps one-off probes
 out of the table.
 
-### Captured Files
+### Captured files
 
 An index of every file Krawl captured, across all IPs — name, size, type and the
 campaign it belongs to. New uploads are extracted inline; the scheduled
@@ -214,6 +217,18 @@ ranked by total occurrences. Repeated appearances in one request count
 separately; the table also shows distinct source IPs and first/last seen times.
 The scheduled `extract-request-metadata` task backfills retained requests in
 bounded batches after an upgrade.
+
+![Threats — Captured files and Assets](img/threats_files_dashboard.png)
+
+---
+
+## Advanced search
+
+Finds stored requests by any combination of path, `Host`, source IP, referer,
+user agent, method, text in the raw request (headers and body), and any number
+of HTTP headers by name and optional value. Each result opens the raw request.
+
+![Advanced search](img/advanced_search_dashboard.png)
 
 ---
 
@@ -347,6 +362,33 @@ A dropdown menu to download the current banlist in two formats:
 
 ---
 
+## Timed out
+
+> Requires authentication with the dashboard password.
+
+**Currently Timed Out** lists the IPs serving an automatic rate-limit time-ban:
+time left (counting down live), violations, ban multiplier, category, location
+and last seen. **Timeout-Exempt IPs** lists the IPs excluded from time-bans,
+each with a button to subject it to timeouts again. See [Tarpit](tarpit.md).
+
+![Timed out](img/timedout_dashboard.png)
+
+---
+
+## Deception
+
+> Requires authentication with the dashboard password.
+
+**Generated Deception Templates** lists every page Krawl generated or you
+uploaded, with when it was created, last accessed, and how often. Select rows
+or pick a date to **Delete** or **Download** them, **Delete All**, or
+**Upload** your own. See [Deception pages](deception_pages.md) and
+[AI generation](ai_generation.md).
+
+![Deception](img/deception_dashboard.png)
+
+---
+
 ## Rules
 
 > Requires authentication with the dashboard password.
@@ -376,6 +418,8 @@ rejected with the reason. See
 Bundled rules are read-only here: to change them, edit the files under
 `rules/` and restart Krawl; see [Attack detection](detection.md).
 
+![Rules](img/rules_dashboard.png)
+
 Counts come from `attack_detections.rule_name`. Detections stored before Krawl
 recorded the rule name count toward a rule only when its attack type belongs to
 that one rule, so rules that share a type (the two path-traversal rules) count
@@ -383,9 +427,37 @@ from the upgrade on.
 
 ---
 
+## Webhooks
+
+> Requires authentication with the dashboard password.
+
+Pushes banned IPs to a Cloudflare custom IP list for use in WAF rules: account
+ID, API token, optional zone ID, rule action, list name, sync interval, and
+which IP categories to include. **Sync Config** pushes immediately. See
+[Cloudflare banlist](cloudflare_banlist.md).
+
+![Webhooks](img/webhooks_dashboard.png)
+
+---
+
+## Settings
+
+The sliders icon in the header opens Settings (log in first).
+
+- **Maintenance** runs any scheduled task on demand and shows which pod last
+  ran each one; see [Deployment modes](deployment-modes.md).
+- **Configuration** shows the running configuration, read-only. Each setting is
+  badged **ENV** when a `KRAWL_*` variable set it, or **CUSTOM** when it differs
+  from the default. Secrets show only whether they are set. See
+  [Configuration](configuration.md).
+
+![Settings — Configuration](img/settings_dashboard.png)
+
+---
+
 ## Authentication
 
-The dashboard uses session-based authentication with secure HTTP-only cookies. Protected features (Tracked IPs, IP Banlist, ban/track actions) require entering the dashboard password. The login includes brute-force protection with IP-based rate limiting and exponential backoff.
+The dashboard uses session-based authentication with secure HTTP-only cookies. Protected features (Tracked IPs, Banlist, Timed out, Deception, Rules, Webhooks, Settings and the ban/track actions) require entering the dashboard password. The login includes brute-force protection with IP-based rate limiting and exponential backoff.
 
 Sessions and the attempt counters live in Redis in scalable mode, so a cookie issued by one replica is accepted by every other one and the lockout applies per attacker rather than per pod. In standalone mode they are held in-process. Sessions expire after 12 hours, attempt counters after 1 hour.
 

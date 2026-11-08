@@ -5,11 +5,11 @@ Below is a complete overview of the Krawl honeypot's capabilities
 ## How a request is answered
 
 Every fake reply comes from files in `responses/`, listed in
-[`responses/manifest.yaml`](../responses/manifest.yaml). Krawl tries three
+[`responses/manifest.yaml`](https://github.com/BlessedRebuS/Krawl/blob/main/responses/manifest.yaml). Krawl tries three
 layers in order:
 
 1. **YARA reply.** A rule fired and its `response_type` allows the method; see
-   [Response types](detection.md#response-types).
+   [Bundled response types](detection.md#bundled-response-types).
 2. **Page.** The request path is in the manifest's `pages:` section and the
    entry allows the method.
 3. **Trap maze.** Any other GET gets a page of random links, with the canary
@@ -76,7 +76,7 @@ warning at startup and ignores it. Move any values you customised:
 | `server_headers` | `server.server_headers` in `config.yaml` (`KRAWL_SERVER_HEADERS`) |
 | `credential_fields.username_fields` | `credentials.username_fields` (`KRAWL_CREDENTIAL_USERNAME_FIELDS`) |
 | `credential_fields.password_fields` | `credentials.password_fields` (`KRAWL_CREDENTIAL_PASSWORD_FIELDS`) |
-| `error_codes` | `behavior.error_codes` |
+| `error_codes` | `behavior.error_codes` (`KRAWL_ERROR_CODES`) |
 | `scoring_weights` | `analyzer.scoring_weights` |
 | `usernames`, `passwords`, `emails`, `api_keys`, `databases`, `applications`, `users`, `directory_listing`, `server_errors`, `sql_errors` | files under `responses/pages/` (bait pages) and `responses/sql_error/` (SQL errors) |
 | `attack_patterns`, `suspicious_patterns`, `fake_*`, `xxe_responses`, `command_outputs` | removed; detection is YARA-only and attack replies are files under `responses/` |
@@ -85,7 +85,7 @@ In Helm, the `wordlists:` values and their ConfigMap are gone; set the keys
 above under `config:` instead.
 
 ## robots.txt
-The actual (juicy) robots.txt configuration [is the following](../responses/pages/robots/robots.txt).
+The actual (juicy) robots.txt configuration [is the following](https://github.com/BlessedRebuS/Krawl/blob/main/responses/pages/robots/robots.txt).
 
 ## Honeypot pages
 

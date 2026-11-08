@@ -103,7 +103,7 @@ without one.
 
 If `banlist.export_path` is configured, the banlist is also published on that
 unauthenticated path outside the dashboard prefix, for other Krawl instances to consume.
-See [Krawl Banlist](../README.md#krawl-banlist).
+See [Krawl Banlist](https://github.com/BlessedRebuS/Krawl/blob/main/README.md#krawl-banlist).
 
 ### Deception pages
 
@@ -182,4 +182,4 @@ Attachments are reconstructed from the stored raw request, which means:
 
 - Request bodies larger than **64 KB** are never buffered, so uploads above that size
   leave a logged request with no retrievable attachment.
-- They disappear with the access log itself, on the `database.retention_days` schedule.
+- They disappear with the access log itself, on the [retention](retention.md) schedule.

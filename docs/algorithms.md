@@ -115,7 +115,3 @@ stay counted past 30 days. Rows with detections are never pruned.
 - Top User-Agents and unique-path counts drop, because pruned rows stop counting.
 - Top Paths loses mostly random trap links.
 - All-time totals are unaffected: they come from `ip_stats.total_requests`.
-
-**Older crunched rows.** An earlier job merged similar requests into single rows. The
-`drop-crunch-leftovers` task deletes them, adds their requests to the pruned counters,
-then drops the old columns at least an hour later.
