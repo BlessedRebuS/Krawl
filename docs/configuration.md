@@ -20,7 +20,7 @@ All settings can be supplied as environment variables, which override `config.ya
 The variable name is `KRAWL_` plus the setting path in upper case, so `dashboard.password`
 becomes `KRAWL_DASHBOARD_PASSWORD`.
 
-<details>
+<details markdown>
 <summary><b>Server and link generation</b> (17 variables)</summary>
 
 How Krawl presents itself and shapes the maze of generated pages.
@@ -47,7 +47,7 @@ How Krawl presents itself and shapes the maze of generated pages.
 
 </details>
 
-<details>
+<details markdown>
 <summary><b>Dashboard, metrics and logging</b> (14 variables)</summary>
 
 Dashboard access, cache warmup, Prometheus and log level.
@@ -71,7 +71,7 @@ Dashboard access, cache warmup, Prometheus and log level.
 
 </details>
 
-<details>
+<details markdown>
 <summary><b>Database, retention, map and backups</b> (18 variables)</summary>
 
 Storage location, how long data is kept, and the dump job.
@@ -99,7 +99,7 @@ Storage location, how long data is kept, and the dump job.
 
 </details>
 
-<details>
+<details markdown>
 <summary><b>Traps: tarpit, deception pages and canary</b> (6 variables)</summary>
 
 Opt-in traps and the pages served to attackers.
@@ -115,7 +115,7 @@ Opt-in traps and the pages served to attackers.
 
 </details>
 
-<details>
+<details markdown>
 <summary><b>Detection and background tasks</b> (10 variables)</summary>
 
 Where the YARA rules and fake replies live, and how many rows each scheduled
@@ -137,7 +137,7 @@ suit a 256Mi pod.
 
 </details>
 
-<details>
+<details markdown>
 <summary><b>IP reputation analyzer</b> (6 variables)</summary>
 
 Thresholds that decide how an IP gets classified.
@@ -156,7 +156,7 @@ Thresholds that decide how an IP gets classified.
 
 </details>
 
-<details>
+<details markdown>
 <summary><b>Threat-intel capture</b> (4 variables)</summary>
 
 Fuzzy-hash captured payloads (files and flagged request bodies) and group
@@ -177,7 +177,7 @@ digests into recurring-pattern campaigns.
 
 </details>
 
-<details>
+<details markdown>
 <summary><b>Banlist and ignored IPs</b> (4 variables)</summary>
 
 Sharing banlists with other instances, and traffic to never track.
@@ -191,7 +191,7 @@ Sharing banlists with other instances, and traffic to never track.
 
 </details>
 
-<details>
+<details markdown>
 <summary><b>AI-generated deception pages</b> (10 variables)</summary>
 
 See the [AI Generation documentation](ai_generation.md).
@@ -211,7 +211,7 @@ See the [AI Generation documentation](ai_generation.md).
 
 </details>
 
-<details>
+<details markdown>
 <summary><b>Scalable mode: PostgreSQL and Redis</b> (13 variables)</summary>
 
 Only used when `KRAWL_MODE=scalable`. See [Deployment Modes](deployment-modes.md).
