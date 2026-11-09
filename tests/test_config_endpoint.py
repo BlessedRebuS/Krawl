@@ -135,6 +135,16 @@ def test_every_field_is_accounted_for():
     print(f"OK: all {len(fields)} config fields are represented")
 
 
+def test_list_and_dict_settings_show_as_values():
+    from config import Config
+
+    rows = {e["key"]: e for e in _payload(Config())}
+
+    assert rows["credential_password_fields"]["value"][0] == "password"
+    weights = json.loads(rows["scoring_weights"]["value"])
+    assert weights["attacker"]["attack_url"] == 15
+
+
 if __name__ == "__main__":
     test_no_secret_survives_serialization()
     test_pattern_catches_an_unlisted_secret()

@@ -20,6 +20,7 @@ import json
 import threading
 from datetime import datetime
 from typing import Any
+from uuid import uuid4
 
 _backend: str = "standalone"
 _lock = threading.Lock()
@@ -29,6 +30,8 @@ _REDIS_PREFIX = "krawl:cache:"
 _REDIS_TTL = 600  # default: 10 minutes for dashboard warmup data
 _REDIS_SHORT_TTL = 30  # default: 30 seconds for hot-path data (ban info, IP categories)
 _REDIS_TABLE_TTL = 120  # default: 2 minutes for paginated dashboard tables
+# Whole-log rollups refreshed every 30 minutes by the warmup; outlive that gap.
+SLOW_TABLE_TTL = 2400
 
 
 def _json_serializer(obj):
@@ -132,20 +135,31 @@ def set_cached_list(key: str, items: list, ttl: int = None) -> None:
     """
     if _backend == "scalable" and _redis_client is not None:
         redis_key = f"{_REDIS_PREFIX}list:{key}"
-        encoded = [json.dumps(i, default=_json_serializer) for i in items]
-        pipe = _redis_client.pipeline()
         # Build under a temporary key and rename into place, so readers never
-        # observe a half-populated list mid-refresh.
-        staging = f"{redis_key}:staging"
-        pipe.delete(staging)
-        for start in range(0, len(encoded), _LIST_PUSH_BATCH):
-            pipe.rpush(staging, *encoded[start : start + _LIST_PUSH_BATCH])
-        if encoded:
+        # observe a half-populated list mid-refresh. Execute each batch now:
+        # accumulating commands in a pipeline still retains the entire list.
+        # Unique staging keys also isolate overlapping writers.
+        staging = f"{redis_key}:staging:{uuid4().hex}"
+        lifetime = ttl or _REDIS_TTL
+        if not items:
+            _redis_client.delete(redis_key)
+            return
+        try:
+            for start in range(0, len(items), _LIST_PUSH_BATCH):
+                encoded = [
+                    json.dumps(i, default=_json_serializer)
+                    for i in items[start : start + _LIST_PUSH_BATCH]
+                ]
+                with _redis_client.pipeline() as pipe:
+                    pipe.rpush(staging, *encoded)
+                    pipe.expire(staging, lifetime)
+                    pipe.execute()
+            pipe = _redis_client.pipeline()
             pipe.rename(staging, redis_key)
-            pipe.expire(redis_key, ttl or _REDIS_TTL)
-        else:
-            pipe.delete(redis_key)
-        pipe.execute()
+            pipe.expire(redis_key, lifetime)
+            pipe.execute()
+        finally:
+            _redis_client.delete(staging)
         return
 
     with _lock:
@@ -234,33 +248,36 @@ def get_cached_table(key: str) -> Any | None:
     return None
 
 
-def set_cached_table(key: str, value: Any) -> None:
+def set_cached_table(key: str, value: Any, ttl: int | None = None) -> None:
     """Cache a paginated table result with medium TTL (scalable mode only).
 
     Uses a 2-minute TTL for dashboard table data that doesn't need to be
-    real-time but benefits from caching across multiple replicas.
+    real-time but benefits from caching across multiple replicas. The warmup
+    task passes a longer `ttl` so its entries outlive the gap between runs.
     In standalone mode, this is a no-op.
     """
     if _backend == "scalable" and _redis_client is not None:
         _redis_client.setex(
             f"{_REDIS_PREFIX}table:{key}",
-            _REDIS_TABLE_TTL,
+            ttl or _REDIS_TABLE_TTL,
             json.dumps(value, default=_json_serializer),
         )
 
 
-def invalidate_table_cache() -> None:
-    """Invalidate all cached table data (e.g. after a write operation).
+def invalidate_table_cache(keep: tuple[str, ...] = ()) -> None:
+    """Invalidate cached table data (e.g. after a write operation).
 
-    Useful after ban overrides, IP tracking changes, etc.
-    In standalone mode, this is a no-op.
+    Useful after ban overrides, IP tracking changes, etc. Keys starting with
+    a `keep` prefix (after "table:") survive. In standalone mode, a no-op.
     """
     if _backend == "scalable" and _redis_client is not None:
+        kept = tuple(f"{_REDIS_PREFIX}table:{k}" for k in keep)
         cursor = 0
         while True:
             cursor, keys = _redis_client.scan(
                 cursor, match=f"{_REDIS_PREFIX}table:*", count=100
             )
+            keys = [k for k in keys if not k.startswith(kept)] if kept else keys
             if keys:
                 _redis_client.delete(*keys)
             if cursor == 0:
@@ -278,6 +295,25 @@ def pagination(page: int, page_size: int, total: int) -> dict:
         "total": total,
         "total_pages": max(1, (total + page_size - 1) // page_size),
     }
+
+
+def table_row_count(session, model) -> int:
+    """Row total of an unfiltered table, for pagination.
+
+    PostgreSQL reads the planner's estimate: an exact COUNT(*) walks the whole
+    heap (45s on a 12M-row access_logs), longer than the dashboard waits.
+    Counts exactly elsewhere, or while the table has never been analyzed.
+    """
+    from sqlalchemy import func, text
+
+    if session.bind.dialect.name == "postgresql":
+        estimate = session.execute(
+            text("SELECT reltuples::bigint FROM pg_class WHERE oid = to_regclass(:t)"),
+            {"t": model.__tablename__},
+        ).scalar()
+        if estimate and estimate > 0:
+            return int(estimate)
+    return session.query(func.count()).select_from(model).scalar() or 0
 
 
 def paginate_cached_list(items: list, page: int, page_size: int) -> dict:

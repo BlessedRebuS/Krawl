@@ -8,11 +8,18 @@ category_history, and tracked_ips tables.
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import and_, func, or_
+from sqlalchemy import func, literal, or_, text, tuple_
 
+from config import get_config, pruned_window
 from dashboard_cache import pagination
 from logger import get_app_logger
-from models import CategoryHistory, IpStats, TrackedIp
+from models import (
+    LIVE_ATTACKERS_WHERE,
+    CategoryHistory,
+    CredentialAttempt,
+    IpStats,
+    TrackedIp,
+)
 from sanitizer import sanitize_ip
 
 if TYPE_CHECKING:
@@ -38,6 +45,25 @@ def _publish_ban_change(sanitized_ip: str, banned: bool) -> None:
         import ban_cache
 
         ban_cache.add(sanitized_ip)
+
+
+def pruned_estimate(
+    current: int,
+    previous: int,
+    since: datetime | None,
+    now: datetime,
+    window: timedelta,
+) -> int:
+    """Pruned requests still inside the window, assuming a steady rate across the
+    two counter periods. An idle IP's burst can count for up to one extra window."""
+    if since is None:
+        return 0
+    age = (now - since) / window
+    if age < 1:
+        return round(current + previous * (1 - age))
+    if age < 2:
+        return round(current * (2 - age))
+    return 0
 
 
 class IpStatsRepo:
@@ -241,6 +267,11 @@ class IpStatsRepo:
         try:
             session.commit()
             _publish_ban_change(sanitized_ip, banned=override is True)
+            # IP Insight reads ban state through this cache; drop it so the
+            # page reloaded after the action shows the new state.
+            from dashboard_cache import delete_cached_short
+
+            delete_cached_short(f"ipstats:{sanitized_ip}")
             return True
         except Exception as e:
             session.rollback()
@@ -410,6 +441,35 @@ class IpStatsRepo:
         finally:
             self._db.close_session()
 
+    def get_pruned_state(self, ip: str) -> tuple[int, list[str]]:
+        """Pruned requests still inside the analyzer window, and the IP's last
+        analysed user agents. Reads the database, so never a cached value."""
+        session = self._db.session
+        try:
+            row = (
+                session.query(
+                    IpStats.pruned_requests,
+                    IpStats.pruned_previous,
+                    IpStats.pruned_since,
+                    IpStats.analyzed_metrics,
+                )
+                .filter(IpStats.ip == sanitize_ip(ip))
+                .first()
+            )
+            if row is None:
+                return 0, []
+            estimate = pruned_estimate(
+                row.pruned_requests,
+                row.pruned_previous,
+                row.pruned_since,
+                datetime.now(),
+                pruned_window(get_config()),
+            )
+            previous = (row.analyzed_metrics or {}).get("different_user_agents")
+            return estimate, list(previous or [])
+        finally:
+            self._db.close_session()
+
     def mark_analysed(self, ip: str, when: datetime) -> None:
         """Clear the reevaluation flag without changing the category.
 
@@ -427,41 +487,6 @@ class IpStatsRepo:
         except Exception as e:
             session.rollback()
             applogger.error(f"Error marking {ip} analysed: {e}")
-        finally:
-            self._db.close_session()
-
-    def manual_update_category(self, ip: str, category: str) -> None:
-        """
-        Update IP category as a result of a manual intervention by an admin
-
-        Args:
-            ip: IP address to update
-            category: selected category
-
-        """
-        session = self._db.session
-        sanitized_ip = sanitize_ip(ip)
-        ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
-
-        if not ip_stats:
-            applogger.warning(f"No IpStats record found for {sanitized_ip}")
-            return
-
-        # Record the manual category change
-        old_category = ip_stats.category
-        if old_category != category:
-            self._record_category_change(
-                sanitized_ip, old_category, category, datetime.now()
-            )
-
-        ip_stats.category = category
-        ip_stats.manual_category = True
-
-        try:
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            applogger.error(f"Error updating manual category: {e}")
         finally:
             self._db.close_session()
 
@@ -689,8 +714,8 @@ class IpStatsRepo:
     def flag_stale_ips_for_reevaluation(self) -> int:
         """
         Flag IPs for reevaluation where:
-        - last_seen is newer than the configured retention period
-        - last_analysis is more than 5 days ago
+        - last_seen is within retention.non-suspicious
+        - last_analysis is older than retention.re-evaluate-interval
 
         Returns:
             Number of IPs flagged for reevaluation
@@ -700,9 +725,9 @@ class IpStatsRepo:
         session = self._db.session
         try:
             now = datetime.now()
-            retention_days = get_config().database_retention_days
-            last_seen_cutoff = now - timedelta(days=retention_days)
-            last_analysis_cutoff = now - timedelta(days=5)
+            config = get_config()
+            last_seen_cutoff = now - config.retention_non_suspicious
+            last_analysis_cutoff = now - config.retention_reevaluate_interval
 
             count = (
                 session.query(IpStats)
@@ -835,6 +860,7 @@ class IpStatsRepo:
             result = {
                 "ip": stat.ip,
                 "total_requests": stat.total_requests,
+                "pruned_total": stat.pruned_total,
                 "first_seen": stat.first_seen.isoformat() if stat.first_seen else None,
                 "last_seen": stat.last_seen.isoformat() if stat.last_seen else None,
                 "country_code": stat.country_code,
@@ -858,6 +884,7 @@ class IpStatsRepo:
                 "category": stat.category,
                 "category_scores": stat.category_scores or {},
                 "manual_category": stat.manual_category,
+                "ban_override": stat.ban_override,
                 "last_analysis": (
                     stat.last_analysis.isoformat() if stat.last_analysis else None
                 ),
@@ -877,6 +904,89 @@ class IpStatsRepo:
         except Exception as e:
             applogger.error(f"Error counting {category}: {e}")
             return 0
+        finally:
+            self._db.close_session()
+
+    def count_by_category(self) -> dict[str | None, int]:
+        """IPs per category in one pass, instead of one COUNT per category."""
+        session = self._db.session
+        try:
+            return dict(
+                session.query(IpStats.category, func.count())
+                .group_by(IpStats.category)
+                .all()
+            )
+        except Exception as e:
+            applogger.error(f"Error counting categories: {e}")
+            return {}
+        finally:
+            self._db.close_session()
+
+    def count_category_seen_since(self, category: str, since: datetime) -> int:
+        """Count IPs in a category whose last request is at or after ``since``."""
+        session = self._db.session
+        try:
+            return (
+                session.query(IpStats)
+                .filter(IpStats.category == category, IpStats.last_seen >= since)
+                .count()
+            )
+        except Exception as e:
+            applogger.error(f"Error counting recent {category}: {e}")
+            return 0
+        finally:
+            self._db.close_session()
+
+    def get_attention_summary(self, hours: int = 24, limit: int = 6) -> dict[str, Any]:
+        """What needs a look now: attackers active in the window, newest
+        activity first, plus three counts for the same window.
+
+        Every filter hits an indexed column (last_seen, first_seen, and the
+        credential timestamp), so this stays cheap on large databases.
+        """
+        since = datetime.now() - timedelta(hours=hours)
+        session = self._db.session
+        try:
+            active = session.query(IpStats).filter(
+                IpStats.category == "attacker", IpStats.last_seen >= since
+            )
+            rows = active.order_by(IpStats.last_seen.desc()).limit(limit).all()
+            return {
+                "hours": hours,
+                "active_attackers": active.count(),
+                "new_ips": session.query(IpStats)
+                .filter(IpStats.first_seen >= since)
+                .count(),
+                # Credentials are stamped in UTC (models default utcnow).
+                "credentials": session.query(CredentialAttempt)
+                .filter(
+                    CredentialAttempt.timestamp
+                    >= datetime.utcnow() - timedelta(hours=hours)
+                )
+                .count(),
+                "attackers": [
+                    {
+                        "ip": r.ip,
+                        "total_requests": r.total_requests,
+                        "city": r.city,
+                        "country": r.country,
+                        "country_code": r.country_code,
+                        "first_seen": r.first_seen,
+                        "last_seen": r.last_seen,
+                        "is_new": bool(r.first_seen and r.first_seen >= since),
+                    }
+                    for r in rows
+                ],
+            }
+        except Exception as e:
+            applogger.error(f"Error building attention summary: {e}")
+            return {
+                "hours": hours,
+                "active_attackers": 0,
+                "new_ips": 0,
+                "credentials": 0,
+                "attackers": [],
+            }
         finally:
             self._db.close_session()
 
@@ -984,6 +1094,8 @@ class IpStatsRepo:
         sort_by: str = "total_requests",
         sort_order: str = "desc",
         categories: list[str] | None = None,
+        cursor: str | None = None,
+        geolocated: bool = False,
     ) -> dict[str, Any]:
         """
         Retrieve paginated list of all IPs (or filtered by categories) ordered by specified field.
@@ -1036,6 +1148,11 @@ class IpStatsRepo:
             if categories:
                 query = query.filter(IpStats.category.in_(categories))
                 count_query = count_query.filter(IpStats.category.in_(categories))
+            if geolocated:
+                # The map plots only these: a sixth of ip_stats on the demo.
+                located = (IpStats.latitude.isnot(None), IpStats.longitude.isnot(None))
+                query = query.filter(*located)
+                count_query = count_query.filter(*located)
 
             # COUNT(*) has no shortcut on PostgreSQL: it walks every row.
             # The map fetches pages sequentially, so an uncached count is paid
@@ -1044,16 +1161,24 @@ class IpStatsRepo:
             # sort order. It shares the table-cache TTL and is dropped by
             # invalidate_table_cache() after a write, so it cannot go stale
             # past a purge. Standalone mode has no table cache and counts live.
-            from dashboard_cache import get_cached_table, set_cached_table
+            from dashboard_cache import (
+                get_cached_table,
+                set_cached_table,
+                table_row_count,
+            )
 
             count_key = (
                 f"ip_stats:count:{','.join(sorted(categories))}"
                 if categories
                 else "ip_stats:count:all"
-            )
+            ) + (":geo" if geolocated else "")
             total_ips = get_cached_table(count_key)
             if total_ips is None:  # 0 is a valid count, so test for None
-                total_ips = count_query.scalar() or 0
+                total_ips = (
+                    count_query.scalar() or 0
+                    if categories or geolocated
+                    else table_row_count(session, IpStats)
+                )
                 set_cached_table(count_key, total_ips)
 
             # Apply sorting
@@ -1062,12 +1187,27 @@ class IpStatsRepo:
                 "first_seen": IpStats.first_seen,
                 "last_seen": IpStats.last_seen,
             }[sort_by]
-            query = query.order_by(
-                sort_column.desc() if sort_order == "desc" else sort_column.asc()
-            )
-
-            # Get paginated IPs
-            rows = query.offset(offset).limit(page_size).all()
+            # Keyset paging: a cursor resumes after the last row sent, where an
+            # OFFSET re-reads every row before the page (34s deep in the map).
+            desc = sort_order == "desc"
+            if cursor:
+                value, _, after_ip = cursor.rpartition("|")
+                value = (
+                    int(value)
+                    if sort_by == "total_requests"
+                    else datetime.fromisoformat(value)
+                )
+                key = tuple_(sort_column, IpStats.ip)
+                after = tuple_(literal(value), literal(after_ip))
+                query = query.filter(key < after if desc else key > after)
+            order = (sort_column, IpStats.ip)
+            query = query.order_by(*(c.desc() if desc else c.asc() for c in order))
+            rows = (query if cursor else query.offset(offset)).limit(page_size).all()
+            next_cursor = None
+            if len(rows) == page_size:
+                last = getattr(rows[-1], sort_by)
+                last = last.isoformat() if isinstance(last, datetime) else last
+                next_cursor = f"{last}|{rows[-1].ip}"
 
             return {
                 "ips": [
@@ -1093,7 +1233,60 @@ class IpStatsRepo:
                     for row in rows
                 ],
                 "pagination": pagination(page, page_size, total_ips),
+                "next_cursor": next_cursor,
             }
+        finally:
+            self._db.close_session()
+
+    def get_live_attackers(self, limit: int = 100) -> list[dict[str, Any]]:
+        """Return the newest geolocated attackers for the map's live feed.
+
+        This deliberately avoids the paginated attacker query: live mode polls
+        often and does not need a ``COUNT(*)`` on every tick.  Rows only become
+        eligible once both coordinates are present, so an attack that is
+        enriched a few seconds after it was recorded will appear on the next
+        poll rather than being lost behind a timestamp cursor. A direct
+        honeypot hit is eligible immediately; the analyzer's ``attacker``
+        classification is also accepted for hostile behavior detected away
+        from a generated honeypot path.
+        """
+        session = self._db.session
+        try:
+            limit = min(max(1, limit), 250)
+            rows = (
+                session.query(
+                    IpStats.ip,
+                    IpStats.total_requests,
+                    IpStats.first_seen,
+                    IpStats.last_seen,
+                    IpStats.country_code,
+                    IpStats.city,
+                    IpStats.latitude,
+                    IpStats.longitude,
+                    IpStats.category,
+                )
+                # Same text as the partial index predicate, so it applies.
+                .filter(text(LIVE_ATTACKERS_WHERE))
+                .order_by(IpStats.last_seen.desc(), IpStats.ip.asc())
+                .limit(limit)
+                .all()
+            )
+            return [
+                {
+                    "ip": row.ip,
+                    "total_requests": row.total_requests,
+                    "first_seen": (
+                        row.first_seen.isoformat() if row.first_seen else None
+                    ),
+                    "last_seen": row.last_seen.isoformat() if row.last_seen else None,
+                    "country_code": row.country_code,
+                    "city": row.city,
+                    "latitude": row.latitude,
+                    "longitude": row.longitude,
+                    "category": row.category,
+                }
+                for row in rows
+            ]
         finally:
             self._db.close_session()
 
@@ -1309,17 +1502,14 @@ class IpStatsRepo:
         """
         session = self._db.session
         try:
-            query = session.query(IpStats.ip).filter(
-                or_(
-                    and_(
-                        IpStats.category.in_(categories),
-                        or_(
-                            IpStats.ban_override.is_(None),
-                            IpStats.ban_override,
-                        ),
-                    ),
-                    IpStats.ban_override,
+            # UNION, not OR: an OR across both seq-scans ip_stats (12s vs 14ms).
+            query = (
+                session.query(IpStats.ip)
+                .filter(
+                    IpStats.category.in_(categories),
+                    IpStats.ban_override.isnot(False),
                 )
+                .union(session.query(IpStats.ip).filter(IpStats.ban_override.is_(True)))
             )
             return [row.ip for row in query.all()]
         finally:

@@ -6,6 +6,7 @@ Replaces Handler class variables with proper DI.
 """
 
 import os
+import re
 from datetime import datetime
 from urllib.parse import quote
 
@@ -13,10 +14,18 @@ from fastapi import Request
 from fastapi.templating import Jinja2Templates
 from jinja2 import select_autoescape
 
+from attack_colours import attack_badge_class
 from database import DatabaseManager, get_database
+from database.core import dashboard_read
 
 # Shared Jinja2 templates instance
 _templates = None
+
+
+async def limit_dashboard_reads(request: Request) -> None:
+    """Router dependency: asyncio.to_thread carries this into the query's thread."""
+    if request.method == "GET":
+        dashboard_read.set(True)
 
 
 def get_templates() -> Jinja2Templates:
@@ -32,13 +41,81 @@ def get_templates() -> Jinja2Templates:
             default=True,
         )
         _templates.env.filters["format_ts"] = _format_ts
+        _templates.env.filters["format_ago"] = _format_ago
         _templates.env.filters["format_size"] = _format_size
         _templates.env.filters["safe_url"] = _safe_url
+        _templates.env.filters["num"] = _format_num
+        _templates.env.filters["attack_label"] = _attack_label
+        _templates.env.filters["rule_label"] = rule_label
+        _templates.env.filters["attack_badge_class"] = attack_badge_class
     return _templates
 
 
-def _format_ts(value, time_only=False):
-    """Custom Jinja2 filter for formatting ISO timestamps."""
+def _format_num(value):
+    """Group thousands with dots (12.166.543), as the summary tiles do, so a
+    count reads the same in a tile and in a table."""
+    try:
+        return f"{int(value):,}".replace(",", ".")
+    except (TypeError, ValueError):
+        return value
+
+
+# Detector ids as people say them. Anything unlisted is de-snaked.
+_ATTACK_LABELS = {
+    "xss": "XSS",
+    "log4shell": "Log4Shell",
+    "nosql_injection": "NoSQL injection",
+    "ssti": "SSTI",
+    "sql_injection": "SQL injection",
+    "command_injection": "Command injection",
+    "ldap_injection": "LDAP injection",
+    "xxe_injection": "XXE injection",
+    "xss_attempt": "XSS attempt",
+    "lfi_rfi": "LFI / RFI",
+    "path_traversal": "Path traversal",
+    "login_attempt": "Login attempt",
+    "common_probes": "Common probes",
+    "scanner_probe": "Scanner probe",
+}
+
+
+# Per-CVE rule types ("cve_2019_0193") read as the CVE ID.
+_CVE_TYPE = re.compile(r"cve[_-]\d{4}[_-]\d{4,}")
+
+
+def _attack_label(value):
+    """Readable name for a detected attack type ("sql_injection" -> "SQL
+    injection"). A comma-separated list is labelled item by item."""
+    if not value:
+        return ""
+    parts = [p.strip().lower() for p in str(value).split(",") if p.strip()]
+    labels = []
+    for key in parts:
+        if key in _ATTACK_LABELS:
+            labels.append(_ATTACK_LABELS[key])
+        elif _CVE_TYPE.fullmatch(key):
+            labels.append(key.upper().replace("_", "-"))
+        else:
+            words = key.replace("_", " ").replace("-", " ")
+            labels.append(words[:1].upper() + words[1:])
+    return ", ".join(labels)
+
+
+def rule_label(rule):
+    """Readable YARA rule name: credential_fields is a pseudo-rule, krawl_ is dropped."""
+    if rule == "credential_fields":
+        return "Credential capture"
+    key = re.sub(r"^krawl_", "", str(rule or "").strip().lower())
+    m = re.match(
+        r"(cve[_-]\d{4}[_-]\d{4,})(?:[_-](.+))?$", key
+    )  # CVE id, then its words
+    if m:
+        return _attack_label(m[1]) + (" " + m[2].replace("_", " ") if m[2] else "")
+    return _attack_label(key)
+
+
+def _format_ts(value, time_only=None):
+    """ISO timestamp; time_only True/False forces the form, None drops the date for today."""
     if not value:
         return "N/A"
     if isinstance(value, str):
@@ -48,9 +125,33 @@ def _format_ts(value, time_only=False):
             return value
     if time_only:
         return value.strftime("%H:%M:%S")
-    if value.date() == datetime.now().date():
+    if time_only is None and value.date() == datetime.now().date():
         return value.strftime("%H:%M:%S")
-    return value.strftime("%d/%m/%Y %H:%M:%S")
+    # Year first: sorts as text and reads the same in every locale.
+    return value.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _format_ago(value):
+    """Compact age for dense tables ("42s", "5m", "3h", "12d", "4mo"). The
+    absolute timestamp belongs in the cell's title via format_ts."""
+    if not value:
+        return "—"
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value)
+        except (ValueError, TypeError):
+            return value
+    seconds = max(0, int((datetime.now() - value).total_seconds()))
+    for size, unit in (
+        (86400 * 365, "y"),
+        (86400 * 30, "mo"),
+        (86400, "d"),
+        (3600, "h"),
+        (60, "m"),
+    ):
+        if seconds >= size:
+            return f"{seconds // size}{unit} ago"
+    return f"{seconds}s ago"
 
 
 def _format_size(value):
@@ -118,10 +219,10 @@ def get_client_ip_from_scope(scope) -> str:
     Split out from get_client_ip so the drop-ignored middleware can decide
     whether to answer a request without ever building a Request object.
     """
-    from wordlists import get_wordlists
+    from config import get_config
 
     raw_headers = scope.get("headers") or []
-    for header in get_wordlists().proxy_headers:
+    for header in get_config().proxy_headers:
         key = header.lower().encode("latin-1")
         for name, value in raw_headers:
             if name == key and value:
@@ -136,7 +237,7 @@ def get_client_ip_from_scope(scope) -> str:
 
 
 def get_client_ip(request: Request) -> str:
-    """Extract client IP address from request, checking proxy headers in order from wordlists."""
+    """Extract client IP address from request, checking server.proxy_headers in order."""
     return get_client_ip_from_scope(request.scope)
 
 

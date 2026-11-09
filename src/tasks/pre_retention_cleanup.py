@@ -8,12 +8,11 @@ initially flagged as suspicious. Re-runs the same detection checks
 logs that no longer match any rule, so the retention job can purge them.
 """
 
-import re
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from database import get_database
+from detection import DetectionCoordinator, get_detection
 from logger import get_app_logger
-from wordlists import get_wordlists
 
 # ----------------------
 # TASK CONFIG
@@ -28,9 +27,6 @@ TASK_CONFIG = {
     # A shared-database sweep, and the heavier of the two.
     "single_pod": True,
 }
-
-# Batch size for processing old logs to limit memory usage
-BATCH_SIZE = 1000
 
 app_logger = get_app_logger()
 
@@ -70,39 +66,6 @@ HONEYPOT_PATHS = {
     "/phpMyAdmin/",
 }
 
-FALLBACK_SUSPICIOUS_PATTERNS = [
-    "bot",
-    "crawler",
-    "spider",
-    "scraper",
-    "curl",
-    "wget",
-    "python-requests",
-    "scanner",
-    "nikto",
-    "sqlmap",
-    "nmap",
-    "masscan",
-    "nessus",
-    "acunetix",
-    "burp",
-    "zap",
-    "w3af",
-    "metasploit",
-    "nuclei",
-    "gobuster",
-    "dirbuster",
-]
-
-FALLBACK_ATTACK_PATTERNS = {
-    "path_traversal": r"\.\.",
-    "sql_injection": r"('|--|;|\bOR\b|\bUNION\b|\bSELECT\b|\bDROP\b)",
-    "xss_attempt": r"(<script|javascript:|onerror=|onload=)",
-    "common_probes": r"(/admin|/backup|/config|/database|/private|/uploads|/wp-admin|/login|/phpMyAdmin|/phpmyadmin|/users|/search|/contact|/info|/input|/feedback|/server|/api/v1/|/api/v2/|/api/search|/api/sql|/api/database|\.env|/credentials\.txt|/passwords\.txt|\.git|/backup\.sql|/db_backup\.sql)",
-    "login_attempt": r"(/wp-login\.php|/wp-login|/admin/login|/admin/signin|/user/login|/users/login|/account/login|/portal/login|/secure/login|/login\.php|/login\.asp|/login\.aspx|/signin|/sign-in|/sign_in|/auth/login|/api/auth|/api/login|/api/signin|/api/token|/oauth/login|/sso/login|/xmlrpc\.php|/session/new|action=login)",
-    "command_injection": r"(\||;|`|\$\(|&&)",
-}
-
 
 def _is_honeypot_path(path: str) -> bool:
     if path in HONEYPOT_PATHS:
@@ -112,23 +75,16 @@ def _is_honeypot_path(path: str) -> bool:
 
 
 def _is_still_suspicious(
-    path: str, user_agent: str, attack_patterns: dict, suspicious_patterns: list
+    path: str, user_agent: str, detector: DetectionCoordinator
 ) -> bool:
     """Re-run the same checks the tracker uses at request time."""
     # Honeypot path check
     if _is_honeypot_path(path):
         return True
 
-    # Attack pattern check on path
-    for pattern in attack_patterns.values():
-        if re.search(pattern, path, re.IGNORECASE):
-            return True
-
-    # Suspicious user agent check
     if not user_agent:
         return True
-    ua_lower = user_agent.lower()
-    if any(p in ua_lower for p in suspicious_patterns):
+    if detector.scan_request(path=path, user_agent=user_agent):
         return True
 
     return False
@@ -140,50 +96,64 @@ def main():
     Unflag only those that no longer match any suspicious rule.
     """
     try:
-        from config import get_config
-        from models import AccessLog
+        from config import format_duration, get_config
+        from models import AccessLog, AttackDetection, CapturedPayload, RequestAsset
 
         config = get_config()
-        retention_days = config.database_retention_days
+        retention = config.retention_recheck_suspicious
+        # Rows per pass, to limit memory usage.
+        batch_size = config.tasks_cleanup_batch
 
         db = get_database()
         session = db.session
 
-        cutoff = datetime.now() - timedelta(days=retention_days)
+        cutoff = datetime.now() - retention
 
-        # Load detection rules (same sources as the tracker)
-        wl = get_wordlists()
-        attack_patterns = wl.attack_patterns or FALLBACK_ATTACK_PATTERNS
-        suspicious_patterns = wl.suspicious_patterns or FALLBACK_SUSPICIOUS_PATTERNS
+        # Use the same detector as request-time tracking.
+        detector = get_detection()
 
         unflagged = 0
         kept = 0
+        last_id = 0
 
         # Process in batches to avoid loading everything into memory
         while True:
             old_logs = (
-                session.query(AccessLog)
+                session.query(AccessLog.id, AccessLog.path, AccessLog.user_agent)
                 .filter(
+                    AccessLog.id > last_id,
                     AccessLog.timestamp < cutoff,
                     AccessLog.is_suspicious,
                     # `not <column>` is Python truthiness: it collapsed to False
                     # and this query matched nothing.
                     AccessLog.is_honeypot_trigger.is_(False),
+                    # URL/UA checks cannot disprove body-only detections or
+                    # uploaded evidence. Never clear those logs for deletion.
+                    ~session.query(AttackDetection.id)
+                    .filter(AttackDetection.access_log_id == AccessLog.id)
+                    .exists(),
+                    ~session.query(CapturedPayload.id)
+                    .filter(CapturedPayload.access_log_id == AccessLog.id)
+                    .exists(),
+                    ~session.query(RequestAsset.id)
+                    .filter(RequestAsset.access_log_id == AccessLog.id)
+                    .exists(),
                 )
-                .limit(BATCH_SIZE)
+                .order_by(AccessLog.id)
+                .limit(batch_size)
                 .all()
             )
 
             if not old_logs:
                 break
+            last_id = old_logs[-1].id
 
             ids_to_unflag = []
             for log in old_logs:
                 if _is_still_suspicious(
                     log.path,
                     log.user_agent or "",
-                    attack_patterns,
-                    suspicious_patterns,
+                    detector,
                 ):
                     kept += 1
                 else:
@@ -200,14 +170,6 @@ def main():
                 )
                 unflagged += len(ids_to_unflag)
 
-            # Logs that are still suspicious won't be picked up again
-            # because we only unflag the non-suspicious ones, and the
-            # still-suspicious ones keep is_suspicious=True.
-            # If all logs in the batch were kept, we need to offset past them.
-            if not ids_to_unflag:
-                # All logs in this batch are still suspicious — no more to process
-                break
-
             session.commit()
 
         session.commit()
@@ -216,7 +178,7 @@ def main():
             app_logger.info(
                 f"[Background Task] pre-retention-cleanup: "
                 f"Unflagged {unflagged}, kept {kept} suspicious logs "
-                f"(older than {retention_days} days)"
+                f"(older than {format_duration(retention)})"
             )
         else:
             app_logger.debug(

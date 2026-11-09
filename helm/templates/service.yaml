@@ -14,10 +14,12 @@ spec:
   {{- if and .Values.service.externalTrafficPolicy (ne .Values.service.type "ClusterIP") }}
   externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
   {{- end }}
-  sessionAffinity: ClientIP
+  sessionAffinity: {{ .Values.service.sessionAffinity }}
+  {{- if eq .Values.service.sessionAffinity "ClientIP" }}
   sessionAffinityConfig:
     clientIP:
-      timeoutSeconds: 10800
+      timeoutSeconds: {{ .Values.service.sessionAffinityTimeoutSeconds }}
+  {{- end }}
   ports:
   - port: {{ .Values.service.port }}
     targetPort: http

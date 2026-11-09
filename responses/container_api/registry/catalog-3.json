@@ -1,0 +1,8 @@
+{
+  "repositories": [
+    "internal/vpn-gateway",
+    "internal/ldap-sync",
+    "web/portal",
+    "web/admin"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "system_dev",
+      "email": "system_dev@example.com",
+      "role": "Viewer"
+    },
+    {
+      "id": 2,
+      "username": "deploy_api",
+      "email": "deploy_api@example.com",
+      "role": "Editor"
+    }
+  ],
+  "total": 207
+}

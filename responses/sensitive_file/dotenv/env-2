@@ -1,0 +1,9 @@
+APP_ENV=production
+APP_KEY=base64:K04RbQqkJM7cxgf1an+4AS8g0zwpdesZnEB2HBNgY6g=
+DB_HOST=db.internal
+DB_PORT=3306
+DB_DATABASE=app
+DB_USERNAME=app_user
+DB_PASSWORD=CobaltSummer49%
+MAIL_HOST=smtp.example.com
+MAIL_PASSWORD=JxS3fLyF2WtxgGNNsrRhoA2Q

@@ -1,0 +1,27 @@
+{
+  "activeProfiles": [
+    "prod"
+  ],
+  "propertySources": [
+    {
+      "name": "applicationConfig: [classpath:/application-prod.yml]",
+      "properties": {
+        "spring.datasource.url": {
+          "value": "jdbc:postgresql://db.internal.example.com:5432/orders"
+        },
+        "spring.datasource.username": {
+          "value": "app"
+        },
+        "spring.datasource.password": {
+          "value": "OrchidFalcon92@"
+        },
+        "jwt.secret": {
+          "value": "RwLkOWWIJaqzee7QIQ1NAy87jYNvRrUIKd47VsShHvDreAok"
+        },
+        "server.port": {
+          "value": "8080"
+        }
+      }
+    }
+  ]
+}

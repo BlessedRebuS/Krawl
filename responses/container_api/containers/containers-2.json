@@ -1,0 +1,89 @@
+[
+  {
+    "Id": "0758348ab1fd727b7ba418d34805b434a14aa481a658f9b35bd8bc8dac0471d1",
+    "Names": [
+      "/billing-api-cache-1"
+    ],
+    "Image": "redis:7-alpine",
+    "ImageID": "sha256:8622d0e043b985ab5084844a7b7b068715acda57d8f262af3f56ba531642ac3a",
+    "Command": "docker-entrypoint.sh redis-server",
+    "Created": 1729284294,
+    "State": "running",
+    "Status": "Up 3 days",
+    "Ports": [
+      {
+        "PrivatePort": 8080,
+        "Type": "tcp"
+      }
+    ],
+    "Labels": {
+      "com.docker.compose.project": "billing-api"
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "bridge": {
+          "IPAddress": "192.0.2.22",
+          "Gateway": "192.0.2.1"
+        }
+      }
+    }
+  },
+  {
+    "Id": "d1651c04194ce79569ee338120818e848c05f20044a0b2de974f699be8fc4448",
+    "Names": [
+      "/billing-api-db-1"
+    ],
+    "Image": "postgres:15",
+    "ImageID": "sha256:1eb3c497284def5d76ceaada9a8fb47d212736365072f306847bfa858f18a449",
+    "Command": "docker-entrypoint.sh postgres",
+    "Created": 1729807006,
+    "State": "running",
+    "Status": "Up 22 days",
+    "Ports": [
+      {
+        "PrivatePort": 8080,
+        "Type": "tcp"
+      }
+    ],
+    "Labels": {
+      "com.docker.compose.project": "billing-api"
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "bridge": {
+          "IPAddress": "192.0.2.35",
+          "Gateway": "192.0.2.1"
+        }
+      }
+    }
+  },
+  {
+    "Id": "ae208cea9c2a2d78e557935f112877c6f5150d261a65fb7ad36bed1922ce9a45",
+    "Names": [
+      "/billing-api-proxy-1"
+    ],
+    "Image": "nginx:1.25",
+    "ImageID": "sha256:19f5df413b9e1414f86ce0aeee77591e11c89ea53a6d9974eed6e4f5fb672b09",
+    "Command": "/docker-entrypoint.sh nginx -g 'daemon off;'",
+    "Created": 1729731621,
+    "State": "running",
+    "Status": "Up 21 days",
+    "Ports": [
+      {
+        "PrivatePort": 8080,
+        "Type": "tcp"
+      }
+    ],
+    "Labels": {
+      "com.docker.compose.project": "billing-api"
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "bridge": {
+          "IPAddress": "192.0.2.245",
+          "Gateway": "192.0.2.1"
+        }
+      }
+    }
+  }
+]

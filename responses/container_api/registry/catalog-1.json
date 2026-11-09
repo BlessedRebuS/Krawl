@@ -1,0 +1,8 @@
+{
+  "repositories": [
+    "shop/api",
+    "shop/worker",
+    "shop/frontend",
+    "infra/backup-agent"
+  ]
+}

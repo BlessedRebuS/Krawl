@@ -30,11 +30,13 @@
         </tr>
     </thead>
     <tbody>
+{# Bars are relative to the largest count on this page. #}
+{% set mx = (items | map(attribute='count') | select | max) if items else 0 %}
         {% for item in items %}
         <tr>
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
             <td class="ua-cell">{{ item.user_agent | e }}</td>
-            <td>{{ item.count }}</td>
+            <td><span class="num-bar is-fill" style="--pct: {{ (((item.count) or 0) * 100 / mx) | round(1) if mx else 0 }}%">{{ item.count | num }}</span></td>
         </tr>
         {% else %}
         <tr><td colspan="3" class="empty-state">No data</td></tr>

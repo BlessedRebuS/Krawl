@@ -1,0 +1,25 @@
+{
+  "compute": {
+    "location": "centralus",
+    "name": "vm-wrtwxu",
+    "vmId": "d407856a-d807-efd2-a3df-e5a83e1255e6",
+    "vmSize": "Standard_D4s_v5",
+    "osType": "Linux",
+    "resourceGroupName": "prod-rg"
+  },
+  "network": {
+    "interface": [
+      {
+        "ipv4": {
+          "ipAddress": [
+            {
+              "privateIpAddress": "192.0.2.178",
+              "publicIpAddress": "203.0.113.153"
+            }
+          ]
+        },
+        "macAddress": "EB7354AC38D5"
+      }
+    ]
+  }
+}

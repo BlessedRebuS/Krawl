@@ -1,0 +1,29 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "webapp123",
+      "email": "webapp123@example.com",
+      "role": "Editor"
+    },
+    {
+      "id": 2,
+      "username": "test_test",
+      "email": "test_test@example.com",
+      "role": "Editor"
+    },
+    {
+      "id": 3,
+      "username": "monitor_dev",
+      "email": "monitor_dev@example.com",
+      "role": "Guest"
+    },
+    {
+      "id": 4,
+      "username": "jenkins_api",
+      "email": "jenkins_api@corp.example.com",
+      "role": "Guest"
+    }
+  ],
+  "total": 370
+}

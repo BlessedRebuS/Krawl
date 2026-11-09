@@ -1,0 +1,49 @@
+{
+  "kind": "NamespaceList",
+  "apiVersion": "v1",
+  "metadata": {
+    "resourceVersion": "703170"
+  },
+  "items": [
+    {
+      "metadata": {
+        "name": "default",
+        "uid": "74908173-4f03-5f2a-a818-40fe375f212c",
+        "creationTimestamp": "2024-03-11T08:14:52Z"
+      },
+      "status": {
+        "phase": "Active"
+      }
+    },
+    {
+      "metadata": {
+        "name": "kube-system",
+        "uid": "b1d29cb8-f560-0125-2c47-e47adbbb1b40",
+        "creationTimestamp": "2024-03-11T08:14:52Z"
+      },
+      "status": {
+        "phase": "Active"
+      }
+    },
+    {
+      "metadata": {
+        "name": "production",
+        "uid": "10c5fe4b-07b0-abd8-2daa-466676bbec6f",
+        "creationTimestamp": "2024-03-11T08:14:52Z"
+      },
+      "status": {
+        "phase": "Active"
+      }
+    },
+    {
+      "metadata": {
+        "name": "payments",
+        "uid": "e2956eb7-931f-7652-814b-d07318287cdb",
+        "creationTimestamp": "2024-03-11T08:14:52Z"
+      },
+      "status": {
+        "phase": "Active"
+      }
+    }
+  ]
+}

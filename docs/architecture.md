@@ -13,7 +13,7 @@ Krawl is a cloud-native deception honeypot server built on **FastAPI**. It creat
 | **Templating** | Jinja2 (server-side rendering) |
 | **Reactivity** | Alpine.js 3.14 |
 | **Partial Updates** | HTMX 2.0 |
-| **Charts** | Chart.js 3.9 (doughnut), custom SVG radar |
+| **Charts** | Chart.js 3.9 (attack trends), custom SVG (map radar, IP hexagon) |
 | **Maps** | Leaflet 1.9 + configurable raster tiles (Esri dark canvas by default) |
 | **Scheduling** | APScheduler |
 | **Container** | Docker (python:3.11-slim), Helm/K8s ready |
@@ -35,11 +35,11 @@ Krawl/
 │   ├── webhooks.py               # Outbound integrations (CloudFlare WAF / IP lists)
 │   ├── metrics.py                # Prometheus collector
 │   ├── metrics_counters.py       # Counter state shared with the flush task
-│   ├── deception_responses.py    # Attack detection + fake responses
+│   ├── detection.py              # YARA attack detection, startup validation
+│   ├── custom_rules.py           # Rule files uploaded from the dashboard (validate, store, hot reload)
+│   ├── responses.py              # Fake replies and bait pages from responses/manifest.yaml
 │   ├── generative_ai.py          # AI deception page generation
 │   ├── sanitizer.py              # Input sanitization
-│   ├── generators.py             # Random content generators
-│   ├── wordlists.py              # JSON wordlist loader
 │   ├── geo_utils.py              # IP geolocation API
 │   ├── ip_utils.py               # IP validation + ignored IP/CIDR matching
 │   │
@@ -62,7 +62,7 @@ Krawl/
 │   │   └── ban_check.py          # Banned IP enforcement
 │   │
 │   ├── tasks/                    # APScheduler background jobs (auto-discovered)
-│   │   ├── analyze_ips.py        # IP categorization scoring
+│   │   ├── analyze_ips.py        # IP categorization scoring (docs/algorithms.md)
 │   │   ├── fetch_ip_rep.py       # Geolocation + blocklist enrichment
 │   │   ├── flag_stale_ips.py     # Flag stale IPs for reevaluation
 │   │   ├── flush_access_logs.py  # Drain the access-log write buffer
@@ -92,11 +92,11 @@ Krawl/
 │               ├── tokens.js                 # Design tokens shared with the CSS
 │               ├── dashboard.js              # Alpine.js app controller
 │               ├── map.js                    # Leaflet map
-│               ├── charts.js                 # Chart.js doughnut
-│               └── radar.js                  # SVG radar chart
+│               └── charts.js                 # Chart.js attack trends
 │
 ├── config.yaml                # Application configuration
-├── wordlists.json             # Attack patterns + fake credentials
+├── rules/                    # Startup-compiled YARA request rules
+├── responses/                # All fake content: attack replies, bait pages, trap shell
 ├── Dockerfile                 # Container build
 ├── docker/                    # Production compose files (dev/ for source builds)
 ├── entrypoint.sh              # Container startup (gosu privilege drop)
@@ -198,6 +198,9 @@ Dashboard, API, and HTMX routers are mounted with `prefix=f"/{secret}"` in `app.
 | `GET` | `/api/attack-types` | Paginated attack log |
 | `GET` | `/api/raw-request/{id}` | Full HTTP request |
 | `GET` | `/api/export-ips` | Export IPs for firewall integration |
+| `POST` | `/api/rules/upload` | Validate and load an uploaded YARA rule file (authenticated) |
+| `GET` | `/api/rules/{filename}` | Download an uploaded rule file (authenticated) |
+| `DELETE` | `/api/rules/{filename}` | Delete an uploaded rule file and unload its rules (authenticated) |
 
 ### HTMX Fragment Routes (`routes/htmx.py`)
 
@@ -214,6 +217,8 @@ Each returns a server-rendered Jinja2 partial (`hx-swap="innerHTML"`):
 | `/htmx/attacks` | `attack_types_table.html` |
 | `/htmx/patterns` | `patterns_table.html` |
 | `/htmx/ip-detail/{ip}` | `ip_detail.html` |
+| `/htmx/rules` | `rules_panel.html` (authenticated) |
+| `/htmx/rules/table` | `rules_table.html` (authenticated) |
 
 ## Database Schema
 
@@ -224,7 +229,8 @@ Each returns a server-rendered Jinja2 partial (`hx-swap="innerHTML"`):
 │ id (PK)         │◄────│ access_log_id(FK)│
 │ ip (indexed)    │     │ attack_type      │
 │ path            │     │ matched_pattern  │
-│ user_agent      │     └──────────────────┘
+│ user_agent      │     │ rule_name        │
+│                 │     └──────────────────┘
 │ method          │
 │ is_suspicious   │     ┌──────────────────┐
 │ is_honeypot     │     │CredentialAttempt │
@@ -248,8 +254,14 @@ Each returns a server-rendered Jinja2 partial (`hx-swap="innerHTML"`):
 │ category        │
 │ category_scores │
 │ analyzed_metrics│
-│ manual_category │
-└─────────────────┘
+│ manual_category │     ┌──────────────────┐
+└─────────────────┘     │ CustomYaraRule   │
+                        ├──────────────────┤
+                        │ filename (PK)    │
+                        │ source           │
+                        │ rule_names       │
+                        │ uploaded_at      │
+                        └──────────────────┘
 ```
 
 **SQLite config** (standalone): WAL mode, 30s busy timeout, file permissions 600.
@@ -287,26 +299,44 @@ base.html
 - **Alpine.js** — Tab state, modals, dropdowns, lazy initialization
 - **HTMX** — Table pagination, sorting, IP detail expansion
 - **Leaflet** — Interactive map with category-colored markers
-- **Chart.js** — Doughnut chart for attack type distribution
-- **Custom SVG** — Radar charts for IP category scores
+- **Chart.js** — Attack trends line chart
+- **Custom SVG** — Map popup radar and the IP Insight behaviour hexagon, server-rendered
 
 ## Background Tasks
 
 Managed by `TasksMaster` (APScheduler). Tasks are auto-discovered from `src/tasks/`.
 
-| Task | Schedule | Purpose |
-|------|----------|---------|
-| `flush_access_logs` | Every 30 s | Drain the in-memory access-log write buffer into the database |
-| `analyze_ips` | Every 1 min | Score IPs into categories (attacker, crawler, user) |
-| `metrics_flush` | Every 2 min | Persist Prometheus counter state |
-| `fetch_ip_rep` | Every 5 min | Enrich IPs with geolocation + blocklist data |
-| `dashboard_warmup` | Every 5 min | Pre-compute dashboard overview data (optional, disable via `cache_warmup: false`) |
-| `sync_cloudflare` | Every 1 min | Push banned IPs to a CloudFlare Account IP List (opt-in) |
-| `refresh_banlist` | `banlist.refresh_interval` (default 1 h) | Fetch and merge upstream community banlists |
-| `db_dump` | `backups.cron` | Export database backups |
-| `flag_stale_ips` | Daily (8 AM) | Flag stale IPs for reevaluation by the analyzer |
-| `pre_retention_cleanup` | Daily (8:30 AM) | Prune non-suspicious access rows ahead of retention |
-| `db_retention` | Daily (9 AM) | Clean up old records based on retention policy |
+Names match **Settings → Maintenance**, where any task can be run on demand.
+In scalable mode, "one pod" tasks run on a single pod per occurrence; see
+[Deployment modes](deployment-modes.md#scheduled-tasks-across-pods).
+
+| Task | Schedule | Runs on | Purpose |
+|------|----------|---------|---------|
+| `flush-access-logs` | Every 30 s (scalable only) | Every pod | Drain the in-memory access-log write buffer into the database |
+| `refresh-ban-cache` | Every 30 s | Every pod | Reload this pod's in-memory set of banned IPs |
+| `reload-custom-rules` | Every 30 s | Every pod | Load YARA rule files uploaded or deleted on another replica |
+| `analyze-ips` | Every 1 min | One pod | Score IPs into categories (attacker, crawler, user) |
+| `extract-request-metadata` | Every 1 min | One pod | Backfill target hosts and URL assets from stored raw requests |
+| `extract-captured-files` | Every 1 min | One pod | Backfill captured files from stored raw requests |
+| `hash-payloads` | Every 1 min | One pod | TLSH-hash new payloads and cluster them into campaigns |
+| `sync-cloudflare` | Every 1 min | One pod | Push banned IPs to a Cloudflare IP list (opt-in) |
+| `metrics-flush` | Every 2 min | Every pod | Persist Prometheus counter state |
+| `fetch-ip-rep` | Every 5 min | One pod | Enrich IPs with geolocation and blocklist data |
+| `dashboard-warmup` | Every 5 min | One pod | Pre-compute dashboard data (disable with `cache_warmup: false`) |
+| `build-online-indexes` | Hourly at :17 | One pod | Build PostgreSQL indexes concurrently, off the startup path |
+| `rollup-domains` | Hourly at :23 | One pod | Keep per-day Targeted Domains totals in Redis |
+| `refresh-banlist` | Every 1 h | One pod | Fetch and merge upstream community banlists |
+| `prune-uninteresting` | Every 4 h | One pod | Delete random-path crawler GETs past `retention.uninteresting` |
+| `dump-krawl-data` | `backups.cron` | One pod | Export database backups (opt-in) |
+| `db-cleanup` | Daily 03:00 | One pod | Purge ignored IPs (and IPv6 rows if configured), clear expired bans |
+| `flag-stale-ips` | Daily 08:00 | One pod | Flag stale IPs for re-evaluation by the analyzer |
+| `pre-retention-cleanup` | Daily 08:30 | One pod | Re-check old suspicious logs against current rules |
+| `db-retention` | Daily 09:00 | One pod | Delete records past their retention window |
+| `purge` | Never scheduled | Serving pod | Database purge, run from the dashboard maintenance panel |
+
+Each sweeping task takes a bounded slice per run and picks the rest up next
+run. The slice sizes live in the `tasks:` config section (see [Configuration](configuration.md)) —
+raise them when a backlog never drains, keeping the pod's memory limit in mind.
 
 ### IP Categorization Model
 
@@ -336,7 +366,13 @@ dashboard:
 
 database:
   path: "data/krawl.db"
-  retention_days: 30
+
+retention:
+  non-suspicious: 30d
+  recheck-suspicious: 30d
+  re-evaluate-interval: 5d
+  uninteresting: 7d
+  overall: null
 
 # Scalable mode only
 postgres:
@@ -349,6 +385,16 @@ redis:
   cache_ttl: 600                # Dashboard warmup data TTL
   hot_ttl: 30                   # Ban info / IP category TTL
   table_ttl: 120                # Paginated table TTL
+
+tasks:                          # Rows each scheduled task handles per run
+  analyze_ips_batch: 2000
+  extract_metadata_batch: 500
+  extract_files_batch: 500
+  hash_payloads_batch: 500
+  hash_payloads_chunk: 50       # Raw requests held in memory at once
+  hash_files_batch: 50
+  cleanup_batch: 1000
+  retention_delete_batch: 10000
 
 crawl:
   infinite_pages_for_malicious: true
@@ -403,7 +449,7 @@ Browser → GET /{secret}/ → SSR initial stats + Jinja2 render
        → Alpine.js init → HTMX fires hx-get for each table
        → User clicks Attacks tab → setTimeout → init Leaflet + Chart.js
        → Leaflet fetches /api/all-ips → plots markers
-       → Chart.js fetches /api/attack-types-stats → renders doughnut
+       → Chart.js renders attack trends
 ```
 
 ### IP Enrichment Pipeline

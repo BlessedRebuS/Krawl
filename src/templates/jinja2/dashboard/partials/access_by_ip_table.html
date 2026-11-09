@@ -3,12 +3,12 @@
     <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} total</span>
     <div class="row">
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/access-logs?page={{ pagination.page - 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&ip_filter={{ ip_filter }}"
+                hx-get="{{ dashboard_path }}/htmx/access-logs?page={{ pagination.page - 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&ip_filter={{ ip_filter | urlencode }}{{ filter_qs | default('') }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
                 {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
         <button class="pagination-btn"
-                hx-get="{{ dashboard_path }}/htmx/access-logs?page={{ pagination.page + 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&ip_filter={{ ip_filter }}"
+                hx-get="{{ dashboard_path }}/htmx/access-logs?page={{ pagination.page + 1 }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}&ip_filter={{ ip_filter | urlencode }}{{ filter_qs | default('') }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
                 {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
@@ -18,10 +18,11 @@
     <thead>
         <tr>
             <th>#</th>
+            <th>Method</th>
             <th>Path</th>
             <th>User-Agent</th>
             <th class="sortable {% if sort_by == 'timestamp' %}{{ sort_order }}{% endif %}"
-                hx-get="{{ dashboard_path }}/htmx/access-logs?page=1&sort_by=timestamp&sort_order={% if sort_by == 'timestamp' and sort_order == 'desc' %}asc{% else %}desc{% endif %}&ip_filter={{ ip_filter }}"
+                hx-get="{{ dashboard_path }}/htmx/access-logs?page=1&sort_by=timestamp&sort_order={% if sort_by == 'timestamp' and sort_order == 'desc' %}asc{% else %}desc{% endif %}&ip_filter={{ ip_filter | urlencode }}{{ filter_qs | default('') }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML">
                 Time
@@ -34,6 +35,10 @@
         <tr class="ip-row{% if log.is_suspicious %} access-row-suspicious{% else %} access-row-normal{% endif %}" data-ip="{{ log.ip | e }}">
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
             <td>
+                {% set method = log.method | default('GET') | upper %}
+                <span class="method-badge method-{{ method | lower | e }}">{{ method | e }}</span>
+            </td>
+            <td>
                 <div class="path-cell-container">
                     <span class="path-truncated">{{ log.path | e }}</span>
                     {% if log.path | length > 30 %}
@@ -41,11 +46,11 @@
                     {% endif %}
                 </div>
             </td>
-            <td class="ua-cell">{{ (log.user_agent | default(''))[:50] | e }}</td>
+            <td class="ua-cell">{{ (log.user_agent | default('', true))[:50] | e }}</td>
             <td class="ts-cell">{{ log.timestamp | format_ts }}</td>
             <td><div class="table-action-btns">
                 {% if log.is_suspicious and log.id %}
-                <button class="view-btn" @click="viewRawRequest({{ log.id }})" title="View Request">
+                <button class="view-btn" @click="viewRawRequest({{ log.id }})" title="View Request" aria-label="View request">
                     <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m11.28 3.22 4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L13.94 8l-3.72-3.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215Zm-6.56 0a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L2.06 8l3.72 3.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L.47 8.53a.75.75 0 0 1 0-1.06Z"/></svg>
                     <span class="view-btn-tooltip">View Request</span>
                 </button>
@@ -53,7 +58,7 @@
             </div></td>
         </tr>
         {% else %}
-        <tr><td colspan="5" class="cell-empty text-center">No logs detected</td></tr>
+        <tr><td colspan="6" class="cell-empty text-center">No requests match</td></tr>
         {% endfor %}
     </tbody>
 </table>

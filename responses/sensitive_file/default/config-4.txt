@@ -1,0 +1,5 @@
+# configuration
+api_key=WqmnUqxmGzk6rOtUSuO5vsf6VYRqd5AQ
+secret=t6tHQCQNtIsm4tnxGxBFvUoQ
+database_url=mysql://akhan:GraniteCobalt19#@db.internal/app
+debug=false

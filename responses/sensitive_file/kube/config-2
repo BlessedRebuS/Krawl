@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+    server: https://192.0.2.184:6443
+    insecure-skip-tls-verify: true
+  name: production
+contexts:
+- context:
+    cluster: prod
+    user: admin
+  name: prod
+current-context: prod
+users:
+- name: deploy
+  user:
+    token: 1PZsJk7Gl-Nn2ON4urKnSEmhkK6Z2KZvx5qNKdKZ4A5c6RZCL0olW4oIGt1sXAj9

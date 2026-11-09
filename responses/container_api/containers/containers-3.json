@@ -1,0 +1,89 @@
+[
+  {
+    "Id": "bf09803abdc3f47932ff106a06dc3826061a0ea29d7263c2cdae844d45e3d573",
+    "Names": [
+      "/customer-portal-db-1"
+    ],
+    "Image": "postgres:15",
+    "ImageID": "sha256:205623ad01e5fe619419155fbb5b3e8045f02b3ec7ea7246eb0fdc4eafaf3277",
+    "Command": "docker-entrypoint.sh postgres",
+    "Created": 1729856082,
+    "State": "running",
+    "Status": "Up 28 days",
+    "Ports": [
+      {
+        "PrivatePort": 8080,
+        "Type": "tcp"
+      }
+    ],
+    "Labels": {
+      "com.docker.compose.project": "customer-portal"
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "bridge": {
+          "IPAddress": "192.0.2.113",
+          "Gateway": "192.0.2.1"
+        }
+      }
+    }
+  },
+  {
+    "Id": "a674a0274164a4e11841ac7d6e34ead5e7ebc208944bbda695eda2c2b1335ee8",
+    "Names": [
+      "/customer-portal-cache-1"
+    ],
+    "Image": "redis:7-alpine",
+    "ImageID": "sha256:c239b4d410ef22d0e9ae3b749a8967ce25c8d231e90463e6e34cd110b08f0fd2",
+    "Command": "docker-entrypoint.sh redis-server",
+    "Created": 1729798840,
+    "State": "running",
+    "Status": "Up 23 days",
+    "Ports": [
+      {
+        "PrivatePort": 8080,
+        "Type": "tcp"
+      }
+    ],
+    "Labels": {
+      "com.docker.compose.project": "customer-portal"
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "bridge": {
+          "IPAddress": "192.0.2.246",
+          "Gateway": "192.0.2.1"
+        }
+      }
+    }
+  },
+  {
+    "Id": "d37ca5a9796e1118de13acdeadb99c02287f165e3b94a35cec4d719280d5a224",
+    "Names": [
+      "/customer-portal-proxy-1"
+    ],
+    "Image": "nginx:1.25",
+    "ImageID": "sha256:0faebf6cb01a1fec671946b506b21dac055500225deaab24ac79e74ef207e18a",
+    "Command": "/docker-entrypoint.sh nginx -g 'daemon off;'",
+    "Created": 1729628770,
+    "State": "running",
+    "Status": "Up 3 days",
+    "Ports": [
+      {
+        "PrivatePort": 8080,
+        "Type": "tcp"
+      }
+    ],
+    "Labels": {
+      "com.docker.compose.project": "customer-portal"
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "bridge": {
+          "IPAddress": "192.0.2.110",
+          "Gateway": "192.0.2.1"
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,28 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin_backup",
+      "email": "admin_backup@corp.example.com",
+      "password": "sample3350",
+      "role": "Viewer",
+      "api_token": "secret_U1dQqNQ8XvTjSzqonXfoljTKP3BclGS4"
+    },
+    {
+      "id": 2,
+      "username": "webapp_test",
+      "email": "webapp_test@example.com",
+      "password": "u54JDhgcLS9L",
+      "role": "Guest",
+      "api_token": "secret_yidrG9soSyIj05U6ucs3DmjkB52UUlWn"
+    },
+    {
+      "id": 3,
+      "username": "system",
+      "email": "system@corp.example.com",
+      "password": "Welcome706!",
+      "role": "Support",
+      "api_token": "secret_wX6M80dPfOx0c6cdah9Z4lQXTq8TQryU"
+    }
+  ]
+}

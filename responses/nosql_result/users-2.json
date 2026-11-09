@@ -1,0 +1,62 @@
+{
+  "ok": 1,
+  "count": 4,
+  "users": [
+    {
+      "_id": {
+        "$oid": "b62cd8c305461100996887b6"
+      },
+      "username": "priya.nair",
+      "name": "Priya Nair",
+      "email": "priya.nair@example.com",
+      "password": "$2b$12$AeeqYnNO5fWtDsc6Hlcb/NOoPCUROCSOoH6LDD8h/UsA78PJqD5YM",
+      "role": "admin",
+      "resetToken": null,
+      "createdAt": {
+        "$date": "2024-03-19T10:28:00Z"
+      }
+    },
+    {
+      "_id": {
+        "$oid": "85a2dd3ad615b2d0a6daed05"
+      },
+      "username": "carlos.mendez",
+      "name": "Carlos Mendez",
+      "email": "carlos.mendez@example.com",
+      "password": "$2b$12$f5OqdQ9MyvrCnzsiRWMVL4zZiE.dprBo68sRNePYDWhzrOacS6fZD",
+      "role": "admin",
+      "resetToken": "06d3174faf6c1c6b4fc7b4abec0f5530f8f86e75",
+      "createdAt": {
+        "$date": "2024-09-14T10:13:00Z"
+      }
+    },
+    {
+      "_id": {
+        "$oid": "15c9da62228462460068945d"
+      },
+      "username": "john.doe",
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "password": "$2b$12$crR84CX7m.ddqM8Ps/otzliCTRu/x260ZF/0oW9uesHsvwwYYMRSD",
+      "role": "user",
+      "resetToken": null,
+      "createdAt": {
+        "$date": "2024-01-14T10:31:00Z"
+      }
+    },
+    {
+      "_id": {
+        "$oid": "1994699c895363ac97bbb3b8"
+      },
+      "username": "maria.rossi",
+      "name": "Maria Rossi",
+      "email": "maria.rossi@example.com",
+      "password": "$2b$12$5/X3X7w4ZtH9X4AhZo04r.FCVhVm5SGwZm7qbUXLrWqWsBNsl4zQa",
+      "role": "admin",
+      "resetToken": "ecfbdb36e647222237dd0279ec042e10b30f2804",
+      "createdAt": {
+        "$date": "2024-01-19T10:39:00Z"
+      }
+    }
+  ]
+}

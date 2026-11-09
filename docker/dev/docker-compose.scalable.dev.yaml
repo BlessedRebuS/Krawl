@@ -10,6 +10,27 @@
 services:
   postgres:
     image: postgres:16-alpine
+    # Same server settings as the Helm chart (helm/README.md, "PostgreSQL tuning").
+    command:
+      - postgres
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - effective_cache_size=512MB
+      - -c
+      - work_mem=16MB
+      - -c
+      - maintenance_work_mem=128MB
+      - -c
+      - checkpoint_timeout=15min
+      - -c
+      - max_wal_size=2GB
+      - -c
+      - wal_compression=lz4
+      - -c
+      - synchronous_commit=off
+    # parallel queries need more than Docker's 64MB /dev/shm
+    shm_size: 256mb
     container_name: krawl-postgres-dev
     ports:
       - 5432:5432
@@ -33,6 +54,7 @@ services:
       - 6379:6379
     volumes:
       - redis_data_dev:/data
+    command: ["redis-server", "--maxmemory", "192mb", "--maxmemory-policy", "volatile-lru"]
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -64,11 +86,13 @@ services:
       # Set this to change timezone
       # - TZ=Europe/Rome
     volumes:
-      - ../../wordlists.json:/app/wordlists.json:ro
+      - ../../rules:/app/rules:ro
+      - ../../responses:/app/responses:ro
       - ../../config.yaml:/app/config.yaml:ro
       - ../../logs:/app/logs
       - ../../backups:/app/backups
     restart: unless-stopped
+    stop_grace_period: 45s
     depends_on:
       postgres:
         condition: service_healthy

@@ -5,23 +5,40 @@ FastAPI application factory for the Krawl honeypot.
 Replaces the old http.server-based server.py.
 """
 
+import asyncio
 import gc
 import os
+import random
 import time
 from contextlib import asynccontextmanager, contextmanager
+from pathlib import Path
 
-from fastapi import FastAPI, Request, Response
+from fastapi import Depends, FastAPI, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from config import get_config
 from dashboard_cache import initialize_cache
 from database import get_database, initialize_database
-from generators import random_server_header
+from dependencies import limit_dashboard_reads
+from detection import initialize_detection
 from logger import get_access_logger, get_app_logger, initialize_logging
 from routes.dashboard import KRAWL_VERSION
 from tasks_master import get_tasksmaster
 from tracker import AccessTracker
+
+WORDLISTS_WARNING = (
+    "wordlists.json is no longer read; move proxy_headers, credential fields and "
+    "scoring weights to config.yaml (see docs/honeypot.md)."
+)
+
+
+def warn_if_wordlists_present(paths) -> bool:
+    """Log one warning when an old wordlists.json is still mounted or copied in."""
+    if any(Path(path).exists() for path in paths):
+        get_app_logger().warning(WORDLISTS_WARNING)
+        return True
+    return False
 
 
 @contextmanager
@@ -91,18 +108,6 @@ async def lifespan(app: FastAPI):
                 f"Database initialization failed: {e}. Continuing with in-memory only."
             )
 
-    # One-time startup cleanup: purge configured ignored IPs that predate the
-    # tracking guard and clear stale (fully expired) ban state.
-    with _phase(app_logger, "Database startup cleanup"):
-        from database.startup import run_startup_cleanup
-
-        run_startup_cleanup(
-            get_database(),
-            config.ban_duration_seconds,
-            config.ignored_ips,
-            purge_ipv6=config.ipv6_ignore and config.ipv6_purge_existing,
-        )
-
     # Initialize cache backend (in-memory dict for standalone, Redis for scalable)
     if config.mode == "scalable":
         # No fallback here on purpose. Falling back to the in-memory backend
@@ -167,6 +172,19 @@ async def lifespan(app: FastAPI):
     with _phase(app_logger, "Deception page import"):
         app_logger.info(f"Imported {import_deception_pages_from_directory()} pages")
 
+    # Compile detection rules before accepting traffic.
+    with _phase(app_logger, "Detection engine init", fatal=True):
+        detector = initialize_detection(config)
+        rules = detector.list_rules()
+        uploaded = sum(rule["uploaded"] for rule in rules)
+        app_logger.info(
+            f"Detection engine: yara ({len(rules)} rules from "
+            f"{config.yara_rules_path}, {uploaded} uploaded from the dashboard)"
+        )
+    warn_if_wordlists_present(
+        [Path.cwd() / "wordlists.json", Path("/app/wordlists.json")]
+    )
+
     # Initialize tracker
     tracker = AccessTracker(config.max_pages_limit, config.ban_duration_seconds)
 
@@ -218,6 +236,7 @@ async def lifespan(app: FastAPI):
     app.state.counter = config.canary_token_tries
 
     # Start scheduled tasks
+    tasks_master = None
     with _phase(app_logger, "Scheduled task startup"):
         tasks_master = get_tasksmaster()
         tasks_master.run_scheduled_tasks()
@@ -247,10 +266,46 @@ DASHBOARD AVAILABLE AT
 
     yield
 
-    # Shutdown
+    # Stop accepting scheduled work, then persist the bounded scalable-mode
+    # access buffer while Uvicorn's graceful shutdown window is still open.
+    try:
+        if tasks_master is not None and tasks_master.scheduler.running:
+            tasks_master.scheduler.shutdown(wait=False)
+    except Exception as e:
+        app_logger.error(f"Could not stop background scheduler: {e}")
+
+    if config.mode == "scalable":
+        try:
+            db = get_database()
+            flushed = await asyncio.wait_for(
+                asyncio.to_thread(db.flush_access_log_buffer), timeout=20
+            )
+            if flushed:
+                app_logger.info(f"Flushed {flushed} buffered access logs on shutdown")
+        except TimeoutError:
+            app_logger.error("Timed out flushing access logs during shutdown")
+        except Exception as e:
+            app_logger.error(f"Could not flush access logs during shutdown: {e}")
+
+    # Shutdown shared clients and connection pools.
     from generative_ai import close_aiohttp_session
 
     await close_aiohttp_session()
+    try:
+        from dashboard_cache import get_redis_client
+
+        redis_client = get_redis_client()
+        if redis_client is not None:
+            await asyncio.to_thread(redis_client.close)
+    except Exception as e:
+        app_logger.error(f"Could not close Redis client: {e}")
+    try:
+        db = get_database()
+        if db._initialized:
+            db.close_session()
+            db.engine.dispose()
+    except Exception as e:
+        app_logger.error(f"Could not dispose database connections: {e}")
     app_logger.info("Server shutting down...")
 
 
@@ -281,11 +336,14 @@ def create_app() -> FastAPI:
     async def unauthorized_handler(request: Request, exc: Unauthorized):
         return JSONResponse(content={"error": "Unauthorized"}, status_code=401)
 
-    # Random server header middleware (innermost — runs last on request, first on response)
+    # Server header middleware (innermost — runs last on request, first on response):
+    # server.server_header if set, else one of server.server_headers at random.
     @application.middleware("http")
     async def server_header_middleware(request: Request, call_next):
         response: Response = await call_next(request)
-        response.headers["Server"] = random_server_header()
+        config = get_config()
+        fallback = random.choice(config.server_headers)  # noqa: S311
+        response.headers["Server"] = config.server_header or fallback
         return response
 
     # Deception detection middleware (path traversal, XXE, command injection)
@@ -370,12 +428,21 @@ def create_app() -> FastAPI:
     from routes.htmx import router as htmx_router
 
     # Dashboard/API/HTMX routes (prefixed with secret path, before honeypot catch-all)
+    read_limit = [Depends(limit_dashboard_reads)]
     application.include_router(
-        dashboard_router, prefix=dashboard_prefix, include_in_schema=False
+        dashboard_router,
+        prefix=dashboard_prefix,
+        include_in_schema=False,
+        dependencies=read_limit,
     )
-    application.include_router(api_router, prefix=dashboard_prefix)
     application.include_router(
-        htmx_router, prefix=dashboard_prefix, include_in_schema=False
+        api_router, prefix=dashboard_prefix, dependencies=read_limit
+    )
+    application.include_router(
+        htmx_router,
+        prefix=dashboard_prefix,
+        include_in_schema=False,
+        dependencies=read_limit,
     )
 
     # Public banlist route (before honeypot catch-all, after dashboard)

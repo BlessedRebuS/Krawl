@@ -1,0 +1,12 @@
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+postgres:x:112:118:PostgreSQL administrator,,,:/var/lib/postgresql:/bin/bash
+sshd:x:110:65534::/run/sshd:/usr/sbin/nologin
+ubuntu:x:1000:1000:Ubuntu:/home/ubuntu:/bin/bash
+gitlab-runner:x:998:998:GitLab Runner:/home/gitlab-runner:/bin/bash
+mrossi:x:1001:1001:Marco Rossi,,,:/home/mrossi:/bin/bash

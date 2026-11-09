@@ -24,7 +24,7 @@ def build_raw_request(method, path, content_type, body=""):
     )
 
 
-def main():
+def test_threat_capture_persists_end_to_end():
     with tempfile.TemporaryDirectory() as tmp:
         dbpkg.DatabaseManager._instance = None
         db = dbpkg.DatabaseManager()
@@ -309,7 +309,3 @@ def main():
         else:  # pragma: no cover
             print("fuzzy similar events: SKIPPED (py-tlsh not installed)")
         print("threat capture standalone persistence: OK")
-
-
-if __name__ == "__main__":
-    main()

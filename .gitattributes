@@ -1,1 +1,9 @@
 *.html linguist-detectable=false
+*.yar linguist-detectable=false
+
+# Baseline rules mined from nuclei-templates, and their sample requests:
+# collapsed in pull request diffs.
+rules/cve_20*.yar linguist-generated=true
+rules/vulnerabilities.yar linguist-generated=true
+rules/exposures.yar linguist-generated=true
+scripts/fake_attacks_baseline.json linguist-generated=true

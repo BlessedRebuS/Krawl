@@ -1,31 +1,82 @@
-{# HTMX fragment: Detected Attack Types table #}
-{% set filter_qs %}{% if ip_filter %}&ip_filter={{ ip_filter }}{% endif %}{% if attack_type_filter %}&attack_type_filter={{ attack_type_filter | e }}{% endif %}{% if search %}&search={{ search | e }}{% endif %}{% if method_filter %}&method_filter={{ method_filter | e }}{% endif %}{% endset %}
+{# HTMX fragment: Detected attacks table #}
+{% set filter_qs %}{% if embed %}&embed=1{% endif %}{% if ip_filter %}&ip_filter={{ ip_filter | urlencode }}{% endif %}{% if attack_type_filter %}&attack_type_filter={{ attack_type_filter | urlencode }}{% endif %}{% if search %}&search={{ search | urlencode }}{% endif %}{% if method_filter %}&method_filter={{ method_filter | urlencode }}{% endif %}{% if exclude %}&exclude={{ exclude | urlencode }}{% endif %}{% if rule_filter %}&rule_filter={{ rule_filter | urlencode }}{% endif %}{% if severity_filter %}&severity_filter={{ severity_filter | urlencode }}{% endif %}{{ period_qs }}{% endset %}
+{% if facets %}
+{# Severity chips and rule picker, counted over the tab's period. #}
+<div class="attack-facets">
+    <div class="row row-wrap gap-2" role="group" aria-label="Severity">
+        {% for band in ['critical', 'high', 'medium', 'low'] %}
+        {% set on = band in severities %}
+        <button type="button" class="facet-chip{% if on %} active{% endif %}" aria-pressed="{{ 'true' if on else 'false' }}"
+                onclick="toggleAttacksSeverity('{{ band }}')"
+                title="{{ facets.severities[band] | num }} {{ band }} detections in the period">
+            <span class="sev-dot sev-fg-{{ band }}" aria-hidden="true"></span>{{ band | capitalize }}
+            <span class="facet-count">{{ facets.severities[band] | num }}</span>
+        </button>
+        {% endfor %}
+    </div>
+    <label class="map-limit-label">
+        <span class="rule-picker-label">Rule</span>
+        {# Every rule's band, so any severity change can drop an excluded rule (attacks.js). #}
+        <select class="map-limit-select rule-picker" onchange="setAttacksState({rule: this.value || null})"
+                data-rules='{{ facets.rules | tojson }}'>
+            {# Only rules in the selected bands, so the two filters never contradict. #}
+            {% set offered = facets.rules | selectattr('band', 'in', severities or ['critical', 'high', 'medium', 'low']) | list %}
+            <option value="">All rules ({{ offered | length }})</option>
+            {% for r in offered %}
+            <option class="sev-fg-{{ r.band }}" data-band="{{ r.band }}" value="{{ r.rule }}" {% if r.rule == rule_filter %}selected{% endif %}>&#9679; {{ r.label or (r.rule | rule_label) }} ({{ r.hits | num }})</option>
+            {% endfor %}
+            {% if rule_filter and rule_filter not in offered | map(attribute='rule') | list %}
+            {% set known = facets.rules | selectattr('rule', 'equalto', rule_filter) | first %}
+            <option{% if known %} class="sev-fg-{{ known.band }}" data-band="{{ known.band }}"{% endif %} value="{{ rule_filter }}" selected>{{ rule_filter | rule_label }}{% if known %} ({{ known.hits | num }}){% endif %}</option>
+            {% endif %}
+        </select>
+    </label>
+</div>
+{% endif %}
 <div class="panel-header">
     <div class="row row-wrap">
-        <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} total</span>
+        {% if pagination.capped %}
+        <span class="pagination-info" title="Counted within the newest detected requests; older matches page in as you go">Page {{ pagination.page }} &mdash; {{ pagination.total | num }}+ matching</span>
+        {% else %}
+        <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages | num }} &mdash; {{ pagination.total | num }} total</span>
+        {% endif %}
+        {% if range_label %}<span class="range-label" title="Range shown">{{ range_label }}</span>{% endif %}
+        {# Embedded on IP Insight, whose own filter bar shows and clears these. #}
+        {% if not embed %}
         {% if attack_type_filter %}
         <span class="filter-pill">
-            {{ attack_type_filter | e }}
-            <span class="filter-pill-clear"
-                  onclick="clearExpandFilter('attackType')"
-                  title="Clear filter">&times;</span>
+            {{ attack_type_filter | attack_label }}
+            <button type="button" class="filter-pill-clear"
+                    onclick="clearExpandFilter('attackType')"
+                    aria-label="Clear attack type filter" title="Clear filter">&times;</button>
         </span>
         {% endif %}
         {% if method_filter %}
         <span class="filter-pill filter-pill-ok">
             {{ method_filter | e }}
-            <span class="filter-pill-clear"
-                  onclick="clearExpandFilter('method')"
-                  title="Clear method">&times;</span>
+            <button type="button" class="filter-pill-clear"
+                    onclick="clearExpandFilter('method')"
+                    aria-label="Clear method filter" title="Clear method">&times;</button>
         </span>
         {% endif %}
-        {% if search %}
-        <span class="filter-pill filter-pill-danger">
-            &ldquo;{{ search | e }}&rdquo;
-            <span class="filter-pill-clear"
-                  onclick="clearExpandFilter('search')"
-                  title="Clear search">&times;</span>
+        {% for term in search_terms %}
+        <span class="filter-pill">
+            only &ldquo;{{ term | e }}&rdquo;
+            <button type="button" class="filter-pill-clear"
+                    data-term="{{ term | e }}"
+                    onclick="removeSearchTerm(this.dataset.term)"
+                    aria-label="Stop filtering on {{ term | e }}" title="Remove filter">&times;</button>
         </span>
+        {% endfor %}
+        {% for term in exclude_terms %}
+        <span class="filter-pill">
+            hide &ldquo;{{ term | e }}&rdquo;
+            <button type="button" class="filter-pill-clear"
+                    data-term="{{ term | e }}"
+                    onclick="removeExcludeTerm(this.dataset.term)"
+                    aria-label="Stop excluding {{ term | e }}" title="Show these requests again">&times;</button>
+        </span>
+        {% endfor %}
         {% endif %}
     </div>
     <div class="row">
@@ -38,7 +89,7 @@
                 hx-get="{{ dashboard_path }}/htmx/attacks?page={{ pagination.page + 1 }}&page_size={{ pagination.page_size }}&sort_by={{ sort_by }}&sort_order={{ sort_order }}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML"
-                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
+                {% if pagination.page >= pagination.total_pages and not (pagination.capped and items) %}disabled{% endif %}>Next</button>
     </div>
 </div>
 <table>
@@ -54,7 +105,7 @@
                 hx-swap="innerHTML">
                 Method
             </th>
-            <th class="sortable {% if sort_by == 'request_size' %}{{ sort_order }}{% endif %}"
+            <th class="col-wide sortable {% if sort_by == 'request_size' %}{{ sort_order }}{% endif %}"
                 hx-get="{{ dashboard_path }}/htmx/attacks?page=1&page_size={{ pagination.page_size }}&sort_by=request_size&sort_order={% if sort_by == 'request_size' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML">
@@ -62,20 +113,20 @@
             </th>
             <th>Target</th>
             <th>Attack Types</th>
-            <th>TL Hash
+            <th class="col-wide">TL Hash
                 <span class="th-hint" tabindex="0" role="note" aria-label="Campaign hash for grouped attacks, TLSH for standalone threats.">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="M440-280h80v-240h-80v240Zm68.5-331.5Q520-623 520-640t-11.5-28.5Q497-680 480-680t-28.5 11.5Q440-657 440-640t11.5 28.5Q463-600 480-600t28.5-11.5ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
                     <span class="th-hint-tip">Campaign hash for grouped attacks, click to open the campaign.</span>
                 </span>
             </th>
-            <th>User-Agent</th>
+            <th class="ua-col">User-Agent</th>
             <th class="sortable {% if sort_by == 'timestamp' %}{{ sort_order }}{% endif %}"
                 hx-get="{{ dashboard_path }}/htmx/attacks?page=1&page_size={{ pagination.page_size }}&sort_by=timestamp&sort_order={% if sort_by == 'timestamp' and sort_order == 'desc' %}asc{% else %}desc{% endif %}{{ filter_qs }}"
                 hx-target="closest .htmx-container"
                 hx-swap="innerHTML">
                 Time
             </th>
-            <th class="col-w-80"></th>
+            <th class="col-w-80 row-actions"><span class="sr-only">Actions</span></th>
         </tr>
     </thead>
     <tbody>
@@ -83,17 +134,15 @@
         <tr class="ip-row" data-ip="{{ attack.ip | e }}">
             <td class="rank">{{ loop.index + (pagination.page - 1) * pagination.page_size }}</td>
             {% if not ip_filter %}
-            <td class="ip-clickable"
-                title="Open in IP Insight"
-                @click="openIpInsight('{{ attack.ip | e }}')">
-                {{ attack.ip | e }}
+            <td class="ip-clickable">
+                <a class="ip-link" href="#ip-insight/{{ attack.ip | e }}" title="Open in IP Insight" @click.prevent="openIpInsight('{{ attack.ip | e }}')">{{ attack.ip | e }}</a>
             </td>
             {% endif %}
             <td>
                 {% set method = attack.method | default('GET') | upper %}
                 <span class="method-badge method-{{ method | lower | e }}">{{ method | e }}</span>
             </td>
-            <td class="size-cell">{{ attack.request_size | format_size }}</td>
+            <td class="size-cell col-wide">{{ attack.request_size | format_size }}</td>
             <td>
                 <div class="path-cell-container">
                     <span class="path-truncated">{{ attack.path | e }}</span>
@@ -103,14 +152,17 @@
                 </div>
             </td>
             <td>
-                <div class="attack-types-cell">
-                    <span class="attack-types-truncated">{{ attack.attack_type | e }}</span>
-                    {% if attack.attack_type | length > 30 %}
-                    <div class="attack-types-tooltip">{{ attack.attack_type | e }}</div>
-                    {% endif %}
+                {# One badge per type in its severity colour; two
+                   shown, the rest counted, all of them in the title. #}
+                {% set types = (attack.attack_type or '').split(',') | map('trim') | select | list %}
+                <div class="badge-row" title="{{ attack.attack_type | attack_label }}">
+                    {% for t in types[:2] %}
+                    <span class="{{ t | attack_badge_class }}" title="{{ t | attack_label }}">{{ t | attack_label }}</span>
+                    {% endfor %}
+                    {% if types | length > 2 %}<span class="badge-more">+{{ types | length - 2 }}</span>{% endif %}
                 </div>
             </td>
-            <td class="data-mono">
+            <td class="data-mono col-wide">
                 {% if attack.cluster_hash %}
                 <a href="#"
                    class="data-link"
@@ -123,17 +175,17 @@
                    title="{{ attack.tlsh_hash | e }}">{{ attack.tlsh_hash[:12] }}</a>
                 {% endif %}
             </td>
-            <td class="ua-cell">{{ (attack.user_agent | default(''))[:50] | e }}</td>
-            <td class="ts-cell">{{ attack.timestamp | format_ts }}</td>
-            <td>
+            <td class="ua-cell ua-col" title="{{ attack.user_agent | default('', true) | e }}">{{ attack.user_agent | default('', true) | e }}</td>
+            <td class="ts-cell">{{ attack.timestamp | format_ts(time_only=ts_time_only) }}</td>
+            <td class="row-actions">
                 <div class="table-action-btns">
                 {% if attack.log_id %}
-                <button class="view-btn" @click="viewRawRequest({{ attack.log_id }})" title="View Request">
+                <button class="view-btn" @click="viewRawRequest({{ attack.log_id }})" title="View Request" aria-label="View request">
                     <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m11.28 3.22 4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L13.94 8l-3.72-3.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215Zm-6.56 0a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L2.06 8l3.72 3.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L.47 8.53a.75.75 0 0 1 0-1.06Z"/></svg>
                     <span class="view-btn-tooltip">View Request</span>
                 </button>
                 {% endif %}
-                <button class="inspect-btn" @click="openIpInsight('{{ attack.ip | e }}')" title="Inspect IP">
+                <button class="inspect-btn" @click="openIpInsight('{{ attack.ip | e }}')" title="Inspect IP" aria-label="Inspect {{ attack.ip | e }} in IP Insight">
                     <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
                 </button>
                 </div>

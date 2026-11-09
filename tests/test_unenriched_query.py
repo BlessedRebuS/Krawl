@@ -13,7 +13,7 @@ useful, and both were broken before:
    filled in physical row order, so with a 611k backlog the newly seen IPs shown
    in every "recent" dashboard view were never reached.
 
-Usage: python tests/test_unenriched_query.py
+
 """
 
 import sys
@@ -43,7 +43,7 @@ class _FakeDb:
         pass
 
 
-def _run():
+def test_unenriched_ips_are_unenriched_and_newest_first():
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
     session = sessionmaker(bind=engine)()
@@ -94,9 +94,3 @@ def _run():
     assert repo.get_unenriched_ips(limit=1) == [
         "203.0.113.4"
     ], "a capped batch must start with the most recently seen IP"
-
-    print("OK: get_unenriched_ips returns only un-geolocated IPs, newest first")
-
-
-if __name__ == "__main__":
-    _run()

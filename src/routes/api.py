@@ -23,6 +23,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyCookie
 from pydantic import BaseModel, validator
 
+from attack_colours import colour_map
 from auth_store import (
     clear_attempts,
     create_session,
@@ -33,15 +34,19 @@ from auth_store import (
 )
 from config import get_config
 from dashboard_cache import (
-    get_cached,
-    get_cached_list_page,
     get_cached_table,
     invalidate_table_cache,
-    is_warm,
     set_cached_table,
 )
-from dependencies import get_client_ip, get_db
+from database.text_filters import (
+    clean_text_filters,
+    parse_exclude_terms,
+    text_filter_key,
+)
+from dependencies import get_client_ip, get_db, rule_label
+from detection import get_detection
 from logger import get_app_logger
+from period import period_query, resolve_period
 
 # Sessions and bruteforce counters live in auth_store: Redis in scalable mode
 # so they are shared by every replica, a local dict in standalone.
@@ -147,7 +152,13 @@ async def authenticate(request: Request, body: AuthRequest):
 
     config = request.app.state.config
     expected = config.dashboard_password.strip()
-    if hmac.compare_digest(body.password, expected):
+    # compare_digest only accepts ASCII str operands. Compare encoded bytes so
+    # non-ASCII passwords (including invalid JSON surrogate input) cannot turn
+    # a login attempt into an unhandled TypeError/UnicodeEncodeError.
+    if hmac.compare_digest(
+        body.password.encode("utf-8", errors="surrogatepass"),
+        expected.encode("utf-8", errors="surrogatepass"),
+    ):
         # Success — clear failed attempts
         clear_attempts(ip)
         get_app_logger().info(f"[AUTH] Successful login from {ip}")
@@ -210,9 +221,7 @@ async def logout(request: Request):
 @router.get("/api/auth/check")
 async def auth_check(request: Request):
     """Check if the current session is authenticated."""
-    if verify_auth(request):
-        return JSONResponse(content={"authenticated": True})
-    return JSONResponse(content={"authenticated": False}, status_code=401)
+    return JSONResponse(content={"authenticated": verify_auth(request)})
 
 
 # ── Protected Ban Management API ─────────────────────────────────────
@@ -359,41 +368,16 @@ async def all_ips(
     page_size: int = Query(25),
     sort_by: str = Query("total_requests"),
     sort_order: str = Query("desc"),
+    cursor: str = Query(""),
+    geolocated: bool = Query(False),
 ):
     page = max(1, page)
     page_size = min(max(1, page_size), 10000)
-    config = get_config()
-
-    # Serve from full aggregation cache (up to 50k IPs, default sort only)
-    if (
-        config.dashboard_cache_warmup
-        and config.dashboard_warmup_aggregation
-        and sort_by == "total_requests"
-        and sort_order == "desc"
-        and is_warm()
-    ):
-        sliced = get_cached_list_page("agg:map_ips", page=page, page_size=page_size)
-        if sliced is not None:
-            return JSONResponse(
-                content={"ips": sliced["items"], "pagination": sliced["pagination"]},
-                headers=_no_cache_headers(),
-            )
-
-    # Serve from warmup cache on default map request (top 1000 IPs)
-    if (
-        config.dashboard_cache_warmup
-        and page == 1
-        and page_size == 1000
-        and sort_by == "total_requests"
-        and sort_order == "desc"
-        and is_warm()
-    ):
-        cached = get_cached("map_ips")
-        if cached:
-            return JSONResponse(content=cached, headers=_no_cache_headers())
 
     # Check table cache for any paginated request
-    cache_key = f"all_ips:{page}:{page_size}:{sort_by}:{sort_order}"
+    cache_key = (
+        f"all_ips:{page}:{page_size}:{sort_by}:{sort_order}:{cursor}:{geolocated}"
+    )
     cached = get_cached_table(cache_key)
     if cached:
         return JSONResponse(content=cached, headers=_no_cache_headers())
@@ -406,12 +390,41 @@ async def all_ips(
             page_size=page_size,
             sort_by=sort_by,
             sort_order=sort_order,
+            cursor=cursor or None,
+            geolocated=geolocated,
         )
-        set_cached_table(cache_key, result)
+        # Cursor pages are cheap index reads; caching a full map load (~2MB/page) floods Redis.
+        if not cursor:
+            set_cached_table(cache_key, result)
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
         get_app_logger().error(f"Error fetching all IPs: {e}")
         return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
+
+
+@router.get("/api/live-attacks")
+async def live_attacks(request: Request, limit: int = Query(100)):
+    """Small uncached snapshot used by the IP map's opt-in live mode."""
+    db = get_db()
+    try:
+        attacks = await asyncio.to_thread(
+            db.ip_stats.get_live_attackers,
+            limit=min(max(1, limit), 250),
+        )
+        return JSONResponse(
+            content={
+                "attacks": attacks,
+                "server_time": datetime.now(UTC).isoformat(),
+            },
+            headers=_no_cache_headers(),
+        )
+    except Exception as e:
+        get_app_logger().error(f"Error fetching live map attacks: {e}")
+        return JSONResponse(
+            content={"error": str(e)},
+            status_code=500,
+            headers=_no_cache_headers(),
+        )
 
 
 @router.get("/api/ip-stats/{ip_address:path}")
@@ -616,53 +629,221 @@ async def attack_types_stats(
         return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
 
 
-def campaign_payload(clusters: list) -> list:
-    """Shape campaign clusters for the chart. Shared with dashboard warmup,
-    which writes this same payload into the cache the endpoint reads."""
-    return [
-        {
-            "id": c["id"],
-            "label": (c["rep_hash"] or "")[:8],
-            "path": c["path"],
-            "top_path": c["top_path"],
-            "sample": c["sample"],
-            "sources": c["sources"],
-            "captures": c["events"],
-            "ips": c["ips"],
-            "first_seen": c["first_seen"].isoformat() if c["first_seen"] else None,
-            "last_seen": c["last_seen"].isoformat() if c["last_seen"] else None,
-        }
-        for c in clusters
+# Width of one activity-strip cell per span: hours for a day, quarter-days
+# for a week, whole days beyond that. Keeps every span near 24-30 cells.
+def _campaign_slot_hours(days: int) -> int:
+    if days <= 1:
+        return 1
+    if days <= 7:
+        return 6
+    return 24
+
+
+def campaign_terms(raw: str) -> list[str]:
+    """Threats tab filter terms from a comma list: lowercased, deduped, max 10."""
+    terms = (t.strip().lower()[:200] for t in (raw or "").split(","))
+    return [t for t in dict.fromkeys(terms) if t][:10]
+
+
+def campaign_matches(
+    texts, types, search: list[str], exclude: list[str], attack_type: str = ""
+) -> bool:
+    """Shared Threats tab filter: every Only term must appear in one of the
+    texts (path, target, digest), no Hide term may, and the type must be among
+    ``types``. Mirrors the Attacks tab's term semantics."""
+    fields = [(t or "").lower() for t in texts]
+    has = lambda term: any(term in f for f in fields)  # noqa: E731
+    return (
+        all(has(t) for t in search)
+        and not any(has(t) for t in exclude)
+        and (not attack_type or attack_type in (types or []))
+    )
+
+
+def build_campaign_stats(db, limit: int, day: str = "", days: int = 0, offset: int = 0):
+    """Top campaigns in a window with their per-slot activity, for the Threats
+    tab chart. Shared with dashboard warmup, which writes this same payload
+    into the cache the endpoint reads.
+
+    Campaigns are ranked by hits inside the window, not by their lifetime
+    capture count, so a quiet campaign with a long history does not outrank
+    one that is active right now."""
+    window = _campaign_window(day, days=days, offset=offset)
+    if window is None:
+        window = _campaign_window("", days=1, offset=0)
+    start, end = window
+    span_days = max(1, round((end - start).total_seconds() / 86400))
+    slot_hours = _campaign_slot_hours(span_days)
+
+    # Wide net, then rank by windowed hits: get_campaign_clusters orders by
+    # lifetime captures, which is the ordering this chart must not inherit.
+    clusters = db.payloads.get_campaign_clusters(limit=200, start=start, end=end)
+    activity = db.payloads.get_campaign_activity(
+        [c["id"] for c in clusters], start, end, hourly=slot_hours < 24
+    )
+
+    slot_starts = [
+        start + timedelta(hours=i * slot_hours)
+        for i in range(int((end - start).total_seconds() // 3600) // slot_hours)
     ]
+
+    def fold(cid: str) -> list[int]:
+        counts = [0] * len(slot_starts)
+        for key, cnt in activity.get(cid, {}).items():
+            try:
+                ts = datetime.fromisoformat(key if len(key) > 10 else key + " 00:00")
+            except ValueError:
+                continue
+            idx = int((ts - start).total_seconds() // 3600) // slot_hours
+            if 0 <= idx < len(counts):
+                counts[idx] += cnt
+        return counts
+
+    rows = []
+    for c in clusters:
+        series = fold(c["id"])
+        hits = sum(series)
+        if not hits:
+            continue
+        rows.append(
+            {
+                "id": c["id"],
+                "label": (c["rep_hash"] or "")[:8],
+                "rep_hash": c["rep_hash"],
+                "path": c["path"],
+                "top_path": c["top_path"],
+                "attack_types": c.get("attack_types") or [],
+                "sources": c["sources"],
+                "hits": hits,
+                "captures": c["events"],
+                "ips": c["ips"],
+                "activity": series,
+                "first_seen": c["first_seen"].isoformat() if c["first_seen"] else None,
+                "last_seen": c["last_seen"].isoformat() if c["last_seen"] else None,
+            }
+        )
+    rows.sort(key=lambda r: (-r["hits"], -r["ips"]))
+    return {
+        "colours": colour_map({t for r in rows[:limit] for t in r["attack_types"]}),
+        "campaigns": rows[:limit],
+        "total_campaigns": len(rows),
+        "slot_hours": slot_hours,
+        "slots": [s.isoformat() for s in slot_starts],
+        "start": start.isoformat(),
+        "end": end.isoformat(),
+    }
 
 
 @router.get("/api/campaign-stats")
 async def campaign_stats(
     request: Request,
-    limit: int = Query(12),
+    limit: int = Query(8),
     day: str = Query(""),
-    days: int = Query(0),
+    days: int = Query(1),
     offset: int = Query(0),
+    search: str = Query(""),
+    exclude: str = Query(""),
+    attack_type: str = Query(""),
 ):
-    limit = min(max(1, limit), 50)
-    window = _campaign_window(day, days=days, offset=offset)
-    cache_key = f"api:campaign_stats:{limit}:{day or days or 0}:{offset}"
-    cached = get_cached_table(cache_key)
-    if cached:
-        return JSONResponse(content=cached, headers=_no_cache_headers())
+    # Up to every campaign the builder considers (it scans 200), for "All".
+    limit = min(max(1, limit), 200)
+    days = min(max(1, days), 90)
+    offset = max(0, offset)
+    search_terms, exclude_terms = campaign_terms(search), campaign_terms(exclude)
+    attack_type = attack_type.strip()[:64]
+    filtered = bool(search_terms or exclude_terms or attack_type)
+    # Filters apply to the whole ranked list, then the chart takes its top rows.
+    fetch_limit = 200 if filtered else limit
+    cache_key = f"api:campaign_stats:{fetch_limit}:{day or days}:{offset}"
 
-    db = get_db()
     try:
-        kwargs = {"limit": limit}
-        if window is not None:
-            kwargs["start"], kwargs["end"] = window
-        clusters = await asyncio.to_thread(db.payloads.get_campaign_clusters, **kwargs)
-        result = {"campaigns": campaign_payload(clusters)}
-        set_cached_table(cache_key, result)
+        result = get_cached_table(cache_key)
+        if not result:
+            result = await asyncio.to_thread(
+                build_campaign_stats,
+                get_db(),
+                fetch_limit,
+                day=day,
+                days=days,
+                offset=offset,
+            )
+            set_cached_table(cache_key, result)
+        if filtered:
+            rows = [
+                r
+                for r in result["campaigns"]
+                if campaign_matches(
+                    (r["top_path"], r["path"], r.get("rep_hash")),
+                    r["attack_types"],
+                    search_terms,
+                    exclude_terms,
+                    attack_type,
+                )
+            ]
+            result = {
+                **result,
+                "campaigns": rows[:limit],
+                "total_campaigns": len(rows),
+                "colours": colour_map(
+                    {t for r in rows[:limit] for t in r["attack_types"]}
+                ),
+            }
         return JSONResponse(content=result, headers=_no_cache_headers())
     except Exception as e:
         get_app_logger().error(f"Error fetching campaign stats: {e}")
         return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
+
+
+@router.get("/api/attack-facets")
+async def attack_facets(
+    days: int | None = Query(None),
+    offset_days: int = Query(0),
+    slot: str | None = Query(None),
+    search: str = Query(""),
+    exclude: str = Query(""),
+    method_filter: str = Query(""),
+    ip_filter: str = Query(""),
+):
+    try:
+        result = await cached_attack_facets(
+            resolve_period(days, offset_days, slot),
+            clean_text_filters(search, exclude, method_filter, ip_filter),
+        )
+        return JSONResponse(content=result, headers=_no_cache_headers())
+    except Exception as e:
+        get_app_logger().error(f"Error fetching attack facets: {e}")
+        return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
+
+
+def attack_facets_key(period, tf=None) -> str:
+    return f"api:attack_facets:{period_query(period)}{text_filter_key(tf or {})}"
+
+
+def load_attack_facets(db, period, tf=None) -> dict:
+    """Severity and rule counts for a period, straight from the database."""
+    tf = tf or {}
+    result = db.analytics.get_attack_facets(
+        since=period.since if period else None,
+        until=period.until if period else None,
+        search=tf.get("search"),
+        exclude=parse_exclude_terms(tf.get("exclude")),
+        method_filter=tf.get("method_filter"),
+        ip_filter=tf.get("ip_filter"),
+    )
+    for r in result["rules"]:
+        r["label"] = rule_label(r["rule"])
+    return result
+
+
+async def cached_attack_facets(period, tf=None) -> dict:
+    """Severity and rule counts for a period, shared by the API and the attacks table."""
+    cache_key = attack_facets_key(period, tf)
+    cached = get_cached_table(cache_key)
+    if cached:
+        return cached
+    result = await asyncio.to_thread(load_attack_facets, get_db(), period, tf)
+    set_cached_table(cache_key, result)
+    return result
 
 
 @router.get("/api/attack-types-daily")
@@ -671,12 +852,18 @@ async def attack_types_daily(
     limit: int = Query(10),
     days: int = Query(30),
     offset_days: int = Query(0),
+    slot: str | None = Query(None),
+    search: str = Query(""),
+    exclude: str = Query(""),
+    method_filter: str = Query(""),
+    ip_filter: str = Query(""),
 ):
     limit = min(max(1, limit), 20)
+    tf = clean_text_filters(search, exclude, method_filter, ip_filter)
     days = min(max(1, days), 90)
     offset_days = max(0, offset_days)
 
-    cache_key = f"api:attack_daily:{limit}:{days}:{offset_days}"
+    cache_key = f"api:attack_daily:{limit}:{days}:{offset_days}:{slot or ''}{text_filter_key(tf)}"
     cached = get_cached_table(cache_key)
     if cached:
         return JSONResponse(content=cached, headers=_no_cache_headers())
@@ -688,6 +875,11 @@ async def attack_types_daily(
             limit=limit,
             days=days,
             offset_days=offset_days,
+            slot=slot,
+            search=tf.get("search"),
+            exclude=parse_exclude_terms(tf.get("exclude")),
+            method_filter=tf.get("method_filter"),
+            ip_filter=tf.get("ip_filter"),
         )
         set_cached_table(cache_key, result)
         return JSONResponse(content=result, headers=_no_cache_headers())
@@ -722,6 +914,32 @@ async def attack_types(
         return JSONResponse(content={"error": str(e)}, headers=_no_cache_headers())
 
 
+def _describe_detections(detections: list[dict]) -> list[dict]:
+    """Attach the YARA rule metadata behind each stored detection.
+
+    Rule details come from the rules loaded now. A detection that stored its
+    rule_name shows that rule; older rows, and names no longer loaded, show
+    every rule reporting the attack type. Highest severity first.
+    """
+    rules_by_type = get_detection().describe_attack_types(
+        {item["attack_type"] for item in detections}
+    )
+    described = []
+    for item in detections:
+        rules = rules_by_type.get(item["attack_type"], [])
+        exact = [rule for rule in rules if rule["rule"] == item.get("rule_name")]
+        rules = exact or rules
+        described.append(
+            {
+                **item,
+                "severity": max((rule["severity"] for rule in rules), default=0),
+                "classification": rules[0]["classification"] if rules else "",
+                "rules": rules,
+            }
+        )
+    return sorted(described, key=lambda item: (-item["severity"], item["attack_type"]))
+
+
 @router.get("/api/raw-request/{log_id:int}")
 async def raw_request(log_id: int, request: Request):
     db = get_db()
@@ -731,7 +949,16 @@ async def raw_request(log_id: int, request: Request):
             return JSONResponse(
                 content={"error": "Raw request not found"}, status_code=404
             )
-        return JSONResponse(content={"raw_request": raw}, headers=_no_cache_headers())
+        detections = await asyncio.to_thread(
+            db.access_logs.get_attack_detections_by_log_id, log_id
+        )
+        return JSONResponse(
+            content={
+                "raw_request": raw,
+                "detections": _describe_detections(detections),
+            },
+            headers=_no_cache_headers(),
+        )
     except Exception as e:
         get_app_logger().error(f"Error fetching raw request: {e}")
         return JSONResponse(content={"error": str(e)}, status_code=500)
@@ -1345,6 +1572,56 @@ async def upload_generated_page(request: Request, body: UploadPageRequest):
         db.close_session()
 
 
+class UploadRuleRequest(BaseModel):
+    filename: str
+    content: str
+
+
+@router.post("/api/rules/upload", dependencies=[Depends(require_auth)])
+async def upload_rule_file(body: UploadRuleRequest):
+    """Validate and load a YARA rule file; the same name replaces the old one."""
+    import custom_rules
+
+    filename = body.filename.strip()
+    try:
+        names = await asyncio.to_thread(custom_rules.upload, filename, body.content)
+    except custom_rules.RuleUploadError as exc:
+        return JSONResponse(content={"error": str(exc)}, status_code=400)
+    except Exception as e:
+        get_app_logger().error(f"[Rules] Upload error: {e}")
+        return JSONResponse(content={"error": "Internal server error"}, status_code=500)
+    return JSONResponse(content={"ok": True, "filename": filename, "rules": names})
+
+
+@router.get("/api/rules/{filename}", dependencies=[Depends(require_auth)])
+async def download_rule_file(filename: str):
+    """An uploaded rule file's source, as a download."""
+    import custom_rules
+
+    source = None
+    if custom_rules.FILENAME.fullmatch(filename):
+        source = await asyncio.to_thread(custom_rules.get_source, filename)
+    if source is None:
+        return JSONResponse(content={"error": "Rule file not found"}, status_code=404)
+    return Response(
+        content=source,
+        media_type="text/plain; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.delete("/api/rules/{filename}", dependencies=[Depends(require_auth)])
+async def delete_rule_file(filename: str):
+    """Remove an uploaded rule file and unload its rules."""
+    import custom_rules
+
+    if not custom_rules.FILENAME.fullmatch(filename) or not await asyncio.to_thread(
+        custom_rules.delete, filename
+    ):
+        return JSONResponse(content={"error": "Rule file not found"}, status_code=404)
+    return JSONResponse(content={"ok": True, "filename": filename})
+
+
 @router.post("/api/upload-generated-pages-bulk", dependencies=[Depends(require_auth)])
 async def upload_generated_pages_bulk(request: Request, body: UploadBulkPagesRequest):
     """Upload multiple deception pages from a ZIP file."""
@@ -1838,6 +2115,7 @@ _SENSITIVE_FIELDS = frozenset(
 _NOT_SENSITIVE_FIELDS = frozenset(
     {
         "canary_token_tries",
+        "credential_password_fields",  # form field names, not a password
         "dashboard_password_generated",
         "dashboard_secret_path_generated",
     }
@@ -1862,6 +2140,7 @@ _CONFIG_SECTIONS = (
     "server",
     "dashboard",
     "database",
+    "retention",
     "postgres",
     "redis",
     "crawl",
@@ -1923,9 +2202,18 @@ def _is_unset(value) -> bool:
 
 def _json_safe(value):
     """Render a config value in a form JSON can carry and a table can show."""
+    if isinstance(value, timedelta):
+        from config import format_duration
+
+        return format_duration(value)
     if isinstance(value, tuple):
         return list(value)
-    if isinstance(value, (str, int, float, bool, list, dict)) or value is None:
+    if isinstance(value, dict):
+        # The panel shows text; a nested dict would render as [object Object].
+        import json
+
+        return json.dumps(value, separators=(", ", ": "))
+    if isinstance(value, (str, int, float, bool, list)) or value is None:
         return value
     return str(value)
 

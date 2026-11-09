@@ -1,0 +1,59 @@
+{# Pager for the Threats tab tables: position, rows per page, Prev/Next.
+ # `url` is the endpoint with every filter and sort already in its query
+ # string, but no page or page_size; the pager appends those. #}
+{% macro pager(url, pagination, page_sizes, noun) %}
+<div class="panel-header">
+    <span class="pagination-info">Page {{ pagination.page }}/{{ pagination.total_pages }} &mdash; {{ pagination.total }} {{ noun }}</span>
+    <div class="row">
+        {% if pagination.total > page_sizes[0] %}
+        <div class="row gap-1" role="group" aria-label="Rows per page">
+            {% for size in page_sizes %}
+            <button type="button" class="map-limit-btn {% if pagination.page_size == size %}active{% endif %}"
+                    aria-pressed="{{ 'true' if pagination.page_size == size else 'false' }}"
+                    hx-get="{{ url }}&amp;page=1&amp;page_size={{ size }}"
+                    hx-target="closest .htmx-container" hx-swap="innerHTML">{{ size }}</button>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <button class="pagination-btn"
+                hx-get="{{ url }}&amp;page={{ pagination.page - 1 }}&amp;page_size={{ pagination.page_size }}"
+                hx-target="closest .htmx-container" hx-swap="innerHTML"
+                {% if pagination.page <= 1 %}disabled{% endif %}>Prev</button>
+        <button class="pagination-btn"
+                hx-get="{{ url }}&amp;page={{ pagination.page + 1 }}&amp;page_size={{ pagination.page_size }}"
+                hx-target="closest .htmx-container" hx-swap="innerHTML"
+                {% if pagination.page >= pagination.total_pages %}disabled{% endif %}>Next</button>
+    </div>
+</div>
+{% endmacro %}
+
+
+{# Attack-type chips for the Campaigns panel: the top `shown` types by
+ # count, the rest behind a "+N more" chip (the bar's type picker lists them
+ # all). The selected type always shows. Chips set the tab-wide type filter. #}
+{% macro type_facets(facets, attack_type, all_count, label, shown=8) %}
+{% if facets %}
+{% set ns = namespace(hidden=0) %}
+<div class="facet-row" role="group" aria-label="{{ label }}">
+    <button type="button" class="facet-chip {% if not attack_type %}active{% endif %}"
+            aria-pressed="{{ 'true' if not attack_type else 'false' }}"
+            onclick="setThreatsState({type: null})">
+        All <span class="facet-count">{{ all_count }}</span>
+    </button>
+    {% for t, n in facets %}
+    {% set extra = loop.index > shown and attack_type != t %}
+    {% if extra %}{% set ns.hidden = ns.hidden + 1 %}{% endif %}
+    <button type="button" class="facet-chip {% if attack_type == t %}active{% endif %}{% if extra %} facet-extra{% endif %}"
+            aria-pressed="{{ 'true' if attack_type == t else 'false' }}"
+            data-type="{{ (t if attack_type != t else '') | e }}"
+            onclick="setThreatsState({type: this.dataset.type || null})">
+        <span class="atk-swatch {{ (t | attack_badge_class)[10:] }}" aria-hidden="true"></span>{{ t | attack_label }} <span class="facet-count">{{ n }}</span>
+    </button>
+    {% endfor %}
+    {% if ns.hidden %}
+    <button type="button" class="facet-chip facet-more" aria-expanded="false"
+            data-more="+{{ ns.hidden }} more" onclick="toggleThreatFacets(this)">+{{ ns.hidden }} more</button>
+    {% endif %}
+</div>
+{% endif %}
+{% endmacro %}

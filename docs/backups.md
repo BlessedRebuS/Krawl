@@ -63,9 +63,9 @@ psql -h localhost -U krawl -d krawl < backups/db_dump.sql
 
 ## Data Retention
 
-Separately from backups, Krawl runs a **data retention job** daily at 3:00 AM that cleans up old records from the live database. This is controlled by `KRAWL_DATABASE_RETENTION_DAYS` (default: 30 days).
+Separately from backups, Krawl runs a **data retention job** daily at 9:00 AM that cleans up old records from the live database. Its windows live in the `retention:` config section — see [Retention](retention.md).
 
-The retention job preserves:
+The retention job preserves (unless `retention.overall` is set):
 - All credential capture attempts
 - All suspicious access logs and honeypot triggers
 - IPs with suspicious activity history

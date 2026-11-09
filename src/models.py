@@ -18,6 +18,8 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    text,
+    true,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -29,6 +31,7 @@ from sanitizer import (
     MAX_IP_LENGTH,
     MAX_PATH_LENGTH,
     MAX_REPUTATION_SOURCE_LENGTH,
+    MAX_RULE_NAME_LENGTH,
     MAX_USER_AGENT_LENGTH,
 )
 
@@ -50,8 +53,8 @@ class AccessLog(Base):
     __tablename__ = "access_logs"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    # ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False, index=True, ForeignKey('ip_logs.id', ondelete='CASCADE'))
-    ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False, index=True)
+    # No single-column index: ix_access_logs_ip_timestamp serves ip lookups.
+    ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False)
     path: Mapped[str] = mapped_column(String(MAX_PATH_LENGTH), nullable=False)
     user_agent: Mapped[str | None] = mapped_column(
         String(MAX_USER_AGENT_LENGTH), nullable=True
@@ -70,6 +73,22 @@ class AccessLog(Base):
     raw_request: Mapped[str | None] = mapped_column(Text, nullable=True, deferred=True)
     # Inbound HTTP Referer header — which bait page/URL this request came from.
     referer: Mapped[str | None] = mapped_column(String(MAX_PATH_LENGTH), nullable=True)
+    # Host header normalized to a hostname (port removed), for target reporting.
+    target_host: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # False only for retained rows awaiting request-metadata backfill.
+    request_metadata_extracted: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    request_metadata_version: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, index=True
+    )
+    file_extraction_version: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, index=True
+    )
+    # False for random-path crawler GETs, which prune-uninteresting deletes early.
+    is_interesting: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=true()
+    )
 
     # Relationship to attack detections
     attack_detections: Mapped[list["AttackDetection"]] = relationship(
@@ -79,14 +98,49 @@ class AccessLog(Base):
     # Indexes for common queries
     __table_args__ = (
         Index("ix_access_logs_ip_timestamp", "ip", "timestamp"),
-        Index("ix_access_logs_is_suspicious", "is_suspicious"),
+        # Attacks and suspicious tables walk this newest-first; keep in sync with ONLINE_INDEXES.
+        Index(
+            "ix_access_logs_suspicious_timestamp",
+            "timestamp",
+            postgresql_where=text("is_suspicious"),
+            sqlite_where=text("is_suspicious"),
+        ),
         Index("ix_access_logs_is_honeypot_trigger", "is_honeypot_trigger"),
+        # Keep in sync with ONLINE_INDEXES.
         Index("ix_access_logs_path", "path"),
-        Index("ix_access_logs_user_agent", "user_agent"),
+        Index("ix_access_logs_target_host", "target_host"),
+        # prune-uninteresting finds its rows here; keep in sync with ONLINE_INDEXES.
+        Index(
+            "ix_access_logs_prunable",
+            "timestamp",
+            postgresql_include=["ip"],
+            postgresql_where=text("is_interesting = false"),
+            sqlite_where=text("is_interesting = 0"),
+        ),
     )
 
     def __repr__(self) -> str:
         return f"<AccessLog(id={self.id}, ip='{self.ip}', path='{self.path[:50]}')>"
+
+
+class RequestAsset(Base):
+    """One absolute HTTP(S) URL occurrence extracted from a request."""
+
+    __tablename__ = "request_assets"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    access_log_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("access_logs.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    url: Mapped[str] = mapped_column(
+        String(MAX_PATH_LENGTH), nullable=False, index=True
+    )
+
+    def __repr__(self) -> str:
+        return f"<RequestAsset(id={self.id}, url='{self.url[:80]}')>"
 
 
 class CredentialAttempt(Base):
@@ -139,6 +193,11 @@ class AttackDetection(Base):
     matched_pattern: Mapped[str | None] = mapped_column(
         String(MAX_ATTACK_PATTERN_LENGTH), nullable=True
     )
+    # Name of the YARA rule that matched. NULL on rows stored before it was
+    # recorded; the dashboard then looks the rule up by attack_type.
+    rule_name: Mapped[str | None] = mapped_column(
+        String(MAX_RULE_NAME_LENGTH), nullable=True
+    )
     # TLSH fuzzy hash of the payload that matched (near-duplicate variant clustering).
     tlsh_hash: Mapped[str | None] = mapped_column(String(72), nullable=True, index=True)
     # Campaign membership: payload_clusters.id (NULL until a valid hash is clustered).
@@ -158,6 +217,45 @@ class AttackDetection(Base):
 
     def __repr__(self) -> str:
         return f"<AttackDetection(id={self.id}, type='{self.attack_type}')>"
+
+
+# Geolocated hostile IPs the map's live feed polls; get_live_attackers filters
+# on exactly this so the partial index applies (a seq scan of ip_stats otherwise).
+LIVE_ATTACKERS_WHERE = (
+    "(has_triggered_honeypot IS TRUE OR category = 'attacker') "
+    "AND latitude IS NOT NULL AND longitude IS NOT NULL"
+)
+
+
+# Force-banned IPs; lets get_banned_ips BitmapOr with ix_ip_stats_ban_timestamp
+# instead of seq-scanning ip_stats every ban-cache refresh.
+BAN_OVERRIDE_WHERE = "ban_override IS TRUE"
+
+
+# Attackers are 0.3% of ip_stats: their sorted pages otherwise walk a whole-table
+# index past every other IP (21s on the demo). Keep in sync with ONLINE_INDEXES.
+ATTACKERS_WHERE = "category = 'attacker'"
+ATTACKER_SORTS = ("total_requests", "first_seen", "last_seen")
+
+# The map pages geolocated IPs by these sorts. Its columns ride in the index, so
+# a full map load never reads the ip_stats heap, which on a big install pushed
+# everything else out of the cache. Keep in sync with ONLINE_INDEXES.
+GEO_WHERE = "latitude IS NOT NULL AND longitude IS NOT NULL"
+GEO_SORTS = ("total_requests", "last_seen")
+MAP_COLUMNS = (
+    "total_requests",
+    "first_seen",
+    "last_seen",
+    "country_code",
+    "city",
+    "latitude",
+    "longitude",
+    "asn",
+    "asn_org",
+    "reputation_score",
+    "reputation_source",
+    "category",
+)
 
 
 class IpStats(Base):
@@ -211,6 +309,19 @@ class IpStats(Base):
     category_scores: Mapped[dict[str, int]] = mapped_column(JSON, nullable=True)
     manual_category: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
     last_analysis: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    # Requests pruned this counter period, and in the period before it; the
+    # analyzer estimates what is still inside its window from the two.
+    pruned_requests: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    pruned_previous: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    pruned_since: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    # Requests ever pruned for this IP; never restarts.
+    pruned_total: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
     need_reevaluation: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=True
     )
@@ -244,12 +355,44 @@ class IpStats(Base):
         Index("ix_ip_stats_total_requests", "total_requests"),
         Index("ix_ip_stats_last_seen", "last_seen"),
         Index("ix_ip_stats_first_seen", "first_seen"),
-        Index("ix_ip_stats_reputation_score", "reputation_score"),
         # clear_expired_bans() filters on ban_timestamp IS NOT NULL at every
         # boot; unindexed that is a full scan of ip_stats.
         Index("ix_ip_stats_ban_timestamp", "ban_timestamp"),
         # analyze-ips orders the reevaluation queue by last_analysis.
         Index("ix_ip_stats_last_analysis", "last_analysis"),
+        Index(
+            "ix_ip_stats_live_attackers",
+            "last_seen",
+            postgresql_include=["ip"],
+            postgresql_where=text(LIVE_ATTACKERS_WHERE),
+            sqlite_where=text(LIVE_ATTACKERS_WHERE),
+        ),
+        Index(
+            "ix_ip_stats_ban_override",
+            "ip",
+            postgresql_where=text(BAN_OVERRIDE_WHERE),
+            sqlite_where=text(BAN_OVERRIDE_WHERE),
+        ),
+        *(
+            Index(
+                f"ix_ip_stats_attackers_{column}",
+                column,
+                postgresql_where=text(ATTACKERS_WHERE),
+                sqlite_where=text(ATTACKERS_WHERE),
+            )
+            for column in ATTACKER_SORTS
+        ),
+        *(
+            Index(
+                f"ix_ip_stats_map_{column}",
+                column,
+                "ip",
+                postgresql_include=[c for c in MAP_COLUMNS if c != column],
+                postgresql_where=text(GEO_WHERE),
+                sqlite_where=text(GEO_WHERE),
+            )
+            for column in GEO_SORTS
+        ),
     )
 
     def __repr__(self) -> str:
@@ -267,7 +410,8 @@ class CategoryHistory(Base):
     __tablename__ = "category_history"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False, index=True)
+    # ix_category_history_ip_timestamp serves ip lookups.
+    ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False)
     old_category: Mapped[str | None] = mapped_column(String(50), nullable=True)
     new_category: Mapped[str] = mapped_column(String(50), nullable=False)
     timestamp: Mapped[datetime] = mapped_column(
@@ -439,32 +583,19 @@ class PayloadHashWatermark(Base):
     )
 
 
-# class IpLog(Base):
-#     """
-#     Records all IPs that have accessed the honeypot, along with aggregated stats and inferred user category.
-#     """
-#     __tablename__ = 'ip_logs'
+class CustomYaraRule(Base):
+    """A YARA rule file uploaded from the dashboard, loaded next to rules/.
 
-#     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-#     ip: Mapped[str] = mapped_column(String(MAX_IP_LENGTH), nullable=False, index=True)
-#     stats: Mapped[List[str]] = mapped_column(String(MAX_PATH_LENGTH))
-#     category: Mapped[str] = mapped_column(String(15))
-#     manual_category: Mapped[bool] = mapped_column(Boolean, default=False)
-#     last_analysis: Mapped[datetime] = mapped_column(DateTime, index=True),
+    Stored in the database so every replica loads it and it survives restarts
+    and read-only rule mounts. See custom_rules.py.
+    """
 
-#     # Relationship to attack detections
-#     access_logs: Mapped[List["AccessLog"]] = relationship(
-#         "AccessLog",
-#         back_populates="ip",
-#         cascade="all, delete-orphan"
-#     )
+    __tablename__ = "custom_yara_rules"
 
-#     # Indexes for common queries
-#     __table_args__ = (
-#         Index('ix_access_logs_ip_timestamp', 'ip', 'timestamp'),
-#         Index('ix_access_logs_is_suspicious', 'is_suspicious'),
-#         Index('ix_access_logs_is_honeypot_trigger', 'is_honeypot_trigger'),
-#     )
-
-#     def __repr__(self) -> str:
-#         return f"<AccessLog(id={self.id}, ip='{self.ip}', path='{self.path[:50]}')>"
+    filename: Mapped[str] = mapped_column(String(80), primary_key=True)
+    source: Mapped[str] = mapped_column(Text, nullable=False)
+    # Comma-separated rule names, for the dashboard list.
+    rule_names: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    uploaded_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.utcnow
+    )

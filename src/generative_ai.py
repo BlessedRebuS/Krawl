@@ -9,6 +9,7 @@ Caches generated pages in the database to avoid redundant API calls.
 import base64
 import logging
 import os
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -200,47 +201,14 @@ def can_generate_today() -> bool:
 
 
 def load_robots_disallowed() -> list[str]:
-    """Load and parse robots.txt to get disallowed paths.
-
-    Returns:
-        List of disallowed paths from robots.txt
-    """
+    """Disallowed paths from the bundled robots.txt page (trailing slash removed)."""
     global _robots_disallowed_cache
 
-    if _robots_disallowed_cache is not None:
-        return _robots_disallowed_cache
+    if _robots_disallowed_cache is None:
+        from detection import get_response_catalog
 
-    disallowed_paths = []
-
-    # Try to find robots.txt in templates/html directory
-    robots_paths = [
-        Path(__file__).parent / "templates" / "html" / "robots.txt",
-        Path(__file__).parent / "templates" / "robots.txt",
-        Path(__file__).parent / "robots.txt",
-    ]
-
-    for robots_file in robots_paths:
-        if robots_file.exists():
-            try:
-                with open(robots_file) as f:
-                    for line in f:
-                        line = line.strip()
-                        if line.startswith("Disallow:"):
-                            path = line.replace("Disallow:", "").strip()
-                            if path:
-                                disallowed_paths.append(path)
-
-                logger.debug(
-                    f"Loaded {len(disallowed_paths)} disallowed paths from {robots_file}"
-                )
-                _robots_disallowed_cache = disallowed_paths
-                return disallowed_paths
-            except Exception as err:
-                logger.warning(f"Failed to load robots.txt from {robots_file}: {err}")
-
-    logger.warning("robots.txt not found, no paths will be blocked")
-    _robots_disallowed_cache = []
-    return []
+        _robots_disallowed_cache = list(get_response_catalog().robots_disallows)
+    return _robots_disallowed_cache
 
 
 def has_generated_page_in_db(path: str) -> bool:
@@ -585,7 +553,11 @@ async def generate_html_for_path(
     """
     path = normalize_path(path)
     # ALWAYS check database cache first - serve cached pages even if AI is disabled
-    cached_html = get_generated_page_from_db(path)
+    # Case variants (/.ENV vs /.env) reuse the existing page instead of
+    # generating a second, contradictory one.
+    cached_html = get_generated_page_from_db(path) or (
+        path != path.lower() and get_generated_page_from_db(path.lower())
+    )
     if cached_html:
         logger.debug(
             f"[DB CACHE HIT] Retrieved cached AI-generated page for path: {path}"
@@ -634,8 +606,13 @@ async def generate_html_for_path(
         raise RuntimeError("ai.prompt is not configured")
 
     query_part = f"?{query}" if query else ""
+    template = config.ai_prompt
+    # A prompt without {path} (e.g. an old Helm override) would ask the model
+    # for a page without saying which, so every path got the same generic one.
+    if "{path}" not in template:
+        template += "\n\nPath: {path}{query_part}"
     try:
-        prompt = config.ai_prompt.format(path=path, query_part=query_part)
+        prompt = template.format(path=path, query_part=query_part)
     except (KeyError, IndexError) as err:
         # Only {path} and {query_part} exist; any other brace in the configured
         # prompt lands here instead of taking the request down.
@@ -726,7 +703,7 @@ def should_use_ai_for_path(path: str) -> bool:
     """
     path = normalize_path(path)
     # Check if there's a cached page even if AI is disabled (lightweight check, no content load)
-    if has_generated_page_in_db(path):
+    if has_generated_page_in_db(path) or has_generated_page_in_db(path.lower()):
         logger.debug(f"Found cached AI page for {path}, will serve it")
         return True
 
@@ -753,17 +730,48 @@ def should_use_ai_for_path(path: str) -> bool:
     if _is_random_link(path):
         return False
 
+    # Scanners request nonsense paths to detect catch-all servers; generating
+    # a page for them wastes a request and confirms the catch-all.
+    if _is_scanner_probe(path):
+        return False
+
     # Load robots.txt disallowed paths
     robots_disallowed_paths = load_robots_disallowed()
 
     # Check if path exactly matches a robots.txt disallowed path
     # Only exclude exact matches, not sub-paths (e.g., /wp-admin is excluded,
     # but /wp-admin/test.php queries AI since the hit is not precise)
+    bare = path.rstrip("/") or "/"
     for disallowed in robots_disallowed_paths:
-        if path == disallowed:
+        if bare == disallowed:
             return False
 
     return True
+
+
+_PROBE_KEYWORDS = re.compile(
+    r"canary|non_?existent|should-?404|404-probe|nmaplowercheck|rw-probe"
+    r"|debug-trigger|nexkit-missing|^/zz-",
+    re.IGNORECASE,
+)
+# Single segment, 16+ lowercase alphanumerics mixing letters and digits,
+# e.g. /96om2ovp4yvcykxos7y0. Real slugs have separators or dictionary words.
+_RANDOM_SLUG = re.compile(r"^/(?=[a-z0-9]*[0-9])(?=[a-z0-9]*[a-z])[a-z0-9]{16,}$")
+# Mixed-case token as a fake repo dir or admin child, e.g. /0blQnPgX/.git/config
+# or /admin/OsFDKjoK. Real names here are lowercase words.
+_RANDOM_TOKEN = re.compile(
+    r"^/((?=[A-Za-z0-9]*[A-Z])(?=[A-Za-z0-9]*[a-z])[A-Za-z0-9]{4,16}/\.git/config"
+    r"|(admin|administrator|cgi-bin)/(?=[A-Za-z0-9]*[A-Z])[A-Za-z0-9]{6,16})$"
+)
+
+
+def _is_scanner_probe(path: str) -> bool:
+    """Check if path is a scanner's catch-all probe (random slug or canary)."""
+    return bool(
+        _RANDOM_SLUG.match(path)
+        or _RANDOM_TOKEN.match(path)
+        or _PROBE_KEYWORDS.search(path)
+    )
 
 
 def _is_random_link(path: str) -> bool:
@@ -800,3 +808,32 @@ def _is_random_link(path: str) -> bool:
         return True
 
     return False
+
+
+def _is_trap_link(path: str) -> bool:
+    """Krawl homepage link (generative_ai._is_random_link) that also looks random:
+    a digit, or an uppercase letter after the first character. The extra rule
+    keeps /login, /admin, /Jenkinsfile literal; a few all-lowercase links slip
+    through and simply stay interesting."""
+    segment = path.lstrip("/")
+    return _is_random_link(path) and (
+        any(c.isdigit() for c in segment) or any(c.isupper() for c in segment[1:])
+    )
+
+
+def is_uninteresting_request(
+    path: str,
+    method: str,
+    is_suspicious: bool,
+    is_honeypot_trigger: bool,
+    attack_types: list | None,
+    file_payloads: list | None,
+    request_assets: list | None,
+) -> bool:
+    """A random-path crawler GET with no evidence, safe to prune early."""
+    if method != "GET" or is_suspicious or is_honeypot_trigger:
+        return False
+    if attack_types or file_payloads or request_assets or not _is_trap_link(path):
+        return False
+    disallows = [d.rstrip("/") for d in load_robots_disallowed() if d.rstrip("/")]
+    return not any(path.rstrip("/").startswith(d) for d in disallows)

@@ -1,14 +1,10 @@
-import re
-import urllib.parse
 from collections import Counter
 from datetime import datetime, timedelta
-from pathlib import Path
 
 import metrics
-from config import get_config
+from config import ANALYZER_LOOKBACK_DAYS, get_config
 from database import get_database
 from logger import get_app_logger
-from wordlists import get_wordlists
 
 # ----------------------
 # TASK CONFIG
@@ -24,15 +20,22 @@ TASK_CONFIG = {
     "single_pod": True,
 }
 
-# Upper bound on IPs analysed per run; the remainder is picked up next minute.
-# Sized from the real workload: the vast majority of flagged IPs have under 100
-# rows to read, so 2000 fits comfortably inside the one-minute window while
-# still capping the worst case at 2000 x 10,000 rows.
-MAX_IPS_PER_RUN = 2000
+# Upper bound on IPs analysed per run (config `tasks.analyze_ips_batch`); the
+# remainder is picked up next minute. The default is sized from the real
+# workload: the vast majority of flagged IPs have under 100 rows to read, so
+# 2000 fits comfortably inside the one-minute window.
+
+
+def robots_disallows() -> list[str]:
+    """Disallowed paths from the bundled robots.txt page."""
+    from detection import get_response_catalog
+
+    return list(get_response_catalog().robots_disallows)
 
 
 def main():
     config = get_config()
+    max_ips = config.tasks_analyze_ips_batch
     db_manager = get_database()
     app_logger = get_app_logger()
 
@@ -78,56 +81,12 @@ def main():
         "attack_url": False,
     }
 
-    # 1-3 low, 4-6 mid, 7-9 high, 10-20 extreme
-    _default_weights = {
-        "attacker": {
-            "risky_http_methods": 6,
-            "robots_violations": 4,
-            "uneven_request_timing": 3,
-            "different_user_agents": 2,
-            "attack_url": 15,
-        },
-        "good_crawler": {
-            "risky_http_methods": 1,
-            "robots_violations": 0,
-            "uneven_request_timing": 0,
-            "different_user_agents": 0,
-            "attack_url": 0,
-        },
-        "bad_crawler": {
-            "risky_http_methods": 2,
-            "robots_violations": 6,
-            "uneven_request_timing": 0,
-            "different_user_agents": 6,
-            "attack_url": 4,
-        },
-        "regular_user": {
-            "risky_http_methods": 0,
-            "robots_violations": 0,
-            "uneven_request_timing": 8,
-            "different_user_agents": 3,
-            "attack_url": 0,
-        },
-    }
-    weights = get_wordlists().scoring_weights or _default_weights
-    # Parse robots.txt once before the loop (it never changes during a run)
-    robots_disallows = []
-    robots_path = Path(__file__).parent.parent / "templates" / "html" / "robots.txt"
-    with open(robots_path) as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            parts = line.split(":")
-            if parts[0] == "Disallow":
-                parts[1] = parts[1].rstrip("/")
-                robots_disallows.append(parts[1].strip())
+    weights = get_config().scoring_weights
+    disallowed_paths = robots_disallows()
 
     # IPs flagged for reevaluation, plus any never analysed at all — the
     # ordering and the cap are both applied in SQL, see the repo method.
-    ips_to_analyze = db_manager.ip_stats.get_ips_needing_reevaluation(
-        limit=MAX_IPS_PER_RUN
-    )
+    ips_to_analyze = db_manager.ip_stats.get_ips_needing_reevaluation(limit=max_ips)
 
     if not ips_to_analyze:
         app_logger.debug(
@@ -135,26 +94,30 @@ def main():
         )
         return
 
-    if len(ips_to_analyze) == MAX_IPS_PER_RUN:
+    if len(ips_to_analyze) == max_ips:
         app_logger.info(
-            f"[Background Task] analyze-ips: batch full at {MAX_IPS_PER_RUN}, "
+            f"[Background Task] analyze-ips: batch full at {max_ips}, "
             "more IPs pending for the next run"
         )
 
     for ip in ips_to_analyze:
         # Get full history for this IP to perform accurate analysis
         ip_accesses = db_manager.access_logs.get_list(
-            limit=10000, ip_filter=ip, since_minutes=1440 * 30
+            limit=10000, ip_filter=ip, since_minutes=1440 * ANALYZER_LOOKBACK_DAYS
         )  # look back up to 30 days of history for better accuracy
-        total_accesses_count = len(ip_accesses)
-        if total_accesses_count <= 0:
+        if not ip_accesses:
             # No history left in the window (logs aged out or were purged).
             # Clear the flag anyway, or this IP is re-read on every run forever.
             db_manager.ip_stats.mark_analysed(ip, datetime.now())
             continue
+        # Pruned rows are GETs outside robots paths: denominators only.
+        pruned, previous_user_agents = db_manager.ip_stats.get_pruned_state(ip)
+        total_accesses_count = len(ip_accesses) + pruned
 
         # --------------------- HTTP Methods ---------------------
-        method_counts = Counter(item["method"] for item in ip_accesses)
+        method_counts = Counter()
+        for item in ip_accesses:
+            method_counts[item["method"]] += 1
         if total_accesses_count > http_risky_methods_threshold:
             risky_count = sum(
                 method_counts.get(m, 0)
@@ -175,15 +138,13 @@ def main():
             score["bad_crawler"]["risky_http_methods"] = False
             score["regular_user"]["risky_http_methods"] = False
         # --------------------- Robots Violations ---------------------
-        violated_robots_count = len(
-            [
-                item
-                for item in ip_accesses
-                if any(
-                    item["path"].rstrip("/").startswith(disallow)
-                    for disallow in robots_disallows
-                )
-            ]
+        violated_robots_count = sum(
+            1
+            for item in ip_accesses
+            if any(
+                item["path"].rstrip("/").startswith(disallow)
+                for disallow in disallowed_paths
+            )
         )
         # print(f"Violated robots count: {violated_robots_count}")
         if total_accesses_count > 0:
@@ -242,6 +203,8 @@ def main():
         # --------------------- Different User Agents ---------------------
         # Header Quality and Consistency: Crawlers tend to use complete and consistent headers, attackers might miss, fake, or change headers
         user_agents_used = [item["user_agent"] for item in ip_accesses]
+        if pruned:
+            user_agents_used = previous_user_agents + user_agents_used
         user_agents_used = list(dict.fromkeys(user_agents_used))
         # print(f"User agents used: {user_agents_used}")
         if len(user_agents_used) >= user_agents_used_threshold:
@@ -255,43 +218,25 @@ def main():
             score["bad_crawler"]["different_user_agents"] = False
             score["regular_user"]["different_user_agents"] = False
         # --------------------- Attack URLs ---------------------
-        attack_urls_found_list = []
-        wl = get_wordlists()
-        if wl.attack_patterns:
-            queried_paths = [item["path"] for item in ip_accesses]
-            for queried_path in queried_paths:
-                # URL decode the path to catch encoded attacks
-                try:
-                    decoded_path = urllib.parse.unquote(queried_path)
-                    # Double decode to catch double-encoded attacks
-                    decoded_path_twice = urllib.parse.unquote(decoded_path)
-                except Exception:
-                    decoded_path = queried_path
-                    decoded_path_twice = queried_path
-
-                for name, pattern in wl.attack_patterns.items():
-                    # Check original, decoded, and double-decoded paths
-                    if (
-                        re.search(pattern, queried_path, re.IGNORECASE)
-                        or re.search(pattern, decoded_path, re.IGNORECASE)
-                        or re.search(pattern, decoded_path_twice, re.IGNORECASE)
-                    ):
-                        attack_urls_found_list.append(f"{name}: {pattern}")
-
-            # remove duplicates
-            attack_urls_found_list = set(attack_urls_found_list)
-            attack_urls_found_list = list(attack_urls_found_list)
-
-            if len(attack_urls_found_list) >= attack_urls_threshold:
-                score["attacker"]["attack_url"] = True
-                score["good_crawler"]["attack_url"] = False
-                score["bad_crawler"]["attack_url"] = False
-                score["regular_user"]["attack_url"] = False
-            else:
-                score["attacker"]["attack_url"] = False
-                score["good_crawler"]["attack_url"] = False
-                score["bad_crawler"]["attack_url"] = False
-                score["regular_user"]["attack_url"] = False
+        # Distinct attack types stored when the requests arrived, from any field
+        # (path, query, body, headers); only attack-class findings are stored.
+        attack_urls_found_list = sorted(
+            {
+                attack_type
+                for item in ip_accesses
+                for attack_type in item.get("attack_types") or ()
+            }
+        )
+        if len(attack_urls_found_list) >= attack_urls_threshold:
+            score["attacker"]["attack_url"] = True
+            score["good_crawler"]["attack_url"] = False
+            score["bad_crawler"]["attack_url"] = False
+            score["regular_user"]["attack_url"] = False
+        else:
+            score["attacker"]["attack_url"] = False
+            score["good_crawler"]["attack_url"] = False
+            score["bad_crawler"]["attack_url"] = False
+            score["regular_user"]["attack_url"] = False
         # --------------------- Calculate score ---------------------
         attacker_score = good_crawler_score = bad_crawler_score = regular_user_score = 0
         attacker_score = (
@@ -399,6 +344,7 @@ def main():
             "risky_http_methods": http_method_attacker_score,
             "robots_violations": violated_robots_ratio,
             "uneven_request_timing": mean,
+            "request_timing_cv": cv,
             "different_user_agents": user_agents_used,
             "attack_url": attack_urls_found_list,
         }

@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<response>
+    <status>success</status>
+    <data>127.0.0.1	localhost
+198.51.100.24	app-02.internal app-02
+198.51.100.30	mysql.internal
+198.51.100.31	redis.internal
+</data>
+</response>

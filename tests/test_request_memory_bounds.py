@@ -20,6 +20,8 @@ import os
 import sys
 import tempfile
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
@@ -87,20 +89,36 @@ def test_body_under_cap_is_preserved():
 
 
 def test_ignored_ip_never_reads_the_body():
-    os.environ["KRAWL_DATABASE_PATH"] = tempfile.mkstemp(suffix=".db")[1]
+    fd, db_path = tempfile.mkstemp(suffix=".db")
+    os.close(fd)
+    os.environ["KRAWL_DATABASE_PATH"] = db_path
     os.environ["KRAWL_IPV6_IGNORE"] = "true"
     from fastapi.testclient import TestClient
 
     import app as appmod
+    from config import get_config
     from database import get_database
     from models import AccessLog
 
+    config = get_config()
+    config.banlist_sources = []
+    config.deception_import_pages = False
     application = appmod.create_app()
     assert application.user_middleware[0].cls.__name__ == "DropIgnoredMiddleware", (
         "the drop layer must be outermost or the layers below still allocate"
     )
 
-    with TestClient(application) as client:
+    with (
+        patch.object(config, "resolve_server_ip"),
+        patch.object(
+            appmod,
+            "get_tasksmaster",
+            return_value=SimpleNamespace(
+                run_scheduled_tasks=lambda: None,
+            ),
+        ),
+        TestClient(application) as client,
+    ):
 
         def big():
             for _ in range(200):

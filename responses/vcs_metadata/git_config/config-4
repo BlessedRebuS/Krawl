@@ -1,0 +1,14 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	url = https://jdoe:glpat-M6jcpy44GZvtYmN1dHOH@gitlab.internal/initech/intranet.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+[user]
+	name = Lukas Weber
+	email = lukas.weber@example.com

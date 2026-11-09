@@ -15,7 +15,7 @@ import hashlib
 import logging
 import re
 from email import policy
-from email.parser import Parser
+from email.parser import BytesParser, Parser
 
 logger = logging.getLogger("krawl")
 
@@ -102,8 +102,79 @@ def _is_file_content_type(content_type: str) -> bool:
     )
 
 
-def extract_file_payloads(raw_request: str, max_files: int = 8) -> list[dict]:
-    """Parse file uploads out of a raw HTTP request.
+def extract_file_payloads_from_body(
+    body: bytes,
+    content_type: str,
+    max_files: int = 8,
+    compute_tlsh: bool = True,
+    filename_hint: str = "",
+) -> list[dict]:
+    """Parse uploaded files from an HTTP body without decoding its bytes.
+
+    Request ingestion uses this entry point so binary uploads are hashed exactly
+    and are not limited by the smaller forensic ``raw_request`` storage cap.
+    ``body`` has already passed the application's request-size limit.
+
+    Returns a list of {filename, content_type, size, content, tlsh_hash, sha256}.
+    """
+    if not body:
+        return []
+
+    content_type = content_type or ""
+    results: list[dict] = []
+    if content_type.lower().startswith("multipart/form-data"):
+        b_match = re.search(r"boundary=([^\s;]+)", content_type, re.IGNORECASE)
+        if not b_match:
+            return []
+        message_body = body if body.endswith(b"\r\n") else body + b"\r\n"
+        msg = BytesParser(policy=policy.compat32).parsebytes(
+            b"Content-Type: "
+            + content_type.encode("latin-1", errors="replace")
+            + b"\r\n\r\n"
+            + message_body
+        )
+        for part in msg.walk():
+            if part.get_content_maintype() == "multipart":
+                continue
+            disp = part.get("Content-Disposition", "")
+            if "attachment" not in disp and not part.get_filename():
+                continue
+            payload = part.get_payload(decode=True)
+            if payload is None:
+                payload = b""
+            results.append(
+                {
+                    "filename": part.get_filename() or "",
+                    "content_type": part.get_content_type()
+                    or "application/octet-stream",
+                    "size": len(payload),
+                    "content": None,
+                    "tlsh_hash": tlsh_hash(payload) if compute_tlsh else None,
+                    "sha256": sha256_hash(payload),
+                }
+            )
+            if len(results) >= max_files:
+                break
+    elif _is_file_content_type(content_type):
+        results.append(
+            {
+                "filename": filename_hint,
+                "content_type": content_type.split(";")[0].strip(),
+                "size": len(body),
+                "content": None,
+                "tlsh_hash": tlsh_hash(body) if compute_tlsh else None,
+                "sha256": sha256_hash(body),
+            }
+        )
+    return results
+
+
+def extract_file_payloads(
+    raw_request: str,
+    max_files: int = 8,
+    compute_tlsh: bool = True,
+) -> list[dict]:
+    """Parse file uploads out of a stored raw HTTP request.
 
     Returns a list of {filename, content_type, size, content, tlsh_hash, sha256}.
     Content is retained (it is what TLSH hashes); callers decide what to index.
@@ -152,7 +223,7 @@ def extract_file_payloads(raw_request: str, max_files: int = 8) -> list[dict]:
                         or "application/octet-stream",
                         "size": len(payload),
                         "content": payload,
-                        "tlsh_hash": tlsh_hash(payload),
+                        "tlsh_hash": tlsh_hash(payload) if compute_tlsh else None,
                         "sha256": sha256_hash(payload),
                     }
                 )
@@ -160,13 +231,20 @@ def extract_file_payloads(raw_request: str, max_files: int = 8) -> list[dict]:
                     break
         elif _is_file_content_type(content_type):
             payload = body.encode("utf-8", errors="replace")
+            request_line = headers_text.split("\r\n", 1)[0]
+            request_target = (
+                request_line.split(" ", 2)[1]
+                if len(request_line.split(" ", 2)) > 1
+                else ""
+            )
+            filename = request_target.split("?", 1)[0].rstrip("/").rsplit("/", 1)[-1]
             results.append(
                 {
-                    "filename": "",
+                    "filename": filename,
                     "content_type": content_type.split(";")[0].strip(),
                     "size": len(payload),
                     "content": payload,
-                    "tlsh_hash": tlsh_hash(payload),
+                    "tlsh_hash": tlsh_hash(payload) if compute_tlsh else None,
                     "sha256": sha256_hash(payload),
                 }
             )

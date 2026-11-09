@@ -1,0 +1,110 @@
+# Live docs site. Preview: uvx --with mkdocs-material==9.8.1 mkdocs serve
+# Deployed by .github/workflows/docs.yml (on main).
+site_name: Krawl
+site_description: Deception server that detects, delays and profiles attackers, crawlers and scanners.
+site_url: https://blessedrebus.github.io/Krawl/
+repo_url: https://github.com/BlessedRebuS/Krawl
+repo_name: BlessedRebuS/Krawl
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  logo: img/krawl-svg.svg
+  favicon: img/krawl-svg.svg
+  font:
+    text: Google Sans Flex
+    code: Google Sans Code
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Dark mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+
+hooks:
+  - scripts/docs_hooks.py
+
+watch:
+  - config.yaml
+  - src/config.py
+  - scripts/docs_hooks.py
+  - rules
+  - responses/manifest.yaml
+
+extra_css:
+  - stylesheets/krawl.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      # GitHub-style anchors, so links work on GitHub and on the site.
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - Home: index.md
+  - Tools:
+      - config-builder.md
+      - rule-builder.md
+  - Set up:
+      - configuration.md
+      - deployment-modes.md
+      - reverse-proxy.md
+      - upgrading.md
+  - How it works:
+      - honeypot.md
+      - detection.md
+      - algorithms.md
+      - tarpit.md
+      - ai_generation.md
+      - deception_pages.md
+      - canary-token.md
+  - Use the data:
+      - dashboard.md
+      - dashboard-api.md
+      - api-reference.md
+      - firewall-exporters.md
+      - cloudflare_banlist.md
+      - monitoring.md
+  - Operate:
+      - retention.md
+      - backups.md
+      - api.md
+  - Develop:
+      - architecture.md
+      - coding-guidelines.md

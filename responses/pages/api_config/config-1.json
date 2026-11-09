@@ -1,0 +1,6 @@
+{
+  "app_name": "Control Panel",
+  "debug": false,
+  "secret_key": "token_gCrrAzmQ56lozKQKE97XpVc6R5ASp5la",
+  "database_url": "postgresql://developer_user:uruybchd@localhost/dev_database"
+}

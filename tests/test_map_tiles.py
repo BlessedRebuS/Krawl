@@ -23,12 +23,12 @@ CARTO = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
 def test_key_is_appended():
     """CARTO and friends take the key as a query parameter."""
     tiles = _map_tiles(Config(map_tile_url=CARTO, map_api_key="abc123"))
-    assert tiles["url"] == CARTO + "?key=abc123", tiles["url"]
+    assert tiles["url"] == CARTO + "?api_key=abc123", tiles["url"]
 
     # A URL that already carries a query gets & rather than a second ?.
     withq = "https://tiles.example.com/{z}/{x}/{y}.png?style=dark"
     tiles = _map_tiles(Config(map_tile_url=withq, map_api_key="abc123"))
-    assert tiles["url"] == withq + "&key=abc123", tiles["url"]
+    assert tiles["url"] == withq + "&api_key=abc123", tiles["url"]
 
     # No key configured: the URL is untouched, no stray "?key=".
     tiles = _map_tiles(Config(map_tile_url=CARTO))
@@ -65,6 +65,17 @@ def test_operator_override():
         "subdomains": "",
     }, tiles
     print("OK: a self-hosted tile server is a config change, not a code change")
+
+
+def test_key_encoding_custom_parameter_and_fragment():
+    tiles = _map_tiles(
+        Config(
+            map_tile_url=CARTO + "?style=dark#map",
+            map_api_key="a+b&c=d",
+            map_api_key_param="key",
+        )
+    )
+    assert tiles["url"] == CARTO + "?style=dark&key=a%2Bb%26c%3Dd#map"
 
 
 if __name__ == "__main__":

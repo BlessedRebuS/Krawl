@@ -140,6 +140,7 @@ Tasks that maintain **per-pod** state are deliberately not gated and run everywh
 | `flush-access-logs` | This pod's access-log write buffer |
 | `metrics-flush` | This pod's metric counters |
 | `refresh-ban-cache` | This pod's banned-IP set, read on every request |
+| `reload-custom-rules` | This pod's compiled YARA rules, after a rule file is uploaded or deleted on another pod |
 
 `refresh-banlist` is a hybrid. One pod fetches the external sources and publishes the merged result to `krawl:task:banlist`; the others adopt that payload into their own in-process set. A pod starting up adopts the published list too, so joining a running cluster costs no external requests.
 
@@ -159,7 +160,7 @@ The bundled Grafana dashboard already does this: `sum()` appears only on `krawl_
 
 ## Running with Docker Compose
 
-Production-ready compose files are available in the [`docker/`](../docker/) directory (using pre-built images). Development compose files in [`docker/dev/`](../docker/dev/) use `build` + `watch` for hot-reload.
+Production-ready compose files are available in the [`docker/`](https://github.com/BlessedRebuS/Krawl/tree/main/docker/) directory (using pre-built images). Development compose files in [`docker/dev/`](https://github.com/BlessedRebuS/Krawl/tree/main/docker/dev/) use `build` + `watch` for hot-reload.
 
 | File | Mode | Purpose |
 |------|------|---------|
@@ -186,7 +187,6 @@ services:
       # Set this to change timezone
       # - TZ=Europe/Rome
     volumes:
-      - ./wordlists.json:/app/wordlists.json:ro
       - ./config.yaml:/app/config.yaml:ro
       - ./logs:/app/logs
       - ./data:/app/data
@@ -255,7 +255,6 @@ services:
       # Set this to change timezone
       # - TZ=Europe/Rome
     volumes:
-      - ./wordlists.json:/app/wordlists.json:ro
       - ./config.yaml:/app/config.yaml:ro
       - ./logs:/app/logs
       - ./backups:/app/backups
@@ -329,7 +328,7 @@ uvicorn app:app --host 0.0.0.0 --port 5000 --app-dir src --no-server-header
 
 ## Running with Kubernetes (Helm)
 
-The Helm chart defaults to **scalable** mode with bundled PostgreSQL and Redis. See the [Helm README](../helm/README.md) for all available parameters.
+The Helm chart defaults to **scalable** mode with bundled PostgreSQL and Redis. See the [Helm README](https://github.com/BlessedRebuS/Krawl/blob/main/helm/README.md) for all available parameters.
 
 ### Scalable — Bundled PostgreSQL and Redis (default)
 
@@ -363,8 +362,8 @@ helm install krawl ./helm -n krawl-system --create-namespace \
 ```
 
 Minimal example values files are provided:
-- [`values-minimal.yaml`](../helm/values-minimal.yaml) — Scalable mode (default)
-- [`values-standalone.yaml`](../helm/values-standalone.yaml) — Standalone mode
+- [`values-minimal.yaml`](https://github.com/BlessedRebuS/Krawl/blob/main/helm/values-minimal.yaml) — Scalable mode (default)
+- [`values-standalone.yaml`](https://github.com/BlessedRebuS/Krawl/blob/main/helm/values-standalone.yaml) — Standalone mode
 
 ---
 

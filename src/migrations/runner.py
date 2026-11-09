@@ -12,6 +12,15 @@ from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
 
 from logger import get_app_logger
+from models import (
+    ATTACKER_SORTS,
+    ATTACKERS_WHERE,
+    BAN_OVERRIDE_WHERE,
+    GEO_SORTS,
+    GEO_WHERE,
+    LIVE_ATTACKERS_WHERE,
+    MAP_COLUMNS,
+)
 
 logger = get_app_logger()
 
@@ -39,11 +48,24 @@ COLUMNS = [
     ("ip_stats", "reverse", "VARCHAR(255)"),
     # Threat-intel: inbound Referer header for bait-chain tracking.
     ("access_logs", "referer", "VARCHAR(2048)"),
+    # Request metadata used by Targeted Domains and Assets dashboard tables.
+    ("access_logs", "target_host", "VARCHAR(255)"),
+    ("access_logs", "request_metadata_extracted", "BOOLEAN DEFAULT false"),
+    ("access_logs", "request_metadata_version", "INTEGER DEFAULT 0"),
+    ("access_logs", "file_extraction_version", "INTEGER DEFAULT 0"),
     # Threat-intel: TLSH fuzzy hash on attack detections for near-duplicate clustering.
     ("attack_detections", "tlsh_hash", "VARCHAR(72)"),
+    # Name of the YARA rule behind each detection; NULL on older rows.
+    ("attack_detections", "rule_name", "VARCHAR(128)"),
     # Campaign clustering: payload_clusters.id, assigned incrementally at ingest.
     ("captured_payloads", "cluster_id", "VARCHAR(36)"),
     ("attack_detections", "cluster_id", "VARCHAR(36)"),
+    # prune-uninteresting: DEFAULT TRUE keeps existing rows out of the prune.
+    ("access_logs", "is_interesting", "BOOLEAN NOT NULL DEFAULT TRUE"),
+    ("ip_stats", "pruned_requests", "INTEGER NOT NULL DEFAULT 0"),
+    ("ip_stats", "pruned_previous", "INTEGER NOT NULL DEFAULT 0"),
+    ("ip_stats", "pruned_since", "TIMESTAMP"),
+    ("ip_stats", "pruned_total", "INTEGER NOT NULL DEFAULT 0"),
 ]
 
 # (index name, table, column) — created if the index is missing.
@@ -54,8 +76,16 @@ INDEXES = [
         "attack_detections",
         "attack_type, access_log_id",
     ),
-    ("ix_access_logs_path", "access_logs", "path"),
-    ("ix_access_logs_user_agent", "access_logs", "user_agent"),
+    (
+        "ix_access_logs_request_metadata_version",
+        "access_logs",
+        "request_metadata_version",
+    ),
+    (
+        "ix_access_logs_file_extraction_version",
+        "access_logs",
+        "file_extraction_version",
+    ),
     ("ix_access_logs_is_suspicious", "access_logs", "is_suspicious"),
     ("ix_access_logs_is_honeypot_trigger", "access_logs", "is_honeypot_trigger"),
     ("ix_ip_stats_category", "ip_stats", "category"),
@@ -64,12 +94,13 @@ INDEXES = [
     # Sort columns for paginated attacker / all-IP views.
     ("ix_ip_stats_last_seen", "ip_stats", "last_seen"),
     ("ix_ip_stats_first_seen", "ip_stats", "first_seen"),
-    ("ix_ip_stats_reputation_score", "ip_stats", "reputation_score"),
     # Startup cleanup scans for live bans; the analyzer orders its queue by
     # last analysis time. Both were full scans of ip_stats without these.
     ("ix_ip_stats_ban_timestamp", "ip_stats", "ban_timestamp"),
     ("ix_ip_stats_last_analysis", "ip_stats", "last_analysis"),
     ("ix_attack_detections_tlsh_hash", "attack_detections", "tlsh_hash"),
+    # Per-rule match counts on the dashboard Rules panel.
+    ("ix_attack_detections_rule_name", "attack_detections", "rule_name"),
     # Cluster membership lookups (cluster drill-downs, campaign filter).
     ("ix_captured_payloads_cluster_id", "captured_payloads", "cluster_id"),
     ("ix_attack_detections_cluster_id", "attack_detections", "cluster_id"),
@@ -95,10 +126,96 @@ AUTOVACUUM = [
             "autovacuum_vacuum_threshold": "1000",
             "autovacuum_analyze_scale_factor": "0.01",
             "autovacuum_analyze_threshold": "1000",
+            # Keeps the visibility map fresh for index-only scans.
+            "autovacuum_vacuum_insert_scale_factor": "0.02",
         },
     )
     for table in ("ip_stats", "access_logs", "category_history", "attack_detections")
 ]
+
+# (name, table, columns, INCLUDE, WHERE, superseded index) — PostgreSQL only,
+# built CONCURRENTLY by a task since a startup build would block writes.
+ONLINE_INDEXES = [
+    (
+        "ix_access_logs_path",
+        "access_logs",
+        "path",
+        None,
+        None,
+        None,
+    ),
+    (
+        "ix_access_logs_target_host",
+        "access_logs",
+        "target_host",
+        None,
+        None,
+        None,
+    ),
+    (
+        "ix_ip_stats_live_attackers",
+        "ip_stats",
+        "last_seen",
+        "ip",
+        LIVE_ATTACKERS_WHERE,
+        None,
+    ),
+    ("ix_ip_stats_ban_override", "ip_stats", "ip", None, BAN_OVERRIDE_WHERE, None),
+    (
+        "ix_access_logs_prunable",
+        "access_logs",
+        "timestamp",
+        "ip",
+        "is_interesting = false",
+        None,
+    ),
+    (
+        "ix_access_logs_suspicious_timestamp",
+        "access_logs",
+        "timestamp",
+        None,
+        "is_suspicious",
+        "ix_access_logs_is_suspicious",
+    ),
+    *(
+        (f"ix_ip_stats_attackers_{c}", "ip_stats", c, None, ATTACKERS_WHERE, None)
+        for c in ATTACKER_SORTS
+    ),
+    *(
+        (
+            f"ix_ip_stats_map_{c}",
+            "ip_stats",
+            f"{c}, ip",
+            ", ".join(m for m in MAP_COLUMNS if m != c),
+            GEO_WHERE,
+            None,
+        )
+        for c in GEO_SORTS
+    ),
+]
+
+# Unused (few distinct UAs: seq scan + hash wins) or a prefix of a composite
+# index; each only cost writes.
+DROPPED_INDEXES = [
+    "ix_access_logs_user_agent",
+    "ix_access_logs_ip",
+    "ix_category_history_ip",
+    "ix_ip_stats_reputation_score",
+]
+
+_ONLINE_INDEX_LOCK = 0x4B52_4157
+
+_SQLITE_PRUNE_INDEX = (
+    "CREATE INDEX IF NOT EXISTS ix_access_logs_prunable "
+    "ON access_logs(timestamp) WHERE is_interesting = 0"
+)
+# Campaign reads (Threats tab targets / signature mix) answer from this index
+# alone instead of fetching every wide detection row: 7.7s -> 0.46s on 500k
+# detections. SQLite only: PostgreSQL hash-joins these reads and gained nothing.
+_SQLITE_CLUSTER_MEMBERS_INDEX = (
+    "CREATE INDEX IF NOT EXISTS ix_attack_detections_cluster_members "
+    "ON attack_detections(cluster_id, access_log_id, attack_type)"
+)
 
 
 def _reloptions(engine: Engine, table: str) -> set[str]:
@@ -168,6 +285,19 @@ def run_migrations(engine: Engine) -> None:
             continue
         _apply(f"add index {idx_name}", f"CREATE INDEX {idx_name} ON {table}({column})")
 
+    # ONLINE_INDEXES is PostgreSQL-only, and create_all skips existing tables.
+    if engine.dialect.name == "sqlite":
+        try:
+            with engine.begin() as conn:
+                conn.execute(text(_SQLITE_PRUNE_INDEX))
+        except Exception as e:
+            logger.error(f"Migration error (prunable index): {e}")
+        try:
+            with engine.begin() as conn:
+                conn.execute(text(_SQLITE_CLUSTER_MEMBERS_INDEX))
+        except Exception as e:
+            logger.error(f"Migration error (cluster members index): {e}")
+
     # Storage parameters are a PostgreSQL concept; SQLite has no autovacuum
     # daemon to tune, so standalone mode skips this entirely.
     if engine.dialect.name == "postgresql":
@@ -189,3 +319,60 @@ def run_migrations(engine: Engine) -> None:
         logger.info(f"All migrations complete ({len(applied)} applied)")
     else:
         logger.info("Database schema is up to date — no migrations needed")
+
+
+def build_online_indexes(engine: Engine) -> list[str]:
+    """Build ONLINE_INDEXES concurrently, rebuilding invalid leftovers, and drop
+    each superseded index once its replacement is valid."""
+    if engine.dialect.name != "postgresql":
+        return []
+
+    from database.maintenance import advisory_lock
+
+    applied: list[str] = []
+    with advisory_lock(engine, _ONLINE_INDEX_LOCK) as held:
+        if not held:
+            logger.info("Online index build already running on another pod")
+            return []
+        with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+            for name, table, columns, include, where, old in ONLINE_INDEXES:
+                valid = conn.execute(
+                    text(
+                        "SELECT i.indisvalid FROM pg_index i "
+                        "JOIN pg_class c ON c.oid = i.indexrelid "
+                        "WHERE c.relname = :n"
+                    ),
+                    {"n": name},
+                ).scalar()
+                try:
+                    if valid is False:
+                        conn.execute(text(f"DROP INDEX CONCURRENTLY IF EXISTS {name}"))
+                        applied.append(f"drop invalid index {name}")
+                    if not valid:
+                        logger.info(f"Building index {name} on {table} (online)")
+                        conn.execute(
+                            text(
+                                f"CREATE INDEX CONCURRENTLY {name} "
+                                f"ON {table} ({columns})"
+                                + (f" INCLUDE ({include})" if include else "")
+                                + (f" WHERE {where}" if where else "")
+                            )
+                        )
+                        applied.append(f"add index {name}")
+                    if old:
+                        conn.execute(text(f"DROP INDEX CONCURRENTLY IF EXISTS {old}"))
+                except Exception as e:
+                    logger.error(f"Migration error (online index {name}): {e}")
+            for name in DROPPED_INDEXES:
+                try:
+                    if conn.execute(
+                        text("SELECT to_regclass(:n)"), {"n": name}
+                    ).scalar():
+                        conn.execute(text(f"DROP INDEX CONCURRENTLY IF EXISTS {name}"))
+                        applied.append(f"drop unused index {name}")
+                except Exception as e:
+                    logger.error(f"Migration error (drop index {name}): {e}")
+
+    for m in applied:
+        logger.info(f"Migration applied: {m}")
+    return applied

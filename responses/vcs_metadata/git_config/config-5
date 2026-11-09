@@ -1,0 +1,14 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	url = https://build:ghp_NdobE9iZITiptLm88rKRoDRXO8f3MIu1Ivyz@git.example.com/umbrella/payments-service.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+	remote = origin
+	merge = refs/heads/main
+[user]
+	name = Priya Nair
+	email = priya.nair@example.com

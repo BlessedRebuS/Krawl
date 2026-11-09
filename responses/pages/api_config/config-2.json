@@ -1,0 +1,6 @@
+{
+  "app_name": "Control Panel",
+  "debug": true,
+  "secret_key": "prod_NZxxWu2JsHRmIzjLUNKGpPik6IInV4sV",
+  "database_url": "postgresql://webapp_backup:onhznmvv@localhost/staging_db"
+}

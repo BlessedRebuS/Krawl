@@ -15,7 +15,7 @@ A Helm chart for deploying the Krawl honeypot application on Kubernetes.
 
 ```bash
 helm install krawl oci://ghcr.io/blessedrebus/krawl-chart \
-  --version 2.4.0 \
+  --version 3.0.0 \
   --namespace krawl-system \
   --create-namespace \
   -f values.yaml  # optional
@@ -62,7 +62,10 @@ This deploys PostgreSQL and Redis StatefulSets with Services in the same namespa
 
 Minimal `values-minimal.yaml` for scalable mode:
 
-> **Tip**: For production deployments, pin the image tag to a specific version (e.g., `tag: "2.4.0"`) instead of `latest` to ensure reproducible deployments.
+> **Tip**: By default the image tag follows the chart's `appVersion`. Override
+> `image.tag` only when you intentionally want another image. Every Helm upgrade
+> rolls the application pods by default, so a reused tag is pulled again; immutable
+> version or digest-based deployments remain preferable for reproducibility.
 
 ```yaml
 mode: scalable
@@ -179,8 +182,9 @@ The following table lists the main configuration parameters of the Krawl chart a
 | `mode` | Deployment mode (`standalone` or `scalable`) | `scalable` |
 | `replicaCount` | Number of pod replicas (>1 only in scalable mode) | `1` |
 | `image.repository` | Image repository | `ghcr.io/blessedrebus/krawl` |
-| `image.tag` | Image tag | `2.4.0` |
+| `image.tag` | Image tag (empty uses the chart `appVersion`) | `""` |
 | `image.pullPolicy` | Image pull policy | `Always` |
+| `rolloutOnUpgrade` | Restart application pods on every Helm upgrade, including when an image tag is reused | `true` |
 
 ### Service Configuration
 
@@ -340,11 +344,48 @@ sizes Krawl reaches on a busy sensor:
 | `maintenance_work_mem` | `128MB` | `64MB` |
 | `random_page_cost` | `4` | `4` |
 | `effective_io_concurrency` | `1` | `1` |
+| `checkpoint_timeout` | `15min` | `5min` |
+| `max_wal_size` | `2GB` | `1GB` |
+| `wal_compression` | `lz4` | `off` |
+| `synchronous_commit` | `off` | `on` |
 
 The last two are deliberately left at their rotational-disk defaults. On
 SSD-backed storage set `random_page_cost: "1.1"` and
 `effective_io_concurrency: "100"`; both are actively harmful on spinning or
 network-replicated volumes, so the chart does not assume SSD.
+
+The write-path settings matter most on a busy sensor, where `ip_stats` is
+updated on nearly every request. The first change to a page after a checkpoint
+writes the whole 8 KB page into the WAL, so fewer, evenly spaced checkpoints cut
+WAL volume directly, and `wal_compression` shrinks the full-page images that
+remain. `max_wal_size` is a soft cap that `pg_wal` only grows towards during
+write bursts. `synchronous_commit: "off"` lets a commit return before its WAL is
+flushed; a crash can lose the last fraction of a second of access logs but
+cannot corrupt the database (unlike `fsync=off`). It helps most on network or
+replicated storage (Longhorn, Ceph, EBS), where each flush costs milliseconds.
+Set it to `"on"` if you need every commit durable. On one production sensor
+(10 GB database) these settings took WAL from ~4 GB/h to ~190 MB/h and volume
+writes from 8–15 MB/s to under 0.5 MB/s.
+
+Busy-sensor profile, for databases around 10 GB:
+
+```yaml
+postgres:
+  persistence:
+    size: 20Gi
+  config:
+    shared_buffers: 1GB
+    effective_cache_size: 2560MB
+    maintenance_work_mem: 256MB
+    max_wal_size: 3GB
+  resources:
+    limits:
+      memory: 3Gi
+```
+
+Lowering `retention.non-suspicious` on an existing install makes the next
+`db-retention` run delete the whole backlog at once, which is a large I/O
+spike. Lower it in steps if the database is already big.
 
 `postgres.shmSize` mounts `/dev/shm` as an in-memory `emptyDir`. Kubernetes
 gives a container only 64Mi there, and PostgreSQL allocates dynamic shared
@@ -418,6 +459,22 @@ A one-shot Kubernetes Job that copies data from an existing SQLite PVC into Post
 | `config.analyzer.tlsh_campaign_min_events` | A campaign shows only when its payload was seen more than this many times (`KRAWL_TLSH_CAMPAIGN_MIN_EVENTS`) | `10` |
 | `config.analyzer.referer_enabled` | Capture the inbound HTTP Referer header for bait-chain tracking (`KRAWL_REFERER_ENABLED`) | `true` |
 
+### Task Batch Sizes
+
+Rows each scheduled task handles per run; the remainder is picked up next run.
+Raise them when a backlog never drains — bigger batches cost pod memory.
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `config.tasks.analyze_ips_batch` | IPs scored per `analyze-ips` run (`KRAWL_TASKS_ANALYZE_IPS_BATCH`) | `2000` |
+| `config.tasks.extract_metadata_batch` | Logs parsed per `extract-request-metadata` run (`KRAWL_TASKS_EXTRACT_METADATA_BATCH`) | `500` |
+| `config.tasks.extract_files_batch` | Logs scanned per `extract-captured-files` run (`KRAWL_TASKS_EXTRACT_FILES_BATCH`) | `500` |
+| `config.tasks.hash_payloads_batch` | Logs hashed per `hash-payloads` run (`KRAWL_TASKS_HASH_PAYLOADS_BATCH`) | `500` |
+| `config.tasks.hash_payloads_chunk` | Raw requests held in memory at once inside a `hash-payloads` batch (`KRAWL_TASKS_HASH_PAYLOADS_CHUNK`) | `50` |
+| `config.tasks.hash_files_batch` | Captured files back-filled per `hash-payloads` run (`KRAWL_TASKS_HASH_FILES_BATCH`) | `50` |
+| `config.tasks.cleanup_batch` | Rows per `pre-retention-cleanup` pass (`KRAWL_TASKS_CLEANUP_BATCH`) | `1000` |
+| `config.tasks.retention_delete_batch` | Rows per `db-retention` delete transaction (`KRAWL_TASKS_RETENTION_DELETE_BATCH`) | `10000` |
+
 ### Crawl Configuration
 
 | Parameter | Description | Default |
@@ -488,9 +545,18 @@ Deploy Ollama and/or llama.cpp alongside Krawl for AI deception pages without an
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `resources.limits.cpu` | CPU limit | `500m` |
-| `resources.limits.memory` | Memory limit | `256Mi` |
+| `resources.limits.memory` | Memory limit | `512Mi` |
 | `resources.requests.cpu` | CPU request | `100m` |
-| `resources.requests.memory` | Memory request | `64Mi` |
+| `resources.requests.memory` | Memory request | `128Mi` |
+| `runtime.limitConcurrency` | Maximum in-flight Uvicorn requests per pod before shedding with 503 | `512` |
+| `runtime.backlog` | TCP accept backlog per pod | `256` |
+| `runtime.keepAliveSeconds` | Idle HTTP keep-alive timeout | `5` |
+| `runtime.gracefulShutdownSeconds` | Uvicorn graceful shutdown deadline | `30` |
+| `runtime.limitMaxRequests` | Recycle a pod process after this many requests (`0` disables) | `0` |
+| `runtime.terminationGracePeriodSeconds` | Kubernetes termination grace period | `45` |
+| `runtime.preStopDelaySeconds` | Delay before SIGTERM so endpoints propagate | `5` |
+| `service.sessionAffinity` | Service affinity (`None` recommended because scalable state is shared) | `None` |
+| `probes.*` | Startup, readiness and liveness probe timing | see `values.yaml` |
 
 ### Network Policy
 
@@ -512,7 +578,7 @@ kubectl get secret krawl-server -n krawl-system \
 ### Scalable with bundled PostgreSQL and Redis (default)
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 3.0.0 \
   --set replicaCount=3 \
   --set postgres.password=your-password \
   --set redis.password=your-redis-password \
@@ -522,7 +588,7 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
 ### Scalable with external PostgreSQL and Redis
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 3.0.0 \
   --set replicaCount=3 \
   --set postgres.enabled=false \
   --set postgres.host=your-postgres-host \
@@ -536,7 +602,7 @@ helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
 ### Standalone with custom settings
 
 ```bash
-helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 \
+helm install krawl oci://ghcr.io/blessedrebus/krawl-chart --version 3.0.0 \
   --set mode=standalone \
   --set postgres.enabled=false \
   --set redis.enabled=false \
@@ -558,7 +624,7 @@ helm upgrade krawl ./helm \
 ## Upgrading
 
 ```bash
-helm upgrade krawl oci://ghcr.io/blessedrebus/krawl-chart --version 2.4.0 -f values.yaml
+helm upgrade krawl oci://ghcr.io/blessedrebus/krawl-chart --version 3.0.0 -f values.yaml
 ```
 
 ## Uninstalling
@@ -604,7 +670,6 @@ kubectl logs -l app.kubernetes.io/name=krawl
   - `deployment.yaml` - Krawl deployment (branches on `mode` for strategy, env vars, volumes)
   - `service.yaml` - Service configuration
   - `configmap.yaml` - Application configuration
-  - `wordlists-configmap.yaml` - Wordlists configuration
   - `secret.yaml` - Dashboard password secret
   - `secret-scalable.yaml` - PostgreSQL and Redis password secrets (scalable mode only)
   - `secret-ai.yaml` - AI/LLM API key secret (`aiExistingSecret` skips it)

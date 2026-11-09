@@ -6,11 +6,15 @@ Server-rendered HTML partials for table pagination, sorting, IP details, and sea
 """
 
 import asyncio
-from datetime import datetime
+import re
+from datetime import datetime, timedelta
+from typing import Annotated
+from urllib.parse import quote, urlencode
 
 from fastapi import APIRouter, Query, Request, Response
 from fastapi.responses import HTMLResponse
 
+import metrics_counters as mc
 from config import get_config
 from dashboard_cache import (
     get_cached,
@@ -19,8 +23,26 @@ from dashboard_cache import (
     is_warm,
     set_cached_table,
 )
+from database.text_filters import (
+    MAX_EXCLUDE_TERMS,  # noqa: F401
+    clean_text_filters,
+    parse_exclude_terms,
+    text_filter_key,
+    text_filter_qs,
+)
 from dependencies import get_db, get_templates
-from routes.api import _campaign_window, verify_auth
+from domain_map import build_domain_map
+from ip_overview import get_ip_overview, template_stats
+from logger import get_app_logger
+from period import period_query, range_label, resolve_period, time_only
+from routes.api import (
+    _campaign_window,
+    build_campaign_stats,
+    cached_attack_facets,
+    campaign_matches,
+    campaign_terms,
+    verify_auth,
+)
 
 router = APIRouter()
 
@@ -50,6 +72,141 @@ def _parse_day(day: str):
         return None
 
 
+# ── Advanced request search ─────────────────────────────────────────
+
+
+@router.get("/htmx/advanced-search")
+async def htmx_advanced_search(
+    request: Request,
+    page: int = Query(1),
+    path: str = Query(""),
+    host: str = Query(""),
+    referer: str = Query(""),
+    ip: str = Query(""),
+    method: str = Query(""),
+    user_agent: str = Query(""),
+    raw_text: str = Query(""),
+    header_name: Annotated[list[str] | None, Query()] = None,
+    header_value: Annotated[list[str] | None, Query()] = None,
+):
+    filters = {
+        key: value.strip()[:255]
+        for key, value in {
+            "path": path,
+            "host": host,
+            "referer": referer,
+            "ip": ip,
+            "method": method,
+            "user_agent": user_agent,
+            "raw_text": raw_text,
+        }.items()
+    }
+    headers = []
+    # Unpaired names or values are dropped, not an error.
+    for name, value in zip(
+        (header_name or [])[:8], (header_value or [])[:8], strict=False
+    ):
+        name = name.strip()[:100]
+        if name and re.fullmatch(r"[!#$%&'*+.^_`|~0-9A-Za-z-]+", name):
+            headers.append((name, value.strip()[:255]))
+    db = get_db()
+    result = await asyncio.to_thread(
+        db.access_logs.search_requests,
+        page=max(1, page),
+        page_size=25,
+        headers=headers,
+        **filters,
+    )
+    return get_templates().TemplateResponse(
+        request,
+        "dashboard/partials/advanced_search_results.html",
+        {"dashboard_path": _dashboard_path(request), **result},
+    )
+
+
+# ── Targeted Domains ────────────────────────────────────────────────
+
+
+def _log_search_names(tf: dict) -> dict:
+    """Filters renamed for the domains endpoint, where `search` is the host filter."""
+    return {("log_search" if k == "search" else k): v for k, v in tf.items()}
+
+
+@router.get("/htmx/targeted-domains")
+async def htmx_targeted_domains(
+    request: Request,
+    page: int = Query(1),
+    search: str = Query(""),
+    sort_by: str = Query("count"),
+    sort_order: str = Query("desc"),
+    days: int | None = Query(None),
+    offset_days: int = Query(0),
+    slot: str | None = Query(None),
+    log_search: str = Query(""),
+    exclude: str = Query(""),
+    method_filter: str = Query(""),
+    ip_filter: str = Query(""),
+):
+    period = resolve_period(days, offset_days, slot)
+    period_qs = period_query(period)
+    # `search` stays the host-name filter; the log text search is `log_search`.
+    tf = clean_text_filters(log_search, exclude, method_filter, ip_filter)
+    search = search.strip()[:255]
+    sort_by = (
+        sort_by
+        if sort_by in {"domain", "count", "distinct_ips", "first_seen", "last_seen"}
+        else "count"
+    )
+    sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
+    page = max(1, page)
+    # Pages the cached host rollup, so every sort and search is cheap.
+    result = await asyncio.to_thread(
+        get_db().access_logs.get_targeted_domains,
+        page=page,
+        page_size=10,
+        search=search,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        since=period and period.since,
+        until=period and period.until,
+        period_key=period_qs,
+        log_search=tf.get("search"),
+        exclude=parse_exclude_terms(tf.get("exclude")),
+        method_filter=tf.get("method_filter"),
+        ip_filter=tf.get("ip_filter"),
+    )
+    return get_templates().TemplateResponse(
+        request,
+        "dashboard/partials/targeted_domains_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "period_qs": period_qs + text_filter_qs(_log_search_names(tf)),
+            "extra_qs": period_qs + text_filter_qs(_log_search_names(tf)),
+            "range_label": range_label(period),
+            "items": result["domains"],
+            "pagination": result["pagination"],
+            "search": search,
+            "sort_by": sort_by,
+            "sort_order": sort_order,
+        },
+    )
+
+
+@router.get("/htmx/domain-map")
+async def htmx_domain_map(request: Request, root: str = Query("")):
+    rows = await asyncio.to_thread(get_db().access_logs.get_domain_map_hosts)
+    graph = build_domain_map(
+        rows,
+        selected_root=root.strip()[:255],
+        host_limit=max(1, min(2000, get_config().dashboard_domain_map_host_limit)),
+    )
+    return get_templates().TemplateResponse(
+        request,
+        "dashboard/partials/domain_link_map.html",
+        {"dashboard_path": _dashboard_path(request), "graph": graph},
+    )
+
+
 # ── Honeypot Triggers ────────────────────────────────────────────────
 
 
@@ -59,37 +216,37 @@ async def htmx_honeypot(
     page: int = Query(1),
     sort_by: str = Query("count"),
     sort_order: str = Query("desc"),
+    days: int | None = Query(None),
+    offset_days: int = Query(0),
+    slot: str | None = Query(None),
+    search: str = Query(""),
+    exclude: str = Query(""),
+    method_filter: str = Query(""),
+    ip_filter: str = Query(""),
 ):
     page = max(1, page)
-    config = get_config()
-    result = None
-
-    if (
-        config.dashboard_cache_warmup
-        and config.dashboard_warmup_aggregation
-        and sort_by == "count"
-        and sort_order == "desc"
-        and is_warm()
-    ):
-        sliced = get_cached_list_page("agg:honeypot", page=page, page_size=5)
-        if sliced is not None:
-            result = {"honeypots": sliced["items"], "pagination": sliced["pagination"]}
-
-    if result is None:
-        cache_key = f"honeypot:{page}:{sort_by}:{sort_order}"
-        cached = get_cached_table(cache_key)
-        if cached:
-            result = cached
-        else:
-            db = get_db()
-            result = await asyncio.to_thread(
-                db.access_logs.get_honeypot_paginated,
-                page=page,
-                page_size=5,
-                sort_by=sort_by,
-                sort_order=sort_order,
-            )
-            set_cached_table(cache_key, result)
+    period = resolve_period(days, offset_days, slot)
+    period_qs = period_query(period)
+    tf = clean_text_filters(search, exclude, method_filter, ip_filter)
+    cache_key = (
+        f"honeypot:{page}:{sort_by}:{sort_order}{period_qs}{text_filter_key(tf)}"
+    )
+    result = get_cached_table(cache_key)
+    if not result:
+        result = await asyncio.to_thread(
+            get_db().access_logs.get_honeypot_paginated,
+            page=page,
+            page_size=5,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            since=period and period.since,
+            until=period and period.until,
+            search=tf.get("search"),
+            exclude=parse_exclude_terms(tf.get("exclude")),
+            method_filter=tf.get("method_filter"),
+            ip_filter=tf.get("ip_filter"),
+        )
+        set_cached_table(cache_key, result)
 
     templates = get_templates()
     return templates.TemplateResponse(
@@ -97,6 +254,8 @@ async def htmx_honeypot(
         "dashboard/partials/honeypot_table.html",
         {
             "dashboard_path": _dashboard_path(request),
+            "period_qs": period_qs + text_filter_qs(tf),
+            "range_label": range_label(period),
             "items": result["honeypots"],
             "pagination": result["pagination"],
             "sort_by": sort_by,
@@ -106,6 +265,37 @@ async def htmx_honeypot(
 
 
 # ── Top IPs ──────────────────────────────────────────────────────────
+
+
+@router.get("/htmx/attention")
+async def htmx_attention(request: Request, full: bool = Query(False)):
+    """Overview side panel: attackers active in the last 24 hours. `full`
+    is the expanded view: more attackers, every column."""
+    limit = 100 if full else 6
+    # The warmup task refreshes this every 5 minutes; on a big database the
+    # live query walks every IP seen in the last day, so never run it per view.
+    summary = (
+        get_cached("attention")
+        if get_config().dashboard_cache_warmup and is_warm()
+        else None
+    )
+    if summary:
+        summary = {**summary, "attackers": summary["attackers"][:limit]}
+    else:
+        db = get_db()
+        summary = await asyncio.to_thread(
+            db.ip_stats.get_attention_summary, limit=limit
+        )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/attention_panel.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "summary": summary,
+            "full": full,
+        },
+    )
 
 
 @router.get("/htmx/top-ips")
@@ -258,6 +448,244 @@ async def htmx_deception(request: Request):
     )
 
 
+# ── YARA Rules ──────────────────────────────────────────────────────
+
+RULE_SORT_KEYS = {"rule", "attack_type", "severity", "matches", "last_match"}
+RULES_PER_PAGE = 50
+
+
+def build_rule_rows(
+    rules: list[dict],
+    stats: dict,
+    rule_file: str = "",
+    classification: str = "",
+    min_severity: str | int = "",
+    sort_by: str = "matches",
+    sort_order: str = "desc",
+    q: str = "",
+) -> list[dict]:
+    """Join loaded rules with their match counts, then filter and sort.
+
+    `q` keeps rules whose name, attack type, file, description or CVEs contain
+    it, ignoring case.
+
+    Detections without a stored rule_name count for a rule only when no other
+    loaded rule reports the same attack type.
+    """
+    rules_per_type: dict[str, int] = {}
+    for rule in rules:
+        rules_per_type[rule["attack_type"]] = (
+            rules_per_type.get(rule["attack_type"], 0) + 1
+        )
+    try:
+        severity_floor = int(min_severity)
+    except (TypeError, ValueError):
+        severity_floor = 0
+
+    needle = q.strip().lower()
+    rows = []
+    for rule in rules:
+        if needle and needle not in _rule_search_text(rule):
+            continue
+        if rule_file and rule["rule_file"] != rule_file:
+            continue
+        if classification and rule["classification"] != classification:
+            continue
+        if rule["severity"] < severity_floor:
+            continue
+        counts = [stats["by_rule"].get(rule["rule"], (0, None))]
+        if rules_per_type[rule["attack_type"]] == 1:
+            counts.append(stats["unnamed_by_type"].get(rule["attack_type"], (0, None)))
+        times = [last for count, last in counts if count and last is not None]
+        rows.append(
+            {
+                **rule,
+                "matches": sum(count for count, _ in counts),
+                "last_match": max(times) if times else None,
+            }
+        )
+
+    if sort_by not in RULE_SORT_KEYS:
+        sort_by, sort_order = "matches", "desc"
+    reverse = sort_order != "asc"
+
+    def key(row):
+        value = row[sort_by]
+        if sort_by == "last_match":
+            # Never-matched rules sort as the oldest.
+            return value or datetime.min
+        return value
+
+    # Name order first, so ties keep a stable alphabetical order.
+    rows.sort(key=lambda row: row["rule"])
+    return sorted(rows, key=key, reverse=reverse)
+
+
+def _rule_search_text(rule: dict) -> str:
+    fields = (
+        rule["rule"],
+        rule["attack_type"],
+        rule["rule_file"],
+        rule.get("description") or "",
+        " ".join(rule.get("cve") or ()),
+    )
+    return " ".join(fields).lower()
+
+
+def paginate_rule_rows(
+    rows: list[dict], page: str | int, per_page: int = RULES_PER_PAGE
+) -> tuple[list[dict], int, int]:
+    """Return (rows on the page, page number, page count); bad pages are clamped."""
+    pages = max(1, -(-len(rows) // per_page))
+    try:
+        number = int(page)
+    except (TypeError, ValueError):
+        number = 1
+    number = min(max(number, 1), pages)
+    start = (number - 1) * per_page
+    return rows[start : start + per_page], number, pages
+
+
+async def _rule_match_stats() -> dict:
+    """Match stats behind the Rules table, cached for the table TTL.
+
+    Every keystroke, sort and page used to re-run two GROUP BYs over all
+    detections joined to access_logs; filtering happens in Python anyway.
+    """
+    cached = get_cached_table("rules:match-stats")
+    if cached is None:
+        stats = await asyncio.to_thread(get_db().access_logs.get_rule_match_stats)
+        set_cached_table("rules:match-stats", stats)
+        return stats
+    # JSON round-trip: tuples come back as lists, datetimes as ISO strings.
+    return {
+        group: {
+            name: (count, datetime.fromisoformat(last) if last else None)
+            for name, (count, last) in entries.items()
+        }
+        for group, entries in cached.items()
+    }
+
+
+async def _rule_rows(request: Request, **query) -> list[dict]:
+    from detection import get_detection
+
+    rules = get_detection().list_rules()
+    return build_rule_rows(rules, await _rule_match_stats(), **query)
+
+
+def _rules_query(
+    rule_file: str = "",
+    classification: str = "",
+    min_severity: str = "",
+    sort_by: str = "matches",
+    sort_order: str = "desc",
+    q: str = "",
+) -> dict:
+    """The table's filter and sort values, with unknown sorts reset to the default."""
+    return {
+        "rule_file": rule_file,
+        "classification": classification,
+        "min_severity": min_severity,
+        "sort_by": sort_by if sort_by in RULE_SORT_KEYS else "matches",
+        "sort_order": sort_order if sort_order in {"asc", "desc"} else "desc",
+        "q": q[:200],
+    }
+
+
+async def _rule_table_context(request: Request, query: dict, page: str) -> dict:
+    rows = await _rule_rows(request, **query)
+    page_rows, number, pages = paginate_rule_rows(rows, page)
+    return {
+        "dashboard_path": _dashboard_path(request),
+        "rows": page_rows,
+        "query": query,
+        "page": number,
+        "pages": pages,
+        "matching": len(rows),
+        "first": (number - 1) * RULES_PER_PAGE + 1 if rows else 0,
+    }
+
+
+@router.get("/htmx/rules")
+async def htmx_rules(request: Request, q: str = Query("")):
+    """The Rules panel: loaded YARA rules with their match counts, one page."""
+    if not verify_auth(request):
+        return HTMLResponse(_PANEL_401, status_code=401)
+    import custom_rules
+    from detection import get_detection
+
+    query = _rules_query(q=q)
+    rules = get_detection().list_rules()
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/rules_panel.html",
+        {
+            **await _rule_table_context(request, query, "1"),
+            "rule_files": sorted({rule["rule_file"] for rule in rules}),
+            "total": len(rules),
+            "uploaded_files": await asyncio.to_thread(custom_rules.list_files),
+        },
+    )
+
+
+RULE_MATCHES_SHOWN = 20
+
+
+@router.get("/htmx/rules/matches")
+async def htmx_rule_matches(request: Request, rule: str = Query("")):
+    """The newest requests one rule matched, for its card in the Rules table."""
+    if not verify_auth(request):
+        return HTMLResponse(_PANEL_401, status_code=401)
+    from detection import get_detection
+
+    rules = get_detection().list_rules()
+    found = next((row for row in rules if row["rule"] == rule), None)
+    if found is None:
+        return HTMLResponse("Unknown rule", status_code=404)
+    # Same attribution as the Matches column: unnamed detections belong to
+    # the only loaded rule of their attack type.
+    sharing = sum(1 for row in rules if row["attack_type"] == found["attack_type"])
+    result = await asyncio.to_thread(
+        get_db().access_logs.get_rule_matches,
+        rule,
+        found["attack_type"] if sharing == 1 else None,
+        RULE_MATCHES_SHOWN,
+    )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/rules_matches.html",
+        {"dashboard_path": _dashboard_path(request), **result},
+    )
+
+
+@router.get("/htmx/rules/table")
+async def htmx_rules_table(
+    request: Request,
+    rule_file: str = Query(""),
+    classification: str = Query(""),
+    min_severity: str = Query(""),
+    sort_by: str = Query("matches"),
+    sort_order: str = Query("desc"),
+    q: str = Query(""),
+    page: str = Query("1"),
+):
+    """The Rules table, re-rendered for a search, filter, sort or page change."""
+    if not verify_auth(request):
+        return HTMLResponse(_PANEL_401, status_code=401)
+    query = _rules_query(
+        rule_file, classification, min_severity, sort_by, sort_order, q
+    )
+    templates = get_templates()
+    return templates.TemplateResponse(
+        request,
+        "dashboard/partials/rules_table.html",
+        await _rule_table_context(request, query, page),
+    )
+
+
 @router.get("/htmx/generated-pages")
 async def htmx_generated_pages(
     request: Request,
@@ -397,43 +825,85 @@ async def htmx_top_ua(
 # ── Attackers ────────────────────────────────────────────────────────
 
 
+def attackers_cache_key(
+    page=1,
+    sort_by="total_requests",
+    sort_order="desc",
+    period_qs="",
+    attack_type_filter=None,
+    rule_filter=None,
+    severity_filter="",
+    text="",
+) -> str:
+    """Table-cache key of an Attackers page; the warmup writes the default 7D one."""
+    key = f"attackers:{page}:{sort_by}:{sort_order}"
+    if period_qs or attack_type_filter or rule_filter or severity_filter or text:
+        key += f":{period_qs}:{attack_type_filter or ''}:{rule_filter or ''}:{severity_filter}{text}"
+    return key
+
+
 @router.get("/htmx/attackers")
 async def htmx_attackers(
     request: Request,
     page: int = Query(1),
     sort_by: str = Query("total_requests"),
     sort_order: str = Query("desc"),
+    attack_type_filter: str | None = Query(None),
+    rule_filter: str | None = Query(None),
+    days: int | None = Query(None),
+    offset_days: int = Query(0),
+    slot: str | None = Query(None),
+    severity_filter: str = Query(""),
+    search: str = Query(""),
+    exclude: str = Query(""),
+    method_filter: str = Query(""),
+    ip_filter: str = Query(""),
 ):
     page = max(1, page)
-    config = get_config()
-    result = None
-
-    if (
-        config.dashboard_cache_warmup
-        and config.dashboard_warmup_aggregation
-        and sort_by == "total_requests"
-        and sort_order == "desc"
-        and is_warm()
-    ):
-        sliced = get_cached_list_page("agg:attackers", page=page, page_size=10)
-        if sliced is not None:
-            result = {"attackers": sliced["items"], "pagination": sliced["pagination"]}
-
-    if result is None:
-        cache_key = f"attackers:{page}:{sort_by}:{sort_order}"
-        cached = get_cached_table(cache_key)
-        if cached:
-            result = cached
-        else:
-            db = get_db()
+    period = resolve_period(days, offset_days, slot)
+    period_qs = period_query(period)
+    tf = clean_text_filters(search, exclude, method_filter, ip_filter)
+    attack_type_filter = (attack_type_filter or "").strip() or None
+    rule_filter = (rule_filter or "").strip() or None
+    severities = parse_severities(severity_filter)
+    severity_filter = ",".join(severities)
+    in_period = bool(period or attack_type_filter or rule_filter or severities or tf)
+    cache_key = attackers_cache_key(
+        page,
+        sort_by,
+        sort_order,
+        period_qs,
+        attack_type_filter,
+        rule_filter,
+        severity_filter,
+        text_filter_key(tf),
+    )
+    result = get_cached_table(cache_key)
+    if not result:
+        if in_period:
             result = await asyncio.to_thread(
-                db.ip_stats.get_attackers_paginated,
+                get_db().analytics.get_attackers_in_period,
+                period and period.since,
+                period and period.until,
+                attack_type=attack_type_filter,
+                rule=rule_filter,
+                page=page,
+                page_size=10,
+                severities=severities,
+                search=tf.get("search"),
+                exclude=parse_exclude_terms(tf.get("exclude")),
+                method_filter=tf.get("method_filter"),
+                ip_filter=tf.get("ip_filter"),
+            )
+        else:
+            result = await asyncio.to_thread(
+                get_db().ip_stats.get_attackers_paginated,
                 page=page,
                 page_size=10,
                 sort_by=sort_by,
                 sort_order=sort_order,
             )
-            set_cached_table(cache_key, result)
+        set_cached_table(cache_key, result)
 
     # Normalize pagination key (DB returns total_attackers, template expects total)
     pagination = result["pagination"]
@@ -446,6 +916,20 @@ async def htmx_attackers(
         "dashboard/partials/attackers_table.html",
         {
             "dashboard_path": _dashboard_path(request),
+            "period_qs": period_qs,
+            "range_label": range_label(period),
+            "in_period": in_period,
+            "ts_time_only": time_only(period),
+            "filter_qs": "".join(
+                f"&{k}={quote(v)}"
+                for k, v in (
+                    ("attack_type_filter", attack_type_filter),
+                    ("rule_filter", rule_filter),
+                    ("severity_filter", severity_filter),
+                )
+                if v
+            )
+            + text_filter_qs(tf),
             "items": result["attackers"],
             "pagination": pagination,
             "sort_by": sort_by,
@@ -464,9 +948,14 @@ async def htmx_access_logs_by_ip(
     sort_by: str = Query("total_requests"),
     sort_order: str = Query("desc"),
     ip_filter: str = Query(None),
+    search: str = Query(""),
+    exclude: str = Query(""),
+    method_filter: str = Query(""),
 ):
     page = max(1, page)
-    cache_key = f"access_logs:{page}:{sort_order}:{ip_filter or ''}"
+    tf = clean_text_filters(search, exclude, method_filter, None)
+    filter_qs = text_filter_qs(tf)
+    cache_key = f"access_logs:{page}:{sort_order}:{ip_filter or ''}{filter_qs}"
     cached = get_cached_table(cache_key)
     if cached:
         result = cached
@@ -478,6 +967,9 @@ async def htmx_access_logs_by_ip(
             page_size=25,
             ip_filter=ip_filter,
             sort_order=sort_order if sort_order in ("asc", "desc") else "desc",
+            search=tf.get("search"),
+            exclude=parse_exclude_terms(tf.get("exclude")),
+            method_filter=tf.get("method_filter"),
         )
         set_cached_table(cache_key, result)
 
@@ -492,6 +984,7 @@ async def htmx_access_logs_by_ip(
         "dashboard/partials/access_by_ip_table.html",
         {
             "dashboard_path": _dashboard_path(request),
+            "filter_qs": filter_qs,
             "items": result["access_logs"],
             "pagination": pagination,
             "sort_by": sort_by,
@@ -511,9 +1004,17 @@ async def htmx_credentials(
     sort_by: str = Query("timestamp"),
     sort_order: str = Query("desc"),
     ip_filter: str = Query(""),
+    days: int | None = Query(None),
+    offset_days: int = Query(0),
+    slot: str | None = Query(None),
+    search: str = Query(""),
+    exclude: str = Query(""),
 ):
     page = max(1, page)
-    cache_key = f"credentials:{page}:{sort_by}:{sort_order}:{ip_filter}"
+    period = resolve_period(days, offset_days, slot)
+    period_qs = period_query(period)
+    tf = clean_text_filters(search, exclude, None, None)
+    cache_key = f"credentials:{page}:{sort_by}:{sort_order}:{ip_filter}{period_qs}{text_filter_key(tf)}"
     cached = get_cached_table(cache_key)
     if cached:
         result = cached
@@ -526,6 +1027,10 @@ async def htmx_credentials(
             sort_by=sort_by,
             sort_order=sort_order,
             ip_filter=ip_filter or None,
+            since=period and period.since,
+            until=period and period.until,
+            search=tf.get("search"),
+            exclude=parse_exclude_terms(tf.get("exclude")),
         )
         set_cached_table(cache_key, result)
 
@@ -535,6 +1040,8 @@ async def htmx_credentials(
         "dashboard/partials/credentials_table.html",
         {
             "dashboard_path": _dashboard_path(request),
+            "period_qs": period_qs + text_filter_qs(tf),
+            "range_label": range_label(period),
             "items": result["credentials"],
             "pagination": result["pagination"],
             "sort_by": sort_by,
@@ -545,6 +1052,35 @@ async def htmx_credentials(
 
 
 # ── Attack Types ─────────────────────────────────────────────────────
+
+
+def parse_severities(raw: str | None) -> list[str]:
+    """Known severity bands from a comma list, deduplicated, in given order."""
+    bands = ("critical", "high", "medium", "low")
+    return [b for b in dict.fromkeys((raw or "").lower().split(",")) if b in bands]
+
+
+def attacks_cache_key(
+    page=1,
+    sort_by="timestamp",
+    sort_order="desc",
+    period_qs="",
+    ip_filter=None,
+    attack_type_filter=None,
+    search=None,
+    method_filter=None,
+    exclude="",
+    rule_filter=None,
+    severity_filter="",
+) -> str:
+    """Table-cache key of a Detected attacks page; the warmup writes the default 7D one."""
+    key = (
+        f"attacks:{page}:{sort_by}:{sort_order}:{ip_filter or ''}:"
+        f"{attack_type_filter or ''}:{search or ''}:{method_filter or ''}:{exclude}"
+    )
+    if period_qs or rule_filter or severity_filter:
+        key += f":{period_qs}:{rule_filter or ''}:{severity_filter}"
+    return key
 
 
 @router.get("/htmx/attacks")
@@ -558,24 +1094,59 @@ async def htmx_attacks(
     attack_type_filter: str = Query(None),
     search: str = Query(""),
     method_filter: str = Query(None),
+    exclude: str = Query(""),
+    days: int | None = Query(None),
+    offset_days: int = Query(0),
+    slot: str | None = Query(None),
+    rule_filter: str | None = Query(None),
+    severity_filter: str = Query(""),
+    embed: int = Query(0),
 ):
     page = max(1, page)
     page_size = max(1, min(int(page_size), 200))
     search = search.strip() or None
+    period = resolve_period(days, offset_days, slot)
+    period_qs = period_query(period)
+    rule_filter = (rule_filter or "").strip() or None
+    severities = parse_severities(severity_filter)
+    severity_filter = ",".join(severities)
     method_filter = (method_filter or "").strip().upper() or None
+    exclude_terms = parse_exclude_terms(exclude)
+    exclude = ",".join(exclude_terms)
     # Validate page_size for the inline dashboard (must match the cached size to
     # use cached results). When the expand overlay requests a different page
     # size (e.g. 25), skip the cache so cached pages don't bleed across sizes.
     use_cache = page_size == 15
-    cache_key = (
-        f"attacks:{page}:{sort_by}:{sort_order}:{ip_filter or ''}:"
-        f"{attack_type_filter or ''}:{search or ''}:{method_filter or ''}"
+    cache_key = attacks_cache_key(
+        page,
+        sort_by,
+        sort_order,
+        period_qs,
+        ip_filter,
+        attack_type_filter,
+        search,
+        method_filter,
+        exclude,
+        rule_filter,
+        severity_filter,
     )
     cached = get_cached_table(cache_key) if use_cache else None
     if cached:
         result = cached
     else:
         db = get_db()
+        # Unfiltered, reuse the total cached for page 1 of the same period.
+        warm = (
+            None
+            if ip_filter
+            or attack_type_filter
+            or search
+            or method_filter
+            or exclude
+            or rule_filter
+            or severities
+            else get_cached_table(attacks_cache_key(period_qs=period_qs))
+        )
         result = await asyncio.to_thread(
             db.analytics.get_attack_types_paginated,
             page=page,
@@ -586,6 +1157,12 @@ async def htmx_attacks(
             attack_type_filter=attack_type_filter,
             search=search,
             method_filter=method_filter,
+            total=warm["pagination"]["total"] if warm else None,
+            exclude=exclude_terms,
+            since=period.since if period else None,
+            until=period.until if period else None,
+            rule_filter=rule_filter,
+            severity_filter=severities,
         )
         if use_cache:
             set_cached_table(cache_key, result)
@@ -609,11 +1186,25 @@ async def htmx_attacks(
             }
         )
 
+    # The tab's table offers severity chips and a rule picker counted over the period.
+    facets = None
+    if period:
+        try:
+            facets = await cached_attack_facets(
+                period,
+                clean_text_filters(search, exclude, method_filter, ip_filter),
+            )
+        except Exception as e:  # the table still renders without its filters
+            get_app_logger().error(f"Error fetching attack facets: {e}")
     templates = get_templates()
     return templates.TemplateResponse(
         request,
         "dashboard/partials/attack_types_table.html",
         {
+            "embed": bool(embed),
+            "facets": facets,
+            "severities": severities,
+            "ts_time_only": time_only(period),
             "dashboard_path": _dashboard_path(request),
             "items": items,
             "pagination": result["pagination"],
@@ -622,7 +1213,14 @@ async def htmx_attacks(
             "ip_filter": ip_filter or "",
             "attack_type_filter": attack_type_filter or "",
             "search": search or "",
+            "search_terms": parse_exclude_terms(search),
             "method_filter": method_filter or "",
+            "exclude": exclude,
+            "exclude_terms": exclude_terms,
+            "period_qs": period_qs,
+            "range_label": range_label(period) if period else "",
+            "rule_filter": rule_filter or "",
+            "severity_filter": severity_filter,
         },
     )
 
@@ -637,13 +1235,15 @@ async def htmx_suspicious(
     page_size: int = Query(25),
     search: str = Query(""),
     sort_order: str = Query("desc"),
+    live: bool = Query(False),
 ):
     page = max(1, page)
     page_size = max(1, min(int(page_size), 200))
     search = search.strip() or None
 
     cache_key = f"suspicious:{page}:{page_size}:{sort_order}:{search or ''}"
-    cached = get_cached_table(cache_key)
+    # Live mode must bypass the table cache; normal pagination retains it.
+    cached = None if live else get_cached_table(cache_key)
     if cached:
         result = cached
     else:
@@ -654,8 +1254,12 @@ async def htmx_suspicious(
             page_size=page_size,
             search=search,
             sort_order=sort_order,
+            # Unfiltered, the total is the Suspicious requests tile counter:
+            # no need to count millions of rows to label the pager.
+            total=None if search else mc.get("suspicious_accesses"),
         )
-        set_cached_table(cache_key, result)
+        if not live:
+            set_cached_table(cache_key, result)
 
     templates = get_templates()
     return templates.TemplateResponse(
@@ -668,6 +1272,7 @@ async def htmx_suspicious(
             "sort_order": sort_order,
             "search": search or "",
         },
+        headers={"Cache-Control": "no-store"} if live else None,
     )
 
 
@@ -742,22 +1347,9 @@ async def htmx_ip_insight(ip_address: str, request: Request):
     stats = await asyncio.to_thread(db.ip_stats.get_ip_stats_by_ip, ip_address)
 
     if not stats:
-        stats = {"ip": ip_address, "total_requests": "N/A"}
+        stats = {"ip": ip_address, "total_requests": 0}
 
-    # Transform fields for template compatibility
-    list_on = stats.get("list_on") or {}
-    stats["blocklist_memberships"] = list(list_on.keys()) if list_on else []
-    stats["reverse_dns"] = stats.get("reverse")
-
-    # Filter out unhashable types (dicts, lists) for Jinja2 template engine compatibility
-    # but keep specific fields needed by the template (category_scores, category_history, blocklist_memberships)
-    _keep_keys = {"blocklist_memberships", "category_scores", "category_history"}
-    clean_stats = {}
-    for k, v in stats.items():
-        if isinstance(v, (int, str, float, type(None), bool)):
-            clean_stats[k] = v
-        elif k in _keep_keys:
-            clean_stats[k] = v
+    overview = await asyncio.to_thread(get_ip_overview, ip_address, stats)
 
     is_tracked = await asyncio.to_thread(db.ip_stats.is_ip_tracked, ip_address)
 
@@ -767,7 +1359,8 @@ async def htmx_ip_insight(ip_address: str, request: Request):
         "dashboard/partials/ip_insight.html",
         {
             "dashboard_path": _dashboard_path(request),
-            "stats": clean_stats,
+            "stats": template_stats(stats),
+            "overview": overview,
             "ip_address": ip_address,
             "is_tracked": is_tracked,
         },
@@ -829,16 +1422,49 @@ async def htmx_ip_payloads(
 async def htmx_global_filenames(
     request: Request,
     page: int = Query(1),
+    page_size: int = Query(10),
+    search: str = Query(""),
+    min_ips: int = Query(0),
+    sort_by: str = Query("last_seen"),
+    sort_order: str = Query("desc"),
 ):
+    sort_by = (
+        sort_by
+        if sort_by in {"filename", "total", "distinct_ips", "first_seen", "last_seen"}
+        else "last_seen"
+    )
+    sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
     page = max(1, page)
-    cache_key = f"filenames:{page}"
-    result = get_cached_table(cache_key)
+    page_size = page_size if page_size in (*THREAT_PAGE_SIZES, 20) else 10
+    min_ips = 2 if min_ips > 1 else 0
+    search = search.strip()[:255]
+    # Only the panel's opening view matches the keys warmup writes.
+    default_view = (
+        not search
+        and not min_ips
+        and page_size == 10
+        and sort_by == "last_seen"
+        and sort_order == "desc"
+    )
+    cache_key = (
+        f"filenames:{page}"
+        if default_view
+        else f"filenames:{page}:{page_size}:{min_ips}:{sort_by}:{sort_order}"
+    )
+    result = get_cached_table(cache_key) if not search else None
     if not result:
         db = get_db()
         result = await asyncio.to_thread(
-            db.payloads.get_global_index, page=page, page_size=20
+            db.payloads.get_global_index,
+            page=page,
+            page_size=page_size,
+            filename=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            min_ips=min_ips,
         )
-        set_cached_table(cache_key, result)
+        if not search:
+            set_cached_table(cache_key, result)
     templates = get_templates()
     return templates.TemplateResponse(
         request,
@@ -846,6 +1472,103 @@ async def htmx_global_filenames(
         {
             "dashboard_path": _dashboard_path(request),
             "index": result["index"],
+            "pagination": result["pagination"],
+            "search": search,
+            "sort_by": sort_by,
+            "sort_order": sort_order,
+            "extra_qs": f"&page_size={page_size}&min_ips={min_ips}",
+            "min_ips": min_ips,
+            "page_sizes": THREAT_PAGE_SIZES,
+        },
+    )
+
+
+# ── Request Assets (Threat tab) ──────────────────────────────────────
+
+
+@router.get("/htmx/request-assets")
+async def htmx_request_assets(
+    request: Request,
+    page: int = Query(1),
+    page_size: int = Query(10),
+    search: str = Query(""),
+    min_ips: int = Query(0),
+    sort_by: str = Query("count"),
+    sort_order: str = Query("desc"),
+):
+    search = search.strip()[:255]
+    sort_by = (
+        sort_by
+        if sort_by in {"url", "count", "distinct_ips", "first_seen", "last_seen"}
+        else "count"
+    )
+    sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
+    page = max(1, page)
+    page_size = page_size if page_size in (*THREAT_PAGE_SIZES, 20) else 10
+    min_ips = 2 if min_ips > 1 else 0
+    cache_key = (
+        f"request-assets:{page}:{page_size}:{min_ips}:{search}:{sort_by}:{sort_order}"
+    )
+    result = get_cached_table(cache_key) if not search else None
+    if not result:
+        db = get_db()
+        result = await asyncio.to_thread(
+            db.access_logs.get_request_assets,
+            page=page,
+            page_size=page_size,
+            search=search,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            min_ips=min_ips,
+        )
+        if not search:
+            set_cached_table(cache_key, result)
+    return get_templates().TemplateResponse(
+        request,
+        "dashboard/partials/request_assets_table.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "items": result["assets"],
+            "pagination": result["pagination"],
+            "search": search,
+            "sort_by": sort_by,
+            "sort_order": sort_order,
+            "extra_qs": f"&page_size={page_size}&min_ips={min_ips}",
+            "min_ips": min_ips,
+            "page_sizes": THREAT_PAGE_SIZES,
+        },
+    )
+
+
+@router.get("/htmx/artifact-requests")
+async def htmx_artifact_requests(
+    request: Request,
+    kind: str = Query(""),
+    value: str = Query(""),
+    ip_filter: str = Query(""),
+    page: int = Query(1),
+):
+    if kind not in {"domain", "file", "asset"} or not value or len(value) > 4096:
+        return HTMLResponse("Invalid artifact", status_code=400)
+    ip_filter = ip_filter.strip()[:64]
+    db = get_db()
+    result = await asyncio.to_thread(
+        db.access_logs.get_artifact_requests,
+        kind=kind,
+        value=value,
+        ip_filter=ip_filter,
+        page=max(1, page),
+        page_size=20,
+    )
+    return get_templates().TemplateResponse(
+        request,
+        "dashboard/partials/artifact_requests.html",
+        {
+            "dashboard_path": _dashboard_path(request),
+            "kind": kind,
+            "value": value,
+            "ip_filter": ip_filter,
+            "items": result["requests"],
             "pagination": result["pagination"],
         },
     )
@@ -880,35 +1603,284 @@ async def htmx_similar_events(
 # ── Recurring patterns / campaign clusters (Threats tab) ─────────────
 
 
+# Campaigns the table can page through. The cluster scan is the most
+# expensive read on the tab, so it runs once (cached, and pre-warmed) and the
+# table filters, sorts and pages that list in Python.
+CAMPAIGN_TABLE_LIMIT = 200
+# Rows per page the Threats tab tables offer; anything else snaps to 10.
+THREAT_PAGE_SIZES = (10, 25, 50)
+_CAMPAIGN_SORTS = {
+    "events": lambda c: c["events"] or 0,
+    "ips": lambda c: c["ips"] or 0,
+    "first_seen": lambda c: c["first_seen"] or datetime.min,
+    "last_seen": lambda c: c["last_seen"] or datetime.min,
+    "target": lambda c: (c["top_path"] or "").lower(),
+}
+
+
+def _campaign_span(days: int, offset: int) -> tuple[int, int]:
+    """The Threats tab period, clamped like the campaign chart's."""
+    return (days if days in (1, 7, 30) else 1), max(0, min(offset, 3650))
+
+
+async def _campaign_clusters() -> list[dict]:
+    """Every campaign, all time: the Campaigns table is the catalogue."""
+    cached = get_cached_table("clusters:all")
+    if cached:
+        return cached["clusters"]
+    clusters = await asyncio.to_thread(
+        get_db().payloads.get_campaign_clusters, limit=CAMPAIGN_TABLE_LIMIT
+    )
+    set_cached_table("clusters:all", {"clusters": clusters})
+    return clusters
+
+
+async def _campaign_period_hits(days: int, offset: int) -> dict[str, int]:
+    """Hits per campaign inside the period: the heatmap's own ranking, read
+    from the same cache key its "All" view uses."""
+    key = f"api:campaign_stats:{CAMPAIGN_TABLE_LIMIT}:{days}:{offset}"
+    stats = get_cached_table(key)
+    if not stats:
+        stats = await asyncio.to_thread(
+            build_campaign_stats,
+            get_db(),
+            CAMPAIGN_TABLE_LIMIT,
+            days=days,
+            offset=offset,
+        )
+        set_cached_table(key, stats)
+    return {c["id"]: c["hits"] for c in stats["campaigns"]}
+
+
+def _seen_since(row: dict, start: datetime) -> bool:
+    """First seen at or after ``start``. Rows read back from the Redis table
+    cache (scalable mode) carry their datetimes as ISO strings."""
+    first = row.get("first_seen")
+    if isinstance(first, str):
+        first = datetime.fromisoformat(first)
+    return bool(first and first >= start)
+
+
+async def _campaign_rows(days: int, offset: int) -> list[dict]:
+    hits = await _campaign_period_hits(days, offset)
+    start, _ = _campaign_window(days=days, offset=offset)
+    return [
+        {
+            **c,
+            "period": hits.get(c["id"], 0),
+            "is_new": _seen_since(c, start),
+        }
+        for c in await _campaign_clusters()
+    ]
+
+
+def _period_label(days: int, offset: int) -> str:
+    """ "Nov 02" or "Nov 02 – Nov 08": the days the In period column covers."""
+    start, end = _campaign_window(days=days, offset=offset)
+    last = end - timedelta(seconds=1)
+    return f"{start:%b %d}" if days == 1 else f"{start:%b %d} – {last:%b %d}"
+
+
+def _campaign_page(rows, sorts, sort_by, sort_order, page, page_size):
+    rows.sort(key=sorts[sort_by], reverse=sort_order == "desc")
+    total = len(rows)
+    total_pages = max(1, (total + page_size - 1) // page_size)
+    page = min(max(1, page), total_pages)
+    offset = (page - 1) * page_size
+    return rows[offset : offset + page_size], {
+        "page": page,
+        "page_size": page_size,
+        "total": total,
+        "total_pages": total_pages,
+    }
+
+
+def _type_facets(rows) -> list[tuple[str, int]]:
+    counts: dict[str, int] = {}
+    for r in rows:
+        for t in r.get("attack_types") or []:
+            counts[t] = counts.get(t, 0) + 1
+    return sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+
+
+async def _campaign_panel(
+    request,
+    endpoint,
+    template,
+    rows_of,
+    sorts,
+    texts_of,
+    page,
+    page_size,
+    search,
+    exclude,
+    attack_type,
+    sort_by,
+    sort_order,
+    days,
+    offset,
+):
+    """Campaigns panel, either grouping: the Threats tab's shared filter (period,
+    Only/Hide terms, attack type) applied, facets counted before the type, then
+    sorted and paged in Python over the cached list."""
+    days, offset = _campaign_span(days, offset)
+    search_terms, exclude_terms = campaign_terms(search), campaign_terms(exclude)
+    attack_type = attack_type.strip()[:64]
+    sorts = {**sorts, "period": lambda r: (r["period"], r["events"] or 0)}
+    sort_by = sort_by if sort_by in sorts else "events"
+    sort_order = sort_order if sort_order in {"asc", "desc"} else "desc"
+    page_size = page_size if page_size in THREAT_PAGE_SIZES else 10
+
+    texted = [
+        r
+        for r in await rows_of(days, offset)
+        if campaign_matches(texts_of(r), (), search_terms, exclude_terms)
+    ]
+    rows = [
+        r
+        for r in texted
+        if not attack_type or attack_type in (r.get("attack_types") or [])
+    ]
+    page_rows, pagination = _campaign_page(
+        rows, sorts, sort_by, sort_order, page, page_size
+    )
+    # Everything but the type and sort: the fragment's links add those.
+    filters_qs = urlencode(
+        {
+            "days": days,
+            "offset": offset,
+            "search": ",".join(search_terms),
+            "exclude": ",".join(exclude_terms),
+        }
+    )
+    return get_templates().TemplateResponse(
+        request,
+        template,
+        {
+            "dashboard_path": _dashboard_path(request),
+            "endpoint": endpoint,
+            "rows": page_rows,
+            "facets": _type_facets(texted),
+            "all_count": len(texted),
+            "filtered": bool(search_terms or exclude_terms or attack_type),
+            "filters_qs": filters_qs,
+            "period_label": _period_label(days, offset),
+            "attack_type": attack_type,
+            "sort_by": sort_by,
+            "sort_order": sort_order,
+            "pagination": pagination,
+            "page_sizes": THREAT_PAGE_SIZES,
+        },
+    )
+
+
 @router.get("/htmx/pattern-clusters")
 async def htmx_pattern_clusters(
     request: Request,
-    day: str = Query(""),
-    days: int = Query(0),
+    page: int = Query(1),
+    page_size: int = Query(10),
+    search: str = Query(""),
+    exclude: str = Query(""),
+    attack_type: str = Query(""),
+    sort_by: str = Query("events"),
+    sort_order: str = Query("desc"),
+    days: int = Query(1),
     offset: int = Query(0),
 ):
-    # Clustering scans every payload hash in the window, so it is the most
-    # expensive panel on the tab and the one warmup exists for.
-    cache_key = f"clusters:{day}:{days}:{offset}"
-    cached = get_cached_table(cache_key)
-    if cached:
-        clusters = cached["clusters"]
-    else:
-        db = get_db()
-        window = _campaign_window(day, days=days, offset=offset)
-        kwargs: dict = {}
-        if window is not None:
-            kwargs["start"], kwargs["end"] = window
-        clusters = await asyncio.to_thread(db.payloads.get_campaign_clusters, **kwargs)
-        set_cached_table(cache_key, {"clusters": clusters})
-    templates = get_templates()
-    return templates.TemplateResponse(
+    return await _campaign_panel(
         request,
+        "pattern-clusters",
         "dashboard/partials/pattern_clusters_table.html",
+        _campaign_rows,
+        _CAMPAIGN_SORTS,
+        lambda c: (c.get("top_path"), c.get("path"), c.get("rep_hash")),
+        page,
+        page_size,
+        search,
+        exclude,
+        attack_type,
+        sort_by,
+        sort_order,
+        days,
+        offset,
+    )
+
+
+_TARGET_SORTS = {
+    "events": lambda t: t["events"] or 0,
+    "ips": lambda t: t["ips"] or 0,
+    "campaigns": lambda t: t["campaigns"] or 0,
+    "last_seen": lambda t: t["last_seen"] or datetime.min,
+    "target": lambda t: (t["path"] or "").lower(),
+}
+
+
+async def _campaign_targets(days: int, offset: int) -> list[dict]:
+    """Every campaign target, all time, with its requests inside the period."""
+    targets = get_cached_table("clusters:targets")
+    targets = targets["targets"] if targets else None
+    if targets is None:
+        ids = [c["id"] for c in await _campaign_clusters()]
+        targets = await asyncio.to_thread(
+            get_db().payloads.get_campaign_targets, ids, CAMPAIGN_TABLE_LIMIT
+        )
+        set_cached_table("clusters:targets", {"targets": targets})
+    key = f"clusters:targets:{days}:{offset}"
+    start, end = _campaign_window(days=days, offset=offset)
+    windowed = get_cached_table(key)
+    windowed = windowed["targets"] if windowed else None
+    if windowed is None:
+        ids = [c["id"] for c in await _campaign_clusters()]
+        windowed = await asyncio.to_thread(
+            get_db().payloads.get_campaign_targets,
+            ids,
+            CAMPAIGN_TABLE_LIMIT,
+            start,
+            end,
+        )
+        set_cached_table(key, {"targets": windowed})
+    in_period = {t["path"]: t["events"] for t in windowed}
+    return [
         {
-            "dashboard_path": _dashboard_path(request),
-            "clusters": clusters,
-        },
+            **t,
+            "period": in_period.get(t["path"], 0),
+            "is_new": _seen_since(t, start),
+        }
+        for t in targets
+    ]
+
+
+@router.get("/htmx/campaign-targets")
+async def htmx_campaign_targets(
+    request: Request,
+    page: int = Query(1),
+    page_size: int = Query(10),
+    search: str = Query(""),
+    exclude: str = Query(""),
+    attack_type: str = Query(""),
+    sort_by: str = Query("events"),
+    sort_order: str = Query("desc"),
+    days: int = Query(1),
+    offset: int = Query(0),
+):
+    """Campaigns panel grouped by target: the same campaigns, one row per
+    path they hit, so defenders see which endpoints draw which attacks."""
+    return await _campaign_panel(
+        request,
+        "campaign-targets",
+        "dashboard/partials/campaign_targets_table.html",
+        _campaign_targets,
+        _TARGET_SORTS,
+        lambda t: (t.get("path"),),
+        page,
+        page_size,
+        search,
+        exclude,
+        attack_type,
+        sort_by,
+        sort_order,
+        days,
+        offset,
     )
 
 

@@ -1,0 +1,6 @@
+{
+  "app_name": "API Gateway",
+  "debug": false,
+  "secret_key": "sk_test_tfGEA9I73CtAk46WIzwPyFiOcikLIOq6",
+  "database_url": "postgresql://webapp_prod:welcome4003@localhost/staging_db"
+}

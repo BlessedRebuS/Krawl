@@ -1,0 +1,9 @@
+{# Thousands grouped with dots, so big figures read at a glance. #}
+{% macro n(v) %}{{ '{:,}'.format((v or 0) | int).replace(',', '.') }}{% endmacro %}
+{% macro tile(value, label, cls='', sub='', focusable=true) -%}
+<div class="tile {{ cls }}"{% if sub and focusable %} tabindex="0"{% endif %}>
+    <span class="tile-value">{{ value }}</span>
+    <span class="tile-label">{{ label }}</span>
+    {%- if sub %}<span class="tile-sub">{{ sub }}</span>{% endif %}
+</div>
+{%- endmacro %}

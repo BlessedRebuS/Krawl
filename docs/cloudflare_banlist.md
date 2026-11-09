@@ -44,11 +44,11 @@ The server tests the connection, creates the list if it doesn't exist, creates t
 
 Once the configuration is set up, the CloudFlare list page should appear like this:
 
-![Cloudflare IP List in dashboard](../img/cloudflare-banlist.png)
+![Cloudflare IP List in dashboard](img/cloudflare-banlist.png)
 
 The WAF rules section should be like this (https://dash.cloudflare.com/YOUR_ACCOUNT_ID/YOUR_ZONE_NAME/security/security-rules)
 
-![Cloudflare WAF rules](../img/cloudflare_waf_rules.png)
+![Cloudflare WAF rules](img/cloudflare_waf_rules.png)
 
 ## How it works
 

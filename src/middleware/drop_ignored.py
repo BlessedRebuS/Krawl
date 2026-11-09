@@ -50,7 +50,9 @@ class DropIgnoredMiddleware:
             return await self.app(scope, receive, send)
 
         path = scope.get("path", "")
-        if path.startswith(self.dashboard_prefix):
+        if path == self.dashboard_prefix or path.startswith(
+            self.dashboard_prefix + "/"
+        ):
             return await self.app(scope, receive, send)
 
         client_ip = get_client_ip_from_scope(scope)

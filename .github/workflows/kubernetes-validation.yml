@@ -54,3 +54,9 @@ jobs:
 
       - name: Helm template validation
         run: helm template krawl ./helm > /tmp/helm-output.yaml
+
+      - name: Validate application image rollout
+        run: |
+          APP_VERSION=$(awk '/^appVersion:/ {print $2}' helm/Chart.yaml | tr -d '"')
+          grep -F "image: \"ghcr.io/blessedrebus/krawl:${APP_VERSION}\"" /tmp/helm-output.yaml
+          grep -F 'krawl.io/release-revision: "1"' /tmp/helm-output.yaml

@@ -7,6 +7,7 @@ Renders the main dashboard page with server-side data for initial load.
 
 import os
 from pathlib import Path
+from urllib.parse import urlencode
 
 import yaml
 from fastapi import APIRouter, HTTPException, Request
@@ -16,6 +17,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from config import get_config
 from dashboard_cache import get_cached, is_warm
 from dependencies import get_db, get_templates
+from ip_overview import get_ip_overview, template_stats
 from logger import get_app_logger
 
 router = APIRouter()
@@ -46,7 +48,9 @@ def _map_tiles(config) -> dict:
     url = config.map_tile_url
     if config.map_api_key:
         param = config.map_api_key_param or "api_key"
-        url += ("&" if "?" in url else "?") + f"{param}={config.map_api_key}"
+        base, separator, fragment = url.partition("#")
+        base += ("&" if "?" in base else "?") + urlencode({param: config.map_api_key})
+        url = base + (separator + fragment if separator else "")
     return {
         "url": url,
         "attribution": config.map_tile_attribution,
@@ -133,19 +137,8 @@ async def ip_page(ip_address: str, request: Request):
         dashboard_path = "/" + config.dashboard_secret_path.lstrip("/")
 
         if stats:
-            # Transform fields for template compatibility
-            list_on = stats.get("list_on") or {}
-            stats["blocklist_memberships"] = list(list_on.keys()) if list_on else []
-            stats["reverse_dns"] = stats.get("reverse")
-
-            # Filter out unhashable types (dicts, lists) for Jinja2 template engine compatibility
-            clean_stats = {}
-            for k, v in stats.items():
-                if isinstance(v, (int, str, float, type(None), bool)):
-                    clean_stats[k] = v
-                elif k == "blocklist_memberships" and isinstance(v, list):
-                    # Keep list of strings (blocklist names)
-                    clean_stats[k] = v
+            overview = await asyncio.to_thread(get_ip_overview, ip_address, stats)
+            is_tracked = await asyncio.to_thread(db.ip_stats.is_ip_tracked, ip_address)
 
             templates = get_templates()
             return templates.TemplateResponse(
@@ -153,8 +146,10 @@ async def ip_page(ip_address: str, request: Request):
                 "dashboard/ip.html",
                 {
                     "dashboard_path": dashboard_path,
-                    "stats": clean_stats,
+                    "stats": template_stats(stats),
+                    "overview": overview,
                     "ip_address": ip_address,
+                    "is_tracked": is_tracked,
                     "map_tiles": _map_tiles(config),
                 },
             )

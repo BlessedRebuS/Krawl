@@ -4,17 +4,36 @@
      x-show="expandOverlay.show"
      x-cloak
 >
-    <div class="expand-overlay-content">
+    <div class="expand-overlay-content" :class="{ 'is-wide': expandOverlay.endpoint === 'attacks' }">
         <div class="expand-overlay-header">
             <h2 class="panel-title" x-text="expandOverlay.title"></h2>
             <div class="row gap-3">
+                <button type="button" id="expanded-suspicious-live-toggle"
+                        class="dashboard-live-toggle"
+                        role="switch" aria-checked="false"
+                        aria-label="Toggle live suspicious activity"
+                        onclick="toggleMapLiveMode()"
+                        x-show="expandOverlay.endpoint === 'suspicious'" x-cloak>
+                    <span class="map-live-toggle-light" aria-hidden="true"></span>
+                    <span>Live</span>
+                </button>
+                <button type="button"
+                        class="map-limit-btn btn-sm"
+                        :class="{ active: expandOverlay.invert }"
+                        :aria-pressed="expandOverlay.invert"
+                        @click="toggleExpandInvert()"
+                        title="Hide: each Enter hides requests whose IP, path or user agent contains the text"
+                        x-show="expandOverlay.endpoint === 'attacks'"
+                        x-cloak>Hide</button>
                 <input type="text"
                        class="expand-overlay-search"
-                       placeholder="Filter..."
+                       :placeholder="expandOverlay.invert ? 'Exclude... (Enter to add)' : expandOverlay.shared ? 'Filter... (Enter to add)' : (({ 'targeted-domains': 'Filter domains', 'global-filenames': 'Filter filenames', 'request-assets': 'Filter URLs' })[expandOverlay.endpoint] || 'Filter...')"
+                       :aria-label="expandOverlay.invert ? 'Exclude requests containing this text; press Enter to add' : (({ 'targeted-domains': 'Filter domains', 'global-filenames': 'Filter filenames', 'request-assets': 'Filter URLs' })[expandOverlay.endpoint] || 'Filter results')"
                        x-model="expandOverlay.search"
-                       @input.debounce.300ms="triggerExpandSearch()"
+                       @input.debounce.300ms="expandOverlay.invert || triggerExpandSearch()"
+                       @keydown.enter.prevent="addExpandExcludeTerm()"
                        autocomplete="off"
-                       x-show="expandOverlay.endpoint !== 'campaign' && expandOverlay.endpoint !== 'similar'"
+                       x-show="!['campaign', 'similar', 'artifact', 'domain-map', 'attention'].includes(expandOverlay.endpoint)"
                        x-cloak />
                 <span class="auth-modal-close overlay-close" @click="expandOverlay.show = false">&times;</span>
             </div>
@@ -93,7 +112,7 @@
                             class="select">
                         <option value="">All attack types</option>
                         <template x-for="t in expandOverlay.attackTypes" :key="t">
-                            <option :value="t" x-text="t"></option>
+                            <option :value="t" :selected="t === expandOverlay.attackType" x-text="krawlAttackLabel(t)"></option>
                         </template>
                     </select>
                 </div>
@@ -101,7 +120,7 @@
         </div>
 
         <div class="expand-overlay-body">
-            <div class="htmx-container" id="expand-overlay-table">
+            <div class="htmx-container" id="expand-overlay-table" hx-request='{"timeout": 90000}'>
                 <div class="state">Loading...</div>
             </div>
         </div>

@@ -8,11 +8,13 @@ Provides SQLAlchemy session management and database initialization.
 import collections
 import os
 import stat
+import sys
 import threading
+from contextvars import ContextVar
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import create_engine, event, insert
+from sqlalchemy import create_engine, event, insert, text
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from database.access_logs import AccessLogRepo
@@ -29,8 +31,11 @@ from models import (
     Base,
     CredentialAttempt,
     IpStats,
+    RequestAsset,
 )
+from request_metadata import CURRENT_METADATA_VERSION
 from sanitizer import (
+    MAX_RULE_NAME_LENGTH,
     sanitize_attack_pattern,
     sanitize_credential,
     sanitize_ip,
@@ -70,27 +75,66 @@ _FLUSH_BATCH_SIZE = 200
 _MAX_BUFFER_ROWS = 50_000
 _MAX_BUFFER_BYTES = 64 * 1024 * 1024
 
-_write_buffer: collections.deque = collections.deque(maxlen=_MAX_BUFFER_ROWS)
+_write_buffer: collections.deque = collections.deque()
 _write_lock = threading.Lock()
 _dropped_rows = 0
 _buffer_bytes = 0
 
 
-def _entry_bytes(entry: dict) -> int:
-    """Approximate heap cost of a buffered entry.
+def dialect_insert(session: Session):
+    """The insert() with on_conflict_* for the session's backend."""
+    if session.get_bind().dialect.name == "postgresql":
+        from sqlalchemy.dialects.postgresql import insert
+    else:
+        from sqlalchemy.dialects.sqlite import insert
+    return insert
 
-    Only the string payloads are worth counting — they are the part that
-    varies by three orders of magnitude. The rest is a fixed dict overhead,
-    approximated by the constant.
-    """
-    raw = entry.get("raw_request") or ""
-    return (
-        len(raw)
-        + len(entry.get("path") or "")
-        + len(entry.get("user_agent") or "")
-        + len(entry.get("ip") or "")
-        + 512
+
+def _insert_ip_stats_if_missing(session: Session, ip: str, now: datetime) -> bool:
+    """INSERT ... ON CONFLICT DO NOTHING, so replicas racing on a new IP don't
+    hit ip_stats_pkey. Returns True if this call created the row."""
+    stmt = (
+        dialect_insert(session)(IpStats)
+        .values(
+            ip=ip, total_requests=0, first_seen=now, last_seen=now, page_visit_count=0
+        )
+        .on_conflict_do_nothing(index_elements=["ip"])
     )
+    return session.execute(stmt).rowcount == 1
+
+
+def _entry_bytes(entry: dict) -> int:
+    """Conservative heap estimate, including Unicode and nested metadata.
+
+    Shared values are counted per reference to avoid underestimating the budget.
+    Entries contain only scalar values and shallow dict/list payload metadata.
+    """
+
+    def size(value):
+        total = sys.getsizeof(value)
+        if isinstance(value, dict):
+            total += sum(size(k) + size(v) for k, v in value.items())
+        elif isinstance(value, (list, tuple)):
+            total += sum(size(v) for v in value)
+        return total
+
+    return size(entry)
+
+
+def _trim_write_buffer() -> None:
+    """Enforce both ceilings, oldest first. Caller holds _write_lock."""
+    global _buffer_bytes, _dropped_rows
+    while _write_buffer and (
+        len(_write_buffer) > _MAX_BUFFER_ROWS or _buffer_bytes > _MAX_BUFFER_BYTES
+    ):
+        _buffer_bytes -= _entry_bytes(_write_buffer.popleft())
+        _dropped_rows += 1
+
+
+def _rule_name(rule_names: dict[str, str], attack_type: str) -> str | None:
+    """The stored YARA rule name for one detection, cut to the column size."""
+    name = rule_names.get(attack_type)
+    return name[:MAX_RULE_NAME_LENGTH] if name else None
 
 
 def _buffer_access_log_entry(**kwargs) -> None:
@@ -104,16 +148,9 @@ def _buffer_access_log_entry(**kwargs) -> None:
     kwargs["_buffered_at"] = datetime.now()
     size = _entry_bytes(kwargs)
     with _write_lock:
-        if len(_write_buffer) == _MAX_BUFFER_ROWS:
-            # maxlen evicts from the left on append; account for it ourselves.
-            _buffer_bytes -= _entry_bytes(_write_buffer[0])
-            _dropped_rows += 1
         _write_buffer.append(kwargs)
         _buffer_bytes += size
-
-        while _buffer_bytes > _MAX_BUFFER_BYTES and len(_write_buffer) > 1:
-            _buffer_bytes -= _entry_bytes(_write_buffer.popleft())
-            _dropped_rows += 1
+        _trim_write_buffer()
 
 
 def get_write_buffer_size() -> int:
@@ -129,6 +166,16 @@ def get_write_buffer_bytes() -> int:
 def get_dropped_rows() -> int:
     """Access-log rows dropped because the buffer was full (for monitoring)."""
     return _dropped_rows
+
+
+# Set for dashboard GETs. Tasks stay unlimited: index builds and purges run longer.
+dashboard_read: ContextVar[bool] = ContextVar("dashboard_read", default=False)
+
+
+def limit_dashboard_read(session, transaction, connection) -> None:
+    """Stop a dashboard read at 60s, or it runs on after the browser gives up."""
+    if dashboard_read.get():
+        connection.execute(text("SET LOCAL statement_timeout = '60s'"))
 
 
 class DatabaseManager:
@@ -227,6 +274,8 @@ class DatabaseManager:
         # Create session factory with scoped_session for thread safety
         session_factory = sessionmaker(bind=self._engine)
         self._Session = scoped_session(session_factory)
+        if self._engine.dialect.name == "postgresql":
+            event.listen(session_factory, "after_begin", limit_dashboard_read)
 
         # Create all tables
         Base.metadata.create_all(self._engine)
@@ -289,9 +338,12 @@ class DatabaseManager:
         is_honeypot_trigger: bool = False,
         attack_types: list[str] | None = None,
         matched_patterns: dict[str, str] | None = None,
+        rule_names: dict[str, str] | None = None,
         raw_request: str | None = None,
         referer: str | None = None,
         file_payloads: list[dict] | None = None,
+        target_host: str | None = None,
+        request_assets: list[str] | None = None,
         increment_page_visit: bool = False,
         max_pages_limit: int = 0,
     ) -> int:
@@ -307,10 +359,13 @@ class DatabaseManager:
             is_honeypot_trigger: Whether a honeypot path was accessed
             attack_types: List of detected attack types
             matched_patterns: Dict mapping attack_type to matched pattern
+            rule_names: Dict mapping attack_type to the YARA rule that matched
             raw_request: Full raw HTTP request for forensic analysis
             referer: Inbound HTTP Referer header (bait-chain tracking)
             file_payloads: Uploaded-file dicts {filename, content_type, size,
                 content(bytes)} to persist as captured_payloads rows
+            target_host: Normalized hostname extracted from the Host header
+            request_assets: Absolute URL occurrences extracted from the request
             increment_page_visit: Also bump the page visit counter in the same tx
             max_pages_limit: Ban threshold (used with increment_page_visit)
 
@@ -322,6 +377,41 @@ class DatabaseManager:
         config = get_config()
         persist_suspicious_only = config.database_persist_suspicious_only
         scalable = config.mode == "scalable"
+
+        # Keep direct DatabaseManager callers (seeders/importers as well as the
+        # tracker) on the same metadata path. ``None`` means the caller did not
+        # pre-extract assets; an empty list means it did and found none.
+        if raw_request and (target_host is None or request_assets is None):
+            from request_metadata import extract_request_metadata
+
+            derived_host, derived_assets = extract_request_metadata(raw_request)
+            if target_host is None:
+                target_host = derived_host
+            if request_assets is None:
+                request_assets = derived_assets
+
+        if file_payloads is None and raw_request:
+            from tlsh_utils import extract_file_payloads
+
+            file_payloads = extract_file_payloads(
+                raw_request, compute_tlsh=config.tlsh_enabled
+            )
+
+        try:
+            from generative_ai import is_uninteresting_request
+
+            is_interesting = not is_uninteresting_request(
+                path,
+                method,
+                is_suspicious,
+                is_honeypot_trigger,
+                attack_types,
+                file_payloads,
+                request_assets,
+            )
+        except Exception as e:  # never lose a request to classification
+            applogger.error(f"Request classification failed for {path}: {e}")
+            is_interesting = True
 
         session = self.session
         try:
@@ -338,9 +428,13 @@ class DatabaseManager:
                         is_honeypot_trigger=is_honeypot_trigger,
                         attack_types=attack_types,
                         matched_patterns=matched_patterns,
+                        rule_names=rule_names,
                         raw_request=raw_request,
                         referer=referer,
                         file_payloads=file_payloads,
+                        target_host=target_host,
+                        request_assets=request_assets,
+                        is_interesting=is_interesting,
                     )
             else:
                 if not persist_suspicious_only or is_suspicious:
@@ -354,12 +448,18 @@ class DatabaseManager:
                         timestamp=datetime.now(),
                         raw_request=raw_request,
                         referer=sanitize_path(referer) if referer else None,
+                        target_host=(target_host or "")[:255] or None,
+                        request_metadata_extracted=True,
+                        request_metadata_version=CURRENT_METADATA_VERSION,
+                        file_extraction_version=1,
+                        is_interesting=is_interesting,
                     )
                     session.add(access_log)
                     session.flush()
 
                     if attack_types:
                         matched_patterns = matched_patterns or {}
+                        rule_names = rule_names or {}
                         for attack_type in attack_types:
                             detection = AttackDetection(
                                 access_log_id=access_log.id,
@@ -367,8 +467,17 @@ class DatabaseManager:
                                 matched_pattern=sanitize_attack_pattern(
                                     matched_patterns.get(attack_type, "")
                                 ),
+                                rule_name=_rule_name(rule_names, attack_type),
                             )
                             session.add(detection)
+
+                    for asset_url in request_assets or []:
+                        session.add(
+                            RequestAsset(
+                                access_log_id=access_log.id,
+                                url=sanitize_path(asset_url),
+                            )
+                        )
 
                     # Persist captured file payloads (WebShell/uploads) linked to this log.
                     if file_payloads:
@@ -407,6 +516,17 @@ class DatabaseManager:
             )
 
             session.commit()
+
+            if (
+                increment_page_visit
+                and max_pages_limit > 0
+                and page_visit_count >= max_pages_limit
+            ):
+                import ban_cache
+                from dashboard_cache import delete_cached_short
+
+                ban_cache.add(sanitize_ip(ip))
+                delete_cached_short(f"ban:{sanitize_ip(ip)}")
 
             # Update event-driven metric counters after the DB commit. A crash
             # between commit and here causes at most bounded drift, corrected by
@@ -459,7 +579,7 @@ class DatabaseManager:
         """
         total = 0
         while total < max_rows:
-            entries = self._pop_batch(_FLUSH_BATCH_SIZE)
+            entries = self._pop_batch(min(_FLUSH_BATCH_SIZE, max_rows - total))
             if not entries:
                 break
             inserted = self._insert_access_log_batch(entries)
@@ -472,17 +592,24 @@ class DatabaseManager:
         """Insert one batch of buffered entries: two statements, not two per row."""
         session = self.session
         try:
-            logs, attacks_per_entry, payloads_per_entry = [], [], []
+            logs, attacks_per_entry, payloads_per_entry, assets_per_entry = (
+                [],
+                [],
+                [],
+                [],
+            )
             for entry in entries:
-                ts = entry.pop("_buffered_at", datetime.now())
+                ts = entry.get("_buffered_at", datetime.now())
                 attacks_per_entry.append(
                     (
-                        entry.pop("attack_types", None),
-                        entry.pop("matched_patterns", None) or {},
+                        entry.get("attack_types"),
+                        entry.get("matched_patterns") or {},
+                        entry.get("rule_names") or {},
                     )
                 )
-                file_payloads = entry.pop("file_payloads", None)
+                file_payloads = entry.get("file_payloads")
                 payloads_per_entry.append(file_payloads)
+                assets_per_entry.append(entry.get("request_assets") or [])
                 logs.append(
                     {
                         "ip": sanitize_ip(entry["ip"]),
@@ -498,6 +625,11 @@ class DatabaseManager:
                             if entry.get("referer")
                             else None
                         ),
+                        "target_host": (entry.get("target_host") or "")[:255] or None,
+                        "request_metadata_extracted": True,
+                        "request_metadata_version": CURRENT_METADATA_VERSION,
+                        "file_extraction_version": 1,
+                        "is_interesting": entry.get("is_interesting", True),
                     }
                 )
 
@@ -515,10 +647,11 @@ class DatabaseManager:
                     "matched_pattern": sanitize_attack_pattern(
                         patterns.get(attack_type, "")
                     ),
+                    "rule_name": _rule_name(rule_names, attack_type),
                     "tlsh_hash": None,
                     "cluster_id": None,
                 }
-                for log_id, (types, patterns) in zip(
+                for log_id, (types, patterns, rule_names) in zip(
                     log_ids, attacks_per_entry, strict=True
                 )
                 if types
@@ -554,6 +687,17 @@ class DatabaseManager:
             if captured_rows:
                 session.execute(insert(CapturedPayload), captured_rows)
 
+            asset_rows = [
+                {
+                    "access_log_id": log_id,
+                    "url": sanitize_path(asset_url),
+                }
+                for log_id, asset_urls in zip(log_ids, assets_per_entry, strict=True)
+                for asset_url in asset_urls
+            ]
+            if asset_rows:
+                session.execute(insert(RequestAsset), asset_rows)
+
             session.commit()
             return len(logs)
 
@@ -567,6 +711,7 @@ class DatabaseManager:
             with _write_lock:
                 _write_buffer.extendleft(reversed(entries))
                 _buffer_bytes += sum(_entry_bytes(e) for e in entries)
+                _trim_write_buffer()
             return 0
         finally:
             self.close_session()
@@ -650,27 +795,16 @@ class DatabaseManager:
         # rotating proxy pools mint one address per request and never reuse it,
         # which was 42% of this table. Suspicious traffic is exempt, so nothing
         # worth investigating is dropped. See ip_utils.defer_persist.
-        if ip_stats is None and defer_persist(
-            sanitized_ip, is_suspicious, is_honeypot_trigger
-        ):
-            return 0, False, False
+        if ip_stats is None:
+            if defer_persist(sanitized_ip, is_suspicious, is_honeypot_trigger):
+                return 0, False, False
+            was_new_ip = _insert_ip_stats_if_missing(session, sanitized_ip, now)
+            ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).one()
 
-        if ip_stats:
-            ip_stats.total_requests += 1
-            ip_stats.last_seen = now
-            if is_suspicious:
-                ip_stats.need_reevaluation = True
-        else:
-            was_new_ip = True
-            ip_stats = IpStats(
-                ip=sanitized_ip,
-                total_requests=1,
-                first_seen=now,
-                last_seen=now,
-                need_reevaluation=is_suspicious,
-                page_visit_count=0,
-            )
-            session.add(ip_stats)
+        ip_stats.total_requests += 1
+        ip_stats.last_seen = now
+        if is_suspicious:
+            ip_stats.need_reevaluation = True
 
         if is_honeypot_trigger and not ip_stats.has_triggered_honeypot:
             ip_stats.has_triggered_honeypot = True
@@ -685,15 +819,6 @@ class DatabaseManager:
                 ip_stats.total_violations = (ip_stats.total_violations or 0) + 1
                 ip_stats.ban_multiplier = _ban_multiplier_for(ip_stats.total_violations)
                 ip_stats.ban_timestamp = now
-                # Invalidate cached ban info so the new ban is enforced immediately
-                from dashboard_cache import delete_cached_short
-
-                delete_cached_short(f"ban:{sanitized_ip}")
-
-                import ban_cache
-
-                ban_cache.add(sanitized_ip)
-
         return page_visit_count, was_new_ip, was_first_honeypot
 
     def increment_page_visit(self, ip: str, max_pages_limit: int) -> int:
@@ -713,21 +838,14 @@ class DatabaseManager:
             ip_stats = session.query(IpStats).filter(IpStats.ip == sanitized_ip).first()
 
             if not ip_stats:
-                now = datetime.now()
-                ip_stats = IpStats(
-                    ip=sanitized_ip,
-                    total_requests=0,
-                    first_seen=now,
-                    last_seen=now,
-                    page_visit_count=1,
+                _insert_ip_stats_if_missing(session, sanitized_ip, datetime.now())
+                ip_stats = (
+                    session.query(IpStats).filter(IpStats.ip == sanitized_ip).one()
                 )
-                session.add(ip_stats)
-                session.commit()
-                return 1
 
             ip_stats.page_visit_count = (ip_stats.page_visit_count or 0) + 1
 
-            if ip_stats.page_visit_count >= max_pages_limit:
+            if max_pages_limit > 0 and ip_stats.page_visit_count >= max_pages_limit:
                 ip_stats.total_violations = (ip_stats.total_violations or 0) + 1
                 ip_stats.ban_multiplier = _ban_multiplier_for(ip_stats.total_violations)
                 ip_stats.ban_timestamp = datetime.now()

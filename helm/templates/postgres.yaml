@@ -57,6 +57,7 @@ spec:
         app.kubernetes.io/name: {{ include "krawl.name" . }}-postgres
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      automountServiceAccountToken: false
       containers:
       - name: postgres
         image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
@@ -78,9 +79,23 @@ spec:
           protocol: TCP
         env:
         - name: POSTGRES_DB
+          {{- if .Values.postgres.existingSecret.databaseKey }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ (include "krawl.postgres.secret" . | fromJson).name }}
+              key: {{ .Values.postgres.existingSecret.databaseKey }}
+          {{- else }}
           value: {{ .Values.postgres.database | quote }}
+          {{- end }}
         - name: POSTGRES_USER
+          {{- if .Values.postgres.existingSecret.userKey }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ (include "krawl.postgres.secret" . | fromJson).name }}
+              key: {{ .Values.postgres.existingSecret.userKey }}
+          {{- else }}
           value: {{ .Values.postgres.user | quote }}
+          {{- end }}
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -104,22 +119,18 @@ spec:
         livenessProbe:
           exec:
             command:
-              - pg_isready
-              - -U
-              - {{ .Values.postgres.user | quote }}
-              - -d
-              - {{ .Values.postgres.database | quote }}
+              - /bin/sh
+              - -c
+              - exec pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
         readinessProbe:
           exec:
             command:
-              - pg_isready
-              - -U
-              - {{ .Values.postgres.user | quote }}
-              - -d
-              - {{ .Values.postgres.database | quote }}
+              - /bin/sh
+              - -c
+              - exec pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
           initialDelaySeconds: 10
           periodSeconds: 5
           timeoutSeconds: 3
