@@ -330,6 +330,7 @@ The Krawl service already includes `externalTrafficPolicy: Local` by default to 
 | `postgres.resources` | CPU/memory resource requests and limits | `1Gi` limit / `512Mi` request |
 | `postgres.config` | Server settings passed as `-c name=value` flags; set a key to `null` to drop it | see below |
 | `postgres.shmSize` | Size of `/dev/shm` (tmpfs); `""` leaves the Kubernetes 64Mi default | `256Mi` |
+| `postgres.probes` | Timings for the `pg_isready` startup, liveness and readiness probes; set one to `null` to drop it | see below |
 
 #### PostgreSQL tuning
 
@@ -401,6 +402,24 @@ caching tier — so a tight limit squeezes both tiers at once. An OOM kill also
 discards the cumulative statistics file, which resets the counters autovacuum
 uses to schedule itself; a database that keeps getting killed can stop being
 vacuumed or analyzed altogether.
+
+#### PostgreSQL probes
+
+All three probes run `pg_isready`; `postgres.probes` sets only their timings.
+
+| Probe | Default | Effect |
+|-------|---------|--------|
+| `startupProbe` | every 10s, timeout 5s, 60 failures | Up to 10 minutes to finish crash recovery |
+| `livenessProbe` | every 20s, timeout 10s, 6 failures | Restart after 2 minutes unresponsive |
+| `readinessProbe` | every 10s, timeout 5s, 3 failures | Out of the Service after 30 seconds |
+
+`pg_isready` fails while PostgreSQL replays its WAL after an unclean shutdown,
+and on a large or busy database that replay can take minutes. Liveness only
+starts once the startup probe passes, so a recovering database is not killed
+mid-recovery and sent back into a longer recovery. Raise
+`startupProbe.failureThreshold` if recovery on your storage takes longer than
+10 minutes, and `livenessProbe.timeoutSeconds` if `pg_isready` is slow under
+heavy I/O.
 
 ### Redis Configuration (Scalable)
 

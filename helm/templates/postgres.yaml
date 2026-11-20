@@ -116,24 +116,17 @@ spec:
         resources:
           {{- toYaml . | nindent 12 }}
         {{- end }}
-        livenessProbe:
+        {{- range $name := list "startupProbe" "livenessProbe" "readinessProbe" }}
+        {{- with (index $.Values.postgres.probes $name) }}
+        {{ $name }}:
           exec:
             command:
               - /bin/sh
               - -c
               - exec pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-        readinessProbe:
-          exec:
-            command:
-              - /bin/sh
-              - -c
-              - exec pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- end }}
       volumes:
       {{- if .Values.postgres.persistence.enabled }}
       - name: data

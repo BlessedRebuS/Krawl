@@ -462,6 +462,23 @@ postgres:
   # /dev/shm size (tmpfs). The k8s default of 64Mi is too small for parallel
   # VACUUM. "" leaves it at the default. Counts against the memory limit below.
   shmSize: 256Mi
+  # pg_isready probe timings. The startup probe covers crash recovery, which on
+  # slow or busy storage can take minutes; liveness only starts once it passes,
+  # so a recovering database is not killed and sent back into recovery.
+  # Set a probe to null to drop it.
+  probes:
+    startupProbe:
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 60  # up to 10 minutes for crash recovery
+    livenessProbe:
+      periodSeconds: 20
+      timeoutSeconds: 10
+      failureThreshold: 6  # 2 minutes unresponsive before a restart
+    readinessProbe:
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
   # Keep the limit well above shared_buffers + shmSize: the page cache is
   # charged to the cgroup too, and an OOM kill wipes the stats autovacuum needs.
   resources:
